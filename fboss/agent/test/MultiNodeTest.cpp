@@ -117,6 +117,35 @@ std::vector<std::string> MultiNodeTest::testPortNames() const {
   return getPortNames(testPorts());
 }
 
+std::map<PortID, PortID> MultiNodeTest::localToRemotePort() const {
+  std::map<PortID, PortID> localToRemote;
+  auto getNbrs = [&localToRemote, this]() {
+    try {
+      auto localPorts = testPorts();
+      std::sort(localPorts.begin(), localPorts.end());
+      std::vector<LinkNeighborThrift> remoteLldpNeighbors;
+      getRemoteThriftClient()->sync_getLldpNeighbors(remoteLldpNeighbors);
+      for (const auto& nbr : remoteLldpNeighbors) {
+        auto localPort = sw()->getState()
+                             ->getPorts()
+                             ->getPort(*nbr.printablePortId_ref())
+                             ->getID();
+        if (std::find(localPorts.begin(), localPorts.end(), localPort) !=
+            localPorts.end()) {
+          localToRemote[localPort] = *nbr.localPort_ref();
+        }
+      }
+      return localToRemote.size() == testPorts().size();
+    } catch (const std::exception& ex) {
+      XLOG(INFO) << "Failed to get nbrs: " << ex.what();
+      return false;
+    }
+  };
+
+  checkWithRetry(getNbrs);
+  return localToRemote;
+}
+
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {
   ::testing::InitGoogleTest(&argc, argv);
   initAgentTest(argc, argv, initPlatformFn);

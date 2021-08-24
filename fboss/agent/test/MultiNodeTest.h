@@ -31,6 +31,7 @@ class MultiNodeTest : public AgentTest {
   bool isDUT() const;
   std::vector<PortID> testPorts() const;
   std::vector<std::string> testPortNames() const;
+  std::map<PortID, PortID> localToRemotePort() const;
 
  private:
   bool runVerification() const override {
