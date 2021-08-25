@@ -76,7 +76,7 @@ class ThriftTest : public ::testing::Test {
 };
 
 TEST_F(ThriftTest, getInterfaceDetail) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
@@ -114,18 +114,18 @@ TEST_F(ThriftTest, getInterfaceDetail) {
 }
 
 TEST_F(ThriftTest, listHwObjects) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
-  EXPECT_HW_CALL(this->sw_, listObjects(in, testing::_)).Times(1);
+  EXPECT_HW_CALL(sw_, listObjects(in, testing::_)).Times(1);
   handler.listHwObjects(
       out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
 TEST_F(ThriftTest, getHwDebugDump) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   std::string out;
-  EXPECT_HW_CALL(this->sw_, dumpDebugState(testing::_)).Times(1);
+  EXPECT_HW_CALL(sw_, dumpDebugState(testing::_)).Times(1);
   // Mock getHwDebugDump doesn't write any thing so expect FbossError
   EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
@@ -173,7 +173,7 @@ TEST_F(ThriftTest, LinkLocalRoutes) {
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
-      this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
+      sw_->getRib(), RouterID(0), ip, this->sw_->getState());
   // Verify that a route is found. Link local route should always
   // be present
   ASSERT_NE(nullptr, longestMatchRoute);
@@ -182,7 +182,7 @@ TEST_F(ThriftTest, LinkLocalRoutes) {
 }
 
 TEST_F(ThriftTest, flushNonExistentNeighbor) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   EXPECT_EQ(
       handler.flushNeighborEntry(
           std::make_unique<BinaryAddress>(
@@ -199,20 +199,20 @@ TEST_F(ThriftTest, flushNonExistentNeighbor) {
 
 TEST_F(ThriftTest, setPortState) {
   const PortID port1{1};
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   handler.setPortState(port1, true);
-  this->sw_->linkStateChanged(port1, true);
-  waitForStateUpdates(this->sw_);
+  sw_->linkStateChanged(port1, true);
+  waitForStateUpdates(sw_);
 
-  auto port = this->sw_->getState()->getPorts()->getPortIf(port1);
+  auto port = sw_->getState()->getPorts()->getPortIf(port1);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
-  this->sw_->linkStateChanged(port1, false);
+  sw_->linkStateChanged(port1, false);
   handler.setPortState(port1, false);
-  waitForStateUpdates(this->sw_);
+  waitForStateUpdates(sw_);
 
-  port = this->sw_->getState()->getPorts()->getPortIf(port1);
+  port = sw_->getState()->getPorts()->getPortIf(port1);
   EXPECT_FALSE(port->isUp());
   EXPECT_FALSE(port->isEnabled());
 }
@@ -241,15 +241,15 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto kIntf1 = InterfaceID(1);
 
   // Two clients - BGP and OPENR
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
   auto openrClient = static_cast<int16_t>(ClientID::OPENR);
-  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
-  auto openrClientAdmin = this->sw_->clientIdToAdminDistance(openrClient);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto openrClientAdmin = sw_->clientIdToAdminDistance(openrClient);
 
   // nhops to use
   auto nhop4 = "10.0.0.2";
@@ -283,7 +283,7 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   addRoutesForClient(prefixB4, prefixB6, openrClient, openrClientAdmin);
 
   auto verifyPrefixesPresent = [&](const auto& prefix4, const auto& prefix6) {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     auto rtA4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefix4), state);
     EXPECT_NE(nullptr, rtA4);
@@ -306,7 +306,7 @@ TEST_F(ThriftTest, multipleClientSyncFib) {
   verifyPrefixesPresent(prefixB4, prefixB6);
 
   auto verifyPrefixesRemoved = [&](const auto& prefix4, const auto& prefix6) {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     auto rtA4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefix4), state);
     EXPECT_EQ(nullptr, rtA4);
@@ -357,14 +357,14 @@ TEST_F(ThriftTest, syncFib) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto randomClient = 500;
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
   auto staticClient = static_cast<int16_t>(ClientID::STATIC_ROUTE);
-  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
-  auto bgpAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
-  auto staticAdmin = this->sw_->clientIdToAdminDistance(staticClient);
+  auto randomClientAdmin = sw_->clientIdToAdminDistance(randomClient);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto staticAdmin = sw_->clientIdToAdminDistance(staticClient);
   // STATIC_ROUTE > BGPD > RANDOM_CLIENT
   //
   // Add a few BGP routes
@@ -411,7 +411,7 @@ TEST_F(ThriftTest, syncFib) {
 
   // Make sure all the static and link-local routes are there
   auto ensureConfigRoutes = [this, rid]() {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
@@ -435,7 +435,7 @@ TEST_F(ThriftTest, syncFib) {
   // there.
 
   {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     // Only random client routes
     auto rtA4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefixA4), state);
@@ -511,7 +511,7 @@ TEST_F(ThriftTest, syncFib) {
   //
   {
     // Make sure all the static and link-local routes are still there
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     ensureConfigRoutes();
     // Only random client routes from before are gone, since we did not syncFib
     // with them
@@ -570,14 +570,14 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto randomClient = 500;
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
   auto staticClient = static_cast<int16_t>(ClientID::STATIC_ROUTE);
-  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
-  auto bgpAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
-  auto staticAdmin = this->sw_->clientIdToAdminDistance(staticClient);
+  auto randomClientAdmin = sw_->clientIdToAdminDistance(randomClient);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto staticAdmin = sw_->clientIdToAdminDistance(staticClient);
   // STATIC_ROUTE > BGPD > RANDOM_CLIENT
   //
   // Add a few BGP routes
@@ -624,7 +624,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
 
   // Make sure all the static and link-local routes are there
   auto ensureConfigRoutes = [this, rid]() {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     EXPECT_NE(
         nullptr,
         findRoute<folly::IPAddressV4>(
@@ -652,7 +652,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
   // there.
 
   {
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     // Only random client routes
     auto rtA4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefixA4), state);
@@ -734,7 +734,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
   //
   {
     // Make sure all the static and link-local routes are still there
-    auto state = this->sw_->getState();
+    auto state = sw_->getState();
     ensureConfigRoutes();
     // Only random client routes from before are gone, since we did not syncFib
     // with them
@@ -789,14 +789,14 @@ TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto randomClient = 500;
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
   auto staticClient = static_cast<int16_t>(ClientID::STATIC_ROUTE);
-  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
-  auto bgpAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
-  auto staticAdmin = this->sw_->clientIdToAdminDistance(staticClient);
+  auto randomClientAdmin = sw_->clientIdToAdminDistance(randomClient);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto staticAdmin = sw_->clientIdToAdminDistance(staticClient);
   // STATIC_ROUTE > BGPD > RANDOM_CLIENT
   //
   // Add a few BGP routes
@@ -837,7 +837,7 @@ TEST_F(ThriftTest, delUnicastRoutes) {
                          bool expectPresent, const std::string& nhop) {
     auto kIntf1 = InterfaceID(1);
     auto rtC6 = findRoute<folly::IPAddressV6>(
-        rid, IPAddress::createNetwork(prefixC6), this->sw_->getState());
+        rid, IPAddress::createNetwork(prefixC6), sw_->getState());
     if (!expectPresent) {
       EXPECT_EQ(nullptr, rtC6);
       return;
@@ -889,20 +889,20 @@ TEST_F(ThriftTest, delUnicastRoutes) {
 
 TEST_F(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   addRoutes->push_back(nr1);
-  EXPECT_HW_CALL(this->sw_, stateChanged(_));
+  EXPECT_HW_CALL(sw_, stateChanged(_));
   handler.addUnicastRoutes(10, std::move(addRoutes));
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
   newRoutes->push_back(nr2);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(this->sw_, stateChanged(_))
+  EXPECT_HW_CALL(sw_, stateChanged(_))
       .Times(::testing::AtLeast(1))
-      .WillOnce(Return(this->sw_->getState()));
+      .WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -920,13 +920,12 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
 }
 
 TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(this->sw_, stateChanged(_))
-      .WillOnce(Return(this->sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -943,8 +942,8 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
 }
 
 TEST_F(ThriftTest, getRouteTable) {
-  ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
+  ThriftHandler handler(sw_);
+  auto [v4Routes, v6Routes] = getRouteCount(sw_->getState());
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTable(routeTable);
   // 6 intf routes + 2 default routes + 1 link local route
@@ -953,8 +952,8 @@ TEST_F(ThriftTest, getRouteTable) {
 }
 
 TEST_F(ThriftTest, getRouteDetails) {
-  ThriftHandler handler(this->sw_);
-  auto [v4Routes, v6Routes] = getRouteCount(this->sw_->getState());
+  ThriftHandler handler(sw_);
+  auto [v4Routes, v6Routes] = getRouteCount(sw_->getState());
   std::vector<RouteDetails> routeDetails;
   handler.getRouteTableDetails(routeDetails);
   // 6 intf routes + 2 default routes + 1 link local route
@@ -963,7 +962,7 @@ TEST_F(ThriftTest, getRouteDetails) {
 }
 
 TEST_F(ThriftTest, getRouteTableByClient) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTableByClient(
       routeTable, static_cast<int16_t>(ClientID::INTERFACE_ROUTE));
@@ -988,13 +987,12 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
 
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(this->sw_, stateChanged(_))
-      .WillRepeatedly(Return(this->sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChanged(_)).WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1010,13 +1008,12 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
 
 TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(this->sw_, stateChanged(_))
-      .WillRepeatedly(Return(this->sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChanged(_)).WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1031,16 +1028,16 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
 }
 
 TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   std::vector<UnicastRoute>();
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   std::vector<UnicastRoute> routes;
   routes.push_back(nr1);
-  EXPECT_HW_CALL(this->sw_, stateChanged(_)).Times(2);
+  EXPECT_HW_CALL(sw_, stateChanged(_)).Times(2);
   handler.addUnicastRoutes(
       10, std::make_unique<std::vector<UnicastRoute>>(routes));
-  auto oneRouteAddedState = this->sw_->getState();
+  auto oneRouteAddedState = sw_->getState();
   std::vector<IpPrefix> delRoutes = {
       ipPrefix(IPAddress::createNetwork("aaaa::/64")),
   };
@@ -1052,7 +1049,7 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       *makeUnicastRoute("bbbb::/64", "2401:db00:2110:3001::1").get();
   routes.push_back(nr2);
   // Fail HW update by returning one route added state.
-  EXPECT_HW_CALL(this->sw_, stateChanged(_))
+  EXPECT_HW_CALL(sw_, stateChanged(_))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(oneRouteAddedState));
   EXPECT_THROW(
@@ -1074,14 +1071,13 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
 
 TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
   auto thriftHgridRoutes =
-      utility::HgridDuRouteScaleGenerator(this->sw_->getState(), 100000)
+      utility::HgridDuRouteScaleGenerator(sw_->getState(), 100000)
           .getThriftRoutes()[0];
-  auto thriftRswRoutes =
-      utility::RSWRouteScaleGenerator(this->sw_->getState(), 10000)
-          .getThriftRoutes()[0];
+  auto thriftRswRoutes = utility::RSWRouteScaleGenerator(sw_->getState(), 10000)
+                             .getThriftRoutes()[0];
   std::atomic<bool> done{false};
 
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   std::thread routeReads([&handler, &done]() {
     while (!done) {
       std::vector<RouteDetails> details;
@@ -1106,12 +1102,12 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto randomClient = 500;
-  auto randomClientAdmin = this->sw_->clientIdToAdminDistance(randomClient);
+  auto randomClientAdmin = sw_->clientIdToAdminDistance(randomClient);
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
-  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
 
   auto cli1_nhop4 = "10.0.0.11";
   auto cli1_nhop6 = "2401:db00:2110:3001::0011";
@@ -1138,7 +1134,7 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
       randomClient, makeUnicastRoute(prefixA6, cli1_nhop6, randomClientAdmin));
 
   // BGP route should get selected and counter ID set
-  auto state = this->sw_->getState();
+  auto state = sw_->getState();
   auto rtA4 = findRoute<folly::IPAddressV4>(
       rid, IPAddress::createNetwork(prefixA4), state);
   EXPECT_NE(nullptr, rtA4);
@@ -1170,7 +1166,7 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
       bgpClient, std::make_unique<std::vector<IpPrefix>>(delRoutes));
 
   // counter IDs should not be active
-  state = this->sw_->getState();
+  state = sw_->getState();
   rtA4 = findRoute<folly::IPAddressV4>(
       rid, IPAddress::createNetwork(prefixA4), state);
   EXPECT_NE(nullptr, rtA4);
@@ -1187,7 +1183,7 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
   handler.addUnicastRoute(
       bgpClient,
       makeUnicastRoute(prefixA6, cli1_nhop6, bgpClientAdmin, counterID2));
-  state = this->sw_->getState();
+  state = sw_->getState();
   rtA4 = findRoute<folly::IPAddressV4>(
       rid, IPAddress::createNetwork(prefixA4), state);
 
@@ -1216,10 +1212,10 @@ TEST_F(ThriftTest, CounterIDThriftReadTest) {
   RouterID rid = RouterID(0);
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
 
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
-  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
 
   auto cli1_nhop4 = "10.0.0.11";
   auto cli1_nhop6 = "2401:db00:2110:3001::0011";
@@ -1244,7 +1240,7 @@ TEST_F(ThriftTest, CounterIDThriftReadTest) {
       bgpClient,
       makeUnicastRoute(prefixB6, cli1_nhop6, bgpClientAdmin, counterID2));
 
-  auto state = this->sw_->getState();
+  auto state = sw_->getState();
   auto rtA4 = findRoute<folly::IPAddressV4>(
       rid, IPAddress::createNetwork(prefixA4), state);
   EXPECT_NE(nullptr, rtA4);
@@ -1300,9 +1296,9 @@ TEST_F(ThriftTest, CounterIDThriftReadTest) {
 }
 
 TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
-  ThriftHandler handler(this->sw_);
+  ThriftHandler handler(sw_);
   auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
-  auto bgpClientAdmin = this->sw_->clientIdToAdminDistance(bgpClient);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
 
   auto cli1_nhop6 = "2401:db00:2110:3001::0011";
   auto prefixA6 = "aaaa:1::0/64";
