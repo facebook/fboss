@@ -21,12 +21,11 @@ namespace facebook::fboss {
 
 class PktCapture;
 class RxPacket;
-class SwSwitch;
 class TxPacket;
 
 class PktCaptureManager {
  public:
-  explicit PktCaptureManager(SwSwitch* sw);
+  explicit PktCaptureManager(const std::string& persistentDir);
   virtual ~PktCaptureManager();
 
   /*

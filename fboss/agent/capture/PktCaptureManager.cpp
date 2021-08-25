@@ -10,8 +10,6 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 
@@ -24,9 +22,8 @@ using std::unique_ptr;
 
 namespace facebook::fboss {
 
-PktCaptureManager::PktCaptureManager(SwSwitch* sw) {
-  auto persistDir = sw->getPlatform()->getPersistentStateDir();
-  captureDir_ = folly::to<string>(persistDir, "/captures");
+PktCaptureManager::PktCaptureManager(const std::string& persistentDir) {
+  captureDir_ = folly::to<string>(persistentDir, "/captures");
   utilCreateDir(captureDir_);
 }
 

@@ -177,7 +177,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       ipv4_(new IPv4Handler(this)),
       ipv6_(new IPv6Handler(this)),
       nUpdater_(new NeighborUpdater(this)),
-      pcapMgr_(new PktCaptureManager(this)),
+      pcapMgr_(new PktCaptureManager(platform_->getPersistentStateDir())),
       mirrorManager_(new MirrorManager(this)),
       mplsHandler_(new MPLSHandler(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
