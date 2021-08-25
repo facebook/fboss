@@ -415,4 +415,6 @@ void programRoutes(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
     SwSwitch* sw);
 
+std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
+    const std::shared_ptr<SwitchState>& state);
 } // namespace facebook::fboss

@@ -620,4 +620,15 @@ void updateBlockedNeighbor(
   waitForStateUpdates(sw);
 }
 
+std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
+    const std::shared_ptr<SwitchState>& state) {
+  std::vector<std::shared_ptr<Port>> lbPorts;
+  for (auto port : *state->getPorts()) {
+    if (port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
+      lbPorts.push_back(port);
+    }
+  }
+  return lbPorts;
+}
+
 } // namespace facebook::fboss
