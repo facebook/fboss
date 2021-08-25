@@ -15,6 +15,7 @@ add_library(normalizer
 target_link_libraries(normalizer
   hardware_stats_cpp2
   Folly::folly
+  fb303::fb303
   fboss_types
   switch_config_cpp2
 )

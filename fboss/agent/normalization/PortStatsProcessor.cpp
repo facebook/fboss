@@ -8,11 +8,19 @@
  *
  */
 #include "fboss/agent/normalization/PortStatsProcessor.h"
+
+#include <fb303/ServiceData.h>
+#include <fmt/core.h>
+#include <folly/logging/xlog.h>
+
 #include "fboss/agent/normalization/StatsExporter.h"
 #include "fboss/agent/normalization/TransformHandler.h"
-#include "folly/logging/xlog.h"
 
 namespace facebook::fboss::normalization {
+namespace {
+const std::string kPrefix = "counter_normalization";
+const std::string kInterfaceStatsModelName = "Interface_Stats";
+} // namespace
 
 PortStatsProcessor::PortStatsProcessor(
     TransformHandler* transformHandler,
@@ -95,6 +103,15 @@ void PortStatsProcessor::process(
         *transformedValue,
         processIntervalSec,
         std::move(counterTags));
+
+    fb303::fbData->addStatValue(
+        fmt::format(
+            "{}.{}.{}",
+            kPrefix,
+            kInterfaceStatsModelName,
+            normalizedPropertyName),
+        1,
+        fb303::ExportType::COUNT);
   }
 }
 

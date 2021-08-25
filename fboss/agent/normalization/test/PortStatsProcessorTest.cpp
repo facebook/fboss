@@ -10,6 +10,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <fb303/ServiceData.h>
+
 #include "fboss/agent/normalization/CounterTagManager.h"
 #include "fboss/agent/normalization/PortStatsProcessor.h"
 #include "fboss/agent/normalization/StatsExporter.h"
@@ -182,6 +184,23 @@ TEST(PortStatsProcessorTest, processStats) {
 
     EXPECT_CALL(exporter, flushCounters()).Times(1);
     processor.processStats(hwStatsMap);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            "counter_normalization.Interface_Stats.input_bps.count"),
+        1);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            "counter_normalization.Interface_Stats.output_bps.count"),
+        1);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            "counter_normalization.Interface_Stats.total_input_discards.count"),
+        1);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            "counter_normalization.Interface_Stats.total_output_discards.count"),
+        1);
+
     Mock::VerifyAndClearExpectations(&exporter);
   }
 }
