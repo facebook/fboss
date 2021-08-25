@@ -52,6 +52,42 @@ std::map<std::string, HwPortStats> AgentTest::getPortStats(
   return portStats;
 }
 
+void AgentTest::resolveNeighbor(
+    PortDescriptor portDesc,
+    const folly::IPAddress& ip,
+    folly::MacAddress mac) {
+  // TODO support agg ports as well.
+  CHECK(portDesc.isPhysicalPort());
+  auto port = sw()->getState()->getPort(portDesc.phyPortID());
+  auto vlan = port->getVlans().begin()->first;
+  if (ip.isV4()) {
+    resolveNeighbor(portDesc, ip.asV4(), vlan, mac);
+  } else {
+    resolveNeighbor(portDesc, ip.asV6(), vlan, mac);
+  }
+}
+
+template <typename AddrT>
+void AgentTest::resolveNeighbor(
+    PortDescriptor port,
+    const AddrT& ip,
+    VlanID vlanId,
+    folly::MacAddress mac) {
+  auto resolveNeighborFn = [=](const std::shared_ptr<SwitchState>& state) {
+    auto outputState{state->clone()};
+    auto vlan = outputState->getVlans()->getVlan(vlanId);
+    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+        vlanId, &outputState);
+    if (nbrTable->getEntryIf(ip)) {
+      nbrTable->updateEntry(ip, mac, port, vlan->getInterfaceID());
+    } else {
+      nbrTable->addEntry(ip, mac, port, vlan->getInterfaceID());
+    }
+    return outputState;
+  };
+  sw()->updateStateBlocking("resolve nbr", resolveNeighborFn);
+}
+
 void AgentTest::runForever() const {
   XLOG(DBG2) << "AgentTest run forever...";
   while (true) {

@@ -24,6 +24,11 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   virtual void setupFlags() const;
   std::map<std::string, HwPortStats> getPortStats(
       const std::vector<std::string>& ports) const;
+
+  void resolveNeighbor(
+      PortDescriptor port,
+      const folly::IPAddress& ip,
+      folly::MacAddress mac);
   bool waitForSwitchStateCondition(
       std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
       uint32_t retries = 10,
@@ -97,6 +102,12 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
   }
 
  private:
+  template <typename AddrT>
+  void resolveNeighbor(
+      PortDescriptor port,
+      const AddrT& ip,
+      VlanID vlan,
+      folly::MacAddress mac);
   /*
    * Derived classes have the option to not run verify no
    * certain DUTs. E.g. non controlling nodes in Multinode setups
