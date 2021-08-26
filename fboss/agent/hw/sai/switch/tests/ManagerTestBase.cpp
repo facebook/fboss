@@ -30,8 +30,10 @@
 
 #include <folly/Singleton.h>
 
-#if !defined(IS_OSS) && __has_feature(address_sanitizer)
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
 #include <sanitizer/lsan_interface.h>
+#endif
 #endif
 
 namespace {
@@ -73,7 +75,6 @@ void ManagerTestBase::setupSaiPlatform() {
   saiApiTable = SaiApiTable::getInstance();
   saiStore = saiSwitch->getSaiStore();
   saiManagerTable = saiSwitch->managerTable();
-  SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
 
   auto setupState = std::make_shared<SwitchState>();
   for (int i = 0; i < testInterfaces.size(); ++i) {
@@ -142,11 +143,13 @@ void ManagerTestBase::TearDown() {
 
 void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
   saiStore->exitForWarmBoot();
-#if !defined(IS_OSS) && __has_feature(address_sanitizer)
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
   auto* leakedPlatform = saiPlatform.release();
   __lsan_ignore_object(leakedPlatform);
 #else
   saiPlatform.release();
+#endif
 #endif
   saiStore->reload();
 }

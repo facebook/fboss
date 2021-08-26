@@ -232,9 +232,6 @@ TEST_F(AclTableManagerTest, aclMirroring) {
   std::string mirrorId = "mirror1";
   auto mirror = std::make_shared<Mirror>(mirrorId, PortID(1), std::nullopt);
   saiManagerTable->mirrorManager().addMirror(mirror);
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
-                        ->aclTable->adapterKey();
   auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());

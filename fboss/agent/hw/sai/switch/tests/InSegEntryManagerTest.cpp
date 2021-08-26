@@ -46,7 +46,6 @@ class InSegEntryManagerTest : public ManagerTestBase {
     for (auto nextHopIndex = fromNextHop;
          nextHopIndex < toNextHop && nextHopIndex < testInterfaces.size();
          nextHopIndex++) {
-      auto ip = testInterfaces[nextHopIndex].remoteHosts[0].ip;
       nexthops.emplace(makeMplsNextHop(
           testInterfaces[nextHopIndex],
           getActionForNextHop(type, nextHopIndex)));

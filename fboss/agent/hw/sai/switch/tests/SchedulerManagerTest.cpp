@@ -79,7 +79,7 @@ class SchedulerManagerTest : public ManagerTestBase {
              ? SAI_SCHEDULING_TYPE_STRICT
              : SAI_SCHEDULING_TYPE_DWRR);
     auto expectedMeterType =
-        (queueRateType == PortQueueRate::Type::pktsPerSec
+        (queueRateType == cfg::PortQueueRate::Type::pktsPerSec
              ? SAI_METER_TYPE_PACKETS
              : SAI_METER_TYPE_BYTES);
     if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
@@ -176,7 +176,6 @@ TEST_F(SchedulerManagerTest, checkSchedulerProfileIdOnQueue) {
   std::vector<uint8_t> queueIds = {1, 2};
   uint64_t minPps = 12000;
   uint64_t maxPps = 88000;
-  auto queueRateType = cfg::PortQueueRate::Type::pktsPerSec;
   auto queueConfig = makeQueueConfig(
       {queueIds},
       cfg::StreamType::UNICAST,

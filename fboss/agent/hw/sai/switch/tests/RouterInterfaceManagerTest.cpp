@@ -84,7 +84,8 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
@@ -94,8 +95,10 @@ TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
   auto swInterface1 = makeInterface(intf1);
   auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
       swInterface1);
-  checkRouterInterface(saiId0, VlanSaiId{intf0.id}, intf0.routerMac);
-  checkRouterInterface(saiId1, VlanSaiId{intf1.id}, intf1.routerMac);
+  checkRouterInterface(
+      saiId0, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  checkRouterInterface(
+      saiId1, static_cast<VlanSaiId>(intf1.id), intf1.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
@@ -110,34 +113,38 @@ TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMac) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newMac = intf1.routerMac;
   CHECK_NE(swInterface->getMac(), newMac);
   auto newInterface = swInterface->clone();
   newInterface->setMac(newMac);
   saiManagerTable->routerInterfaceManager().changeRouterInterface(
       swInterface, newInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, newMac);
+  checkRouterInterface(saiId, static_cast<VlanSaiId>(intf0.id), newMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMtu) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newMtu = intf0.mtu + 1000;
   auto newInterface = swInterface->clone();
   newInterface->setMtu(newMtu);
   saiManagerTable->routerInterfaceManager().changeRouterInterface(
       swInterface, newInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac, newMtu);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac, newMtu);
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterfaceSubnets) {
   auto oldInterface = makeInterface(intf0);
   auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
       oldInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newInterface = oldInterface->clone();
   newInterface->setAddresses({});
 
@@ -151,7 +158,8 @@ TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceSubnets) {
   auto oldInterface = makeInterface(intf0);
   auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
       oldInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newInterface = oldInterface->clone();
   newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
 
@@ -167,7 +175,8 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterfaceSubnets) {
   auto oldInterface = makeInterface(intf0);
   auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
       oldInterface);
-  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(
+      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newInterface = oldInterface->clone();
 
   auto addresses = newInterface->getAddresses();

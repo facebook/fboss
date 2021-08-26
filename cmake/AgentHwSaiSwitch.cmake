@@ -73,6 +73,7 @@ target_link_libraries(sai_switch
   hw_switch_warmboot_helper
   mka_cpp2
   sai_api
+  sai_platform
   sai_store
   ref_map
   Folly::folly

@@ -290,7 +290,6 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> swPort = makePort(p0);
   auto newPort = swPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
@@ -306,7 +305,6 @@ TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
   auto newPort = oldPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
@@ -330,7 +328,6 @@ TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
   auto newPort = oldPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
@@ -352,7 +349,6 @@ TEST_F(QueueManagerTest, changePortNameAndCheckStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
   auto newPort = oldPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
@@ -374,7 +370,6 @@ TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
   std::shared_ptr<Port> oldPort = makePort(p0);
   CHECK(oldPort->isEnabled());
   auto newPort = oldPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
@@ -399,7 +394,6 @@ TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   std::shared_ptr<Port> oldPort = makePort(p0);
   CHECK(oldPort->isEnabled());
   auto newPort = oldPort->clone();
-  auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1};
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);

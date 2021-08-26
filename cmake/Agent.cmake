@@ -155,6 +155,7 @@ target_link_libraries(core
   capture
   diag_cmd_filter
   hardware_stats_cpp2
+  hw_switch_stats
   switch_asics
   ctrl_cpp2
   fboss_cpp2
