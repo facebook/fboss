@@ -153,4 +153,11 @@ TEST_F(HwHashPolarizationTests, fullXfullHash) {
   runTest(fullHashCfg, fullHashCfg, true /*expect polarization*/);
 }
 
+TEST_F(HwHashPolarizationTests, fullXHalfHash) {
+  runTest(
+      utility::getEcmpFullHashConfig(getPlatform()),
+      utility::getEcmpHalfHashConfig(getPlatform()),
+      false /*expect polarization*/);
+}
+
 } // namespace facebook::fboss
