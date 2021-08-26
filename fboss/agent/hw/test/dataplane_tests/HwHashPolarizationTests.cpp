@@ -64,37 +64,84 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
  protected:
   void runTest(
       const cfg::LoadBalancer& firstHash,
-      const cfg::LoadBalancer& secondHash) {
+      const cfg::LoadBalancer& secondHash,
+      bool expectPolarization) {
     auto setup = [this]() {
       programRoutes<folly::IPAddressV4>();
       programRoutes<folly::IPAddressV6>();
     };
-    auto verify = [this, firstHash, secondHash]() {
+    auto verify = [this, firstHash, secondHash, expectPolarization]() {
       auto ecmpPorts = getEcmpPorts();
-      HwTestPacketTrapEntry trapPkts(
-          getHwSwitch(),
-          std::set<PortID>{
-              ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
-      // Set first hash
-      applyNewState(utility::setLoadBalancer(
-          getPlatform(), getProgrammedState(), firstHash));
-
       auto firstVlan = utility::firstVlanID(getProgrammedState());
       auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
-      for (auto isV6 : {true, false}) {
-        utility::pumpTraffic(
-            isV6,
+      {
+        HwTestPacketTrapEntry trapPkts(
             getHwSwitch(),
-            mac,
-            firstVlan,
-            masterLogicalPortIds()[kEcmpWidth]);
-      }
+            std::set<PortID>{
+                ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
+        // Set first hash
+        applyNewState(utility::setLoadBalancer(
+            getPlatform(), getProgrammedState(), firstHash));
 
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getHwSwitchEnsemble(), getEcmpPortDesc(), kMaxDeviation));
+        for (auto isV6 : {true, false}) {
+          utility::pumpTraffic(
+              isV6,
+              getHwSwitch(),
+              mac,
+              firstVlan,
+              masterLogicalPortIds()[kEcmpWidth]);
+        }
+      } // stop capture
+
+      auto firstHashPortStats =
+          getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
+      EXPECT_TRUE(utility::isLoadBalanced(firstHashPortStats, kMaxDeviation));
       XLOG(INFO) << " Num captured packets: " << pktsReceived_.rlock()->size();
+      // Set second hash
+      applyNewState(utility::setLoadBalancer(
+          getPlatform(), getProgrammedState(), secondHash));
+      auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
+        return utility::makeUDPTxPacket(
+            getHwSwitch(),
+            firstVlan,
+            srcMac,
+            mac,
+            ipPayload.header().srcAddr,
+            ipPayload.header().dstAddr,
+            ipPayload.payload()->header().srcPort,
+            ipPayload.payload()->header().dstPort);
+      };
+      auto ethFrames = pktsReceived_.rlock();
+      for (auto& ethFrame : *ethFrames) {
+        std::unique_ptr<TxPacket> pkt;
+        auto srcMac = ethFrame.header().srcAddr;
+        if (ethFrame.header().etherType ==
+            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+          pkt = makeTxPacket(srcMac, *ethFrame.v4PayLoad());
+        } else if (
+            ethFrame.header().etherType ==
+            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+          pkt = makeTxPacket(srcMac, *ethFrame.v6PayLoad());
+        } else {
+          XLOG(FATAL) << " Unexpected packet received, etherType: "
+                      << static_cast<int>(ethFrame.header().etherType);
+        }
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(pkt), masterLogicalPortIds()[kEcmpWidth]);
+      }
+      auto secondHashPortStats =
+          getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
+      if (expectPolarization) {
+        EXPECT_FALSE(
+            utility::isLoadBalanced(secondHashPortStats, kMaxDeviation));
+      } else {
+        EXPECT_TRUE(
+            utility::isLoadBalanced(secondHashPortStats, kMaxDeviation));
+      }
     };
-    verifyAcrossWarmBoots(setup, verify);
+    // TODO - compute stats delta for LB calculations and enable WBs
+    setup();
+    verify();
   }
 
  private:
@@ -103,7 +150,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
 TEST_F(HwHashPolarizationTests, fullXfullHash) {
   auto fullHashCfg = utility::getEcmpFullHashConfig(getPlatform());
-  runTest(fullHashCfg, fullHashCfg);
+  runTest(fullHashCfg, fullHashCfg, true /*expect polarization*/);
 }
 
 } // namespace facebook::fboss
