@@ -92,7 +92,7 @@ std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
   return {getEcmpHalfHashConfig(platform), getTrunkFullHashConfig(platform)};
 }
 
-std::shared_ptr<SwitchState> addLoadBalancer(
+std::shared_ptr<SwitchState> setLoadBalancer(
     const Platform* platform,
     const std::shared_ptr<SwitchState>& inputState,
     const cfg::LoadBalancer& loadBalancerCfg) {
@@ -112,8 +112,13 @@ std::shared_ptr<SwitchState> addLoadBalancers(
   auto newState{inputState->clone()};
   auto lbMap = newState->getLoadBalancers()->clone();
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
-    lbMap->addLoadBalancer(
-        LoadBalancerConfigParser(platform).parse(loadBalancerCfg));
+    auto loadBalancer =
+        LoadBalancerConfigParser(platform).parse(loadBalancerCfg);
+    if (lbMap->getLoadBalancerIf(loadBalancer->getID())) {
+      lbMap->updateLoadBalancer(loadBalancer);
+    } else {
+      lbMap->addLoadBalancer(loadBalancer);
+    }
   }
   newState->resetLoadBalancers(lbMap);
   return newState;
