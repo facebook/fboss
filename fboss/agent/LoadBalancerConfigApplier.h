@@ -19,9 +19,8 @@
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/types.h"
 
-class Platform;
-
 namespace facebook::fboss {
+class Platform;
 
 class LoadBalancerConfigParser {
  public:

@@ -225,10 +225,10 @@ folly::dynamic LoadBalancer::toFollyDynamic() const {
 
 uint32_t LoadBalancer::generateDeterministicSeed(
     LoadBalancerID loadBalancerID,
-    const Platform* platform) {
+    folly::MacAddress platformMac) {
   // To avoid changing the seed across graceful restarts, the seed is generated
   // deterministically using the local MAC address.
-  auto mac64 = platform->getLocalMac().u64HBO();
+  auto mac64 = platformMac.u64HBO();
   uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
 
   uint32_t seed = 0;

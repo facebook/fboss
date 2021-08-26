@@ -13,14 +13,13 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
 
+#include "folly/MacAddress.h"
 #include "folly/Range.h"
 #include "folly/dynamic.h"
 
 #include "boost/container/flat_set.hpp"
 
 namespace facebook::fboss {
-
-class Platform;
 
 struct LoadBalancerFields {
   using IPv4Field = cfg::IPv4Field;
@@ -127,7 +126,7 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
 
   static uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
-      const Platform* platform);
+      folly::MacAddress platformMac);
 
  private:
   // Inherit the constructors required for clone()
