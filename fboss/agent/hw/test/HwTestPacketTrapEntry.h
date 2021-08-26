@@ -8,6 +8,7 @@
 namespace facebook::fboss {
 
 class HwSwitch;
+class AclEntry;
 
 class HwTestPacketTrapEntry {
  public:
@@ -24,8 +25,9 @@ class HwTestPacketTrapEntry {
   ~HwTestPacketTrapEntry();
 
  private:
-  int unit_;
+  HwSwitch* hwSwitch_;
   std::vector<int> entries_;
+  std::vector<std::shared_ptr<AclEntry>> aclEntries_;
 };
 
 } // namespace facebook::fboss
