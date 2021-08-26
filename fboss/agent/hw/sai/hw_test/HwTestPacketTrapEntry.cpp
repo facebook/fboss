@@ -13,8 +13,10 @@ using namespace facebook::fboss;
 std::shared_ptr<AclEntry> getTrapAclEntry(
     bool srcPort,
     std::optional<PortID> port,
-    std::optional<folly::CIDRNetwork> dstPrefix) {
-  auto aclEntry = std::make_shared<AclEntry>(1, "AclEntry1");
+    std::optional<folly::CIDRNetwork> dstPrefix,
+    int priority) {
+  auto aclEntry = std::make_shared<AclEntry>(
+      priority, "AclEntry" + folly::to<std::string>(priority));
   srcPort ? aclEntry->setSrcPort(port.value())
           : aclEntry->setDstIp(dstPrefix.value());
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
@@ -30,20 +32,28 @@ std::shared_ptr<AclEntry> getTrapAclEntry(
 } // namespace
 namespace facebook::fboss {
 
-HwTestPacketTrapEntry::HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port) {
+HwTestPacketTrapEntry::HwTestPacketTrapEntry(
+    HwSwitch* hwSwitch,
+    const std::set<PortID>& ports) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
-  auto aclEntry = getTrapAclEntry(true, port, std::nullopt);
-  saiSwitch->managerTable()->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  int priority = 1;
+  for (auto port : ports) {
+    auto aclEntry = getTrapAclEntry(true, port, std::nullopt, priority++);
+    saiSwitch->managerTable()->aclTableManager().addAclEntry(
+        aclEntry, SaiSwitch::kAclTable1);
+  }
 }
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     HwSwitch* hwSwitch,
-    folly::CIDRNetwork& dstPrefix) {
+    const std::set<folly::CIDRNetwork>& dstPrefixes) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
-  auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix);
-  saiSwitch->managerTable()->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  int priority = 1;
+  for (const auto& dstPrefix : dstPrefixes) {
+    auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, priority++);
+    saiSwitch->managerTable()->aclTableManager().addAclEntry(
+        aclEntry, SaiSwitch::kAclTable1);
+  }
 }
 
 HwTestPacketTrapEntry::~HwTestPacketTrapEntry() {}
