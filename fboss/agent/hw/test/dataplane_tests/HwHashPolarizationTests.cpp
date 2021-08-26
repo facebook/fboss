@@ -17,6 +17,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/logging/xlog.h>
@@ -158,6 +159,17 @@ TEST_F(HwHashPolarizationTests, fullXHalfHash) {
       utility::getEcmpFullHashConfig(getPlatform()),
       utility::getEcmpHalfHashConfig(getPlatform()),
       false /*expect polarization*/);
+}
+
+TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
+  // Setup 2 identical hashes with only the seed changed
+  auto firstHash = utility::getEcmpFullHashConfig(getPlatform());
+  firstHash.seed_ref() = LoadBalancer::generateDeterministicSeed(
+      LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
+  auto secondHash = utility::getEcmpFullHashConfig(getPlatform());
+  secondHash.seed_ref() = LoadBalancer::generateDeterministicSeed(
+      LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+  runTest(firstHash, secondHash, false /*expect polarization*/);
 }
 
 } // namespace facebook::fboss
