@@ -17,7 +17,7 @@ class HwTestPacketTrapEntry {
 
  private:
   int unit_;
-  int entry_;
+  std::vector<int> entries_;
 };
 
 } // namespace facebook::fboss

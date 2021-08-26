@@ -18,11 +18,13 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port) {
           ->getPlatform()
           ->getAsic()
           ->getDefaultACLGroupID();
-  auto rv = bcm_field_entry_create(unit_, gid, &entry_) ||
-      bcm_field_qualify_SrcPort(0, entry_, 0, 0xff, port, 0xff) ||
-      bcm_field_action_add(0, entry_, bcmFieldActionCopyToCpu, 0, 0) ||
-      bcm_field_entry_install(unit_, entry_);
+  int entry;
+  auto rv = bcm_field_entry_create(unit_, gid, &entry) ||
+      bcm_field_qualify_SrcPort(0, entry, 0, 0xff, port, 0xff) ||
+      bcm_field_action_add(0, entry, bcmFieldActionCopyToCpu, 0, 0) ||
+      bcm_field_entry_install(unit_, entry);
   bcmCheckError(rv, "HwTestPacketTrapEntry creation failed");
+  entries_.push_back(entry);
 }
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
@@ -37,17 +39,21 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   bcm_ip6_t addr;
   bcm_ip6_t mask;
   facebook::fboss::networkToBcmIp6(dstPrefix, &addr, &mask);
-  auto rv = bcm_field_entry_create(unit_, gid, &entry_) ||
-      bcm_field_qualify_DstIp6(unit_, entry_, addr, mask) ||
-      bcm_field_action_add(unit_, entry_, bcmFieldActionCopyToCpu, 0, 0) ||
-      bcm_field_entry_install(unit_, entry_);
+  int entry;
+  auto rv = bcm_field_entry_create(unit_, gid, &entry) ||
+      bcm_field_qualify_DstIp6(unit_, entry, addr, mask) ||
+      bcm_field_action_add(unit_, entry, bcmFieldActionCopyToCpu, 0, 0) ||
+      bcm_field_entry_install(unit_, entry);
   bcmCheckError(rv, "HwTestPacketTrapEntry creation failed");
+  entries_.push_back(entry);
 }
 
 HwTestPacketTrapEntry::~HwTestPacketTrapEntry() {
-  bcm_field_entry_remove(unit_, entry_);
-  bcm_field_action_delete(unit_, entry_, bcmFieldActionCopyToCpu, 0, 0);
-  bcm_field_entry_destroy(unit_, entry_);
+  for (auto entry : entries_) {
+    bcm_field_entry_remove(unit_, entry);
+    bcm_field_action_delete(unit_, entry, bcmFieldActionCopyToCpu, 0, 0);
+    bcm_field_entry_destroy(unit_, entry);
+  }
 }
 
 } // namespace facebook::fboss
