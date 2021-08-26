@@ -859,7 +859,7 @@ void SaiPortManager::programSerdes(
   // need to remove the serdes object and then recreate with the sixtap
   // attributes.
   if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_CLEAR_BEFORE_SET) &&
+          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET) &&
       serdes && serdes->attributes() != serdesAttributes) {
     // Give up all references to the serdes object to delete the serdes object.
     portHandle->serdes.reset();
