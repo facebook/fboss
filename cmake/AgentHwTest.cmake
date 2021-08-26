@@ -171,6 +171,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwDscpQueueMappingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwJumboFramesTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInDiscardCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
