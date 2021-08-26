@@ -1332,9 +1332,9 @@ void CmisModule::updateQsfpData(bool allPages) {
     setQsfpFlatMem();
     if ((getSettingsValue(CmisField::MODULE_STATE) >> 1 & 0x7) ==
         static_cast<uint8_t>(CmisModuleState::READY)) {
-      opticsModuleStateMachine_.get_attribute(cmisModuleReady) = true;
+      moduleStateMachine_.get_attribute(cmisModuleReady) = true;
     } else {
-      opticsModuleStateMachine_.get_attribute(cmisModuleReady) = false;
+      moduleStateMachine_.get_attribute(cmisModuleReady) = false;
     }
 
     // If we have flat memory, we don't have to set the page
@@ -1358,7 +1358,7 @@ void CmisModule::updateQsfpData(bool allPages) {
       qsfpImpl_->readTransceiver(
           TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page11_), page11_);
 
-      if (opticsModuleStateMachine_.get_attribute(cmisModuleReady)) {
+      if (moduleStateMachine_.get_attribute(cmisModuleReady)) {
         page = 0x14;
         auto diagFeature = (uint8_t)DiagnosticFeatureEncoding::SNR;
         qsfpImpl_->writeTransceiver(

@@ -123,14 +123,14 @@ class QsfpModule : public Transceiver {
   };
 
   // Module State Machine for this QsfpModule object
-  msm::back::state_machine<moduleStateMachine> opticsModuleStateMachine_;
+  msm::back::state_machine<moduleStateMachine> moduleStateMachine_;
 
-  // Port State Machine for all the ports inside this optics module
+  // Port State Machine for all the ports inside this QsfpModule
   std::vector<msm::back::state_machine<modulePortStateMachine>>
-      opticsModulePortStateMachine_;
+      portStateMachines_;
 
   // Module state machine function scheduler
-  folly::FunctionScheduler opticsMsmFunctionScheduler_;
+  folly::FunctionScheduler msmFunctionScheduler_;
 
   /*
    * This is the helper function to create port state machine for all ports in

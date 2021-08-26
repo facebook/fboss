@@ -105,13 +105,13 @@ QsfpModule::QsfpModule(
   // as an FSM attribute. This will be used when FSM invokes the state
   // transition or event handling function and in the callback we need something
   // from QsfpModule object
-  opticsModuleStateMachine_.get_attribute(qsfpModuleObjPtr) = this;
+  moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = this;
 }
 
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+  moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
 }
 
 /*
@@ -424,14 +424,14 @@ void QsfpModule::transceiverPortsChanged(
 
       if (*ports_[it].up_ref()) {
         // Generate Port up event
-        if (modulePortId < opticsModulePortStateMachine_.size()) {
-          opticsModulePortStateMachine_[modulePortId].process_event(
+        if (modulePortId < portStateMachines_.size()) {
+          portStateMachines_[modulePortId].process_event(
               MODULE_PORT_EVENT_AGENT_PORT_UP);
         }
       } else {
         // Generate Port Down event
-        if (modulePortId < opticsModulePortStateMachine_.size()) {
-          opticsModulePortStateMachine_[modulePortId].process_event(
+        if (modulePortId < portStateMachines_.size()) {
+          portStateMachines_[modulePortId].process_event(
               MODULE_PORT_EVENT_AGENT_PORT_DOWN);
         }
       }
@@ -491,11 +491,11 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
+    moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    opticsModuleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+    moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
   }
 
   if (dirty_) {
@@ -506,7 +506,7 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    opticsModuleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
+    moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
   }
 
   if (customizeWanted) {
@@ -720,7 +720,7 @@ QsfpModule::readAndClearCachedMediaLaneSignals() {
 void QsfpModule::opticsModulePortHwInit(int modulePortId) {
   // Assume nothing special needs to be done for this optic's port level
   // HW init
-  opticsModulePortStateMachine_[modulePortId].process_event(
+  portStateMachines_[modulePortId].process_event(
       MODULE_PORT_EVENT_OPTICS_INITIALIZED);
 }
 
@@ -734,14 +734,14 @@ void QsfpModule::opticsModulePortHwInit(int modulePortId) {
 void QsfpModule::addModulePortStateMachines() {
   // Create Port state machine for all ports in this optics module
   for (int i = 0; i < portsPerTransceiver_; i++) {
-    opticsModulePortStateMachine_.push_back(
+    portStateMachines_.push_back(
         msm::back::state_machine<modulePortStateMachine>());
   }
   // In Port State Machine keeping the object pointer to the QsfpModule
   // because in the event handler callback we need to access some data from
   // this object
   for (int i = 0; i < portsPerTransceiver_; i++) {
-    opticsModulePortStateMachine_[i].get_attribute(qsfpModuleObjPtr) = this;
+    portStateMachines_[i].get_attribute(qsfpModuleObjPtr) = this;
   }
 
   // After the port state machine is created, start its port level
@@ -758,7 +758,7 @@ void QsfpModule::addModulePortStateMachines() {
  * module. This is called when the module is physically removed
  */
 void QsfpModule::eraseModulePortStateMachines() {
-  opticsModulePortStateMachine_.clear();
+  portStateMachines_.clear();
   if (diagsCapability_.has_value()) {
     diagsCapability_.reset();
   }
@@ -773,7 +773,7 @@ void QsfpModule::eraseModulePortStateMachines() {
  * will cause this event
  */
 void QsfpModule::genMsmModPortUpEvent() {
-  opticsModuleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
+  moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
 }
 
 /*
@@ -785,15 +785,15 @@ void QsfpModule::genMsmModPortUpEvent() {
  */
 void QsfpModule::genMsmModPortsDownEvent() {
   int downports = 0;
-  for (int i = 0; i < opticsModulePortStateMachine_.size(); i++) {
-    if (opticsModulePortStateMachine_[i].current_state()[0] == 2) {
+  for (int i = 0; i < portStateMachines_.size(); i++) {
+    if (portStateMachines_[i].current_state()[0] == 2) {
       downports++;
     }
   }
   // Check port down for N-1 ports only because current PSM port
   // state is in transition to  Down state
-  if (downports >= opticsModulePortStateMachine_.size() - 1) {
-    opticsModuleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
+  if (downports >= portStateMachines_.size() - 1) {
+    moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
   }
 }
 
@@ -810,19 +810,18 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
              << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
-  opticsMsmFunctionScheduler_.addFunctionOnce(
+  msmFunctionScheduler_.addFunctionOnce(
       [&]() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         // Trigger the timeout event to MSM
-        opticsModuleStateMachine_.process_event(
-            MODULE_EVENT_AGENT_SYNC_TIMEOUT);
+        moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
       },
       // Name of the scheduled function/thread for identifying later
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
       // Delay after which this function needs to be invoked in different thread
       std::chrono::milliseconds(kStateMachineAgentPortSyncupTimeout * 1000));
   // Start the function scheduler now
-  opticsMsmFunctionScheduler_.start();
+  msmFunctionScheduler_.start();
 }
 
 /*
@@ -836,11 +835,11 @@ void QsfpModule::cancelAgentPortSyncupTimeout() {
              << qsfpImpl_->getNum();
 
   // Cancel the current scheduled function
-  opticsMsmFunctionScheduler_.cancelFunction(
+  msmFunctionScheduler_.cancelFunction(
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
 
   // Stop the scheduler thread
-  // opticsMsmFunctionScheduler_.shutdown();
+  // msmFunctionScheduler_.shutdown();
 }
 
 /*
@@ -855,15 +854,15 @@ void QsfpModule::scheduleBringupRemediateFunction() {
              << qsfpImpl_->getName();
 
   // Schedule a function to do bring up / remediate after some time
-  opticsMsmFunctionScheduler_.addFunctionOnce(
+  msmFunctionScheduler_.addFunctionOnce(
       [&]() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
-        if (opticsModuleStateMachine_.get_attribute(moduleBringupDone)) {
+        if (moduleStateMachine_.get_attribute(moduleBringupDone)) {
           // Do the remediate function second time onwards
-          opticsModuleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
+          moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
         } else {
           // Bring up to be attempted for first time only
-          opticsModuleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
+          moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
         }
       },
       // Name of the scheduled function/thread for identifying later
@@ -871,7 +870,7 @@ void QsfpModule::scheduleBringupRemediateFunction() {
       // Delay after which this function needs to be invoked in different thread
       std::chrono::milliseconds(kStateMachineOpticsRemediateInterval * 1000));
   // Start the function scheduler now
-  opticsMsmFunctionScheduler_.start();
+  msmFunctionScheduler_.start();
 }
 
 /*
@@ -883,11 +882,11 @@ void QsfpModule::scheduleBringupRemediateFunction() {
  */
 void QsfpModule::exitBringupRemediateFunction() {
   // Cancel the current scheduled function
-  opticsMsmFunctionScheduler_.cancelFunction(
+  msmFunctionScheduler_.cancelFunction(
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
 
   // Stop the scheduler thread
-  // opticsMsmFunctionScheduler_.shutdown();
+  // msmFunctionScheduler_.shutdown();
 }
 
 /*
@@ -913,11 +912,11 @@ void QsfpModule::checkAgentModulePortSyncup() {
     if (!port.second.profileID_ref()->empty()) {
       if (*port.second.up_ref()) {
         // Raise port up event to PSM
-        opticsModulePortStateMachine_[modulePortId].process_event(
+        portStateMachines_[modulePortId].process_event(
             MODULE_PORT_EVENT_AGENT_PORT_UP);
       } else {
         // Raise port down event to PSM
-        opticsModulePortStateMachine_[modulePortId].process_event(
+        portStateMachines_[modulePortId].process_event(
             MODULE_PORT_EVENT_AGENT_PORT_DOWN);
       }
     }
