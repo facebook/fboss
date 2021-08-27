@@ -44,14 +44,13 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
       interface->adapterKey(),
       SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
-  SaiFdbTraits::FdbEntry entry{switchId_, vlan, mac_};
+  SaiFdbTraits::FdbEntry entry{switchId_, vlan, getMac()};
 
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   auto bridgePortId = bridgePort->adapterKey();
   SaiFdbTraits::CreateAttributes attributes{type_, bridgePortId, metadata_};
 
-  auto fdbEntry = manager_->createSaiObject(
-      entry, attributes, std::make_tuple(interfaceId_, mac_));
+  auto fdbEntry = manager_->createSaiObject(entry, attributes, intfIDAndMac_);
   // For FDB entry, on delete, Ignore error if entry was already removed from
   // HW. One scenario where this can occur is the following
   // - We learn a MAC and install it in HW
@@ -71,7 +70,7 @@ void ManagedFdbEntry::removeObject(size_t, PublisherObjects) {
 }
 
 SaiPortDescriptor ManagedFdbEntry::getPortId() const {
-  return portId_;
+  return std::get<SaiPortDescriptor>(saiPortAndIntf_);
 }
 
 L2Entry ManagedFdbEntry::toL2Entry() const {
@@ -79,12 +78,14 @@ L2Entry ManagedFdbEntry::toL2Entry() const {
   if (metadata_) {
     classId = static_cast<cfg::AclLookupClass>(metadata_.value());
   }
+  auto port = getPortId();
+  auto mac = getMac();
   return L2Entry(
-      mac_,
+      mac,
       // For FBOSS Vlan and interface ids are always 1:1
-      VlanID(interfaceId_),
-      portId_.isPhysicalPort() ? PortDescriptor(portId_.phyPortID())
-                               : PortDescriptor(portId_.aggPortID()),
+      VlanID(getInterfaceID()),
+      port.isPhysicalPort() ? PortDescriptor(port.phyPortID())
+                            : PortDescriptor(port.aggPortID()),
       // Since this entry is already programmed, its validated.
       // In vlan traffic to this MAC will be unicast and not
       // flooded.
@@ -96,17 +97,17 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
     const SaiManagerTable* managerTable) const {
   auto rifHandle =
       managerTable->routerInterfaceManager().getRouterInterfaceHandle(
-          interfaceId_);
+          getInterfaceID());
   auto vlan = GET_ATTR(
       VlanRouterInterface, VlanId, rifHandle->routerInterface->attributes());
-  return SaiFdbTraits::FdbEntry{switchId_, vlan, mac_};
+  return SaiFdbTraits::FdbEntry{switchId_, vlan, getMac()};
 }
 
 void ManagedFdbEntry::handleLinkDown() {
-  XLOG(DBG2) << "fdb entry (" << interfaceId_ << ", " << mac_.toString()
+  XLOG(DBG2) << "fdb entry (" << getInterfaceID() << ", " << getMac().toString()
              << ") notifying link down to subscribed neighbors";
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().notifyLinkDown(
-      std::make_tuple(interfaceId_, mac_));
+      intfIDAndMac_);
 }
 
 void SaiFdbManager::addFdbEntry(
@@ -140,8 +141,16 @@ void SaiFdbManager::addFdbEntry(
         managedFdbEntryIter->second->getMetaData());
     return;
   }
+  auto saiRouterIntf =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+          interfaceId);
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
-      this, switchId, port, interfaceId, mac, type, metadata);
+      this,
+      switchId,
+      std::make_tuple(port, saiRouterIntf->routerInterface->adapterKey()),
+      std::make_tuple(interfaceId, mac),
+      type,
+      metadata);
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
@@ -155,11 +164,11 @@ void SaiFdbManager::addFdbEntry(
 
 void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
   if (updated->getPort().isPhysicalPort()) {
-    CHECK_EQ(portId_, updated->getPort().phyPortID());
+    CHECK_EQ(getPortId(), updated->getPort().phyPortID());
   } else {
-    CHECK_EQ(portId_, updated->getPort().aggPortID());
+    CHECK_EQ(getPortId(), updated->getPort().aggPortID());
   }
-  CHECK_EQ(mac_, updated->getMac());
+  CHECK_EQ(getMac(), updated->getMac());
   auto fdbEntry = getSaiObject();
   CHECK(fdbEntry != nullptr) << "updating non-programmed fdb entry";
   fdbEntry->setAttribute(SaiFdbTraits::Attributes::Type(

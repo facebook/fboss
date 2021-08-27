@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 
+#include "folly/MacAddress.h"
 #include "folly/container/F14Map.h"
 #include "folly/container/F14Set.h"
 
@@ -59,17 +60,17 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   ManagedFdbEntry(
       SaiFdbManager* manager,
       SwitchSaiId switchId,
-      SaiPortDescriptor portId,
-      InterfaceID interfaceId,
-      const folly::MacAddress& mac,
+      std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+      std::tuple<InterfaceID, folly::MacAddress> intfIDAndMac,
       sai_fdb_entry_type_t type,
       std::optional<sai_uint32_t> metadata)
-      : Base(portId, interfaceId),
+      : Base(
+            std::get<SaiPortDescriptor>(saiPortAndIntf),
+            std::get<InterfaceID>(intfIDAndMac)),
         manager_(manager),
         switchId_(switchId),
-        portId_(portId),
-        interfaceId_(interfaceId),
-        mac_(mac),
+        saiPortAndIntf_(saiPortAndIntf),
+        intfIDAndMac_(intfIDAndMac),
         type_(type),
         metadata_(metadata) {}
 
@@ -82,10 +83,10 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   SaiPortDescriptor getPortId() const;
   L2Entry toL2Entry() const;
   InterfaceID getInterfaceID() const {
-    return interfaceId_;
+    return std::get<InterfaceID>(intfIDAndMac_);
   }
   folly::MacAddress getMac() const {
-    return mac_;
+    return std::get<folly::MacAddress>(intfIDAndMac_);
   }
   sai_fdb_entry_type_t getType() const {
     return type_;
@@ -99,9 +100,8 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
  private:
   SaiFdbManager* manager_;
   SwitchSaiId switchId_;
-  SaiPortDescriptor portId_;
-  InterfaceID interfaceId_;
-  folly::MacAddress mac_;
+  std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf_;
+  std::tuple<InterfaceID, folly::MacAddress> intfIDAndMac_;
   sai_fdb_entry_type_t type_;
   std::optional<sai_uint32_t> metadata_;
 };
