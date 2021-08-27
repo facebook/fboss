@@ -39,10 +39,9 @@ SaiFdbManager::SaiFdbManager(
       concurrentIndices_(concurrentIndices) {}
 
 void ManagedFdbEntry::createObject(PublisherObjects objects) {
-  /* both interface and  bridge port exist, create fdb entry */
-  auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
+  /* bridge port exist, create fdb entry */
   auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
-      interface->adapterKey(),
+      std::get<RouterInterfaceSaiId>(saiPortAndIntf_),
       SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
   SaiFdbTraits::FdbEntry entry{switchId_, vlan, getMac()};
 
@@ -154,10 +153,6 @@ void SaiFdbManager::addFdbEntry(
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
-  SaiObjectEventPublisher::getInstance()
-      ->get<SaiVlanRouterInterfaceTraits>()
-      .subscribe(managedFdbEntry);
-
   portToKeys_[port].emplace(key);
   managedFdbEntries_.emplace(key, managedFdbEntry);
 }

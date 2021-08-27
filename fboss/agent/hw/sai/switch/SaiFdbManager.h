@@ -42,20 +42,15 @@ using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
                             ManagedFdbEntry,
                             SaiFdbTraits,
-                            SaiBridgePortTraits,
-                            SaiVlanRouterInterfaceTraits> {
+                            SaiBridgePortTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       ManagedFdbEntry,
       SaiFdbTraits,
-      SaiBridgePortTraits,
-      SaiVlanRouterInterfaceTraits>;
+      SaiBridgePortTraits>;
 
   using BridgePortWeakPtr = std::weak_ptr<const SaiObject<SaiBridgePortTraits>>;
-  using RouterInterfaceWeakPtr =
-      std::weak_ptr<const SaiObject<SaiVlanRouterInterfaceTraits>>;
-  using PublisherObjects =
-      std::tuple<BridgePortWeakPtr, RouterInterfaceWeakPtr>;
+  using PublisherObjects = std::tuple<BridgePortWeakPtr>;
 
   ManagedFdbEntry(
       SaiFdbManager* manager,
@@ -64,9 +59,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       std::tuple<InterfaceID, folly::MacAddress> intfIDAndMac,
       sai_fdb_entry_type_t type,
       std::optional<sai_uint32_t> metadata)
-      : Base(
-            std::get<SaiPortDescriptor>(saiPortAndIntf),
-            std::get<InterfaceID>(intfIDAndMac)),
+      : Base(std::get<SaiPortDescriptor>(saiPortAndIntf)),
         manager_(manager),
         switchId_(switchId),
         saiPortAndIntf_(saiPortAndIntf),
@@ -127,9 +120,8 @@ class SaiFdbManager {
   void changeMac(
       const std::shared_ptr<MacEntry>& oldEntry,
       const std::shared_ptr<MacEntry>& newEntry);
-  void handleLinkDown(SaiPortDescriptor portId);
   std::vector<L2EntryThrift> getL2Entries() const;
-
+  void handleLinkDown(SaiPortDescriptor portId);
   std::shared_ptr<SaiFdbEntry> createSaiObject(
       const typename SaiFdbTraits::AdapterHostKey& key,
       const typename SaiFdbTraits::CreateAttributes& attributes,
