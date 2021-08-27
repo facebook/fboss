@@ -33,6 +33,16 @@ namespace {
 using facebook::fboss::bcmCheckError;
 using facebook::fboss::cfg::AclLookupClass;
 
+/*
+ when routes are read from SDK after warmboot, it includes
+ some oper flags such as src or dest address hit state.
+ Exclude these flags when comparing existing and new route
+ after warmboot.
+ */
+inline uint32_t getBcmRouteFlags(uint32_t l3Flags) {
+  return (l3Flags & ~(BCM_L3_HIT | BCM_L3_HIT_CLEAR));
+}
+
 void initL3RouteFromArgs(
     bcm_l3_route_t* rt,
     bcm_vrf_t vrf,
@@ -96,7 +106,8 @@ void programLpmRoute(
                           const bcm_l3_route_t& existingRoute) {
       // Compare flags (primarily MULTIPATH vs non MULTIPATH
       // and egress id.
-      return existingRoute.l3a_flags == newRoute.l3a_flags &&
+      return getBcmRouteFlags(existingRoute.l3a_flags) ==
+          getBcmRouteFlags(newRoute.l3a_flags) &&
           existingRoute.l3a_intf == newRoute.l3a_intf;
     };
     if (!equivalent(rt, cachedRoute.value())) {
@@ -104,6 +115,15 @@ void programLpmRoute(
                  << static_cast<int>(prefixLength) << " in vrf : " << vrf;
       // This is a change
       rt.l3a_flags |= BCM_L3_REPLACE;
+      // if route flags changed during warmboot, check whether
+      // the route has counter id. set old counter id here
+      // so that rest of the logic follows correctly.
+      facebook::fboss::BcmRouteCounterID existingID;
+      auto rc =
+          bcm_l3_route_stat_id_get(unit, &rt, bcmL3RouteInPackets, &existingID);
+      if (rc == BCM_E_NONE) {
+        oldCounterID.emplace(existingID);
+      }
       addRoute = true;
     } else {
       XLOG(DBG3) << " Route for : " << prefix << "/"

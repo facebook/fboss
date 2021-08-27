@@ -151,8 +151,7 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
     EXPECT_TRUE(statMap->contains(*kCounterID1));
     EXPECT_TRUE(statMap->contains(*kCounterID2));
   };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // modify counter id
@@ -190,7 +189,6 @@ TEST_F(HwRouteStatTest, CounterModify) {
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID1);
   };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
