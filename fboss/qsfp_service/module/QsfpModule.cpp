@@ -16,6 +16,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
 #include <folly/io/IOBuf.h>
@@ -603,6 +604,21 @@ std::optional<TransceiverStats> QsfpModule::getTransceiverStats() {
     return {};
   }
   return transceiverStats.value();
+}
+
+folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
+QsfpModule::futureReadTransceiver(TransceiverIOParameters param) {
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  auto id = getID();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    return std::make_pair(id, readTransceiver(param));
+  }
+  // As with all the other i2c transactions, run in the i2c event base thread
+  return via(i2cEvb).thenValue([&, param, id](auto&&) mutable {
+    return std::make_pair(id, readTransceiver(param));
+  });
 }
 
 std::unique_ptr<IOBuf> QsfpModule::readTransceiver(

@@ -13,6 +13,7 @@
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+#include "folly/futures/Future.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 
@@ -296,26 +297,35 @@ void WedgeManager::readTransceiverRegister(
   XLOG(INFO) << "Received request for reading transceiver registers for ids: "
              << (ids.size() > 0 ? folly::join(",", ids) : "None");
   auto lockedTransceivers = transceivers_.rlock();
+
+  std::vector<folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>>
+      futResponses;
   for (const auto& i : ids) {
-    ReadResponse resp;
-    // Mark the response as invalid initially. It will be marked valid when the
-    // read goes through successfully.
-    resp.valid_ref() = false;
+    // Initialize responses with valid = false. This will be overwritten with
+    // the correct valid flag later
+    responses[i].valid_ref() = false;
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
-        try {
-          auto param = *(request->parameter_ref());
-          resp.data_ref() = *(it->second->readTransceiver(param));
-          resp.valid_ref() = resp.data_ref()->length() > 0;
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Transceiver " << i
-                    << ": Error reading from transceiver " << ex.what();
-        }
+        auto param = *(request->parameter_ref());
+        futResponses.push_back(it->second->futureReadTransceiver(param));
       }
     }
-    responses[i] = resp;
   }
+
+  folly::collectAllUnsafe(futResponses)
+      .thenValue([&responses](
+                     const std::vector<folly::Try<
+                         std::pair<int32_t, std::unique_ptr<IOBuf>>>>& tries) {
+        for (const auto& tryResponse : tries) {
+          ReadResponse resp;
+          auto tcvrId = tryResponse.value().first;
+          resp.data_ref() = *(tryResponse.value().second);
+          resp.valid_ref() = resp.data_ref()->length() > 0;
+          responses[tcvrId] = resp;
+        }
+      })
+      .wait();
 }
 
 void WedgeManager::writeTransceiverRegister(

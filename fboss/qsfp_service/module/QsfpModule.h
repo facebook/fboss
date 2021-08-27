@@ -535,7 +535,8 @@ class QsfpModule : public Transceiver {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   std::unique_ptr<IOBuf> readTransceiverLocked(TransceiverIOParameters param);
-
+  folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
+  futureReadTransceiver(TransceiverIOParameters param) override;
   /*
    * Perform a raw register write on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_

@@ -84,6 +84,8 @@ class Transceiver {
    */
   virtual std::unique_ptr<IOBuf> readTransceiver(
       TransceiverIOParameters param) = 0;
+  virtual folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
+  futureReadTransceiver(TransceiverIOParameters param) = 0;
 
   /*
    * Perform raw register write on a specific transceiver
