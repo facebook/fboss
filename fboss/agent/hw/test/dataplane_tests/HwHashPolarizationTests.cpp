@@ -61,6 +61,18 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     return {
         masterLogicalPorts.begin(), masterLogicalPorts.begin() + kEcmpWidth};
   }
+  std::map<PortID, HwPortStats> getStatsDelta(
+      const std::map<PortID, HwPortStats>& before,
+      const std::map<PortID, HwPortStats>& after) const {
+    std::map<PortID, HwPortStats> delta;
+    for (auto& [portId, beforeStats] : before) {
+      // We only care out out bytes for this test
+      delta[portId].outBytes__ref() =
+          *after.find(portId)->second.outBytes__ref() -
+          *beforeStats.outBytes__ref();
+    }
+    return delta;
+  }
 
  protected:
   void runTest(
@@ -75,6 +87,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       auto ecmpPorts = getEcmpPorts();
       auto firstVlan = utility::firstVlanID(getProgrammedState());
       auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
+      auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
       {
         HwTestPacketTrapEntry trapPkts(
             getHwSwitch(),
@@ -96,7 +109,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
       auto firstHashPortStats =
           getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
-      EXPECT_TRUE(utility::isLoadBalanced(firstHashPortStats, kMaxDeviation));
+      EXPECT_TRUE(utility::isLoadBalanced(
+          getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
       XLOG(INFO) << " Num captured packets: " << pktsReceived_.rlock()->size();
       // Set second hash
       applyNewState(utility::setLoadBalancer(
@@ -132,17 +146,14 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       }
       auto secondHashPortStats =
           getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
-      if (expectPolarization) {
-        EXPECT_FALSE(
-            utility::isLoadBalanced(secondHashPortStats, kMaxDeviation));
-      } else {
-        EXPECT_TRUE(
-            utility::isLoadBalanced(secondHashPortStats, kMaxDeviation));
-      }
+      EXPECT_EQ(
+          utility::isLoadBalanced(
+              getStatsDelta(firstHashPortStats, secondHashPortStats),
+              kMaxDeviation),
+          !expectPolarization);
     };
-    // TODO - compute stats delta for LB calculations and enable WBs
-    setup();
-    verify();
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 
  private:
