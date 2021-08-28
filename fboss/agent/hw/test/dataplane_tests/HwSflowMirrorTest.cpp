@@ -275,6 +275,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       EXPECT_LE(percentError, 5);
       XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
       XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
+      bringUpPorts(std::vector<PortID>(ports.begin() + 1, ports.end()));
     };
     verifyAcrossWarmBoots(setup, verify);
   }
