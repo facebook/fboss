@@ -46,10 +46,10 @@ QsfpServiceHandler::QsfpServiceHandler(
 }
 
 void QsfpServiceHandler::init() {
-  // Initialize the I2c bus
-  manager_->initTransceiverMap();
   // Initialize the PhyManager all ExternalPhy for the system
   manager_->initExternalPhyMap();
+  // Initialize the I2c bus
+  manager_->initTransceiverMap();
 }
 
 facebook::fb303::cpp2::fb_status QsfpServiceHandler::getStatus() {
