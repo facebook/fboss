@@ -32,17 +32,29 @@ class RouteUpdateWrapper;
 namespace facebook::fboss::utility {
 
 template <typename IPAddrT>
+std::optional<IPAddrT> getLinkLocalIp() {
+  if constexpr (std::is_same_v<folly::IPAddressV6, IPAddrT>) {
+    return IPAddrT("fe80:face:b11c::1");
+  }
+  return std::nullopt;
+}
+template <typename IPAddrT>
 struct EcmpNextHop {
   EcmpNextHop(
       IPAddrT _ip,
       PortDescriptor _portDesc,
       folly::MacAddress _mac,
       InterfaceID _intf)
-      : ip(_ip), portDesc(_portDesc), mac(_mac), intf(_intf) {}
+      : ip(_ip),
+        portDesc(_portDesc),
+        mac(_mac),
+        intf(_intf),
+        linkLocalNhopIp(getLinkLocalIp<IPAddrT>()) {}
   IPAddrT ip;
   PortDescriptor portDesc;
   folly::MacAddress mac;
   InterfaceID intf;
+  std::optional<IPAddrT> linkLocalNhopIp;
 };
 
 template <typename IPAddrT>
@@ -57,12 +69,14 @@ struct EcmpMplsNextHop {
         portDesc(_portDesc),
         mac(_mac),
         intf(_intf),
-        action(std::move(_action)) {}
+        action(std::move(_action)),
+        linkLocalNhopIp(getLinkLocalIp<IPAddrT>()) {}
   IPAddrT ip;
   PortDescriptor portDesc;
   folly::MacAddress mac;
   InterfaceID intf;
   LabelForwardingAction action;
+  std::optional<IPAddrT> linkLocalNhopIp;
 };
 
 /*
