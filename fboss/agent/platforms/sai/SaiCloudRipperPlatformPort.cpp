@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 
 namespace facebook::fboss {
 

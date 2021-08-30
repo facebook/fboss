@@ -17,6 +17,7 @@
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
+#include "fboss/lib/phy/PhyInterfaceHandler.h"
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -125,9 +126,13 @@ class SaiPlatform : public Platform, public StateObserver {
   const std::set<sai_api_t>& getDefaultSwitchAsicSupportedApis() const;
   const std::set<sai_api_t>& getDefaultPhyAsicSupportedApis() const;
   virtual const std::set<sai_api_t>& getSupportedApiList() const;
+  PhyInterfaceHandler* getPhyInterfaceHandler() {
+    return phyInterfaceHandler_.get();
+  }
 
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
+  std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
