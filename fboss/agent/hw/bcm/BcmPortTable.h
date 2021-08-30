@@ -71,6 +71,8 @@ class BcmPortTable {
     return fbossPhysicalPorts_.size();
   }
 
+  std::map<PortID, phy::PhyInfo> updateIPhyInfo() const;
+
   /*
    * Update all ports' statistics.
    */

@@ -639,6 +639,7 @@ if (NOT SAI_ONLY)
       fboss/agent/packet/TCPHeader.cpp
       fboss/agent/packet/UDPHeader.cpp
       fboss/agent/packet/MPLSHdr.cpp
+      fboss/agent/PhySnapshotManager.cpp
       fboss/agent/Platform.cpp
       fboss/agent/PlatformPort.cpp
       fboss/agent/platforms/common/PlatformProductInfo.cpp
@@ -825,6 +826,7 @@ if (NOT SAI_ONLY)
       galaxy_platform_mapping
       wedge_led_utils
       bidirectional_packet_stream
+      snapshot_manager
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS

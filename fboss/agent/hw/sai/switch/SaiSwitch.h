@@ -184,6 +184,10 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
+  virtual std::map<PortID, phy::PhyInfo> updateIPhyInfo() const override {
+    return std::map<PortID, phy::PhyInfo>();
+  }
+
  private:
   template <typename LockPolicyT>
   std::shared_ptr<SwitchState> stateChangedImpl(

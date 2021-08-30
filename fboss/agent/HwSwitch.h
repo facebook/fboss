@@ -224,6 +224,8 @@ class HwSwitch {
 
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
+  virtual std::map<PortID, phy::PhyInfo> updateIPhyInfo() const = 0;
+
   /*
    * Get latest device watermark bytes
    */

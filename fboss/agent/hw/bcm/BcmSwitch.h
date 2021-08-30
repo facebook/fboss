@@ -573,6 +573,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool usePKTIO() const;
 
+  std::map<PortID, phy::PhyInfo> updateIPhyInfo() const override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

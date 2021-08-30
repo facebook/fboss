@@ -210,6 +210,7 @@ class BcmPort {
   uint8_t determinePipe() const;
   int getPgMinLimitBytes(const int pgId) const;
   int getIngressSharedBytes(const int pgId) const;
+  phy::PhyInfo updateIPhyInfo() const;
 
  private:
   class BcmPortStats {

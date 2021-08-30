@@ -1001,6 +1001,10 @@ std::string BcmPort::statName(
   return folly::to<string>(portName, ".", statName);
 }
 
+phy::PhyInfo BcmPort::updateIPhyInfo() const {
+  return phy::PhyInfo();
+}
+
 void BcmPort::updateStats() {
   // TODO: It would be nicer to use a monotonic clock, but unfortunately
   // the ServiceData code currently expects everyone to use system time.

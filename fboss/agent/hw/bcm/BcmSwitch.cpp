@@ -2579,6 +2579,10 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
+std::map<PortID, phy::PhyInfo> BcmSwitch::updateIPhyInfo() const {
+  return portTable_->updateIPhyInfo();
+}
+
 uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
   return bstStatsMgr_->getDeviceWatermarkBytes();
 }

@@ -126,6 +126,7 @@ add_library(core
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
+  fboss/agent/PhySnapshotManager.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
@@ -171,6 +172,7 @@ target_link_libraries(core
   exponential_back_off
   fboss_config_utils
   phy_cpp2
+  snapshot_manager
   transceiver_cpp2
   alert_logger
   Folly::folly

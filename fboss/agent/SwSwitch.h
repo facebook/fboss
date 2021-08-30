@@ -19,6 +19,8 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/SnapshotManager-defs.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/IntrusiveList.h>
 #include <folly/Range.h>
@@ -56,6 +58,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
+class PhySnapshotManager;
 class LookupClassUpdater;
 class LookupClassRouteUpdater;
 class MacTableManager;
@@ -909,6 +912,8 @@ class SwSwitch : public HwSwitch::Callback {
 #if FOLLY_HAS_COROUTINES
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
 #endif
+
+  std::unique_ptr<PhySnapshotManager> phySnapshotManager_;
 };
 
 } // namespace facebook::fboss

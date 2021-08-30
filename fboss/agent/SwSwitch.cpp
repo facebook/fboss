@@ -34,6 +34,7 @@
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
@@ -62,6 +63,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -187,7 +189,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
-      macTableManager_(new MacTableManager(this)) {
+      macTableManager_(new MacTableManager(this)),
+      phySnapshotManager_(new PhySnapshotManager()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -265,6 +268,7 @@ void SwSwitch::stop() {
 #if FOLLY_HAS_COROUTINES
   mkaServiceManager_.reset();
 #endif
+  phySnapshotManager_.reset();
   // stops the background and update threads.
   stopThreads();
 }
@@ -394,6 +398,7 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
+  phySnapshotManager_->updateIPhyInfo(getHw()->updateIPhyInfo());
 }
 
 void SwSwitch::registerNeighborListener(

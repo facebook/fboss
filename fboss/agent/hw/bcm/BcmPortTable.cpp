@@ -158,6 +158,15 @@ void BcmPortTable::updatePortStats() {
   }
 }
 
+std::map<PortID, phy::PhyInfo> BcmPortTable::updateIPhyInfo() const {
+  std::map<PortID, phy::PhyInfo> phyInfo;
+  for (const auto& entry : bcmPhysicalPorts_) {
+    BcmPort* bcmPort = entry.second.get();
+    phyInfo[getPortId(entry.first)] = bcmPort->updateIPhyInfo();
+  }
+  return phyInfo;
+};
+
 void BcmPortTable::initPortGroups() {
   auto subsidiaryPortsMap =
       utility::getSubsidiaryPortIDs(hw_->getPlatform()->getPlatformPorts());
