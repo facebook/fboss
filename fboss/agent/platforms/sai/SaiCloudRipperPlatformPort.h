@@ -9,12 +9,18 @@
  */
 #pragma once
 
+#include "fboss/agent/platforms/common/ExternalPhyPort.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/lib/fpga/FbDomFpga.h"
+#include "fboss/lib/phy/NullPortStats.h"
 
 namespace facebook::fboss {
-
-class SaiCloudRipperPlatformPort : public SaiPlatformPort {
+class SaiCloudRipperPlatform;
+class SaiCloudRipperPlatformPort : public SaiPlatformPort,
+                                   public ExternalPhyPort<
+                                       SaiCloudRipperPlatform,
+                                       NullPortStats,
+                                       SaiPlatformPort> {
  public:
   explicit SaiCloudRipperPlatformPort(PortID id, SaiPlatform* platform)
       : SaiPlatformPort(id, platform) {}

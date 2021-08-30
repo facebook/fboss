@@ -28,4 +28,8 @@ uint32_t SaiCloudRipperPlatformPort::getCurrentLedState() const {
   return static_cast<uint32_t>(currentLedState_);
 }
 
+template class ExternalPhyPort<
+    SaiCloudRipperPlatform,
+    NullPortStats,
+    SaiPlatformPort>;
 } // namespace facebook::fboss
