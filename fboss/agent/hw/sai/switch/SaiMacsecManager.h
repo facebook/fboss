@@ -13,6 +13,7 @@
 #include <fboss/mka_service/if/gen-cpp2/mka_types.h>
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/CppAttributes.h>
@@ -25,10 +26,10 @@ class SaiManagerTable;
 class SaiPlatform;
 
 using SaiMacsec = SaiObject<SaiMacsecTraits>;
-using SaiMacsecPort = SaiObject<SaiMacsecPortTraits>;
-using SaiMacsecSecureAssoc = SaiObject<SaiMacsecSATraits>;
+using SaiMacsecPort = SaiObjectWithCounters<SaiMacsecPortTraits>;
+using SaiMacsecSecureAssoc = SaiObjectWithCounters<SaiMacsecSATraits>;
 using SaiMacsecSecureChannel = SaiObject<SaiMacsecSCTraits>;
-using SaiMacsecFlow = SaiObject<SaiMacsecFlowTraits>;
+using SaiMacsecFlow = SaiObjectWithCounters<SaiMacsecFlowTraits>;
 
 struct SaiMacsecSecureChannelHandle {
   // Flow must come before SC for destruction to remove them in the right order
@@ -119,6 +120,8 @@ class SaiMacsecManager {
       const mka::MKASak& sak,
       const mka::MKASci& sci,
       sai_macsec_direction_t direction);
+
+  void updateStats();
 
  private:
   SaiMacsecHandle* FOLLY_NULLABLE

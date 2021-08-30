@@ -748,4 +748,18 @@ void SaiMacsecManager::removeAcls(
   }
 }
 
+void SaiMacsecManager::updateStats() {
+  for (const auto& macsec : macsecHandles_) {
+    for (const auto& macsecPort : macsec.second->ports) {
+      for (const auto& macsecSc : macsecPort.second->secureChannels) {
+        for (const auto& macsecSa : macsecSc.second->secureAssocs) {
+          macsecSa.second->updateStats<SaiMacsecSATraits>();
+        }
+        macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
+      }
+      macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
+    }
+  }
+}
+
 } // namespace facebook::fboss
