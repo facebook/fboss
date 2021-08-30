@@ -10,13 +10,23 @@ namespace facebook::fboss {
 class HostInfo {
  public:
   explicit HostInfo(const std::string& hostName)
-      : HostInfo(hostName, utils::getIPFromHost(hostName)) {}
+      : HostInfo(
+            hostName,
+            utils::getOobNameFromHost(hostName),
+            utils::getIPFromHost(hostName)) {}
 
-  HostInfo(const std::string& hostName, const folly::IPAddress& ip)
-      : name_(hostName), ip_(ip) {}
+  HostInfo(
+      const std::string& hostName,
+      const std::string& oob,
+      const folly::IPAddress& ip)
+      : name_(hostName), oob_(oob), ip_(ip) {}
 
   const std::string& getName() const {
     return name_;
+  }
+
+  const std::string& getOobName() const {
+    return oob_;
   }
 
   const folly::IPAddress& getIp() const {
@@ -29,6 +39,7 @@ class HostInfo {
 
  private:
   const std::string name_;
+  const std::string oob_;
   const folly::IPAddress ip_;
 };
 

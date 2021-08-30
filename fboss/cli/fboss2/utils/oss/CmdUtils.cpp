@@ -16,6 +16,10 @@ std::vector<std::string> getHostsInSmcTier(
   return {};
 }
 
+const std::string getOobNameFromHost(const std::string& /* host */) {
+  return "";
+}
+
 void logUsage(const std::string& /*cmdName*/) {}
 
 } // namespace facebook::fboss::utils

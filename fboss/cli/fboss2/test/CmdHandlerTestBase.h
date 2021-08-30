@@ -17,8 +17,8 @@ class CmdHandlerTestBase : public ::testing::Test {
  public:
   void SetUp() override {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
-    localHost_ =
-        std::make_unique<HostInfo>("test.host", folly::IPAddressV6("::1"));
+    localHost_ = std::make_unique<HostInfo>(
+        "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
 
   void setupMockedAgentServer() {

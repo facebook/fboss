@@ -21,6 +21,7 @@ enum class ObjectArgTypeId : uint8_t {
 };
 
 const folly::IPAddress getIPFromHost(const std::string& hostname);
+const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 
