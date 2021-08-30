@@ -1002,7 +1002,40 @@ std::string BcmPort::statName(
 }
 
 phy::PhyInfo BcmPort::updateIPhyInfo() const {
-  return phy::PhyInfo();
+  phy::PhyInfo info;
+
+  // Global phy parameters
+  phy::DataPlanePhyChip phyChip;
+  phyChip.type_ref() = phy::DataPlanePhyChipType::IPHY;
+  info.phyChip_ref() = phyChip;
+
+  // PCS parameters
+  phy::PcsInfo pcs;
+  // FEC parameters
+  if (auto portStats = getPortStats()) {
+    auto fecMode = getFECMode();
+    if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
+        fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
+      phy::RsFecInfo rsFec;
+      rsFec.correctedCodewords_ref() =
+          *((*portStats).fecCorrectableErrors_ref());
+      rsFec.uncorrectedCodewords_ref() =
+          *((*portStats).fecUncorrectableErrors_ref());
+      pcs.rsFec_ref() = rsFec;
+    }
+  }
+
+  // Line side parameters
+  phy::PhySideInfo lineSideInfo;
+  lineSideInfo.side_ref() = phy::Side::LINE;
+  lineSideInfo.pcs_ref() = pcs;
+  info.line_ref() = lineSideInfo;
+
+  // PhyInfo update timestamp
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  info.timeCollected_ref() = now.count();
+
+  return info;
 }
 
 void BcmPort::updateStats() {
@@ -1885,7 +1918,7 @@ void BcmPort::setLoopbackMode(cfg::PortLoopbackMode mode) {
   }
 }
 
-phy::FecMode BcmPort::getFECMode() {
+phy::FecMode BcmPort::getFECMode() const {
   if (platformPort_->shouldUsePortResourceAPIs()) {
     auto curPortResource = getCurrentPortResource(unit_, gport_);
     return utility::bcmPortPhyFecToPhyFecMode(curPortResource.fec_type);

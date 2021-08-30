@@ -156,7 +156,7 @@ class BcmPort {
   /**
    * return the FecMode (if any) that is currently enabled
    */
-  phy::FecMode getFECMode();
+  phy::FecMode getFECMode() const;
 
   /*
    * Take the appropriate actions for reacting to the port's state changing.
