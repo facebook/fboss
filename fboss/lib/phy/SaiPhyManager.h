@@ -43,6 +43,16 @@ class SaiPhyManager : public PhyManager {
   mka::MKASakHealthResponse sakHealthCheck(
       const mka::MKASak sak) const override;
 
+  mka::MacsecPortStats getMacsecPortStats(
+      std::string portName,
+      mka::MacsecDirection direction) override;
+  mka::MacsecFlowStats getMacsecFlowStats(
+      std::string portName,
+      mka::MacsecDirection direction) override;
+  mka::MacsecSaStats getMacsecSecureAssocStats(
+      std::string portName,
+      mka::MacsecDirection direction) override;
+
   void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,

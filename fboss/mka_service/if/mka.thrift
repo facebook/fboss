@@ -29,6 +29,11 @@ enum MKAErrorResponseCode {
   INVALID_INPUT = 7,
 }
 
+enum MacsecDirection {
+  INGRESS = 0,
+  EGRESS = 1,
+}
+
 exception MKAServiceException {
   1: MKAErrorResponseCode code;
   2: string msg;

@@ -105,6 +105,25 @@ class PhyManager {
         "sakHealthCheck must be implemented by defired phyManager");
   }
 
+  virtual mka::MacsecPortStats getMacsecPortStats(
+      std::string /* portName */,
+      mka::MacsecDirection /* direction */) {
+    throw FbossError(
+        "Attempted to call getMacsecPortStats from non-SaiPhyManager");
+  }
+  virtual mka::MacsecFlowStats getMacsecFlowStats(
+      std::string /* portName */,
+      mka::MacsecDirection /* direction */) {
+    throw FbossError(
+        "Attempted to call getMacsecFlowStats from non-SaiPhyManager");
+  }
+  virtual mka::MacsecSaStats getMacsecSecureAssocStats(
+      std::string /* portName */,
+      mka::MacsecDirection /* direction */) {
+    throw FbossError(
+        "Attempted to call getMacsecSecureAssocStats from non-SaiPhyManager");
+  }
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   void
