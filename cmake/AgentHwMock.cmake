@@ -12,3 +12,19 @@ target_link_libraries(pkt
   core
   Folly::folly
 )
+
+add_library(hw_mock
+  fboss/agent/hw/mock/MockHwSwitch.cpp
+  fboss/agent/hw/mock/MockPlatform.cpp
+  fboss/agent/hw/mock/MockTestHandle.cpp
+)
+
+target_link_libraries(hw_mock
+  core
+  pkt
+  Folly::folly
+  ${GTEST}
+)
+
+
+  

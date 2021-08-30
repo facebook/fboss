@@ -220,6 +220,7 @@ add_library(hw_switch_test
 
 target_link_libraries(hw_switch_test
   config_factory
+  agent_test_utils
   hw_packet_utils
   hw_switch_ensemble
   load_balancer_utils

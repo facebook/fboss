@@ -39,6 +39,18 @@ target_link_libraries(route_scale_gen
   state
 )
 
+add_library(agent_test_utils
+  fboss/agent/test/CounterCache.cpp
+  fboss/agent/test/MockTunManager.cpp
+  fboss/agent/test/TestUtils.cpp
+)
+
+target_link_libraries(agent_test_utils
+  core
+  label_forwarding_utils
+  hw_mock
+)
+
 add_library(ecmp_helper
   fboss/agent/test/EcmpSetupHelper.cpp
 )
