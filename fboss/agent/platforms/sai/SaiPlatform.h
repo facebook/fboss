@@ -133,6 +133,7 @@ class SaiPlatform : public Platform, public StateObserver {
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
+  virtual void updatePorts(const StateDelta& delta);
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;

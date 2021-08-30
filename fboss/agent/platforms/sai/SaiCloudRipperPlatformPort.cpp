@@ -28,6 +28,12 @@ uint32_t SaiCloudRipperPlatformPort::getCurrentLedState() const {
   return static_cast<uint32_t>(currentLedState_);
 }
 
+void SaiCloudRipperPlatformPort::portChanged(
+    std::shared_ptr<Port> newPort,
+    std::shared_ptr<Port> oldPort) {
+  ExternalPhyPort::portChanged(oldPort, newPort, this);
+}
+
 template class ExternalPhyPort<
     SaiCloudRipperPlatform,
     NullPortStats,

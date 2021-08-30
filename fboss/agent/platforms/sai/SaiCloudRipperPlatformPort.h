@@ -28,6 +28,8 @@ class SaiCloudRipperPlatformPort : public SaiPlatformPort,
       const override;
   virtual bool supportsTransceiver() const override;
   uint32_t getCurrentLedState() const override;
+  void portChanged(std::shared_ptr<Port> newPort, std::shared_ptr<Port> oldPort)
+      override;
 
  private:
   FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;

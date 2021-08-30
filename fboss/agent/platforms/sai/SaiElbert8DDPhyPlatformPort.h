@@ -23,6 +23,9 @@ class SaiElbert8DDPhyPlatformPort : public SaiPlatformPort {
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
   uint32_t getCurrentLedState() const override;
+  void portChanged(
+      std::shared_ptr<Port> /*newPort*/,
+      std::shared_ptr<Port> /*oldPort*/) override {}
 
  private:
 };

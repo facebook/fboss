@@ -12,6 +12,7 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
 
 #include <optional>
@@ -66,6 +67,10 @@ class SaiPlatformPort : public PlatformPort {
   cfg::PortProfileID getCurrentProfile() const {
     return profile_;
   }
+  virtual void portChanged(
+      std::shared_ptr<Port> newPort,
+      std::shared_ptr<Port> oldPort) = 0;
+
   int getLaneCount() const;
   std::optional<ChannelID> getChannel() const;
   virtual uint32_t getCurrentLedState() const = 0;

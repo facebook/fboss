@@ -24,6 +24,9 @@ class SaiBcmPlatformPort : public SaiPlatformPort {
   void setLEDState(uint32_t led, uint32_t index, uint32_t status);
   uint32_t getLEDState(uint32_t led, uint32_t index);
   uint32_t getCurrentLedState() const override;
+  void portChanged(
+      std::shared_ptr<Port> /*newPort*/,
+      std::shared_ptr<Port> /*oldPort*/) override {}
 
  private:
   uint32_t currentLedState_{0};

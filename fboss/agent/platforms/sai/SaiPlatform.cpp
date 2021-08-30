@@ -100,6 +100,15 @@ SaiPlatform::SaiPlatform(
 
 SaiPlatform::~SaiPlatform() {}
 
+void SaiPlatform::updatePorts(const StateDelta& delta) {
+  for (const auto& entry : delta.getPortsDelta()) {
+    const auto newPort = entry.getNew();
+    if (newPort) {
+      getPort(newPort->getID())->portChanged(newPort, entry.getOld());
+    }
+  }
+}
+
 HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
 }
@@ -129,6 +138,7 @@ void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
 }
 
 void SaiPlatform::stateUpdated(const StateDelta& delta) {
+  updatePorts(delta);
   updateQsfpCache(delta);
 }
 

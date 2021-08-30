@@ -23,6 +23,9 @@ class SaiFakePlatformPort : public SaiPlatformPort {
   std::vector<phy::PinConfig> getIphyPinConfigs(
       cfg::PortProfileID profileID) const override;
   uint32_t getCurrentLedState() const override;
+  void portChanged(
+      std::shared_ptr<Port> /*newPort*/,
+      std::shared_ptr<Port> /*oldPort*/) override {}
 };
 
 } // namespace facebook::fboss
