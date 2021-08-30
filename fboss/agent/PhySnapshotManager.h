@@ -4,6 +4,7 @@
 
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/SnapshotManager-defs.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss {
 
@@ -12,10 +13,13 @@ class PhySnapshotManager {
   using IPhySnapshotCache = SnapshotManager<kNumCachedSnapshots>;
 
  public:
-  void updateIPhyInfo(std::map<PortID, phy::PhyInfo> phyInfo);
+  void updateIPhyInfo(const std::map<PortID, phy::PhyInfo>& phyInfo);
+  std::map<PortID, const phy::PhyInfo> getIPhyInfo(
+      const std::vector<PortID>& portIDs);
 
+ private:
   // Map of portID to last few Internal phy diagnostic snapshots
-  std::map<PortID, folly::Synchronized<IPhySnapshotCache>> snapshots_;
+  folly::Synchronized<std::map<PortID, IPhySnapshotCache>> snapshots_;
 };
 
 } // namespace facebook::fboss

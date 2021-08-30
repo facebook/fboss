@@ -998,6 +998,11 @@ void SwSwitch::dumpBadStateUpdate(
   }
 }
 
+std::map<PortID, const phy::PhyInfo> SwSwitch::getIPhyInfo(
+    std::vector<PortID>& portIDs) {
+  return phySnapshotManager_->getIPhyInfo(portIDs);
+}
+
 PortStats* SwSwitch::portStats(PortID portID) {
   auto portStats = stats()->port(portID);
   if (portStats) {

@@ -383,6 +383,12 @@ class SwSwitch : public HwSwitch::Callback {
   PortStats* portStats(PortID port);
 
   /*
+   * Get Internal PhyInfo
+   */
+  std::map<PortID, const phy::PhyInfo> getIPhyInfo(
+      std::vector<PortID>& portIDs);
+
+  /*
    * Get PortStatus for all the ports.
    */
   std::map<int32_t, PortStatus> getPortStatus();
