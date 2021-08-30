@@ -47,6 +47,16 @@ SaiSwitch* SaiPhyManager::getSaiSwitch(GlobalXphyID xphyID) const {
 SaiSwitch* SaiPhyManager::getSaiSwitch(PortID portID) const {
   return static_cast<SaiSwitch*>(getSaiPlatform(portID)->getHwSwitch());
 }
+std::vector<SaiSwitch*> SaiPhyManager::getSaiSwitches() const {
+  std::vector<SaiSwitch*> switches;
+  for (const auto& [pimId, phys] : xphyMap_) {
+    for (const auto& phy : phys) {
+      auto saiPlatform = getSaiPlatform(phy.first);
+      switches.push_back(static_cast<SaiSwitch*>(saiPlatform->getHwSwitch()));
+    }
+  }
+  return switches;
+}
 
 void SaiPhyManager::addSaiPlatform(
     GlobalXphyID xphyID,
