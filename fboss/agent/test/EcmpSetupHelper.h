@@ -113,22 +113,26 @@ class BaseEcmpSetupHelper {
    */
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
+
+  std::shared_ptr<SwitchState> resolveNextHop(
+      const std::shared_ptr<SwitchState>& inputState,
+      const NextHopT& nhop,
+      bool useLinkLocal = false) const;
+
+  std::shared_ptr<SwitchState> unresolveNextHop(
+      const std::shared_ptr<SwitchState>& inputState,
+      const NextHopT& nhop,
+      bool useLinkLocal = false) const;
 
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac) = 0;
-
-  std::shared_ptr<SwitchState> resolveNextHop(
-      const std::shared_ptr<SwitchState>& inputState,
-      const NextHopT& nhop) const;
-
-  std::shared_ptr<SwitchState> unresolveNextHop(
-      const std::shared_ptr<SwitchState>& inputState,
-      const NextHopT& nhop) const;
 
   std::optional<VlanID> getVlan(const PortDescriptor& port) const;
 
@@ -136,7 +140,8 @@ class BaseEcmpSetupHelper {
   std::shared_ptr<SwitchState> resolveNextHopsImpl(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs,
-      bool resolve) const;
+      bool resolve,
+      bool useLinkLocal) const;
 
  protected:
   std::vector<NextHopT> nhops_;

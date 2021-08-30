@@ -105,16 +105,18 @@ template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const boost::container::flat_set<PortDescriptor>& portDescs) const {
-  return resolveNextHopsImpl(inputState, portDescs, true);
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
+  return resolveNextHopsImpl(inputState, portDescs, true, useLinkLocal);
 }
 
 template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const boost::container::flat_set<PortDescriptor>& portDescs) const {
-  return resolveNextHopsImpl(inputState, portDescs, false);
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
+  return resolveNextHopsImpl(inputState, portDescs, false, useLinkLocal);
 }
 
 template <typename AddrT, typename NextHopT>
@@ -122,12 +124,13 @@ std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHopsImpl(
     const std::shared_ptr<SwitchState>& inputState,
     const boost::container::flat_set<PortDescriptor>& portDescs,
-    bool resolve) const {
+    bool resolve,
+    bool useLinkLocal) const {
   auto outputState{inputState};
   for (auto nhop : nhops_) {
     if (portDescs.find(nhop.portDesc) != portDescs.end()) {
-      outputState = resolve ? resolveNextHop(outputState, nhop)
-                            : unresolveNextHop(outputState, nhop);
+      outputState = resolve ? resolveNextHop(outputState, nhop, useLinkLocal)
+                            : unresolveNextHop(outputState, nhop, useLinkLocal);
     }
   }
   return outputState;
@@ -137,18 +140,19 @@ template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     const std::shared_ptr<SwitchState>& inputState,
-    const NextHopT& nhop) const {
+    const NextHopT& nhop,
+    bool useLinkLocal) const {
   auto outputState{inputState->clone()};
   auto vlanId = portDesc2Vlan_.find(nhop.portDesc)->second;
   auto vlan = outputState->getVlans()->getVlan(vlanId);
   auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlanId, &outputState);
+  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   if (nbrTable->getEntryIf(nhop.ip)) {
     nbrTable->updateEntry(
-        nhop.ip, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
+        nhopIp, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
   } else {
-    nbrTable->addEntry(
-        nhop.ip, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
+    nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
   }
   return outputState;
 }
@@ -157,13 +161,15 @@ template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     const std::shared_ptr<SwitchState>& inputState,
-    const NextHopT& nhop) const {
+    const NextHopT& nhop,
+    bool useLinkLocal) const {
   auto outputState{inputState->clone()};
   auto vlanId = portDesc2Vlan_.find(nhop.portDesc)->second;
   auto vlan = outputState->getVlans()->getVlan(vlanId);
   auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
       vlanId, &outputState);
-  nbrTable->removeEntry(nhop.ip);
+  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
+  nbrTable->removeEntry(nhopIp);
   return outputState;
 }
 
