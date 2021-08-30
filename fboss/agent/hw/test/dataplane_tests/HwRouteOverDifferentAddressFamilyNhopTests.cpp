@@ -47,6 +47,31 @@ class HwRouteOverDifferentAddressFamilyNhopTest
       return kPrefixV4();
     }
   }
+  template <typename AddrT>
+  AddrT getDstIp() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return kIpv6();
+    } else {
+      return kIpv4();
+    }
+  }
+  std::unique_ptr<TxPacket> makeTxPacket(const folly::IPAddress& dstIp) const {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto srcIp = dstIp.isV6() ? folly::IPAddress("100::1")
+                              : folly::IPAddress("100.0.0.1");
+    return utility::makeUDPTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac, // src mac
+        intfMac, // dst mac
+        srcIp,
+        dstIp,
+        8000, // l4 src port
+        8001 // l4 dst port
+    );
+  }
 
  protected:
   template <typename RouteAddrT, typename NhopAddrT>
@@ -70,8 +95,9 @@ class HwRouteOverDifferentAddressFamilyNhopTest
       auto nhops = makeNextHops<NhopAddrT>({ecmpHelper.nhop(nhopPort).ip});
       addRoute(getPrefix<RouteAddrT>(), nhops);
     };
-    auto verify = []() {
-      // TODO
+    auto verify = [this]() {
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(
+          makeTxPacket(getDstIp<RouteAddrT>()));
     };
     verifyAcrossWarmBoots(setup, verify);
   }
