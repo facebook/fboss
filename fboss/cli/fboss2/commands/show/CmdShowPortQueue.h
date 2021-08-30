@@ -21,18 +21,19 @@ struct CmdShowPortQueueTraits {
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };
 
-class CmdShowPortQueue : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits> {
+class CmdShowPortQueue
+    : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits> {
  public:
   using ObjectArgType = CmdShowPortQueueTraits::ObjectArgType;
   using RetType = CmdShowPortQueueTraits::RetType;
 
   RetType queryClient(
-      const folly::IPAddress& hostIp,
+      const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
     RetType portEntries;
 
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getAllPortInfo(portEntries);
 
@@ -41,7 +42,7 @@ class CmdShowPortQueue : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTra
     }
 
     RetType retVal;
-    for (auto const&[portId, portInfo] : portEntries) {
+    for (auto const& [portId, portInfo] : portEntries) {
       for (auto const& queriedPort : queriedPorts) {
         if (portInfo.get_name() == queriedPort) {
           retVal.insert(std::make_pair(portId, portInfo));
@@ -55,7 +56,7 @@ class CmdShowPortQueue : public CmdHandler<CmdShowPortQueue, CmdShowPortQueueTra
   void printOutput(const RetType& portId2PortInfoThrift) {
     std::string fmtString = "{:<7}{:<20}{:<25}{:<10}{:<15}{:<15}\n";
 
-    for (auto const&[portId, portInfo] : portId2PortInfoThrift) {
+    for (auto const& [portId, portInfo] : portId2PortInfoThrift) {
       std::ignore = portId;
 
       std::cout << portInfo.get_name() << "\n";

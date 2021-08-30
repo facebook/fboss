@@ -12,6 +12,7 @@
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 #include <memory>
@@ -24,14 +25,14 @@ static auto constexpr kRecvTimeout = 45000;
 static auto constexpr kSendTimeout = 5000;
 
 template <typename T>
-std::unique_ptr<T> createClient(const std::string& ip);
+std::unique_ptr<T> createClient(const HostInfo& hostInfo);
 
 template <typename Client>
 std::unique_ptr<Client> createPlaintextClient(
-    const std::string& ip,
+    const HostInfo& hostInfo,
     const int port) {
   auto eb = folly::EventBaseManager::get()->getEventBase();
-  auto addr = folly::SocketAddress(ip, port);
+  auto addr = folly::SocketAddress(hostInfo.getIp(), port);
   auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
   sock->setSendTimeout(kSendTimeout);
   auto channel =
@@ -41,8 +42,8 @@ std::unique_ptr<Client> createPlaintextClient(
 }
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
-    const std::string& ip);
+    const HostInfo& hostInfo);
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
-    const std::string& ip);
+    const HostInfo& hostInfo);
 } // namespace facebook::fboss::utils

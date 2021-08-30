@@ -16,6 +16,7 @@
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 #include <fmt/color.h>
 #include <fmt/format.h>
@@ -41,20 +42,20 @@ class CmdHandler {
     return static_cast<const CmdTypeT&>(*this);
   }
 
-  RetType queryClientHelper(const folly::IPAddress& hostIp) {
+  RetType queryClientHelper(const HostInfo& hostInfo) {
     RetType result;
     if constexpr (
         ObjectArgTypeId ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       result = impl().queryClient(
-          hostIp, CmdSubcommands::getInstance()->getIpv6Addrs());
+          hostInfo, CmdSubcommands::getInstance()->getIpv6Addrs());
     } else if constexpr (
         ObjectArgTypeId ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      result =
-          impl().queryClient(hostIp, CmdSubcommands::getInstance()->getPorts());
+      result = impl().queryClient(
+          hostInfo, CmdSubcommands::getInstance()->getPorts());
     } else {
-      result = impl().queryClient(hostIp);
+      result = impl().queryClient(hostInfo);
     }
 
     return result;
@@ -62,14 +63,13 @@ class CmdHandler {
 
   std::tuple<std::string, RetType, std::string> asyncHandler(
       const std::string& host) {
-    // Derive IP of the supplied host.
-    auto hostIp = utils::getIPFromHost(host);
-    XLOG(DBG2) << "host: " << host << " ip: " << hostIp.str();
+    auto hostInfo = HostInfo(host);
+    XLOG(DBG2) << "host: " << host << " ip: " << hostInfo.getIpStr();
 
     std::string errStr;
     RetType result;
     try {
-      result = queryClientHelper(hostIp);
+      result = queryClientHelper(hostInfo);
     } catch (std::exception const& err) {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }

@@ -35,12 +35,12 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   using RetType = CmdShowPortTraits::RetType;
 
   RetType queryClient(
-      const folly::IPAddress& hostIp,
+      const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
     std::map<int32_t, facebook::fboss::PortInfoThrift> entries;
 
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getAllPortInfo(entries);
 

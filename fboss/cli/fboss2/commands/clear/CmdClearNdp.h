@@ -12,7 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
-#include<folly/IPAddress.h>
+#include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
@@ -27,10 +27,10 @@ class CmdClearNdp : public CmdHandler<CmdClearNdp, CmdClearNdpTraits> {
  public:
   using RetType = CmdClearNdpTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(const HostInfo& hostInfo) {
     RetType retVal;
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
     client->sync_getNdpTable(ndpEntries);
@@ -46,7 +46,6 @@ class CmdClearNdp : public CmdHandler<CmdClearNdp, CmdClearNdpTraits> {
     retVal = folly::to<std::string>("Flushed ", ndpEntries.size(), " entries");
 
     return retVal;
-
   }
 
   void printOutput(const RetType& logMsg) {

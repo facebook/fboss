@@ -7,6 +7,7 @@
 #include <memory>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 #pragma once
 
@@ -16,6 +17,8 @@ class CmdHandlerTestBase : public ::testing::Test {
  public:
   void SetUp() override {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
+    localHost_ =
+        std::make_unique<HostInfo>("test.host", folly::IPAddressV6("::1"));
   }
 
   void setupMockedAgentServer() {
@@ -37,7 +40,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   }
 
   const auto& localhost() {
-    return localHost_;
+    return *localHost_;
   }
 
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
@@ -45,6 +48,7 @@ class CmdHandlerTestBase : public ::testing::Test {
 
  private:
   std::shared_ptr<MockFbossCtrlAgent> mockedAgent_;
-  folly::IPAddressV6 localHost_{"::1"};
+
+  std::unique_ptr<HostInfo> localHost_;
 };
 } // namespace facebook::fboss

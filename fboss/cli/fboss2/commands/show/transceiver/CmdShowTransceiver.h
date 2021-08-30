@@ -35,11 +35,10 @@ class CmdShowTransceiver
   using RetType = CmdShowTransceiver::RetType;
 
   RetType queryClient(
-      const folly::IPAddress& hostIp,
+      const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
-    auto qsfpService =
-        utils::createClient<QsfpServiceAsyncClient>(hostIp.str());
-    auto agent = utils::createClient<FbossCtrlAsyncClient>(hostIp.str());
+    auto qsfpService = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
+    auto agent = utils::createClient<FbossCtrlAsyncClient>(hostInfo);
 
     // TODO: explore performance improvement if we make all this parallel.
     auto portEntries = queryPortInfo(agent.get(), queriedPorts);

@@ -28,19 +28,18 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   using RetType = CmdShowNdpTraits::RetType;
 
   RetType queryClient(
-      const folly::IPAddress& hostIp,
+      const HostInfo& hostInfo,
       const ObjectArgType& queriedNdpEntries) {
     std::vector<facebook::fboss::NdpEntryThrift> entries;
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getNdpTable(entries);
     return createModel(entries, queriedNdpEntries);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    std::string fmtString =
-        "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
+    std::string fmtString = "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
 
     out << fmt::format(
         fmtString,
@@ -70,11 +69,11 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   }
 
   RetType createModel(
-    std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
-    const ObjectArgType& queriedNdpEntries
-  ) {
+      std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
+      const ObjectArgType& queriedNdpEntries) {
     RetType model;
-    std::unordered_set<std::string> queriedSet(queriedNdpEntries.begin(), queriedNdpEntries.end());
+    std::unordered_set<std::string> queriedSet(
+        queriedNdpEntries.begin(), queriedNdpEntries.end());
 
     for (const auto& entry : ndpEntries) {
       auto ip = folly::IPAddress::fromBinary(
@@ -96,7 +95,6 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
     }
     return model;
   }
-
 };
 
 } // namespace facebook::fboss

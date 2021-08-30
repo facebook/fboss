@@ -27,10 +27,10 @@ class CmdShowInterface
   using RetType = CmdShowInterfaceTraits::RetType;
 
   RetType queryClient(
-      const folly::IPAddress& hostIp,
+      const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     auto portInfo =
         client->future_getAllPortInfo().thenValue([&](auto&& portInfo) {

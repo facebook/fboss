@@ -26,10 +26,10 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
  public:
   using RetType = CmdShowLldpTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::LinkNeighborThrift> entries;
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getLldpNeighbors(entries);
     return createModel(entries);
@@ -38,11 +38,7 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     std::string fmtString = "{:<17}{:<38}{:<12}\n";
 
-    out << fmt::format(
-        fmtString,
-        "Local Port",
-        "Name",
-        "Port");
+    out << fmt::format(fmtString, "Local Port", "Name", "Port");
     out << std::string(80, '-') << std::endl;
 
     for (auto const& entry : model.get_lldpEntries()) {
@@ -55,7 +51,8 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     out << std::endl;
   }
 
-  RetType createModel(std::vector<facebook::fboss::LinkNeighborThrift> lldpEntries) {
+  RetType createModel(
+      std::vector<facebook::fboss::LinkNeighborThrift> lldpEntries) {
     RetType model;
 
     for (const auto& entry : lldpEntries) {
@@ -63,13 +60,13 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
 
       lldpDetails.localPort_ref() = std::to_string(entry.get_localPort());
       lldpDetails.systemName_ref() = entry.get_systemName()
-        ? *entry.get_systemName()
-        : entry.get_printableChassisId();
+          ? *entry.get_systemName()
+          : entry.get_printableChassisId();
       lldpDetails.remotePort_ref() = entry.get_printablePortId();
 
       model.lldpEntries_ref()->push_back(lldpDetails);
-     }
-     return model;
+    }
+    return model;
   }
 };
 

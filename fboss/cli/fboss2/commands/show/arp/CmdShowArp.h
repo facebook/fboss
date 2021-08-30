@@ -24,11 +24,10 @@ struct CmdShowArpTraits {
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
  public:
-
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::ArpEntryThrift> entries;
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getArpTable(entries);
     return createModel(entries);
@@ -61,28 +60,27 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
     out << std::endl;
   }
 
-   RetType createModel(std::vector<facebook::fboss::ArpEntryThrift> arpEntries) {
-     RetType model;
+  RetType createModel(std::vector<facebook::fboss::ArpEntryThrift> arpEntries) {
+    RetType model;
 
-     for (const auto& entry : arpEntries) {
-       cli::ArpEntry arpDetails;
+    for (const auto& entry : arpEntries) {
+      cli::ArpEntry arpDetails;
 
-       auto ip = folly::IPAddress::fromBinary(
+      auto ip = folly::IPAddress::fromBinary(
           folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
-       arpDetails.ip_ref() = ip.str();
-       arpDetails.mac_ref() = entry.get_mac();
-       arpDetails.port_ref() = entry.get_port();
-       arpDetails.vlan_ref() = folly::to<std::string>(
+      arpDetails.ip_ref() = ip.str();
+      arpDetails.mac_ref() = entry.get_mac();
+      arpDetails.port_ref() = entry.get_port();
+      arpDetails.vlan_ref() = folly::to<std::string>(
           entry.get_vlanName(), " (", entry.get_vlanID(), ")");
-       arpDetails.state_ref() = entry.get_state();
-       arpDetails.ttl_ref() = entry.get_ttl();
-       arpDetails.classID_ref() = entry.get_classID();
+      arpDetails.state_ref() = entry.get_state();
+      arpDetails.ttl_ref() = entry.get_ttl();
+      arpDetails.classID_ref() = entry.get_classID();
 
-       model.arpEntries_ref()->push_back(arpDetails);
-     }
-     return model;
-   }
-
+      model.arpEntries_ref()->push_back(arpDetails);
+    }
+    return model;
+  }
 };
 
 } // namespace facebook::fboss

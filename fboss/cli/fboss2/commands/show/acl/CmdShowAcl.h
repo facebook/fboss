@@ -26,10 +26,10 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
  public:
   using RetType = CmdShowAclTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::AclEntryThrift> entries;
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
     client->sync_getAclTable(entries);
 
     return createModel(entries);

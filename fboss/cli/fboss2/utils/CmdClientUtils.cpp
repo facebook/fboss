@@ -18,14 +18,14 @@ namespace facebook::fboss::utils {
 
 template <>
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
-    const std::string& ip) {
-  return utils::createAgentClient(ip);
+    const HostInfo& hostInfo) {
+  return utils::createAgentClient(hostInfo);
 }
 
 template <>
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createClient(
-    const std::string& ip) {
-  return utils::createQsfpClient(ip);
+    const HostInfo& hostInfo) {
+  return utils::createQsfpClient(hostInfo);
 }
 
 } // namespace facebook::fboss::utils

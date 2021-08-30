@@ -12,7 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
-#include<folly/IPAddress.h>
+#include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
@@ -27,11 +27,11 @@ class CmdClearArp : public CmdHandler<CmdClearArp, CmdClearArpTraits> {
  public:
   using RetType = CmdClearArpTraits::RetType;
 
-  RetType queryClient(const folly::IPAddress& hostIp) {
+  RetType queryClient(const HostInfo& hostInfo) {
     RetType retVal;
 
-    auto client = utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-        hostIp.str());
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     std::vector<facebook::fboss::ArpEntryThrift> arpEntries;
     client->sync_getArpTable(arpEntries);
