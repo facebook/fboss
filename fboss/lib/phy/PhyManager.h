@@ -165,7 +165,7 @@ class PhyManager {
   PortCacheRLockedPtr getRLockedCache(PortID portID) const;
   PortCacheWLockedPtr getWLockedCache(PortID portID) const;
 
-  const PlatformMapping* getPlatformMapping() {
+  const PlatformMapping* getPlatformMapping() const {
     return platformMapping_;
   }
   const std::string& getPortName(PortID portID) const;

@@ -87,12 +87,23 @@ void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
       portId, sak, *sak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
 }
 
+mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
+    const mka::MKASak sak) const {
+  auto portId = getPortId(*sak.l2Port_ref());
+  auto macsecManager = getMacsecManager(portId);
+  return macsecManager->sakHealthCheck(portId, sak);
+}
+
 SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) {
   auto saiSwitch = getSaiSwitch(portId);
   return &saiSwitch->managerTable()->macsecManager();
 }
 
-PortID SaiPhyManager::getPortId(std::string portName) {
+const SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) const {
+  return const_cast<SaiPhyManager*>(this)->getMacsecManager(portId);
+}
+
+PortID SaiPhyManager::getPortId(std::string portName) const {
   try {
     return PortID(folly::to<int>(portName));
   } catch (const std::exception& e) {

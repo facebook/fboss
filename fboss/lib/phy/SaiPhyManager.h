@@ -39,6 +39,8 @@ class SaiPhyManager : public PhyManager {
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
   void sakDeleteRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
   void sakDelete(const mka::MKASak& sak) override;
+  mka::MKASakHealthResponse sakHealthCheck(
+      const mka::MKASak sak) const override;
 
   void programOnePort(
       PortID portId,
@@ -65,7 +67,8 @@ class SaiPhyManager : public PhyManager {
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;
 
   SaiMacsecManager* getMacsecManager(PortID portId);
-  PortID getPortId(std::string portName);
+  const SaiMacsecManager* getMacsecManager(PortID portId) const;
+  PortID getPortId(std::string portName) const;
 
   std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
       PortID portID) override;

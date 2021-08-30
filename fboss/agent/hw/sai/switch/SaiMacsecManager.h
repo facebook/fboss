@@ -65,6 +65,9 @@ class SaiMacsecManager {
       const mka::MKASak& sak,
       const mka::MKASci& sci,
       sai_macsec_direction_t direction);
+  mka::MKASakHealthResponse sakHealthCheck(
+      PortID linePort,
+      const mka::MKASak& sak) const;
 
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandle(sai_macsec_direction_t direction);

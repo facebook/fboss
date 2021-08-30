@@ -527,6 +527,13 @@ SaiMacsecSecureAssoc* FOLLY_NULLABLE SaiMacsecManager::getMacsecSecureAssocImpl(
   return itr->second.get();
 }
 
+mka::MKASakHealthResponse SaiMacsecManager::sakHealthCheck(
+    PortID linePort,
+    const mka::MKASak& sak) const {
+  mka::MKASakHealthResponse health;
+  return health;
+}
+
 void SaiMacsecManager::setupMacsec(
     PortID linePort,
     const mka::MKASak& sak,
