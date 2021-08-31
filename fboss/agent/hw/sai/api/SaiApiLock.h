@@ -12,8 +12,11 @@
 #include <memory>
 #include <mutex>
 
+namespace facebook::fboss {
+
 class SaiApiLock {
  public:
   static std::shared_ptr<SaiApiLock> getInstance();
   std::mutex lock;
 };
+} // namespace facebook::fboss

@@ -17,7 +17,11 @@ namespace {
 struct singleton_tag_type {};
 } // namespace
 
+namespace facebook::fboss {
+
 static folly::Singleton<SaiApiLock, singleton_tag_type> saiApiLockSingleton{};
 std::shared_ptr<SaiApiLock> SaiApiLock::getInstance() {
   return saiApiLockSingleton.try_get();
 }
+
+} // namespace facebook::fboss
