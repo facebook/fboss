@@ -365,31 +365,37 @@ flat_set<PortDescriptor> EcmpSetupAnyNPorts<IPAddrT>::getPortDescs(
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    size_t numNextHops) const {
+    size_t numNextHops,
+    bool useLinkLocal) const {
   return ecmpSetupTargetedPorts_.resolveNextHops(
-      inputState, getPortDescs(numNextHops));
+      inputState, getPortDescs(numNextHops), useLinkLocal);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescs) const {
-  return ecmpSetupTargetedPorts_.resolveNextHops(inputState, portDescs);
+    const flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
+  return ecmpSetupTargetedPorts_.resolveNextHops(
+      inputState, portDescs, useLinkLocal);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const flat_set<PortDescriptor>& portDescs) const {
-  return ecmpSetupTargetedPorts_.unresolveNextHops(inputState, portDescs);
-}
-
-template <typename IPAddrT>
-std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
-    const std::shared_ptr<SwitchState>& inputState,
-    size_t numNextHops) const {
+    const flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
   return ecmpSetupTargetedPorts_.unresolveNextHops(
-      inputState, getPortDescs(numNextHops));
+      inputState, portDescs, useLinkLocal);
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    size_t numNextHops,
+    bool useLinkLocal) const {
+  return ecmpSetupTargetedPorts_.unresolveNextHops(
+      inputState, getPortDescs(numNextHops), useLinkLocal);
 }
 
 template <typename IPAddrT>
@@ -571,31 +577,37 @@ std::vector<PortDescriptor> MplsEcmpSetupAnyNPorts<IPAddrT>::ecmpPortDescs(
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    size_t numNextHops) const {
+    size_t numNextHops,
+    bool useLinkLocal) const {
   return mplsEcmpSetupTargetedPorts_.resolveNextHops(
-      inputState, getPortDescs(numNextHops));
+      inputState, getPortDescs(numNextHops), useLinkLocal);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    size_t numNextHops) const {
+    size_t numNextHops,
+    bool useLinkLocal) const {
   return mplsEcmpSetupTargetedPorts_.unresolveNextHops(
-      inputState, getPortDescs(numNextHops));
+      inputState, getPortDescs(numNextHops), useLinkLocal);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const boost::container::flat_set<PortDescriptor>& portDescs) const {
-  return mplsEcmpSetupTargetedPorts_.resolveNextHops(inputState, portDescs);
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
+  return mplsEcmpSetupTargetedPorts_.resolveNextHops(
+      inputState, portDescs, useLinkLocal);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    const boost::container::flat_set<PortDescriptor>& portDescs) const {
-  return mplsEcmpSetupTargetedPorts_.unresolveNextHops(inputState, portDescs);
+    const boost::container::flat_set<PortDescriptor>& portDescs,
+    bool useLinkLocal) const {
+  return mplsEcmpSetupTargetedPorts_.unresolveNextHops(
+      inputState, portDescs, useLinkLocal);
 }
 
 template <typename IPAddrT>

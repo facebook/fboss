@@ -282,10 +282,12 @@ class EcmpSetupAnyNPorts {
    */
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      size_t numNextHops) const;
+      size_t numNextHops,
+      bool useLinkLocal = false) const;
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      size_t numNextHops) const;
+      size_t numNextHops,
+      bool useLinkLocal = false) const;
 
   /*
    * Targeted resolve. Resolve only a subset of next hops.
@@ -296,12 +298,14 @@ class EcmpSetupAnyNPorts {
    */
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
 
   // targeted unresolve
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
 
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
@@ -375,10 +379,12 @@ class MplsEcmpSetupAnyNPorts {
    */
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      size_t numNextHops) const;
+      size_t numNextHops,
+      bool useLinkLocal = false) const;
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      size_t numNextHops) const;
+      size_t numNextHops,
+      bool useLinkLocal = false) const;
 
   /*
    * Targeted resolve. Resolve only a subset of next hops.
@@ -389,12 +395,14 @@ class MplsEcmpSetupAnyNPorts {
    */
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
 
   // targeted unresolve
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+      const boost::container::flat_set<PortDescriptor>& portDescs,
+      bool useLinkLocal = false) const;
 
  private:
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
