@@ -11,7 +11,9 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
@@ -301,6 +303,19 @@ void getQsfpFieldAddress(
   dataAddress = info.dataAddress;
   offset = info.offset;
   length = info.length;
+}
+
+cfg::TransceiverConfigOverrideFactor getModuleConfigOverrideFactor(
+    std::optional<cfg::TransceiverPartNumber> partNumber,
+    std::optional<SMFMediaInterfaceCode> applicationCode) {
+  cfg::TransceiverConfigOverrideFactor moduleFactor;
+  if (partNumber) {
+    moduleFactor.transceiverPartNumber_ref() = *partNumber;
+  }
+  if (applicationCode) {
+    moduleFactor.applicationCode_ref() = *applicationCode;
+  }
+  return moduleFactor;
 }
 
 CmisModule::CmisModule(
@@ -1778,45 +1793,55 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
  * configureModule
  *
  * Set the module serdes / Rx equalizer after module has been discovered. This
- * is done only if current serdes setting is different from desired one. Elbert:
- *  Speed 400G -> pre/post/main: 4/0/3
- *  Speed 200G -> pre/post/main: 3/0/3
- * Wedge400:
- *  All speeds -> pre/post/main: 3/0/3
+ * is done only if current serdes setting is different from desired one and if
+ * the setting is specified in the qsfp config
  */
 void CmisModule::configureModule() {
-  // Find port speed first
-  auto speed = getPortSpeed();
+  auto appCode = getSmfMediaInterface();
 
   XLOG(INFO) << folly::sformat(
-      "Module {:s}, configureModule for current speed {}",
+      "Module {:s}, configureModule for application {:s}",
       qsfpImpl_->getName(),
-      apache::thrift::util::enumNameSafe(speed));
+      apache::thrift::util::enumNameSafe(appCode));
 
-  // Set the Rx equalizer based on platform and speed if needed
-  RxEqualizerSettings rxEq;
   if (!transceiverManager_) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s}, transceiverManager_ is NULL, skipping module configuration",
+        qsfpImpl_->getName());
+    return;
+  }
+  if (!transceiverManager_->getQsfpConfig()) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s}, qsfpConfig is NULL, skipping module configuration",
+        qsfpImpl_->getName());
     return;
   }
 
-  if (transceiverManager_->getPlatformMode() == PlatformMode::ELBERT) {
-    if (speed == cfg::PortSpeed::FOURHUNDREDG) {
-      rxEq.preCursor_ref() = 4;
-      rxEq.postCursor_ref() = 0;
-      rxEq.mainAmplitude_ref() = 3;
-      setModuleRxEqualizerLocked(rxEq);
-    } else if (speed == cfg::PortSpeed::TWOHUNDREDG) {
-      rxEq.preCursor_ref() = 3;
-      rxEq.postCursor_ref() = 0;
-      rxEq.mainAmplitude_ref() = 3;
-      setModuleRxEqualizerLocked(rxEq);
+  auto moduleFactor = getModuleConfigOverrideFactor(
+      std::nullopt, // Part Number : TODO: Read and cache tcvrPartNumber
+      appCode // Application code
+  );
+
+  // Set the Rx equalizer setting based on QSFP config
+  auto qsfpCfg = transceiverManager_->getQsfpConfig()->thrift;
+  for (const auto& override : *qsfpCfg.transceiverConfigOverrides_ref()) {
+    // Check if there is an override for all kinds of transceivers or
+    // an override for the current application code(speed)
+    if (overrideFactorMatchFound(
+            *override.factor_ref(), // override factor
+            moduleFactor)) {
+      // Check if this override factor requires overriding RxEqualizerSettings
+      if (auto rxEqSetting =
+              cmisRxEqualizerSettingOverride(*override.config_ref())) {
+        setModuleRxEqualizerLocked(*rxEqSetting);
+        return;
+      }
     }
-  } else if (transceiverManager_->getPlatformMode() == PlatformMode::WEDGE400) {
-    rxEq.preCursor_ref() = 4;
-    rxEq.postCursor_ref() = 0;
-    rxEq.mainAmplitude_ref() = 3;
-    setModuleRxEqualizerLocked(rxEq);
   }
+
+  XLOG(INFO) << folly::sformat(
+      "Module {:s}, Rx Equalizer configuration not specified in the QSFP config",
+      qsfpImpl_->getName());
 }
 
 /*
@@ -1900,18 +1925,39 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
           CmisField::RX_CONTROL_PRE_CURSOR, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPre);
+      XLOG(INFO) << folly::sformat(
+          "Module {:s} customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
+          qsfpImpl_->getName(),
+          desiredPre[0],
+          desiredPre[1],
+          desiredPre[2],
+          desiredPre[3]);
     }
     if (changePost) {
       getQsfpFieldAddress(
           CmisField::RX_CONTROL_POST_CURSOR, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPost);
+      XLOG(INFO) << folly::sformat(
+          "Module {:s} customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
+          qsfpImpl_->getName(),
+          desiredPost[0],
+          desiredPost[1],
+          desiredPost[2],
+          desiredPost[3]);
     }
     if (changeMain) {
       getQsfpFieldAddress(
           CmisField::RX_CONTROL_MAIN, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP, offset, length, desiredMain);
+      XLOG(INFO) << folly::sformat(
+          "Module {:s} customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
+          qsfpImpl_->getName(),
+          desiredMain[0],
+          desiredMain[1],
+          desiredMain[2],
+          desiredMain[3]);
     }
 
     // Apply the change using stage 0 control
