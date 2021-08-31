@@ -250,6 +250,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::ANY:
     case cfg::EtherType::IPv4:
     case cfg::EtherType::IPv6:
+    case cfg::EtherType::EAPOL:
     case cfg::EtherType::MACSEC:
     case cfg::EtherType::LLDP:
       return static_cast<uint16_t>(cfgEtherType);

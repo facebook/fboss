@@ -155,6 +155,7 @@ enum EtherType {
   ANY = 0x0000,
   IPv4 = 0x0800,
   IPv6 = 0x86DD,
+  EAPOL = 0x888E,
   MACSEC = 0x88E5,
   LLDP = 0x88CC,
 }

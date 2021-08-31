@@ -601,8 +601,10 @@ TEST_F(MacsecManagerTest, installKeys) {
         saiManagerTable->aclTableManager().getAclTableHandle(aclName);
     ASSERT_NE(aclTable, nullptr);
 
+    // TODO(rajank): Make this priority to 1 after checking in the Credo
+    // driver ACL priority inversion fix
     auto aclEntry =
-        saiManagerTable->aclTableManager().getAclEntryHandle(aclTable, 1);
+        saiManagerTable->aclTableManager().getAclEntryHandle(aclTable, 3);
     ASSERT_NE(aclEntry, nullptr);
   };
   verify(

@@ -42,7 +42,10 @@ static std::array<uint8_t, 12> kDefaultSaltValue{
     0x6d};
 const MacsecShortSecureChannelId kDefaultSsciValue =
     MacsecShortSecureChannelId(0x01000000);
-constexpr int kMacsecAclPriority = 1;
+// TODO(rajank): Revert this priority after Credo priority inversion fix
+constexpr int kMacsecAclPriority = 3;
+constexpr int kMacsecLldpAclPriority = 2;
+constexpr int kMacsecMkaAclPriority = 1;
 
 const std::shared_ptr<AclEntry> createMacsecAclEntry(
     int priority,
@@ -64,6 +67,22 @@ const std::shared_ptr<AclEntry> createMacsecAclEntry(
   entry->setActionType(cfg::AclActionType::PERMIT);
   entry->setAclAction(macsecAction);
 
+  return entry;
+}
+
+const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
+    int priority,
+    std::string entryName,
+    std::optional<folly::MacAddress> mac,
+    std::optional<cfg::EtherType> etherType) {
+  auto entry = std::make_shared<AclEntry>(priority, entryName);
+  if (mac.has_value()) {
+    entry->setDstMac(*mac);
+  }
+  if (etherType.has_value()) {
+    entry->setEtherType(*etherType);
+  }
+  entry->setActionType(cfg::AclActionType::PERMIT);
   return entry;
 }
 } // namespace
@@ -642,6 +661,28 @@ void SaiMacsecManager::setupMacsec(
     XLOG(DBG2) << "For linePort: " << linePort << ", created " << direction
                << " ACL table with sai ID " << aclTableId;
     aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+
+    // After creating ACL table, create couple of control packet rules
+    // Rule for MKA
+    cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
+    auto aclEntry = createMacsecControlAclEntry(
+        kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
+    auto aclEntryId =
+        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    XLOG(DBG2) << "For linePort: " << linePort << ", direction " << direction
+               << " ACL entry for MKA " << aclEntryId;
+
+    // Rule for LLDP
+    cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
+    aclEntry = createMacsecControlAclEntry(
+        kMacsecLldpAclPriority,
+        aclName,
+        std::nullopt /* dstMac */,
+        ethTypeLldp);
+    aclEntryId =
+        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    XLOG(DBG2) << "For linePort: " << linePort << ", direction " << direction
+               << " ACL entry for LLDP " << aclEntryId;
   }
   CHECK_NOTNULL(aclTable);
   auto aclTableId = aclTable->aclTable->adapterKey();
