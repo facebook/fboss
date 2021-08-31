@@ -151,11 +151,7 @@ void WedgeManager::loadConfig() {
   }
 
   // Process QSFP config here
-  try {
-    qsfpConfig_ = QsfpConfig::fromDefaultFile();
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error loading QSFP Service config : " << ex.what();
-  }
+  qsfpConfig_ = QsfpConfig::fromDefaultFile();
 }
 
 void WedgeManager::initTransceiverMap() {
