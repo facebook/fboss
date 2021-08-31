@@ -49,9 +49,15 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.minorVersion_ref() = 92;
       break;
     case PlatformMode::MINIPACK:
+      desiredFw.version_ref() = 0xD032;
+      desiredFw.crc_ref() = 0x53C6A56;
+      break;
     case PlatformMode::YAMP:
-      throw FbossError(
-          "Fill in desired f/w version for: ", toString(platformMode));
+      desiredFw.version_ref() = 0x3894F5;
+      desiredFw.versionStr_ref() = "2.18.2";
+      desiredFw.crc_ref() = 0x5B4C;
+      desiredFw.dateCode_ref() = 18423;
+      break;
   }
 
   auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
@@ -64,8 +70,12 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     }
     auto xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
         GlobalXphyID(chip.second.get_physicalID()));
-    EXPECT_EQ(xphy->fwVersion().get_version(), desiredFw.get_version());
-    EXPECT_EQ(xphy->fwVersion().get_crc(), desiredFw.get_crc());
+    const auto& actualFw = xphy->fwVersion();
+    EXPECT_EQ(actualFw.version_ref(), desiredFw.version_ref());
+    EXPECT_EQ(actualFw.versionStr_ref(), desiredFw.versionStr_ref());
+    EXPECT_EQ(actualFw.crc_ref(), desiredFw.crc_ref());
+    EXPECT_EQ(actualFw.minorVersion_ref(), desiredFw.minorVersion_ref());
+    EXPECT_EQ(actualFw.dateCode_ref(), desiredFw.dateCode_ref());
   }
 }
 } // namespace facebook::fboss
