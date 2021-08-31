@@ -17,6 +17,11 @@ namespace facebook::fboss {
 class SaiApiLock {
  public:
   static std::shared_ptr<SaiApiLock> getInstance();
-  std::mutex lock;
+  std::lock_guard<std::mutex> lock() const {
+    return std::lock_guard<std::mutex>(mutex_);
+  }
+
+ private:
+  mutable std::mutex mutex_;
 };
 } // namespace facebook::fboss

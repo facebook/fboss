@@ -86,7 +86,7 @@ class SaiApi {
           "Attempting create SAI obj with {}, while hw writes are blocked",
           createAttributes);
     }
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
       TIME_CALL;
@@ -121,7 +121,7 @@ class SaiApi {
           "Attempting create SAI obj with {}, while hw writes are blocked",
           createAttributes);
     }
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
       TIME_CALL;
@@ -147,7 +147,7 @@ class SaiApi {
           "Attempting to remove SAI obj {} while hw writes are blocked",
           key);
     }
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
       TIME_CALL;
@@ -181,7 +181,7 @@ class SaiApi {
         IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
         "getAttribute must be called on a SaiAttribute or supported "
         "collection of SaiAttributes");
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
       TIME_CALL;
@@ -321,7 +321,7 @@ class SaiApi {
   }
   template <typename AdapterKeyT, typename AttrT>
   void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     setAttributeUnlocked(key, attr);
   }
 
@@ -333,7 +333,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     return getStatsImpl<SaiObjectTraits>(
         key, counterIds.data(), counterIds.size(), mode);
   }
@@ -344,7 +344,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     XLOGF(DBG6, "got SAI stats for {}", key);
     return mode == SAI_STATS_MODE_READ
         ? getStatsImpl<SaiObjectTraits>(
@@ -366,7 +366,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "clearStats only supported for Sai objects with stats");
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(key, counterIds.data(), counterIds.size());
   }
   template <typename SaiObjectTraits>
@@ -374,7 +374,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "clearStats only supported for Sai objects with stats");
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(
         key,
         SaiObjectTraits::CounterIdsToRead.data(),
