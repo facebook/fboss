@@ -17,7 +17,7 @@ using namespace std::chrono;
 
 template <size_t length>
 SnapshotManager<length>::SnapshotManager() {
-  lastPublished_ =
+  lastScheduledPublish_ =
       steady_clock::now() - seconds(FLAGS_link_snapshot_publish_interval);
 }
 
@@ -26,9 +26,18 @@ void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
   auto snapshot = SnapshotWrapper(val);
   buf_.write(snapshot);
   auto now = steady_clock::now();
-  if (lastPublished_ + seconds(FLAGS_link_snapshot_publish_interval) <= now) {
+  auto intervalElapsed =
+      lastScheduledPublish_ + seconds(FLAGS_link_snapshot_publish_interval) <=
+      now;
+
+  if (intervalElapsed || numSnapshotsToPublish_ > 0) {
     snapshot.publish();
-    lastPublished_ = now;
+  }
+  if (intervalElapsed) {
+    lastScheduledPublish_ = now;
+  }
+  if (numSnapshotsToPublish_ > 0) {
+    numSnapshotsToPublish_--;
   }
 }
 
@@ -42,5 +51,10 @@ void SnapshotManager<length>::publishAllSnapshots() {
   for (auto& snapshot : buf_) {
     snapshot.publish();
   }
+}
+
+template <size_t length>
+void SnapshotManager<length>::publishFutureSnapshots(int numToPublish) {
+  numSnapshotsToPublish_ = numToPublish;
 }
 } // namespace facebook::fboss

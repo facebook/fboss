@@ -39,12 +39,14 @@ class SnapshotManager {
   void addSnapshot(LinkSnapshot val);
   void publishAllSnapshots();
   RingBuffer<SnapshotWrapper, length>& getSnapshots();
+  void publishFutureSnapshots(int numToPublish);
 
  private:
   void publishIfNecessary();
 
   RingBuffer<SnapshotWrapper, length> buf_;
-  std::chrono::steady_clock::time_point lastPublished_;
+  std::chrono::steady_clock::time_point lastScheduledPublish_;
+  int numSnapshotsToPublish_{0};
 };
 
 } // namespace facebook::fboss

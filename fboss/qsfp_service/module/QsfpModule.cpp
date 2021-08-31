@@ -374,6 +374,7 @@ void QsfpModule::transceiverPortsChanged(
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     // List of ports inside this module whose operation status has changed
     std::vector<uint32_t> changedPortList;
+    auto anyStateChanged = false;
 
     for (auto& it : ports) {
       CHECK(
@@ -387,14 +388,18 @@ void QsfpModule::transceiverPortsChanged(
       //  port status
       if (ports_[it.first].profileID_ref()->empty() ||
           (*ports_[it.first].up_ref() != *it.second.up_ref())) {
+        if (*ports_[it.first].up_ref() != *it.second.up_ref()) {
+          anyStateChanged = true;
+        }
         changedPortList.push_back(it.first);
       }
 
       ports_[it.first] = std::move(it.second);
     }
 
-    if (!changedPortList.empty()) {
+    if (anyStateChanged) {
       snapshots_.wlock()->publishAllSnapshots();
+      snapshots_.wlock()->publishFutureSnapshots(kNumCachedSnapshots);
     }
 
     // update the present_ field (and will set dirty_ if presence change

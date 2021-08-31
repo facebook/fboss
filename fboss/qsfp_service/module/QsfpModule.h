@@ -54,7 +54,7 @@ class QsfpModuleError : public std::exception {
  */
 class QsfpModule : public Transceiver {
  public:
-  static constexpr auto kNumCachedSnapshots = 20;
+  static constexpr auto kNumCachedSnapshots = 10;
   using TransceiverSnapshotCache = SnapshotManager<kNumCachedSnapshots>;
   using LengthAndGauge = std::pair<double, uint8_t>;
 
