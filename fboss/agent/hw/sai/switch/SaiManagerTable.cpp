@@ -94,7 +94,7 @@ void SaiManagerTable::createSaiTableManagers(
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
 
   // CSP CS00011823810
-#if !defined(SAI_VERSION_5_0_0_7_ODP)
+#if !defined(SAI_VERSION_5_1_0_1_ODP)
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
 #endif
 }
@@ -162,7 +162,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   wredManager_.reset();
 
   // CSP CS00011823810
-#if !defined(SAI_VERSION_5_0_0_7_ODP)
+#if !defined(SAI_VERSION_5_1_0_1_ODP)
   tamManager_.reset();
 #endif
 
