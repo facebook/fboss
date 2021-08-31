@@ -150,9 +150,22 @@ enum RateSelectSetting {
   UNKNOWN = 8,
 }
 
+// A generic media interface code enum to represent all possible media interface
+// codes regardless of management interface types
+enum MediaInterfaceCode {
+  UNKNOWN = 0,
+  CWDM4_100G = 1,
+  CR4_100G = 2,
+  FR1_100G = 3,
+  FR4_200G = 4,
+  FR4_400G = 5,
+  LR4_400G_10KM = 6,
+}
+
 // The extended specification compliance code of the transceiver module.
 // This is the field of Byte 192 on page00 and following table 4-4
 // Extended Specification Compliance Codes of SFF-8024.
+// TODO(joseph5wu) Will deprecate this enum and start using MediaInterfaceCode
 enum ExtendedSpecComplianceCode {
   UNKNOWN = 0,
   CWDM4_100G = 6,
@@ -179,6 +192,7 @@ enum CmisModuleState {
   FAULT = 0x5,
 }
 
+// TODO(joseph5wu) Will deprecate this enum and start using MediaInterfaceCode
 enum SMFMediaInterfaceCode {
   CWDM4_100G = 0x10,
   FR4_200G = 0x18,
@@ -201,7 +215,9 @@ enum MediaTypeEncodings {
 
 struct MediaInterfaceId {
   1: i32 lane,
+  // TODO(joseph5wu) Deprecate this union attribute and use the enum `code`
   2: MediaInterfaceUnion media,
+  3: MediaInterfaceCode code = MediaInterfaceCode.UNKNOWN,
 }
 
 enum CmisLaneState {
