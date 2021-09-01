@@ -15,13 +15,32 @@
 namespace facebook::fboss {
 
 class SaiApiLock {
+  struct ScopedApiLock {
+    ScopedApiLock(std::mutex& m, bool noopLock) : mutex(m), noopLock(noopLock) {
+      if (!noopLock) {
+        mutex.lock();
+      }
+    }
+    ~ScopedApiLock() {
+      if (!noopLock) {
+        mutex.unlock();
+      }
+    }
+    std::mutex& mutex;
+    bool noopLock{false};
+  };
+
  public:
   static std::shared_ptr<SaiApiLock> getInstance();
-  std::lock_guard<std::mutex> lock() const {
-    return std::lock_guard<std::mutex>(mutex_);
+  void setAdaptorIsThreadSafe(bool isThreadSafe) {
+    adaptorIsThreadSafe_ = isThreadSafe;
+  }
+  ScopedApiLock lock() const {
+    return {mutex_, adaptorIsThreadSafe_};
   }
 
  private:
+  bool adaptorIsThreadSafe_{false};
   mutable std::mutex mutex_;
 };
 } // namespace facebook::fboss
