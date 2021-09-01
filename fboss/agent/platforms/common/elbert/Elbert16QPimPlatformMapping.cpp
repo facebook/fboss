@@ -29858,10 +29858,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -14,
+              "pre": -10,
               "pre2": 0,
-              "main": 87,
-              "post": 0,
+              "main": 101,
+              "post": -16,
               "post2": 0,
               "post3": 0
             }
@@ -29872,10 +29872,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -14,
+              "pre": -10,
               "pre2": 0,
-              "main": 87,
-              "post": 0,
+              "main": 101,
+              "post": -16,
               "post2": 0,
               "post3": 0
             }
@@ -29886,10 +29886,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -14,
+              "pre": -10,
               "pre2": 0,
-              "main": 87,
-              "post": 0,
+              "main": 101,
+              "post": -16,
               "post2": 0,
               "post3": 0
             }
@@ -29900,10 +29900,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -14,
+              "pre": -10,
               "pre2": 0,
-              "main": 87,
-              "post": 0,
+              "main": 101,
+              "post": -16,
               "post2": 0,
               "post3": 0
             }

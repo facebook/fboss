@@ -1020,7 +1020,7 @@ TEST_F(PlatformMappingTest, VerifyElbert16QIphyPinConfigs) {
   auto mapping = std::make_unique<Elbert16QPimPlatformMapping>();
   std::map<cfg::PortProfileID, std::array<int, 6>> expectedTxSettings = {
       {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
-       {0, -14, 87, 0, 0, 0}},
+       {0, -10, 101, -16, 0, 0}},
       {cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
        {0, -24, 132, -12, 0, 0}},
       {cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
