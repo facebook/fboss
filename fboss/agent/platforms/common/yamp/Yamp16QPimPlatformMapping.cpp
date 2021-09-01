@@ -63927,7 +63927,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "profiles": [
           8
         ],
-        "transceiverSpecComplianceCode": 38
+        "transceiverSpecComplianceCode": 38,
+        "mediaInterfaceCode": 3
       },
       "portProfileConfig": {
         "speed": 100000,
