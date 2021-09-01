@@ -575,14 +575,24 @@ void SaiMacsecManager::setupMacsec(
 
   // Create macsec pipeline obj if it doesn't exist
   if (!getMacsecHandle(SAI_MACSEC_DIRECTION_INGRESS)) {
-    auto macsecId =
-        addMacsec(SAI_MACSEC_DIRECTION_INGRESS, false /* phys bypass enable */);
+    // If the ingress macsec is not yet created and we are trying to create
+    // ingress macsec then we need to disable macsec bypass otherwise enable
+    // macsec bypass to allow unencrypted packet flow in direction where macsec
+    // is not yet configured
+    auto macsecBypassEnable =
+        (direction == SAI_MACSEC_DIRECTION_INGRESS) ? false : true;
+    auto macsecId = addMacsec(SAI_MACSEC_DIRECTION_INGRESS, macsecBypassEnable);
     XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_INGRESS
                << ", created macsec pipeline object w/ ID: " << macsecId;
   }
+
   if (!getMacsecHandle(SAI_MACSEC_DIRECTION_EGRESS)) {
-    auto macsecId =
-        addMacsec(SAI_MACSEC_DIRECTION_EGRESS, false /* phys bypass enable */);
+    // If the egress macsec is not yet created and we are trying to create
+    // egress macsec then we need to disable macsec bypass otherwise enable
+    // macsec bypass
+    auto macsecBypassEnable =
+        (direction == SAI_MACSEC_DIRECTION_EGRESS) ? false : true;
+    auto macsecId = addMacsec(SAI_MACSEC_DIRECTION_EGRESS, macsecBypassEnable);
     XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_EGRESS
                << ", created macsec pipeline object w/ ID: " << macsecId;
   }
