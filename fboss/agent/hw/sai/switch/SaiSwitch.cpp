@@ -114,7 +114,7 @@ namespace facebook::fboss {
 // N.B., if we want to have multiple SaiSwitches in a device with multiple
 // cards being managed by one instance of FBOSS, this will need to be
 // extended, presumably into an array keyed by switch id.
-static SaiSwitch* __gSaiSwitch;
+static folly::ConcurrentHashMap<sai_object_id_t, SaiSwitch*> __gSaiIdToSwitch;
 
 // Free functions to register as callbacks
 void __gPacketRxCallback(
@@ -123,27 +123,40 @@ void __gPacketRxCallback(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  __gSaiSwitch->packetRxCallback(
+  __gSaiIdToSwitch[switch_id]->packetRxCallback(
       SwitchSaiId{switch_id}, buffer_size, buffer, attr_count, attr_list);
-}
-
-void __glinkStateChangedNotification(
-    uint32_t count,
-    const sai_port_oper_status_notification_t* data) {
-  __gSaiSwitch->linkStateChangedCallbackTopHalf(count, data);
 }
 
 void __gFdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  __gSaiSwitch->fdbEventCallback(count, data);
+  if (!count) {
+    return;
+  }
+  auto switchId = data[0].fdb_entry.switch_id;
+  __gSaiIdToSwitch[switchId]->fdbEventCallback(count, data);
+}
+/*
+ * Link, parity and TAM event notifications don't have switch id information
+ * in the callback. So in that sense these are not compatible with a 1 sai
+ * adapter handling multiple ASICs/SaiSwitches scenario. Luckily for our use
+ * case multi chip scenario happens only in phys, where we do not setup
+ * call backs. If we need to expand this to a multi switch ASIC scenario,
+ * the following callbacks will need a SAI spec enhancement.
+ */
+void __glinkStateChangedNotification(
+    uint32_t count,
+    const sai_port_oper_status_notification_t* data) {
+  __gSaiIdToSwitch.begin()->second->linkStateChangedCallbackTopHalf(
+      count, data);
 }
 
 void __gParityErrorSwitchEventCallback(
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t event_type) {
-  __gSaiSwitch->parityErrorSwitchEventCallback(buffer_size, buffer, event_type);
+  __gSaiIdToSwitch.begin()->second->parityErrorSwitchEventCallback(
+      buffer_size, buffer, event_type);
 }
 
 void __gTamEventCallback(
@@ -152,7 +165,7 @@ void __gTamEventCallback(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  __gSaiSwitch->tamEventCallback(
+  __gSaiIdToSwitch.begin()->second->tamEventCallback(
       tam_event_id, buffer_size, buffer, attr_count, attr_list);
 }
 
@@ -987,7 +1000,7 @@ HwInitResult SaiSwitch::initLocked(
   managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
   callback_ = callback;
-  __gSaiSwitch = this;
+  __gSaiIdToSwitch.insert_or_assign(switchId_, this);
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
     auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
