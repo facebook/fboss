@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/switch_asics/CredoF104Asic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 
-sai_status_t credo_library_initialize(void);
-
 namespace facebook::fboss {
 
 const std::string& SaiCloudRipperPhyPlatform::getFirmwareDirectory() {
@@ -134,9 +132,6 @@ const std::set<sai_api_t>& SaiCloudRipperPhyPlatform::getSupportedApiList()
 }
 
 void SaiCloudRipperPhyPlatform::preHwInitialized() {
-  // Credo library needs to be initialized when the library is attached as a
-  // shared library
-  credo_library_initialize();
   // Call SaiSwitch::initSaiApis before creating SaiSwitch.
   // Only call this function once to make sure we only initialize sai apis
   // once even we'll create multiple SaiSwitch based on how many Cloud Ripper
