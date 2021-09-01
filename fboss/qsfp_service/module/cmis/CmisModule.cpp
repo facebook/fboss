@@ -1860,6 +1860,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   bool changePre = false, changePost = false, changeMain = false;
   int offset, length, dataAddress;
+  uint8_t numLanes = numHostLanes();
 
   XLOG(INFO) << folly::sformat(
       "setModuleRxEqualizerLocked called for {:s}", qsfpImpl_->getName());
@@ -1878,12 +1879,14 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
 
-  auto compareSettings = [&](uint8_t currSettings[],
+  auto compareSettings = [numLanes](
+                             uint8_t currSettings[],
                              uint8_t desiredSettings[],
                              int length,
                              bool& changeNeeded) {
-    for (auto i = 0; i < length; i++) {
-      if (currSettings[i] != desiredSettings[i]) {
+    // Two lanes share the same byte so loop only until numLanes / 2
+    for (auto i = 0; i <= (numLanes - 1) / 2; i++) {
+      if (i < length && currSettings[i] != desiredSettings[i]) {
         // Some of the pre-cursor value needs to be changed so break from
         // here
         changeNeeded = true;
@@ -1963,7 +1966,6 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     // Apply the change using stage 0 control
     getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
     uint8_t stage0Control[8];
-    uint8_t numLanes = numHostLanes();
     qsfpImpl_->readTransceiver(
         TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
     for (int i = 0; i < numLanes; i++) {
