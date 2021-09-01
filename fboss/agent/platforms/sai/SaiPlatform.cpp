@@ -181,8 +181,8 @@ void SaiPlatform::initSaiProfileValues() {
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
   initSaiProfileValues();
-  // Call SaiSwitch::initSaiApis before creating SaiSwitch.
-  SaiSwitch::initSaiApis(getServiceMethodTable(), getSupportedApiList());
+  SaiApiTable::getInstance()->queryApis(
+      getServiceMethodTable(), getSupportedApiList());
   saiSwitch_ = std::make_unique<SaiSwitch>(this, hwFeaturesDesired);
   generateHwConfigFile();
 }

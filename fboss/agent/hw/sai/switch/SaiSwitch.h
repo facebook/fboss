@@ -64,10 +64,6 @@ class SaiSwitch : public HwSwitch {
 
   static auto constexpr kAclTable1 = "AclTable1";
 
-  static void initSaiApis(
-      sai_service_method_table_t* serviceMethodTable,
-      const std::set<sai_api_t>& desiredApis);
-
   HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) noexcept
       override;
 

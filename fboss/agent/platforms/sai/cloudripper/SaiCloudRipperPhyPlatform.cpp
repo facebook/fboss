@@ -141,7 +141,8 @@ void SaiCloudRipperPhyPlatform::preHwInitialized() {
   // Only call this function once to make sure we only initialize sai apis
   // once even we'll create multiple SaiSwitch based on how many Cloud Ripper
   // PHYs in the system.
-  SaiSwitch::initSaiApis(getServiceMethodTable(), getSupportedApiList());
+  SaiApiTable::getInstance()->queryApis(
+      getServiceMethodTable(), getSupportedApiList());
 }
 
 void SaiCloudRipperPhyPlatform::initImpl(uint32_t hwFeaturesDesired) {

@@ -973,13 +973,6 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   return state;
 }
 
-void SaiSwitch::initSaiApis(
-    sai_service_method_table_t* serviceMethodTable,
-    const std::set<sai_api_t>& desiredApis) {
-  // Get the API lists
-  SaiApiTable::getInstance()->queryApis(serviceMethodTable, desiredApis);
-}
-
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     HwWriteBehavior behavior,
