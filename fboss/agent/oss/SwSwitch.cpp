@@ -38,4 +38,7 @@ void SwSwitch::logSwitchRunStateChange(
   XLOG(DBG2) << logMsg;
 }
 
+void SwSwitch::connectToFsdb() {}
+void SwSwitch::disconnectFromFsdb() {}
+
 } // namespace facebook::fboss

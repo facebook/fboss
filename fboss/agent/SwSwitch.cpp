@@ -195,6 +195,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+
+  connectToFsdb();
 }
 
 SwSwitch::~SwSwitch() {
@@ -269,6 +271,9 @@ void SwSwitch::stop() {
   mkaServiceManager_.reset();
 #endif
   phySnapshotManager_.reset();
+
+  disconnectFromFsdb();
+
   // stops the background and update threads.
   stopThreads();
 }
