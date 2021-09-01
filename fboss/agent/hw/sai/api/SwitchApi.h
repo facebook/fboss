@@ -514,38 +514,35 @@ class SwitchApi : public SaiApi<SwitchApi> {
   const sai_switch_api_t* api() const {
     return api_;
   }
-  sai_switch_api_t* api() {
-    return api_;
-  }
 
   void registerRxCallback(
       SwitchSaiId id,
-      sai_packet_event_notification_fn rx_cb);
+      sai_packet_event_notification_fn rx_cb) const;
   void registerPortStateChangeCallback(
       SwitchSaiId id,
-      sai_port_state_change_notification_fn port_state_change_cb);
+      sai_port_state_change_notification_fn port_state_change_cb) const;
   void registerFdbEventCallback(
       SwitchSaiId id,
-      sai_fdb_event_notification_fn fdb_event_cb);
+      sai_fdb_event_notification_fn fdb_event_cb) const;
   void registerTamEventCallback(
       SwitchSaiId id,
-      sai_tam_event_notification_fn tam_event_cb);
+      sai_tam_event_notification_fn tam_event_cb) const;
   void registerParityErrorSwitchEventCallback(
       SwitchSaiId id,
-      void* switch_event_cb);
-  void unregisterRxCallback(SwitchSaiId switch_id) {
+      void* switch_event_cb) const;
+  void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
-  void unregisterPortStateChangeCallback(SwitchSaiId id) {
+  void unregisterPortStateChangeCallback(SwitchSaiId id) const {
     registerPortStateChangeCallback(id, nullptr);
   }
-  void unregisterFdbEventCallback(SwitchSaiId id) {
+  void unregisterFdbEventCallback(SwitchSaiId id) const {
     registerFdbEventCallback(id, nullptr);
   }
-  void unregisterTamEventCallback(SwitchSaiId id) {
+  void unregisterTamEventCallback(SwitchSaiId id) const {
     registerTamEventCallback(id, nullptr);
   }
-  void unregisterParityErrorSwitchEventCallback(SwitchSaiId id) {
+  void unregisterParityErrorSwitchEventCallback(SwitchSaiId id) const {
     registerParityErrorSwitchEventCallback(id, nullptr);
   }
 

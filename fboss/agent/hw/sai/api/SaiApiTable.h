@@ -59,82 +59,56 @@ class SaiApiTable {
       sai_service_method_table_t* serviceMethodTable,
       const std::set<sai_api_t>& desiredApis);
 
-  AclApi& aclApi();
   const AclApi& aclApi() const;
 
-  BridgeApi& bridgeApi();
   const BridgeApi& bridgeApi() const;
 
-  BufferApi& bufferApi();
   const BufferApi& bufferApi() const;
 
-  DebugCounterApi& debugCounterApi();
   const DebugCounterApi& debugCounterApi() const;
 
-  FdbApi& fdbApi();
   const FdbApi& fdbApi() const;
 
-  HashApi& hashApi();
   const HashApi& hashApi() const;
 
-  HostifApi& hostifApi();
   const HostifApi& hostifApi() const;
 
-  MirrorApi& mirrorApi();
   const MirrorApi& mirrorApi() const;
 
-  MplsApi& mplsApi();
   const MplsApi& mplsApi() const;
 
-  NextHopApi& nextHopApi();
   const NextHopApi& nextHopApi() const;
 
-  NextHopGroupApi& nextHopGroupApi();
   const NextHopGroupApi& nextHopGroupApi() const;
 
-  NeighborApi& neighborApi();
   const NeighborApi& neighborApi() const;
 
-  PortApi& portApi();
   const PortApi& portApi() const;
 
-  QosMapApi& qosMapApi();
   const QosMapApi& qosMapApi() const;
 
-  QueueApi& queueApi();
   const QueueApi& queueApi() const;
 
-  RouteApi& routeApi();
   const RouteApi& routeApi() const;
 
-  RouterInterfaceApi& routerInterfaceApi();
   const RouterInterfaceApi& routerInterfaceApi() const;
 
-  SamplePacketApi& samplePacketApi();
   const SamplePacketApi& samplePacketApi() const;
 
-  SchedulerApi& schedulerApi();
   const SchedulerApi& schedulerApi() const;
 
-  SwitchApi& switchApi();
   const SwitchApi& switchApi() const;
 
-  VirtualRouterApi& virtualRouterApi();
   const VirtualRouterApi& virtualRouterApi() const;
 
-  VlanApi& vlanApi();
   const VlanApi& vlanApi() const;
 
-  WredApi& wredApi();
   const WredApi& wredApi() const;
 
-  TamApi& tamApi();
   const TamApi& tamApi() const;
 
-  LagApi& lagApi();
   const LagApi& lagApi() const;
 
-  MacsecApi& macsecApi();
   const MacsecApi& macsecApi() const;
 
   template <typename SaiApiT>

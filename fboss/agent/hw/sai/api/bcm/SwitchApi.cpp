@@ -37,7 +37,7 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
 
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId id,
-    void* switch_event_cb) {
+    void* switch_event_cb) const {
 #if defined(SAI_VERSION_5_1_0_1_ODP)
   sai_attribute_t attr;
   attr.value.ptr = switch_event_cb;

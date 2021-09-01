@@ -30,6 +30,6 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
 
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId /*id*/,
-    void* /*switch_event_cb*/) {}
+    void* /*switch_event_cb*/) const {}
 
 } // namespace facebook::fboss

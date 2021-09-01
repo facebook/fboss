@@ -204,7 +204,7 @@ class HostifApi : public SaiApi<HostifApi> {
   sai_status_t send(
       const SaiTxPacketTraits::TxAttributes& attributes,
       sai_object_id_t switch_id,
-      const SaiHostifApiPacket& txPacket) {
+      const SaiHostifApiPacket& txPacket) const {
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(attributes);
     return api_->send_hostif_packet(
         switch_id,

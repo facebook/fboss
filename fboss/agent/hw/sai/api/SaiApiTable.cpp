@@ -73,185 +73,104 @@ void SaiApiTable::queryApis(
       apis);
 }
 
-AclApi& SaiApiTable::aclApi() {
-  return getApi<AclApi>();
-}
-
 const AclApi& SaiApiTable::aclApi() const {
   return getApi<AclApi>();
 }
 
-BridgeApi& SaiApiTable::bridgeApi() {
-  return getApi<BridgeApi>();
-}
 const BridgeApi& SaiApiTable::bridgeApi() const {
   return getApi<BridgeApi>();
 }
 
-BufferApi& SaiApiTable::bufferApi() {
-  return getApi<BufferApi>();
-}
 const BufferApi& SaiApiTable::bufferApi() const {
   return getApi<BufferApi>();
 }
 
-DebugCounterApi& SaiApiTable::debugCounterApi() {
-  return getApi<DebugCounterApi>();
-}
 const DebugCounterApi& SaiApiTable::debugCounterApi() const {
   return getApi<DebugCounterApi>();
 }
 
-FdbApi& SaiApiTable::fdbApi() {
-  return getApi<FdbApi>();
-}
 const FdbApi& SaiApiTable::fdbApi() const {
   return getApi<FdbApi>();
 }
 
-HashApi& SaiApiTable::hashApi() {
-  return getApi<HashApi>();
-}
 const HashApi& SaiApiTable::hashApi() const {
   return getApi<HashApi>();
 }
 
-HostifApi& SaiApiTable::hostifApi() {
-  return getApi<HostifApi>();
-}
 const HostifApi& SaiApiTable::hostifApi() const {
   return getApi<HostifApi>();
 }
 
-MirrorApi& SaiApiTable::mirrorApi() {
-  return getApi<MirrorApi>();
-}
 const MirrorApi& SaiApiTable::mirrorApi() const {
   return getApi<MirrorApi>();
 }
 
-MplsApi& SaiApiTable::mplsApi() {
-  return getApi<MplsApi>();
-}
 const MplsApi& SaiApiTable::mplsApi() const {
   return getApi<MplsApi>();
 }
-NextHopApi& SaiApiTable::nextHopApi() {
-  return getApi<NextHopApi>();
-}
+
 const NextHopApi& SaiApiTable::nextHopApi() const {
   return getApi<NextHopApi>();
 }
 
-NextHopGroupApi& SaiApiTable::nextHopGroupApi() {
-  return getApi<NextHopGroupApi>();
-}
 const NextHopGroupApi& SaiApiTable::nextHopGroupApi() const {
   return getApi<NextHopGroupApi>();
 }
 
-NeighborApi& SaiApiTable::neighborApi() {
-  return getApi<NeighborApi>();
-}
 const NeighborApi& SaiApiTable::neighborApi() const {
   return getApi<NeighborApi>();
 }
 
-PortApi& SaiApiTable::portApi() {
-  return getApi<PortApi>();
-}
 const PortApi& SaiApiTable::portApi() const {
   return getApi<PortApi>();
 }
 
-QosMapApi& SaiApiTable::qosMapApi() {
-  return getApi<QosMapApi>();
-}
 const QosMapApi& SaiApiTable::qosMapApi() const {
   return getApi<QosMapApi>();
 }
 
-QueueApi& SaiApiTable::queueApi() {
-  return getApi<QueueApi>();
-}
 const QueueApi& SaiApiTable::queueApi() const {
   return getApi<QueueApi>();
 }
 
-RouteApi& SaiApiTable::routeApi() {
-  return getApi<RouteApi>();
-}
 const RouteApi& SaiApiTable::routeApi() const {
   return getApi<RouteApi>();
 }
 
-RouterInterfaceApi& SaiApiTable::routerInterfaceApi() {
-  return getApi<RouterInterfaceApi>();
-}
 const RouterInterfaceApi& SaiApiTable::routerInterfaceApi() const {
   return getApi<RouterInterfaceApi>();
 }
 
-SamplePacketApi& SaiApiTable::samplePacketApi() {
-  return getApi<SamplePacketApi>();
-}
 const SamplePacketApi& SaiApiTable::samplePacketApi() const {
   return getApi<SamplePacketApi>();
 }
 
-SchedulerApi& SaiApiTable::schedulerApi() {
-  return getApi<SchedulerApi>();
-}
 const SchedulerApi& SaiApiTable::schedulerApi() const {
   return getApi<SchedulerApi>();
 }
 
-SwitchApi& SaiApiTable::switchApi() {
-  return getApi<SwitchApi>();
-}
 const SwitchApi& SaiApiTable::switchApi() const {
   return getApi<SwitchApi>();
 }
 
-VirtualRouterApi& SaiApiTable::virtualRouterApi() {
-  return getApi<VirtualRouterApi>();
-}
 const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
   return getApi<VirtualRouterApi>();
 }
 
-VlanApi& SaiApiTable::vlanApi() {
-  return getApi<VlanApi>();
-}
 const VlanApi& SaiApiTable::vlanApi() const {
   return getApi<VlanApi>();
 }
 
-WredApi& SaiApiTable::wredApi() {
-  return getApi<WredApi>();
-}
 const WredApi& SaiApiTable::wredApi() const {
   return getApi<WredApi>();
-}
-
-TamApi& SaiApiTable::tamApi() {
-  return getApi<TamApi>();
 }
 
 const TamApi& SaiApiTable::tamApi() const {
   return getApi<TamApi>();
 }
 
-LagApi& SaiApiTable::lagApi() {
-  return getApi<LagApi>();
-}
-
 const LagApi& SaiApiTable::lagApi() const {
   return getApi<LagApi>();
-}
-
-MacsecApi& SaiApiTable::macsecApi() {
-  return getApi<MacsecApi>();
 }
 
 const MacsecApi& SaiApiTable::macsecApi() const {

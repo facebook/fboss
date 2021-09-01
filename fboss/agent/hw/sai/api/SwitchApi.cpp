@@ -14,7 +14,7 @@ namespace facebook::fboss {
 
 void SwitchApi::registerRxCallback(
     SwitchSaiId id,
-    sai_packet_event_notification_fn rx_cb) {
+    sai_packet_event_notification_fn rx_cb) const {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
   attr.value.ptr = (void*)rx_cb;
@@ -29,7 +29,7 @@ void SwitchApi::registerRxCallback(
 
 void SwitchApi::registerPortStateChangeCallback(
     SwitchSaiId id,
-    sai_port_state_change_notification_fn port_state_change_cb) {
+    sai_port_state_change_notification_fn port_state_change_cb) const {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY;
   attr.value.ptr = (void*)port_state_change_cb;
@@ -44,7 +44,7 @@ void SwitchApi::registerPortStateChangeCallback(
 
 void SwitchApi::registerFdbEventCallback(
     SwitchSaiId id,
-    sai_fdb_event_notification_fn fdb_event_cb) {
+    sai_fdb_event_notification_fn fdb_event_cb) const {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_FDB_EVENT_NOTIFY;
   attr.value.ptr = (void*)fdb_event_cb;
@@ -59,7 +59,7 @@ void SwitchApi::registerFdbEventCallback(
 
 void SwitchApi::registerTamEventCallback(
     SwitchSaiId id,
-    sai_tam_event_notification_fn tam_event_cb) {
+    sai_tam_event_notification_fn tam_event_cb) const {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY;
   attr.value.ptr = (void*)tam_event_cb;
