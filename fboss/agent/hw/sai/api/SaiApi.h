@@ -58,7 +58,9 @@ class SaiApi {
   // The distinction is drawn with traits from Traits.h and SFINAE
 
   void setHwWriteBehavior(HwWriteBehavior behavior) {
-    hwWriteBehavior_ = behavior;
+    if (hwWriteBehavior_ != behavior) {
+      hwWriteBehavior_ = behavior;
+    }
   }
   HwWriteBehavior getHwWriteBehavior() const {
     return hwWriteBehavior_;
@@ -445,7 +447,8 @@ class SaiApi {
   const ApiT& impl() const {
     return static_cast<const ApiT&>(*this);
   }
-  HwWriteBehavior hwWriteBehavior_{HwWriteBehavior::WRITE};
+  // TODO - make this behavior per SwitchId
+  std::atomic<HwWriteBehavior> hwWriteBehavior_{HwWriteBehavior::WRITE};
 };
 
 } // namespace facebook::fboss
