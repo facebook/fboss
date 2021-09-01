@@ -116,10 +116,11 @@ class NeighborApi : public SaiApi<NeighborApi> {
   sai_status_t _create(
       const SaiNeighborTraits::NeighborEntry& neighborEntry,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_neighbor_entry(neighborEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const SaiNeighborTraits::NeighborEntry& neighborEntry) {
+  sai_status_t _remove(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry) const {
     return api_->remove_neighbor_entry(neighborEntry.entry());
   }
   sai_status_t _getAttribute(
@@ -129,7 +130,7 @@ class NeighborApi : public SaiApi<NeighborApi> {
   }
   sai_status_t _setAttribute(
       const SaiNeighborTraits::NeighborEntry& neighborEntry,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_neighbor_entry_attribute(neighborEntry.entry(), attr);
   }
 

@@ -501,7 +501,7 @@ class AclApi : public SaiApi<AclApi> {
       AclTableGroupSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_acl_table_group(
         rawSaiId(id), switch_id, count, attr_list);
   }
@@ -510,7 +510,7 @@ class AclApi : public SaiApi<AclApi> {
       AclTableGroupMemberSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_acl_table_group_member(
         rawSaiId(id), switch_id, count, attr_list);
   }
@@ -519,7 +519,7 @@ class AclApi : public SaiApi<AclApi> {
       AclTableSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_acl_table(rawSaiId(id), switch_id, count, attr_list);
   }
 
@@ -527,7 +527,7 @@ class AclApi : public SaiApi<AclApi> {
       AclEntrySaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_acl_entry(rawSaiId(id), switch_id, count, attr_list);
   }
 
@@ -535,27 +535,27 @@ class AclApi : public SaiApi<AclApi> {
       AclCounterSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_acl_counter(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(AclTableGroupSaiId id) {
+  sai_status_t _remove(AclTableGroupSaiId id) const {
     return api_->remove_acl_table_group(id);
   }
 
-  sai_status_t _remove(AclTableGroupMemberSaiId id) {
+  sai_status_t _remove(AclTableGroupMemberSaiId id) const {
     return api_->remove_acl_table_group_member(id);
   }
 
-  sai_status_t _remove(AclTableSaiId id) {
+  sai_status_t _remove(AclTableSaiId id) const {
     return api_->remove_acl_table(id);
   }
 
-  sai_status_t _remove(AclEntrySaiId id) {
+  sai_status_t _remove(AclEntrySaiId id) const {
     return api_->remove_acl_entry(id);
   }
 
-  sai_status_t _remove(AclCounterSaiId id) {
+  sai_status_t _remove(AclCounterSaiId id) const {
     return api_->remove_acl_counter(id);
   }
 

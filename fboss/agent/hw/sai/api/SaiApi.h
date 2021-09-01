@@ -70,7 +70,7 @@ class SaiApi {
       typename SaiObjectTraits::AdapterKey>
   create(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
-      sai_object_id_t switch_id) {
+      sai_object_id_t switch_id) const {
     static_assert(
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
@@ -107,7 +107,8 @@ class SaiApi {
   std::enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, void>
   create(
       const typename SaiObjectTraits::AdapterKey& entry,
-      const typename SaiObjectTraits::CreateAttributes& createAttributes) {
+      const typename SaiObjectTraits::CreateAttributes& createAttributes)
+      const {
     static_assert(
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
@@ -137,7 +138,7 @@ class SaiApi {
   }
 
   template <typename AdapterKeyT>
-  void remove(const AdapterKeyT& key) {
+  void remove(const AdapterKeyT& key) const {
     if (UNLIKELY(skipHwWrites())) {
       return;
     }
@@ -176,7 +177,7 @@ class SaiApi {
           IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
   typename std::remove_reference_t<AttrT>::ValueType getAttribute(
       const AdapterKeyT& key,
-      AttrT&& attr) {
+      AttrT&& attr) const {
     static_assert(
         IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
         "getAttribute must be called on a SaiAttribute or supported "
@@ -224,7 +225,7 @@ class SaiApi {
           std::enable_if_t<IsTuple<std::remove_reference_t<TupleT>>::value>>
   const std::remove_reference_t<TupleT> getAttribute(
       const AdapterKeyT& key,
-      TupleT&& attrTuple) {
+      TupleT&& attrTuple) const {
     // TODO: assert on All<IsSaiAttribute>
     auto recurse = [&key, this](auto&& attr) {
       return getAttribute(key, std::forward<decltype(attr)>(attr));
@@ -238,9 +239,8 @@ class SaiApi {
       typename AttrT,
       typename = std::enable_if_t<
           IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
-  auto getAttribute(
-      const AdapterKeyT& key,
-      std::optional<AttrT>& attrOptional) {
+  auto getAttribute(const AdapterKeyT& key, std::optional<AttrT>& attrOptional)
+      const {
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
       auto id = typename AttrT::AttributeId()();
       if (!id.has_value()) {
@@ -286,7 +286,7 @@ class SaiApi {
   }
 
   template <typename AdapterKeyT, typename AttrT>
-  void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
+  void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) const {
     if (UNLIKELY(skipHwWrites())) {
       return;
     }
@@ -320,7 +320,7 @@ class SaiApi {
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
   template <typename AdapterKeyT, typename AttrT>
-  void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
+  void setAttribute(const AdapterKeyT& key, const AttrT& attr) const {
     auto g{SaiApiLock::getInstance()->lock()};
     setAttributeUnlocked(key, attr);
   }

@@ -66,11 +66,11 @@ class HashApi : public SaiApi<HashApi> {
       HashSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_hash(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(HashSaiId id) {
+  sai_status_t _remove(HashSaiId id) const {
     return api_->remove_hash(id);
   }
 
@@ -78,7 +78,7 @@ class HashApi : public SaiApi<HashApi> {
     return api_->get_hash_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(HashSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(HashSaiId id, const sai_attribute_t* attr) const {
     return api_->set_hash_attribute(id, attr);
   }
 

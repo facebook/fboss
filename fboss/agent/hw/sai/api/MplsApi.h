@@ -97,10 +97,10 @@ class MplsApi : public SaiApi<MplsApi> {
   sai_status_t _create(
       const typename SaiInSegTraits::InSegEntry& inSegEntry,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_inseg_entry(inSegEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const SaiInSegTraits::InSegEntry& inSegEntry) {
+  sai_status_t _remove(const SaiInSegTraits::InSegEntry& inSegEntry) const {
     return api_->remove_inseg_entry(inSegEntry.entry());
   }
   sai_status_t _getAttribute(
@@ -110,7 +110,7 @@ class MplsApi : public SaiApi<MplsApi> {
   }
   sai_status_t _setAttribute(
       const SaiInSegTraits::InSegEntry& inSegEntry,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_inseg_entry_attribute(inSegEntry.entry(), attr);
   }
 

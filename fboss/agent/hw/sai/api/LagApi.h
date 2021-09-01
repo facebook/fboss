@@ -83,20 +83,20 @@ class LagApi : public SaiApi<LagApi> {
       LagSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_lag(rawSaiId(id), switch_id, count, attr_list);
   }
   sai_status_t _create(
       LagMemberSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_lag_member(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(LagSaiId id) {
+  sai_status_t _remove(LagSaiId id) const {
     return api_->remove_lag(id);
   }
-  sai_status_t _remove(LagMemberSaiId id) {
+  sai_status_t _remove(LagMemberSaiId id) const {
     return api_->remove_lag_member(id);
   }
 
@@ -107,10 +107,11 @@ class LagApi : public SaiApi<LagApi> {
     return api_->get_lag_member_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(LagSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(LagSaiId id, const sai_attribute_t* attr) const {
     return api_->set_lag_attribute(id, attr);
   }
-  sai_status_t _setAttribute(LagMemberSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(LagMemberSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_lag_member_attribute(id, attr);
   }
 

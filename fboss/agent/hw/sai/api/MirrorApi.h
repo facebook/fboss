@@ -266,18 +266,19 @@ class MirrorApi : public SaiApi<MirrorApi> {
       MirrorSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_mirror_session(
         rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(MirrorSaiId id) {
+  sai_status_t _remove(MirrorSaiId id) const {
     return api_->remove_mirror_session(id);
   }
 
   sai_status_t _getAttribute(MirrorSaiId id, sai_attribute_t* attr) const {
     return api_->get_mirror_session_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(MirrorSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MirrorSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_mirror_session_attribute(id, attr);
   }
   sai_mirror_api_t* api_;

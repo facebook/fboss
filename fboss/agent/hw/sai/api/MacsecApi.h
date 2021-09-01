@@ -322,23 +322,23 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->create_macsec_flow(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(MacsecSaiId key) {
+  sai_status_t _remove(MacsecSaiId key) const {
     return api_->remove_macsec(key);
   }
 
-  sai_status_t _remove(MacsecPortSaiId key) {
+  sai_status_t _remove(MacsecPortSaiId key) const {
     return api_->remove_macsec_port(key);
   }
 
-  sai_status_t _remove(MacsecSASaiId key) {
+  sai_status_t _remove(MacsecSASaiId key) const {
     return api_->remove_macsec_sa(key);
   }
 
-  sai_status_t _remove(MacsecSCSaiId key) {
+  sai_status_t _remove(MacsecSCSaiId key) const {
     return api_->remove_macsec_sc(key);
   }
 
-  sai_status_t _remove(MacsecFlowSaiId key) {
+  sai_status_t _remove(MacsecFlowSaiId key) const {
     return api_->remove_macsec_flow(key);
   }
 
@@ -362,23 +362,28 @@ class MacsecApi : public SaiApi<MacsecApi> {
     return api_->get_macsec_flow_attribute(key, 1, attr);
   }
 
-  sai_status_t _setAttribute(MacsecSaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MacsecSaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_macsec_attribute(key, attr);
   }
 
-  sai_status_t _setAttribute(MacsecPortSaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MacsecPortSaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_macsec_port_attribute(key, attr);
   }
 
-  sai_status_t _setAttribute(MacsecSASaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MacsecSASaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_macsec_sa_attribute(key, attr);
   }
 
-  sai_status_t _setAttribute(MacsecSCSaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MacsecSCSaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_macsec_sc_attribute(key, attr);
   }
 
-  sai_status_t _setAttribute(MacsecFlowSaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(MacsecFlowSaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_macsec_flow_attribute(key, attr);
   }
 

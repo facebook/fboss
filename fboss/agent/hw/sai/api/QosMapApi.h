@@ -70,16 +70,17 @@ class QosMapApi : public SaiApi<QosMapApi> {
       QosMapSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_qos_map(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(QosMapSaiId id) {
+  sai_status_t _remove(QosMapSaiId id) const {
     return api_->remove_qos_map(id);
   }
   sai_status_t _getAttribute(QosMapSaiId id, sai_attribute_t* attr) const {
     return api_->get_qos_map_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(QosMapSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(QosMapSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_qos_map_attribute(id, attr);
   }
 

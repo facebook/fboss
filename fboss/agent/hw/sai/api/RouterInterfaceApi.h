@@ -142,11 +142,11 @@ class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
       RouterInterfaceSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_router_interface(
         rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(RouterInterfaceSaiId router_interface_id) {
+  sai_status_t _remove(RouterInterfaceSaiId router_interface_id) const {
     return api_->remove_router_interface(router_interface_id);
   }
   sai_status_t _getAttribute(RouterInterfaceSaiId id, sai_attribute_t* attr)
@@ -155,7 +155,7 @@ class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
   }
   sai_status_t _setAttribute(
       RouterInterfaceSaiId key,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_router_interface_attribute(key, attr);
   }
 

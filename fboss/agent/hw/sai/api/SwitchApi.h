@@ -554,16 +554,17 @@ class SwitchApi : public SaiApi<SwitchApi> {
       SwitchSaiId* id,
       sai_object_id_t /* switch_id */,
       size_t attr_count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_switch(rawSaiId(id), attr_count, attr_list);
   }
-  sai_status_t _remove(SwitchSaiId id) {
+  sai_status_t _remove(SwitchSaiId id) const {
     return api_->remove_switch(id);
   }
   sai_status_t _getAttribute(SwitchSaiId id, sai_attribute_t* attr) const {
     return api_->get_switch_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(SwitchSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(SwitchSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_switch_attribute(id, attr);
   }
 

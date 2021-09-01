@@ -84,11 +84,11 @@ class WredApi : public SaiApi<WredApi> {
       WredSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_wred(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(WredSaiId id) {
+  sai_status_t _remove(WredSaiId id) const {
     return api_->remove_wred(id);
   }
 
@@ -96,7 +96,7 @@ class WredApi : public SaiApi<WredApi> {
     return api_->get_wred_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(WredSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(WredSaiId id, const sai_attribute_t* attr) const {
     return api_->set_wred_attribute(id, attr);
   }
 

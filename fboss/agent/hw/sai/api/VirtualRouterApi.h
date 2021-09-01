@@ -65,11 +65,11 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi> {
       VirtualRouterSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_virtual_router(
         rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(VirtualRouterSaiId virtual_router_id) {
+  sai_status_t _remove(VirtualRouterSaiId virtual_router_id) const {
     return api_->remove_virtual_router(virtual_router_id);
   }
   sai_status_t _getAttribute(VirtualRouterSaiId handle, sai_attribute_t* attr)
@@ -78,7 +78,7 @@ class VirtualRouterApi : public SaiApi<VirtualRouterApi> {
   }
   sai_status_t _setAttribute(
       VirtualRouterSaiId handle,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_virtual_router_attribute(handle, attr);
   }
 

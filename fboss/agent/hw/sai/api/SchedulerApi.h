@@ -89,16 +89,17 @@ class SchedulerApi : public SaiApi<SchedulerApi> {
       SchedulerSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_scheduler(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(SchedulerSaiId id) {
+  sai_status_t _remove(SchedulerSaiId id) const {
     return api_->remove_scheduler(id);
   }
   sai_status_t _getAttribute(SchedulerSaiId id, sai_attribute_t* attr) const {
     return api_->get_scheduler_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(SchedulerSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(SchedulerSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_scheduler_attribute(id, attr);
   }
   sai_scheduler_api_t* api_;

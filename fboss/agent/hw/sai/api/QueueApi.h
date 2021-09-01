@@ -110,16 +110,16 @@ class QueueApi : public SaiApi<QueueApi> {
       QueueSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_queue(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(QueueSaiId id) {
+  sai_status_t _remove(QueueSaiId id) const {
     return api_->remove_queue(id);
   }
   sai_status_t _getAttribute(QueueSaiId id, sai_attribute_t* attr) const {
     return api_->get_queue_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(QueueSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(QueueSaiId id, const sai_attribute_t* attr) const {
     return api_->set_queue_attribute(id, attr);
   }
 

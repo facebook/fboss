@@ -63,19 +63,18 @@ class SamplePacketApi : public SaiApi<SamplePacketApi> {
       SamplePacketSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_samplepacket(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(SamplePacketSaiId id) {
+  sai_status_t _remove(SamplePacketSaiId id) const {
     return api_->remove_samplepacket(id);
   }
   sai_status_t _getAttribute(SamplePacketSaiId id, sai_attribute_t* attr)
       const {
     return api_->get_samplepacket_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(
-      SamplePacketSaiId id,
-      const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(SamplePacketSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_samplepacket_attribute(id, attr);
   }
 

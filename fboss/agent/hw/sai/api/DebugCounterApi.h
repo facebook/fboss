@@ -69,12 +69,12 @@ class DebugCounterApi : public SaiApi<DebugCounterApi> {
       DebugCounterSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_debug_counter(
         rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(DebugCounterSaiId id) {
+  sai_status_t _remove(DebugCounterSaiId id) const {
     return api_->remove_debug_counter(id);
   }
 
@@ -83,9 +83,8 @@ class DebugCounterApi : public SaiApi<DebugCounterApi> {
     return api_->get_debug_counter_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(
-      DebugCounterSaiId id,
-      const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(DebugCounterSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_debug_counter_attribute(id, attr);
   }
 

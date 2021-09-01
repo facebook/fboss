@@ -96,22 +96,22 @@ class BridgeApi : public SaiApi<BridgeApi> {
       BridgeSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_bridge(rawSaiId(id), switch_id, count, attr_list);
   }
   sai_status_t _create(
       BridgePortSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_bridge_port(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(BridgeSaiId id) {
+  sai_status_t _remove(BridgeSaiId id) const {
     CHECK(false) << " Bridge remove should never be called";
     return SAI_STATUS_FAILURE;
   }
-  sai_status_t _remove(BridgePortSaiId id) {
+  sai_status_t _remove(BridgePortSaiId id) const {
     return api_->remove_bridge_port(id);
   }
 
@@ -122,10 +122,12 @@ class BridgeApi : public SaiApi<BridgeApi> {
     return api_->get_bridge_port_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(BridgeSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(BridgeSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_bridge_attribute(id, attr);
   }
-  sai_status_t _setAttribute(BridgePortSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(BridgePortSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_bridge_port_attribute(id, attr);
   }
 

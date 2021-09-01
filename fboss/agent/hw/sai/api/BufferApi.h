@@ -114,16 +114,17 @@ class BufferApi : public SaiApi<BufferApi> {
       BufferPoolSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_buffer_pool(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(BufferPoolSaiId id) {
+  sai_status_t _remove(BufferPoolSaiId id) const {
     return api_->remove_buffer_pool(id);
   }
   sai_status_t _getAttribute(BufferPoolSaiId key, sai_attribute_t* attr) const {
     return api_->get_buffer_pool_attribute(key, 1, attr);
   }
-  sai_status_t _setAttribute(BufferPoolSaiId key, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(BufferPoolSaiId key, const sai_attribute_t* attr)
+      const {
     return api_->set_buffer_pool_attribute(key, attr);
   }
 
@@ -151,11 +152,11 @@ class BufferApi : public SaiApi<BufferApi> {
       BufferProfileSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_buffer_profile(
         rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(BufferProfileSaiId id) {
+  sai_status_t _remove(BufferProfileSaiId id) const {
     return api_->remove_buffer_profile(id);
   }
   sai_status_t _getAttribute(BufferProfileSaiId key, sai_attribute_t* attr)
@@ -164,7 +165,7 @@ class BufferApi : public SaiApi<BufferApi> {
   }
   sai_status_t _setAttribute(
       BufferProfileSaiId key,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_buffer_profile_attribute(key, attr);
   }
   sai_buffer_api_t* api_;

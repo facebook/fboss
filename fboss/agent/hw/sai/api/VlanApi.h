@@ -82,20 +82,20 @@ class VlanApi : public SaiApi<VlanApi> {
       VlanSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_vlan(rawSaiId(id), switch_id, count, attr_list);
   }
   sai_status_t _create(
       VlanMemberSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_vlan_member(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(VlanSaiId id) {
+  sai_status_t _remove(VlanSaiId id) const {
     return api_->remove_vlan(id);
   }
-  sai_status_t _remove(VlanMemberSaiId id) {
+  sai_status_t _remove(VlanMemberSaiId id) const {
     return api_->remove_vlan_member(id);
   }
 
@@ -106,10 +106,11 @@ class VlanApi : public SaiApi<VlanApi> {
     return api_->get_vlan_member_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(VlanSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(VlanSaiId id, const sai_attribute_t* attr) const {
     return api_->set_vlan_attribute(id, attr);
   }
-  sai_status_t _setAttribute(VlanMemberSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(VlanMemberSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_vlan_member_attribute(id, attr);
   }
 

@@ -113,10 +113,10 @@ class RouteApi : public SaiApi<RouteApi> {
   sai_status_t _create(
       const typename SaiRouteTraits::RouteEntry& routeEntry,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_route_entry(routeEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const SaiRouteTraits::RouteEntry& routeEntry) {
+  sai_status_t _remove(const SaiRouteTraits::RouteEntry& routeEntry) const {
     return api_->remove_route_entry(routeEntry.entry());
   }
   sai_status_t _getAttribute(
@@ -126,7 +126,7 @@ class RouteApi : public SaiApi<RouteApi> {
   }
   sai_status_t _setAttribute(
       const SaiRouteTraits::RouteEntry& routeEntry,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_route_entry_attribute(routeEntry.entry(), attr);
   }
 

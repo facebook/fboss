@@ -162,7 +162,7 @@ class HostifApi : public SaiApi<HostifApi> {
       HostifTrapGroupSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_hostif_trap_group(
         rawSaiId(id), switch_id, count, attr_list);
   }
@@ -170,14 +170,14 @@ class HostifApi : public SaiApi<HostifApi> {
       HostifTrapSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_hostif_trap(rawSaiId(id), switch_id, count, attr_list);
   }
 
-  sai_status_t _remove(HostifTrapGroupSaiId hostif_trap_group_id) {
+  sai_status_t _remove(HostifTrapGroupSaiId hostif_trap_group_id) const {
     return api_->remove_hostif_trap_group(hostif_trap_group_id);
   }
-  sai_status_t _remove(HostifTrapSaiId hostif_trap_id) {
+  sai_status_t _remove(HostifTrapSaiId hostif_trap_id) const {
     return api_->remove_hostif_trap(hostif_trap_id);
   }
   sai_status_t _getAttribute(HostifTrapGroupSaiId id, sai_attribute_t* attr)
@@ -189,10 +189,11 @@ class HostifApi : public SaiApi<HostifApi> {
   }
   sai_status_t _setAttribute(
       HostifTrapGroupSaiId id,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_hostif_trap_group_attribute(id, attr);
   }
-  sai_status_t _setAttribute(HostifTrapSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(HostifTrapSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_hostif_trap_attribute(id, attr);
   }
 

@@ -115,10 +115,10 @@ class FdbApi : public SaiApi<FdbApi> {
   sai_status_t _create(
       const SaiFdbTraits::FdbEntry& fdbEntry,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_fdb_entry(fdbEntry.entry(), count, attr_list);
   }
-  sai_status_t _remove(const SaiFdbTraits::FdbEntry& fdbEntry) {
+  sai_status_t _remove(const SaiFdbTraits::FdbEntry& fdbEntry) const {
     return api_->remove_fdb_entry(fdbEntry.entry());
   }
   sai_status_t _getAttribute(
@@ -128,7 +128,7 @@ class FdbApi : public SaiApi<FdbApi> {
   }
   sai_status_t _setAttribute(
       const SaiFdbTraits::FdbEntry& fdbEntry,
-      const sai_attribute_t* attr) {
+      const sai_attribute_t* attr) const {
     return api_->set_fdb_entry_attribute(fdbEntry.entry(), attr);
   }
 

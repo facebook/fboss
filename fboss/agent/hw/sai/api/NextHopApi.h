@@ -185,16 +185,17 @@ class NextHopApi : public SaiApi<NextHopApi> {
       NextHopSaiId* id,
       sai_object_id_t switch_id,
       size_t count,
-      sai_attribute_t* attr_list) {
+      sai_attribute_t* attr_list) const {
     return api_->create_next_hop(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(NextHopSaiId next_hop_id) {
+  sai_status_t _remove(NextHopSaiId next_hop_id) const {
     return api_->remove_next_hop(next_hop_id);
   }
   sai_status_t _getAttribute(NextHopSaiId id, sai_attribute_t* attr) const {
     return api_->get_next_hop_attribute(id, 1, attr);
   }
-  sai_status_t _setAttribute(NextHopSaiId id, const sai_attribute_t* attr) {
+  sai_status_t _setAttribute(NextHopSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_next_hop_attribute(id, attr);
   }
 
