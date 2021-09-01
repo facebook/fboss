@@ -296,6 +296,9 @@ int AgentInitializer::initAgent() {
 void AgentInitializer::stopServices() {
   // stop accepting new connections
   server_->stopListening();
+  // Calling stopListening() alone does not stop worker
+  // threads for duplex servers. Reset the server.
+  server_.reset();
   XLOG(INFO) << "Stopped thrift server listening";
   initializer_->stopFunctionScheduler();
   XLOG(INFO) << "Stopped stats FunctionScheduler";
