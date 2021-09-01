@@ -62,6 +62,7 @@ const std::shared_ptr<AclEntry> createMacsecAclEntry(
   }
   auto macsecAction = MatchAction();
   auto macsecFlowAction = cfg::MacsecFlowAction();
+  macsecFlowAction.action_ref() = cfg::MacsecFlowPacketAction::MACSEC_FLOW;
   macsecFlowAction.flowId_ref() = flowId;
   macsecAction.setMacsecFlow(macsecFlowAction);
   entry->setActionType(cfg::AclActionType::PERMIT);
@@ -82,7 +83,15 @@ const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
   if (etherType.has_value()) {
     entry->setEtherType(*etherType);
   }
+
+  auto macsecAction = MatchAction();
+  auto macsecFlowAction = cfg::MacsecFlowAction();
+  macsecFlowAction.action_ref() = cfg::MacsecFlowPacketAction::FORWARD;
+  macsecFlowAction.flowId_ref() = 0;
+  macsecAction.setMacsecFlow(macsecFlowAction);
   entry->setActionType(cfg::AclActionType::PERMIT);
+  entry->setAclAction(macsecAction);
+
   return entry;
 }
 } // namespace

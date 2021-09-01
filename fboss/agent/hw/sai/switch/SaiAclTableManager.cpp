@@ -750,10 +750,31 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
 
     if (action.value().getMacsecFlow()) {
-      sai_object_id_t flowId = static_cast<sai_object_id_t>(
-          *action.value().getMacsecFlow().value().flowId_ref());
-      aclActionMacsecFlow = SaiAclEntryTraits::Attributes::ActionMacsecFlow{
-          AclEntryActionSaiObjectIdT(flowId)};
+      auto macsecFlowAction = action.value().getMacsecFlow().value();
+      if (*macsecFlowAction.action_ref() ==
+          cfg::MacsecFlowPacketAction::MACSEC_FLOW) {
+        sai_object_id_t flowId =
+            static_cast<sai_object_id_t>(*macsecFlowAction.flowId_ref());
+        aclActionMacsecFlow = SaiAclEntryTraits::Attributes::ActionMacsecFlow{
+            AclEntryActionSaiObjectIdT(flowId)};
+      } else if (
+          *macsecFlowAction.action_ref() ==
+          cfg::MacsecFlowPacketAction::FORWARD) {
+        aclActionPacketAction =
+            SaiAclEntryTraits::Attributes::ActionPacketAction{
+                SAI_PACKET_ACTION_FORWARD};
+      } else if (
+          *macsecFlowAction.action_ref() == cfg::MacsecFlowPacketAction::DROP) {
+        aclActionPacketAction =
+            SaiAclEntryTraits::Attributes::ActionPacketAction{
+                SAI_PACKET_ACTION_DROP};
+      } else {
+        throw FbossError(
+            "Unsupported Macsec Flow action for ACL entry: ",
+            addedAclEntry->getID(),
+            " Macsec Flow action ",
+            apache::thrift::util::enumNameSafe(*macsecFlowAction.action_ref()));
+      }
     }
   }
 
@@ -782,7 +803,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   if (!(matcherIsValid && actionIsValid)) {
     XLOG(WARNING) << "Unsupported field/action for aclEntry: "
-                  << addedAclEntry->getID();
+                  << addedAclEntry->getID() << " MactherValid "
+                  << ((matcherIsValid) ? "true" : "false") << " ActionValid "
+                  << ((actionIsValid) ? "true" : "false");
     return AclEntrySaiId{0};
   }
 

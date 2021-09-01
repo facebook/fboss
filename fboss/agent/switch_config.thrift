@@ -467,8 +467,15 @@ enum ToCpuAction {
   TRAP = 1,
 }
 
+enum MacsecFlowPacketAction {
+  DROP = 0,
+  FORWARD = 1,
+  MACSEC_FLOW = 2,
+}
+
 struct MacsecFlowAction {
   1: u64 flowId
+  2: MacsecFlowPacketAction action
 }
 
 struct MatchAction {
