@@ -20,9 +20,8 @@ class SchedulerStoreTest : public SaiStoreTest {
  public:
   void SetUp() override {
     fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis(saiApiTable->getFullApiList());
+    saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
   }
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;

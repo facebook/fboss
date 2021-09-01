@@ -55,7 +55,9 @@ class SaiApiTable {
    * which queries the Adapter for the api implementation and thus renders them
    * ready for use by the Adapter Host.
    */
-  void queryApis(const std::set<sai_api_t>& desiredApis);
+  void queryApis(
+      sai_service_method_table_t* serviceMethodTable,
+      const std::set<sai_api_t>& desiredApis);
 
   AclApi& aclApi();
   const AclApi& aclApi() const;

@@ -57,10 +57,15 @@ void SaiApiTable::initApiIfDesired(
   }
 }
 
-void SaiApiTable::queryApis(const std::set<sai_api_t>& desiredApis) {
+void SaiApiTable::queryApis(
+    sai_service_method_table_t* serviceMethodTable,
+    const std::set<sai_api_t>& desiredApis) {
   if (apisQueried_) {
     return;
   }
+  // Initialize the SAI API
+  auto rv = sai_api_initialize(0, serviceMethodTable);
+  saiCheckError(rv, "Unable to initialize sai api");
   apisQueried_ = true;
   const auto& apis = SaiApiTable::getInstance()->allApis();
   tupleForEach(

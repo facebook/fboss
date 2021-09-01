@@ -22,9 +22,8 @@ class SaiStoreTest : public ::testing::Test {
  public:
   void SetUp() override {
     fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
     saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis(saiApiTable->getFullApiList());
+    saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
     saiStore = std::make_unique<SaiStore>();
   }
   template <typename Traits, typename... Args>

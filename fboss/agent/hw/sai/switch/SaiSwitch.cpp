@@ -976,11 +976,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 void SaiSwitch::initSaiApis(
     sai_service_method_table_t* serviceMethodTable,
     const std::set<sai_api_t>& desiredApis) {
-  // Initialize the SAI API
-  auto rv = sai_api_initialize(0, serviceMethodTable);
-  saiCheckError(rv, "Unable to initialize sai api");
   // Get the API lists
-  SaiApiTable::getInstance()->queryApis(desiredApis);
+  SaiApiTable::getInstance()->queryApis(serviceMethodTable, desiredApis);
 }
 
 HwInitResult SaiSwitch::initLocked(
