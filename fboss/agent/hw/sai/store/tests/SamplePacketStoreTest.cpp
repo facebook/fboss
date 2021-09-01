@@ -24,14 +24,6 @@ using namespace facebook::fboss;
 
 class SamplePacketStoreTest : public SaiStoreTest {
  public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-
   SamplePacketSaiId createSamplePacket(
       uint16_t rate,
       sai_samplepacket_type_t type,

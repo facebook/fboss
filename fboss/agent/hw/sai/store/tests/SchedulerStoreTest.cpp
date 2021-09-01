@@ -18,14 +18,6 @@ using namespace facebook::fboss;
 
 class SchedulerStoreTest : public SaiStoreTest {
  public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-
   SchedulerSaiId createScheduler(
       sai_scheduling_type_t type,
       uint8_t weight,

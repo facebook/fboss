@@ -29,13 +29,6 @@ static constexpr folly::StringPiece dstMacStr = "21:21:22:12:34:56";
 
 class MirrorStoreTest : public SaiStoreTest {
  public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis(nullptr, saiApiTable->getFullApiList());
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
   folly::IPAddress srcIp{srcIpStr};
   folly::IPAddress dstIp{dstIpStr};
   folly::MacAddress srcMac{srcMacStr};
