@@ -30,6 +30,9 @@ class TransceiverMap : public NodeMapT<TransceiverMap, TransceiverMapTraits> {
   const std::shared_ptr<Transceiver>& getTransceiver(TransceiverID id) const {
     return getNode(id);
   }
+  std::shared_ptr<Transceiver> getTransceiverIf(TransceiverID id) const {
+    return getNodeIf(id);
+  }
 
   void addTransceiver(const std::shared_ptr<Transceiver>& tcvr);
   void updateTransceiver(const std::shared_ptr<Transceiver>& tcvr);

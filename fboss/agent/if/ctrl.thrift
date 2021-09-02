@@ -852,6 +852,13 @@ service FbossCtrl extends fb303.FacebookService {
     1: fboss.FbossBaseError error
   );
 
+  /*
+   * Program all internal phy ports for specified transceiver
+   */
+  map<i32, switch_config.PortProfileID> programInternalPhyPorts(
+    1: transceiver.TransceiverInfo transceiver,
+    2: bool force,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Change the PRBS setting on a port. Useful when debugging a link
