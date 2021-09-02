@@ -36,6 +36,7 @@ class TransceiverMap : public NodeMapT<TransceiverMap, TransceiverMapTraits> {
 
   void addTransceiver(const std::shared_ptr<Transceiver>& tcvr);
   void updateTransceiver(const std::shared_ptr<Transceiver>& tcvr);
+  void removeTransceiver(TransceiverID id);
 
   TransceiverMap* modify(std::shared_ptr<SwitchState>* state);
 

@@ -28,6 +28,10 @@ void TransceiverMap::updateTransceiver(
   updateNode(tcvr);
 }
 
+void TransceiverMap::removeTransceiver(TransceiverID id) {
+  removeNodeIf(id);
+}
+
 TransceiverMap* TransceiverMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

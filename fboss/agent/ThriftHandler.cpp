@@ -66,6 +66,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
+#include <memory>
 
 #include <limits>
 
@@ -1279,31 +1280,43 @@ void ThriftHandler::programInternalPhyPorts(
   ensureConfigured(__func__);
 
   TransceiverID tcvrID = TransceiverID(id);
-  auto newTransceiver = std::make_shared<Transceiver>(tcvrID);
-  if (transceiver->cable_ref() && transceiver->cable_ref()->length_ref()) {
-    newTransceiver->setCableLength(*transceiver->cable_ref()->length_ref());
-  }
-  if (auto settings = transceiver->settings_ref();
-      settings && settings->mediaInterface_ref()) {
-    const auto& interface = (*settings->mediaInterface_ref())[0];
-    newTransceiver->setMediaInterface(*interface.code_ref());
-  }
-  if (auto interface = transceiver->transceiverManagementInterface_ref()) {
-    newTransceiver->setManagementInterface(*interface);
+  std::shared_ptr<Transceiver> newTransceiver;
+  if (*transceiver->present_ref()) {
+    newTransceiver = std::make_shared<Transceiver>(tcvrID);
+    if (transceiver->cable_ref() && transceiver->cable_ref()->length_ref()) {
+      newTransceiver->setCableLength(*transceiver->cable_ref()->length_ref());
+    }
+    if (auto settings = transceiver->settings_ref();
+        settings && settings->mediaInterface_ref()) {
+      const auto& interface = (*settings->mediaInterface_ref())[0];
+      newTransceiver->setMediaInterface(*interface.code_ref());
+    }
+    if (auto interface = transceiver->transceiverManagementInterface_ref()) {
+      newTransceiver->setManagementInterface(*interface);
+    }
   }
 
   const auto tcvr =
       sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);
   // Check whether the current Transceiver in the SwitchState matches the
   // input TransceiverInfo
-  if (!force && *tcvr == *newTransceiver) {
-    XLOG(DBG2) << "programInternalPhyPorts: Transceiver:" << tcvrID
-               << " matches current SwitchState, Skip re-programming";
+  if (!tcvr && !newTransceiver) {
+    XLOG(DBG2) << "programInternalPhyPorts for not present Transceiver:"
+               << tcvrID
+               << " which doesn't exist in SwitchState. Skip re-programming";
+    return;
+  } else if (!force && tcvr && newTransceiver && *tcvr == *newTransceiver) {
+    XLOG(DBG2) << "programInternalPhyPorts for present Transceiver:" << tcvrID
+               << " matches current SwitchState. Skip re-programming";
+    return;
   } else {
-    auto updateFn = [newTransceiver](const shared_ptr<SwitchState>& state) {
+    auto updateFn = [tcvrID,
+                     newTransceiver](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
       auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
-      if (newTransceiverMap->getTransceiverIf(newTransceiver->getID())) {
+      if (!newTransceiver) {
+        newTransceiverMap->removeTransceiver(tcvrID);
+      } else if (newTransceiverMap->getTransceiverIf(tcvrID)) {
         newTransceiverMap->updateTransceiver(newTransceiver);
       } else {
         newTransceiverMap->addTransceiver(newTransceiver);
