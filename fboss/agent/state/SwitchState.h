@@ -33,6 +33,7 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
@@ -67,6 +68,7 @@ struct SwitchStateFields {
     fn(fibs.get());
     fn(labelFib.get());
     fn(switchSettings.get());
+    fn(transceivers.get());
   }
   /*
    * Serialize to folly::dynamic
@@ -93,6 +95,7 @@ struct SwitchStateFields {
   std::shared_ptr<SwitchSettings> switchSettings;
   std::shared_ptr<QcmCfg> qcmCfg;
   std::shared_ptr<BufferPoolCfgMap> bufferPoolCfgs;
+  std::shared_ptr<TransceiverMap> transceivers;
 
   VlanID defaultVlan{0};
 
@@ -347,6 +350,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->labelFib;
   }
 
+  const std::shared_ptr<TransceiverMap>& getTransceivers() const {
+    return getFields()->transceivers;
+  }
+
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are
@@ -379,6 +386,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
   void resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg);
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
+  void addTransceiver(const std::shared_ptr<Transceiver>& transceiver);
+  void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
 
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;

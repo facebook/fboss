@@ -23,6 +23,8 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/Transceiver.h"
+#include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
@@ -55,6 +57,7 @@ constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
 constexpr auto kQcmCfg = "qcmConfig";
 constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
 constexpr auto kFibs = "fibs";
+constexpr auto kTransceivers = "transceivers";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -78,7 +81,8 @@ SwitchStateFields::SwitchStateFields()
       mirrors(make_shared<MirrorMap>()),
       fibs(make_shared<ForwardingInformationBaseMap>()),
       labelFib(make_shared<LabelForwardingInformationBase>()),
-      switchSettings(make_shared<SwitchSettings>()) {}
+      switchSettings(make_shared<SwitchSettings>()),
+      transceivers(make_shared<TransceiverMap>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -106,6 +110,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   }
   switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
   switchState[kFibs] = fibs->toFollyDynamic();
+  switchState[kTransceivers] = transceivers->toFollyDynamic();
   return switchState;
 }
 
@@ -170,6 +175,11 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   if (swJson.find(kFibs) != swJson.items().end()) {
     switchState.fibs =
         ForwardingInformationBaseMap::fromFollyDynamic(swJson[kFibs]);
+  }
+  // TODO(joseph5wu) Will eventually make transceivers as a mandatory field
+  if (const auto& values = swJson.find(kTransceivers);
+      values != swJson.items().end()) {
+    switchState.transceivers = TransceiverMap::fromFollyDynamic(values->second);
   }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -343,6 +353,22 @@ void SwitchState::resetLabelForwardingInformationBase(
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<ForwardingInformationBaseMap> fibs) {
   writableFields()->fibs.swap(fibs);
+}
+
+void SwitchState::addTransceiver(
+    const std::shared_ptr<Transceiver>& transceiver) {
+  auto* fields = writableFields();
+  // For ease-of-use, automatically clone the TransceiverMap if we are still
+  // pointing to a published map.
+  if (fields->transceivers->isPublished()) {
+    fields->transceivers = fields->transceivers->clone();
+  }
+  fields->transceivers->addTransceiver(transceiver);
+}
+
+void SwitchState::resetTransceivers(
+    std::shared_ptr<TransceiverMap> transceivers) {
+  writableFields()->transceivers.swap(transceivers);
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;
