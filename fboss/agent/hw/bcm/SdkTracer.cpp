@@ -836,6 +836,23 @@ int __real_bcm_port_stat_detach_with_id(
     bcm_gport_t gPort,
     uint32 counterID);
 
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+int __real_bcm_port_fdr_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_config_t* fdr_config);
+
+int __real_bcm_port_fdr_config_get(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_config_t* fdr_config);
+
+int __real_bcm_port_fdr_stats_get(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_stats_t* fdr_stats);
+#endif
+
 bcm_ip_t __real_bcm_ip_mask_create(int len);
 
 int __real_bcm_l3_egress_multipath_add(
@@ -3041,6 +3058,29 @@ int __wrap_bcm_port_stat_detach_with_id(
     uint32 counterID) {
   CALL_WRAPPERS_RV(bcm_port_stat_detach_with_id(unit, gPort, counterID));
 }
+
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+int __wrap_bcm_port_fdr_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_config_t* fdr_config) {
+  CALL_WRAPPERS_RV(bcm_port_fdr_config_set(unit, port, fdr_config));
+}
+
+int __wrap_bcm_port_fdr_config_get(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_config_t* fdr_config) {
+  CALL_WRAPPERS_RV(bcm_port_fdr_config_get(unit, port, fdr_config));
+}
+
+int __wrap_bcm_port_fdr_stats_get(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_stats_t* fdr_stats) {
+  CALL_WRAPPERS_RV(bcm_port_fdr_stats_get(unit, port, fdr_stats));
+}
+#endif
 
 int __wrap_bcm_stat_multi_get(
     int unit,

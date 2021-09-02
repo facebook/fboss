@@ -557,6 +557,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_gport_t gPort,
       uint32 counterID) override;
   int bcm_stat_clear(int unit, bcm_port_t port) override;
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  int bcm_port_fdr_config_set(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_config_t* fdr_config) override;
+#endif
   int bcm_port_speed_set(int unit, bcm_port_t port, int speed) override;
   int bcm_l3_egress_destroy(int unit, bcm_if_t intf) override;
   int bcm_l3_egress_multipath_add(int unit, bcm_if_t mpintf, bcm_if_t intf)
@@ -1691,6 +1697,22 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     return 0;
   }
 
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  int bcm_port_fdr_config_get(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_config_t* fdr_config) override {
+    return 0;
+  }
+
+  int bcm_port_fdr_stats_get(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_stats_t* fdr_stats) override {
+    return 0;
+  }
+#endif
+
  private:
   enum class Dir { SRC, DST };
   int bcmFieldQualifyIp6(
@@ -1874,6 +1896,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForFlexCtrTrigger(
       bcm_flexctr_trigger_t& flexctr_trigger);
+
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  std::vector<std::string> cintForPortFdrConfig(
+      bcm_port_fdr_config_t fdr_config);
+#endif
 
   /*
    * Synchronize access to data structures for access from multiple

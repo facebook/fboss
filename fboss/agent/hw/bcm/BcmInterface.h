@@ -233,6 +233,23 @@ class BcmInterface {
   virtual int
   bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) = 0;
 
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  virtual int bcm_port_fdr_config_set(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_config_t* fdr_config) = 0;
+
+  virtual int bcm_port_fdr_config_get(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_config_t* fdr_config) = 0;
+
+  virtual int bcm_port_fdr_stats_get(
+      int unit,
+      bcm_port_t port,
+      bcm_port_fdr_stats_t* fdr_stats) = 0;
+#endif
+
   virtual int bcm_vlan_default_get(int unit, bcm_vlan_t* vid_ptr) = 0;
 
   virtual int bcm_l3_init(int unit) = 0;

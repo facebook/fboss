@@ -116,6 +116,7 @@ KNOWN_MISSING_APIS = {
     "bcm_field_entry_config_t_init",
     "bcm_flexctr_action_t_init",
     "bcm_stat_group_mode_attr_selector_t_init",
+    "bcm_port_fdr_config_t_init",
 }
 
 

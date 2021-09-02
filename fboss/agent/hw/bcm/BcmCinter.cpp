@@ -18,6 +18,7 @@
 #include <tuple>
 #include <vector>
 
+#include <fmt/core.h>
 #include <gflags/gflags.h>
 
 #include <folly/FileUtil.h>
@@ -164,6 +165,12 @@ void BcmCinter::setupGlobals() {
       "uint32 pktio_len",
   };
   writeCintLines(std::move(pktioGlobals));
+#endif
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  array<string, 1> fdrGlobals = {
+      "bcm_port_fdr_config_t fdr_config",
+  };
+  writeCintLines(std::move(fdrGlobals));
 #endif
 }
 
@@ -3028,6 +3035,31 @@ int BcmCinter::bcm_stat_clear(int unit, bcm_port_t port) {
       wrapFunc(to<string>("bcm_stat_clear(", makeParamStr(unit, port), ")")));
   return 0;
 }
+
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+std::vector<std::string> BcmCinter::cintForPortFdrConfig(
+    bcm_port_fdr_config_t fdr_config) {
+  return {
+      "bcm_port_fdr_config_t_init(&fdr_config)",
+      to<string>("fdr_config.fdr_enable = ", fdr_config.fdr_enable),
+      to<string>("fdr_config.window_size = ", fdr_config.window_size),
+      to<string>(
+          "fdr_config.symb_err_threshold = ", fdr_config.symb_err_threshold),
+      to<string>(
+          "fdr_config.symb_err_stats_sel = ", fdr_config.symb_err_stats_sel),
+      to<string>("fdr_config.intr_enable = ", fdr_config.intr_enable)};
+}
+
+int BcmCinter::bcm_port_fdr_config_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_fdr_config_t* fdr_config) {
+  writeCintLines(cintForPortFdrConfig(*fdr_config));
+  writeCintLines(wrapFunc(
+      fmt::format("bcm_port_fdr_config_set({}, {}, &fdr_config)", unit, port)));
+  return 0;
+}
+#endif
 
 int BcmCinter::bcm_cosq_bst_stat_clear(
     int unit,
