@@ -231,9 +231,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // Verify ACLs are set up correctly
     auto aclTableHandle = aclManager.getAclTableHandle(aclName);
     EXPECT_NE(aclTableHandle, nullptr);
-    // TODO(rajank): Change the below priority after Credo ACL priority
-    // inversion fix
-    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 3);
+    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 1);
     EXPECT_NE(aclEntryHandle, nullptr);
 
     // TODO(ccpowers):

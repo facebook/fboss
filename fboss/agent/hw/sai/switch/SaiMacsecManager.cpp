@@ -42,10 +42,9 @@ static std::array<uint8_t, 12> kDefaultSaltValue{
     0x6d};
 const MacsecShortSecureChannelId kDefaultSsciValue =
     MacsecShortSecureChannelId(0x01000000);
-// TODO(rajank): Revert this priority after Credo priority inversion fix
-constexpr int kMacsecAclPriority = 3;
+constexpr int kMacsecAclPriority = 1;
 constexpr int kMacsecLldpAclPriority = 2;
-constexpr int kMacsecMkaAclPriority = 1;
+constexpr int kMacsecMkaAclPriority = 3;
 
 const std::shared_ptr<AclEntry> createMacsecAclEntry(
     int priority,
