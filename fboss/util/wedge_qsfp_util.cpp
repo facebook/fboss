@@ -1592,12 +1592,21 @@ void printCmisDetailService(
 void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
-  auto lowerBuf = cmisData.lower_ref()->data();
-  auto page0Buf = cmisData.page0_ref()->data();
-  auto page01Buf = can_throw(cmisData.page01_ref())->data();
-  auto page10Buf = can_throw(cmisData.page10_ref())->data();
-  auto page11Buf = can_throw(cmisData.page11_ref())->data();
-  auto page14Buf = can_throw(cmisData.page14_ref())->data();
+  const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf,
+                *page11Buf, *page14Buf;
+  lowerBuf = cmisData.lower_ref()->data();
+  page0Buf = cmisData.page0_ref()->data();
+
+  // Some CMIS optics like Blanco bypass modules have flat memory so we need
+  // to exclude other pages for these modules
+  bool flatMem = ((lowerBuf[2] & 0x80) != 0);
+
+  if (!flatMem) {
+    page01Buf = can_throw(cmisData.page01_ref())->data();
+    page10Buf = can_throw(cmisData.page10_ref())->data();
+    page11Buf = can_throw(cmisData.page11_ref())->data();
+    page14Buf = can_throw(cmisData.page14_ref())->data();
+  }
 
   printf("Port %d\n", port);
   printf("  Module Interface Type: CMIS (200G or above)\n");
@@ -1605,16 +1614,20 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Module State: %s\n",
       getStateNameString(lowerBuf[3] >> 1, kCmisModuleStateMapping).c_str());
 
-  auto ApSel = page11Buf[78] >> 4;
-  auto ApCode = lowerBuf[86 + (ApSel - 1) * 4 + 1];
-  printf("  Application Selected: %s\n",
-      getStateNameString(ApCode, kCmisAppNameMapping).c_str());
+  if (!flatMem) {
+    auto ApSel = page11Buf[78] >> 4;
+    auto ApCode = lowerBuf[86 + (ApSel - 1) * 4 + 1];
+    printf("  Application Selected: %s\n",
+        getStateNameString(ApCode, kCmisAppNameMapping).c_str());
+  }
   printf("  Low power: 0x%x\n", (lowerBuf[26] >> 6) & 0x1);
   printf("  Low power forced: 0x%x\n", (lowerBuf[26] >> 4) & 0x1);
 
   printf("  Module FW Version: %x.%x\n", lowerBuf[39], lowerBuf[40]);
-  printf("  DSP FW Version: %x.%x\n", page01Buf[66], page01Buf[67]);
-  printf("  Build Rev: %x.%x\n", page01Buf[68], page01Buf[69]);
+  if (!flatMem) {
+    printf("  DSP FW Version: %x.%x\n", page01Buf[66], page01Buf[67]);
+    printf("  Build Rev: %x.%x\n", page01Buf[68], page01Buf[69]);
+  }
   printf("  Firmware fault: 0x%x\n", (lowerBuf[8] >> 1) & 0x3);
   auto vendor = sfpString(page0Buf, 1, 16);
   auto vendorPN = sfpString(page0Buf, 20, 16);
@@ -1634,113 +1647,115 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
 
   printf("  VCC: %f V\n", CmisFieldInfo::getVcc(lowerBuf[16] << 8 | lowerBuf[17]));
 
-  printf("\nPer Lane status: \n");
-  printf("Lanes             1        2        3        4        5        6        7        8\n");
-  printf("Datapath de-init  ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page10Buf[0]>>i)&1);
-  }
-  printf("\nTx disable        ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page10Buf[2]>>i)&1);
-  }
-  printf("\nTx squelch bmap   ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page10Buf[4]>>i)&1);
-  }
-  printf("\nRx Out disable    ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page10Buf[10]>>i)&1);
-  }
-  printf("\nRx Sqlch disable  ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page10Buf[11]>>i)&1);
-  }
-  printf("\nHost lane state   ");
-  for (i=0; i<4; i++) {
-    printf("%-7s  %-7s  ",
-    getStateNameString(page11Buf[i] & 0xf, kCmisLaneStateMapping).c_str(),
-    getStateNameString((page11Buf[i]>>4) & 0xf, kCmisLaneStateMapping).c_str());
-  }
-  printf("\nTx fault          ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[7]>>i)&1);
-  }
-  printf("\nTx LOS            ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[8]>>i)&1);
-  }
-  printf("\nTx LOL            ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[9]>>i)&1);
-  }
-  printf("\nTx PWR alarm Hi   ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[11]>>i)&1);
-  }
-  printf("\nTx PWR alarm Lo   ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[12]>>i)&1);
-  }
-  printf("\nTx PWR warn Hi    ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[13]>>i)&1);
-  }
-  printf("\nTx PWR warn Lo    ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[14]>>i)&1);
-  }
-  printf("\nRx LOS            ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[19]>>i)&1);
-  }
-  printf("\nRx LOL            ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[20]>>i)&1);
-  }
-  printf("\nRx PWR alarm Hi   ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[21]>>i)&1);
-  }
-  printf("\nRx PWR alarm Lo   ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[22]>>i)&1);
-  }
-  printf("\nRx PWR warn Hi    ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[23]>>i)&1);
-  }
-  printf("\nRx PWR warn Lo    ");
-  for (i = 0; i < 8; i++) {
-    printf("%d        ", (page11Buf[24]>>i)&1);
-  }
-  printf("\nTX Power (mW)     ");
-  for (i = 0; i < 8; i++) {
-    printf("%.3f    ", ((page11Buf[26+i*2]<<8 | page11Buf[27+i*2]))*0.0001);
-  }
-  printf("\nRX Power (mW)     ");
-  for (i = 0; i < 8; i++) {
-    printf("%.3f    ", ((page11Buf[58+i*2]<<8 | page11Buf[59+i*2]))*0.0001);
-  }
-  printf("\nRx SNR            ");
-  for (i = 0; i < 8; i++) {
-    printf("%05.04g    ", (CmisFieldInfo::getSnr(page14Buf[113+i*2] << 8 | page14Buf[112+i*2])));
-  }
-  printf("\nRX PreCur (dB)    ");
-  for (i = 0; i < 8; i++) {
-    printf("%.1f      ", CmisFieldInfo::getPreCursor((page11Buf[95+i/2]>>((i%2)*4)) & 0x0f));
-  }
-  printf("\nRX PostCur (dB)   ");
-  for (i = 0; i < 8; i++) {
-    printf("%.1f      ", CmisFieldInfo::getPostCursor((page11Buf[99+i/2]>>((i%2)*4)) & 0x0f));
-  }
-  printf("\nRX Ampl (mV)      ");
-  for (i = 0; i < 8; i++) {
-    auto ampRange = CmisFieldInfo::getAmplitude((page11Buf[103+i/2]>>((i%2)*4)) & 0x0f);
-    char rangeStr[16];
-    sprintf(rangeStr, "%d-%d      ", ampRange.first, ampRange.second);
-    rangeStr[9] = 0;
-    printf("%s", rangeStr);
+  if (!flatMem) {
+    printf("\nPer Lane status: \n");
+    printf("Lanes             1        2        3        4        5        6        7        8\n");
+    printf("Datapath de-init  ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page10Buf[0]>>i)&1);
+    }
+    printf("\nTx disable        ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page10Buf[2]>>i)&1);
+    }
+    printf("\nTx squelch bmap   ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page10Buf[4]>>i)&1);
+    }
+    printf("\nRx Out disable    ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page10Buf[10]>>i)&1);
+    }
+    printf("\nRx Sqlch disable  ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page10Buf[11]>>i)&1);
+    }
+    printf("\nHost lane state   ");
+    for (i=0; i<4; i++) {
+      printf("%-7s  %-7s  ",
+      getStateNameString(page11Buf[i] & 0xf, kCmisLaneStateMapping).c_str(),
+      getStateNameString((page11Buf[i]>>4) & 0xf, kCmisLaneStateMapping).c_str());
+    }
+    printf("\nTx fault          ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[7]>>i)&1);
+    }
+    printf("\nTx LOS            ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[8]>>i)&1);
+    }
+    printf("\nTx LOL            ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[9]>>i)&1);
+    }
+    printf("\nTx PWR alarm Hi   ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[11]>>i)&1);
+    }
+    printf("\nTx PWR alarm Lo   ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[12]>>i)&1);
+    }
+    printf("\nTx PWR warn Hi    ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[13]>>i)&1);
+    }
+    printf("\nTx PWR warn Lo    ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[14]>>i)&1);
+    }
+    printf("\nRx LOS            ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[19]>>i)&1);
+    }
+    printf("\nRx LOL            ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[20]>>i)&1);
+    }
+    printf("\nRx PWR alarm Hi   ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[21]>>i)&1);
+    }
+    printf("\nRx PWR alarm Lo   ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[22]>>i)&1);
+    }
+    printf("\nRx PWR warn Hi    ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[23]>>i)&1);
+    }
+    printf("\nRx PWR warn Lo    ");
+    for (i = 0; i < 8; i++) {
+      printf("%d        ", (page11Buf[24]>>i)&1);
+    }
+    printf("\nTX Power (mW)     ");
+    for (i = 0; i < 8; i++) {
+      printf("%.3f    ", ((page11Buf[26+i*2]<<8 | page11Buf[27+i*2]))*0.0001);
+    }
+    printf("\nRX Power (mW)     ");
+    for (i = 0; i < 8; i++) {
+      printf("%.3f    ", ((page11Buf[58+i*2]<<8 | page11Buf[59+i*2]))*0.0001);
+    }
+    printf("\nRx SNR            ");
+    for (i = 0; i < 8; i++) {
+      printf("%05.04g    ", (CmisFieldInfo::getSnr(page14Buf[113+i*2] << 8 | page14Buf[112+i*2])));
+    }
+    printf("\nRX PreCur (dB)    ");
+    for (i = 0; i < 8; i++) {
+      printf("%.1f      ", CmisFieldInfo::getPreCursor((page11Buf[95+i/2]>>((i%2)*4)) & 0x0f));
+    }
+    printf("\nRX PostCur (dB)   ");
+    for (i = 0; i < 8; i++) {
+      printf("%.1f      ", CmisFieldInfo::getPostCursor((page11Buf[99+i/2]>>((i%2)*4)) & 0x0f));
+    }
+    printf("\nRX Ampl (mV)      ");
+    for (i = 0; i < 8; i++) {
+      auto ampRange = CmisFieldInfo::getAmplitude((page11Buf[103+i/2]>>((i%2)*4)) & 0x0f);
+      char rangeStr[16];
+      sprintf(rangeStr, "%d-%d      ", ampRange.first, ampRange.second);
+      rangeStr[9] = 0;
+      printf("%s", rangeStr);
+    }
   }
   if (auto timeCollected = cmisData.timeCollected_ref()) {
     printf(
