@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/HwWriteBehavior.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
@@ -202,7 +203,7 @@ HwInitResult SaiSwitch::init(
   }
 
   {
-    HwWriteBehvaiorRAII writeBehavior{behavior};
+    HwWriteBehaviorRAII writeBehavior{behavior};
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     managerTable_->fdbManager().removeUnclaimedDynanicEntries();
     managerTable_->hashManager().removeUnclaimedDefaultHash();
@@ -342,7 +343,7 @@ void SaiSwitch::rollback(
     CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
-      HwWriteBehvaiorRAII writeBehavior{HwWriteBehavior::SKIP};
+      HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
       managerTable_->reset(true /*skip switch manager reset*/);
     }
     // The work flow below is essentially a in memory warm boot,
@@ -1084,7 +1085,7 @@ void SaiSwitch::initStoreAndManagersLocked(
    *     - statechanged() would continue to carry AclEntry delta processing.
    */
   {
-    HwWriteBehvaiorRAII writeBehavior{behavior};
+    HwWriteBehaviorRAII writeBehavior{behavior};
     // TODO(rajank) Might need different STAGE for phy acl group
     // Temporarily skip adding acl table group for ASIC_TYPE_ELBERT_8DD
     if (getPlatform()->getAsic()->getAsicType() !=

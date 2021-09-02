@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/HwWriteBehavior.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiApiLock.h"
@@ -36,8 +37,6 @@ extern "C" {
 
 namespace facebook::fboss {
 
-enum class HwWriteBehavior : int { FAIL, SKIP, WRITE };
-
 template <typename ApiT>
 class SaiApi {
  public:
@@ -57,14 +56,6 @@ class SaiApi {
   // is an entry struct, which must take an AdapterKey but don't return one.
   // The distinction is drawn with traits from Traits.h and SFINAE
 
-  void setHwWriteBehavior(HwWriteBehavior behavior) {
-    if (hwWriteBehavior_ != behavior) {
-      hwWriteBehavior_ = behavior;
-    }
-  }
-  HwWriteBehavior getHwWriteBehavior() const {
-    return hwWriteBehavior_;
-  }
   // sai_object_id_t case
   template <typename SaiObjectTraits>
   std::enable_if_t<
@@ -392,10 +383,10 @@ class SaiApi {
 
  private:
   bool failHwWrites() const {
-    return hwWriteBehavior_ == HwWriteBehavior::FAIL;
+    return getHwWriteBehavior() == HwWriteBehavior::FAIL;
   }
   bool skipHwWrites() const {
-    return hwWriteBehavior_ == HwWriteBehavior::SKIP;
+    return getHwWriteBehavior() == HwWriteBehavior::SKIP;
   }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStatsImpl(
@@ -447,8 +438,6 @@ class SaiApi {
   const ApiT& impl() const {
     return static_cast<const ApiT&>(*this);
   }
-  // TODO - make this behavior per SwitchId
-  std::atomic<HwWriteBehavior> hwWriteBehavior_{HwWriteBehavior::WRITE};
 };
 
 } // namespace facebook::fboss

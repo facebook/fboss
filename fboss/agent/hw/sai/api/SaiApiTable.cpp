@@ -190,28 +190,4 @@ void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   }
 }
 
-HwWriteBehvaiorRAII::HwWriteBehvaiorRAII(HwWriteBehavior behavior) {
-  const auto& apis = SaiApiTable::getInstance()->allApis();
-  tupleForEach(
-      [this, behavior](auto& api) {
-        if (api) {
-          previousApiBehavior_.emplace(
-              std::make_pair(api->apiType(), api->getHwWriteBehavior()));
-          api->setHwWriteBehavior(behavior);
-        }
-      },
-      apis);
-}
-
-HwWriteBehvaiorRAII::~HwWriteBehvaiorRAII() {
-  const auto& apis = SaiApiTable::getInstance()->allApis();
-  tupleForEach(
-      [this](auto& api) {
-        if (api) {
-          api->setHwWriteBehavior(
-              previousApiBehavior_.find(api->apiType())->second);
-        }
-      },
-      apis);
-}
 } // namespace facebook::fboss

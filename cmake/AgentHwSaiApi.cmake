@@ -50,6 +50,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/BridgeApi.h
   fboss/agent/hw/sai/api/FdbApi.h
   fboss/agent/hw/sai/api/HashApi.h
+  fboss/agent/hw/sai/api/HwWriteBehavior.cpp
   fboss/agent/hw/sai/api/HostifApi.h
   fboss/agent/hw/sai/api/LagApi.h
   fboss/agent/hw/sai/api/MirrorApi.h

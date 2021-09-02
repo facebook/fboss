@@ -163,13 +163,4 @@ class SaiApiTable {
   void initApiIfDesired(SaiApiPtr& api, const std::set<sai_api_t>& desiredApis);
 };
 
-class HwWriteBehvaiorRAII {
- public:
-  explicit HwWriteBehvaiorRAII(HwWriteBehavior behavior);
-  ~HwWriteBehvaiorRAII();
-
- private:
-  std::map<sai_api_t, HwWriteBehavior> previousApiBehavior_;
-};
-
 } // namespace facebook::fboss
