@@ -3,7 +3,6 @@
 #pragma once
 
 #include <folly/dynamic.h>
-#include "common/http_client/CurlClient.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
@@ -17,7 +16,6 @@ class BmcClient {
   std::string buildUrl(const std::string& endpoint) const;
 
  private:
-  http_client::CurlClient client_;
   const std::string host_;
   int port_;
 };
