@@ -64,10 +64,11 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
       return true;
-    // TH4 bcmsim is still running A0 version and thus below
-    // features are not supported yet
+    // features only supported by B0 version, or any physical device
+    // where used chip is always B0.
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM || isSimB0();
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
