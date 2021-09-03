@@ -459,11 +459,23 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
   auto moduleType = getModuleType(bus, port);
 
   if (moduleType == TransceiverManagementInterface::SFF) {
-    // For SFF the value 0xf disables all 4 lanes and 0x0 enables it back
-    buf[0] = disable ? 0xf : 0x0;
 
     // For SFF module, the page 0 reg 86 controls TX_DISABLE for 4 lanes
     try {
+      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, &buf[0]);
+
+      if (FLAGS_channel >= 1 && FLAGS_channel <= 4) {
+        // Disable/enable a particular channel in module
+        if (disable) {
+          buf[0] |= (1 << (FLAGS_channel - 1));
+        } else {
+          buf[0] &= ~(1 << (FLAGS_channel - 1));
+        }
+      } else {
+        // Disable/enable all the 4 channels for SFF
+        buf[0] = disable ? 0xf : 0x0;
+      }
+
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, &buf[0]);
     } catch (const I2cError& ex) {
       fprintf(stderr, "QSFP %d: unwritable or write error\n", port);
