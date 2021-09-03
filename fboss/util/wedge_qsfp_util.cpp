@@ -167,8 +167,9 @@ DEFINE_bool(clear_low_power, false,
             "Allow the QSFP to use higher power; needed for LR4 optics");
 DEFINE_bool(set_low_power, false,
             "Force the QSFP to limit power usage; Only useful for testing");
-DEFINE_bool(tx_disable, false, "Set the TX disable bits");
-DEFINE_bool(tx_enable, false, "Clear the TX disable bits");
+DEFINE_bool(tx_disable, false, "Set the TX disable bits, use with --channel optionally");
+DEFINE_bool(tx_enable, false, "Clear the TX disable bits, use with --channel optionally");
+DEFINE_int32(channel, -1, "Channel id within the module (starts from 1)");
 DEFINE_bool(set_40g, false, "Rate select 40G, for CWDM4 modules.");
 DEFINE_bool(set_100g, false, "Rate select 100G, for CWDM4 modules.");
 DEFINE_int32(app_sel, 0,
@@ -472,14 +473,25 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
     // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
     uint8_t savedPage, moduleControlPage=0x10;
 
-    // For CMIS the value 0xff disables all 8 lanes and 0x0 enables it back
-    buf[0] = disable ? 0xff : 0x0;
-
     try {
       // Save current page
       bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
       // Write page 10 reg 130
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &moduleControlPage);
+      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
+
+      if (FLAGS_channel >= 1 && FLAGS_channel <= 8) {
+        // Disable/enable a particular channel in module
+        if (disable) {
+          buf[0] |= (1 << (FLAGS_channel - 1));
+        } else {
+          buf[0] &= ~(1 << (FLAGS_channel - 1));
+        }
+      } else {
+        // Disable/enable all the 8 channels
+        buf[0] = disable ? 0xff : 0x0;
+      }
+
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
       // Restore current page
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);

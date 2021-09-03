@@ -209,10 +209,12 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
     if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, true)) {
-      printf("QSFP %d: disabled TX on all channels\n", portNum);
+      printf("QSFP %d: disabled TX on %s channels\n", portNum,
+        (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
     }
     if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, false)) {
-      printf("QSFP %d: enabled TX on all channels\n", portNum);
+      printf("QSFP %d: enabled TX on %s channels\n", portNum,
+        (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
     }
 
     if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0x0)) {

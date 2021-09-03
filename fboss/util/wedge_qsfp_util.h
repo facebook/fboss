@@ -15,6 +15,7 @@ DECLARE_bool(clear_low_power);
 DECLARE_bool(set_low_power);
 DECLARE_bool(tx_disable);
 DECLARE_bool(tx_enable);
+DECLARE_int32(channel);
 DECLARE_bool(set_40g);
 DECLARE_bool(set_100g);
 DECLARE_int32(app_sel);
