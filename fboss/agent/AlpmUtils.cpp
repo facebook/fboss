@@ -21,7 +21,9 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/Vlan.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -66,6 +68,39 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
   defaultVrf->getFibV4()->addNode(v4Route);
   defaultVrf->getFibV6()->addNode(v6Route);
   return newState;
+}
+
+std::shared_ptr<SwitchState> getMinAlpmRouteState(
+    const std::shared_ptr<SwitchState>& oldState) {
+  // ALPM requires that the default routes (always required to be
+  // present for ALPM) be deleted last. When we destroy the HwSwitch
+  // and the contained routeTable, there is no notion of a *order* of
+  // destruction.
+  // So blow away all routes except the min required for ALPM
+  // We are going to reset HwSwith anyways, so deleting routes does not
+  // matter here.
+  // Blowing away all routes means, blowing away 2 tables
+  // - Route tables
+  // - Interface addresses - for platforms where trapping packets to CPU is
+  // done via interfaceToMe routes. So blow away routes and interface
+  // addresses.
+  auto noRoutesState{oldState->clone()};
+
+  auto vlans = noRoutesState->getVlans()->modify(&noRoutesState);
+  for (auto& vlan : *vlans) {
+    vlan->modify(&noRoutesState);
+    vlan->setArpTable(std::make_shared<ArpTable>());
+    vlan->setNdpTable(std::make_shared<NdpTable>());
+  }
+
+  auto newIntfMap = noRoutesState->getInterfaces()->clone();
+  for (auto& interface : *newIntfMap) {
+    auto newIntf = interface->clone();
+    newIntf->setAddresses(Interface::Addresses{});
+    newIntfMap->updateNode(newIntf);
+  }
+  noRoutesState->resetIntfs(newIntfMap);
+  return setupMinAlpmRouteState(noRoutesState);
 }
 
 uint64_t numMinAlpmRoutes() {

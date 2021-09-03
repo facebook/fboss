@@ -61,6 +61,7 @@ void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {
 
 WedgePlatform::~WedgePlatform() {
   BcmAPI::shutdown();
+  hw_.reset();
 }
 
 void WedgePlatform::initPorts() {

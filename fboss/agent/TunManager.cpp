@@ -59,6 +59,7 @@ TunManager::~TunManager() {
     sw_->unregisterStateObserver(this);
   }
 
+  std::lock_guard<std::mutex> lock(mutex_);
   stop();
   nl_close(sock_);
   nl_socket_free(sock_);

@@ -59,36 +59,8 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   }
   if (platform_ && getHwSwitch() &&
       getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
-    // don't touch programmedState_ unless init is done
-    // ALPM requires that the default routes (always required to be
-    // present for ALPM) be deleted last. When we destroy the HwSwitch
-    // and the contained routeTable, there is no notion of a *order* of
-    // destruction.
-    // So blow away all routes except the min required for ALPM
-    // We are going to reset HwSwith anyways, so deleting routes does not
-    // matter here.
-    // Blowing away all routes means, blowing away 2 tables
-    // - Route tables
-    // - Interface addresses - for platforms where trapping packets to CPU is
-    // done via interfaceToMe routes. So blow away routes and interface
-    // addresses.
-    auto noRoutesState{getProgrammedState()->clone()};
-
-    auto vlans = noRoutesState->getVlans()->modify(&noRoutesState);
-    for (auto& vlan : *vlans) {
-      vlan->modify(&noRoutesState);
-      vlan->setArpTable(std::make_shared<ArpTable>());
-      vlan->setNdpTable(std::make_shared<NdpTable>());
-    }
-
-    auto newIntfMap = noRoutesState->getInterfaces()->clone();
-    for (auto& interface : *newIntfMap) {
-      auto newIntf = interface->clone();
-      newIntf->setAddresses(Interface::Addresses{});
-      newIntfMap->updateNode(newIntf);
-    }
-    noRoutesState->resetIntfs(newIntfMap);
-    applyNewState(setupMinAlpmRouteState(noRoutesState));
+    auto minRouteState = getMinAlpmRouteState(getProgrammedState());
+    applyNewState(minRouteState);
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }

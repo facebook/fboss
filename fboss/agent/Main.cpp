@@ -20,6 +20,7 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwSwitch.h"
@@ -253,12 +254,13 @@ void AgentInitializer::createSwitch(
       initPlatform(std::move(config), hwFeaturesDesired);
 
   // Create the SwSwitch and thrift handler
-  sw_ = new SwSwitch(std::move(platform));
-  initializer_ = std::make_unique<Initializer>(sw_, sw_->getPlatform());
+  sw_ = std::make_unique<SwSwitch>(std::move(platform));
+  initializer_ = std::make_unique<Initializer>(sw_.get(), sw_->getPlatform());
 }
 
 int AgentInitializer::initAgent() {
-  auto handler = std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_));
+  auto handler =
+      std::shared_ptr<ThriftHandler>(platform()->createHandler(sw_.get()));
   handler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   eventBase_ = new EventBase();
 
@@ -286,7 +288,8 @@ int AgentInitializer::initAgent() {
   facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
-  SignalHandler signalHandler(eventBase_, sw_, [this]() { stopServices(); });
+  SignalHandler signalHandler(
+      eventBase_, sw_.get(), [this]() { stopServices(); });
 
   XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
   server_->serve();
@@ -309,12 +312,15 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
   stopServices();
   if (setupWarmboot) {
     sw_->gracefulExit();
+    __attribute__((unused)) auto leakedSw = sw_.release();
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
-    __lsan_ignore_object(sw_);
+    __lsan_ignore_object(leakedSw);
 #endif
 #endif
   } else {
+    sw_->updateStateBlocking(
+        "setup min APLM route state", getMinAlpmRouteState);
     sw_->stop();
   }
 }

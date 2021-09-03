@@ -82,7 +82,7 @@ typedef std::unique_ptr<Platform> (
 class AgentInitializer {
  protected:
   SwSwitch* sw() const {
-    return sw_;
+    return sw_.get();
   }
   Platform* platform() const {
     return sw_->getPlatform();
@@ -102,7 +102,7 @@ class AgentInitializer {
   void stopAgent(bool setupWarmboot);
 
  private:
-  SwSwitch* sw_;
+  std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<Initializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
   folly::EventBase* eventBase_;
