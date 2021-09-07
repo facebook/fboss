@@ -172,6 +172,9 @@ class SaiAclTableManager {
 
   std::vector<sai_int32_t> getActionTypeList(
       const std::shared_ptr<AclTable>& addedAclTable);
+  std::set<cfg::AclTableQualifier> getQualifierSet(
+      const std::shared_ptr<AclTable>& addedAclTable);
+
   std::pair<
       SaiAclTableTraits::AdapterHostKey,
       SaiAclTableTraits::CreateAttributes>

@@ -46,6 +46,11 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
   return {};
 }
 
+std::set<cfg::AclTableQualifier> getQualifierSet(
+    const std::shared_ptr<AclTable>& /*addedAclTable*/) {
+  return {};
+}
+
 /*
  * aclTableCreateAttributes
  *
