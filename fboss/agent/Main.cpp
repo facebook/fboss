@@ -248,6 +248,7 @@ void AgentInitializer::createSwitch(
     XLOG(INFO) << "Could not open /dev/null ";
   }
 
+  preAgentInit();
   // Now that we have parsed the command line flags, create the Platform
   // object
   unique_ptr<Platform> platform =
