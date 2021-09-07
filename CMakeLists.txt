@@ -622,6 +622,7 @@ if (NOT SAI_ONLY)
       fboss/agent/oss/Main.cpp
       fboss/agent/oss/SetupThrift.cpp
       fboss/agent/oss/RouteUpdateLogger.cpp
+      fboss/agent/oss/SwitchStats.cpp
       fboss/agent/oss/SwSwitch.cpp
       fboss/agent/oss/Utils.cpp
       fboss/agent/packet/ArpHdr.cpp

@@ -275,7 +275,7 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void linkStateChange() {
-    linkStateChange_.addValue(1);
+    linkStateChange_->addValue(1);
   }
 
   void pcapDistFailure() {
@@ -498,7 +498,7 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Link state up/down change count
    */
-  TLTimeseries linkStateChange_;
+  std::unique_ptr<TLTimeseries> linkStateChange_;
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;
@@ -545,6 +545,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries pfcDeadlockDetectionCount_;
   // Number of timers pfc deadlock recovery hit
   TLTimeseries pfcDeadlockRecoveryCount_;
+
+  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      fb303::ExportType exportType);
 };
 
 } // namespace facebook::fboss
