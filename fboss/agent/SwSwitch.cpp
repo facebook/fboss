@@ -524,12 +524,6 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     lldpManager_ = std::make_unique<LldpManager>(this);
   }
 
-#if FOLLY_HAS_COROUTINES
-  if (flags & SwitchFlags::ENABLE_MACSEC) {
-    mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
-  }
-#endif
-
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);
@@ -632,6 +626,11 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
         duration_cast<duration<float>>(steady_clock::now() - startTime)
             .count());
   }
+#if FOLLY_HAS_COROUTINES
+  if (flags_ & SwitchFlags::ENABLE_MACSEC) {
+    mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
+  }
+#endif
 }
 
 void SwSwitch::logRouteUpdates(
