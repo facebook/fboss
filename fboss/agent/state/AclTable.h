@@ -38,6 +38,7 @@ struct AclTableFields {
   int priority;
   std::string name;
   std::shared_ptr<AclMap> aclMap;
+  std::vector<cfg::AclTableActionType> actionTypes;
 };
 
 /*
@@ -64,7 +65,8 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   bool operator==(const AclTable& aclTable) const {
     return getFields()->priority == aclTable.getPriority() &&
         getFields()->name == aclTable.getID() &&
-        *(getFields()->aclMap) == *(aclTable.getAclMap());
+        *(getFields()->aclMap) == *(aclTable.getAclMap()) &&
+        getFields()->actionTypes == aclTable.getActionTypes();
   }
 
   bool operator!=(const AclTable& aclTable) const {
@@ -89,6 +91,14 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
 
   void setAclMap(std::shared_ptr<AclMap> aclMap) {
     writableFields()->aclMap = aclMap;
+  }
+
+  std::vector<cfg::AclTableActionType> getActionTypes() const {
+    return getFields()->actionTypes;
+  }
+
+  void setActionTypes(const std::vector<cfg::AclTableActionType>& actionTypes) {
+    writableFields()->actionTypes = actionTypes;
   }
 
  private:
