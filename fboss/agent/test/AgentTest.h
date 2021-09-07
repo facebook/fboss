@@ -44,6 +44,11 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
 
+  void waitForQsfpService(
+      uint32_t retries = 100,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
+
   template <
       typename SETUP_FN,
       typename VERIFY_FN,

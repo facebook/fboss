@@ -941,6 +941,7 @@ if (NOT SAI_ONLY)
 
   target_link_libraries(agent_test
       fboss_agent
+      qsfp_service_client
       ${GTEST}
       ${CMAKE_THREAD_LIBS_INIT}
       ${LIBGMOCK_LIBRARIES}

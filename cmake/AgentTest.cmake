@@ -90,6 +90,8 @@ add_library(agent_test_lib
 target_link_libraries(agent_test_lib
   main
   fboss_agent
+  qsfp_cpp2
+  qsfp_service_client
 )
 
 add_library(multinode_tests
