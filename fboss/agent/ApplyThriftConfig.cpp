@@ -1964,23 +1964,32 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   auto newTableEntries = updateAcls(
       *(configTable.aclEntries_ref()), std::make_optional(tableName));
   auto newTablePriority = *configTable.priority_ref();
+  std::vector<cfg::AclTableActionType> newActionTypes =
+      *configTable.actionTypes_ref();
 
   if (origTable) {
     ++(*numExistingTablesProcessed);
-    if (!newTableEntries &&
-        newTablePriority ==
-            origTable->getPriority()) { // Original table exists with same
-                                        // entries and priority
+    if (!newTableEntries && newTablePriority == origTable->getPriority() &&
+        newActionTypes == origTable->getActionTypes()) {
+      // Original table exists with same attributes.
       return nullptr;
     }
   }
 
   auto newTable = std::make_shared<AclTable>(newTablePriority, tableName);
   if (newTableEntries) {
+    // Entries changed from original table or original table does not exist
     newTable->setAclMap(newTableEntries);
-  } else {
+  } else if (origTable) {
+    // entries are unchanged from original table
     newTable->setAclMap(origTable->getAclMap());
+  } else {
+    // original table does not exist, and new table is empty
+    newTable->setAclMap(std::make_shared<AclMap>());
   }
+
+  newTable->setActionTypes(newActionTypes);
+
   return newTable;
 }
 
