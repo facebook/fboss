@@ -432,11 +432,38 @@ enum AclTableActionType {
   MIRROR_EGRESS = 5,
 }
 
+enum AclTableQualifier {
+  SRC_IPV6 = 0,
+  DST_IPV6 = 1,
+  SRC_IPV4 = 2,
+  DST_IPV4 = 3,
+  L4_SRC_PORT = 4,
+  L4_DST_PORT = 5,
+  IP_PROTOCOL = 6,
+  TCP_FLAGS = 7,
+  SRC_PORT = 8,
+  OUT_PORT = 9,
+  IP_FRAG = 10,
+  ICMPV4_TYPE = 11,
+  ICMPV4_CODE = 12,
+  ICMPV6_TYPE = 13,
+  ICMPV6_CODE = 14,
+  DSCP = 15,
+  DST_MAC = 16,
+  IP_TYPE = 17,
+  TTL = 18,
+  LOOKUP_CLASS_L2 = 19,
+  LOOKUP_CLASS_NEIGHBOR = 20,
+  LOOKUP_CLASS_ROUTE = 21,
+  ETHER_TYPE = 22,
+}
+
 struct AclTable {
   1: string name
   2: i16 priority
   3: list<AclEntry> aclEntries = []
   4: list<AclTableActionType> actionTypes = []
+  5: list<AclTableQualifier> qualifiers = []
 }
 
 struct AclTableGroup {
