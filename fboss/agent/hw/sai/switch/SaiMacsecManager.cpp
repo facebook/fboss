@@ -558,6 +558,18 @@ mka::MKASakHealthResponse SaiMacsecManager::sakHealthCheck(
     PortID linePort,
     const mka::MKASak& sak) const {
   mka::MKASakHealthResponse health;
+  health.active_ref() = false;
+  // TODO - get egress packet stats to obtain packet number
+  health.lowestAcceptablePN_ref() = 1;
+  auto sci = *sak.sci_ref();
+  // First convert sci mac address string and the port id to a uint64
+  folly::MacAddress mac = folly::MacAddress(*sci.macAddress_ref());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+  auto egressFlow =
+      getMacsecFlow(linePort, scIdentifier, SAI_MACSEC_DIRECTION_EGRESS);
+  if (egressFlow) {
+    health.active_ref() = true;
+  }
   return health;
 }
 
@@ -759,6 +771,7 @@ void SaiMacsecManager::deleteMacsec(
   // TODO(ccpowers): Break this back out into a helper method
   auto mac = folly::MacAddress(*sci.macAddress_ref());
   auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+
   auto assocNum = *sak.assocNum_ref() % 4;
 
   auto secureChannelHandle =
@@ -766,7 +779,9 @@ void SaiMacsecManager::deleteMacsec(
   if (!secureChannelHandle) {
     throw FbossError(
         "Secure Channel not found when deleting macsec keys for SCI ",
-        sciString);
+        sciString,
+        " for port: ",
+        linePort);
   }
 
   auto secureAssoc =
@@ -774,7 +789,9 @@ void SaiMacsecManager::deleteMacsec(
   if (!secureAssoc) {
     throw FbossError(
         "Secure Association not found when deleting macsec keys for SCI ",
-        sciString);
+        sciString,
+        "for port: ",
+        linePort);
   }
 
   removeMacsecSecureAssoc(linePort, scIdentifier, direction, assocNum);
