@@ -150,6 +150,9 @@ class SaiAclTableManager {
   std::pair<sai_uint32_t, sai_uint32_t>
   cfgLookupClassToSaiNeighborMetaDataAndMask(
       cfg::AclLookupClass lookupClass) const;
+  std::vector<sai_int32_t> cfgActionTypeListToSaiActionTypeList(
+      const std::vector<cfg::AclTableActionType>& actionTypes) const;
+
   void programMirrorOnAllAcls(
       const std::optional<std::string>& mirrorId,
       MirrorAction action);

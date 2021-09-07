@@ -323,6 +323,42 @@ SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
       neighborDstUserMetaDataMask_);
 }
 
+std::vector<sai_int32_t>
+SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
+    const std::vector<cfg::AclTableActionType>& actionTypes) const {
+  std::vector<sai_int32_t> saiActionTypeList;
+
+  for (const auto& actionType : actionTypes) {
+    sai_int32_t saiActionType;
+    switch (actionType) {
+      case cfg::AclTableActionType::PACKET_ACTION:
+        saiActionType = SAI_ACL_ACTION_TYPE_PACKET_ACTION;
+        break;
+      case cfg::AclTableActionType::COUNTER:
+        saiActionType = SAI_ACL_ACTION_TYPE_COUNTER;
+        break;
+      case cfg::AclTableActionType::SET_TC:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_TC;
+        break;
+      case cfg::AclTableActionType::SET_DSCP:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_DSCP;
+        break;
+      case cfg::AclTableActionType::MIRROR_INGRESS:
+        saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_INGRESS;
+        break;
+      case cfg::AclTableActionType::MIRROR_EGRESS:
+        saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_EGRESS;
+        break;
+      default:
+        // should return in one of the cases
+        throw FbossError("Unsupported Acl Table action type");
+    }
+    saiActionTypeList.push_back(saiActionType);
+  }
+
+  return saiActionTypeList;
+}
+
 std::pair<
     std::shared_ptr<SaiAclCounter>,
     std::vector<std::pair<cfg::CounterType, std::string>>>
