@@ -81,7 +81,9 @@ void addAclTableGroup(
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
     const std::string& aclTableName,
-    const int aclTablePriority);
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers);
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
 

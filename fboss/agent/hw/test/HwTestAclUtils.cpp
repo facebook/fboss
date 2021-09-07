@@ -107,7 +107,9 @@ void addAclTableGroup(
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
     const std::string& aclTableName,
-    const int aclTablePriority) {
+    const int aclTablePriority,
+    const std::vector<cfg::AclTableActionType>& actionTypes,
+    const std::vector<cfg::AclTableQualifier>& qualifiers) {
   if (!cfg->aclTableGroup_ref()) {
     throw FbossError(
         "Attempted to add acl table without first creating acl table group");
@@ -116,6 +118,8 @@ cfg::AclTable* addAclTable(
   cfg::AclTable aclTable;
   aclTable.name_ref() = aclTableName;
   aclTable.priority_ref() = aclTablePriority;
+  aclTable.actionTypes_ref() = actionTypes;
+  aclTable.qualifiers_ref() = qualifiers;
 
   cfg->aclTableGroup_ref()->aclTables_ref()->push_back(aclTable);
   return &cfg->aclTableGroup_ref()->aclTables_ref()->back();
