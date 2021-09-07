@@ -58,6 +58,12 @@ const std::vector<cfg::AclTableActionType> kActionTypes = {
     cfg::AclTableActionType::COUNTER,
     cfg::AclTableActionType::SET_TC};
 
+const std::vector<cfg::AclTableQualifier> kQualifiers = {
+    cfg::AclTableQualifier::SRC_IPV6,
+    cfg::AclTableQualifier::DST_IPV6,
+    cfg::AclTableQualifier::SRC_IPV4,
+    cfg::AclTableQualifier::DST_IPV4};
+
 TEST(AclGroup, TestEquality) {
   // test AclEntry equality
   auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
@@ -95,9 +101,11 @@ TEST(AclGroup, TestEquality) {
   auto table1 = std::make_shared<AclTable>(1, kTable1);
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
+  table1->setQualifiers(kQualifiers);
   auto table2 = std::make_shared<AclTable>(2, kTable1);
   table2->setAclMap(map2);
   table2->setActionTypes(kActionTypes);
+  table2->setQualifiers(kQualifiers);
 
   EXPECT_NE(*table1, *table2);
   table2->setPriority(1);
@@ -180,6 +188,7 @@ TEST(AclGroup, SerializeAclTable) {
   auto table = std::make_shared<AclTable>(1, kTable1);
   table->setAclMap(map);
   table->setActionTypes(kActionTypes);
+  table->setQualifiers(kQualifiers);
 
   auto serialized = table->toFollyDynamic();
   auto tableBack = AclTable::fromFollyDynamic(serialized);
@@ -189,6 +198,7 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(tableBack->getID(), kTable1);
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
+  EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
 
   // change the priority
   table->setPriority(2);
@@ -202,6 +212,7 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(tableBack->getID(), kTable1);
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
+  EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
 }
 
 TEST(AclGroup, SerializeAclTableMap) {
@@ -307,6 +318,7 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   auto table1 = std::make_shared<AclTable>(1, kTable1);
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
+  table1->setQualifiers(kQualifiers);
 
   auto tableMap = make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -323,6 +335,9 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
   cfgTable1.actionTypes_ref()->resize(kActionTypes.size());
   cfgTable1.actionTypes_ref() = kActionTypes;
+
+  cfgTable1.qualifiers_ref()->resize(kQualifiers.size());
+  cfgTable1.qualifiers_ref() = kQualifiers;
 
   cfg::SwitchConfig config;
   cfg::AclTableGroup cfgTableGroup;
@@ -354,6 +369,12 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
           ->getTableIf(table1->getID())
           ->getActionTypes(),
       kActionTypes);
+  EXPECT_EQ(
+      stateV1->getAclTableGroup()
+          ->getAclTableMap()
+          ->getTableIf(table1->getID())
+          ->getQualifiers(),
+      kQualifiers);
 
   // Config contains 2 acl tables
   auto entry2a = make_shared<AclEntry>(priority2, kAcl2a);
