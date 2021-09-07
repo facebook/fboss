@@ -22,6 +22,7 @@ constexpr auto kPriority = "priority";
 constexpr auto kName = "name";
 constexpr auto kAclMap = "aclMap";
 constexpr auto kActionTypes = "actionTypes";
+constexpr auto kQualifiers = "qualifiers";
 } // namespace
 
 namespace facebook::fboss {
@@ -35,6 +36,11 @@ folly::dynamic AclTableFields::toFollyDynamic() const {
   aclTable[kActionTypes] = folly::dynamic::array;
   for (const auto& actionType : actionTypes) {
     aclTable[kActionTypes].push_back(static_cast<int>(actionType));
+  }
+
+  aclTable[kQualifiers] = folly::dynamic::array;
+  for (const auto& qualifier : qualifiers) {
+    aclTable[kQualifiers].push_back(static_cast<int>(qualifier));
   }
 
   return aclTable;
@@ -51,6 +57,13 @@ AclTableFields AclTableFields::fromFollyDynamic(
     for (const auto& entry : aclTableJson[kActionTypes]) {
       auto actionType = cfg::AclTableActionType(entry.asInt());
       aclTable.actionTypes.push_back(actionType);
+    }
+  }
+
+  if (aclTableJson.find(kQualifiers) != aclTableJson.items().end()) {
+    for (const auto& entry : aclTableJson[kQualifiers]) {
+      auto qualifier = cfg::AclTableQualifier(entry.asInt());
+      aclTable.qualifiers.push_back(qualifier);
     }
   }
 
