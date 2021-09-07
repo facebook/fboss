@@ -104,7 +104,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   SaiAclTableTraits::AdapterHostKey adapterHostKey;
   SaiAclTableTraits::CreateAttributes attributes;
 
-  std::tie(adapterHostKey, attributes) = aclTableCreateAttributes(aclStage);
+  std::tie(adapterHostKey, attributes) =
+      aclTableCreateAttributes(aclStage, addedAclTable);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
 

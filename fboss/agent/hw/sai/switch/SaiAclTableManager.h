@@ -170,10 +170,14 @@ class SaiAclTableManager {
       SaiAclTableTraits::CreateAttributes>
   createAclTableV4AndV6Helper(bool isV4);
 
+  std::vector<sai_int32_t> getActionTypeList(
+      const std::shared_ptr<AclTable>& addedAclTable);
   std::pair<
       SaiAclTableTraits::AdapterHostKey,
       SaiAclTableTraits::CreateAttributes>
-  aclTableCreateAttributes(sai_acl_stage_t aclStage);
+  aclTableCreateAttributes(
+      sai_acl_stage_t aclStage,
+      const std::shared_ptr<AclTable>& addedAclTable);
 
   sai_u32_range_t getFdbDstUserMetaDataRange() const;
   sai_u32_range_t getRouteDstUserMetaDataRange() const;

@@ -18,6 +18,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss {
 
 SaiAclTableManager::SaiAclTableManager(
@@ -46,9 +48,34 @@ SaiAclTableManager::SaiAclTableManager(
       neighborDstUserMetaDataMask_(
           getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
 
+std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
+    const std::shared_ptr<AclTable>& addedAclTable) {
+  if (FLAGS_enable_acl_table_group) {
+    return cfgActionTypeListToSaiActionTypeList(
+        addedAclTable->getActionTypes());
+  } else {
+    bool isTajo =
+        platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
+
+    std::vector<sai_int32_t> actionTypeList{
+        SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+        SAI_ACL_ACTION_TYPE_COUNTER,
+        SAI_ACL_ACTION_TYPE_SET_TC,
+        SAI_ACL_ACTION_TYPE_SET_DSCP,
+        SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
+
+    if (!isTajo) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
+    }
+    return actionTypeList;
+  }
+}
+
 std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
-    SaiAclTableManager::aclTableCreateAttributes(sai_acl_stage_t aclStage) {
+    SaiAclTableManager::aclTableCreateAttributes(
+        sai_acl_stage_t aclStage,
+        const std::shared_ptr<AclTable>& addedAclTable) {
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
   /*
@@ -58,15 +85,7 @@ std::
   bool isTajo =
       platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
 
-  std::vector<sai_int32_t> actionTypeList{
-      SAI_ACL_ACTION_TYPE_PACKET_ACTION,
-      SAI_ACL_ACTION_TYPE_COUNTER,
-      SAI_ACL_ACTION_TYPE_SET_TC,
-      SAI_ACL_ACTION_TYPE_SET_DSCP,
-      SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
-  if (!isTajo) {
-    actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
-  }
+  auto actionTypeList = getActionTypeList(addedAclTable);
 
   auto fieldL4SrcPort = isTajo ? false : true;
   auto fieldL4DstPort = isTajo ? false : true;

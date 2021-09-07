@@ -41,6 +41,11 @@ SaiAclTableManager::SaiAclTableManager(
       neighborDstUserMetaDataRangeMax_(0),
       neighborDstUserMetaDataMask_(0) {}
 
+std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
+    const std::shared_ptr<AclTable>& /*addedAclTable*/) {
+  return {};
+}
+
 /*
  * aclTableCreateAttributes
  *
@@ -49,7 +54,9 @@ SaiAclTableManager::SaiAclTableManager(
  */
 std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
-    SaiAclTableManager::aclTableCreateAttributes(sai_acl_stage_t aclStage) {
+    SaiAclTableManager::aclTableCreateAttributes(
+        sai_acl_stage_t aclStage,
+        const std::shared_ptr<AclTable>& /*addedAclTable*/) {
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_PORT};
 
