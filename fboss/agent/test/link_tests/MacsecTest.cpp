@@ -34,6 +34,7 @@ class MacsecTest : public LinkTest {
                             macsecPorts.insert(PortID(port));
                           }
                         });
+    portsFut.wait();
     return macsecPorts;
   }
 };
