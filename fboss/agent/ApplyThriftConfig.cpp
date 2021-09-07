@@ -1966,11 +1966,14 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   auto newTablePriority = *configTable.priority_ref();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes_ref();
+  std::vector<cfg::AclTableQualifier> newQualifiers =
+      *configTable.qualifiers_ref();
 
   if (origTable) {
     ++(*numExistingTablesProcessed);
     if (!newTableEntries && newTablePriority == origTable->getPriority() &&
-        newActionTypes == origTable->getActionTypes()) {
+        newActionTypes == origTable->getActionTypes() &&
+        newQualifiers == origTable->getQualifiers()) {
       // Original table exists with same attributes.
       return nullptr;
     }
@@ -1989,6 +1992,7 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   }
 
   newTable->setActionTypes(newActionTypes);
+  newTable->setQualifiers(newQualifiers);
 
   return newTable;
 }
