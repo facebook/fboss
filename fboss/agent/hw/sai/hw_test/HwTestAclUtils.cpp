@@ -19,6 +19,8 @@
 
 #include <gtest/gtest.h>
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss::utility {
 
 std::string getActualAclTableName(
@@ -30,6 +32,20 @@ std::string getActualAclTableName(
   return aclTableName.has_value() ? aclTableName.value()
                                   : SaiSwitch::kAclTable1;
 }
+
+std::shared_ptr<AclEntry> getSwAcl(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& aclName,
+    const std::string& aclTableName) {
+  if (FLAGS_enable_acl_table_group) {
+    auto aclTableGroup = state->getAclTableGroup();
+    auto aclTable = aclTableGroup->getAclTableMap()->getTableIf(aclTableName);
+    return aclTable->getAclMap()->getEntry(aclName);
+  } else {
+    return state->getAcl(aclName);
+  }
+}
+
 int getAclTableNumAclEntries(
     const HwSwitch* hwSwitch,
     const std::optional<std::string>& aclTableName) {
@@ -51,7 +67,7 @@ void checkSwHwAclMatch(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
     const std::optional<std::string>& aclTableName) {
-  auto swAcl = state->getAcl(aclName);
+  auto swAcl = getSwAcl(state, aclName, getActualAclTableName(aclTableName));
 
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
@@ -499,7 +515,7 @@ uint64_t getAclInOutPackets(
     const std::string& aclName,
     const std::string& /*statName*/,
     const std::optional<std::string>& aclTableName) {
-  auto swAcl = state->getAcl(aclName);
+  auto swAcl = getSwAcl(state, aclName, getActualAclTableName(aclTableName));
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
