@@ -423,10 +423,20 @@ struct AclEntry {
   29: optional EtherType etherType
 }
 
+enum AclTableActionType {
+  PACKET_ACTION = 0,
+  COUNTER = 1,
+  SET_TC = 2,
+  SET_DSCP = 3,
+  MIRROR_INGRESS = 4,
+  MIRROR_EGRESS = 5,
+}
+
 struct AclTable {
   1: string name
   2: i16 priority
   3: list<AclEntry> aclEntries = []
+  4: list<AclTableActionType> actionTypes = []
 }
 
 struct AclTableGroup {
