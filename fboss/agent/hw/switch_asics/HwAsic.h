@@ -79,6 +79,7 @@ class HwAsic {
     EMPTY_ACL_MATCHER,
     SAI_PORT_SERDES_FIELDS_RESET,
     ROUTE_COUNTERS,
+    MULTIPLE_ACL_TABLES,
   };
 
   enum class AsicType {

@@ -83,6 +83,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::ROUTE_COUNTERS:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
       return false;
   }
   return false;
