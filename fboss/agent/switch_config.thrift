@@ -466,9 +466,16 @@ struct AclTable {
   5: list<AclTableQualifier> qualifiers = []
 }
 
+enum AclStage {
+  INGRESS = 0
+  INGRESS_MACSEC = 1
+  EGRESS_MACSEC = 2
+}
+
 struct AclTableGroup {
   1: string name
   2: list<AclTable> aclTables = []
+  3: AclStage stage = AclStage.INGRESS
 }
 
 /*
