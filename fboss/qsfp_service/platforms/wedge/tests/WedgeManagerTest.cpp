@@ -194,7 +194,7 @@ TEST_F(WedgeManagerTest, modulePresenceTest) {
     for (const auto& trans : *synchronizedTransceivers) {
       QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
       // Expected state is MODULE_STATE_DISCOVERED
-      EXPECT_EQ(qsfp->moduleStateMachine_.current_state()[0], 2);
+      EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 2);
     }
   }
 }
@@ -216,10 +216,10 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
       QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
       if (trans.first == 0) { // id is 0 based here
         // Expected state is MODULE_STATE_NOT_PRESENT
-        EXPECT_EQ(qsfp->moduleStateMachine_.current_state()[0], 0);
+        EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 0);
       } else {
         // Expected state is MODULE_STATE_DISCOVERED
-        EXPECT_EQ(qsfp->moduleStateMachine_.current_state()[0], 2);
+        EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 2);
       }
     }
   }

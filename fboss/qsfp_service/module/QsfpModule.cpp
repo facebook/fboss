@@ -107,7 +107,7 @@ QsfpModule::QsfpModule(
   // as an FSM attribute. This will be used when FSM invokes the state
   // transition or event handling function and in the callback we need something
   // from QsfpModule object
-  moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = this;
+  setLegacyModuleStateMachineModulePointer(this);
 }
 
 QsfpModule::~QsfpModule() {
@@ -982,6 +982,22 @@ void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
         "Unsupported ModuleStateMachineEvent: ",
         getModuleStateMachineEventName(event));
   }
+}
+
+int QsfpModule::getLegacyModuleStateMachineCurrentState() const {
+  return moduleStateMachine_.current_state()[0];
+}
+
+void QsfpModule::setLegacyModuleStateMachineModulePointer(
+    QsfpModule* modulePtr) {
+  moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = modulePtr;
+}
+
+void QsfpModule::setLegacyModuleStateMachineCmisModuleReady(bool isReady) {
+  moduleStateMachine_.get_attribute(cmisModuleReady) = isReady;
+}
+bool QsfpModule::getLegacyModuleStateMachineCmisModuleReady() const {
+  return moduleStateMachine_.get_attribute(cmisModuleReady);
 }
 
 } // namespace fboss

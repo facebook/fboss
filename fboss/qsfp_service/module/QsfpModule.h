@@ -122,9 +122,6 @@ class QsfpModule : public Transceiver {
     CHANNEL_COUNT = 4,
   };
 
-  // Module State Machine for this QsfpModule object
-  msm::back::state_machine<moduleStateMachine> moduleStateMachine_;
-
   // Port State Machine for all the ports inside this QsfpModule
   std::vector<msm::back::state_machine<modulePortStateMachine>>
       portStateMachines_;
@@ -232,11 +229,11 @@ class QsfpModule : public Transceiver {
 
   void stateUpdate(ModuleStateMachineEvent event);
 
- protected:
-  // no copy or assignment
-  QsfpModule(QsfpModule const&) = delete;
-  QsfpModule& operator=(QsfpModule const&) = delete;
+  int getLegacyModuleStateMachineCurrentState() const;
 
+  void setLegacyModuleStateMachineModulePointer(QsfpModule* modulePtr);
+
+ protected:
   enum : unsigned int {
     EEPROM_DEFAULT = 255,
     MAX_GAUGE = 30,
@@ -512,6 +509,9 @@ class QsfpModule : public Transceiver {
     return std::nullopt;
   }
 
+  void setLegacyModuleStateMachineCmisModuleReady(bool isReady);
+  bool getLegacyModuleStateMachineCmisModuleReady() const;
+
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
@@ -525,6 +525,10 @@ class QsfpModule : public Transceiver {
   std::map<int, MediaLaneSignals> mediaSignalsCache_;
 
  private:
+  // no copy or assignment
+  QsfpModule(QsfpModule const&) = delete;
+  QsfpModule& operator=(QsfpModule const&) = delete;
+
   void refreshLocked();
   virtual TransceiverInfo parseDataLocked();
   /*
@@ -545,6 +549,9 @@ class QsfpModule : public Transceiver {
    * for ODS to report.
    */
   void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
+
+  // Module State Machine for this QsfpModule object
+  msm::back::state_machine<moduleStateMachine> moduleStateMachine_;
 };
 } // namespace fboss
 } // namespace facebook

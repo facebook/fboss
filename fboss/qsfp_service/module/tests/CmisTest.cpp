@@ -151,22 +151,22 @@ TEST(CmisTest, testStateToInactive) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 1);
 
   // MSM: Present -> Discovered
   qsfpMod->stateUpdate(ModuleStateMachineEvent::EEPROM_READ);
   qsfpMod->refresh();
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 2);
 
   // MSM: Discovered -> Inactive (on Agent timeout event)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 }
 
@@ -181,7 +181,7 @@ TEST(CmisTest, testStateTimeoutWaitInactive) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (On Agent timeout)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
@@ -193,7 +193,7 @@ TEST(CmisTest, testStateTimeoutWaitInactive) {
   // to transition to Inactive
   /* sleep override */
   sleep(125);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 }
 
@@ -206,7 +206,7 @@ TEST(CmisTest, testPsmStates) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
@@ -221,18 +221,18 @@ TEST(CmisTest, testPsmStates) {
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->portStateMachines_[3].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 
   // One port Up -> Active
   qsfpMod->portStateMachines_[3].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 
   // All ports down -> Inactive state
   qsfpMod->portStateMachines_[3].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 
   // All port up -> Active state
@@ -240,13 +240,13 @@ TEST(CmisTest, testPsmStates) {
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
   qsfpMod->portStateMachines_[2].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
   qsfpMod->portStateMachines_[3].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 
   // One port down, rest of ports up -> Active state
   qsfpMod->portStateMachines_[0].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 }
 
@@ -259,7 +259,7 @@ TEST(CmisTest, testPsmRemediation) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 2);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
@@ -272,17 +272,17 @@ TEST(CmisTest, testPsmRemediation) {
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->portStateMachines_[1].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 
   // Bring up done event -> Inactive state
   qsfpMod->stateUpdate(ModuleStateMachineEvent::BRINGUP_DONE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 
   // Remediation done event -> Inactive state
   qsfpMod->stateUpdate(ModuleStateMachineEvent::REMEDIATE_DONE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 }
 
@@ -295,7 +295,7 @@ TEST(CmisTest, testMsmFwUpgrading) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 2);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
@@ -305,28 +305,28 @@ TEST(CmisTest, testMsmFwUpgrading) {
   qsfpMod->portStateMachines_[0].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 
   // Upgrading event should get rejected
   qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 
   // Bring module to Inactive state
   qsfpMod->portStateMachines_[1].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 3);
 
   // Verify Upgrading event accepted and new state is Upgrading
   qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 5);
 
   // Finish upgrading with module reset and move it to first state
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_RESET);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }
 
@@ -339,7 +339,7 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 2);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
@@ -349,17 +349,17 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
   qsfpMod->portStateMachines_[0].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
 
   // Check Forced upgrade event is accepted and module is in Upgrading state
   qsfpMod->stateUpdate(ModuleStateMachineEvent::FORCED_UPGRADE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 5);
 
   // Finish upgrading with module reset and move it to first state
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_RESET);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }
 
@@ -372,7 +372,7 @@ TEST(CmisTest, testOpticsRemoval) {
   std::unique_ptr<CmisModule> qsfpMod =
       std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 2);
 
-  qsfpMod->moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = qsfpMod.get();
+  qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // Bring up to discovered state and check optics removed event - new state
   // should be first one and PSM should get removed
@@ -380,7 +380,7 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->stateUpdate(ModuleStateMachineEvent::EEPROM_READ);
   qsfpMod->refresh();
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
-  int CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
   EXPECT_EQ(qsfpMod->portStateMachines_.size(), 0);
 
@@ -390,10 +390,10 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->refresh();
   qsfpMod->portStateMachines_[0].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 
   // Bring up to Upgrading state and check optics removed event
@@ -405,10 +405,10 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->portStateMachines_[1].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 5);
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
-  CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
+  CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }
 
