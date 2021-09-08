@@ -118,6 +118,22 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4,
       };
+      cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
+      cfg.ports_ref()[p].profileID_ref() =
+          cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+    } else {
+      bool isControllingPort = (p % 4 == 0);
+      if (isControllingPort) {
+        cfg.ports_ref()[p].state_ref() = cfg::PortState::ENABLED;
+        cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::HUNDREDG;
+        cfg.ports_ref()[p].profileID_ref() =
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+      } else {
+        cfg.ports_ref()[p].state_ref() = cfg::PortState::DISABLED;
+        cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
+        cfg.ports_ref()[p].profileID_ref() =
+            cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+      }
     }
   }
 

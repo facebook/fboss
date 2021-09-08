@@ -18,8 +18,8 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
-
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
@@ -1387,4 +1387,94 @@ TEST_F(ThriftTest, setLoopbackMode) {
     EXPECT_EQ(port2LoopbackMode.find(firstPort)->second, lbMode);
     otherPortsUnchanged();
   }
+}
+
+TEST_F(ThriftTest, programInternalPhyPorts) {
+  ThriftHandler handler(sw_);
+  // Using Wedge100PlatformMapping in MockPlatform. Transceiver 4 is used by
+  // eth1/5/[1-4], which is software port 1/2/3/4
+  TransceiverID id = TransceiverID(4);
+  constexpr auto kCableLength = 3.5;
+  constexpr auto kMediaInterface = MediaInterfaceCode::CWDM4_100G;
+  constexpr auto kComplianceCode = ExtendedSpecComplianceCode::CWDM4_100G;
+  constexpr auto kManagementInterface = TransceiverManagementInterface::CMIS;
+  auto preparedTcvrInfo = [id,
+                           kMediaInterface,
+                           kComplianceCode,
+                           kManagementInterface](double cableLength) {
+    auto tcvrInfo = std::make_unique<TransceiverInfo>();
+    tcvrInfo->port_ref() = id;
+    tcvrInfo->present_ref() = true;
+    Cable cable;
+    cable.length_ref() = cableLength;
+    tcvrInfo->cable_ref() = cable;
+    tcvrInfo->transceiverManagementInterface_ref() = kManagementInterface;
+    TransceiverSettings tcvrSettings;
+    std::vector<MediaInterfaceId> mediaInterfaces;
+    for (int i = 0; i < 4; i++) {
+      MediaInterfaceId intf;
+      intf.lane_ref() = i;
+      intf.code_ref() = kMediaInterface;
+      // TODO(joseph5wu) Will deprecate this compliance code and use the new
+      // media interface type
+      MediaInterfaceUnion interfaceUnion;
+      interfaceUnion.extendedSpecificationComplianceCode_ref() =
+          kComplianceCode;
+      intf.media_ref() = interfaceUnion;
+      mediaInterfaces.push_back(intf);
+    }
+    tcvrSettings.mediaInterface_ref() = std::move(mediaInterfaces);
+    tcvrInfo->settings_ref() = tcvrSettings;
+    return tcvrInfo;
+  };
+
+  // Only enabled ports should be return
+  auto checkProgrammedPorts =
+      [](const std::map<int32_t, cfg::PortProfileID>& programmedPorts) {
+        constexpr auto kEnabledPort = 1;
+        EXPECT_EQ(programmedPorts.size(), 1);
+        EXPECT_TRUE(
+            programmedPorts.find(kEnabledPort) != programmedPorts.end());
+        // Controlling port should be 100G
+        EXPECT_EQ(
+            programmedPorts.find(kEnabledPort)->second,
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
+      };
+
+  std::map<int32_t, cfg::PortProfileID> programmedPorts;
+  handler.programInternalPhyPorts(
+      programmedPorts, preparedTcvrInfo(kCableLength), false);
+
+  checkProgrammedPorts(programmedPorts);
+  auto tcvr = sw_->getState()->getTransceivers()->getTransceiver(id);
+  EXPECT_EQ(tcvr->getID(), id);
+  EXPECT_EQ(*tcvr->getCableLength(), kCableLength);
+  EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
+  EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
+
+  // Now change the cable length
+  constexpr auto kCableLength2 = 1;
+  std::map<int32_t, cfg::PortProfileID> programmedPorts2;
+  handler.programInternalPhyPorts(
+      programmedPorts2, preparedTcvrInfo(kCableLength2), false);
+
+  checkProgrammedPorts(programmedPorts2);
+  tcvr = sw_->getState()->getTransceivers()->getTransceiver(id);
+  EXPECT_EQ(tcvr->getID(), id);
+  EXPECT_EQ(*tcvr->getCableLength(), kCableLength2);
+  EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
+  EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
+
+  // Finally remove the transceiver
+  auto unpresentTcvr = std::make_unique<TransceiverInfo>();
+  unpresentTcvr->port_ref() = id;
+  unpresentTcvr->present_ref() = false;
+  std::map<int32_t, cfg::PortProfileID> programmedPorts3;
+  handler.programInternalPhyPorts(
+      programmedPorts3, std::move(unpresentTcvr), false);
+
+  // Still return programmed ports even though no transceiver there
+  checkProgrammedPorts(programmedPorts3);
+  tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+  EXPECT_TRUE(tcvr == nullptr);
 }

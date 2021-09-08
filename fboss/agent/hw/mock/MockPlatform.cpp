@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/test/HwTestHandle.h"
 
 #include <gmock/gmock.h>
@@ -44,7 +45,7 @@ MockPlatform::MockPlatform(
     std::unique_ptr<MockHwSwitch> hw)
     : Platform(
           std::move(productInfo),
-          std::make_unique<PlatformMapping>(),
+          std::make_unique<Wedge100PlatformMapping>(),
           getMockLocalMac()),
       tmpDir_("fboss_mock_state"),
       hw_(std::move(hw)) {

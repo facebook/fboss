@@ -52,6 +52,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/lib/LogThriftCall.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/IPAddressV4.h>
@@ -1272,12 +1273,25 @@ void ThriftHandler::getAllPortLoopbackMode(
 }
 
 void ThriftHandler::programInternalPhyPorts(
-    std::map<int32_t, cfg::PortProfileID>& /* programmedPorts */,
+    std::map<int32_t, cfg::PortProfileID>& programmedPorts,
     std::unique_ptr<TransceiverInfo> transceiver,
     bool force) {
   int32_t id = *transceiver->port_ref();
   auto log = LOG_THRIFT_CALL(DBG1, id, force);
   ensureConfigured(__func__);
+
+  // Check whether the transceiver has valid id
+  std::optional<phy::DataPlanePhyChip> tcvrChip;
+  for (const auto& chip : sw_->getPlatform()->getDataPlanePhyChips()) {
+    if (*chip.second.type_ref() == phy::DataPlanePhyChipType::TRANSCEIVER &&
+        *chip.second.physicalID_ref() == id) {
+      tcvrChip = chip.second;
+      break;
+    }
+  }
+  if (!tcvrChip) {
+    throw FbossError("Can't find transceiver:", id, " from PlatformMapping");
+  }
 
   TransceiverID tcvrID = TransceiverID(id);
   std::shared_ptr<Transceiver> newTransceiver;
@@ -1304,11 +1318,9 @@ void ThriftHandler::programInternalPhyPorts(
     XLOG(DBG2) << "programInternalPhyPorts for not present Transceiver:"
                << tcvrID
                << " which doesn't exist in SwitchState. Skip re-programming";
-    return;
   } else if (!force && tcvr && newTransceiver && *tcvr == *newTransceiver) {
     XLOG(DBG2) << "programInternalPhyPorts for present Transceiver:" << tcvrID
                << " matches current SwitchState. Skip re-programming";
-    return;
   } else {
     auto updateFn = [tcvrID,
                      newTransceiver](const shared_ptr<SwitchState>& state) {
@@ -1327,8 +1339,17 @@ void ThriftHandler::programInternalPhyPorts(
         fmt::format("program iphy ports for transceiver: {}", id), updateFn);
   }
 
-  // TODO(joseph5wu) Return the programmed software ports using this transceiver
-  // port and profile mapping.
+  const auto& platformPorts = utility::getPlatformPortsByChip(
+      sw_->getPlatform()->getPlatformPorts(), *tcvrChip);
+  // fetch the programmed profiles
+  for (const auto& platformPort : platformPorts) {
+    const auto port = sw_->getState()->getPorts()->getPortIf(
+        PortID(*platformPort.mapping_ref()->id_ref()));
+    if (port && port->isEnabled()) {
+      // Only return ports actually exist and are enabled
+      programmedPorts.emplace(port->getID(), port->getProfileID());
+    }
+  }
 }
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
