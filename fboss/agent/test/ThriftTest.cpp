@@ -1465,6 +1465,14 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
   EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
 
+  // Using the same transceiver info to program and no new state created
+  auto beforeGen = sw_->getState()->getGeneration();
+  programmedPorts2.clear();
+  handler.programInternalPhyPorts(
+      programmedPorts2, preparedTcvrInfo(kCableLength2), false);
+  checkProgrammedPorts(programmedPorts2);
+  EXPECT_EQ(beforeGen, sw_->getState()->getGeneration());
+
   // Finally remove the transceiver
   auto unpresentTcvr = std::make_unique<TransceiverInfo>();
   unpresentTcvr->port_ref() = id;
@@ -1477,4 +1485,18 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   checkProgrammedPorts(programmedPorts3);
   tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
   EXPECT_TRUE(tcvr == nullptr);
+
+  // Remove the same Transceiver again, and make sure no new state created.
+  beforeGen = sw_->getState()->getGeneration();
+  programmedPorts3.clear();
+  unpresentTcvr = std::make_unique<TransceiverInfo>();
+  unpresentTcvr->port_ref() = id;
+  unpresentTcvr->present_ref() = false;
+  handler.programInternalPhyPorts(
+      programmedPorts3, std::move(unpresentTcvr), false);
+  // Still return programmed ports even though no transceiver there
+  checkProgrammedPorts(programmedPorts3);
+  tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+  EXPECT_TRUE(tcvr == nullptr);
+  EXPECT_EQ(beforeGen, sw_->getState()->getGeneration());
 }
