@@ -962,6 +962,12 @@ void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
       case ModuleStateMachineEvent::PORT_UP:
         moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
         return;
+      case ModuleStateMachineEvent::TRIGGER_UPGRADE:
+        moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
+        return;
+      case ModuleStateMachineEvent::FORCED_UPGRADE:
+        moduleStateMachine_.process_event(MODULE_EVENT_FORCED_UPGRADE);
+        return;
     }
     throw FbossError(
         "Unsupported ModuleStateMachineEvent: ",

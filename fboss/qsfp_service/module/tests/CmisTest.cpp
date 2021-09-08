@@ -309,7 +309,7 @@ TEST(CmisTest, testMsmFwUpgrading) {
   EXPECT_EQ(CurrState, 4);
 
   // Upgrading event should get rejected
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 4);
 
@@ -320,7 +320,7 @@ TEST(CmisTest, testMsmFwUpgrading) {
   EXPECT_EQ(CurrState, 3);
 
   // Verify Upgrading event accepted and new state is Upgrading
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 5);
 
@@ -353,7 +353,7 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
   EXPECT_EQ(CurrState, 4);
 
   // Check Forced upgrade event is accepted and module is in Upgrading state
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_FORCED_UPGRADE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::FORCED_UPGRADE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 5);
 
@@ -404,7 +404,7 @@ TEST(CmisTest, testOpticsRemoval) {
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
   qsfpMod->portStateMachines_[1].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::TRIGGER_UPGRADE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 5);
   qsfpMod->stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);

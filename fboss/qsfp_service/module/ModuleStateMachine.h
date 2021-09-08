@@ -36,6 +36,10 @@ enum class ModuleStateMachineEvent {
   EEPROM_READ,
   ALL_PORTS_DOWN,
   PORT_UP,
+  // NOTE: Such event is never invoked in our code yet
+  TRIGGER_UPGRADE,
+  // NOTE: Such event is never invoked in our code yet
+  FORCED_UPGRADE,
 };
 
 inline std::string getModuleStateMachineEventName(
@@ -53,6 +57,10 @@ inline std::string getModuleStateMachineEventName(
       return "ALL_PORTS_DOWN";
     case ModuleStateMachineEvent::PORT_UP:
       return "PORT_UP";
+    case ModuleStateMachineEvent::TRIGGER_UPGRADE:
+      return "TRIGGER_UPGRADE";
+    case ModuleStateMachineEvent::FORCED_UPGRADE:
+      return "FORCED_UPGRADE";
   }
   throw FbossError("Unsupported ModuleStateMachineEvent");
 }
