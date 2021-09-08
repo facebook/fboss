@@ -22,17 +22,20 @@
 namespace facebook::fboss {
 
 struct AclTableGroupFields {
-  explicit AclTableGroupFields(const std::string& name) : name(name) {}
+  explicit AclTableGroupFields(cfg::AclStage stage) : stage(stage) {}
   explicit AclTableGroupFields(
+      cfg::AclStage stage,
       const std::string& name,
       std::shared_ptr<AclTableMap> aclTableMap)
-      : name(name), aclTableMap(aclTableMap) {}
+      : stage(stage), name(name), aclTableMap(aclTableMap) {}
 
   template <typename Fn>
   void forEachChild(Fn) {}
 
   folly::dynamic toFollyDynamic() const;
   static AclTableGroupFields fromFollyDynamic(const folly::dynamic& json);
+
+  cfg::AclStage stage;
   std::string name;
   std::shared_ptr<AclTableMap> aclTableMap;
 };
@@ -43,7 +46,7 @@ struct AclTableGroupFields {
  */
 class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
  public:
-  explicit AclTableGroup(const std::string& name);
+  explicit AclTableGroup(cfg::AclStage stage);
   static std::shared_ptr<AclTableGroup> fromFollyDynamic(
       const folly::dynamic& json) {
     const auto& fields = AclTableGroupFields::fromFollyDynamic(json);
@@ -60,16 +63,25 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
   }
 
   bool operator==(const AclTableGroup& aclTableGroup) const {
-    return getFields()->name == aclTableGroup.getID() &&
-        *(getFields()->aclTableMap) == *(aclTableGroup.getAclTableMap());
+    return getFields()->stage == aclTableGroup.getID() &&
+        *(getFields()->aclTableMap) == *(aclTableGroup.getAclTableMap()) &&
+        getFields()->name == aclTableGroup.getName();
   }
 
   bool operator!=(const AclTableGroup& aclTableGroup) const {
     return !(*this == aclTableGroup);
   }
 
-  const std::string& getID() const {
+  cfg::AclStage getID() const {
+    return getFields()->stage;
+  }
+
+  const std::string& getName() const {
     return getFields()->name;
+  }
+
+  void setName(const std::string& name) {
+    writableFields()->name = name;
   }
 
   std::shared_ptr<AclTableMap> getAclTableMap() const {

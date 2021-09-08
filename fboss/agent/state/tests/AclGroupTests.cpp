@@ -44,6 +44,9 @@ const std::string kTable1 = "table1";
 const std::string kTable2 = "table2";
 const std::string kTable3 = "table3";
 
+const cfg::AclStage kAclStage1 = cfg::AclStage::INGRESS;
+const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
+
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
 
@@ -132,12 +135,15 @@ TEST(AclGroup, TestEquality) {
   EXPECT_EQ(*tableMap1, *tableMap2);
 
   // test AclTableGroup equality
-  auto tableGroup1 = std::make_shared<AclTableGroup>(kGroup1);
+  auto tableGroup1 = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup1->setAclTableMap(tableMap1);
-  auto tableGroup2 = std::make_shared<AclTableGroup>(kGroup1);
-  tableGroup2->setAclTableMap(tableMap2);
-  auto tableGroup3 = std::make_shared<AclTableGroup>(kGroup2);
+  tableGroup1->setName(kGroup1);
+  auto tableGroup2 = std::make_shared<AclTableGroup>(kAclStage1);
+  tableGroup2->setAclTableMap(tableMap1);
+  tableGroup2->setName(kGroup1);
+  auto tableGroup3 = std::make_shared<AclTableGroup>(kAclStage2);
   tableGroup3->setAclTableMap(tableMap1);
+  tableGroup2->setName(kGroup1);
 
   EXPECT_EQ(*tableGroup1, *tableGroup2);
   EXPECT_NE(*tableGroup1, *tableGroup3);
@@ -286,15 +292,17 @@ TEST(AclGroup, SerializeAclTableGroup) {
   tableMap->addTable(table1);
   tableMap->addTable(table2);
 
-  auto tableGroup = std::make_shared<AclTableGroup>(kGroup1);
+  auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
+  tableGroup->setName(kGroup1);
 
   auto serialized = tableGroup->toFollyDynamic();
   auto tableGroupBack = AclTableGroup::fromFollyDynamic(serialized);
 
   EXPECT_EQ(*tableGroup, *tableGroupBack);
-  EXPECT_EQ(tableGroupBack->getID(), kGroup1);
+  EXPECT_EQ(tableGroupBack->getID(), kAclStage1);
   EXPECT_NE(tableGroupBack->getAclTableMap(), nullptr);
+  EXPECT_EQ(tableGroupBack->getName(), kGroup1);
   EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
 }
 
@@ -322,8 +330,9 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
   auto tableMap = make_shared<AclTableMap>();
   tableMap->addTable(table1);
-  auto tableGroup = make_shared<AclTableGroup>(kGroup1);
+  auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
+  tableGroup->setName(kGroup1);
 
   cfg::AclTable cfgTable1;
   cfgTable1.name_ref() = kTable1;
@@ -361,8 +370,9 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
       *(stateV1->getAclTableGroup()->getAclTableMap()->getTableIf(
           table1->getID())),
       *table1);
-  EXPECT_EQ(stateV1->getAclTableGroup()->getID(), kGroup1);
+  EXPECT_EQ(stateV1->getAclTableGroup()->getID(), kAclStage1);
   EXPECT_EQ(*(stateV1->getAclTableGroup()), *tableGroup);
+  EXPECT_EQ(stateV1->getAclTableGroup()->getName(), kGroup1);
   EXPECT_EQ(
       stateV1->getAclTableGroup()
           ->getAclTableMap()
@@ -439,8 +449,9 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto tableMap = make_shared<AclTableMap>();
   tableMap->addTable(table1);
   tableMap->addTable(table2);
-  auto tableGroup = make_shared<AclTableGroup>(kGroup1);
+  auto tableGroup = make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
+  tableGroup->setName(kGroup1);
 
   cfg::AclTable cfgTable1;
   cfgTable1.name_ref() = kTable1;

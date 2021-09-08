@@ -1919,8 +1919,9 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup() {
   }
 
   auto newAclTableGroup =
-      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup_ref()->name_ref());
+      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup_ref()->stage_ref());
   newAclTableGroup->setAclTableMap(newAclTableMap);
+  newAclTableGroup->setName(*cfg_->aclTableGroup_ref()->name_ref());
 
   return newAclTableGroup;
 }

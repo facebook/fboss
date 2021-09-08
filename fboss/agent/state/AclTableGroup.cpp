@@ -19,6 +19,7 @@ using apache::thrift::TEnumTraits;
 using folly::IPAddress;
 
 namespace {
+constexpr auto kAclStage = "aclStage";
 constexpr auto kName = "name";
 constexpr auto kAclTableMap = "aclTableMap";
 } // namespace
@@ -27,6 +28,7 @@ namespace facebook::fboss {
 
 folly::dynamic AclTableGroupFields::toFollyDynamic() const {
   folly::dynamic aclTableGroup = folly::dynamic::object;
+  aclTableGroup[kAclStage] = static_cast<int>(stage);
   aclTableGroup[kName] = name;
   aclTableGroup[kAclTableMap] = aclTableMap->toFollyDynamic();
   return aclTableGroup;
@@ -35,13 +37,14 @@ folly::dynamic AclTableGroupFields::toFollyDynamic() const {
 AclTableGroupFields AclTableGroupFields::fromFollyDynamic(
     const folly::dynamic& aclTableGroupJson) {
   AclTableGroupFields aclTableGroup(
+      cfg::AclStage(aclTableGroupJson[kAclStage].asInt()),
       aclTableGroupJson[kName].asString(),
       AclTableMap::fromFollyDynamic(aclTableGroupJson[kAclTableMap]));
 
   return aclTableGroup;
 }
 
-AclTableGroup::AclTableGroup(const std::string& name) : NodeBaseT(name) {}
+AclTableGroup::AclTableGroup(cfg::AclStage stage) : NodeBaseT(stage) {}
 
 template class NodeBaseT<AclTableGroup, AclTableGroupFields>;
 
