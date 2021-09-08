@@ -34,6 +34,8 @@ enum class ModuleStateMachineEvent {
   // NOTE: Such event is never invoked in our code yet
   OPTICS_RESET,
   EEPROM_READ,
+  ALL_PORTS_DOWN,
+  PORT_UP,
 };
 
 inline std::string getModuleStateMachineEventName(
@@ -47,6 +49,10 @@ inline std::string getModuleStateMachineEventName(
       return "OPTICS_RESET";
     case ModuleStateMachineEvent::EEPROM_READ:
       return "EEPROM_READ";
+    case ModuleStateMachineEvent::ALL_PORTS_DOWN:
+      return "ALL_PORTS_DOWN";
+    case ModuleStateMachineEvent::PORT_UP:
+      return "PORT_UP";
   }
   throw FbossError("Unsupported ModuleStateMachineEvent");
 }
@@ -704,7 +710,8 @@ BOOST_MSM_EUML_ACTION(
                << ": onModulePortAgentUp: "
                << "Transitioning to MODULE_PORT_STATE_UP";
 // This transition generates Module Port Up event to Module State Machine
-fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortUpEvent();
+fsm.get_attribute(qsfpModuleObjPtr)
+    ->stateUpdate(ModuleStateMachineEvent::PORT_UP);
 }
 
 template <class Event, class Fsm>
@@ -718,7 +725,8 @@ void operator()(
              << ": onModulePortAgentUp: "
              << "Transitioning to MODULE_PORT_STATE_UP";
   // This transition generates Module Port Up event to Module State Machine
-  fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortUpEvent();
+  fsm.get_attribute(qsfpModuleObjPtr)
+      ->stateUpdate(ModuleStateMachineEvent::PORT_UP);
 }
 }
 ;

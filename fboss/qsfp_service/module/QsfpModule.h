@@ -143,11 +143,6 @@ class QsfpModule : public Transceiver {
    */
   void eraseModulePortStateMachines();
   /*
-   * This is the helper function to generate the event "Module Port Up" to the
-   * Module State Machine
-   */
-  void genMsmModPortUpEvent();
-  /*
    * This is the helper function to generate the event "Module Port Down" to
    * the Module State Machine
    */

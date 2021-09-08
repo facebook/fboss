@@ -787,18 +787,6 @@ void QsfpModule::eraseModulePortStateMachines() {
 }
 
 /*
- * genMsmModPortUpEvent
- *
- * This is the helper function to generate the Module State Machine event -
- * Module Port Up. Any port up indication from Agent invokes this function.
- * If the module supports n ports then port up indication for 1 to n ports
- * will cause this event
- */
-void QsfpModule::genMsmModPortUpEvent() {
-  moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
-}
-
-/*
  * genMsmModPortsDownEvent
  *
  * This is the helper function to generate the Module State Machine event -
@@ -815,7 +803,7 @@ void QsfpModule::genMsmModPortsDownEvent() {
   // Check port down for N-1 ports only because current PSM port
   // state is in transition to  Down state
   if (downports >= portStateMachines_.size() - 1) {
-    moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
+    stateUpdate(ModuleStateMachineEvent::ALL_PORTS_DOWN);
   }
 }
 
@@ -967,6 +955,12 @@ void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
         return;
       case ModuleStateMachineEvent::EEPROM_READ:
         moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
+        return;
+      case ModuleStateMachineEvent::ALL_PORTS_DOWN:
+        moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
+        return;
+      case ModuleStateMachineEvent::PORT_UP:
+        moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
         return;
     }
     throw FbossError(
