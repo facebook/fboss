@@ -165,7 +165,7 @@ TEST(CmisTest, testStateToInactive) {
   EXPECT_EQ(CurrState, 2);
 
   // MSM: Discovered -> Inactive (on Agent timeout event)
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 3);
 }
@@ -276,12 +276,12 @@ TEST(CmisTest, testPsmRemediation) {
   EXPECT_EQ(CurrState, 3);
 
   // Bring up done event -> Inactive state
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::BRINGUP_DONE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 3);
 
   // Remediation done event -> Inactive state
-  qsfpMod->moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
+  qsfpMod->stateUpdate(ModuleStateMachineEvent::REMEDIATE_DONE);
   CurrState = qsfpMod->moduleStateMachine_.current_state()[0];
   EXPECT_EQ(CurrState, 3);
 }

@@ -40,6 +40,9 @@ enum class ModuleStateMachineEvent {
   TRIGGER_UPGRADE,
   // NOTE: Such event is never invoked in our code yet
   FORCED_UPGRADE,
+  AGENT_SYNC_TIMEOUT,
+  BRINGUP_DONE,
+  REMEDIATE_DONE,
 };
 
 inline std::string getModuleStateMachineEventName(
@@ -61,6 +64,12 @@ inline std::string getModuleStateMachineEventName(
       return "TRIGGER_UPGRADE";
     case ModuleStateMachineEvent::FORCED_UPGRADE:
       return "FORCED_UPGRADE";
+    case ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT:
+      return "AGENT_SYNC_TIMEOUT";
+    case ModuleStateMachineEvent::BRINGUP_DONE:
+      return "BRINGUP_DONE";
+    case ModuleStateMachineEvent::REMEDIATE_DONE:
+      return "REMEDIATE_DONE";
   }
   throw FbossError("Unsupported ModuleStateMachineEvent");
 }

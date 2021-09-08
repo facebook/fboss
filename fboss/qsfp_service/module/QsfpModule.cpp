@@ -824,7 +824,7 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
       [&]() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         // Trigger the timeout event to MSM
-        moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
+        stateUpdate(ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT);
       },
       // Name of the scheduled function/thread for identifying later
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
@@ -869,10 +869,10 @@ void QsfpModule::scheduleBringupRemediateFunction() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         if (moduleStateMachine_.get_attribute(moduleBringupDone)) {
           // Do the remediate function second time onwards
-          moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
+          stateUpdate(ModuleStateMachineEvent::REMEDIATE_DONE);
         } else {
           // Bring up to be attempted for first time only
-          moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
+          stateUpdate(ModuleStateMachineEvent::BRINGUP_DONE);
         }
       },
       // Name of the scheduled function/thread for identifying later
@@ -967,6 +967,15 @@ void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
         return;
       case ModuleStateMachineEvent::FORCED_UPGRADE:
         moduleStateMachine_.process_event(MODULE_EVENT_FORCED_UPGRADE);
+        return;
+      case ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT:
+        moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
+        return;
+      case ModuleStateMachineEvent::BRINGUP_DONE:
+        moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
+        return;
+      case ModuleStateMachineEvent::REMEDIATE_DONE:
+        moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
         return;
     }
     throw FbossError(
