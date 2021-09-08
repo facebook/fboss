@@ -118,7 +118,7 @@ class AgentInitializer {
   void stopAgent(bool setupWarmboot);
 
  private:
-  virtual void preAgentInit() {}
+  virtual void preAgentInit(const Platform& /*platform*/) {}
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<Initializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;

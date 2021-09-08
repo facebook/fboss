@@ -248,11 +248,11 @@ void AgentInitializer::createSwitch(
     XLOG(INFO) << "Could not open /dev/null ";
   }
 
-  preAgentInit();
   // Now that we have parsed the command line flags, create the Platform
   // object
   unique_ptr<Platform> platform =
       initPlatform(std::move(config), hwFeaturesDesired);
+  preAgentInit(*platform);
 
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(platform));

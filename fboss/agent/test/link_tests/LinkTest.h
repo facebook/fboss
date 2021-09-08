@@ -43,7 +43,7 @@ class LinkTest : public AgentTest {
   std::string getPortName(PortID port) const;
 
  private:
-  void preAgentInit() override {
+  void preAgentInit(const Platform& /*platform*/) override {
     waitForQsfpService();
   }
   void setupFlags() const override;
