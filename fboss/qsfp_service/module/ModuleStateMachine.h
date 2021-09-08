@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
+
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
 #include <boost/msm/front/euml/state_grammar.hpp>
@@ -25,6 +27,29 @@ namespace msm = boost::msm;
 using namespace boost::msm::front::euml;
 
 class QsfpModule;
+
+enum class ModuleStateMachineEvent {
+  OPTICS_DETECTED,
+  OPTICS_REMOVED,
+  // NOTE: Such event is never invoked in our code yet
+  OPTICS_RESET,
+  EEPROM_READ,
+};
+
+inline std::string getModuleStateMachineEventName(
+    ModuleStateMachineEvent event) {
+  switch (event) {
+    case ModuleStateMachineEvent::OPTICS_DETECTED:
+      return "OPTICS_DETECTED";
+    case ModuleStateMachineEvent::OPTICS_REMOVED:
+      return "OPTICS_REMOVED";
+    case ModuleStateMachineEvent::OPTICS_RESET:
+      return "OPTICS_RESET";
+    case ModuleStateMachineEvent::EEPROM_READ:
+      return "EEPROM_READ";
+  }
+  throw FbossError("Unsupported ModuleStateMachineEvent");
+}
 
 /**************************** Module State Machine ***************************/
 

@@ -39,6 +39,7 @@ DEFINE_int32(
     initial_remediate_interval,
     120,
     "seconds to wait before running first destructive remediations on down ports after bootup");
+DEFINE_bool(use_new_state_machine, false, "Use the new state machine logic");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -112,7 +113,7 @@ QsfpModule::QsfpModule(
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+  stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
 }
 
 /*
@@ -497,11 +498,11 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
+    stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+    stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
   }
 
   if (dirty_) {
@@ -512,7 +513,7 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
+    stateUpdate(ModuleStateMachineEvent::EEPROM_READ);
   }
 
   if (customizeWanted) {
@@ -941,6 +942,36 @@ void QsfpModule::checkAgentModulePortSyncup() {
             MODULE_PORT_EVENT_AGENT_PORT_DOWN);
       }
     }
+  }
+}
+
+void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
+  // Use this function to gate whether we should use the old state machine or
+  // the new design with the StateUpdate list
+  if (FLAGS_use_new_state_machine) {
+    // TODO(joseph5wu) This will create a StateUpdate object in the pending list
+    // of TransceiverManager and then have a separate thread to handle all the
+    // pending updates, which is similar to wedge_agent SwitchState update.
+    throw FbossError("Unsupported implementation of new state machine");
+  } else {
+    // Fall back to use the legacy logic
+    switch (event) {
+      case ModuleStateMachineEvent::OPTICS_DETECTED:
+        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
+        return;
+      case ModuleStateMachineEvent::OPTICS_REMOVED:
+        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
+        return;
+      case ModuleStateMachineEvent::OPTICS_RESET:
+        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_RESET);
+        return;
+      case ModuleStateMachineEvent::EEPROM_READ:
+        moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
+        return;
+    }
+    throw FbossError(
+        "Unsupported ModuleStateMachineEvent: ",
+        getModuleStateMachineEventName(event));
   }
 }
 

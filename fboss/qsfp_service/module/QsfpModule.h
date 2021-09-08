@@ -235,6 +235,8 @@ class QsfpModule : public Transceiver {
     return snapshots_.copy();
   }
 
+  void stateUpdate(ModuleStateMachineEvent event);
+
  protected:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
