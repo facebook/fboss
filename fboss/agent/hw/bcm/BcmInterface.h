@@ -233,7 +233,7 @@ class BcmInterface {
   virtual int
   bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) = 0;
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   virtual int bcm_port_fdr_config_set(
       int unit,
       bcm_port_t port,

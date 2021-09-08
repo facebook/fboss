@@ -166,7 +166,7 @@ void BcmCinter::setupGlobals() {
   };
   writeCintLines(std::move(pktioGlobals));
 #endif
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   array<string, 1> fdrGlobals = {
       "bcm_port_fdr_config_t fdr_config",
   };
@@ -3036,7 +3036,7 @@ int BcmCinter::bcm_stat_clear(int unit, bcm_port_t port) {
   return 0;
 }
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 std::vector<std::string> BcmCinter::cintForPortFdrConfig(
     bcm_port_fdr_config_t fdr_config) {
   return {

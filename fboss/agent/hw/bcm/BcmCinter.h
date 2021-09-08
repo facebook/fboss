@@ -557,7 +557,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_gport_t gPort,
       uint32 counterID) override;
   int bcm_stat_clear(int unit, bcm_port_t port) override;
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   int bcm_port_fdr_config_set(
       int unit,
       bcm_port_t port,
@@ -1697,7 +1697,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     return 0;
   }
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   int bcm_port_fdr_config_get(
       int unit,
       bcm_port_t port,
@@ -1897,7 +1897,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForFlexCtrTrigger(
       bcm_flexctr_trigger_t& flexctr_trigger);
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   std::vector<std::string> cintForPortFdrConfig(
       bcm_port_fdr_config_t fdr_config);
 #endif
