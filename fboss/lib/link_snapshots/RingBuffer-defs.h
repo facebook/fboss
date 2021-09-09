@@ -10,7 +10,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/lib/RingBuffer.h"
+#include "fboss/lib/link_snapshots/RingBuffer.h"
 
 namespace facebook::fboss {
 

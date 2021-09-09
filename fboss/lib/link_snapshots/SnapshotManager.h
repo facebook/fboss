@@ -13,7 +13,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <list>
-#include "fboss/lib/RingBuffer-defs.h"
+#include "fboss/lib/link_snapshots/RingBuffer-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/logging/xlog.h"
 

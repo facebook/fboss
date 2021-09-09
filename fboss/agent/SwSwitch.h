@@ -19,7 +19,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
-#include "fboss/lib/SnapshotManager-defs.h"
+#include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/IntrusiveList.h>

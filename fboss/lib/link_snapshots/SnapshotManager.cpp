@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/lib/SnapshotManager.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/AlertLogger.h"
 
 using namespace std::chrono;

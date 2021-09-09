@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/agent/state/Port.h"
-#include "fboss/lib/SnapshotManager-defs.h"
+#include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss {

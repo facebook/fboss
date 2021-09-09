@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/lib/SnapshotManager.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 
 namespace facebook::fboss {
 
