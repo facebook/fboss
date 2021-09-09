@@ -22,6 +22,8 @@ using namespace facebook::fboss::mka;
 
 class MacsecTest : public LinkTest {
  public:
+  void SetUp() override;
+  void TearDown() override;
   std::set<PortID> getMacsecCapablePorts() const {
     folly::ScopedEventBaseThread evbThread;
     std::set<PortID> macsecPorts;
@@ -37,7 +39,38 @@ class MacsecTest : public LinkTest {
     portsFut.wait();
     return macsecPorts;
   }
+  static std::string getCkn() {
+    return "2b7e151628aed2a6abf7158809cf4f3c";
+  }
+  static std::string getCak() {
+    return "135bd758b0ee5c11c55ff6ab19fdb199";
+  }
+
+ protected:
+  std::unique_ptr<folly::ScopedEventBaseThread> evbThread_;
+  std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> client_;
 };
+
+void MacsecTest::SetUp() {
+  LinkTest::SetUp();
+  evbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+  evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [&]() {
+        folly::SocketAddress addr("::1", 5920);
+        auto socket = folly::AsyncSocket::newSocket(
+            folly::EventBaseManager::get()->getEventBase(), addr, 5000);
+        auto channel =
+            apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+        client_ = std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
+            std::move(channel));
+      });
+}
+
+void MacsecTest::TearDown() {
+  evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [&]() { client_.reset(); });
+  evbThread_.reset();
+}
 
 TEST_F(MacsecTest, setupMkaSession) {
   auto verify = [this]() {
@@ -55,25 +88,6 @@ TEST_F(MacsecTest, setupMkaSession) {
     }
     ASSERT_GT(connectedMacsecCapablePairs.size(), 1);
 #if FOLLY_HAS_COROUTINES
-    auto evbThread = std::make_unique<folly::ScopedEventBaseThread>();
-    std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> client;
-    evbThread->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-        [&]() {
-          folly::SocketAddress addr("::1", 5920);
-          auto socket = folly::AsyncSocket::newSocket(
-              folly::EventBaseManager::get()->getEventBase(), addr, 5000);
-          auto channel = apache::thrift::RocketClientChannel::newChannel(
-              std::move(socket));
-          client =
-              std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
-                  std::move(channel));
-        });
-
-    SCOPE_EXIT {
-      evbThread->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-          [&]() { client.reset(); });
-      evbThread.reset();
-    };
     auto expectedActiveSessions = 2;
     for (auto portAndNeighbor : connectedMacsecCapablePairs) {
       auto port = portAndNeighbor.first;
@@ -89,37 +103,36 @@ TEST_F(MacsecTest, setupMkaSession) {
         config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
         config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
         config.srcMac_ref() = macGen.get(srcMac++).toString();
-        config.primaryCak_ref()->key_ref() = "135bd758b0ee5c11c55ff6ab19fdb199";
-        config.primaryCak_ref()->ckn_ref() = ckn;
+        config.primaryCak_ref()->key_ref() = getCak();
+        config.primaryCak_ref()->ckn_ref() = getCkn();
         // Different priorities to allow for key server election
         config.priority_ref() = priority--;
         auto result =
-            folly::coro::blockingWait(client->co_provisionCAK(config));
+            folly::coro::blockingWait(client_->co_provisionCAK(config));
         ASSERT_EQ(result, MKAResponse::SUCCESS);
       }
-      checkWithRetry(
-          [&client, &expectedActiveSessions, port, neighborPort, ckn]() {
-            auto activeSessions =
-                folly::coro::blockingWait(client->co_numActiveMKASessions());
-            XLOG(INFO) << " Active sessions: " << activeSessions
-                       << " expected:" << expectedActiveSessions;
-            if (activeSessions != expectedActiveSessions) {
-              return false;
-            }
-            for (auto p : {port, neighborPort}) {
-              auto portCkn = folly::coro::blockingWait(
-                  client->co_getActiveCKN(folly::to<std::string>(p)));
-              auto sakInstalled = folly::coro::blockingWait(
-                  client->co_isSAKInstalled(folly::to<std::string>(p)));
-              XLOG(INFO) << " port ckn: " << portCkn
-                         << " SAK installed: " << sakInstalled;
-              if (portCkn != ckn || !sakInstalled) {
-                return false;
-              }
-            }
-            expectedActiveSessions += 2;
-            return true;
-          });
+      checkWithRetry([this, &expectedActiveSessions, port, neighborPort]() {
+        auto activeSessions =
+            folly::coro::blockingWait(client_->co_numActiveMKASessions());
+        XLOG(INFO) << " Active sessions: " << activeSessions
+                   << " expected:" << expectedActiveSessions;
+        if (activeSessions != expectedActiveSessions) {
+          return false;
+        }
+        for (auto p : {port, neighborPort}) {
+          auto portCkn = folly::coro::blockingWait(
+              client_->co_getActiveCKN(folly::to<std::string>(p)));
+          auto sakInstalled = folly::coro::blockingWait(
+              client_->co_isSAKInstalled(folly::to<std::string>(p)));
+          XLOG(INFO) << " port ckn: " << portCkn
+                     << " SAK installed: " << sakInstalled;
+          if (portCkn != getCkn() || !sakInstalled) {
+            return false;
+          }
+        }
+        expectedActiveSessions += 2;
+        return true;
+      });
     }
 #endif
   };
