@@ -38,7 +38,11 @@ class LinkTest : public AgentTest {
   /*
    * Create a L3 data plane loop and seed it with traffic
    */
-  void createL3DataplaneFlood();
+  void createL3DataplaneFlood(
+      const boost::container::flat_set<PortDescriptor>& inPorts);
+  void createL3DataplaneFlood() {
+    createL3DataplaneFlood(getVlanOwningCabledPorts());
+  }
   PortID getPortID(const std::string& portName) const;
   std::string getPortName(PortID port) const;
 

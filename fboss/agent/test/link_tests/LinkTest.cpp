@@ -99,8 +99,8 @@ void LinkTest::assertNoInDiscards() {
   EXPECT_EQ(numRounds, 2);
 }
 
-void LinkTest::createL3DataplaneFlood() {
-  auto ecmpPorts = getVlanOwningCabledPorts();
+void LinkTest::createL3DataplaneFlood(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   ASSERT_GT(ecmpPorts.size(), 0);
   sw()->updateStateBlocking("Resolve nhops", [this, ecmpPorts](auto state) {
     utility::EcmpSetupTargetedPorts6 ecmp6(
