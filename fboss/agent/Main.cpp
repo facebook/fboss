@@ -352,9 +352,7 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
 #endif
 #endif
   } else {
-    sw_->updateStateBlocking(
-        "setup min APLM route state", getMinAlpmRouteState);
-    sw_->stop();
+    sw_->stop(true);
   }
 }
 

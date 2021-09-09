@@ -708,7 +708,7 @@ class SwSwitch : public HwSwitch::Callback {
   /*
    * Public use only in tests
    */
-  void stop();
+  void stop(bool revertToMinAlpmState = false);
 
  private:
   void updateStateBlockingImpl(

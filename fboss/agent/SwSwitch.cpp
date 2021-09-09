@@ -208,7 +208,7 @@ SwSwitch::~SwSwitch() {
   }
 }
 
-void SwSwitch::stop() {
+void SwSwitch::stop(bool revertToMinAlpmState) {
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(INFO) << "Stopping SwSwitch...";
@@ -276,6 +276,16 @@ void SwSwitch::stop() {
 
   // stops the background and update threads.
   stopThreads();
+
+  // ALPM requires default routes be deleted at last. Thus,
+  // blow away all routes except the min required for ALPM,
+  // so as to properly destroy hw switch. This is part of
+  // exit logic, but updateStateBlocking() won't work in EXITING
+  // state. Thus, directly calling underlying hw_->stateChanged()
+  if (revertToMinAlpmState) {
+    XLOG(DBG3) << "setup min ALPM state";
+    hw_->stateChanged(StateDelta(getState(), getMinAlpmRouteState(getState())));
+  }
 }
 
 bool SwSwitch::isFullyInitialized() const {
