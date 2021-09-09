@@ -28,6 +28,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldSrcIpV4;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
       return fieldDstIpV4;
+    case SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT:
     case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
       return fieldSrcPort;
     case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
@@ -157,6 +158,7 @@ sai_status_t create_acl_table_fn(
         fieldTcpFlags = attr_list[i].value.booldata;
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT:
+      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT:
         fieldSrcPort = attr_list[i].value.booldata;
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT:
@@ -351,6 +353,7 @@ sai_status_t get_acl_table_attribute_fn(
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldTcpFlags;
       } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT:
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldSrcPort;
@@ -476,13 +479,14 @@ sai_status_t set_acl_entry_attribute_fn(
       break;
 
     /*
-     * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT
+     * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT
      * or SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT.
      * Thus, there is no oid field in sai_acl_field_data_mask_t.
      * oid is u64, but unfortunately, u64 was not added to
      * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
      * This will be ignored by the implementation anyway.
      */
+    case SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT:
     case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
       aclEntry.fieldSrcPortEnable = attr->value.aclfield.enable;
       aclEntry.fieldSrcPortData = attr->value.aclfield.data.oid;
@@ -698,13 +702,14 @@ sai_status_t get_acl_entry_attribute_fn(
         break;
 
       /*
-       * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT
+       * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT
        * or SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT.
        * Thus, there is no oid field in sai_acl_field_data_mask_t.
        * oid is u64, but unfortunately, u64 was not added to
        * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
        * This will be ignored by the implementation anyway.
        */
+      case SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT:
       case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
         attr_list[i].value.aclfield.enable = aclEntry.fieldSrcPortEnable;
         attr_list[i].value.aclfield.data.oid = aclEntry.fieldSrcPortData;

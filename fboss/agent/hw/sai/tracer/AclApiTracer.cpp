@@ -194,8 +194,9 @@ void setAclEntryAttributes(
       case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
         aclEntryFieldIpV4Attr(attr_list, i, attrLines);
         break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
+      case SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT:
       case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
         aclEntryFieldSaiObjectIdAttr(attr_list, i, attrLines);
         break;
       case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
