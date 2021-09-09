@@ -92,6 +92,28 @@ class MacsecTest : public LinkTest {
     });
 #endif
   }
+  void programCakAndCheckLoss(
+      const std::set<std::pair<PortID, PortID>>& macsecPorts,
+      const std::string& cak,
+      const std::string& ckn) {
+    programCak(macsecPorts, cak, ckn);
+    assertNoInDiscards();
+  }
+
+  std::vector<std::pair<PortID, PortID>> getConnectedMacsecCapablePairs()
+      const {
+    auto macsecCapablePorts = getMacsecCapablePorts();
+    std::vector<std::pair<PortID, PortID>> connectedMacsecCapablePairs;
+    for (auto& connectedPair : getConnectedPairs()) {
+      if (macsecCapablePorts.find(connectedPair.first) !=
+              macsecCapablePorts.end() &&
+          macsecCapablePorts.find(connectedPair.second) !=
+              macsecCapablePorts.end()) {
+        connectedMacsecCapablePairs.push_back(connectedPair);
+      }
+    }
+    return connectedMacsecCapablePairs;
+  }
 
  protected:
   std::unique_ptr<folly::ScopedEventBaseThread> evbThread_;
@@ -100,6 +122,7 @@ class MacsecTest : public LinkTest {
 
 void MacsecTest::SetUp() {
   LinkTest::SetUp();
+  checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
   evbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
   evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [&]() {
@@ -117,22 +140,12 @@ void MacsecTest::TearDown() {
   evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [&]() { client_.reset(); });
   evbThread_.reset();
+  LinkTest::TearDown();
 }
 
 TEST_F(MacsecTest, setupMkaSession) {
   auto verify = [this]() {
-    checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
-    auto macsecCapablePorts = getMacsecCapablePorts();
-    ASSERT_GT(macsecCapablePorts.size(), 1);
-    std::vector<std::pair<PortID, PortID>> connectedMacsecCapablePairs;
-    for (auto& connectedPair : getConnectedPairs()) {
-      if (macsecCapablePorts.find(connectedPair.first) !=
-              macsecCapablePorts.end() &&
-          macsecCapablePorts.find(connectedPair.second) !=
-              macsecCapablePorts.end()) {
-        connectedMacsecCapablePairs.push_back(connectedPair);
-      }
-    }
+    auto connectedMacsecCapablePairs = getConnectedMacsecCapablePairs();
     ASSERT_GT(connectedMacsecCapablePairs.size(), 1);
     // TODO - program all pairs simultaneously rather than one by one.
     // Today there is a bug which causes packet mka sessions to flap
@@ -143,4 +156,22 @@ TEST_F(MacsecTest, setupMkaSession) {
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(MacsecTest, programCakIsHitless) {
+  auto macsecCapablePortPair = *getConnectedMacsecCapablePairs().begin();
+  auto setup = [this, macsecCapablePortPair]() {
+    createL3DataplaneFlood(
+        {PortDescriptor(macsecCapablePortPair.first),
+         PortDescriptor(macsecCapablePortPair.second)});
+    assertNoInDiscards();
+  };
+  auto verify = [this, macsecCapablePortPair]() {
+    programCakAndCheckLoss({macsecCapablePortPair}, getCak(), getCkn());
+    // TODO - Reprogram same cak, should be a noop, but
+    // fails right now
+    // programAndCheckLoss(getCak(), getCkn());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
