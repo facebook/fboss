@@ -536,13 +536,23 @@ class QsfpModule : public Transceiver {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   std::unique_ptr<IOBuf> readTransceiverLocked(TransceiverIOParameters param);
+  /*
+   * Future version of readTransceiver()
+   */
   folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
   futureReadTransceiver(TransceiverIOParameters param) override;
+
   /*
    * Perform a raw register write on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_
    */
   bool writeTransceiverLocked(TransceiverIOParameters param, uint8_t data);
+  /*
+   * Future version of writeTransceiver()
+   */
+  folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
+      TransceiverIOParameters param,
+      uint8_t data) override;
 
   /*
    * Perform logic OR operation to media lane signals in order to cache them

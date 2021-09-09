@@ -665,6 +665,22 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
   return iobuf;
 }
 
+folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
+    TransceiverIOParameters param,
+    uint8_t data) {
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  auto id = getID();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    return std::make_pair(id, writeTransceiver(param, data));
+  }
+  // As with all the other i2c transactions, run in the i2c event base thread
+  return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
+    return std::make_pair(id, writeTransceiver(param, data));
+  });
+}
+
 bool QsfpModule::writeTransceiver(TransceiverIOParameters param, uint8_t data) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return writeTransceiverLocked(param, data);

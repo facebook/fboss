@@ -84,6 +84,9 @@ class Transceiver {
    */
   virtual std::unique_ptr<IOBuf> readTransceiver(
       TransceiverIOParameters param) = 0;
+  /*
+   * Future version of readTransceiver()
+   */
   virtual folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
   futureReadTransceiver(TransceiverIOParameters param) = 0;
 
@@ -91,6 +94,12 @@ class Transceiver {
    * Perform raw register write on a specific transceiver
    */
   virtual bool writeTransceiver(
+      TransceiverIOParameters param,
+      uint8_t data) = 0;
+  /*
+   * Future version of writeTransceiver()
+   */
+  virtual folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
       uint8_t data) = 0;
 

@@ -331,24 +331,36 @@ void WedgeManager::writeTransceiverRegister(
   XLOG(INFO) << "Received request for writing transceiver register for ids: "
              << (ids.size() > 0 ? folly::join(",", ids) : "None");
   auto lockedTransceivers = transceivers_.rlock();
+
+  std::vector<folly::Future<std::pair<int32_t, bool>>> futResponses;
+
   for (const auto& i : ids) {
-    WriteResponse resp;
-    resp.success_ref() = false;
+    // Initialize responses with success = false. This will be overwritten with
+    // the correct success flag later
+    responses[i].success_ref() = false;
+
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
-        try {
-          auto param = *(request->parameter_ref());
-          resp.success_ref() =
-              it->second->writeTransceiver(param, *(request->data_ref()));
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Transceiver " << i << ": Error writing to transceiver "
-                    << ex.what();
-        }
+        auto param = *(request->parameter_ref());
+        futResponses.push_back(
+            it->second->futureWriteTransceiver(param, *(request->data_ref())));
       }
     }
-    responses[i] = resp;
   }
+
+  folly::collectAllUnsafe(futResponses)
+      .thenValue(
+          [&responses](
+              const std::vector<folly::Try<std::pair<int32_t, bool>>>& tries) {
+            for (const auto& tryResponse : tries) {
+              WriteResponse resp;
+              auto tcvrId = tryResponse.value().first;
+              resp.success_ref() = tryResponse.value().second;
+              responses[tcvrId] = resp;
+            }
+          })
+      .wait();
 }
 
 void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
