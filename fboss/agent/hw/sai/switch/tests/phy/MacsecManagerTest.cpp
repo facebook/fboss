@@ -580,6 +580,11 @@ TEST_F(MacsecManagerTest, installKeys) {
     ASSERT_NE(macsecHandle, nullptr);
     ASSERT_NE(macsecHandle->macsec, nullptr);
 
+    auto& macsecApi = saiApiTable->macsecApi();
+    EXPECT_FALSE(macsecApi.getAttribute(
+        macsecHandle->macsec->adapterKey(),
+        SaiMacsecTraits::Attributes::PhysicalBypass()));
+
     auto macsecPort = macsecHandle->ports.find(linePortId);
     ASSERT_NE(macsecPort, macsecHandle->ports.end());
     ASSERT_NE(macsecPort->second, nullptr);
