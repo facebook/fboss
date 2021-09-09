@@ -584,28 +584,45 @@ void SaiMacsecManager::setupMacsec(
         "Failed to get portHandle for non-existent linePort: ", linePort);
   }
 
-  // Create macsec pipeline obj if it doesn't exist
-  if (!getMacsecHandle(SAI_MACSEC_DIRECTION_INGRESS)) {
-    // If the ingress macsec is not yet created and we are trying to create
-    // ingress macsec then we need to disable macsec bypass otherwise enable
-    // macsec bypass to allow unencrypted packet flow in direction where macsec
-    // is not yet configured
-    auto macsecBypassEnable =
-        (direction == SAI_MACSEC_DIRECTION_INGRESS) ? false : true;
-    auto macsecId = addMacsec(SAI_MACSEC_DIRECTION_INGRESS, macsecBypassEnable);
-    XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_INGRESS
-               << ", created macsec pipeline object w/ ID: " << macsecId;
+  // Get the reverse direction also because we need to find the macsec handle
+  // of other direction also
+  auto reverseDirection =
+      (direction == SAI_MACSEC_DIRECTION_INGRESS
+           ? SAI_MACSEC_DIRECTION_EGRESS
+           : SAI_MACSEC_DIRECTION_INGRESS);
+
+  if (auto dirMacsecHandle = getMacsecHandle(direction)) {
+    // If the macsec handle already exist for this direction then check the
+    // current bypass state. If current macsec's bypass_enable is True then
+    // update the attribute to make it False
+    //    otherwise no issue
+    auto bypassEnable = GET_OPT_ATTR(
+        Macsec, PhysicalBypass, dirMacsecHandle->macsec->attributes());
+
+    if (bypassEnable) {
+      dirMacsecHandle->macsec->setOptionalAttribute(
+          SaiMacsecTraits::Attributes::PhysicalBypass{false});
+      XLOG(DBG2) << "For direction " << direction
+                 << ", set macsec pipeline object w/ ID: " << dirMacsecHandle
+                 << ", bypass enable as False";
+    }
+  } else {
+    // If the macsec handle does not exist for this direction then create the
+    // macsec handle with bypass_enable as False for this direction
+    auto macsecId = addMacsec(direction, false);
+    XLOG(DBG2) << "For direction " << direction
+               << ", created macsec pipeline object w/ ID: " << macsecId
+               << ", bypass enable as False";
   }
 
-  if (!getMacsecHandle(SAI_MACSEC_DIRECTION_EGRESS)) {
-    // If the egress macsec is not yet created and we are trying to create
-    // egress macsec then we need to disable macsec bypass otherwise enable
-    // macsec bypass
-    auto macsecBypassEnable =
-        (direction == SAI_MACSEC_DIRECTION_EGRESS) ? false : true;
-    auto macsecId = addMacsec(SAI_MACSEC_DIRECTION_EGRESS, macsecBypassEnable);
-    XLOG(DBG2) << "For direction " << SAI_MACSEC_DIRECTION_EGRESS
-               << ", created macsec pipeline object w/ ID: " << macsecId;
+  // Also check if the reverse direction macsec handle exist. If it does not
+  // exist then we need to create reverse direction macsec handle with
+  // bypass_enable as True
+  if (!getMacsecHandle(reverseDirection)) {
+    auto macsecId = addMacsec(reverseDirection, true);
+    XLOG(DBG2) << "For direction " << reverseDirection
+               << ", created macsec pipeline object w/ ID: " << macsecId
+               << ", bypass enable as True";
   }
 
   // Check if the macsec port exists for lineport
