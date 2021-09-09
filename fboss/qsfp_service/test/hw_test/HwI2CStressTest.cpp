@@ -17,7 +17,7 @@ constexpr int kI2cStressTestIterations = 500;
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, i2cStress) {
+TEST_F(HwTest, i2cStressRead) {
   auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
@@ -61,6 +61,41 @@ TEST_F(HwTest, i2cStress) {
       }
     }
     previousResponse = currentResponse;
+  }
+}
+
+TEST_F(HwTest, i2cStressWrite) {
+  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
+  auto transceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceiversInfo;
+  getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+      transceiversInfo, std::make_unique<std::vector<int32_t>>(transceivers));
+
+  WriteRequest request;
+  request.ids_ref() = transceivers;
+  TransceiverIOParameters params;
+  // We can write to byte 123 which is password entry page register in both sff
+  // and cmis
+  // SFF: Password entry area = 123-126
+  // CMIS: Password entry area = 122-125
+  params.offset_ref() = 123;
+  request.parameter_ref() = params;
+  request.data_ref() = 0;
+
+  for (auto iteration = 1; iteration <= kI2cStressTestIterations; iteration++) {
+    std::unique_ptr<WriteRequest> writeRequest =
+        std::make_unique<WriteRequest>(request);
+    std::map<int32_t, WriteResponse> currentResponse;
+    wedgeManager->writeTransceiverRegister(
+        currentResponse, std::move(writeRequest));
+    for (auto tcvrId : transceivers) {
+      // Assert that the write operation was successful
+      EXPECT_TRUE(currentResponse.find(tcvrId) != currentResponse.end());
+      auto curr = currentResponse[tcvrId];
+      EXPECT_TRUE(*curr.success_ref());
+    }
   }
 }
 } // namespace facebook::fboss
