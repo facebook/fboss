@@ -36,28 +36,6 @@ void AgentTest::setupAgent() {
   XLOG(INFO) << "Agent has been setup and ready for the test";
 }
 
-void AgentTest::waitForQsfpService(
-    uint32_t retries,
-    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  folly::ScopedEventBaseThread evbThread;
-  auto checkStatus = [&evbThread]() {
-    std::atomic<bool> isAlive{false};
-    auto fut =
-        QsfpClient::createClient(evbThread.getEventBase())
-            .thenValue([](auto&& client) { return client->future_getStatus(); })
-            .thenValue([&isAlive](auto status) {
-              isAlive.store(status == facebook::fb303::cpp2::fb_status::ALIVE);
-            })
-            .thenError(
-                folly::tag_t<std::exception>{}, [](const std::exception& e) {
-                  XLOG(ERR)
-                      << "Exception talking to qsfp_service: " << e.what();
-                });
-    fut.wait();
-    return isAlive.load();
-  };
-  checkWithRetry(checkStatus, retries, msBetweenRetry);
-}
 void AgentTest::TearDown() {
   if (FLAGS_run_forever) {
     runForever();

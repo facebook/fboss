@@ -44,7 +44,8 @@ class LinkTest : public AgentTest {
 
  private:
   void preAgentInit(const Platform& /*platform*/) override {
-    waitForQsfpService();
+    waitForQsfpService(
+        100 /*retries*/, std::chrono::duration<uint32_t, std::milli>(1000));
   }
   void setupFlags() const override;
   void initializeCabledPorts();

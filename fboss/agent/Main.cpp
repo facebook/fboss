@@ -31,6 +31,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
 #include <gflags/gflags.h>
 #include <chrono>
@@ -257,6 +258,37 @@ void AgentInitializer::createSwitch(
   // Create the SwSwitch and thrift handler
   sw_ = std::make_unique<SwSwitch>(std::move(platform));
   initializer_ = std::make_unique<Initializer>(sw_.get(), sw_->getPlatform());
+}
+
+void AgentInitializer::waitForQsfpService(
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
+    bool failHard) const {
+  folly::ScopedEventBaseThread evbThread;
+  auto checkStatus = [&evbThread]() {
+    std::atomic<bool> isAlive{false};
+    auto fut =
+        QsfpClient::createClient(evbThread.getEventBase())
+            .thenValue([](auto&& client) { return client->future_getStatus(); })
+            .thenValue([&isAlive](auto status) {
+              isAlive.store(status == facebook::fb303::cpp2::fb_status::ALIVE);
+            })
+            .thenError(
+                folly::tag_t<std::exception>{}, [](const std::exception& e) {
+                  XLOG(ERR)
+                      << "Exception talking to qsfp_service: " << e.what();
+                });
+    fut.wait();
+    return isAlive.load();
+  };
+  try {
+    checkWithRetry(checkStatus, retries, msBetweenRetry);
+  } catch (const FbossError& ex) {
+    XLOG(ERR) << " Failed to wait for QsfpSvc: " << ex.what();
+    if (failHard) {
+      throw;
+    }
+  }
 }
 
 int AgentInitializer::initAgent() {

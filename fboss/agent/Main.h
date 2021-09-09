@@ -105,6 +105,10 @@ class AgentInitializer {
     }
     throw FbossError("Verify with retry failed, condition was never satisfied");
   }
+  void waitForQsfpService(
+      uint32_t retries,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
+      bool failHard = true) const;
 
  public:
   virtual ~AgentInitializer() = default;

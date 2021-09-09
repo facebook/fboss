@@ -828,6 +828,8 @@ if (NOT SAI_ONLY)
       wedge40_platform_mapping
       wedge100_platform_mapping
       galaxy_platform_mapping
+      qsfp_cpp2
+      qsfp_service_client
       wedge_led_utils
       bidirectional_packet_stream
       snapshot_manager
@@ -943,7 +945,6 @@ if (NOT SAI_ONLY)
 
   target_link_libraries(agent_test
       fboss_agent
-      qsfp_service_client
       ${GTEST}
       ${CMAKE_THREAD_LIBS_INIT}
       ${LIBGMOCK_LIBRARIES}

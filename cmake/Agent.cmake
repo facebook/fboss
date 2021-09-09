@@ -42,6 +42,8 @@ target_link_libraries(main
   fboss_init
   setup_thrift
   Folly::folly
+  qsfp_cpp2
+  qsfp_service_client
 )
 
 add_library(async_packet_transport
