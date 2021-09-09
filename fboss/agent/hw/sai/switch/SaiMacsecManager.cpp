@@ -415,11 +415,23 @@ void SaiMacsecManager::removeMacsecSecureChannel(
         ":",
         direction);
   }
-  portHandle->secureChannels.erase(itr);
-  XLOG(DBG2) << "removed macsec SC for linePort:secureChannelId:direction: "
-             << linePort << ":" << secureChannelId << ":" << direction;
 
+  // The objects needs to be removed in this order because of the dependency.
+  // ACL entry contans reference to Flow
+  // SC contains reference to Flow
+  // So first we need to remove ACL entry, then Flow and then SC
+
+  // Remove the ACL entry for this SC
   removeAcls(linePort, direction);
+  // Remove the SC
+  portHandle->secureChannels[secureChannelId]->secureChannel.reset();
+  // No object refers to Flow so it is safe to remove it now
+  portHandle->secureChannels[secureChannelId]->flow.reset();
+  // Remove the SC from secureChannel map
+  portHandle->secureChannels.erase(itr);
+
+  XLOG(INFO) << "removed macsec SC for linePort:secureChannelId:direction: "
+             << linePort << ":" << secureChannelId << ":" << direction;
 }
 
 SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
@@ -824,10 +836,15 @@ void SaiMacsecManager::removeAcls(
     sai_macsec_direction_t direction) {
   // unbind acl tables from the port, and delete acl entries
   auto portHandle = managerTable_->portManager().getPortHandle(linePort);
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+
+  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+  }
+  XLOG(INFO) << "removeAcls: Unbound ACL table from line port " << linePort;
 
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
@@ -837,6 +854,7 @@ void SaiMacsecManager::removeAcls(
     if (aclEntryHandle) {
       auto aclEntry = std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+      XLOG(INFO) << "removeAcls: Removed ACL entry from ACL table " << aclName;
     }
   }
 }
