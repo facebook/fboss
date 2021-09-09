@@ -240,7 +240,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     return expectedSampleCount;
   }
 
-  void runSampleRateTest(size_t payloadSize = kDefaultPayloadSize) {
+  void runSampleRateTest(
+      size_t payloadSize = kDefaultPayloadSize,
+      size_t percentErrorThreshold = kDefaultPercentErrorThreshold) {
     if (!getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::SFLOW_SAMPLING)) {
       return;
@@ -272,7 +274,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
       auto percentError = (difference * 100) / actualSampleCount;
-      EXPECT_LE(percentError, 5);
+      EXPECT_LE(percentError, percentErrorThreshold);
       XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
       XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
       bringUpPorts(std::vector<PortID>(ports.begin() + 1, ports.end()));
@@ -281,6 +283,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   constexpr static size_t kDefaultPayloadSize = 1400;
+  constexpr static size_t kDefaultPercentErrorThreshold = 5;
   constexpr static auto kIpStr = "2401:db00:dead:beef:";
 };
 
@@ -410,7 +413,13 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketCount) {
 }
 
 TEST_F(HwSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
-  runSampleRateTest(8192);
+  size_t percentErrorThreshold = kDefaultPercentErrorThreshold;
+  // raise percent error threshold for Gibraltar to reduce test flakiness
+  if (getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    percentErrorThreshold += 2;
+  }
+  runSampleRateTest(8192, percentErrorThreshold);
 }
 
 TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
