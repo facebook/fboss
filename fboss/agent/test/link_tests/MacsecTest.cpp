@@ -54,9 +54,6 @@ TEST_F(MacsecTest, setupMkaSession) {
       }
     }
     ASSERT_GT(connectedMacsecCapablePairs.size(), 1);
-    auto port = connectedMacsecCapablePairs.begin()->first;
-    auto neighborPort = connectedMacsecCapablePairs.begin()->second;
-    XLOG(INFO) << " Port: " << port << " neighbor: " << neighborPort;
 #if FOLLY_HAS_COROUTINES
     auto evbThread = std::make_unique<folly::ScopedEventBaseThread>();
     std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> client;
@@ -77,43 +74,53 @@ TEST_F(MacsecTest, setupMkaSession) {
           [&]() { client.reset(); });
       evbThread.reset();
     };
-    auto ckn = "2b7e151628aed2a6abf7158809cf4f3c";
-    auto priority = mka_config_constants::DEFAULT_KEYSERVER_PRIORITY();
-    auto srcMac = sw()->getPlatform()->getLocalMac().u64NBO();
-    auto macGen = facebook::fboss::utility::MacAddressGenerator();
-    for (auto p : {port, neighborPort}) {
-      MKAConfig config;
-      config.l2Port_ref() = folly::to<std::string>(p);
-      config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
-      config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
-      config.srcMac_ref() = macGen.get(srcMac++).toString();
-      config.primaryCak_ref()->key_ref() = "135bd758b0ee5c11c55ff6ab19fdb199";
-      config.primaryCak_ref()->ckn_ref() = ckn;
-      // Different priorities to allow for key server election
-      config.priority_ref() = priority--;
-      auto result = folly::coro::blockingWait(client->co_provisionCAK(config));
-      ASSERT_EQ(result, MKAResponse::SUCCESS);
-    }
-    checkWithRetry([&client, port, neighborPort, ckn]() {
-      auto activeSessions =
-          folly::coro::blockingWait(client->co_numActiveMKASessions());
-      XLOG(INFO) << " Active sessions: " << activeSessions;
-      if (activeSessions != 2) {
-        return false;
-      }
+    auto expectedActiveSessions = 2;
+    for (auto portAndNeighbor : connectedMacsecCapablePairs) {
+      auto port = portAndNeighbor.first;
+      auto neighborPort = portAndNeighbor.second;
+      XLOG(INFO) << " Port: " << port << " neighbor: " << neighborPort;
+      auto ckn = "2b7e151628aed2a6abf7158809cf4f3c";
+      auto priority = mka_config_constants::DEFAULT_KEYSERVER_PRIORITY();
+      auto srcMac = sw()->getPlatform()->getLocalMac().u64NBO();
+      auto macGen = facebook::fboss::utility::MacAddressGenerator();
       for (auto p : {port, neighborPort}) {
-        auto portCkn = folly::coro::blockingWait(
-            client->co_getActiveCKN(folly::to<std::string>(p)));
-        auto sakInstalled = folly::coro::blockingWait(
-            client->co_isSAKInstalled(folly::to<std::string>(p)));
-        XLOG(INFO) << " port ckn: " << portCkn
-                   << " SAK installed: " << sakInstalled;
-        if (portCkn != ckn || !sakInstalled) {
-          return false;
-        }
+        MKAConfig config;
+        config.l2Port_ref() = folly::to<std::string>(p);
+        config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
+        config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
+        config.srcMac_ref() = macGen.get(srcMac++).toString();
+        config.primaryCak_ref()->key_ref() = "135bd758b0ee5c11c55ff6ab19fdb199";
+        config.primaryCak_ref()->ckn_ref() = ckn;
+        // Different priorities to allow for key server election
+        config.priority_ref() = priority--;
+        auto result =
+            folly::coro::blockingWait(client->co_provisionCAK(config));
+        ASSERT_EQ(result, MKAResponse::SUCCESS);
       }
-      return true;
-    });
+      checkWithRetry(
+          [&client, &expectedActiveSessions, port, neighborPort, ckn]() {
+            auto activeSessions =
+                folly::coro::blockingWait(client->co_numActiveMKASessions());
+            XLOG(INFO) << " Active sessions: " << activeSessions
+                       << " expected:" << expectedActiveSessions;
+            if (activeSessions != expectedActiveSessions) {
+              return false;
+            }
+            for (auto p : {port, neighborPort}) {
+              auto portCkn = folly::coro::blockingWait(
+                  client->co_getActiveCKN(folly::to<std::string>(p)));
+              auto sakInstalled = folly::coro::blockingWait(
+                  client->co_isSAKInstalled(folly::to<std::string>(p)));
+              XLOG(INFO) << " port ckn: " << portCkn
+                         << " SAK installed: " << sakInstalled;
+              if (portCkn != ckn || !sakInstalled) {
+                return false;
+              }
+            }
+            expectedActiveSessions += 2;
+            return true;
+          });
+    }
 #endif
   };
 
