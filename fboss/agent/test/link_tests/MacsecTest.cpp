@@ -167,10 +167,11 @@ TEST_F(MacsecTest, programCakIsHitless) {
     assertNoInDiscards();
   };
   auto verify = [this, macsecCapablePortPair]() {
-    programCakAndCheckLoss({macsecCapablePortPair}, getCak(), getCkn());
-    // TODO - Reprogram same cak, should be a noop, but
-    // fails right now
-    // programAndCheckLoss(getCak(), getCkn());
+    for (auto i = 0; i < 10; ++i) {
+      // - All except the first program should be noop
+      // - All programCAKs should be hitless
+      programCakAndCheckLoss({macsecCapablePortPair}, getCak(), getCkn());
+    }
   };
 
   verifyAcrossWarmBoots(setup, verify);
