@@ -45,6 +45,12 @@ class MacsecTest : public LinkTest {
   static std::string getCak() {
     return "135bd758b0ee5c11c55ff6ab19fdb199";
   }
+  static std::string getCkn2() {
+    return "1b7e151628aed2a6abf7158809cf4f3c";
+  }
+  static std::string getCak2() {
+    return "235bd758b0ee5c11c55ff6ab19fdb199";
+  }
   void programCak(
       const std::set<std::pair<PortID, PortID>>& macsecPorts,
       const std::string& cak = getCak(),
@@ -81,7 +87,7 @@ class MacsecTest : public LinkTest {
               client_->co_getActiveCKN(folly::to<std::string>(p)));
           auto sakInstalled = folly::coro::blockingWait(
               client_->co_isSAKInstalled(folly::to<std::string>(p)));
-          XLOG(INFO) << " Port: " << p << "ckn: " << portCkn
+          XLOG(INFO) << " Port: " << p << " ckn: " << portCkn
                      << " SAK installed: " << sakInstalled;
           if (portCkn != ckn || !sakInstalled) {
             return false;
@@ -172,6 +178,22 @@ TEST_F(MacsecTest, programCakIsHitless) {
       // - All programCAKs should be hitless
       programCakAndCheckLoss({macsecCapablePortPair}, getCak(), getCkn());
     }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MacsecTest, rotateCakIsHitless) {
+  auto macsecCapablePortPair = *getConnectedMacsecCapablePairs().begin();
+  auto setup = [this, macsecCapablePortPair]() {
+    createL3DataplaneFlood(
+        {PortDescriptor(macsecCapablePortPair.first),
+         PortDescriptor(macsecCapablePortPair.second)});
+    assertNoInDiscards();
+  };
+  auto verify = [this, macsecCapablePortPair]() {
+    programCakAndCheckLoss({macsecCapablePortPair}, getCak(), getCkn());
+    programCakAndCheckLoss({macsecCapablePortPair}, getCak2(), getCkn2());
   };
 
   verifyAcrossWarmBoots(setup, verify);
