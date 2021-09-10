@@ -243,7 +243,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
   SaiPhyManager* phyManager;
 };
 
-TEST_F(HwMacsecTest, installKeys) {
+TEST_F(HwMacsecTest, installRemoveKeys) {
   auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
@@ -281,8 +281,10 @@ TEST_F(HwMacsecTest, installKeys) {
     XLOG(INFO) << "installKeys: Verifying Macsec RX for port " << port;
     verifyMacsecProgramming(
         port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+    // Delete keys
+    phyManager->sakDeleteRx(rxSak, remoteSci);
+    phyManager->sakDelete(txSak);
   }
-  // TODO(ccpowers): verify that the macsec encryption actually works
 }
 
 } // namespace facebook::fboss
