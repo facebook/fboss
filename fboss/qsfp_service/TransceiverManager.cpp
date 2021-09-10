@@ -26,5 +26,24 @@ TransceiverManager::getPortNameToModuleMap() const {
 
   return portNameToModule_;
 }
+
+const std::set<std::string> TransceiverManager::getPortNames(
+    TransceiverID tcvrId) const {
+  std::set<std::string> ports;
+  auto it = portGroupMap_.find(tcvrId);
+  if (it != portGroupMap_.end() && !it->second.empty()) {
+    for (const auto& port : it->second) {
+      if (auto portName = port.name_ref()) {
+        ports.insert(*portName);
+      }
+    }
+  }
+  return ports;
+}
+
+const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
+  auto portNames = getPortNames(tcvrId);
+  return portNames.empty() ? "" : *portNames.begin();
+}
 } // namespace fboss
 } // namespace facebook

@@ -149,6 +149,15 @@ class TransceiverManager {
   };
   virtual std::vector<PortID> getMacsecCapablePorts() const = 0;
 
+  // Returns the interface names for a given transceiverId
+  // Returns empty list when there is no corresponding name for a given
+  // transceiver ID
+  const std::set<std::string> getPortNames(TransceiverID tcvrId) const;
+
+  // Returns the first interface name found for the given transceiverId
+  // returns empty string when there is no name found
+  const std::string getPortName(TransceiverID tcvrId) const;
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
@@ -163,9 +172,9 @@ class TransceiverManager {
    * constructor
    */
   std::unique_ptr<TransceiverPlatformApi> qsfpPlatApi_;
-  /* This variable stores the PlatformMapping object which has a map for all the
-   * components connected on different ports. This handle is populated from this
-   * class constructor
+  /* This variable stores the PlatformMapping object which has a map for all
+   * the components connected on different ports. This handle is populated
+   * from this class constructor
    */
   const std::unique_ptr<const PlatformMapping> platformMapping_;
   // A time point until when the remediation of module will be paused.
