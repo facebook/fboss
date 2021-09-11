@@ -52,6 +52,7 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
               portStats->setPortStatus(newPort->isUp());
             }
           }
+          sw_->publishPhyInfoSnapshots(oldPort->getID());
         }
       },
       [&](const std::shared_ptr<Port>& newPort) {

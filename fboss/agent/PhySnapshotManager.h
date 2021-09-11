@@ -16,6 +16,7 @@ class PhySnapshotManager {
   void updateIPhyInfo(const std::map<PortID, phy::PhyInfo>& phyInfo);
   std::map<PortID, const phy::PhyInfo> getIPhyInfo(
       const std::vector<PortID>& portIDs);
+  void publishSnapshots(PortID port);
 
  private:
   // Map of portID to last few Internal phy diagnostic snapshots

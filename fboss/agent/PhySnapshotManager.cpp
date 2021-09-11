@@ -43,4 +43,12 @@ std::map<PortID, const phy::PhyInfo> PhySnapshotManager::getIPhyInfo(
   return infoMap;
 }
 
+void PhySnapshotManager::publishSnapshots(PortID port) {
+  auto lockedSnapshotMap = snapshots_.wlock();
+  if (auto it = lockedSnapshotMap->find(port); it != lockedSnapshotMap->end()) {
+    it->second.publishAllSnapshots();
+    it->second.publishFutureSnapshots(kNumCachedSnapshots);
+  }
+}
+
 } // namespace facebook::fboss

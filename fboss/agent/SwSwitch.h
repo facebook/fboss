@@ -710,6 +710,8 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void stop(bool revertToMinAlpmState = false);
 
+  void publishPhyInfoSnapshots(PortID portID) const;
+
  private:
   void updateStateBlockingImpl(
       folly::StringPiece name,

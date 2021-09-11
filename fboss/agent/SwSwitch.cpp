@@ -394,6 +394,10 @@ void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
 }
 
+void SwSwitch::publishPhyInfoSnapshots(PortID portID) const {
+  phySnapshotManager_->publishSnapshots(portID);
+}
+
 void SwSwitch::updateLldpStats() {
   if (!lldpManager_) {
     return;
