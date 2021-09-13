@@ -114,6 +114,7 @@ TEST(SffTest, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
   testCachedMediaSignals(qsfp.get());
 }
@@ -140,6 +141,7 @@ TEST(SffDacTest, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR4_100G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CR4_100G);
   }
   testCachedMediaSignals(qsfp.get());
 }
@@ -166,6 +168,7 @@ TEST(SffFr1Test, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::FR1_100G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::FR1_100G);
   }
   testCachedMediaSignals(qsfp.get());
 }
@@ -192,6 +195,7 @@ TEST(SffMiniphotonTest, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
 }
 
@@ -216,6 +220,7 @@ TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
     EXPECT_EQ(
         media.media_ref()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
 }
 

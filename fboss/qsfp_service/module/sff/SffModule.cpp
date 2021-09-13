@@ -149,6 +149,14 @@ static std::map<int, std::vector<checksumInfoStruct>> checksumInfoSff = {
     },
 };
 
+static std::map<ExtendedSpecComplianceCode, MediaInterfaceCode>
+    mediaInterfaceMapping = {
+        {ExtendedSpecComplianceCode::CWDM4_100G,
+         MediaInterfaceCode::CWDM4_100G},
+        {ExtendedSpecComplianceCode::CR4_100G, MediaInterfaceCode::CR4_100G},
+        {ExtendedSpecComplianceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
+};
+
 void getQsfpFieldAddress(
     SffField field,
     int& dataAddress,
@@ -706,6 +714,16 @@ bool SffModule::getMediaInterfaceId(
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
     media.extendedSpecificationComplianceCode_ref() = extSpecCompliance;
+    if (auto it = mediaInterfaceMapping.find(extSpecCompliance);
+        it != mediaInterfaceMapping.end()) {
+      mediaInterface[lane].code_ref() = it->second;
+    } else {
+      XLOG(ERR) << folly::sformat(
+          "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
+          qsfpImpl_->getName(),
+          apache::thrift::util::enumNameSafe(extSpecCompliance));
+      mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
+    }
     mediaInterface[lane].media_ref() = media;
   }
 

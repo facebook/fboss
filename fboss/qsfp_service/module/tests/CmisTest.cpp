@@ -125,6 +125,7 @@ TEST(CmisTest, transceiverInfoTest) {
   for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
     EXPECT_EQ(
         media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr.get());
 
@@ -429,6 +430,7 @@ TEST(Cmis400GLr4Test, transceiverInfoTest) {
   for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
     EXPECT_EQ(
         media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::LR4_400G_10KM);
   }
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);

@@ -272,6 +272,14 @@ static SpeedApplicationMapping speedApplicationMapping = {
      {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::LR4_10_400G}},
 };
 
+static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
+    mediaInterfaceMapping = {
+        {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
+        {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
+        {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
+        {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
+};
+
 constexpr uint8_t kPage0CsumRangeStart = 128;
 constexpr uint8_t kPage0CsumRangeLength = 94;
 constexpr uint8_t kPage1CsumRangeStart = 130;
@@ -718,6 +726,16 @@ bool CmisModule::getMediaInterfaceId(
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
     media.smfCode_ref() = smfMediaInterface;
+    if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
+        it != mediaInterfaceMapping.end()) {
+      mediaInterface[lane].code_ref() = it->second;
+    } else {
+      XLOG(ERR) << folly::sformat(
+          "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
+          qsfpImpl_->getName(),
+          apache::thrift::util::enumNameSafe(smfMediaInterface));
+      mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
+    }
     mediaInterface[lane].media_ref() = media;
   }
 
