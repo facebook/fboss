@@ -48,4 +48,9 @@ void SaiPortManager::removeRemovedHandleIf(PortID portID) {
   removedHandles_.erase(portID);
 }
 
+bool SaiPortManager::checkPortSerdesAttributes(
+    const SaiPortSerdesTraits::CreateAttributes& fromStore,
+    const SaiPortSerdesTraits::CreateAttributes& fromSwPort) {
+  return fromSwPort == fromStore;
+}
 } // namespace facebook::fboss

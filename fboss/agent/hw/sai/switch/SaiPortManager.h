@@ -219,6 +219,9 @@ class SaiPortManager {
   void changeSamplePacket(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  bool checkPortSerdesAttributes(
+      const SaiPortSerdesTraits::CreateAttributes& fromStore,
+      const SaiPortSerdesTraits::CreateAttributes& fromSwPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
