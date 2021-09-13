@@ -19,6 +19,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MultiNodeTest.h"
+#include "fboss/lib/CommonUtils.h"
 
 using namespace facebook::fboss;
 using namespace apache::thrift;

@@ -12,6 +12,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_config_constants.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"

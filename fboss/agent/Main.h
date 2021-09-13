@@ -91,20 +91,6 @@ class AgentInitializer {
     return initializer_.get();
   }
 
-  template <typename CONDITION_FN>
-  void checkWithRetry(
-      CONDITION_FN condition,
-      int retries = 10,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::milliseconds(1000)) const {
-    while (retries--) {
-      if (condition()) {
-        return;
-      }
-      std::this_thread::sleep_for(msBetweenRetry);
-    }
-    throw FbossError("Verify with retry failed, condition was never satisfied");
-  }
   void waitForQsfpService(
       uint32_t retries,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry,

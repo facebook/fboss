@@ -31,6 +31,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 #include <gflags/gflags.h>

@@ -6,6 +6,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;

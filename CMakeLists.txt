@@ -810,6 +810,7 @@ if (NOT SAI_ONLY)
       mpls_cpp2
       qsfp_cpp2
       async_logger
+      common_utils
       common_file_utils
       Folly::folly
       wangle::wangle

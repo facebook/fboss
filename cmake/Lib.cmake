@@ -105,3 +105,11 @@ add_library(common_file_utils
 target_link_libraries(common_file_utils
   fboss_error
 )
+
+add_library(common_utils
+  fboss/lib/CommonUtils.h
+)
+
+target_link_libraries(common_utils
+  fboss_error
+)
