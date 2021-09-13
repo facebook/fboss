@@ -914,6 +914,14 @@ SaiPortManager::serdesAttributesFromSwPort(
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
 
+  if (platform_->getAsic()->getPortSerdesPreemphasis().has_value()) {
+    SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
+        txSettings.size(),
+        platform_->getAsic()->getPortSerdesPreemphasis().value());
+    setTxRxAttr(
+        attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
+  }
+
   if (!rxSettings.empty()) {
     for (auto& rx : rxSettings) {
       if (auto ctlCode = rx.ctlCode_ref()) {
