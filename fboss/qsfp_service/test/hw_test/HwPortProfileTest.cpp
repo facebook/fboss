@@ -111,10 +111,14 @@ class HwPortProfileTest : public HwTest {
                   specComplianceCode ==
                       ExtendedSpecComplianceCode::CWDM4_100G ||
                   specComplianceCode == ExtendedSpecComplianceCode::FR1_100G);
+              EXPECT_TRUE(
+                  mediaId.code_ref() == MediaInterfaceCode::CWDM4_100G ||
+                  mediaId.code_ref() == MediaInterfaceCode::FR1_100G);
             } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
               EXPECT_EQ(
                   *mediaId.media_ref()->smfCode_ref(),
                   SMFMediaInterfaceCode::CWDM4_100G);
+              EXPECT_EQ(*mediaId.code_ref(), MediaInterfaceCode::CWDM4_100G);
             }
           }
           break;
