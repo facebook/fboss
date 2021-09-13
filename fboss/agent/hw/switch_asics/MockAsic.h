@@ -80,6 +80,9 @@ class MockAsic : public HwAsic {
   uint32_t getSflowShimHeaderSize() const override {
     return 0;
   }
+  std::optional<uint32_t> getPortSerdesPreemphasis() const override {
+    return std::nullopt;
+  }
 };
 
 } // namespace facebook::fboss

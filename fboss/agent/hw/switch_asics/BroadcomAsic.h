@@ -17,5 +17,8 @@ class BroadcomAsic : public HwAsic {
   uint32_t getSflowShimHeaderSize() const override {
     return 8;
   }
+  std::optional<uint32_t> getPortSerdesPreemphasis() const override {
+    return std::nullopt;
+  }
 };
 } // namespace facebook::fboss

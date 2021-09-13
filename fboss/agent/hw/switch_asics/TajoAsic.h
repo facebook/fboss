@@ -70,6 +70,9 @@ class TajoAsic : public HwAsic {
   uint32_t getSflowShimHeaderSize() const override {
     return 9;
   }
+  std::optional<uint32_t> getPortSerdesPreemphasis() const override {
+    return 50;
+  }
 };
 
 } // namespace facebook::fboss
