@@ -12,8 +12,10 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 DEFINE_bool(
@@ -64,5 +66,59 @@ MultiPimPlatformPimContainer* HwTest::getPimContainer(int pimID) {
 
 void HwTest::setupForWarmboot() const {
   ensemble_->setupForWarmboot();
+}
+
+// Refresh transceivers and retry after some unsuccessful attempts
+std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
+    int numRetries) {
+  auto agentConfig = ensemble_->getWedgeManager()->getAgentConfig();
+  auto expectedIds =
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+  std::map<int32_t, TransceiverInfo> transceiversBeforeRefresh;
+  std::map<int32_t, TransceiverInfo> transceiversAfterRefresh;
+  std::vector<TransceiverID> transceiverIds;
+  ensemble_->getWedgeManager()->getTransceiversInfo(
+      transceiversBeforeRefresh,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+
+  // Lambda to do a refresh and confirm refresh actually happened
+  auto refresh = [this,
+                  &expectedIds,
+                  &transceiversBeforeRefresh,
+                  &transceiversAfterRefresh,
+                  &transceiverIds]() {
+    transceiverIds = ensemble_->getWedgeManager()->refreshTransceivers();
+    ensemble_->getWedgeManager()->getTransceiversInfo(
+        transceiversAfterRefresh,
+        std::make_unique<std::vector<int32_t>>(
+            utility::legacyTransceiverIds(expectedIds)));
+    for (auto id : expectedIds) {
+      // Confirm all the cabled transceivers were returned by
+      // getTransceiversInfo
+      if (transceiversAfterRefresh.find(id) == transceiversAfterRefresh.end()) {
+        return false;
+      }
+      // It's possible that there were no transceivers to return before a
+      // refresh
+      if (transceiversBeforeRefresh.find(id) ==
+          transceiversBeforeRefresh.end()) {
+        continue;
+      }
+      auto timeAfter =
+          transceiversAfterRefresh[id].timeCollected_ref().value_or({});
+      auto timeBefore =
+          transceiversBeforeRefresh[id].timeCollected_ref().value_or({});
+      // Confirm that the timestamp advanced which will only happen when refresh
+      // is successful
+      if (timeAfter <= timeBefore) {
+        return false;
+      }
+    }
+    return true;
+  };
+  checkWithRetry(refresh, numRetries);
+
+  return transceiverIds;
 }
 } // namespace facebook::fboss

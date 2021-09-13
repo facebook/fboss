@@ -10,6 +10,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include "fboss/agent/types.h"
 
 #include <folly/logging/xlog.h>
 
@@ -47,6 +48,8 @@ class HwTest : public ::testing::Test {
       setupForWarmboot();
     }
   }
+
+  std::vector<TransceiverID> refreshTransceiversWithRetry(int numRetries = 3);
 
  private:
   bool didWarmBoot() const;
