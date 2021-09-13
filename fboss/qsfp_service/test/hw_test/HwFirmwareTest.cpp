@@ -49,8 +49,8 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.minorVersion_ref() = 92;
       break;
     case PlatformMode::MINIPACK:
-      desiredFw.version_ref() = 0xD032;
-      desiredFw.crc_ref() = 0x53C6A56;
+      desiredFw.version_ref() = 0xD037;
+      desiredFw.crc_ref() = 0xbf86d423;
       break;
     case PlatformMode::YAMP:
       desiredFw.version_ref() = 0x3894F5;
