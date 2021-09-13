@@ -35,7 +35,7 @@ TEST_F(HwTest, moduleConfigVerificationTest) {
   // After syncPorts, the module should have the expected configuration settings
   // programmed.
   // Do a refresh and get the latest configured settings
-  wedgeManager->refreshTransceivers();
+  refreshTransceiversWithRetry();
   auto transceiverIds = std::make_unique<std::vector<int32_t>>();
   std::for_each(
       transceivers.begin(),

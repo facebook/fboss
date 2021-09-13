@@ -43,7 +43,7 @@ void HwTest::SetUp() {
   // Do an initial refresh so that the customization is done before the test
   // starts. It also takes ~5 seconds sometimes for the CMIS modules to be
   // functional after a data path deinit, that can happen in the customize call
-  ensemble_->getWedgeManager()->refreshTransceivers();
+  refreshTransceiversWithRetry();
   if (!didWarmBoot()) {
     // Warmboot shouldn't configure the transceiver again so we shouldn't
     // require a wait here

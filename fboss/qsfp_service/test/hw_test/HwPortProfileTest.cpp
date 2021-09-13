@@ -167,7 +167,7 @@ class HwPortProfileTest : public HwTest {
     auto verify = [&]() {
       auto transceiverIds =
           utility::getTransceiverIds(matchingPorts, getHwQsfpEnsemble());
-      getHwQsfpEnsemble()->getWedgeManager()->refreshTransceivers();
+      refreshTransceiversWithRetry();
 
       std::map<int32_t, TransceiverInfo> transceiversAfterRefresh;
       getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
