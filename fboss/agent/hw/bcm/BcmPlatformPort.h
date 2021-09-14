@@ -57,6 +57,10 @@ class BcmPlatformPort : public PlatformPort {
 
   virtual bool shouldUsePortResourceAPIs() const = 0;
 
+  virtual bool supportsFlightDataRecorder() const {
+    return false;
+  }
+
   virtual void updateStats() {}
 
   virtual std::vector<PrbsLaneStats> getGearboxPrbsStats(phy::Side /* side */) {

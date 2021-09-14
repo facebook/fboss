@@ -432,4 +432,23 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+TEST_F(BcmPortTest, PortFdrStats) {
+  auto setup = [this]() { applyNewConfig(initialConfig()); };
+  auto verify = [this]() {
+    tcData().publishStats();
+    for (auto portId : initialConfiguredPorts()) {
+      auto port = getHwSwitch()->getPortTable()->getBcmPort(portId);
+      // Since FDR support is a function of ASIC chipset, if 1 port doesn't
+      // support it, no other port will support it. Fail the whole test
+      // and let known_bad_tests disable us on unsupported platforms.
+      EXPECT_TRUE(port->getPlatformPort()->supportsFlightDataRecorder());
+
+      EXPECT_TRUE(port->getFdrEnabled());
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+#endif
+
 } // namespace facebook::fboss

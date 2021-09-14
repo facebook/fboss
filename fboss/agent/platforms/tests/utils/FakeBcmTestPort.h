@@ -15,6 +15,10 @@ class FakeBcmTestPort : public BcmTestPort {
         cfg::PortSpeed::GIGE, cfg::PortSpeed::XG, cfg::PortSpeed::TWENTYFIVEG};
   }
 
+  bool supportsFlightDataRecorder() const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPort(FakeBcmTestPort const&) = delete;

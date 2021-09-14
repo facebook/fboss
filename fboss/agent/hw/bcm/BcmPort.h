@@ -158,6 +158,22 @@ class BcmPort {
    */
   phy::FecMode getFECMode() const;
 
+  /**
+   * The maximum errors the current FEC mode can correct
+   *
+   * RS544 can correct 16. Everyone else is 8.
+   */
+  int getFecMaxErrors() {
+    auto fecMode = getFECMode();
+    if (fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
+      return 16;
+    }
+
+    return 8;
+  }
+
+  bool getFdrEnabled() const;
+
   /*
    * Take the appropriate actions for reacting to the port's state changing.
    * e.g. optionally remediate, turn on/off LEDs
@@ -266,6 +282,7 @@ class BcmPort {
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
       const std::vector<bcm_stat_val_t>& stats);
+  void updateFdrStats(std::chrono::seconds now);
   void initCustomStats() const;
   std::string statName(folly::StringPiece statName, folly::StringPiece portName)
       const;
@@ -347,6 +364,8 @@ class BcmPort {
   fb303::ExportedStatMapImpl::LockableStat outQueueLen_;
   fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
+
+  int codewordErrorsPage_{0};
 
   folly::Synchronized<std::optional<BcmPortStats>> lastPortStats_;
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;

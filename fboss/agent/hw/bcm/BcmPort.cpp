@@ -11,6 +11,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <map>
 
@@ -74,6 +75,18 @@ using facebook::stats::MonotonicCounter;
 
 namespace {
 constexpr int kPfcDeadlockDetectionTimeMsecMax = 1500;
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+/**
+ * Size of a single page of codeword errors from bcm_port_fdr_stats_get()
+ *
+ * The struct bcm_port_fdr_stats_t actually have 9 entries in it with
+ * comments saying that some chips have 9. But the API docs from Broadcom
+ * says that no chip does that as of Tomahawk 4. It's not clear what chip
+ * and under what FEC mode will we see 9. Revisit if this changes in the
+ * future.
+ */
+static constexpr int kCodewordErrorsPageSize = 8;
+#endif
 
 bool hasPortQueueChanges(
     const shared_ptr<facebook::fboss::Port>& oldPort,
@@ -140,6 +153,63 @@ void fec_stat_accumulate(
   }
 
   COMPILER_64_ADD_32(*accumulator, count);
+}
+
+static void fdrStatConfigure(
+    __attribute__((unused)) int unit,
+    __attribute__((unused)) bcm_port_t port,
+    __attribute__((unused)) bool enable,
+    __attribute__((unused)) int symbErrSel = 0) {
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  // See Broadcom case for PDF doc of FDR APIs:
+  // https://brcmsemiconductor-csm.wolkenservicedesk.com/wolken-support/mycases/request-details?requestId=12196665
+  //
+  // Normally, FEC corrects errors and counts code words it cannot correct.
+  // With FDR, we can see corrected errors so we can act pre-emptively when
+  // they are getting close to uncorrectable. This requires SDK 6.5.21+.
+  //
+  // It has 2 modes. 1: Raise interrupt and call our code when too many
+  // errors are seen in a time window. 2: We poll counters periodically. We
+  // currently don't have any use case for #1. So we'll use #2 and turn off
+  // #1. (But SDK does allow both to be active at the same time if say we
+  // want to pre-emptively reset the port in the future.)
+  //
+  // To use #2, we just need to enable FDR and set the page of symbol errors
+  // to monitor. Each page contains 8 counters. If FEC544 is in use, we have
+  // 16 counters in 2 pages. All other FEC modes have a single page of 8
+  // counters.
+  bcm_port_fdr_config_t fdr_config, current_fdr_config;
+
+  bcm_port_fdr_config_t_init(&fdr_config);
+  fdr_config.fdr_enable = enable;
+  DCHECK(symbErrSel >= 0 && symbErrSel <= 1);
+  fdr_config.symb_err_stats_sel = symbErrSel;
+
+  bcmCheckError(
+      bcm_port_fdr_config_get(unit, port, &current_fdr_config),
+      "Failed to fetch current error telemetry config for unit ",
+      unit,
+      " port ",
+      port);
+
+  if (memcmp(&fdr_config, &current_fdr_config, sizeof(bcm_port_fdr_config_t)) ==
+      0) {
+    return;
+  }
+
+  bcmCheckError(
+      bcm_port_fdr_config_set(unit, port, &fdr_config),
+      "Failed to configure port error telemetry on unit ",
+      unit,
+      " port ",
+      port);
+
+  if (enable) {
+    // Clear out any left over stats that may be for a different page
+    bcm_port_fdr_stats_t fdr_stats;
+    bcm_port_fdr_stats_get(unit, port, &fdr_stats);
+  }
+#endif
 }
 
 // We pass in PRBS polynominal from cli as integers. However bcm api has it's
@@ -1151,6 +1221,7 @@ void BcmPort::updateStats() {
     updatePortPfcStats(now, curPortStats, settings->getPfcPriorities());
   }
   updateFecStats(now, curPortStats);
+  updateFdrStats(now);
   updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
   queueManager_->updateQueueStats(now, &curPortStats);
 
@@ -1254,6 +1325,57 @@ void BcmPort::updateFecStats(
       ->updateValue(now, *curPortStats.fecCorrectableErrors_ref());
   getPortCounterIf(kFecUncorrectable())
       ->updateValue(now, *curPortStats.fecUncorrectableErrors_ref());
+}
+
+void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  if (!platformPort_->supportsFlightDataRecorder()) {
+    return;
+  }
+
+  bcm_port_fdr_stats_t fdr_stats;
+  if (BCM_FAILURE(bcm_port_fdr_stats_get(unit_, port_, &fdr_stats))) {
+    return;
+  }
+
+  // Currently, we bounce between the 2 pages if there's more than 1 page,
+  // just like the bin_group=both setting in the "phydiag <x> fdrstat start"
+  // command in the Broadcom sdklt CLI does. Their source code is at
+  // platform009/a0eedbb/src/libs/sdklt/bcma/bcmpc/diag/bcma_bcmpc_diag_fdrstat.c
+  // in 6.5.22+ of the Broadcom SDK. (6.5.21 SDK does have the API but no
+  // CLI.)
+  //
+  // When we collect counters from page 0, the errors in page 1 will not be
+  // counted. So we'll miss half of the errors. But these errors should be
+  // stable for long enough for us to catch them. Getting the full
+  // distribution of errors is more helpful than an exact count. So we'll
+  // just multiply the counts by 2x to approximate the correct values.
+  // Similar to how interlaced videos put out alternating lines for 2
+  // frames.
+  //
+  // Just bear in mind that for FEC modes with more than 1 page, the numbers
+  // are extrapolated and not 100% accurate. But the relative distribution
+  // between the different error bins should be correct.
+  auto pages = getFecMaxErrors() / kCodewordErrorsPageSize;
+  int codewordErrorBase = codewordErrorsPage_ * kCodewordErrorsPageSize;
+  int increments[kCodewordErrorsPageSize];
+  // Multiply by number of pages to pretend that this number showed up on
+  // every page. Increment counter since this API is clear on read.
+  increments[0] = fdr_stats.cw_s0_errs * pages;
+  increments[1] = fdr_stats.cw_s1_errs * pages;
+  increments[2] = fdr_stats.cw_s2_errs * pages;
+  increments[3] = fdr_stats.cw_s3_errs * pages;
+  increments[4] = fdr_stats.cw_s4_errs * pages;
+  increments[5] = fdr_stats.cw_s5_errs * pages;
+  increments[6] = fdr_stats.cw_s6_errs * pages;
+  increments[7] = fdr_stats.cw_s7_errs * pages;
+  // TODO: Increment a counter and export it.
+
+  if (pages > 1) {
+    codewordErrorsPage_ = ++codewordErrorsPage_ % pages;
+    fdrStatConfigure(unit_, port_, true, codewordErrorsPage_);
+  }
+#endif
 }
 
 void BcmPort::BcmPortStats::setQueueWaterMarks(
@@ -1503,6 +1625,10 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
     if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
       flexCounterMgr->attachToPort(gport_);
     }
+
+    if (platformPort_->supportsFlightDataRecorder()) {
+      fdrStatConfigure(unit_, port_, true);
+    }
   }
 
   reinitPortStats(port);
@@ -1522,6 +1648,10 @@ void BcmPort::disableStatCollection() {
 
   if (auto* flexCounterMgr = hw_->getBcmEgressQueueFlexCounterManager()) {
     flexCounterMgr->detachFromPort(gport_);
+  }
+
+  if (platformPort_->supportsFlightDataRecorder()) {
+    fdrStatConfigure(unit_, port_, false);
   }
 
   statCollectionEnabled_.store(false);
@@ -1936,6 +2066,27 @@ phy::FecMode BcmPort::getFECMode() const {
                                                    : phy::FecMode::NONE;
     }
   }
+}
+
+bool BcmPort::getFdrEnabled() const {
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+  if (!platformPort_->supportsFlightDataRecorder()) {
+    return false;
+  }
+
+  bcm_port_fdr_config_t fdr_config;
+
+  bcmCheckError(
+      bcm_port_fdr_config_get(unit_, port_, &fdr_config),
+      "Failed to fetch current error telemetry config for unit ",
+      unit_,
+      " port ",
+      port_);
+
+  return fdr_config.fdr_enable;
+#else
+  return false;
+#endif
 }
 
 void BcmPort::initCustomStats() const {

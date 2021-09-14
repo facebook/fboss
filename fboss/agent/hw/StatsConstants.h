@@ -157,4 +157,9 @@ inline folly::StringPiece constexpr kObmHighWatermark() {
   return "obm_high_watermark";
 }
 
+/**
+ * Maximum FEC errors we can ever see under any config
+ */
+constexpr int kMaxFecErrors = 16;
+
 } // namespace facebook::fboss
