@@ -79,8 +79,10 @@ add_executable(fboss2
 target_link_libraries(fboss2
   CLI11::CLI11
   tabulate
+  fb303_cpp2
   ctrl_cpp2
   qsfp_cpp2
+  mka_cpp2
   Folly::folly
   show_acl_model
   show_arp_model

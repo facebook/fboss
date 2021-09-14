@@ -11,6 +11,7 @@
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/mka_service/if/gen-cpp2/MKAService.h"
 
 namespace facebook::fboss::utils {
 
@@ -26,6 +27,13 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
   auto qsfpServicePort = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
   return createPlaintextClient<facebook::fboss::QsfpServiceAsyncClient>(
       hostInfo, qsfpServicePort);
+}
+
+std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> createMkaClient(
+    const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getMkaThriftPort();
+  return createPlaintextClient<facebook::fboss::mka::MKAServiceAsyncClient>(
+      hostInfo, port);
 }
 
 } // namespace facebook::fboss::utils

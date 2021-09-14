@@ -333,6 +333,7 @@ add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
+
 add_fbthrift_cpp_library(
   mka_structs_cpp2
   fboss/mka_service/if/mka_structs.thrift
@@ -344,13 +345,26 @@ add_fbthrift_cpp_library(
     mka_structs_cpp2
 )
 add_fbthrift_cpp_library(
+  mka_participant_cpp2
+  fboss/mka_service/if/mka_participant.thrift
+  DEPENDS
+    Folly::folly
+    mka_structs_cpp2
+    mka_config_cpp2
+)
+
+add_fbthrift_cpp_library(
   mka_cpp2
   fboss/mka_service/if/mka.thrift
+  SERVICES
+    MKAService
   DEPENDS
     fb303_cpp2
     mka_config_cpp2
     mka_structs_cpp2
+    mka_participant_cpp2
 )
+
 add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift

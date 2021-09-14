@@ -81,6 +81,9 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  int getMkaThriftPort() {
+    return mkaThriftPort_;
+  }
   int getCoopThriftPort() {
     return coopThriftPort_;
   }
@@ -112,6 +115,7 @@ class CmdGlobalOptions {
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
   int coopThriftPort_{6969};
+  int mkaThriftPort_{5920};
   int bmcHttpPort_{8080};
   std::string color_{"yes"};
 };
