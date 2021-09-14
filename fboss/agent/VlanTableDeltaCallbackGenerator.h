@@ -47,6 +47,17 @@ class VlanTableDeltaCallbackGenerator {
     }
   }
 
+  template <typename AddrT>
+  static auto getTableDelta(const VlanDelta& vlanDelta) {
+    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+      return vlanDelta.getMacDelta();
+    } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return vlanDelta.getArpDelta();
+    } else {
+      return vlanDelta.getNdpDelta();
+    }
+  }
+
  private:
   template <typename AddrT, typename Callback>
   static void genTableCallbacks(const StateDelta& stateDelta, Callback& cb) {
@@ -69,16 +80,6 @@ class VlanTableDeltaCallbackGenerator {
           cb.processChanged(stateDelta, vlan, oldEntry, newEntry);
         }
       }
-    }
-  }
-  template <typename AddrT>
-  static auto getTableDelta(const VlanDelta& vlanDelta) {
-    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-      return vlanDelta.getMacDelta();
-    } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      return vlanDelta.getArpDelta();
-    } else {
-      return vlanDelta.getNdpDelta();
     }
   }
 };
