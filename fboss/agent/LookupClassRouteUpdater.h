@@ -49,12 +49,23 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<Port> port,
       bool reAddAllRoutesEnabled);
 
+  std::optional<cfg::AclLookupClass> getClassIDForLinkLocal(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::IPAddressV6& ipAddressV6);
+
   std::optional<cfg::AclLookupClass> getClassIDForNeighbor(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlanID,
       const folly::IPAddress& ipAddress);
 
   // Methods for handling port updates
+
+  bool isNeighborReachable(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::IPAddressV6& neighborIP);
+
   void processPortAdded(
       const StateDelta& stateDelta,
       const std::shared_ptr<Port>& addedPort,

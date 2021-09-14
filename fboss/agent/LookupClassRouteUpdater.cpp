@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -89,6 +90,29 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
 }
 
 std::optional<cfg::AclLookupClass>
+LookupClassRouteUpdater::getClassIDForLinkLocal(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::IPAddressV6& ipAddressV6) {
+  CHECK(ipAddressV6.isLinkLocal());
+  CHECK(ipAddressV6.getMacAddressFromLinkLocal().has_value());
+
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return std::nullopt;
+  }
+
+  /*
+   * Link local neighbors don't have classID, thus classID for a route whose
+   * nexthop is link local is derived from MAC address corresponding to the
+   * link local address.
+   */
+  auto mac = ipAddressV6.getMacAddressFromLinkLocal().value();
+  auto macEntry = vlan->getMacTable()->getNodeIf(mac);
+  return macEntry ? macEntry->getClassID() : std::nullopt;
+}
+
+std::optional<cfg::AclLookupClass>
 LookupClassRouteUpdater::getClassIDForNeighbor(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
@@ -96,6 +120,10 @@ LookupClassRouteUpdater::getClassIDForNeighbor(
   auto vlan = switchState->getVlans()->getVlanIf(vlanID);
   if (!vlan) {
     return std::nullopt;
+  }
+
+  if (ipAddress.isV6() && ipAddress.asV6().isLinkLocal()) {
+    return getClassIDForLinkLocal(switchState, vlanID, ipAddress.asV6());
   }
 
   if (ipAddress.isV6()) {
@@ -348,23 +376,74 @@ void LookupClassRouteUpdater::processInterfaceUpdates(
 
 // Methods for handling neighbor updates
 
+bool LookupClassRouteUpdater::isNeighborReachable(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::IPAddressV6& neighborIP) {
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return false;
+  }
+
+  auto linkLocalEntry =
+      VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV6>(vlan)
+          ->getEntryIf(neighborIP);
+
+  return linkLocalEntry && linkLocalEntry->isReachable();
+}
+
+/*
+ * Link local neighbors don't have classID, thus classID for a route whose
+ * nexthop is link local is derived from MAC address corresponding to the
+ * link local address.
+ *
+ * There are two cases here:
+ *
+ *  1. LinkLocal is resolved, then MAC gets classID.
+ *      processNeighborAdded<folly::MacAddress> assigns classID to Route(s)
+ *
+ *  2. MAC gets classID, then LinkLocal is resolved.
+ *      processNeighborAdded<folly::IPAddressV6> assigns classID to Route(s)
+ */
 template <typename AddedNeighborT>
 void LookupClassRouteUpdater::processNeighborAdded(
-    const StateDelta& /*stateDelta*/,
+    const StateDelta& stateDelta,
     VlanID vlanID,
     const std::shared_ptr<AddedNeighborT>& addedNeighbor) {
   CHECK(addedNeighbor);
 
-  if (!belongsToSubnetInCache(vlanID, addedNeighbor->getIP())) {
+  auto newState = stateDelta.newState();
+  folly::IPAddress addedNeighborIP;
+  std::optional<cfg::AclLookupClass> neighborClassID;
+  if constexpr (std::is_same_v<AddedNeighborT, MacEntry>) {
+    addedNeighborIP = folly::IPAddressV6(
+        folly::IPAddressV6::LinkLocalTag::LINK_LOCAL, addedNeighbor->getMac());
+    if (!isNeighborReachable(newState, vlanID, addedNeighborIP.asV6())) {
+      return;
+    }
+    // LinkLocal is resolved, then MAC gets classID
+    neighborClassID = addedNeighbor->getClassID();
+  } else {
+    addedNeighborIP = addedNeighbor->getIP();
+    if (addedNeighborIP.isV6() && addedNeighborIP.isLinkLocal()) {
+      // MAC gets classID, then LinkLocal is resolved
+      neighborClassID = getClassIDForLinkLocal(
+          stateDelta.newState(), vlanID, addedNeighborIP.asV6());
+    } else {
+      neighborClassID = addedNeighbor->getClassID();
+    }
+  }
+
+  if (!belongsToSubnetInCache(vlanID, addedNeighborIP)) {
     return;
   }
 
   // If the neighbor is nextHop for a route that is already processed, the
   // neighbor would be present in the cache.
   auto& [withClassIDPrefixes, withoutClassIDPrefixes] =
-      nextHopAndVlan2Prefixes_[std::make_pair(addedNeighbor->getIP(), vlanID)];
+      nextHopAndVlan2Prefixes_[std::make_pair(addedNeighborIP, vlanID)];
 
-  if (!addedNeighbor->getClassID().has_value()) {
+  if (!neighborClassID.has_value()) {
     return;
   }
 
@@ -380,7 +459,7 @@ void LookupClassRouteUpdater::processNeighborAdded(
       allPrefixesWithClassID_.end(),
       std::inserter(toBeUpdatedPrefixes, toBeUpdatedPrefixes.end()));
 
-  auto routeClassID = addedNeighbor->getClassID().value();
+  auto routeClassID = neighborClassID.value();
 
   for (const auto& ridAndCidr : toBeUpdatedPrefixes) {
     withoutClassIDPrefixes.erase(ridAndCidr);
@@ -398,12 +477,28 @@ void LookupClassRouteUpdater::processNeighborRemoved(
     const std::shared_ptr<RemovedNeighborT>& removedNeighbor) {
   CHECK(removedNeighbor);
 
-  if (!belongsToSubnetInCache(vlanID, removedNeighbor->getIP())) {
+  folly::IPAddress removedNeighborIP;
+  if constexpr (std::is_same_v<RemovedNeighborT, MacEntry>) {
+    /*
+     * Link local neighbors don't have classID, thus classID for a route whose
+     * nexthop is link local is derived from MAC address corresponding to the
+     * link local address.
+     * Thus, when a MAC is removed, process classID change for route whose
+     * nexthop is link local corresponding to the MAC being removed.
+     */
+    removedNeighborIP = folly::IPAddressV6(
+        folly::IPAddressV6::LinkLocalTag::LINK_LOCAL,
+        removedNeighbor->getMac());
+  } else {
+    removedNeighborIP = removedNeighbor->getIP();
+  }
+
+  if (!belongsToSubnetInCache(vlanID, removedNeighborIP)) {
     return;
   }
 
-  auto it = nextHopAndVlan2Prefixes_.find(
-      std::make_pair(removedNeighbor->getIP(), vlanID));
+  auto it =
+      nextHopAndVlan2Prefixes_.find(std::make_pair(removedNeighborIP, vlanID));
   if (it == nextHopAndVlan2Prefixes_.end()) {
     return;
   }
@@ -440,19 +535,13 @@ void LookupClassRouteUpdater::processNeighborRemoved(
       auto route = findRoute<folly::IPAddressV6>(rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
-            stateDelta,
-            rid,
-            route,
-            std::make_pair(removedNeighbor->getIP(), vlanID));
+            stateDelta, rid, route, std::make_pair(removedNeighborIP, vlanID));
       }
     } else {
       auto route = findRoute<folly::IPAddressV4>(rid, cidr, newState);
       if (route) {
         routeClassID = addRouteAndFindClassID(
-            stateDelta,
-            rid,
-            route,
-            std::make_pair(removedNeighbor->getIP(), vlanID));
+            stateDelta, rid, route, std::make_pair(removedNeighborIP, vlanID));
       }
     }
 
@@ -494,18 +583,14 @@ void LookupClassRouteUpdater::processNeighborChanged(
 template <typename AddrT>
 void LookupClassRouteUpdater::processNeighborUpdates(
     const StateDelta& stateDelta) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
     auto newVlan = vlanDelta.getNew();
     if (!newVlan) {
       auto oldVlan = vlanDelta.getOld();
-      for (const auto& oldNeighbor :
-           *(oldVlan->template getNeighborTable<NeighborTableT>())) {
-        processNeighborRemoved(stateDelta, oldVlan->getID(), oldNeighbor);
+
+      for (const auto& entry :
+           *VlanTableDeltaCallbackGenerator::getTable<AddrT>(oldVlan)) {
+        processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
       }
       continue;
     }
@@ -513,7 +598,7 @@ void LookupClassRouteUpdater::processNeighborUpdates(
     auto vlan = newVlan->getID();
 
     for (const auto& delta :
-         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+         VlanTableDeltaCallbackGenerator::getTableDelta<AddrT>(vlanDelta)) {
       auto oldNeighbor = delta.getOld();
       auto newNeighbor = delta.getNew();
 
@@ -822,6 +907,7 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
     return;
   }
 
+  processNeighborUpdates<folly::MacAddress>(stateDelta);
   processNeighborUpdates<folly::IPAddressV6>(stateDelta);
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
 
