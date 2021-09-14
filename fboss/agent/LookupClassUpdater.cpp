@@ -203,6 +203,23 @@ bool LookupClassUpdater::shouldProcessNeighborEntry(
   if (entry->getClassID().has_value()) {
     return false;
   }
+
+  /*
+   * classID could be associated with a Host entry. However, there is no
+   * Neighbor entry for Link Local addresses, thus don't assign classID for
+   * Link Local addresses.
+   * SAI implementations typically fail creation of SAI Neighbor Entry with
+   * both classID and NoHostRoute (set for link local) are set.
+   */
+  if constexpr (
+      std::is_same_v<NeighborEntryT, ArpEntry> ||
+      std::is_same_v<NeighborEntryT, NdpEntry>) {
+    if (entry->getIP().isLinkLocal()) {
+      XLOG(DBG2) << "No classID for linkLocal: " << entry->str();
+      return false;
+    }
+  }
+
   return true;
 }
 
