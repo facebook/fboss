@@ -31,6 +31,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -261,7 +262,7 @@ void AgentInitializer::createSwitch(
   initializer_ = std::make_unique<Initializer>(sw_.get(), sw_->getPlatform());
 }
 
-void AgentInitializer::waitForQsfpService(
+void AgentInitializer::waitForQsfpServiceImpl(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
     bool failHard) const {
@@ -289,6 +290,39 @@ void AgentInitializer::waitForQsfpService(
     if (failHard) {
       throw;
     }
+  }
+}
+
+void AgentInitializer::waitForQsfpService(const Platform& platform) const {
+  std::chrono::duration<uint32_t, std::milli> msBetweenRetry(500);
+  uint32_t retries{0};
+  bool failHard{false};
+  switch (platform.getMode()) {
+    case PlatformMode::WEDGE:
+    case PlatformMode::WEDGE100:
+    case PlatformMode::GALAXY_LC:
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::MINIPACK:
+    case PlatformMode::YAMP:
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400:
+    case PlatformMode::FUJI:
+      // TODO - add wait here as well?
+      break;
+    case PlatformMode::ELBERT:
+    case PlatformMode::CLOUDRIPPER:
+      retries = 200; // upto 100s
+      // Qsfp svc a must to program ports
+      failHard = true;
+      break;
+    // Fake, sim platforms - no qsfp svc
+    case PlatformMode::FAKE_WEDGE:
+    case PlatformMode::FAKE_WEDGE40:
+    case PlatformMode::WEDGE400C_SIM:
+      break;
+  }
+  if (retries) {
+    waitForQsfpServiceImpl(retries, msBetweenRetry, failHard);
   }
 }
 

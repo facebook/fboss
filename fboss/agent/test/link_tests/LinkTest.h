@@ -47,10 +47,6 @@ class LinkTest : public AgentTest {
   std::string getPortName(PortID port) const;
 
  private:
-  void preAgentInit(const Platform& /*platform*/) override {
-    waitForQsfpService(
-        100 /*retries*/, std::chrono::duration<uint32_t, std::milli>(1000));
-  }
   void setupFlags() const override;
   void initializeCabledPorts();
   std::vector<PortID> cabledPorts_;
