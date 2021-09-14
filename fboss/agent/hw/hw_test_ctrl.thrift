@@ -9,10 +9,10 @@ include "fboss/agent/if/fboss.thrift"
 
 service HwTestCtrl extends fb303.FacebookService {
   ctrl.fbstring diagCmd(
-      1: ctrl.fbstring cmd,
-      2: ctrl.ClientInformation client,
-      3: i16 serverTimeoutMsecs = 0,
-      4: bool bypassFilter = false
-  ) throws (1: fboss.FbossBaseError error)
-  ctrl.fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error)
+    1: ctrl.fbstring cmd,
+    2: ctrl.ClientInformation client,
+    3: i16 serverTimeoutMsecs = 0,
+    4: bool bypassFilter = false,
+  ) throws (1: fboss.FbossBaseError error);
+  ctrl.fbstring cmdFiltersAsString() throws (1: fboss.FbossBaseError error);
 }

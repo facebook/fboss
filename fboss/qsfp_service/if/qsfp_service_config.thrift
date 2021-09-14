@@ -15,34 +15,34 @@ enum TransceiverPartNumber {
 
 // The matching logic will treat the absent of an optional field as match all.
 struct TransceiverConfigOverrideFactor {
-  1: optional TransceiverPartNumber transceiverPartNumber,
-  2: optional transceiver.SMFMediaInterfaceCode applicationCode,
+  1: optional TransceiverPartNumber transceiverPartNumber;
+  2: optional transceiver.SMFMediaInterfaceCode applicationCode;
 }
 
 struct Sff8636Overrides {
-  1: optional i16 rxPreemphasis,
+  1: optional i16 rxPreemphasis;
 }
 
 struct CmisOverrides {
-  1: optional transceiver.RxEqualizerSettings rxEqualizerSettings,
+  1: optional transceiver.RxEqualizerSettings rxEqualizerSettings;
 }
 
 union TransceiverOverrides {
-  1: Sff8636Overrides sff,
-  2: CmisOverrides cmis,
+  1: Sff8636Overrides sff;
+  2: CmisOverrides cmis;
 }
 
 struct TransceiverConfigOverride {
-  1: TransceiverConfigOverrideFactor factor,
-  2: TransceiverOverrides config,
+  1: TransceiverConfigOverrideFactor factor;
+  2: TransceiverOverrides config;
 }
 
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
-  1: map<string, string> defaultCommandLineArgs = {},
+  1: map<string, string> defaultCommandLineArgs = {};
 
   // This has a list of overrides of settings on the optic together with the
   // factor that specify the condition to apply.
-  2: list<TransceiverConfigOverride> transceiverConfigOverrides = [],
+  2: list<TransceiverConfigOverride> transceiverConfigOverrides = [];
 }

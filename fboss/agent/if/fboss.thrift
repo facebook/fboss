@@ -8,5 +8,5 @@ namespace py.asyncio neteng.asyncio.fboss
 namespace rust facebook.fboss.thrift
 
 exception FbossBaseError {
-  1: string message
-} ( cpp.virtual, message = "message" )
+  1: string message;
+} (cpp.virtual, message = "message")

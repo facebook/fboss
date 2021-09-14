@@ -6,6 +6,6 @@ namespace go neteng.fboss.bcm_config
 namespace php fboss_bcm_config
 
 struct BcmConfig {
-  1: map<string, string> config,
-  2: optional string yamlConfig,
+  1: map<string, string> config;
+  2: optional string yamlConfig;
 }

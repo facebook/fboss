@@ -9,14 +9,14 @@ enum PortMode {
 }
 
 struct OnePortConfig {
-  1: i32 portId,
-  2: PortMode portMode,
-  3: optional i64 portSpeedMbps,
+  1: i32 portId;
+  2: PortMode portMode;
+  3: optional i64 portSpeedMbps;
   // FEC needs to be enabled for 100G optic ports
   // disableFEC overrides any speed based decisions.
-  4: optional bool disableFEC,
+  4: optional bool disableFEC;
 }
 
 struct LldpConfig {
-  1: map<i32, OnePortConfig> portConfigMap,
+  1: map<i32, OnePortConfig> portConfigMap;
 }

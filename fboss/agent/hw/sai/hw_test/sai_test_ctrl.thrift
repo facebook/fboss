@@ -8,9 +8,11 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 
 service SaiTestCtrl extends hw_test_ctrl.HwTestCtrl {
-  string, stream<string> startDiagShell()
-    throws (1: fboss.FbossBaseError error)
-  void produceDiagShellInput(1: string input,
-      2: ctrl.ClientInformation client)
-    throws (1: fboss.FbossBaseError error)
+  string, stream<string> startDiagShell() throws (
+    1: fboss.FbossBaseError error,
+  );
+  void produceDiagShellInput(
+    1: string input,
+    2: ctrl.ClientInformation client,
+  ) throws (1: fboss.FbossBaseError error);
 }

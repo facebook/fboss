@@ -7,67 +7,67 @@ namespace py.asyncio neteng.fboss.asyncio.transceiver
 namespace rust facebook.fboss
 
 struct Vendor {
-  1: string name,
-  2: binary oui,
-  3: string partNumber,
-  4: string rev,
-  5: string serialNumber,
-  6: string dateCode,
+  1: string name;
+  2: binary oui;
+  3: string partNumber;
+  4: string rev;
+  5: string serialNumber;
+  6: string dateCode;
 }
 
 struct Thresholds {
-  1: double low,
-  2: double high
+  1: double low;
+  2: double high;
 }
 
 struct ThresholdLevels {
-  1: Thresholds alarm,
-  2: Thresholds warn
+  1: Thresholds alarm;
+  2: Thresholds warn;
 }
 
 struct AlarmThreshold {
-  1: ThresholdLevels temp,
-  2: ThresholdLevels vcc,
-  3: ThresholdLevels rxPwr,
-  4: ThresholdLevels txBias,
-  5: ThresholdLevels txPwr,
+  1: ThresholdLevels temp;
+  2: ThresholdLevels vcc;
+  3: ThresholdLevels rxPwr;
+  4: ThresholdLevels txBias;
+  5: ThresholdLevels txPwr;
 }
 
 struct Flags {
-  1: bool high,
-  2: bool low,
+  1: bool high;
+  2: bool low;
 }
 
 struct FlagLevels {
-  1: Flags alarm,
-  2: Flags warn,
+  1: Flags alarm;
+  2: Flags warn;
 }
 
 struct Sensor {
-  1: double value,
-  2: optional FlagLevels flags,
+  1: double value;
+  2: optional FlagLevels flags;
 }
 
 struct GlobalSensors {
-  1: Sensor temp,
-  2: Sensor vcc,
+  1: Sensor temp;
+  2: Sensor vcc;
 }
 
 struct ChannelSensors {
-  1: Sensor rxPwr,
-  2: Sensor txBias,
-  3: Sensor txPwr,
-  4: optional Sensor txSnr,
-  5: optional Sensor rxSnr,
-  6: optional Sensor rxPwrdBm,
-  7: optional Sensor txPwrdBm,
+  1: Sensor rxPwr;
+  2: Sensor txBias;
+  3: Sensor txPwr;
+  4: optional Sensor txSnr;
+  5: optional Sensor rxSnr;
+  6: optional Sensor rxPwrdBm;
+  7: optional Sensor txPwrdBm;
 }
 
 struct SignalFlags {
-  1: i32 txLos,
-  2: i32 rxLos,
-  3: i32 txLol,
-  4: i32 rxLol,
+  1: i32 txLos;
+  2: i32 rxLos;
+  3: i32 txLol;
+  4: i32 rxLol;
 }
 
 enum TransmitterTechnology {
@@ -85,22 +85,22 @@ enum TransmitterTechnology {
  * mode fiber.
  */
 struct Cable {
-  1: optional i32 singleModeKm,
-  2: optional i32 singleMode,
-  3: optional i32 om3,
-  4: optional i32 om2,
-  5: optional i32 om1,
-  6: optional i32 copper,
-  7: TransmitterTechnology transmitterTech,
-  8: optional double length,
-  9: optional i32 gauge,
-  10: optional i32 om4,
-  11: optional i32 om5,
+  1: optional i32 singleModeKm;
+  2: optional i32 singleMode;
+  3: optional i32 om3;
+  4: optional i32 om2;
+  5: optional i32 om1;
+  6: optional i32 copper;
+  7: TransmitterTechnology transmitterTech;
+  8: optional double length;
+  9: optional i32 gauge;
+  10: optional i32 om4;
+  11: optional i32 om5;
 }
 
 struct Channel {
-  1: i32 channel,
-  6: ChannelSensors sensors,
+  1: i32 channel;
+  6: ChannelSensors sensors;
 }
 
 enum TransceiverType {
@@ -201,8 +201,8 @@ enum SMFMediaInterfaceCode {
 }
 
 union MediaInterfaceUnion {
-  1: SMFMediaInterfaceCode smfCode,
-  2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
+  1: SMFMediaInterfaceCode smfCode;
+  2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
 }
 
 enum MediaTypeEncodings {
@@ -210,14 +210,14 @@ enum MediaTypeEncodings {
   OPTICAL_MMF = 0x1,
   OPTICAL_SMF = 0x2,
   PASSIVE_CU = 0x3,
-  ACTIVE_CABLES = 0x4
+  ACTIVE_CABLES = 0x4,
 }
 
 struct MediaInterfaceId {
-  1: i32 lane,
+  1: i32 lane;
   // TODO(joseph5wu) Deprecate this union attribute and use the enum `code`
-  2: MediaInterfaceUnion media,
-  3: MediaInterfaceCode code = MediaInterfaceCode.UNKNOWN,
+  2: MediaInterfaceUnion media;
+  3: MediaInterfaceCode code = MediaInterfaceCode.UNKNOWN;
 }
 
 enum CmisLaneState {
@@ -231,114 +231,114 @@ enum CmisLaneState {
 }
 
 struct FirmwareStatus {
-  1: optional string version,
-  2: optional i32 fwFault,
-  3: optional string dspFwVer,
-  4: optional string buildRev,
+  1: optional string version;
+  2: optional i32 fwFault;
+  3: optional string dspFwVer;
+  4: optional string buildRev;
 }
 
 struct MediaLaneSettings {
-  1: i32 lane,
-  2: optional bool txDisable,
-  3: optional bool txSquelch,
-  4: optional bool txAdaptiveEqControl, // Only applicable for Sff
-  5: optional bool txSquelchForce, // Only applicable for Cmis
+  1: i32 lane;
+  2: optional bool txDisable;
+  3: optional bool txSquelch;
+  4: optional bool txAdaptiveEqControl; // Only applicable for Sff
+  5: optional bool txSquelchForce; // Only applicable for Cmis
 }
 
 struct HostLaneSettings {
-  1: i32 lane,
-  2: optional i32 txInputEqualization,
-  3: optional i32 rxOutputEmphasis,
-  4: optional i32 rxOutputAmplitude,
-  5: optional bool rxOutput,
-  6: optional bool rxSquelch,
-  7: optional i32 rxOutputPreCursor,
-  8: optional i32 rxOutputPostCursor,
+  1: i32 lane;
+  2: optional i32 txInputEqualization;
+  3: optional i32 rxOutputEmphasis;
+  4: optional i32 rxOutputAmplitude;
+  5: optional bool rxOutput;
+  6: optional bool rxSquelch;
+  7: optional i32 rxOutputPreCursor;
+  8: optional i32 rxOutputPostCursor;
 }
 
 struct MediaLaneSignals {
-  1: i32 lane,
-  2: optional bool txLos,
-  3: optional bool rxLos,
-  4: optional bool txLol,
-  5: optional bool rxLol,
-  6: optional bool txFault,
-  7: optional bool txAdaptEqFault,
+  1: i32 lane;
+  2: optional bool txLos;
+  3: optional bool rxLos;
+  4: optional bool txLol;
+  5: optional bool rxLol;
+  6: optional bool txFault;
+  7: optional bool txAdaptEqFault;
 }
 
 struct HostLaneSignals {
-  1: i32 lane,
-  2: optional bool dataPathDeInit,
-  3: optional CmisLaneState cmisLaneState,
+  1: i32 lane;
+  2: optional bool dataPathDeInit;
+  3: optional CmisLaneState cmisLaneState;
 }
 
 struct RxEqualizerSettings {
-  1: i32 preCursor,
-  2: i32 postCursor,
-  3: i32 mainAmplitude,
+  1: i32 preCursor;
+  2: i32 postCursor;
+  3: i32 mainAmplitude;
 }
 
 struct VdmDiagsStats {
-  1: double preFecBerMediaMin,
-  2: double preFecBerMediaMax,
-  3: double preFecBerMediaAvg,
-  4: double preFecBerMediaCur,
-  5: map<i32, double> eSnrMediaChannel,
-  6: double preFecBerHostMin,
-  7: double preFecBerHostMax,
-  8: double preFecBerHostAvg,
-  9: double preFecBerHostCur,
+  1: double preFecBerMediaMin;
+  2: double preFecBerMediaMax;
+  3: double preFecBerMediaAvg;
+  4: double preFecBerMediaCur;
+  5: map<i32, double> eSnrMediaChannel;
+  6: double preFecBerHostMin;
+  7: double preFecBerHostMax;
+  8: double preFecBerHostAvg;
+  9: double preFecBerHostCur;
 }
 
 struct TransceiverSettings {
-  1: FeatureState cdrTx,
-  2: FeatureState cdrRx,
-  3: RateSelectState rateSelect,
-  4: FeatureState powerMeasurement,
-  5: PowerControlState powerControl,
-  6: RateSelectSetting rateSelectSetting,
-  7: optional list<MediaLaneSettings> mediaLaneSettings,
-  8: optional list<HostLaneSettings> hostLaneSettings,
-  9: optional list<MediaInterfaceId> mediaInterface,
+  1: FeatureState cdrTx;
+  2: FeatureState cdrRx;
+  3: RateSelectState rateSelect;
+  4: FeatureState powerMeasurement;
+  5: PowerControlState powerControl;
+  6: RateSelectSetting rateSelectSetting;
+  7: optional list<MediaLaneSettings> mediaLaneSettings;
+  8: optional list<HostLaneSettings> hostLaneSettings;
+  9: optional list<MediaInterfaceId> mediaInterface;
 }
 
 // maintained and populated by qsfp service
 struct TransceiverStats {
   // duration between last read and last successful read
-  1: double readDownTime,
+  1: double readDownTime;
   // duration between last write and last successful write
-  2: double writeDownTime,
+  2: double writeDownTime;
 }
 
 struct ModuleStatus {
-  1: optional bool dataNotReady,
-  2: optional bool interruptL,
-  3: optional CmisModuleState cmisModuleState,
-  4: optional FirmwareStatus fwStatus,
+  1: optional bool dataNotReady;
+  2: optional bool interruptL;
+  3: optional CmisModuleState cmisModuleState;
+  4: optional FirmwareStatus fwStatus;
 }
 
 struct TransceiverInfo {
-  1: bool present,
-  2: TransceiverType transceiver,
-  3: i32 port,  // physical port number
-  4: optional GlobalSensors sensor,
-  5: optional AlarmThreshold thresholds,
-  9: optional Vendor vendor,
-  10: optional Cable cable,
-  12: list<Channel> channels,
-  13: optional TransceiverSettings settings,
-  14: optional TransceiverStats stats,
-  15: optional SignalFlags signalFlag,
-  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
-  17: optional TransceiverManagementInterface transceiverManagementInterface,
-  18: optional TransceiverModuleIdentifier identifier,
-  19: optional ModuleStatus status,
-  20: optional list<MediaLaneSignals> mediaLaneSignals,
-  21: optional list<HostLaneSignals> hostLaneSignals,
-  22: optional i64 timeCollected,
-  23: optional i64 remediationCounter,
-  24: optional VdmDiagsStats vdmDiagsStats,
-  25: optional bool eepromCsumValid,
+  1: bool present;
+  2: TransceiverType transceiver;
+  3: i32 port; // physical port number
+  4: optional GlobalSensors sensor;
+  5: optional AlarmThreshold thresholds;
+  9: optional Vendor vendor;
+  10: optional Cable cable;
+  12: list<Channel> channels;
+  13: optional TransceiverSettings settings;
+  14: optional TransceiverStats stats;
+  15: optional SignalFlags signalFlag;
+  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
+  17: optional TransceiverManagementInterface transceiverManagementInterface;
+  18: optional TransceiverModuleIdentifier identifier;
+  19: optional ModuleStatus status;
+  20: optional list<MediaLaneSignals> mediaLaneSignals;
+  21: optional list<HostLaneSignals> hostLaneSignals;
+  22: optional i64 timeCollected;
+  23: optional i64 remediationCounter;
+  24: optional VdmDiagsStats vdmDiagsStats;
+  25: optional bool eepromCsumValid;
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
@@ -351,11 +351,11 @@ struct RawDOMData {
   // every transceiver, but the rest are optional. If we need other
   // fields in the future we can add support for other pages.
   // Added page10 and page11 for cmis optics
-  1: IOBuf lower,
-  2: IOBuf page0,
-  3: optional IOBuf page3,
-  4: optional IOBuf page10,
-  5: optional IOBuf page11,
+  1: IOBuf lower;
+  2: IOBuf page0;
+  3: optional IOBuf page3;
+  4: optional IOBuf page10;
+  5: optional IOBuf page11;
 }
 
 // Create a union data structure where we can store SffData and
@@ -363,9 +363,9 @@ struct RawDOMData {
 // old RawDOMData structure.
 
 union DOMDataUnion {
-   1: Sff8636Data sff8636,
-   2: CmisData cmis,
- }
+  1: Sff8636Data sff8636;
+  2: CmisData cmis;
+}
 
 struct Sff8636Data {
   // The SFF DOM exposes at most 256 bytes at a time and is divided in
@@ -374,63 +374,63 @@ struct Sff8636Data {
   // ones we use now are upper pages 0 and 3. Page 0 is required of
   // every transceiver, but the rest are optional. If we need other
   // fields in the future we can add support for other pages.
-  1: IOBuf lower,
-  2: IOBuf page0,
-  3: optional IOBuf page3,
-  4: optional i64 timeCollected,
+  1: IOBuf lower;
+  2: IOBuf page0;
+  3: optional IOBuf page3;
+  4: optional i64 timeCollected;
 }
 
 struct CmisData {
   // Similar to SFF Data format, 256 bytes are exposed at a time and is
   // also divided into two 128 byte pages. Lower page stay the same but
   // we have more upper pages this time.
-  1: IOBuf lower,
-  2: IOBuf page0,
-  4: optional IOBuf page01,
-  5: optional IOBuf page02,
-  6: optional IOBuf page10,
-  7: optional IOBuf page11,
-  8: optional IOBuf page13,
-  9: optional IOBuf page14,
-  10: optional i64 timeCollected,
-  11: optional IOBuf page20,
-  12: optional IOBuf page21,
-  13: optional IOBuf page24,
-  14: optional IOBuf page25,
+  1: IOBuf lower;
+  2: IOBuf page0;
+  4: optional IOBuf page01;
+  5: optional IOBuf page02;
+  6: optional IOBuf page10;
+  7: optional IOBuf page11;
+  8: optional IOBuf page13;
+  9: optional IOBuf page14;
+  10: optional i64 timeCollected;
+  11: optional IOBuf page20;
+  12: optional IOBuf page21;
+  13: optional IOBuf page24;
+  14: optional IOBuf page25;
 }
 
 struct TransceiverIOParameters {
-  1: i32 offset,  // should range from 0 - 255
-  2: optional i32 page, // can be used to access bytes 128-255 from a different page than page0
-  3: optional i32 length, // Number of bytes to read. Not applicable for a write
+  1: i32 offset; // should range from 0 - 255
+  2: optional i32 page; // can be used to access bytes 128-255 from a different page than page0
+  3: optional i32 length; // Number of bytes to read. Not applicable for a write
 }
 
 struct ReadRequest {
-  1: list<i32> ids,
-  2: TransceiverIOParameters parameter,
+  1: list<i32> ids;
+  2: TransceiverIOParameters parameter;
 }
 
 struct ReadResponse {
-  1: bool valid,
-  2: IOBuf data,
+  1: bool valid;
+  2: IOBuf data;
 }
 
 struct WriteRequest {
-  1: list<i32> ids,
-  2: TransceiverIOParameters parameter,
-  3: byte data, // The data to write for a write request
+  1: list<i32> ids;
+  2: TransceiverIOParameters parameter;
+  3: byte data; // The data to write for a write request
 }
 
 struct WriteResponse {
-  1: bool success,
+  1: bool success;
 }
 
 struct DiagsCapability {
-  1: bool diagnostics = false,
-  2: bool vdm = false,
-  3: bool cdb = false,
-  4: bool prbsLine = false,
-  5: bool prbsSystem = false,
-  6: bool loopbackLine = false,
-  7: bool loopbackSystem = false,
+  1: bool diagnostics = false;
+  2: bool vdm = false;
+  3: bool cdb = false;
+  4: bool prbsLine = false;
+  5: bool prbsSystem = false;
+  6: bool loopbackLine = false;
+  7: bool loopbackSystem = false;
 }

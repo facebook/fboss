@@ -8,14 +8,14 @@ namespace py3 neteng.fboss
  */
 
 struct PacketTraceHashingInfo {
-  1: list<i32> potentialEgressPorts, // All PortIDs for the ECMP group
-  2: i32 actualEgressPort, // PortIDs for the actual egress
+  1: list<i32> potentialEgressPorts; // All PortIDs for the ECMP group
+  2: i32 actualEgressPort; // PortIDs for the actual egress
 }
 
 struct PacketTraceInfo {
-  1: list<i32> lookupResult,
-  2: i32 resolution = -1,
-  3: PacketTraceHashingInfo hashInfo,
-  4: i32 stpState = -1,
-  5: i32 destPipeNum = -1,
+  1: list<i32> lookupResult;
+  2: i32 resolution = -1;
+  3: PacketTraceHashingInfo hashInfo;
+  4: i32 stpState = -1;
+  5: i32 destPipeNum = -1;
 }

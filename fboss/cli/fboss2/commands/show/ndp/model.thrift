@@ -9,7 +9,7 @@ struct NdpEntry {
   2: string mac;
   3: i32 port;
   4: string vlanName;
-  5: i32 vlanID,
+  5: i32 vlanID;
   6: string state;
   7: i32 ttl;
   8: i32 classID;

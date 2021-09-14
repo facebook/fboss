@@ -66,9 +66,9 @@ struct MKASakHealthResponse {
 }
 
 struct MacsecPortPhyInfo {
-  1: i32 slotId
-  2: i32 mdioId
-  3: i32 phyId
+  1: i32 slotId;
+  2: i32 mdioId;
+  3: i32 phyId;
 }
 
 struct MacsecPortPhyMap {
@@ -76,66 +76,66 @@ struct MacsecPortPhyMap {
 }
 
 struct MacsecScInfo {
-  1: i32 scId
-  2: i32 flowId
-  3: i32 aclId
-  4: bool directionIngress
-  5: list<i32> saList
+  1: i32 scId;
+  2: i32 flowId;
+  3: i32 aclId;
+  4: bool directionIngress;
+  5: list<i32> saList;
 }
 
 struct MacsecPortInfo {
-  1: i32 ingressPort
-  2: i32 egressPort
+  1: i32 ingressPort;
+  2: i32 egressPort;
 }
 
 struct MacsecAllScInfo {
-  1: list<MacsecScInfo> scList
-  2: map<i32, MacsecPortInfo> linePortInfo
+  1: list<MacsecScInfo> scList;
+  2: map<i32, MacsecPortInfo> linePortInfo;
 }
 
 struct MacsecPortStats {
-  1: i64 preMacsecDropPkts
-  2: i64 controlPkts
-  3: i64 dataPkts
+  1: i64 preMacsecDropPkts;
+  2: i64 controlPkts;
+  3: i64 dataPkts;
 }
 
 struct MacsecFlowStats {
-  1: bool directionIngress
-  2: i64 ucastUncontrolledPkts
-  3: i64 ucastControlledPkts
-  4: i64 mcastUncontrolledPkts
-  5: i64 mcastControlledPkts
-  6: i64 bcastUncontrolledPkts
-  7: i64 bcastControlledPkts
-  8: i64 controlPkts
-  9: i64 untaggedPkts
-  10: i64 otherErrPkts
-  11: i64 octetsUncontrolled
-  12: i64 octetsControlled
-  13: i64 outCommonOctets
-  14: i64 outTooLongPkts
-  15: i64 inTaggedControlledPkts
-  16: i64 inUntaggedPkts
-  17: i64 inBadTagPkts
-  18: i64 noSciPkts
-  19: i64 unknownSciPkts
-  20: i64 overrunPkts
+  1: bool directionIngress;
+  2: i64 ucastUncontrolledPkts;
+  3: i64 ucastControlledPkts;
+  4: i64 mcastUncontrolledPkts;
+  5: i64 mcastControlledPkts;
+  6: i64 bcastUncontrolledPkts;
+  7: i64 bcastControlledPkts;
+  8: i64 controlPkts;
+  9: i64 untaggedPkts;
+  10: i64 otherErrPkts;
+  11: i64 octetsUncontrolled;
+  12: i64 octetsControlled;
+  13: i64 outCommonOctets;
+  14: i64 outTooLongPkts;
+  15: i64 inTaggedControlledPkts;
+  16: i64 inUntaggedPkts;
+  17: i64 inBadTagPkts;
+  18: i64 noSciPkts;
+  19: i64 unknownSciPkts;
+  20: i64 overrunPkts;
 }
 
 struct MacsecSaStats {
-  1: bool directionIngress
-  2: i64 octetsEncrypted
-  3: i64 octetsProtected
-  4: i64 outEncryptedPkts
-  5: i64 outProtectedPkts
-  6: i64 inUncheckedPkts
-  7: i64 inDelayedPkts
-  8: i64 inLatePkts
-  9: i64 inInvalidPkts
-  10: i64 inNotValidPkts
-  11: i64 inNoSaPkts
-  12: i64 inUnusedSaPkts
-  13: i64 inOkPkts
+  1: bool directionIngress;
+  2: i64 octetsEncrypted;
+  3: i64 octetsProtected;
+  4: i64 outEncryptedPkts;
+  5: i64 outProtectedPkts;
+  6: i64 inUncheckedPkts;
+  7: i64 inDelayedPkts;
+  8: i64 inLatePkts;
+  9: i64 inInvalidPkts;
+  10: i64 inNotValidPkts;
+  11: i64 inNoSaPkts;
+  12: i64 inUnusedSaPkts;
+  13: i64 inOkPkts;
 }
 
 enum MKAErrorLogType {
@@ -323,9 +323,7 @@ service MKAService extends fb303.FacebookService {
     1: KeyUpdate update,
     // Hostname of the switch being queried
     101: string targetedRouterName,
-  ) throws (
-    1: MKAServiceException error
-  );
+  ) throws (1: MKAServiceException error);
 
   /*
    * This function removes the Macsec profile from a given interface. This

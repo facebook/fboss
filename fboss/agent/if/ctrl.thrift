@@ -673,11 +673,12 @@ service FbossCtrl extends fb303.FacebookService {
   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
 
   // Get route counter values
-  map<string, i64> getRouteCounterBytes(
-  1: list<string> counters)
-    throws (1: fboss.FbossBaseError error)
-  map<string, i64> getAllRouteCounterBytes()
-    throws (1: fboss.FbossBaseError error)
+  map<string, i64> getRouteCounterBytes(1: list<string> counters) throws (
+    1: fboss.FbossBaseError error,
+  );
+  map<string, i64> getAllRouteCounterBytes() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Send packets in binary or hex format to controller.
@@ -845,11 +846,11 @@ service FbossCtrl extends fb303.FacebookService {
    * Set loopback mode for a port. Primarily used by tests
    */
   void setPortLoopbackMode(1: i32 portId, 2: PortLoopbackMode mode) throws (
-    1: fboss.FbossBaseError error
+    1: fboss.FbossBaseError error,
   );
 
   map<i32, PortLoopbackMode> getAllPortLoopbackMode() throws (
-    1: fboss.FbossBaseError error
+    1: fboss.FbossBaseError error,
   );
 
   /*
