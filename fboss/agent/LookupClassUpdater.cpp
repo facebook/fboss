@@ -18,17 +18,6 @@
 
 namespace facebook::fboss {
 
-template <typename AddrT>
-auto LookupClassUpdater::getTable(const std::shared_ptr<Vlan>& vlan) {
-  if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-    return vlan->getMacTable();
-  } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-    return vlan->getArpTable();
-  } else {
-    return vlan->getNdpTable();
-  }
-}
-
 int LookupClassUpdater::getRefCnt(
     PortID portID,
     const folly::MacAddress mac,
@@ -340,7 +329,8 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry : *getTable<AddrT>(vlan)) {
+    for (const auto& entry :
+         *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -378,7 +368,8 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry : *getTable<AddrT>(vlan)) {
+    for (const auto& entry :
+         *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -400,7 +391,8 @@ void LookupClassUpdater::validateRemovedPortEntries(
    * supported) for physical link only.
    */
 
-  for (const auto& entry : *getTable<AddrT>(vlan)) {
+  for (const auto& entry :
+       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
     if (entry->getPort().isPhysicalPort()) {
       CHECK(entry->getPort().phyPortID() != portID);
     }
@@ -605,7 +597,8 @@ template <typename AddrT>
 void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& port) {
-  for (const auto& entry : *(getTable<AddrT>(vlan))) {
+  for (const auto& entry :
+       *(VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
@@ -651,7 +644,9 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
   std::shared_ptr<NeighborEntryT> neighborEntry;
   std::shared_ptr<NeighborEntryT> linkLocalEntry = nullptr;
 
-  neighborEntry = getTable<AddrT>(vlan)->getEntryIf(ipAddress);
+  neighborEntry =
+      VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)->getEntryIf(
+          ipAddress);
   if (!neighborEntry) {
     return;
   }
@@ -663,7 +658,9 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
     // Derive link local IP from resolved neighbor's MAC
     auto linkLocalIpAddress = folly::IPAddressV6(
         folly::IPAddressV6::LINK_LOCAL, neighborEntry->getMac());
-    linkLocalEntry = getTable<AddrT>(vlan)->getEntryIf(linkLocalIpAddress);
+    linkLocalEntry =
+        VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)->getEntryIf(
+            linkLocalIpAddress);
     if (linkLocalEntry) {
       removeClassIDForPortAndMac(switchState, vlan->getID(), linkLocalEntry);
     }

@@ -36,6 +36,17 @@ class VlanTableDeltaCallbackGenerator {
     genTableCallbacks<folly::IPAddressV4>(stateDelta, cb);
   }
 
+  template <typename AddrT>
+  static auto getTable(const std::shared_ptr<Vlan>& vlan) {
+    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+      return vlan->getMacTable();
+    } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return vlan->getArpTable();
+    } else {
+      return vlan->getNdpTable();
+    }
+  }
+
  private:
   template <typename AddrT, typename Callback>
   static void genTableCallbacks(const StateDelta& stateDelta, Callback& cb) {
