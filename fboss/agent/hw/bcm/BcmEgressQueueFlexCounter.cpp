@@ -77,8 +77,9 @@ struct BcmEgressQueueStatsData {
   std::vector<uint32_t> indexes;
   std::vector<bcm_flexctr_counter_value_t> data;
 };
-using StatsDataMap = std::
-    unordered_map<bcm_gport_t, folly::Synchronized<BcmEgressQueueStatsData>>;
+using StatsDataMap = std::unordered_map<
+    bcm_gport_t,
+    folly::Synchronized<std::optional<BcmEgressQueueStatsData>>>;
 static StatsDataMap cpuStatsData;
 static StatsDataMap portStatsData;
 StatsDataMap& getStatsDataMap(bool isForCPU) {
@@ -382,39 +383,43 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
       " to port:",
       gPort);
 
-  auto& statsDataMap = getStatsDataMap(isForCPU_);
-  if (auto cachedPortIt = statsDataMap.find(gPort);
-      cachedPortIt != statsDataMap.end()) {
-    XLOG(DBG1) << "Trying to attach EgressQueue FlexCounter:" << counterID_
-               << ", which is already attached to port:" << gPort;
-  } else {
-    // After finish attaching the flex counter to such port, we assign
-    // BcmEgressQueueStatsData to this port
-    folly::Synchronized<BcmEgressQueueStatsData> statsData;
-    auto prepareStatData = [&](int totalQueue, cfg::StreamType streamType) {
-      for (int queue = 0; queue < totalQueue; queue++) {
-        statsData.wlock()->indexes.push_back(getCounterIndex(
-            hw_, gPort, streamType, queue, reservedNumQueuesPerPort_));
-        bcm_flexctr_counter_value_t values{};
-        statsData.wlock()->data.push_back(values);
-      }
-    };
-    if (gPort == BCM_GPORT_LOCAL_CPU) {
-      prepareStatData(numQueuesPerPort_, cfg::StreamType::MULTICAST);
-    } else {
-      // First handle UC queues
-      const auto* asic = hw_->getPlatform()->getAsic();
-      prepareStatData(
-          asic->getDefaultNumPortQueues(
-              cfg::StreamType::UNICAST, false /*not CPU*/),
-          cfg::StreamType::UNICAST);
-      prepareStatData(
-          asic->getDefaultNumPortQueues(
-              cfg::StreamType::MULTICAST, false /*not CPU*/),
-          cfg::StreamType::MULTICAST);
+  // Always update the statsData when attach is called to make sure the cache
+  // in statsDataMap has the latest queue settings.
+  BcmEgressQueueStatsData statsData;
+  auto prepareStatData = [&](int totalQueue, cfg::StreamType streamType) {
+    for (int queue = 0; queue < totalQueue; queue++) {
+      statsData.indexes.push_back(getCounterIndex(
+          hw_, gPort, streamType, queue, reservedNumQueuesPerPort_));
+      bcm_flexctr_counter_value_t values{};
+      statsData.data.push_back(values);
     }
+  };
+  if (gPort == BCM_GPORT_LOCAL_CPU) {
+    prepareStatData(numQueuesPerPort_, cfg::StreamType::MULTICAST);
+  } else {
+    // First handle UC queues
+    const auto* asic = hw_->getPlatform()->getAsic();
+    prepareStatData(
+        asic->getDefaultNumPortQueues(
+            cfg::StreamType::UNICAST, false /*not CPU*/),
+        cfg::StreamType::UNICAST);
+    prepareStatData(
+        asic->getDefaultNumPortQueues(
+            cfg::StreamType::MULTICAST, false /*not CPU*/),
+        cfg::StreamType::MULTICAST);
+  }
+
+  // Now try to get the lock to update the Syncronized object
+  auto& statsDataMap = getStatsDataMap(isForCPU_);
+  auto cachedPortIt = statsDataMap.find(gPort);
+  if (cachedPortIt == statsDataMap.end()) {
     statsDataMap.emplace(gPort, statsData);
-    XLOG(DBG1) << "Attached EgressQueue FlexCounter:" << counterID_
+    XLOG(DBG2) << "First time attach EgressQueueFlexCounter:" << counterID_
+               << " to port:" << gPort;
+  } else {
+    auto wLockedCache = cachedPortIt->second.wlock();
+    *wLockedCache = statsData;
+    XLOG(DBG2) << "Attached EgressQueue FlexCounter:" << counterID_
                << " to port:" << gPort;
   }
 #else
@@ -427,19 +432,26 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
 
 void BcmEgressQueueFlexCounter::detach(bcm_gport_t gPort) {
 #if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
-  // It's safe to call the detach function even if the counter is not attached
-  // to the port. Always call detach function here, so we can always make sure
-  // the flex counter is detached in HW
-  detachFromHW(hw_->getUnit(), gPort, counterID_);
-
   auto& statsDataMap = getStatsDataMap(isForCPU_);
   auto cachedPortIt = statsDataMap.find(gPort);
   if (cachedPortIt == statsDataMap.end()) {
-    XLOG(DBG1) << "Trying to detach EgressQueue FlexCounter:" << counterID_
+    // It's safe to call the detach function even if the counter is not attached
+    // to the port. Always call detach function here, so we can always make sure
+    // the flex counter is detached in HW
+    detachFromHW(hw_->getUnit(), gPort, counterID_);
+    XLOG(DBG2) << "Trying to detach EgressQueue FlexCounter:" << counterID_
                << ", which is already detached from port:" << gPort;
   } else {
-    statsDataMap.erase(cachedPortIt);
-    XLOG(DBG1) << "Detached EgressQueue FlexCounter:" << counterID_
+    // If the port already exists in statsDataMap, we need to fetch the wlock
+    // before actually detaching from HW
+    auto wLockedCache = cachedPortIt->second.wlock();
+    detachFromHW(hw_->getUnit(), gPort, counterID_);
+    // Instead of removing from the map, which might need a map level lock in
+    // order to make sure the getStats() won't try to access the iterator while
+    // it's in the process of detaching the flex counter, use std::optional as
+    // the value of this port level Synchorized.
+    *wLockedCache = std::nullopt;
+    XLOG(DBG2) << "Detached EgressQueue FlexCounter:" << counterID_
                << " from port:" << gPort;
   }
 #else
@@ -457,22 +469,29 @@ void BcmEgressQueueFlexCounter::getStats(
   auto& statsDataMap = getStatsDataMap(isForCPU_);
   auto statDataItr = statsDataMap.find(gPort);
   if (statDataItr == statsDataMap.end()) {
-    throw FbossError(
-        "Can't get queue stats before attaching FlexCounter to port:", gPort);
+    XLOG(WARN) << "Can't get queue stats before attaching FlexCounter to port:"
+               << gPort << ", skip getStats()";
+    return;
   }
   auto queuesStatData = statDataItr->second.wlock();
+  if (!queuesStatData->has_value()) {
+    // The port might be disabled recently
+    XLOG(WARN) << "Can't get queue stats before attaching FlexCounter to port:"
+               << gPort << ", skip getStats()";
+    return;
+  }
   auto rv = bcm_flexctr_stat_get(
       hw_->getUnit(),
       counterID_,
-      queuesStatData->indexes.size(),
-      queuesStatData->indexes.data(),
-      queuesStatData->data.data());
+      (*queuesStatData)->indexes.size(),
+      (*queuesStatData)->indexes.data(),
+      (*queuesStatData)->data.data());
   bcmCheckError(
       rv,
       "Failed to get Egress Queue FlexCounter stats for port:",
       gPort,
       ", #queues:",
-      queuesStatData->indexes.size());
+      (*queuesStatData)->indexes.size());
 
   int frontPanelUcQueueNum =
       hw_->getPlatform()->getAsic()->getDefaultNumPortQueues(
@@ -491,21 +510,21 @@ void BcmEgressQueueFlexCounter::getStats(
           if (auto queueStatsItr = stats[streamType].find(queueIdInQueueStats);
               queueStatsItr != stats[streamType].end()) {
             queueStatsItr->second[cfg::CounterType::PACKETS] =
-                queuesStatData->data[queue].value[0];
+                (*queuesStatData)->data[queue].value[0];
             queueStatsItr->second[cfg::CounterType::BYTES] =
-                queuesStatData->data[queue].value[1];
+                (*queuesStatData)->data[queue].value[1];
           }
         }
       };
 
   if (gPort == BCM_GPORT_LOCAL_CPU) {
     updateStatData(
-        0, queuesStatData->indexes.size() - 1, cfg::StreamType::MULTICAST);
+        0, (*queuesStatData)->indexes.size() - 1, cfg::StreamType::MULTICAST);
   } else {
     updateStatData(0, frontPanelUcQueueNum - 1, cfg::StreamType::UNICAST);
     updateStatData(
         frontPanelUcQueueNum,
-        queuesStatData->indexes.size() - 1,
+        (*queuesStatData)->indexes.size() - 1,
         cfg::StreamType::MULTICAST);
   }
 #else
