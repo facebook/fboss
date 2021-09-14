@@ -5,6 +5,7 @@
 
 add_library(wedge400_platform_mapping
   fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.cpp
+  fboss/agent/platforms/common/wedge400/Wedge400AcadiaPlatformMapping.cpp
 )
 
 target_link_libraries(wedge400_platform_mapping

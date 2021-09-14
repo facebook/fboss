@@ -35476,11 +35476,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
   ]
 }
 )";
-}
+} // namespace
 
 namespace facebook {
 namespace fboss {
 Wedge400PlatformMapping::Wedge400PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook
