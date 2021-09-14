@@ -57,11 +57,6 @@ void SaiNeighborManager::changeNeighbor(
   if (oldSwEntry->isPending() && newSwEntry->isPending()) {
     // We don't maintain pending entries so nothing to do here
   }
-  if (newSwEntry->getIP().version() == 6 && newSwEntry->getIP().isLinkLocal()) {
-    /* TODO: investigate and fix adding link local neighbors */
-    XLOG(INFO) << "skip modify of link local neighbor " << newSwEntry->getIP();
-    return;
-  }
   if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
     addNeighbor(newSwEntry);
   }
@@ -90,11 +85,6 @@ void SaiNeighborManager::addNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   if (swEntry->isPending()) {
     XLOG(INFO) << "skip adding unresolved neighbor " << swEntry->getIP();
-    return;
-  }
-  if (swEntry->getIP().version() == 6 && swEntry->getIP().isLinkLocal()) {
-    /* TODO: investigate and fix adding link local neighbors */
-    XLOG(INFO) << "skip adding link local neighbor " << swEntry->getIP();
     return;
   }
   XLOG(INFO) << "addNeighbor " << swEntry->getIP();
@@ -133,11 +123,6 @@ void SaiNeighborManager::addNeighbor(
 template <typename NeighborEntryT>
 void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
-  if (swEntry->getIP().version() == 6 && swEntry->getIP().isLinkLocal()) {
-    /* TODO: investigate and fix adding link local neighbors */
-    XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
-    return;
-  }
   if (swEntry->isPending()) {
     XLOG(INFO) << "skip removing unresolved neighbor " << swEntry->getIP();
     return;
