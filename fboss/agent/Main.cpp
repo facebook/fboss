@@ -293,36 +293,14 @@ void AgentInitializer::waitForQsfpServiceImpl(
   }
 }
 
+std::pair<uint32_t, bool> qsfpServiceWaitInfo(const Platform& platform);
 void AgentInitializer::waitForQsfpService(const Platform& platform) const {
-  std::chrono::duration<uint32_t, std::milli> msBetweenRetry(500);
-  uint32_t retries{0};
-  bool failHard{false};
-  switch (platform.getMode()) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::FUJI:
-      // TODO - add wait here as well?
-      break;
-    case PlatformMode::ELBERT:
-    case PlatformMode::CLOUDRIPPER:
-      retries = 200; // upto 100s
-      // Qsfp svc a must to program ports
-      failHard = true;
-      break;
-    // Fake, sim platforms - no qsfp svc
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
-    case PlatformMode::WEDGE400C_SIM:
-      break;
-  }
-  if (retries) {
-    waitForQsfpServiceImpl(retries, msBetweenRetry, failHard);
+  auto [waitForSeconds, failHard] = qsfpServiceWaitInfo(platform.getMode());
+  if (waitForSeconds) {
+    waitForQsfpServiceImpl(
+        waitForSeconds * 2 /*retry*/,
+        std::chrono::duration<uint32_t, std::milli>(500),
+        failHard);
   }
 }
 

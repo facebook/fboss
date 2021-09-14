@@ -17,4 +17,9 @@ void fbossInit(int argc, char** argv) {
   folly::init(&argc, &argv, true);
 }
 
+std::pair<uint32_t, bool> qsfpServiceWaitInfo(PlatformMode /*mode*/) {
+  int waitForSeconds{0};
+  bool failHard{false};
+  return {waitForSeconds, failHard};
+}
 } // namespace facebook::fboss
