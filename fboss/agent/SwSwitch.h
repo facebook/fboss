@@ -68,6 +68,7 @@ class StaticL2ForNeighborObserver;
 class MKAServiceManager;
 template <typename AddressT>
 class Route;
+class Interface;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -711,6 +712,17 @@ class SwSwitch : public HwSwitch::Callback {
   void stop(bool revertToMinAlpmState = false);
 
   void publishPhyInfoSnapshots(PortID portID) const;
+
+  bool sendArpRequestHelper(
+      std::shared_ptr<Interface> intf,
+      std::shared_ptr<SwitchState> state,
+      folly::IPAddressV4 source,
+      folly::IPAddressV4 target);
+
+  bool sendNdpSolicitationHelper(
+      std::shared_ptr<Interface> intf,
+      std::shared_ptr<SwitchState> state,
+      const folly::IPAddressV6& target);
 
  private:
   void updateStateBlockingImpl(

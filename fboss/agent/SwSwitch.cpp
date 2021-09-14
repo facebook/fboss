@@ -60,6 +60,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -1767,6 +1768,61 @@ void SwSwitch::l2LearningUpdateReceived(
     L2Entry l2Entry,
     L2EntryUpdateType l2EntryUpdateType) {
   macTableManager_->handleL2LearningUpdate(l2Entry, l2EntryUpdateType);
+}
+
+bool SwSwitch::sendArpRequestHelper(
+    std::shared_ptr<Interface> intf,
+    std::shared_ptr<SwitchState> state,
+    folly::IPAddressV4 source,
+    folly::IPAddressV4 target) {
+  bool sent = false;
+  auto vlanID = intf->getVlanID();
+  auto vlan = state->getVlans()->getVlanIf(vlanID);
+  if (vlan) {
+    auto entry = vlan->getArpTable()->getEntryIf(target);
+    if (entry == nullptr) {
+      // No entry in ARP table, send ARP request
+      auto mac = intf->getMac();
+      ArpHandler::sendArpRequest(this, vlanID, mac, source, target);
+
+      // Notify the updater that we sent an arp request
+      getNeighborUpdater()->sentArpRequest(vlanID, target);
+      sent = true;
+    } else {
+      XLOG(DBG4) << "not sending arp for " << target.str() << ", "
+                 << ((entry->isPending()) ? "pending " : "")
+                 << "entry already exists";
+    }
+  }
+
+  return sent;
+}
+
+bool SwSwitch::sendNdpSolicitationHelper(
+    std::shared_ptr<Interface> intf,
+    std::shared_ptr<SwitchState> state,
+    const folly::IPAddressV6& target) {
+  bool sent = false;
+  auto vlanID = intf->getVlanID();
+  auto vlan = state->getVlans()->getVlanIf(vlanID);
+  if (vlan) {
+    auto entry = vlan->getNdpTable()->getEntryIf(target);
+    if (entry == nullptr) {
+      // No entry in NDP table, create a neighbor solicitation packet
+      IPv6Handler::sendMulticastNeighborSolicitation(
+          this, target, intf->getMac(), vlan->getID());
+
+      // Notify the updater that we sent a solicitation out
+      getNeighborUpdater()->sentNeighborSolicitation(vlanID, target);
+      sent = true;
+    } else {
+      XLOG(DBG5) << "not sending neighbor solicitation for " << target.str()
+                 << ", " << ((entry->isPending()) ? "pending" : "")
+                 << " entry already exists";
+    }
+  }
+
+  return sent;
 }
 
 } // namespace facebook::fboss

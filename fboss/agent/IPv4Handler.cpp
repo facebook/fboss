@@ -268,30 +268,25 @@ bool IPv4Handler::resolveMac(
   for (auto nh : nhs) {
     auto intf = intfs->getInterfaceIf(nh.intf());
     if (intf) {
-      auto source = intf->getAddressToReach(nh.addr())->first.asV4();
-      auto target = route->isConnected() ? dest : nh.addr().asV4();
-      if (source == target) {
-        // This packet is for us.  Don't send ARP requess for our own IP.
-        continue;
-      }
-
-      auto vlanID = intf->getVlanID();
-      auto vlan = state->getVlans()->getVlanIf(vlanID);
-      if (vlan) {
-        auto entry = vlan->getArpTable()->getEntryIf(target);
-        if (entry == nullptr) {
-          // No entry in ARP table, send ARP request
-          auto mac = intf->getMac();
-          ArpHandler::sendArpRequest(sw_, vlanID, mac, source, target);
-
-          // Notify the updater that we sent an arp request
-          sw_->getNeighborUpdater()->sentArpRequest(vlanID, target);
-          sent = true;
-        } else {
-          XLOG(DBG4) << "not sending arp for " << target.str() << ", "
-                     << ((entry->isPending()) ? "pending " : "")
-                     << "entry already exists";
+      if (nh.addr().isV4()) {
+        auto source = intf->getAddressToReach(nh.addr())->first.asV4();
+        auto target = route->isConnected() ? dest : nh.addr().asV4();
+        if (source == target) {
+          // This packet is for us.  Don't send ARP requess for our own IP.
+          continue;
         }
+
+        sent = sw_->sendArpRequestHelper(intf, state, source, target);
+
+      } else if (nh.addr().isV6() && !route->isConnected()) {
+        auto source = intf->getAddressToReach(nh.addr())->first.asV6();
+        auto target = nh.addr().asV6();
+        if (source == target) {
+          // This packet is for us.  Don't send NDP requests to ourself.
+          continue;
+        }
+
+        sent = sw_->sendNdpSolicitationHelper(intf, state, target);
       }
     }
   }
