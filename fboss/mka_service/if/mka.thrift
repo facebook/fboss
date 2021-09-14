@@ -9,6 +9,7 @@ namespace go neteng.fboss.mka
 include "common/fb303/if/fb303.thrift"
 include "fboss/mka_service/if/mka_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
+include "fboss/mka_service/if/mka_participant.thrift"
 
 cpp_include "<unordered_set>"
 
@@ -265,6 +266,10 @@ struct EthernetStatus {
   4: OperStatus operStatus = OperStatus.OPER_UNKNOWN;
 }
 
+struct MKASessionInfo {
+  1: mka_participant.MKAParticipantCtx participantCtx;
+}
+
 /*
  * MKAService provides interface to the user or mka_service process through
  * thrift interface. The users are key_server and other test code. The
@@ -289,6 +294,8 @@ service MKAService extends fb303.FacebookService {
   );
 
   list<string> getActivePorts() (cpp.coroutine);
+
+  list<MKASessionInfo> getSessions() (cpp.coroutine);
 
   /*
    * This function creates/updates the macsec profile on a given interface. The
