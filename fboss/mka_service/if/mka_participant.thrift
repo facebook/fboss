@@ -6,12 +6,13 @@ namespace py neteng.fboss.mka.mka_participant
 
 include "fboss/mka_service/if/mka_config.thrift"
 include "fboss/mka_service/if/mka.thrift"
+include "fboss/mka_service/if/mka_structs.thrift"
 
 cpp_include "folly/io/IOBuf.h"
 
 struct MKAParticipantCtx {
-  1: mka_config.Cak cak;
-  2: mka_config.MKAConfidentialityOffset confidentOffset = mka_config.MKAConfidentialityOffset.CONFIDENTIALITY_NO_OFFSET;
+  1: mka_structs.Cak cak;
+  2: mka_structs.MKAConfidentialityOffset confidentOffset = mka_structs.MKAConfidentialityOffset.CONFIDENTIALITY_NO_OFFSET;
   // When distSAK_ is set, then participant is the keyserver
   // and when mkpdu is sent, we will distribute the sak.
   // when all the peers have consumed the sak then we'll reset this flag.
@@ -33,7 +34,7 @@ struct MKAParticipantCtx {
   13: string ick;
   14: string kek;
   15: string l2Port;
-  16: mka_config.MKACipherSuite cipher = mka_config.MKACipherSuite.GCM_AES_XPN_128;
+  16: mka_structs.MKACipherSuite cipher = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
   17: string srcMac;
   18: bool valid = false;
 }

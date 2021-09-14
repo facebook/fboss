@@ -8,6 +8,7 @@ namespace go neteng.fboss.mka
 
 include "common/fb303/if/fb303.thrift"
 include "fboss/mka_service/if/mka_config.thrift"
+include "fboss/mka_service/if/mka_structs.thrift"
 
 cpp_include "<unordered_set>"
 
@@ -50,7 +51,7 @@ struct MKASak {
   3: i16 assocNum = 0;
   4: string keyHex;
   5: string keyIdHex;
-  6: mka_config.MKAConfidentialityOffset confidentOffset = mka_config.MKAConfidentialityOffset.CONFIDENTIALITY_NO_OFFSET;
+  6: mka_structs.MKAConfidentialityOffset confidentOffset = mka_structs.MKAConfidentialityOffset.CONFIDENTIALITY_NO_OFFSET;
   7: bool primary = false;
 }
 
@@ -198,7 +199,7 @@ struct InterfaceProfile {
   // traffic policy for the profile, default to unknown
   6: TrafficPolicy trafficPolicy = TrafficPolicy.POLICY_UNKNOWN;
   // Cipher suite for the key
-  7: mka_config.MKACipherSuite cipherSuite;
+  7: mka_structs.MKACipherSuite cipherSuite;
 }
 
 /*
@@ -223,9 +224,9 @@ struct KeyUpdate {
   // Key server priority
   2: i16 priority = mka_config.DEFAULT_KEYSERVER_PRIORITY;
   // The primary or secondary keys to use
-  3: optional mka_config.Cak primaryCak;
+  3: optional mka_structs.Cak primaryCak;
   // Secondary key
-  4: optional mka_config.Cak secondaryCak;
+  4: optional mka_structs.Cak secondaryCak;
   // Key selector to choose primary or secondary key
   5: KeyType keySelect = KeyType.PRIMARY_KEY;
   // Traffic policy, Active SAK is the default/existing behavior
@@ -234,7 +235,7 @@ struct KeyUpdate {
   // for a key
   7: mka_config.MKATimers timers;
   // Cipher suite for the key
-  8: mka_config.MKACipherSuite cipherSuite = mka_config.MKACipherSuite.GCM_AES_XPN_128;
+  8: mka_structs.MKACipherSuite cipherSuite = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
 }
 
 /*
@@ -277,7 +278,7 @@ struct EthernetStatus {
   // created/updated for it earlier
   1: string profileName = "";
   // Currently we support cipher suite XPN_128 and XPN_256
-  2: mka_config.MKACipherSuite cipher = mka_config.MKACipherSuite.GCM_AES_XPN_128;
+  2: mka_structs.MKACipherSuite cipher = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
   // Macsec profile's key status
   3: ProfileKeyStatus keyStatus = ProfileKeyStatus.KEY_UNKNOWN;
   // Macsec operational status
