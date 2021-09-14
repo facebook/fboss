@@ -10,6 +10,7 @@ include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka.thrift"
+include "fboss/mka_service/if/mka_structs.thrift"
 
 service QsfpService extends fb303.FacebookService {
   transceiver.TransceiverType getType(1: i32 idx);
@@ -93,23 +94,25 @@ service QsfpService extends fb303.FacebookService {
     2: switch_config.PortProfileID portProfileId,
   );
 
-  bool sakInstallRx(1: mka.MKASak sak, 2: mka.MKASci sciToAdd) throws (
+  bool sakInstallRx(
+    1: mka_structs.MKASak sak,
+    2: mka_structs.MKASci sciToAdd,
+  ) throws (1: mka.MKAServiceException ex) (cpp.coroutine);
+
+  bool sakInstallTx(1: mka_structs.MKASak sak) throws (
     1: mka.MKAServiceException ex,
   ) (cpp.coroutine);
 
-  bool sakInstallTx(1: mka.MKASak sak) throws (1: mka.MKAServiceException ex) (
-    cpp.coroutine,
-  );
+  bool sakDeleteRx(
+    1: mka_structs.MKASak sak,
+    2: mka_structs.MKASci sciToRemove,
+  ) throws (1: mka.MKAServiceException ex) (cpp.coroutine);
 
-  bool sakDeleteRx(1: mka.MKASak sak, 2: mka.MKASci sciToRemove) throws (
+  bool sakDelete(1: mka_structs.MKASak sak) throws (
     1: mka.MKAServiceException ex,
   ) (cpp.coroutine);
 
-  bool sakDelete(1: mka.MKASak sak) throws (1: mka.MKAServiceException ex) (
-    cpp.coroutine,
-  );
-
-  mka.MKASakHealthResponse sakHealthCheck(1: mka.MKASak sak) throws (
+  mka.MKASakHealthResponse sakHealthCheck(1: mka_structs.MKASak sak) throws (
     1: mka.MKAServiceException ex,
   ) (cpp.coroutine);
 

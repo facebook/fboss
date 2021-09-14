@@ -5,7 +5,6 @@ namespace py3 neteng.fboss.mka
 namespace py neteng.fboss.mka.mka_participant
 
 include "fboss/mka_service/if/mka_config.thrift"
-include "fboss/mka_service/if/mka.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 
 cpp_include "folly/io/IOBuf.h"
@@ -67,5 +66,5 @@ struct MKASakListConfig {
   // magic string to find corrupted configs.
   2: string magic;
   3: i64 timestamp;
-  4: list<mka.MKAActiveSakSession> sakList;
+  4: list<mka_structs.MKAActiveSakSession> sakList;
 }
