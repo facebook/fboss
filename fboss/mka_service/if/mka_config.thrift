@@ -51,3 +51,12 @@ struct MKAConfig {
   // Arista switch supports only AES_XPN_128 and AES_XPN_256
   11: mka_structs.MKACipherSuite cipher = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
 }
+
+struct MKAServiceConfig {
+  // This is used to override the default command line arguments we
+  // pass to MKA service.
+  1: map<string, string> defaultCommandLineArgs = {};
+
+  // This has a list of MKA CAK keys, one per port.
+  2: list<MKAConfig> portMKAConfig = [];
+}
