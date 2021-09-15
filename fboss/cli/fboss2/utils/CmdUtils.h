@@ -25,6 +25,8 @@ const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 
+const std::string getPrettyElapsedTime(const int64_t& start_time);
+
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const std::string& cmdName);

@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <string>
 
 using namespace std::chrono;
 
@@ -88,6 +89,39 @@ void setLogLevel(std::string logLevelStr) {
   }
 
   XLOG(DBG1) << "Setting loglevel to " << logLevelStr;
+}
+
+const std::string getPrettyElapsedTime(const int64_t& start_time) {
+  /* borrowed from "pretty_timedelta function" in fb_toolkit
+     takes an epoch time and returns a pretty string of elapsed time
+  */
+  auto startTime = seconds(start_time);
+  auto time_now = system_clock::now();
+  auto elapsed_time = time_now - startTime;
+
+  time_t elapsed_convert = system_clock::to_time_t(elapsed_time);
+
+  int days = 0, hours = 0, minutes = 0;
+
+  days = elapsed_convert / 86400;
+
+  int64_t leftover = elapsed_convert % 86400;
+
+  hours = leftover / 3600;
+  leftover %= 3600;
+
+  minutes = leftover / 60;
+  leftover %= 60;
+
+  std::string pretty_output = "";
+  if (days != 0) {
+    pretty_output += std::to_string(days) + "d ";
+  }
+  pretty_output += std::to_string(hours) + "h ";
+  pretty_output += std::to_string(minutes) + "m ";
+  pretty_output += std::to_string(leftover) + "s";
+
+  return pretty_output;
 }
 
 } // namespace facebook::fboss::utils
