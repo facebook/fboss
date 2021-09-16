@@ -28,8 +28,8 @@ struct IPVersion<folly::IPAddressV6> {
 template <class T>
 thrift::Address toAddressImpl(const T& addr) {
   thrift::Address result;
-  result.addr = addr.toFullyQualified();
-  result.type = IPVersion<T>::value;
+  *result.addr_ref() = addr.toFullyQualified();
+  *result.type_ref() = IPVersion<T>::value;
   return result;
 }
 
@@ -42,7 +42,7 @@ inline thrift::Address toAddress(const folly::IPAddress& ip) {
 template <class IPAddressVx>
 thrift::BinaryAddress toBinaryAddressImpl(const IPAddressVx& addr) {
   thrift::BinaryAddress result;
-  result.addr.append(
+  result.addr_ref()->append(
       reinterpret_cast<const char*>(addr.bytes()), IPAddressVx::byteCount());
   return result;
 }
@@ -62,8 +62,8 @@ inline folly::IPAddress toIPAddress(const T& input) {
 
 inline folly::IPAddress toIPAddress(const thrift::BinaryAddress& addr) {
   return folly::IPAddress::fromBinary(folly::ByteRange(
-      reinterpret_cast<const unsigned char*>(addr.addr.data()),
-      addr.addr.size()));
+      reinterpret_cast<const unsigned char*>(addr.addr_ref()->data()),
+      addr.addr_ref()->size()));
 }
 
 } // namespace facebook::network
