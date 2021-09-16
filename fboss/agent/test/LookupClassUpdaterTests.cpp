@@ -631,6 +631,36 @@ TYPED_TEST(
   });
 }
 
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassBlockThenUnblockMultipleNeighbors) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getIpAddress2(), this->kMacAddress2());
+
+  // neighbor1 unblocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper({}, std::nullopt, std::nullopt);
+
+  // neighbor1 blocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress()}, cfg::AclLookupClass::CLASS_DROP, std::nullopt);
+
+  // neighbor1 blocked, neighbor2 blocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress(), this->getIpAddress2()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // neighbor1 unblocked, neighbor2 blocked
+  this->verifyMultipleBlockedNeighborHelper(
+      {this->getIpAddress2()}, std::nullopt, cfg::AclLookupClass::CLASS_DROP);
+
+  // neighbor1 unblocked, neighbor2 unblocked
+  this->verifyMultipleBlockedNeighborHelper({}, std::nullopt, std::nullopt);
+}
+
 TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
   // resolve neighbor
   this->resolve(this->getIpAddress(), this->kMacAddress());
