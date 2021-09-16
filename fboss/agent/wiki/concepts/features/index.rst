@@ -3,3 +3,5 @@
 
 .. toctree::
    :maxdepth: 3
+
+  watermark_stats
