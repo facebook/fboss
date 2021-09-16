@@ -486,8 +486,8 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
 
   void verifyMultipleBlockedNeighborHelper(
       const std::vector<IPAddress>& blockNeighbors,
-      cfg::AclLookupClass classID1,
-      cfg::AclLookupClass classID2) {
+      std::optional<cfg::AclLookupClass> classID1,
+      std::optional<cfg::AclLookupClass> classID2) {
     updateBlockedNeighbor(this->getSw(), this->kVlan(), blockNeighbors);
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       this->verifyClassIDHelper(
@@ -586,6 +586,42 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveThenBlockNeighbor) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP);
+  });
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassBlockNeighborThenResolve) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP);
+  });
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassResolveThenBlockNeighbor) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+  });
+
   updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
