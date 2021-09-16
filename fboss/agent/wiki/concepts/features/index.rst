@@ -4,4 +4,5 @@
 .. toctree::
    :maxdepth: 3
 
-  watermark_stats
+   tunnel_intfs
+   watermark_stats
