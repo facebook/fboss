@@ -55,10 +55,17 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   auto portID = removedEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
 
-  if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
+  bool isDropClassID = removedEntry->getClassID().has_value() &&
+      removedEntry->getClassID().value() == cfg::AclLookupClass::CLASS_DROP;
+
+  if (!portHasClassID(port) && !isDropClassID) {
     /*
      * Only downlink ports of Yosemite RSW will have lookupClasses
      * configured. For all other ports, control returns here.
+     *
+     * There is one exception to this: if a traffic to a neighbor is blocked,
+     * it has CLASS_DROP associated with it on MH-NIC as well as non-MH-NIC
+     * setup. Thus, continue to process CLASS_DROP.
      */
     return;
   }
@@ -124,15 +131,11 @@ void LookupClassUpdater::updateNeighborClassID(
 
   auto portID = newEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
-
-  if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
-    /*
-     * Only downlink ports of Yosemite RSW will have lookupClasses
-     * configured. For all other ports, control returns here.
-     */
+  if (!port) {
     return;
   }
 
+  auto noLookupClasses = !portHasClassID(port);
   auto setDropClassID = isPresentInBlockList(vlanID, newEntry);
   auto mac = newEntry->getMac();
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
@@ -142,6 +145,11 @@ void LookupClassUpdater::updateNeighborClassID(
 
   auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
   if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
+    if (noLookupClasses && !setDropClassID) {
+      // For noLookupClasses (non-MH-NIC) only process if CLASS_DROP
+      return;
+    }
+
     classID = setDropClassID ? cfg::AclLookupClass::CLASS_DROP
                              : getClassIDwithMinimumNeighbors(classID2Count);
     macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
@@ -154,6 +162,11 @@ void LookupClassUpdater::updateNeighborClassID(
     }
   } else {
     auto& [_classID, refCnt] = iter->second;
+    if (noLookupClasses && _classID != cfg::AclLookupClass::CLASS_DROP) {
+      // For noLookupClasses (non-MH-NIC) only process if CLASS_DROP
+      return;
+    }
+
     classID = _classID;
     refCnt++;
   }
@@ -332,6 +345,10 @@ void LookupClassUpdater::processChanged(
       updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
     }
   }
+}
+
+bool LookupClassUpdater::portHasClassID(const std::shared_ptr<Port>& port) {
+  return port && port->getLookupClassesToDistributeTrafficOn().size();
 }
 
 template <typename AddrT>
