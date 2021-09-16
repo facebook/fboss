@@ -11,11 +11,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
-#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
@@ -76,14 +75,26 @@ class HwRouteOverDifferentAddressFamilyNhopTest
 
  protected:
   template <typename RouteAddrT, typename NhopAddrT>
-  void runTest() {
-    auto setup = [this] {
+  void runTest(bool useLinkLocalNhop = false) {
+    if (useLinkLocalNhop) {
+      if constexpr (std::is_same_v<NhopAddrT, folly::IPAddressV4>) {
+        CHECK(false) << "Link local hop only supported for V6";
+      }
+    }
+    auto setup = [this, useLinkLocalNhop] {
       utility::EcmpSetupTargetedPorts<NhopAddrT> ecmpHelper(
           getProgrammedState());
-      auto addRoute = [this, &ecmpHelper](auto nw, const auto& nhopPorts) {
-        std::vector<NhopAddrT> nhops;
+      auto addRoute = [this, &ecmpHelper, useLinkLocalNhop](
+                          auto nw, const auto& nhopPorts) {
+        RouteNextHopEntry::NextHopSet nhops;
         for (auto nhopPort : nhopPorts) {
-          nhops.push_back(ecmpHelper.nhop(nhopPort).ip);
+          auto nhop = ecmpHelper.nhop(nhopPort);
+          if (useLinkLocalNhop) {
+            nhops.insert(
+                ResolvedNextHop(*nhop.linkLocalNhopIp, nhop.intf, ECMP_WEIGHT));
+          } else {
+            nhops.insert(UnresolvedNextHop(nhop.ip, ECMP_WEIGHT));
+          }
         }
         auto updater = getRouteUpdater();
         updater->addRoute(
@@ -91,7 +102,7 @@ class HwRouteOverDifferentAddressFamilyNhopTest
             nw.first,
             nw.second,
             ClientID::BGPD,
-            RouteNextHopEntry(makeNextHops(nhops), AdminDistance::EBGP));
+            RouteNextHopEntry(nhops, AdminDistance::EBGP));
         updater->program();
       };
       boost::container::flat_set<PortDescriptor> ecmpNhopPorts(
@@ -101,8 +112,8 @@ class HwRouteOverDifferentAddressFamilyNhopTest
           {PortDescriptor(masterLogicalPortIds()[2])});
       for (auto ecmp : {true, false}) {
         auto nhopPorts = ecmp ? ecmpNhopPorts : nonEcmpNhopPorts;
-        applyNewState(
-            ecmpHelper.resolveNextHops(getProgrammedState(), nhopPorts));
+        applyNewState(ecmpHelper.resolveNextHops(
+            getProgrammedState(), nhopPorts, useLinkLocalNhop));
         addRoute(getPrefix<RouteAddrT>(ecmp), nhopPorts);
       }
     };
@@ -118,6 +129,11 @@ class HwRouteOverDifferentAddressFamilyNhopTest
 
 TEST_F(HwRouteOverDifferentAddressFamilyNhopTest, v4RouteV6Nhops) {
   runTest<folly::IPAddressV4, folly::IPAddressV6>();
+}
+
+TEST_F(HwRouteOverDifferentAddressFamilyNhopTest, v4RouteV6LinkLocalNhops) {
+  runTest<folly::IPAddressV4, folly::IPAddressV6>(
+      true /*use link local nhops*/);
 }
 
 TEST_F(HwRouteOverDifferentAddressFamilyNhopTest, v6RouteV4Nhops) {
