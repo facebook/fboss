@@ -209,6 +209,7 @@ TEST(Port, ToFromWithPgConfigs) {
   auto portPgsTmp = portPgs.value();
   EXPECT_EQ(portPgsTmp.size(), 3);
   auto dyn1 = port->toFollyDynamic();
+  dyn1.erase(ThriftyUtils::kThriftySchemaUpToDate);
   auto dyn2 = folly::parseJson(jsonStr);
   EXPECT_EQ(dyn1, dyn2);
 }
@@ -363,6 +364,7 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(
       cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction_ref());
   auto dyn1 = port->toFollyDynamic();
+  dyn1.erase(ThriftyUtils::kThriftySchemaUpToDate);
   auto dyn2 = folly::parseJson(jsonStr);
 
   EXPECT_EQ(dyn1, dyn2);

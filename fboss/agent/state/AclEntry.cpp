@@ -49,6 +49,17 @@ constexpr auto kAclAction = "aclAction";
 
 namespace facebook::fboss {
 
+state::AclTtl AclTtl::toThrift() const {
+  auto aclTtl = state::AclTtl();
+  aclTtl.value_ref() = value_;
+  aclTtl.mask_ref() = mask_;
+  return aclTtl;
+}
+
+AclTtl AclTtl::fromThrift(state::AclTtl const& ttl) {
+  return AclTtl(ttl.get_value(), ttl.get_mask());
+}
+
 folly::dynamic AclTtl::toFollyDynamic() const {
   folly::dynamic ttl = folly::dynamic::object;
   ttl[kTtlValue] = static_cast<uint16_t>(value_);
@@ -64,6 +75,149 @@ AclTtl AclTtl::fromFollyDynamic(const folly::dynamic& ttlJson) {
     throw FbossError("ttl should have a mask set");
   }
   return AclTtl(ttlJson[kTtlValue].asInt(), ttlJson[kTtlMask].asInt());
+}
+
+state::AclEntryFields AclEntryFields::toThrift() const {
+  auto entry = state::AclEntryFields();
+  entry.priority_ref() = priority;
+  entry.name_ref() = name;
+
+  if (srcIp.first) {
+    entry.srcIp_ref() = IPAddress::networkToString(srcIp);
+  }
+  if (dstIp.first) {
+    entry.dstIp_ref() = IPAddress::networkToString(dstIp);
+  }
+
+  entry.proto_ref().from_optional(proto);
+  entry.tcpFlagsBitMap_ref().from_optional(tcpFlagsBitMap);
+  entry.srcPort_ref().from_optional(srcPort);
+  entry.dstPort_ref().from_optional(dstPort);
+  entry.ipFrag_ref().from_optional(ipFrag);
+  entry.proto_ref().from_optional(proto);
+  entry.proto_ref().from_optional(proto);
+
+  if (ttl.has_value()) {
+    entry.ttl_ref() = ttl->toThrift();
+  }
+
+  entry.icmpType_ref().from_optional(icmpType);
+  entry.icmpCode_ref().from_optional(icmpCode);
+  entry.dscp_ref().from_optional(dscp);
+  entry.ipType_ref().from_optional(ipType);
+
+  if (dstMac.has_value()) {
+    entry.dstMac_ref() = dstMac->toString();
+  }
+  entry.l4SrcPort_ref().from_optional(l4SrcPort);
+  entry.l4DstPort_ref().from_optional(l4DstPort);
+  entry.lookupClassL2_ref().from_optional(lookupClassL2);
+  entry.lookupClass_ref().from_optional(lookupClass);
+  entry.lookupClassNeighbor_ref().from_optional(lookupClassNeighbor);
+  entry.lookupClassRoute_ref().from_optional(lookupClassRoute);
+  entry.packetLookupResult_ref().from_optional(packetLookupResult);
+  entry.etherType_ref().from_optional(etherType);
+  entry.actionType_ref() = actionType;
+
+  if (aclAction.has_value()) {
+    entry.aclAction_ref() = aclAction->toThrift();
+  }
+
+  return entry;
+}
+
+AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
+  auto aclEntryFields = AclEntryFields(entry.get_priority(), entry.get_name());
+
+  if (auto srcIp = entry.srcIp_ref()) {
+    aclEntryFields.srcIp = IPAddress::createNetwork(*srcIp);
+  }
+  if (auto dstIp = entry.dstIp_ref()) {
+    aclEntryFields.dstIp = IPAddress::createNetwork(*dstIp);
+  }
+
+  if (aclEntryFields.srcIp.first && aclEntryFields.dstIp.first &&
+      aclEntryFields.srcIp.first.isV4() != aclEntryFields.dstIp.first.isV4()) {
+    throw FbossError(
+        "Unmatched ACL IP versions ",
+        aclEntryFields.srcIp.first,
+        " vs ",
+        aclEntryFields.dstIp.first);
+  }
+
+  aclEntryFields.proto = entry.proto_ref().to_optional();
+  aclEntryFields.tcpFlagsBitMap = entry.tcpFlagsBitMap_ref().to_optional();
+  aclEntryFields.srcPort = entry.srcPort_ref().to_optional();
+  aclEntryFields.dstPort = entry.dstPort_ref().to_optional();
+  aclEntryFields.ipFrag = entry.ipFrag_ref().to_optional();
+  aclEntryFields.proto = entry.proto_ref().to_optional();
+  aclEntryFields.proto = entry.proto_ref().to_optional();
+
+  if (auto ttl = entry.ttl_ref()) {
+    aclEntryFields.ttl = AclTtl::fromThrift(*ttl);
+  }
+
+  aclEntryFields.icmpType = entry.icmpType_ref().to_optional();
+  aclEntryFields.icmpCode = entry.icmpCode_ref().to_optional();
+  aclEntryFields.dscp = entry.dscp_ref().to_optional();
+  aclEntryFields.ipType = entry.ipType_ref().to_optional();
+
+  if (auto dstMac = entry.dstMac_ref()) {
+    aclEntryFields.dstMac = folly::MacAddress(*dstMac);
+  }
+
+  aclEntryFields.l4SrcPort = entry.l4SrcPort_ref().to_optional();
+  aclEntryFields.l4DstPort = entry.l4DstPort_ref().to_optional();
+  aclEntryFields.lookupClassL2 = entry.lookupClassL2_ref().to_optional();
+  aclEntryFields.lookupClass = entry.lookupClass_ref().to_optional();
+  aclEntryFields.lookupClassNeighbor =
+      entry.lookupClassNeighbor_ref().to_optional();
+  aclEntryFields.lookupClassRoute = entry.lookupClassRoute_ref().to_optional();
+  aclEntryFields.packetLookupResult =
+      entry.packetLookupResult_ref().to_optional();
+  aclEntryFields.etherType = entry.etherType_ref().to_optional();
+  aclEntryFields.actionType = entry.get_actionType();
+  if (auto aclAction = entry.aclAction_ref()) {
+    aclEntryFields.aclAction = MatchAction::fromThrift(*aclAction);
+  }
+
+  return aclEntryFields;
+}
+
+// TODO: remove all migration along with old ser/des after next disruptive push
+folly::dynamic AclEntryFields::migrateToThrifty(const folly::dynamic& dyn) {
+  folly::dynamic newDyn = dyn;
+
+  // rename IpType -> ipType just for thrift name convention
+  ThriftyUtils::renameField(newDyn, kIpType, "ipType");
+
+  ThriftyUtils::changeEnumToInt<cfg::IpFragMatch>(newDyn, kIpFrag);
+  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClassL2);
+  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClass);
+  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(
+      newDyn, kLookupClassNeighbor);
+  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClassRoute);
+  ThriftyUtils::changeEnumToInt<cfg::AclActionType>(newDyn, kActionType);
+  if (auto it = newDyn.find(kAclAction); it != newDyn.items().end()) {
+    it->second = MatchAction::migrateToThrifty(it->second);
+  }
+
+  return newDyn;
+}
+
+void AclEntryFields::migrateFromThrifty(folly::dynamic& dyn) {
+  ThriftyUtils::renameField(dyn, "ipType", kIpType);
+
+  ThriftyUtils::changeEnumToString<cfg::IpFragMatch>(dyn, kIpFrag);
+  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClassL2);
+  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClass);
+  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(
+      dyn, kLookupClassNeighbor);
+  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClassRoute);
+  ThriftyUtils::changeEnumToString<cfg::AclActionType>(dyn, kActionType);
+  if (auto it = dyn.find(kAclAction); it != dyn.items().end()) {
+    MatchAction::migrateFromThrifty(it->second);
+  }
 }
 
 folly::dynamic AclEntryFields::toFollyDynamic() const {
@@ -382,8 +536,8 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
 }
 
 AclEntry::AclEntry(int priority, const std::string& name)
-    : NodeBaseT(priority, name) {}
+    : ThriftyBaseT(priority, name) {}
 
-template class NodeBaseT<AclEntry, AclEntryFields>;
+template class ThriftyBaseT<state::AclEntryFields, AclEntry, AclEntryFields>;
 
 } // namespace facebook::fboss

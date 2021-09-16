@@ -14,6 +14,7 @@
 #include <optional>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss {
 
@@ -146,6 +147,11 @@ class MatchAction {
             action.macsecFlow_);
     return *this;
   }
+
+  state::MatchAction toThrift() const;
+  static MatchAction fromThrift(state::MatchAction const& ma);
+  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
 
   folly::dynamic toFollyDynamic() const;
   static MatchAction fromFollyDynamic(const folly::dynamic& actionJson);

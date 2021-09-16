@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -71,6 +72,9 @@ class AclTtl {
     return *this;
   }
 
+  state::AclTtl toThrift() const;
+  static AclTtl fromThrift(state::AclTtl const& entry);
+
   folly::dynamic toFollyDynamic() const;
   static AclTtl fromFollyDynamic(const folly::dynamic& ttlJson);
 
@@ -79,7 +83,7 @@ class AclTtl {
   uint16_t mask_;
 };
 
-struct AclEntryFields {
+struct AclEntryFields : public ThriftyFields {
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
@@ -92,8 +96,14 @@ struct AclEntryFields {
   template <typename Fn>
   void forEachChild(Fn) {}
 
+  state::AclEntryFields toThrift() const;
+  static AclEntryFields fromThrift(state::AclEntryFields const& ma);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
   folly::dynamic toFollyDynamic() const;
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
+
   static void checkFollyDynamic(const folly::dynamic& json);
   int priority{0};
   std::string name{nullptr};
@@ -127,20 +137,18 @@ struct AclEntryFields {
  * AclEntry stores state about one of the access control entries on
  * the switch.
  */
-class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
+class AclEntry
+    : public ThriftyBaseT<state::AclEntryFields, AclEntry, AclEntryFields> {
  public:
   explicit AclEntry(int priority, const std::string& name);
-  static std::shared_ptr<AclEntry> fromFollyDynamic(
+
+  static std::shared_ptr<AclEntry> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
     const auto& fields = AclEntryFields::fromFollyDynamic(json);
     return std::make_shared<AclEntry>(fields);
   }
 
-  static std::shared_ptr<AclEntry> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamicLegacy() const {
     return getFields()->toFollyDynamic();
   }
 
@@ -369,7 +377,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

@@ -8,7 +8,8 @@
  *
  */
 #include "fboss/agent/state/MatchAction.h"
-#include <folly/Conv.h>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/Thrifty.h"
 
 namespace {
 constexpr auto kQueueMatchAction = "queueMatchAction";
@@ -22,9 +23,80 @@ constexpr auto kCounter = "counter";
 constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
 constexpr auto kToCpuAction = "cpuAction";
+
+// These names match the thrift definition in switch_config.thrift
+constexpr auto kThriftSendToQueue = "sendToQueue";
+constexpr auto kThriftSendToCPU = "sendToCPU";
+constexpr auto kThriftAction = "action";
+constexpr auto kThriftTrafficCounter = "trafficCounter";
+constexpr auto kThriftSetDscp = "setDscp";
+constexpr auto kThriftToCpuAction = "toCpuAction";
 } // namespace
 
 namespace facebook::fboss {
+
+state::MatchAction MatchAction::toThrift() const {
+  auto matchAction = state::MatchAction();
+  if (sendToQueue_.has_value()) {
+    auto toQueue = state::SendToQueue();
+    toQueue.action_ref() = sendToQueue_->first;
+    toQueue.sendToCPU_ref() = sendToQueue_->second;
+    matchAction.sendToQueue_ref() = toQueue;
+  }
+  matchAction.trafficCounter_ref().from_optional(trafficCounter_);
+  matchAction.setDscp_ref().from_optional(setDscp_);
+  matchAction.ingressMirror_ref().from_optional(ingressMirror_);
+  matchAction.egressMirror_ref().from_optional(egressMirror_);
+  matchAction.toCpuAction_ref().from_optional(toCpuAction_);
+  matchAction.macsecFlow_ref().from_optional(macsecFlow_);
+  return matchAction;
+}
+
+MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
+  auto matchAction = MatchAction();
+  if (auto sendToQueue = ma.sendToQueue_ref()) {
+    auto toQueue = SendToQueue();
+    toQueue.first = sendToQueue->get_action();
+    toQueue.second = sendToQueue->get_sendToCPU();
+    matchAction.sendToQueue_ = toQueue;
+  }
+  matchAction.trafficCounter_ = ma.trafficCounter_ref().to_optional();
+  matchAction.setDscp_ = ma.setDscp_ref().to_optional();
+  matchAction.ingressMirror_ = ma.ingressMirror_ref().to_optional();
+  matchAction.egressMirror_ = ma.egressMirror_ref().to_optional();
+  matchAction.toCpuAction_ = ma.toCpuAction_ref().to_optional();
+  matchAction.macsecFlow_ = ma.macsecFlow_ref().to_optional();
+  return matchAction;
+}
+
+// TODO: remove all migration along with old ser/des after next disruptive push
+folly::dynamic MatchAction::migrateToThrifty(const folly::dynamic& dyn) {
+  folly::dynamic newDyn = dyn;
+
+  if (auto it = newDyn.find(kQueueMatchAction); it != newDyn.items().end()) {
+    const auto action = it->second;
+    newDyn[kThriftSendToQueue] = folly::dynamic::object;
+    newDyn[kThriftSendToQueue][kThriftSendToCPU] = action[kSendToCPU].asBool();
+    newDyn[kThriftSendToQueue][kThriftAction] = action;
+  }
+  ThriftyUtils::renameField(newDyn, kCounter, kThriftTrafficCounter);
+  ThriftyUtils::renameField(newDyn, kSetDscpMatchAction, kThriftSetDscp);
+  ThriftyUtils::renameField(newDyn, kToCpuAction, kThriftToCpuAction);
+
+  return newDyn;
+}
+
+void MatchAction::migrateFromThrifty(folly::dynamic& dyn) {
+  if (auto it = dyn.find(kThriftSendToQueue); it != dyn.items().end()) {
+    const auto action = it->second[kThriftAction];
+    const auto sendToCPU = it->second[kThriftSendToCPU];
+    dyn[kQueueMatchAction] = action;
+    dyn[kQueueMatchAction][kSendToCPU] = sendToCPU;
+  }
+  ThriftyUtils::renameField(dyn, kThriftTrafficCounter, kCounter);
+  ThriftyUtils::renameField(dyn, kThriftSetDscp, kSetDscpMatchAction);
+  ThriftyUtils::renameField(dyn, kThriftToCpuAction, kToCpuAction);
+}
 
 folly::dynamic MatchAction::toFollyDynamic() const {
   folly::dynamic matchAction = folly::dynamic::object;
@@ -107,5 +179,4 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   }
   return matchAction;
 }
-
 } // namespace facebook::fboss

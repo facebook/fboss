@@ -26,7 +26,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct PortFields {
+struct PortFields : public ThriftyFields {
   struct VlanInfo {
     explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
     bool operator==(const VlanInfo& other) const {
@@ -54,7 +54,6 @@ struct PortFields {
   void forEachChild(Fn /*fn*/) {}
 
   static PortFields fromThrift(state::PortFields const& pf);
-
   state::PortFields toThrift() const;
 
   const PortID id{0};

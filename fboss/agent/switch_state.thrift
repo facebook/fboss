@@ -87,3 +87,52 @@ struct PortFields {
   24: optional switch_config.PortPfc pfc;
   25: optional list<PortPgFields> pgConfigs;
 }
+
+struct AclTtl {
+  1: i16 value;
+  2: i16 mask;
+}
+
+struct SendToQueue {
+  1: switch_config.QueueMatchAction action;
+  2: bool sendToCPU;
+}
+
+struct MatchAction {
+  1: optional SendToQueue sendToQueue;
+  2: optional switch_config.TrafficCounter trafficCounter;
+  3: optional switch_config.SetDscpMatchAction setDscp;
+  4: optional string ingressMirror;
+  5: optional string egressMirror;
+  6: optional switch_config.ToCpuAction toCpuAction;
+  7: optional switch_config.MacsecFlowAction macsecFlow;
+}
+
+struct AclEntryFields {
+  1: i32 priority;
+  2: string name;
+  // srcIp and dstIp need to be in CIDRNetwork format
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional byte proto;
+  6: optional byte tcpFlagsBitMap;
+  7: optional i16 srcPort;
+  8: optional i16 dstPort;
+  9: optional switch_config.IpFragMatch ipFrag;
+  10: optional byte icmpType;
+  11: optional byte icmpCode;
+  12: optional byte dscp;
+  13: optional switch_config.IpType ipType;
+  14: optional AclTtl ttl;
+  15: optional string dstMac;
+  16: optional i16 l4SrcPort;
+  17: optional i16 l4DstPort;
+  18: optional switch_config.AclLookupClass lookupClassL2;
+  19: optional switch_config.AclLookupClass lookupClass;
+  20: optional switch_config.AclLookupClass lookupClassNeighbor;
+  21: optional switch_config.AclLookupClass lookupClassRoute;
+  22: optional switch_config.PacketLookupResultType packetLookupResult;
+  23: optional switch_config.EtherType etherType;
+  24: switch_config.AclActionType actionType = switch_config.AclActionType.PERMIT;
+  25: optional MatchAction aclAction;
+}

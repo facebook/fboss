@@ -34,6 +34,22 @@ namespace {
 constexpr auto kAclStartPriority = 100000;
 } // namespace
 
+template <typename ThriftyNode>
+void validateThriftyMigration(const ThriftyNode& node) {
+  auto newNode = ThriftyNode::fromFollyDynamic(node.toFollyDynamic());
+  auto legacyNode =
+      ThriftyNode::fromFollyDynamicLegacy(node.toFollyDynamicLegacy());
+  auto forwardMigrationNode =
+      ThriftyNode::fromFollyDynamic(node.toFollyDynamicLegacy());
+  auto backwardMigrationNode =
+      ThriftyNode::fromFollyDynamicLegacy(node.toFollyDynamic());
+
+  EXPECT_EQ(node, *newNode);
+  EXPECT_EQ(*newNode, *legacyNode);
+  EXPECT_EQ(*legacyNode, *forwardMigrationNode);
+  EXPECT_EQ(*forwardMigrationNode, *backwardMigrationNode);
+}
+
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -452,6 +468,7 @@ TEST(Acl, SerializeAclEntry) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -466,6 +483,7 @@ TEST(Acl, SerializeAclEntry) {
   entry->setAclAction(action);
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -473,25 +491,6 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getSendToQueue());
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(*aclAction.getSendToQueue().value().first.queueId_ref(), 3);
-
-  // negative test for invalid ipFrag serialization
-  auto ipFragBad = static_cast<cfg::IpFragMatch>(100);
-  entry->setIpFrag(ipFragBad);
-  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
-  ipFragBad = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
-
-  // negative test for invalid ipFrag de-serialization
-  serialized["ipFrag"] = "MATCH_NOT_FRAGMENTED_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
-
-  // negative test for invalid actionType serialization
-  auto aclActionTypeBad = static_cast<cfg::AclActionType>(100);
-  entry->setActionType(aclActionTypeBad);
-  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
-
-  // negative test for invalid aclActionType de-serialization
-  serialized["actionType"] = "PERMIT_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 }
 
 TEST(Acl, SerializePacketCounter) {
@@ -504,6 +503,7 @@ TEST(Acl, SerializePacketCounter) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -524,6 +524,8 @@ TEST(Acl, SerializePacketCounter) {
 
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
+
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
   aclAction = entryBack->getAclAction().value();
@@ -537,6 +539,7 @@ TEST(Acl, SerializePacketCounter) {
 
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   aclAction = entryBack->getAclAction().value();
@@ -593,6 +596,7 @@ TEST(Acl, TtlSerialization) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getTtl());
@@ -621,6 +625,7 @@ TEST(Acl, PacketLookupResultSerialization) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getPacketLookupResult());
@@ -711,19 +716,11 @@ TEST(Acl, LookupClassSerialization) {
 
   auto serialized = entryL2->toFollyDynamic();
   auto entryBackL2 = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entryL2);
 
   EXPECT_TRUE(*entryL2 == *entryBackL2);
   EXPECT_TRUE(entryBackL2->getLookupClassL2());
   EXPECT_EQ(entryBackL2->getLookupClassL2().value(), lookupClassL2);
-
-  // negative test for invalid lookupClassL2 serialization
-  auto lookupClassBad = static_cast<cfg::AclLookupClass>(100);
-  entryL2->setLookupClassL2(lookupClassBad);
-  EXPECT_THROW(serialized = entryL2->toFollyDynamic(), FbossError);
-
-  // negative test for invalid lookupClassL2 de-serialization
-  serialized["lookupClassL2"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 
   // test for lookupClassNeighbor serialization/de-serialization
   auto entryNeighbor = std::make_unique<AclEntry>(0, "stat1");
@@ -733,20 +730,12 @@ TEST(Acl, LookupClassSerialization) {
 
   serialized = entryNeighbor->toFollyDynamic();
   auto entryBackNeighbor = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entryNeighbor);
 
   EXPECT_TRUE(*entryNeighbor == *entryBackNeighbor);
   EXPECT_TRUE(entryBackNeighbor->getLookupClassNeighbor());
   EXPECT_EQ(
       entryBackNeighbor->getLookupClassNeighbor().value(), lookupClassNeighbor);
-
-  // negative test for invalid lookupClassNeighbor serialization
-  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
-  entryNeighbor->setLookupClassNeighbor(lookupClassBad);
-  EXPECT_THROW(serialized = entryNeighbor->toFollyDynamic(), FbossError);
-
-  // negative test for invalid lookupClassNeighbor de-serialization
-  serialized["lookupClassNeighbor"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 
   // test for lookupClassRoute serialization/de-serialization
   auto entryRoute = std::make_unique<AclEntry>(0, "stat1");
@@ -756,19 +745,11 @@ TEST(Acl, LookupClassSerialization) {
 
   serialized = entryRoute->toFollyDynamic();
   auto entryBackRoute = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entryRoute);
 
   EXPECT_TRUE(*entryRoute == *entryBackRoute);
   EXPECT_TRUE(entryBackRoute->getLookupClassRoute());
   EXPECT_EQ(entryBackRoute->getLookupClassRoute().value(), lookupClassRoute);
-
-  // negative test for invalid lookupClassRouteserialization
-  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
-  entryRoute->setLookupClassRoute(lookupClassBad);
-  EXPECT_THROW(serialized = entryRoute->toFollyDynamic(), FbossError);
-
-  // negative test for invalid lookupClassNeighbor de-serialization
-  serialized["lookupClassNeighbor"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
-  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 }
 
 TEST(Acl, InvalidTrafficCounter) {
@@ -791,57 +772,4 @@ TEST(Acl, InvalidTrafficCounter) {
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
-}
-
-// TODO(adrs): deprecate packetCounter and remove this test
-TEST(Acl, TrafficCounterCompatibility) {
-  FLAGS_enable_acl_table_group = false;
-  cfg::SwitchConfig config;
-  auto platform = createMockPlatform();
-  auto stateV0 = make_shared<SwitchState>();
-
-  // Create a state with 1 Acl and 1 counter
-  config.acls_ref()->resize(1);
-  *config.acls_ref()[0].name_ref() = "acl0";
-  *config.acls_ref()[0].actionType_ref() = cfg::AclActionType::PERMIT;
-  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->resize(1);
-  auto& mta = config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0];
-  *mta.matcher_ref() = "acl0";
-  config.trafficCounters_ref()->resize(1);
-  *config.trafficCounters_ref()[0].name_ref() = "stat0";
-  mta.action_ref()->counter_ref() = "stat0";
-  auto refState = publishAndApplyConfig(stateV0, &config, platform.get());
-
-  // Manually craft the deprecated state with the 'packetCounter' field
-  auto jsonStateV0 = stateV0->toFollyDynamic();
-  jsonStateV0["acls"]["entries"].push_back(folly::dynamic::object(
-      "name", "acl0")("actionType", "PERMIT")("priority", 10000));
-  jsonStateV0["dataPlaneTrafficPolicy"] = folly::dynamic::object(
-      "matchToAction",
-      folly::dynamic::array(folly::dynamic::object("matcher", "acl0")(
-          "action",
-          folly::dynamic::object(
-              "packetCounter",
-              folly::dynamic::object("counterName", "stat0")))));
-  auto deprecatedState = SwitchState::fromFollyDynamic(jsonStateV0);
-  ASSERT_NE(nullptr, deprecatedState);
-  // MirrorMap::fromFollyDynamic() isn't implemented (yet) and always return
-  // nullptr.
-  // publishAndApplyConfig() isn't happy with the nullptr, so reset the mirrors
-  // with an empty map
-  deprecatedState->resetMirrors(std::make_shared<MirrorMap>());
-  auto newState =
-      publishAndApplyConfig(deprecatedState, &config, platform.get());
-
-  ASSERT_NE(nullptr, refState);
-  ASSERT_NE(nullptr, newState);
-  ASSERT_NE(nullptr, refState->getAcl("acl0"));
-  ASSERT_NE(nullptr, newState->getAcl("acl0"));
-  ASSERT_EQ(*(refState->getAcl("acl0")), *(newState->getAcl("acl0")));
-  auto aclAction = newState->getAcl("acl0")->getAclAction().value();
-  EXPECT_EQ(*aclAction.getTrafficCounter()->name_ref(), "stat0");
-  EXPECT_EQ(aclAction.getTrafficCounter()->types_ref()->size(), 1);
-  EXPECT_EQ(
-      aclAction.getTrafficCounter()->types_ref()[0], cfg::CounterType::PACKETS);
 }

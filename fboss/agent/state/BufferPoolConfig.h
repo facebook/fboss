@@ -19,7 +19,7 @@
 
 namespace facebook::fboss {
 
-struct BufferPoolCfgFields {
+struct BufferPoolCfgFields : public ThriftyFields {
   template <typename Fn>
   void forEachChild(Fn) {}
 
