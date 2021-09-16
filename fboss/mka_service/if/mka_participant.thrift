@@ -24,9 +24,9 @@ struct MKAParticipantCtx {
   // set when the keyserver election is done
   5: bool elected = false;
   // when sak is enabled on rx
-  6: bool sakEnabledRx = false;
+  6: i64 sakEnabledRxSince = 0;
   // when sak is enabled on tx
-  7: bool sakEnabledTx = false;
+  7: i64 sakEnabledTxSince = 0;
   8: bool delayProtect = false;
   9: bool plainTx = false;
   10: bool plainRx = false;
