@@ -107,6 +107,50 @@ TEST(PortPgConfig, TestPortPgMaxLimit) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
+TEST(PortPgConfig, TestPortPgWatchdogConfigMismatch) {
+  // Test to verify that priority group is associated
+  // to a port when PFC watchdog is configured.
+  // Test creates a port config and assocites PFC watchdog
+  // but leaves the priority group name empty
+  // and expects exception to be thrown.
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.ports_ref()->resize(1);
+  config.ports_ref()[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+
+  cfg::PortPfc pfc;
+  cfg::PfcWatchdog watchdog;
+  watchdog.detectionTimeMsecs_ref() = 15;
+  watchdog.recoveryTimeMsecs_ref() = 16;
+  watchdog.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  pfc.watchdog_ref() = watchdog;
+  pfc.portPgConfigName_ref() = "";
+  config.ports_ref()[0].pfc_ref() = pfc;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+
+  // Make sure there is no exception when priority group is populated
+  std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+  std::vector<cfg::PortPgConfig> portPgConfigs;
+  for (int pgId = 0; pgId < 1; pgId++) {
+    cfg::PortPgConfig pgConfig;
+    pgConfig.id_ref() = pgId;
+    portPgConfigs.emplace_back(pgConfig);
+  }
+  portPgConfigMap["foo"] = portPgConfigs;
+  // add pgConfig with name "foo"
+  config.portPgConfigs_ref() = portPgConfigMap;
+  pfc.portPgConfigName_ref() = "foo";
+  config.ports_ref()[0].pfc_ref() = pfc;
+
+  EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
+}
+
 TEST(PortPgConfig, applyConfig) {
   int pgId = 0;
   auto platform = createMockPlatform();

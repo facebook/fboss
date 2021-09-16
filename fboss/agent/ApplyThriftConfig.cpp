@@ -1304,6 +1304,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
 
     auto portPgConfigName = newPfc->portPgConfigName_ref();
+    if (newPfc->watchdog_ref().has_value() && (*portPgConfigName).empty()) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " Priority group must be associated with port "
+          "when PFC watchdog is configured");
+    }
     if (auto portPgConfigs = cfg_->portPgConfigs_ref()) {
       auto it = portPgConfigs->find(*portPgConfigName);
       if (it == portPgConfigs->end()) {
