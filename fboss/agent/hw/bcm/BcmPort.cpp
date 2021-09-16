@@ -307,12 +307,12 @@ void BcmPort::removePortStat(folly::StringPiece statKey) {
   }
 }
 
-void BcmPort::removePortPfcStats(
+void BcmPort::removePortPfcStatsLocked(
+    const BcmPort::PortStatsWLockedPtr& /* lockedPortStatsPtr */,
     const std::shared_ptr<Port>& swPort,
     std::optional<std::vector<PfcPriority>> priorities) {
   XLOG(DBG3) << "Destroy PFC stats for " << swPort->getName();
 
-  auto lockedPortStatsPtr = lastPortStats_.wlock();
   // Destroy per priority PFC statistics
   if (priorities.has_value()) {
     for (auto pri : priorities.value()) {
@@ -346,8 +346,9 @@ void BcmPort::reinitPortPfcStats(const std::shared_ptr<Port>& swPort) {
   reinitPortStat(kOutPfc(), portName);
 }
 
-void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
-  auto lockedPortStatsPtr = lastPortStats_.wlock();
+void BcmPort::reinitPortStatsLocked(
+    const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr,
+    const std::shared_ptr<Port>& swPort) {
   auto& portName = swPort->getName();
   XLOG(DBG2) << "Reinitializing stats for " << portName;
 
@@ -946,7 +947,8 @@ void BcmPort::enableL3(bool enableV4, bool enableV6) {
 }
 
 void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
-  if (!shouldReportStats()) {
+  auto lockedPortStatsPtr = portStats_.wlock();
+  if (!lockedPortStatsPtr->has_value()) {
     return;
   }
 
@@ -955,11 +957,12 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
   if (!savedPort || swPort->getName() != savedPort->getName() ||
       hasPortQueueChanges(savedPort, swPort) ||
       hasPfcStatusChangedToEnabled(savedPort, swPort)) {
-    reinitPortStats(swPort);
+    reinitPortStatsLocked(lockedPortStatsPtr, swPort);
   }
   if (savedPort && hasPfcStatusChangedToDisabled(savedPort, swPort)) {
     // Remove stats in case PFC is disabled for previously enabled priorities
-    removePortPfcStats(swPort, savedPort->getPfcPriorities());
+    removePortPfcStatsLocked(
+        lockedPortStatsPtr, swPort, savedPort->getPfcPriorities());
   }
 
   // Set bcmPortControlStatOversize to max frame size so that we don't trigger
@@ -1109,22 +1112,16 @@ phy::PhyInfo BcmPort::updateIPhyInfo() const {
 }
 
 void BcmPort::updateStats() {
-  // TODO: It would be nicer to use a monotonic clock, but unfortunately
-  // the ServiceData code currently expects everyone to use system time.
-  if (!shouldReportStats()) {
+  auto lockedPortStatsPtr = portStats_.wlock();
+  if (!lockedPortStatsPtr->has_value()) {
     return;
   }
 
-  auto lockedLastPortStatsPtr = lastPortStats_.wlock();
-
+  // TODO: It would be nicer to use a monotonic clock, but unfortunately
+  // the ServiceData code currently expects everyone to use system time.
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-
   HwPortStats curPortStats, lastPortStats;
-  {
-    if (lockedLastPortStatsPtr->has_value()) {
-      lastPortStats = curPortStats = (*lockedLastPortStatsPtr)->portStats();
-    }
-  }
+  lastPortStats = curPortStats = (*lockedPortStatsPtr)->portStats();
 
   // All stats start with a unitialized (-1) value. If there are no in discards
   // we will just report that as the monotonic counter. Instead set it to
@@ -1252,7 +1249,7 @@ void BcmPort::updateStats() {
   auto inDiscards = getPortCounterIf(kInDiscards());
   inDiscards->updateValue(now, *curPortStats.inDiscards__ref());
 
-  *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
+  *lockedPortStatsPtr = BcmPortStats(curPortStats, now);
 
   // Update the queue length stat
   uint32_t qlength;
@@ -1385,8 +1382,7 @@ void BcmPort::BcmPortStats::setQueueWaterMarks(
 
 void BcmPort::setQueueWaterMarks(
     std::map<int16_t, int64_t> queueId2WatermarkBytes) {
-  lastPortStats_.wlock()->value().setQueueWaterMarks(
-      std::move(queueId2WatermarkBytes));
+  (*portStats_.wlock())->setQueueWaterMarks(std::move(queueId2WatermarkBytes));
 }
 
 std::string BcmPort::getPfcPriorityStatsKey(
@@ -1525,23 +1521,20 @@ std::chrono::seconds BcmPort::BcmPortStats::timeRetrieved() const {
 }
 
 std::optional<HwPortStats> BcmPort::getPortStats() const {
+  auto lockedPortStatsPtr = portStats_.rlock();
   // we currently only target on enabled port
-  if (!shouldReportStats()) {
+  if (!lockedPortStatsPtr->has_value()) {
     return std::nullopt;
   }
-  auto bcmStats = lastPortStats_.rlock();
-  if (!bcmStats->has_value()) {
-    return std::nullopt;
-  }
-  return (*bcmStats)->portStats();
+  return (*lockedPortStatsPtr)->portStats();
 }
 
 std::chrono::seconds BcmPort::getTimeRetrieved() const {
-  auto bcmStats = lastPortStats_.rlock();
-  if (!bcmStats->has_value()) {
+  auto lockedPortStatsPtr = portStats_.rlock();
+  if (!lockedPortStatsPtr->has_value()) {
     return std::chrono::seconds(0);
   }
-  return (*bcmStats)->timeRetrieved();
+  return (*lockedPortStatsPtr)->timeRetrieved();
 }
 
 void BcmPort::applyMirrorAction(
@@ -1580,13 +1573,8 @@ void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
   egressMirror_ = mirrorName;
 }
 
-bool BcmPort::shouldReportStats() const {
-  return statCollectionEnabled_.load();
-}
-
-void BcmPort::destroyAllPortStats() {
-  auto lockedPortStatsPtr = lastPortStats_.wlock();
-
+void BcmPort::destroyAllPortStatsLocked(
+    const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr) {
   std::map<std::string, stats::MonotonicCounter> swapTo;
   portCounters_.swap(swapTo);
 
@@ -1599,8 +1587,9 @@ void BcmPort::destroyAllPortStats() {
 }
 
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
-  XLOG(DBG2) << "Enabling stats for " << port->getName();
+  auto lockedPortStatsPtr = portStats_.wlock();
 
+  XLOG(DBG2) << "Enabling stats for " << port->getName();
   if (isEnabledInSDK()) {
     XLOG(DBG2) << "Skipping bcm_port_stat_enable_set on already enabled port";
   } else {
@@ -1631,12 +1620,11 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
     }
   }
 
-  reinitPortStats(port);
-
-  statCollectionEnabled_.store(true);
+  reinitPortStatsLocked(lockedPortStatsPtr, port);
 }
 
 void BcmPort::disableStatCollection() {
+  auto lockedPortStatsPtr = portStats_.wlock();
   XLOG(DBG2) << "disabling stats for " << getPortName();
 
   if (!hw_->getPlatform()->getAsic()->isSupported(
@@ -1654,9 +1642,7 @@ void BcmPort::disableStatCollection() {
     fdrStatConfigure(unit_, port_, false);
   }
 
-  statCollectionEnabled_.store(false);
-
-  destroyAllPortStats();
+  destroyAllPortStatsLocked(lockedPortStatsPtr);
 }
 
 // Set and disable sFlow Rates.  These need to be here because the bcm function

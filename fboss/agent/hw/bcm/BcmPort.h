@@ -247,6 +247,8 @@ class BcmPort {
     HwPortStats portStats_;
     std::chrono::seconds timeRetrieved_{0};
   };
+  using PortStatsWLockedPtr =
+      folly::Synchronized<std::optional<BcmPortStats>>::WLockedPtr;
 
   void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
   uint32_t getCL91FECStatus() const;
@@ -256,10 +258,12 @@ class BcmPort {
   BcmPort& operator=(BcmPort const&) = delete;
 
   stats::MonotonicCounter* getPortCounterIf(folly::StringPiece statName);
-  bool shouldReportStats() const;
-  void reinitPortStats(const std::shared_ptr<Port>& swPort);
+  void reinitPortStatsLocked(
+      const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr,
+      const std::shared_ptr<Port>& swPort);
   void reinitPortStat(folly::StringPiece newName, folly::StringPiece portName);
-  void destroyAllPortStats();
+  void destroyAllPortStatsLocked(
+      const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr);
   void updateStat(
       std::chrono::seconds now,
       folly::StringPiece statName,
@@ -267,7 +271,8 @@ class BcmPort {
       int64_t* portStatVal);
   void updateFecStats(std::chrono::seconds now, HwPortStats& curPortStats);
   void removePortStat(folly::StringPiece statKey);
-  void removePortPfcStats(
+  void removePortPfcStatsLocked(
+      const BcmPort::PortStatsWLockedPtr& lockedPortStatsPtr,
       const std::shared_ptr<Port>& swPort,
       std::optional<std::vector<PfcPriority>> priorities);
   void reinitPortPfcStats(const std::shared_ptr<Port>& swPort);
@@ -367,10 +372,21 @@ class BcmPort {
 
   int codewordErrorsPage_{0};
 
-  folly::Synchronized<std::optional<BcmPortStats>> lastPortStats_;
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 
-  std::atomic<bool> statCollectionEnabled_{false};
+  // Due to enable/disable statCollection and get statCollection are currently
+  // called by different threads, and enable/disable statCollection might need
+  // to attach/detach FlexCounter, which means if we're trying to collect stats
+  // while it's in the process of detaching FlexCounter, the updateStats will
+  // fail. Therefore, we need to make sure these calls from different threads
+  // can maintain exclusive.
+  // Besides since we always reset `portStats_` to nullopt when we disable
+  // the statsCollection, we don't actually need an extra bool to represent
+  // whether the statCollection is enabled or not. What's more, since
+  // `portStats_` is already Synchornized, we can just utilize it to make sure
+  // enable/disable and get stats are thread safe.
+  folly::Synchronized<std::optional<BcmPortStats>> portStats_;
+
   std::atomic<bool> destroyed_{false};
 };
 
