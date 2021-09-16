@@ -2,7 +2,6 @@
 
 #include <fboss/mka_service/if/gen-cpp2/MKAService.h>
 #include <folly/dynamic.h>
-#include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
@@ -56,7 +55,6 @@ class MacsecTest : public LinkTest {
       const std::set<std::pair<PortID, PortID>>& macsecPorts,
       const std::string& cak = getCak(),
       const std::string& ckn = getCkn()) {
-#if FOLLY_HAS_COROUTINES
     for (auto portAndNeighbor : macsecPorts) {
       auto port = portAndNeighbor.first;
       auto neighborPort = portAndNeighbor.second;
@@ -74,8 +72,7 @@ class MacsecTest : public LinkTest {
         config.primaryCak_ref()->ckn_ref() = ckn;
         // Different priorities to allow for key server election
         config.priority_ref() = priority--;
-        auto result =
-            folly::coro::blockingWait(client_->co_provisionCAK(config));
+        auto result = client_->sync_provisionCAK(config);
         ASSERT_EQ(result, MKAResponse::SUCCESS);
       }
     }
@@ -84,10 +81,10 @@ class MacsecTest : public LinkTest {
         auto port = portAndNeighbor.first;
         auto neighborPort = portAndNeighbor.second;
         for (auto p : {port, neighborPort}) {
-          auto portCkn = folly::coro::blockingWait(
-              client_->co_getActiveCKN(folly::to<std::string>(p)));
-          auto sakInstalled = folly::coro::blockingWait(
-              client_->co_isSAKInstalled(folly::to<std::string>(p)));
+          std::string portCkn;
+          client_->sync_getActiveCKN(portCkn, folly::to<std::string>(p));
+          auto sakInstalled =
+              client_->sync_isSAKInstalled(folly::to<std::string>(p));
           XLOG(INFO) << " Port: " << p << " ckn: " << portCkn
                      << " SAK installed: " << sakInstalled;
           if (portCkn != ckn || !sakInstalled) {
@@ -97,7 +94,6 @@ class MacsecTest : public LinkTest {
       }
       return true;
     });
-#endif
   }
   void programCakAndCheckLoss(
       const std::set<std::pair<PortID, PortID>>& macsecPorts,
@@ -123,30 +119,23 @@ class MacsecTest : public LinkTest {
   }
 
  protected:
-  std::unique_ptr<folly::ScopedEventBaseThread> evbThread_;
   std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> client_;
 };
 
 void MacsecTest::SetUp() {
   LinkTest::SetUp();
   checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
-  evbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
-  evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [&]() {
-        folly::SocketAddress addr("::1", 5920);
-        auto socket = folly::AsyncSocket::newSocket(
-            folly::EventBaseManager::get()->getEventBase(), addr, 5000);
-        auto channel =
-            apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-        client_ = std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
-            std::move(channel));
-      });
+  folly::SocketAddress addr("::1", 5920);
+  auto socket = folly::AsyncSocket::newSocket(
+      folly::EventBaseManager::get()->getEventBase(), addr, 5000);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  client_ = std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
+      std::move(channel));
 }
 
 void MacsecTest::TearDown() {
-  evbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [&]() { client_.reset(); });
-  evbThread_.reset();
+  client_.reset();
   LinkTest::TearDown();
 }
 
