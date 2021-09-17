@@ -9,6 +9,7 @@
  */
 
 #include "fboss/lib/link_snapshots/SnapshotManager.h"
+#include <sstream>
 #include "fboss/lib/AlertLogger.h"
 
 using namespace std::chrono;
@@ -20,12 +21,16 @@ DEFINE_int32(
 
 namespace facebook::fboss {
 
-void SnapshotWrapper::publish() {
+void SnapshotWrapper::publish(std::set<std::string> portNames) {
   auto serializedSnapshot =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(snapshot_);
   if (!published_) {
-    XLOG(INFO) << LinkSnapshotAlert() << "Collected snapshot "
-               << LinkSnapshotParam(serializedSnapshot);
+    std::stringstream log;
+    log << LinkSnapshotAlert() << "Collected snapshot for ports ";
+    for (const auto& port : portNames) {
+      log << PortParam(port);
+    }
+    XLOG(INFO) << log.str() << " " << LinkSnapshotParam(serializedSnapshot);
     published_ = true;
   }
 }

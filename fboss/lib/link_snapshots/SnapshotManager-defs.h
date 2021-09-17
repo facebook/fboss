@@ -16,7 +16,8 @@ namespace facebook::fboss {
 using namespace std::chrono;
 
 template <size_t length>
-SnapshotManager<length>::SnapshotManager() {
+SnapshotManager<length>::SnapshotManager(std::set<std::string> portNames)
+    : portNames_(portNames) {
   lastScheduledPublish_ =
       steady_clock::now() - seconds(FLAGS_link_snapshot_publish_interval);
 }
@@ -31,7 +32,7 @@ void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
       now;
 
   if (intervalElapsed || numSnapshotsToPublish_ > 0) {
-    snapshot.publish();
+    snapshot.publish(portNames_);
   }
   if (intervalElapsed) {
     lastScheduledPublish_ = now;
@@ -49,7 +50,7 @@ RingBuffer<SnapshotWrapper, length>& SnapshotManager<length>::getSnapshots() {
 template <size_t length>
 void SnapshotManager<length>::publishAllSnapshots() {
   for (auto& snapshot : buf_) {
-    snapshot.publish();
+    snapshot.publish(portNames_);
   }
 }
 

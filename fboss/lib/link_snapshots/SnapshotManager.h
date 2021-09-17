@@ -25,7 +25,7 @@ using namespace fboss::phy;
 class SnapshotWrapper {
  public:
   explicit SnapshotWrapper(LinkSnapshot snapshot) : snapshot_(snapshot) {}
-  void publish();
+  void publish(std::set<std::string> portNames);
 
   LinkSnapshot snapshot_;
   bool published_{false};
@@ -35,7 +35,7 @@ class SnapshotWrapper {
 template <size_t length>
 class SnapshotManager {
  public:
-  SnapshotManager();
+  explicit SnapshotManager(std::set<std::string> portNames);
   void addSnapshot(LinkSnapshot val);
   void publishAllSnapshots();
   RingBuffer<SnapshotWrapper, length>& getSnapshots();
@@ -47,6 +47,7 @@ class SnapshotManager {
   RingBuffer<SnapshotWrapper, length> buf_;
   std::chrono::steady_clock::time_point lastScheduledPublish_;
   int numSnapshotsToPublish_{0};
+  std::set<std::string> portNames_;
 };
 
 } // namespace facebook::fboss

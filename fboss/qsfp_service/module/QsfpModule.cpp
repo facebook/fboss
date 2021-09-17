@@ -95,6 +95,12 @@ QsfpModule::QsfpModule(
     unsigned int portsPerTransceiver)
     : transceiverManager_(transceiverManager),
       qsfpImpl_(std::move(qsfpImpl)),
+      snapshots_(TransceiverSnapshotCache(
+          // allowing a null transceiverManager here seems
+          // kinda sketchy, but QsfpModule tests rely on it at the moment
+          transceiverManager_ == nullptr
+              ? std::set<std::string>()
+              : transceiverManager_->getPortNames(getID()))),
       portsPerTransceiver_(portsPerTransceiver) {
   // Setting up the last down time as current time minus the difference
   // between remediate_interval and initial_remediate_interval so

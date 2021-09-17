@@ -15,7 +15,7 @@ void PhySnapshotManager::updateIPhyInfo(
         it != lockedSnapshotMap->end()) {
       it->second.addSnapshot(snapshot);
     } else {
-      IPhySnapshotCache cache;
+      IPhySnapshotCache cache{{*info.second.name_ref()}};
       cache.addSnapshot(snapshot);
       lockedSnapshotMap->emplace(info.first, cache);
     }

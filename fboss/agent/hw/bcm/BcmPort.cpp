@@ -1044,7 +1044,7 @@ PortID BcmPort::getPortID() const {
   return platformPort_->getPortID();
 }
 
-std::string BcmPort::getPortName() {
+std::string BcmPort::getPortName() const {
   // TODO: replace with pulling name from platform port
   auto prevSettings = programmedSettings_.rlock();
   if (!*prevSettings) {
@@ -1082,6 +1082,8 @@ std::string BcmPort::statName(
 
 phy::PhyInfo BcmPort::updateIPhyInfo() const {
   phy::PhyInfo info;
+
+  info.name_ref() = getPortName();
 
   // Global phy parameters
   phy::DataPlanePhyChip phyChip;
