@@ -11,8 +11,6 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-DECLARE_string(netwhoami);
-
 namespace facebook {
 namespace fboss {
 

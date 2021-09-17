@@ -18,11 +18,6 @@
 #include <boost/algorithm/string.hpp>
 #include <re2/re2.h>
 
-DEFINE_string(
-    netwhoami,
-    "/etc/netwhoami.json",
-    "The path to the local JSON file");
-
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {

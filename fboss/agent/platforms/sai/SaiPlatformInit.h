@@ -13,8 +13,6 @@
 
 #include <memory>
 
-DECLARE_string(netwhoami);
-
 namespace facebook::fboss {
 
 class AgentConfig;
