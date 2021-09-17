@@ -15,6 +15,7 @@
 #include "fboss/agent/DHCPv6Handler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
@@ -918,6 +919,8 @@ void IPv6Handler::sendNeighborSolicitation(
     const VlanID& vlanID,
     const std::optional<PortDescriptor>& portDescriptor,
     const NDPOptions& ndpOptions) {
+  sw->getPacketLogger()->log(
+      "NDP", "TX", vlanID, srcMac.toString(), srcIP.str(), neighborIP.str());
   auto state = sw->getState();
 
   uint32_t bodyLength = ICMPHdr::ICMPV6_UNUSED_LEN + IPAddressV6::byteCount() +

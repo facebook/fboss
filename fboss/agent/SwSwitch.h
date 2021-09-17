@@ -54,6 +54,7 @@ class SwitchState;
 class SwitchStats;
 class StateDelta;
 class NeighborUpdater;
+class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
@@ -588,6 +589,13 @@ class SwSwitch : public HwSwitch::Callback {
   }
 #endif
   /*
+   * Get the PacketLogger object
+   */
+  PacketLogger* getPacketLogger() {
+    return packetLogger_.get();
+  }
+
+  /*
    * Get the RouteUpdateLogger object
    */
   RouteUpdateLogger* getRouteUpdateLogger() {
@@ -917,6 +925,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<MirrorManager> mirrorManager_;
   std::unique_ptr<MPLSHandler> mplsHandler_;
+  std::unique_ptr<PacketLogger> packetLogger_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
   std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;

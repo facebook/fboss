@@ -147,6 +147,7 @@ add_library(core
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
   fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+  fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
 )

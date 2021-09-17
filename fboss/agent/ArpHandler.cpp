@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
@@ -259,6 +260,8 @@ void ArpHandler::sendArpRequest(
     const MacAddress& srcMac,
     const IPAddressV4& senderIP,
     const IPAddressV4& targetIP) {
+  sw->getPacketLogger()->log(
+      "ARP", "TX", vlanID, srcMac.toString(), senderIP.str(), targetIP.str());
   sw->stats()->arpRequestTx();
   sendArp(
       sw,

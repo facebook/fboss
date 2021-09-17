@@ -641,6 +641,7 @@ if (NOT SAI_ONLY)
       fboss/agent/oss/AggregatePortStats.cpp
       fboss/agent/oss/FbossInit.cpp
       fboss/agent/oss/Main.cpp
+      fboss/agent/oss/PacketLogger.cpp
       fboss/agent/oss/SetupThrift.cpp
       fboss/agent/oss/RouteUpdateLogger.cpp
       fboss/agent/oss/SwitchStats.cpp

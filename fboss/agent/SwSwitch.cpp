@@ -34,6 +34,7 @@
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
@@ -183,6 +184,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       pcapMgr_(new PktCaptureManager(platform_->getPersistentStateDir())),
       mirrorManager_(new MirrorManager(this)),
       mplsHandler_(new MPLSHandler(this)),
+      packetLogger_(new PacketLogger(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
       resolvedNexthopProbeScheduler_(new ResolvedNexthopProbeScheduler(this)),
@@ -252,6 +254,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // calls ipv6_->sendNeighborSolicitation which will then segfault
   ipv6_.reset();
 
+  packetLogger_.reset();
   routeUpdateLogger_.reset();
 
   heartbeatWatchdog_->stop();
