@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/mka/CmdShowMka.h"
 
 namespace facebook::fboss {
 
@@ -73,6 +74,11 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show Transceiver information",
        commandHandler<CmdShowTransceiver>},
+      {"show",
+       "mka",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       "Show mka session information",
+       commandHandler<CmdShowMka>},
 
       {"clear",
        "arp",

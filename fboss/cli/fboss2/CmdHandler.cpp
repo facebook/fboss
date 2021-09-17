@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/mka/CmdShowMka.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "folly/futures/Future.h"
@@ -92,6 +93,7 @@ template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
+template void CmdHandler<CmdShowMka, CmdShowMkaTraits>::run();
 
 static bool hasRun = false;
 
