@@ -11,7 +11,16 @@
 namespace facebook::fboss {
 
 BmcClient::BmcClient(const HostInfo& hostInfo, int port)
-    : host_(hostInfo.getOobName()), port_{port} {}
+    : host_(hostInfo.getOobName()), port_{port}, endpoints_({}) {
+      endpoints_["FRUID"] = "/sys/mb/fruid";
+      endpoints_["SEUTIL"] = "/sys/mb/seutil";
+      endpoints_["PIMSERIAL"] = "/sys/pimserial";
+      endpoints_["PIMPRESENT"] = "/sys/pim_present";
+      endpoints_["SEUTIL_MP2"] = "/sys/seutil";
+      endpoints_["PRESENCE"] = "/sys/presence";
+      endpoints_["PIMINFO"] = "/sys/piminfo";
+      endpoints_["BMC"] = "/sys/bmc";
+    }
 
 folly::dynamic BmcClient::fetchRaw(const std::string& endpoint) {
   http_client::CurlClient client;
@@ -32,6 +41,10 @@ folly::dynamic BmcClient::fetchRaw(const std::string& endpoint) {
 
 std::string BmcClient::buildUrl(const std::string& endpoint) const {
   return fmt::format("http://{}:{}/api{}", host_, port_, endpoint);
+}
+
+std::map<std::string, std::string> BmcClient::get_endpoints() {
+  return endpoints_;
 }
 
 } // namespace facebook::fboss

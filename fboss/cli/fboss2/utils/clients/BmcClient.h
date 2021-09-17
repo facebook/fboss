@@ -15,9 +15,12 @@ class BmcClient {
 
   std::string buildUrl(const std::string& endpoint) const;
 
+  std::map<std::string, std::string> get_endpoints();
+
  private:
   const std::string host_;
   int port_;
+  std::map<std::string, std::string> endpoints_;
 };
 
 } // namespace facebook::fboss
