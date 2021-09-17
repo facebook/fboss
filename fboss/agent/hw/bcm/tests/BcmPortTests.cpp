@@ -432,7 +432,7 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 TEST_F(BcmPortTest, PortFdrStats) {
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {

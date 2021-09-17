@@ -75,7 +75,7 @@ using facebook::stats::MonotonicCounter;
 
 namespace {
 constexpr int kPfcDeadlockDetectionTimeMsecMax = 1500;
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 /**
  * Size of a single page of codeword errors from bcm_port_fdr_stats_get()
  *
@@ -160,9 +160,8 @@ static void fdrStatConfigure(
     __attribute__((unused)) bcm_port_t port,
     __attribute__((unused)) bool enable,
     __attribute__((unused)) int symbErrSel = 0) {
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
-  // See Broadcom case for PDF doc of FDR APIs:
-  // https://brcmsemiconductor-csm.wolkenservicedesk.com/wolken-support/mycases/request-details?requestId=12196665
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
+  // See Broadcom case for PDF doc of FDR APIs: 12196665
   //
   // Normally, FEC corrects errors and counts code words it cannot correct.
   // With FDR, we can see corrected errors so we can act pre-emptively when
@@ -180,7 +179,14 @@ static void fdrStatConfigure(
   // counters.
   bcm_port_fdr_config_t fdr_config, current_fdr_config;
 
+  // The init API for this struct is missing in OpenNSA.
+  // Broadcom case CS00012208804
+  // HACK: memset it to zero manually.
+#if (defined(IS_OPENNSA))
+  memset(&fdr_config, 0, sizeof(bcm_port_fdr_config_t));
+#else
   bcm_port_fdr_config_t_init(&fdr_config);
+#endif
   fdr_config.fdr_enable = enable;
   DCHECK(symbErrSel >= 0 && symbErrSel <= 1);
   fdr_config.symb_err_stats_sel = symbErrSel;
@@ -1325,7 +1331,7 @@ void BcmPort::updateFecStats(
 }
 
 void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   if (!platformPort_->supportsFlightDataRecorder()) {
     return;
   }
@@ -1354,8 +1360,9 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
   // are extrapolated and not 100% accurate. But the relative distribution
   // between the different error bins should be correct.
   auto pages = getFecMaxErrors() / kCodewordErrorsPageSize;
-  int codewordErrorBase = codewordErrorsPage_ * kCodewordErrorsPageSize;
-  int increments[kCodewordErrorsPageSize];
+  __attribute__((unused)) int codewordErrorBase =
+      codewordErrorsPage_ * kCodewordErrorsPageSize;
+  __attribute__((unused)) int increments[kCodewordErrorsPageSize];
   // Multiply by number of pages to pretend that this number showed up on
   // every page. Increment counter since this API is clear on read.
   increments[0] = fdr_stats.cw_s0_errs * pages;
@@ -1369,7 +1376,7 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
   // TODO: Increment a counter and export it.
 
   if (pages > 1) {
-    codewordErrorsPage_ = ++codewordErrorsPage_ % pages;
+    codewordErrorsPage_ = (codewordErrorsPage_ + 1) % pages;
     fdrStatConfigure(unit_, port_, true, codewordErrorsPage_);
   }
 #endif
@@ -2055,7 +2062,7 @@ phy::FecMode BcmPort::getFECMode() const {
 }
 
 bool BcmPort::getFdrEnabled() const {
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 21))
+#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   if (!platformPort_->supportsFlightDataRecorder()) {
     return false;
   }
