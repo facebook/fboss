@@ -101,6 +101,10 @@ enum PortProfileID {
   PROFILE_25G_1_NRZ_NOFEC_OPTICAL = 30,
   PROFILE_50G_2_NRZ_NOFEC_OPTICAL = 31,
   PROFILE_100G_4_NRZ_NOFEC_COPPER = 32,
+  // Special profiles for supporting Wedge100 with YV3_T1 rack so that we can
+  // use different serdes values for these profiles
+  PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1 = 33,
+  PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1 = 34,
 }
 
 /**

@@ -101,7 +101,6 @@ void verifyRxSettting(
 
 void verifyFec(PortID portID, cfg::PortProfileID profileID, Platform* platform);
 
-std::vector<cfg::PortProfileID> allPortProfiles();
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
 TransmitterTechnology getMediaType(cfg::PortProfileID profile);
 
