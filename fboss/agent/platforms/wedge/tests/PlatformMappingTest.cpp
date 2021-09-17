@@ -22,6 +22,7 @@
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss::test {
 
@@ -774,7 +775,9 @@ TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
       cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL};
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1};
 
   // Wedge40 has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 32 transceivers
@@ -949,6 +952,61 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
         EXPECT_TRUE(tx.has_value());
         verifyTxSettings(*tx, expectedTx, true);
         EXPECT_EQ(*tx->driveCurrent_ref(), expectedDriveCurrent);
+      }
+    }
+  }
+}
+
+TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
+  static const std::unordered_set<cfg::PortProfileID> YV3T1DownlinkProfiles({
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1,
+  });
+  static auto constexpr kLastYV3T1DownlinkTransceiverID = 23;
+  static std::array<int, 6> YV3T1DownlinkTx = {0, 16, 96, 56, 0, 0};
+  static auto constexpr YV3T1DownlinkDriveCurrent = 8;
+  TransceiverInfo transceiverInfo = TransceiverInfo();
+  Cable cable = Cable();
+  cable.length_ref() = 1.5;
+  transceiverInfo.cable_ref() = cable;
+
+  auto mapping = std::make_unique<Wedge100PlatformMapping>();
+  for (auto& port : mapping->getPlatformPorts()) {
+    const auto& chipName =
+        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+    const auto& chip = mapping->getChips().at(chipName);
+    auto transID = chip.get_physicalID();
+    // Skip uplinks
+    if (transID > kLastYV3T1DownlinkTransceiverID) {
+      continue;
+    }
+
+    // Now check these downlink ports should have the YV3_T1
+    const auto& supportedProfiles = *port.second.supportedProfiles_ref();
+    for (auto profile : YV3T1DownlinkProfiles) {
+      if (const auto& profileConfigIt = supportedProfiles.find(profile);
+          profileConfigIt != supportedProfiles.end()) {
+        // Check whether we can get the new serdes even with TransceiverInfo
+        const auto& pinCfgs =
+            mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+                profileConfigIt->first, PortID(port.first), transceiverInfo));
+        const auto& pinCfg = pinCfgs.at(0);
+        auto tx = pinCfg.tx_ref();
+        EXPECT_TRUE(tx.has_value());
+        verifyTxSettings(*tx, YV3T1DownlinkTx, true);
+        EXPECT_EQ(*tx->driveCurrent_ref(), YV3T1DownlinkDriveCurrent);
+      } else if (
+          profile ==
+              cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1 &&
+          *port.second.mapping_ref()->controllingPort_ref() != port.first) {
+        // 100G should only be used by the controlling port
+        continue;
+      } else {
+        throw FbossError(
+            "Missiong profile:",
+            apache::thrift::util::enumNameSafe(profile),
+            " in supported profile list for port:",
+            port.first);
       }
     }
   }
