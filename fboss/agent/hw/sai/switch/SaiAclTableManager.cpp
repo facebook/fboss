@@ -915,9 +915,11 @@ void SaiAclTableManager::removeAclEntry(
   auto itr =
       aclTableHandle->aclTableMembers.find(removedAclEntry->getPriority());
   if (itr == aclTableHandle->aclTableMembers.end()) {
-    throw FbossError(
-        "attempted to remove aclEntry which does not exist: ",
-        removedAclEntry->getID());
+    // an acl entry that uses cpu port as qualifier may not have been created
+    // even if it exists in switch state.
+    XLOG(ERR) << "attempted to remove aclEntry which does not exist: ",
+        removedAclEntry->getID();
+    return;
   }
 
   aclTableHandle->aclTableMembers.erase(itr);
