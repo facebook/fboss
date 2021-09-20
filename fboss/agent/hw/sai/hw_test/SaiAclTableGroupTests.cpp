@@ -214,4 +214,31 @@ TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    addAclTable1(newCfg);
+    addAclTable1Entry1(newCfg);
+    addAclTable2(newCfg);
+    applyNewConfig(newCfg);
+
+    // Remove one Table with entries, and another with no entries
+    utility::delAclTable(&newCfg, kAclTable1());
+    utility::delAclTable(&newCfg, kAclTable2());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable1()));
+    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable2()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
