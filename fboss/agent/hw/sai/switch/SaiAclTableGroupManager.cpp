@@ -40,6 +40,22 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
 }
 
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
+    const std::shared_ptr<AclTableGroup>& addedAclTableGroup) {
+  return addAclTableGroup(addedAclTableGroup->getID());
+}
+
+void SaiAclTableGroupManager::removeAclTableGroup(
+    const std::shared_ptr<AclTableGroup>& /*removedAclTableGroup*/) {
+  // TODO(skhare) add support
+}
+
+void SaiAclTableGroupManager::changedAclTableGroup(
+    const std::shared_ptr<AclTableGroup>& /*oldAclTableGroup*/,
+    const std::shared_ptr<AclTableGroup>& /*newAclTableGroup*/) {
+  // TODO(skhare) add support
+}
+
+AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     cfg::AclStage aclStage) {
   sai_acl_stage_t saiAclStage = cfgAclStageToSaiAclStage(aclStage);
 

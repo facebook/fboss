@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -44,6 +45,14 @@ class SaiAclTableGroupManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
+
+  AclTableGroupSaiId addAclTableGroup(
+      const std::shared_ptr<AclTableGroup>& addedAclTableGroup);
+  void removeAclTableGroup(
+      const std::shared_ptr<AclTableGroup>& removedAclTableGroup);
+  void changedAclTableGroup(
+      const std::shared_ptr<AclTableGroup>& oldAclTableGroup,
+      const std::shared_ptr<AclTableGroup>& newAclTableGroup);
 
   AclTableGroupSaiId addAclTableGroup(cfg::AclStage aclStage);
 
