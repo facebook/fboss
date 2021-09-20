@@ -71,7 +71,6 @@ class BcmPortIngressBufferManager {
       const bcm_cos_queue_t cosQ,
       const int headroomBytes);
   void setIngressSharedBytes(const bcm_cos_queue_t cosQ, const int sharedBytes);
-  void setEgressSharedBytes(const bcm_cos_queue_t cosQ, const int sharedBytes);
 
   void writeCosqTypeToHw(
       const int cosq,

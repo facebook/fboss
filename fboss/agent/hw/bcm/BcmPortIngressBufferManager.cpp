@@ -231,11 +231,6 @@ void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
       bcmCosqControlIngressHeadroomPoolLimitBytes,
       bufferPoolCfg.getHeadroomBytes(),
       "bcmCosqControlIngressHeadroomPoolLimitBytes");
-  writeCosqTypeToHwIfNeeded(
-      kDefaultPgId,
-      bcmCosqControlEgressPoolSharedLimitBytes,
-      bufferPoolCfg.getSharedBytes(),
-      "bcmCosqControlEgressPoolSharedLimitBytes");
 }
 
 void BcmPortIngressBufferManager::resetPgsToDefault(
@@ -376,8 +371,6 @@ void BcmPortIngressBufferManager::reprogramIngressPools(
         setIngressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
         setIngressPoolHeadroomBytes(portPgCfg->getID(), newGlobalHeadroomBytes);
       }
-      // program the egress one equivalently
-      setEgressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
     }
   }
 }
@@ -545,16 +538,6 @@ void BcmPortIngressBufferManager::setIngressSharedBytes(
       bcmCosqControlIngressPoolLimitBytes,
       sharedBytes,
       "bcmCosqControlIngressPoolLimitBytes");
-}
-
-void BcmPortIngressBufferManager::setEgressSharedBytes(
-    const bcm_cos_queue_t cosQ,
-    const int sharedBytes) {
-  writeCosqTypeToHw(
-      cosQ,
-      bcmCosqControlEgressPoolSharedLimitBytes,
-      sharedBytes,
-      "bcmCosqControlEgressPoolSharedLimitBytes");
 }
 
 int BcmPortIngressBufferManager::getIngressPoolHeadroomBytes(
