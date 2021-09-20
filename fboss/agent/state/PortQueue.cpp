@@ -215,9 +215,14 @@ std::string PortQueue::toString() const {
     for (const auto& aqm : getAqms()) {
       ss << "(behavior=" << apache::thrift::util::enumName(aqm.first)
          << ", detection=[min="
-         << aqm.second.get_detection().get_linear().minimumLength
-         << ", max=" << aqm.second.get_detection().get_linear().maximumLength
-         << "]), ";
+         << aqm.second.get_detection().get_linear().get_minimumLength()
+         << ", max="
+         << aqm.second.get_detection().get_linear().get_maximumLength();
+      if (aqm.second.get_detection().get_linear().get_probability()) {
+        ss << ", probability="
+           << aqm.second.get_detection().get_linear().get_probability();
+      }
+      ss << "]), ";
     }
     ss << "]";
   }
