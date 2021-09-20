@@ -54,8 +54,6 @@ class SaiAclTableGroupManager {
       const std::shared_ptr<AclTableGroup>& oldAclTableGroup,
       const std::shared_ptr<AclTableGroup>& newAclTableGroup);
 
-  AclTableGroupSaiId addAclTableGroup(cfg::AclStage aclStage);
-
   AclTableGroupMemberSaiId addAclTableGroupMember(
       sai_acl_stage_t aclStage,
       AclTableSaiId aclTableSaiId,

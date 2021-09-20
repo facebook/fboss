@@ -603,14 +603,57 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
-  processDelta(
-      delta.getAclsDelta(),
-      managerTable_->aclTableManager(),
-      lockPolicy,
-      &SaiAclTableManager::changedAclEntry,
-      &SaiAclTableManager::addAclEntry,
-      &SaiAclTableManager::removeAclEntry,
-      kAclTable1);
+  if (FLAGS_enable_acl_table_group &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES)) {
+    processDelta(
+        delta.getAclTableGroupsDelta(),
+        managerTable_->aclTableGroupManager(),
+        lockPolicy,
+        &SaiAclTableGroupManager::changedAclTableGroup,
+        &SaiAclTableGroupManager::addAclTableGroup,
+        &SaiAclTableGroupManager::removeAclTableGroup);
+
+    if (delta.getAclTableGroupsDelta().getNew()) {
+      // Process delta for the entries of each table in the new state
+      for (const auto& tableGroup : *delta.getAclTableGroupsDelta().getNew()) {
+        auto aclStage = tableGroup->getID();
+
+        processDelta(
+            delta.getAclTablesDelta(aclStage),
+            managerTable_->aclTableManager(),
+            lockPolicy,
+            &SaiAclTableManager::changedAclTable,
+            &SaiAclTableManager::addAclTable,
+            &SaiAclTableManager::removeAclTable,
+            aclStage);
+
+        if (delta.getAclTablesDelta(aclStage).getNew()) {
+          // Process delta for the entries of each table in the new state
+          for (const auto& table :
+               *delta.getAclTablesDelta(aclStage).getNew()) {
+            auto tableName = table->getID();
+            processDelta(
+                delta.getAclsDelta(aclStage, tableName),
+                managerTable_->aclTableManager(),
+                lockPolicy,
+                &SaiAclTableManager::changedAclEntry,
+                &SaiAclTableManager::addAclEntry,
+                &SaiAclTableManager::removeAclEntry,
+                tableName);
+          }
+        }
+      }
+    }
+  } else {
+    processDelta(
+        delta.getAclsDelta(),
+        managerTable_->aclTableManager(),
+        lockPolicy,
+        &SaiAclTableManager::changedAclEntry,
+        &SaiAclTableManager::addAclEntry,
+        &SaiAclTableManager::removeAclEntry,
+        kAclTable1);
+  }
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::RESOURCE_USAGE_STATS)) {
@@ -634,17 +677,23 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
 template <typename LockPolicyT>
 void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
   [[maybe_unused]] const auto& lock = lockPolicy.lock();
-  auto aclTableHandle =
-      managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
-  auto aclTableId = aclTableHandle->aclTable->adapterKey();
-  auto& aclApi = SaiApiTable::getInstance()->aclApi();
+
   try {
     // TODO - compute used resource stats from internal data structures and
     // populate them here
-    hwResourceStats_.acl_entries_free_ref() = aclApi.getAttribute(
-        aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
-    hwResourceStats_.acl_counters_free_ref() = aclApi.getAttribute(
-        aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
+
+    // TODO(skhare) Add resource usage support for multiple ACL tables
+    if (!FLAGS_enable_acl_table_group) {
+      auto aclTableHandle =
+          managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
+      auto aclTableId = aclTableHandle->aclTable->adapterKey();
+      auto& aclApi = SaiApiTable::getInstance()->aclApi();
+
+      hwResourceStats_.acl_entries_free_ref() = aclApi.getAttribute(
+          aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
+      hwResourceStats_.acl_counters_free_ref() = aclApi.getAttribute(
+          aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
+    }
 
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     hwResourceStats_.lpm_ipv4_free_ref() = switchApi.getAttribute(
@@ -1090,9 +1139,11 @@ void SaiSwitch::initStoreAndManagersLocked(
     // Temporarily skip adding acl table group for ASIC_TYPE_ELBERT_8DD
     if (getPlatform()->getAsic()->getAsicType() !=
         HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
-      managerTable_->aclTableGroupManager().addAclTableGroup(
-          cfg::AclStage::INGRESS);
       if (!FLAGS_enable_acl_table_group) {
+        auto aclTableGroup =
+            std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+        managerTable_->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
         auto table1 = std::make_shared<AclTable>(
             0,
             kAclTable1); // TODO(saranicholas): set appropriate table priority

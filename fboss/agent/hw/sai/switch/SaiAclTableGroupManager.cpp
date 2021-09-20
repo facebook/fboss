@@ -39,11 +39,6 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
   throw FbossError("Unsupported ACL stage");
 }
 
-AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
-    const std::shared_ptr<AclTableGroup>& addedAclTableGroup) {
-  return addAclTableGroup(addedAclTableGroup->getID());
-}
-
 void SaiAclTableGroupManager::removeAclTableGroup(
     const std::shared_ptr<AclTableGroup>& /*removedAclTableGroup*/) {
   // TODO(skhare) add support
@@ -56,8 +51,9 @@ void SaiAclTableGroupManager::changedAclTableGroup(
 }
 
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
-    cfg::AclStage aclStage) {
-  sai_acl_stage_t saiAclStage = cfgAclStageToSaiAclStage(aclStage);
+    const std::shared_ptr<AclTableGroup>& addedAclTableGroup) {
+  sai_acl_stage_t saiAclStage =
+      cfgAclStageToSaiAclStage(addedAclTableGroup->getID());
 
   // If we already store a handle for this this Acl Table group, fail to add a
   // new one.

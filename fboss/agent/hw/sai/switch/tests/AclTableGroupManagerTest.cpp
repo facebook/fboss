@@ -39,9 +39,10 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, addEgressMacSecAclTableGroup) {
+  auto aclTableGroup2 =
+      std::make_shared<AclTableGroup>(cfg::AclStage::EGRESS_MACSEC);
   AclTableGroupSaiId aclTableGroupId2 =
-      saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          cfg::AclStage::EGRESS_MACSEC);
+      saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup2);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableGroupId2, SaiAclTableGroupTraits::Attributes::Stage());
@@ -49,9 +50,9 @@ TEST_F(AclTableGroupManagerTest, addEgressMacSecAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroup) {
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
   EXPECT_THROW(
-      saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          cfg::AclStage::INGRESS),
+      saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup),
       FbossError);
 }
 
