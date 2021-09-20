@@ -115,11 +115,15 @@ class Sff8472Module : public QsfpModule {
     return ModuleStatus();
   }
 
-  void updateQsfpData(bool) override {}
+  void updateQsfpData(bool allPages = true) override;
 
   double getQsfpDACLength() const override {
     return 0;
   }
+
+ protected:
+  uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
+  uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
 };
 
 } // namespace fboss

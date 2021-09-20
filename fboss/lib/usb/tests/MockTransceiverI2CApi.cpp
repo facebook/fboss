@@ -21,7 +21,7 @@ void MockTransceiverI2CApi::moduleRead(
     int offset,
     int len,
     uint8_t* buf) {
-  EXPECT_EQ(i2cAddress, 0x50);
+  EXPECT_TRUE(i2cAddress == 0x50 || i2cAddress == 0x51);
   // Throw a forced exception when asked to do so
   if (throwReadExceptionForMgmtInterface_ ||
       (len != 1 && throwReadExceptionForDomQuery_)) {

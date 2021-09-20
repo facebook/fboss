@@ -42,5 +42,39 @@ Sff8472Module::Sff8472Module(
 
 Sff8472Module::~Sff8472Module() {}
 
+void Sff8472Module::updateQsfpData(bool allPages) {
+  // expects the lock to be held
+  if (!present_) {
+    return;
+  }
+  try {
+    XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
+               << " sfp data cache refresh for transceiver "
+               << folly::to<std::string>(qsfpImpl_->getName());
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP_A2, 0, sizeof(a2LowerPage_), a2LowerPage_);
+    lastRefreshTime_ = std::time(nullptr);
+    dirty_ = false;
+    setQsfpFlatMem();
+
+    if (!allPages) {
+      // Only address A2h lower page0 has diagnostic data that changes very
+      // often. Avoid reading the static data frequently.
+      return;
+    }
+
+    qsfpImpl_->readTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 0, sizeof(a0LowerPage_), a0LowerPage_);
+  } catch (const std::exception& ex) {
+    // No matter what kind of exception throws, we need to set the dirty_ flag
+    // to true.
+    dirty_ = true;
+    XLOG(ERR) << "Error update data for transceiver:"
+              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
+              << ex.what();
+    throw;
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

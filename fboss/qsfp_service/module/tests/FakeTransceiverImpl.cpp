@@ -27,7 +27,7 @@ int FakeTransceiverImpl::readTransceiver(
     int len,
     uint8_t* fieldValue) {
   int read = 0;
-  EXPECT_EQ(0x50, dataAddress);
+  EXPECT_TRUE(dataAddress == 0x50 || dataAddress == 0x51);
   if (offset < QsfpModule::MAX_QSFP_PAGE_SIZE) {
     read = len;
     if (QsfpModule::MAX_QSFP_PAGE_SIZE - offset < len) {
