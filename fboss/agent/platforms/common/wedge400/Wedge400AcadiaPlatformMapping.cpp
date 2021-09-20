@@ -5499,7 +5499,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/17",
+                  "chip": "eth1/33",
                   "lane": 0
                 }
               }
@@ -5511,7 +5511,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/17",
+                  "chip": "eth1/33",
                   "lane": 1
                 }
               }
@@ -5523,7 +5523,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/17",
+                  "chip": "eth1/33",
                   "lane": 2
                 }
               }
@@ -5535,7 +5535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/17",
+                  "chip": "eth1/33",
                   "lane": 3
                 }
               }
@@ -5574,25 +5574,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 3
                     }
                   }
@@ -5662,25 +5662,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/33",
                       "lane": 3
                     }
                   }
@@ -5702,7 +5702,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/18",
+                  "chip": "eth1/34",
                   "lane": 0
                 }
               }
@@ -5714,7 +5714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/18",
+                  "chip": "eth1/34",
                   "lane": 1
                 }
               }
@@ -5726,7 +5726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/18",
+                  "chip": "eth1/34",
                   "lane": 2
                 }
               }
@@ -5738,7 +5738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/18",
+                  "chip": "eth1/34",
                   "lane": 3
                 }
               }
@@ -5777,25 +5777,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 3
                     }
                   }
@@ -5865,25 +5865,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/34",
                       "lane": 3
                     }
                   }
@@ -5905,7 +5905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/19",
+                  "chip": "eth1/35",
                   "lane": 0
                 }
               }
@@ -5917,7 +5917,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/19",
+                  "chip": "eth1/35",
                   "lane": 1
                 }
               }
@@ -5929,7 +5929,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/19",
+                  "chip": "eth1/35",
                   "lane": 2
                 }
               }
@@ -5941,7 +5941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/19",
+                  "chip": "eth1/35",
                   "lane": 3
                 }
               }
@@ -5980,25 +5980,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 3
                     }
                   }
@@ -6068,25 +6068,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/35",
                       "lane": 3
                     }
                   }
@@ -6108,7 +6108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/20",
+                  "chip": "eth1/36",
                   "lane": 0
                 }
               }
@@ -6120,7 +6120,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/20",
+                  "chip": "eth1/36",
                   "lane": 1
                 }
               }
@@ -6132,7 +6132,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/20",
+                  "chip": "eth1/36",
                   "lane": 2
                 }
               }
@@ -6144,7 +6144,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/20",
+                  "chip": "eth1/36",
                   "lane": 3
                 }
               }
@@ -6183,25 +6183,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 3
                     }
                   }
@@ -6271,25 +6271,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/36",
                       "lane": 3
                     }
                   }
@@ -6995,7 +6995,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/25",
+                  "chip": "eth1/41",
                   "lane": 0
                 }
               }
@@ -7007,7 +7007,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/25",
+                  "chip": "eth1/41",
                   "lane": 1
                 }
               }
@@ -7019,7 +7019,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/25",
+                  "chip": "eth1/41",
                   "lane": 2
                 }
               }
@@ -7031,7 +7031,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/25",
+                  "chip": "eth1/41",
                   "lane": 3
                 }
               }
@@ -7070,25 +7070,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 3
                     }
                   }
@@ -7158,13 +7158,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 1
                     }
                   },
@@ -7176,7 +7176,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 3
                     }
                   }
@@ -7198,7 +7198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/26",
+                  "chip": "eth1/42",
                   "lane": 0
                 }
               }
@@ -7210,7 +7210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/26",
+                  "chip": "eth1/42",
                   "lane": 1
                 }
               }
@@ -7222,7 +7222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/26",
+                  "chip": "eth1/42",
                   "lane": 2
                 }
               }
@@ -7234,7 +7234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/26",
+                  "chip": "eth1/42",
                   "lane": 3
                 }
               }
@@ -7273,25 +7273,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 3
                     }
                   }
@@ -7361,25 +7361,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/26",
+                      "chip": "eth1/42",
                       "lane": 3
                     }
                   }
@@ -7401,7 +7401,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/27",
+                  "chip": "eth1/43",
                   "lane": 0
                 }
               }
@@ -7413,7 +7413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/27",
+                  "chip": "eth1/43",
                   "lane": 1
                 }
               }
@@ -7425,7 +7425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/27",
+                  "chip": "eth1/43",
                   "lane": 2
                 }
               }
@@ -7437,7 +7437,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/27",
+                  "chip": "eth1/43",
                   "lane": 3
                 }
               }
@@ -7476,25 +7476,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 3
                     }
                   }
@@ -7564,25 +7564,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/27",
+                      "chip": "eth1/43",
                       "lane": 3
                     }
                   }
@@ -7604,7 +7604,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/28",
+                  "chip": "eth1/44",
                   "lane": 0
                 }
               }
@@ -7616,7 +7616,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/28",
+                  "chip": "eth1/44",
                   "lane": 1
                 }
               }
@@ -7628,7 +7628,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/28",
+                  "chip": "eth1/44",
                   "lane": 2
                 }
               }
@@ -7640,7 +7640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/28",
+                  "chip": "eth1/44",
                   "lane": 3
                 }
               }
@@ -7679,25 +7679,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 3
                     }
                   }
@@ -7767,25 +7767,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/28",
+                      "chip": "eth1/44",
                       "lane": 3
                     }
                   }
@@ -8491,7 +8491,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/29",
+                  "chip": "eth1/45",
                   "lane": 0
                 }
               }
@@ -8503,7 +8503,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/29",
+                  "chip": "eth1/45",
                   "lane": 1
                 }
               }
@@ -8515,7 +8515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/29",
+                  "chip": "eth1/45",
                   "lane": 2
                 }
               }
@@ -8527,7 +8527,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/29",
+                  "chip": "eth1/45",
                   "lane": 3
                 }
               }
@@ -8566,25 +8566,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 3
                     }
                   }
@@ -8654,25 +8654,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/29",
+                      "chip": "eth1/45",
                       "lane": 3
                     }
                   }
@@ -8694,7 +8694,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/30",
+                  "chip": "eth1/46",
                   "lane": 0
                 }
               }
@@ -8706,7 +8706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/30",
+                  "chip": "eth1/46",
                   "lane": 1
                 }
               }
@@ -8718,7 +8718,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/30",
+                  "chip": "eth1/46",
                   "lane": 2
                 }
               }
@@ -8730,7 +8730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/30",
+                  "chip": "eth1/46",
                   "lane": 3
                 }
               }
@@ -8769,25 +8769,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 3
                     }
                   }
@@ -8857,25 +8857,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/30",
+                      "chip": "eth1/46",
                       "lane": 3
                     }
                   }
@@ -8897,7 +8897,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/31",
+                  "chip": "eth1/47",
                   "lane": 0
                 }
               }
@@ -8909,7 +8909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/31",
+                  "chip": "eth1/47",
                   "lane": 1
                 }
               }
@@ -8921,7 +8921,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/31",
+                  "chip": "eth1/47",
                   "lane": 2
                 }
               }
@@ -8933,7 +8933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/31",
+                  "chip": "eth1/47",
                   "lane": 3
                 }
               }
@@ -8972,25 +8972,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 3
                     }
                   }
@@ -9060,25 +9060,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/31",
+                      "chip": "eth1/47",
                       "lane": 3
                     }
                   }
@@ -9100,7 +9100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/32",
+                  "chip": "eth1/48",
                   "lane": 0
                 }
               }
@@ -9112,7 +9112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/32",
+                  "chip": "eth1/48",
                   "lane": 1
                 }
               }
@@ -9124,7 +9124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/32",
+                  "chip": "eth1/48",
                   "lane": 2
                 }
               }
@@ -9136,7 +9136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/32",
+                  "chip": "eth1/48",
                   "lane": 3
                 }
               }
@@ -9175,25 +9175,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 3
                     }
                   }
@@ -9263,25 +9263,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/32",
+                      "chip": "eth1/48",
                       "lane": 3
                     }
                   }
@@ -9987,7 +9987,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/21",
+                  "chip": "eth1/37",
                   "lane": 0
                 }
               }
@@ -9999,7 +9999,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/21",
+                  "chip": "eth1/37",
                   "lane": 1
                 }
               }
@@ -10011,7 +10011,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/21",
+                  "chip": "eth1/37",
                   "lane": 2
                 }
               }
@@ -10023,7 +10023,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/21",
+                  "chip": "eth1/37",
                   "lane": 3
                 }
               }
@@ -10062,25 +10062,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 3
                     }
                   }
@@ -10150,25 +10150,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/37",
                       "lane": 3
                     }
                   }
@@ -10190,7 +10190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/22",
+                  "chip": "eth1/38",
                   "lane": 0
                 }
               }
@@ -10202,7 +10202,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/22",
+                  "chip": "eth1/38",
                   "lane": 1
                 }
               }
@@ -10214,7 +10214,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/22",
+                  "chip": "eth1/38",
                   "lane": 2
                 }
               }
@@ -10226,7 +10226,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/22",
+                  "chip": "eth1/38",
                   "lane": 3
                 }
               }
@@ -10265,25 +10265,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 3
                     }
                   }
@@ -10353,25 +10353,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/38",
                       "lane": 3
                     }
                   }
@@ -10393,7 +10393,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/23",
+                  "chip": "eth1/39",
                   "lane": 0
                 }
               }
@@ -10405,7 +10405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/23",
+                  "chip": "eth1/39",
                   "lane": 1
                 }
               }
@@ -10417,7 +10417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/23",
+                  "chip": "eth1/39",
                   "lane": 2
                 }
               }
@@ -10429,7 +10429,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/23",
+                  "chip": "eth1/39",
                   "lane": 3
                 }
               }
@@ -10468,25 +10468,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 3
                     }
                   }
@@ -10556,25 +10556,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/39",
                       "lane": 3
                     }
                   }
@@ -10596,7 +10596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/24",
+                  "chip": "eth1/40",
                   "lane": 0
                 }
               }
@@ -10608,7 +10608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/24",
+                  "chip": "eth1/40",
                   "lane": 1
                 }
               }
@@ -10620,7 +10620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/24",
+                  "chip": "eth1/40",
                   "lane": 2
                 }
               }
@@ -10632,7 +10632,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "eth1/24",
+                  "chip": "eth1/40",
                   "lane": 3
                 }
               }
@@ -10671,25 +10671,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 3
                     }
                   }
@@ -10759,25 +10759,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/40",
                       "lane": 3
                     }
                   }
