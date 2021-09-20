@@ -65,6 +65,8 @@ class SaiAclTableGroupManager {
       const SaiAclTableGroupHandle* aclTableGroupHandle,
       const std::string& aclTableName) const;
 
+  sai_acl_stage_t cfgAclStageToSaiAclStage(cfg::AclStage aclStage) const;
+
  private:
   SaiAclTableGroupHandle* FOLLY_NULLABLE
   getAclTableGroupHandleImpl(sai_acl_stage_t aclStage) const;

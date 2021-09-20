@@ -24,6 +24,21 @@ SaiAclTableGroupManager::SaiAclTableGroupManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
+sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
+    cfg::AclStage aclStage) const {
+  switch (aclStage) {
+    case cfg::AclStage::INGRESS:
+      return SAI_ACL_STAGE_INGRESS;
+    case cfg::AclStage::INGRESS_MACSEC:
+      return SAI_ACL_STAGE_INGRESS_MACSEC;
+    case cfg::AclStage::EGRESS_MACSEC:
+      return SAI_ACL_STAGE_EGRESS_MACSEC;
+  }
+
+  // should return in one of the cases
+  throw FbossError("Unsupported ACL stage");
+}
+
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     sai_acl_stage_t aclStage) {
   // If we already store a handle for this this Acl Table group, fail to add a
