@@ -98,10 +98,12 @@ void delAcl(
 
 void addAclTableGroup(
     cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
     const std::string& aclTableGroupName) {
   cfg::AclTableGroup cfgTableGroup;
   cfg->aclTableGroup_ref() = cfgTableGroup;
   cfg->aclTableGroup_ref()->name_ref() = aclTableGroupName;
+  cfg->aclTableGroup_ref()->stage_ref() = aclStage;
 }
 
 cfg::AclTable* addAclTable(

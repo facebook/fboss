@@ -77,6 +77,7 @@ void delAcl(
 
 void addAclTableGroup(
     cfg::SwitchConfig* cfg,
+    cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
 cfg::AclTable* addAclTable(
