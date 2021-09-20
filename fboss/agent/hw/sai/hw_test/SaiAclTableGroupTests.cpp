@@ -75,12 +75,61 @@ class SaiAclTableGroupTest : public HwTest {
         {cfg::AclTableQualifier::TTL});
   }
 
+  void addAclTable1Entry1(cfg::SwitchConfig& cfg) {
+    auto* acl1 = utility::addAcl(
+        &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, kAclTable1());
+    acl1->dscp_ref() = 0x20;
+  }
+
+  void addAclTable2Entry1(cfg::SwitchConfig& cfg) {
+    auto* acl2 = utility::addAcl(
+        &cfg, kAclTable2Entry1(), cfg::AclActionType::DENY, kAclTable2());
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+    acl2->ttl_ref() = ttl;
+  }
+
+  void verifyMultipleTableWithEntriesHelper() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable1()));
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch(), kAclTable1()), 1);
+    utility::checkSwHwAclMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        kAclTable1Entry1(),
+        kAclStage(),
+        kAclTable1());
+
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable2()));
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch(), kAclTable2()), 1);
+    utility::checkSwHwAclMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        kAclTable2Entry1(),
+        kAclStage(),
+        kAclTable2());
+  }
+
   std::string kAclTable1() const {
     return "table1";
   }
 
   std::string kAclTable2() const {
     return "table2";
+  }
+
+  std::string kAclTable1Entry1() const {
+    return "table1_entry1";
+  }
+
+  std::string kAclTable2Entry1() const {
+    return "table2_entry1";
+  }
+
+  cfg::AclStage kAclStage() const {
+    return cfg::AclStage::INGRESS;
   }
 };
 
@@ -90,8 +139,7 @@ TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(
-        &newCfg, cfg::AclStage::INGRESS, "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
 
     applyNewConfig(newCfg);
   };
@@ -109,8 +157,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(
-        &newCfg, cfg::AclStage::INGRESS, "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
     addAclTable1(newCfg);
     addAclTable2(newCfg);
 
@@ -122,6 +169,47 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable1()));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable2()));
   };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, MultipleTablesWithEntries) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    addAclTable1(newCfg);
+    addAclTable1Entry1(newCfg);
+    addAclTable2(newCfg);
+    addAclTable2Entry1(newCfg);
+
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() { verifyMultipleTableWithEntriesHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    applyNewConfig(newCfg);
+
+    addAclTable1Entry1(newCfg);
+    addAclTable2Entry1(newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() { verifyMultipleTableWithEntriesHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
