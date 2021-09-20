@@ -54,6 +54,7 @@ void checkSwHwAclMatch(
     const HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
+    cfg::AclStage /* aclStage */,
     const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
@@ -216,6 +217,7 @@ uint64_t getAclInOutPackets(
     std::shared_ptr<SwitchState> /*state*/,
     const std::string& /*aclName*/,
     const std::string& statName,
+    cfg::AclStage /* aclStage */,
     const std::optional<std::string>& /*aclTableName*/) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto statHandle = bcmSwitch->getAclTable()->getAclStat(statName)->getHandle();

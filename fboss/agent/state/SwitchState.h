@@ -18,6 +18,7 @@
 
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroup.h"
+#include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
@@ -60,6 +61,7 @@ struct SwitchStateFields {
     fn(vlans.get());
     fn(interfaces.get());
     fn(acls.get());
+    fn(aclTableGroups.get());
     fn(sFlowCollectors.get());
     fn(qosPolicies.get());
     fn(controlPlane.get());
@@ -84,7 +86,7 @@ struct SwitchStateFields {
   std::shared_ptr<VlanMap> vlans;
   std::shared_ptr<InterfaceMap> interfaces;
   std::shared_ptr<AclMap> acls;
-  std::shared_ptr<AclTableGroup> aclTableGroup;
+  std::shared_ptr<AclTableGroupMap> aclTableGroups;
   std::shared_ptr<SflowCollectorMap> sFlowCollectors;
   std::shared_ptr<QosPolicyMap> qosPolicies;
   std::shared_ptr<ControlPlane> controlPlane;
@@ -241,13 +243,20 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->acls;
   }
 
-  const std::shared_ptr<AclTableGroup>& getAclTableGroup() const {
-    return getFields()->aclTableGroup;
+  const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const {
+    return getFields()->aclTableGroups;
   }
 
   std::chrono::seconds getArpTimeout() const {
     return getFields()->arpTimeout;
   }
+
+  std::shared_ptr<AclMap> getAclsForTable(
+      cfg::AclStage aclStage,
+      const std::string& tableName) const;
+
+  std::shared_ptr<AclTableMap> getAclTablesForStage(
+      cfg::AclStage aclStage) const;
 
   const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const {
     return getFields()->sFlowCollectors;
@@ -372,7 +381,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void addAcl(const std::shared_ptr<AclEntry>& acl);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(std::shared_ptr<AclMap> acls);
-  void resetAclTableGroup(std::shared_ptr<AclTableGroup> acls);
+  void resetAclTableGroups(std::shared_ptr<AclTableGroupMap> aclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
   void resetQosPolicies(std::shared_ptr<QosPolicyMap> qosPolicyMap);

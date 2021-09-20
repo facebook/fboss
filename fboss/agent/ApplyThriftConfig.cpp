@@ -257,15 +257,20 @@ class ThriftConfigApplier {
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
       const cfg::Vlan* config);
-  std::shared_ptr<AclTableGroup> updateAclTableGroup();
+  std::shared_ptr<AclTableGroup> updateAclTableGroup(
+      cfg::AclStage aclStage,
+      const std::shared_ptr<AclTableGroup>& origAclTableGroup);
+  std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
   flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
   void checkTrafficPolicyAclsExistInConfig(
       const cfg::TrafficPolicyConfig& policy,
       flat_map<std::string, const cfg::AclEntry*> aclByName);
   std::shared_ptr<AclTable> updateAclTable(
+      cfg::AclStage aclStage,
       const cfg::AclTable& configTable,
       int* numExistingTablesProcessed);
   std::shared_ptr<AclMap> updateAcls(
+      cfg::AclStage aclStage,
       std::vector<cfg::AclEntry> configEntries,
       std::optional<std::string> tableName = std::nullopt);
   std::shared_ptr<AclEntry> createAcl(
@@ -273,6 +278,7 @@ class ThriftConfigApplier {
       int priority,
       const MatchAction* action = nullptr);
   std::shared_ptr<AclEntry> updateAcl(
+      cfg::AclStage aclStage,
       const cfg::AclEntry& acl,
       int priority,
       int* numExistingProcessed,
@@ -435,13 +441,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   // updateAcls must be called after updateMirrors, acls may need mirror!
   {
     if (FLAGS_enable_acl_table_group) {
-      auto newAclGroup = updateAclTableGroup();
-      if (newAclGroup) {
-        new_->resetAclTableGroup(std::move(newAclGroup));
+      auto newAclTableGroups = updateAclTableGroups();
+      if (newAclTableGroups) {
+        new_->resetAclTableGroups(std::move(newAclTableGroups));
         changed = true;
       }
     } else {
-      auto newAcls = updateAcls(*cfg_->acls_ref());
+      auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls_ref());
       if (newAcls) {
         new_->resetAcls(std::move(newAcls));
         changed = true;
@@ -1879,15 +1885,40 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       QosPolicy::TrafficClassToQueueId());
 }
 
-std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup() {
-  auto newAclTableMap = std::make_shared<AclTableMap>();
-  bool changed = false;
-  int numExistingTablesProcessed = 0;
+std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
+  auto origAclTableGroups = orig_->getAclTableGroups();
+  AclTableGroupMap::NodeContainer newAclTableGroups;
 
   if (!cfg_->aclTableGroup_ref()) {
     throw FbossError(
-        "Multiple acl tables flag set to true, but acl tables not set using new config format");
+        "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   }
+
+  if (cfg_->aclTableGroup_ref()->stage_ref() != cfg::AclStage::INGRESS) {
+    throw FbossError("Only ACL Stage INGRESS is supported");
+  }
+
+  auto origAclTableGroup =
+      origAclTableGroups->getAclTableGroupIf(cfg::AclStage::INGRESS);
+
+  auto newAclTableGroup = updateAclTableGroup(
+      *cfg_->aclTableGroup_ref()->stage_ref(), origAclTableGroup);
+  auto changed =
+      updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origAclTableGroups->clone(std::move(newAclTableGroups));
+}
+
+std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
+    cfg::AclStage aclStage,
+    const std::shared_ptr<AclTableGroup>& origAclTableGroup) {
+  auto newAclTableMap = std::make_shared<AclTableMap>();
+  bool changed = false;
+  int numExistingTablesProcessed = 0;
 
   auto aclByName = getAllAclsByName();
   // Check for controlPlane traffic acls
@@ -1903,21 +1934,23 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup() {
 
   // For each table in the config, update the table entries and priority
   for (const auto& aclTable : *cfg_->aclTableGroup_ref()->aclTables_ref()) {
-    auto newTable = updateAclTable(aclTable, &numExistingTablesProcessed);
+    auto newTable =
+        updateAclTable(aclStage, aclTable, &numExistingTablesProcessed);
     if (newTable) {
       changed = true;
       newAclTableMap->addTable(newTable);
     } else {
-      newAclTableMap->addTable(
-          orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
-              *(aclTable.name_ref())));
+      newAclTableMap->addTable(orig_->getAclTableGroups()
+                                   ->getAclTableGroup(aclStage)
+                                   ->getAclTableMap()
+                                   ->getTableIf(*(aclTable.name_ref())));
     }
   }
 
-  if (orig_->getAclTableGroup() &&
-      numExistingTablesProcessed !=
-          orig_->getAclTableGroup()->getAclTableMap()->numTables()) {
-    // Some existing tables were removed.
+  if (!origAclTableGroup ||
+      (origAclTableGroup->getAclTableMap() &&
+       (numExistingTablesProcessed !=
+        origAclTableGroup->getAclTableMap()->numTables()))) {
     changed = true;
   }
 
@@ -1960,17 +1993,24 @@ void ThriftConfigApplier::checkTrafficPolicyAclsExistInConfig(
 }
 
 std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
+    cfg::AclStage aclStage,
     const cfg::AclTable& configTable,
     int* numExistingTablesProcessed) {
   auto tableName = *configTable.name_ref();
   std::shared_ptr<AclTable> origTable;
-  if (orig_->getAclTableGroup()) {
-    origTable =
-        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(tableName);
+  if (orig_->getAclTableGroups() &&
+      orig_->getAclTableGroups()->getAclTableGroupIf(aclStage) &&
+      orig_->getAclTableGroups()
+          ->getAclTableGroup(aclStage)
+          ->getAclTableMap()) {
+    origTable = orig_->getAclTableGroups()
+                    ->getAclTableGroup(aclStage)
+                    ->getAclTableMap()
+                    ->getTableIf(tableName);
   }
 
   auto newTableEntries = updateAcls(
-      *(configTable.aclEntries_ref()), std::make_optional(tableName));
+      aclStage, *(configTable.aclEntries_ref()), std::make_optional(tableName));
   auto newTablePriority = *configTable.priority_ref();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes_ref();
@@ -2006,6 +2046,7 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
 }
 
 std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
+    cfg::AclStage aclStage,
     std::vector<cfg::AclEntry> configEntries,
     std::optional<std::string> tableName) {
   AclMap::NodeContainer newAcls;
@@ -2015,16 +2056,20 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   int cpuPriority = 1;
 
   // Start with the DROP acls, these should have highest priority
-  auto acls =
-      folly::gen::from(configEntries) |
+  auto acls = folly::gen::from(configEntries) |
       folly::gen::filter([](const cfg::AclEntry& entry) {
-        return *entry.actionType_ref() == cfg::AclActionType::DENY;
-      }) |
+                return *entry.actionType_ref() == cfg::AclActionType::DENY;
+              }) |
       folly::gen::map([&](const cfg::AclEntry& entry) {
-        auto acl = updateAcl(
-            entry, priority++, &numExistingProcessed, &changed, tableName);
-        return std::make_pair(acl->getID(), acl);
-      }) |
+                auto acl = updateAcl(
+                    aclStage,
+                    entry,
+                    priority++,
+                    &numExistingProcessed,
+                    &changed,
+                    tableName);
+                return std::make_pair(acl->getID(), acl);
+              }) |
       folly::gen::appendTo(newAcls);
 
   // Let's get a map of acls to name so we don't have to search the acl list
@@ -2087,6 +2132,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
         }
 
         auto acl = updateAcl(
+            aclStage,
             aclCfg,
             isCoppAcl ? cpuPriority++ : priority++,
             &numExistingProcessed,
@@ -2127,15 +2173,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   }
 
   if (FLAGS_enable_acl_table_group) {
-    if (orig_->getAclTableGroup() &&
-        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
-            tableName.value()) &&
+    if (orig_->getAclsForTable(aclStage, tableName.value()) &&
         numExistingProcessed !=
-            orig_->getAclTableGroup()
-                ->getAclTableMap()
-                ->getTableIf(tableName.value())
-                ->getAclMap()
-                ->size()) {
+            orig_->getAclsForTable(aclStage, tableName.value())->size()) {
       // Some existing ACLs were removed from the table (multiple acl tables
       // implementation).
       changed = true;
@@ -2151,20 +2191,17 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
     return nullptr;
   }
 
-  if (tableName.has_value() && orig_->getAclTableGroup()) {
-    if (orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
-            tableName.value())) {
-      return orig_->getAclTableGroup()
-          ->getAclTableMap()
-          ->getTable(tableName.value())
-          ->getAclMap()
-          ->clone(std::move(newAcls));
-    }
+  if (tableName.has_value() &&
+      orig_->getAclsForTable(aclStage, tableName.value())) {
+    return orig_->getAclsForTable(aclStage, tableName.value())
+        ->clone(std::move(newAcls));
   }
+
   return orig_->getAcls()->clone(std::move(newAcls));
 }
 
 std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
+    cfg::AclStage aclStage,
     const cfg::AclEntry& acl,
     int priority,
     int* numExistingProcessed,
@@ -2174,15 +2211,10 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
   std::shared_ptr<AclEntry> origAcl;
 
   if (FLAGS_enable_acl_table_group) { // multiple acl tables implementation
-    XLOG(ERR) << "Table name: " << tableName.value();
     CHECK(tableName.has_value());
-    if (orig_->getAclTableGroup() &&
-        orig_->getAclTableGroup()->getAclTableMap()->getTableIf(
-            tableName.value())) {
-      origAcl = orig_->getAclTableGroup()
-                    ->getAclTableMap()
-                    ->getTableIf(tableName.value())
-                    ->getAclMap()
+
+    if (orig_->getAclsForTable(aclStage, tableName.value())) {
+      origAcl = orig_->getAclsForTable(aclStage, tableName.value())
                     ->getEntryIf(*acl.name_ref());
     }
   } else { // single acl table implementation

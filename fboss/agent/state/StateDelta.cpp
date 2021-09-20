@@ -12,6 +12,7 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroup.h"
+#include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -53,23 +54,47 @@ NodeMapDelta<InterfaceMap> StateDelta::getIntfsDelta() const {
       old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
-AclMapDelta StateDelta::getAclsDelta() const {
+AclMapDelta StateDelta::getAclsDelta(
+    cfg::AclStage aclStage,
+    std::optional<std::string> tableName) const {
   std::unique_ptr<PrioAclMap> oldAcls, newAcls;
-  if (old_->getAcls()) {
-    oldAcls.reset(new PrioAclMap());
-    oldAcls->addAcls(old_->getAcls());
+
+  if (tableName.has_value()) {
+    // Multiple ACL Table support
+    if (old_->getAclsForTable(aclStage, tableName.value())) {
+      oldAcls.reset(new facebook::fboss::PrioAclMap());
+      oldAcls->addAcls(old_->getAclsForTable(aclStage, tableName.value()));
+    }
+
+    if (new_->getAclsForTable(aclStage, tableName.value())) {
+      newAcls.reset(new facebook::fboss::PrioAclMap());
+      newAcls->addAcls(new_->getAclsForTable(aclStage, tableName.value()));
+    }
+  } else {
+    // Single ACL Table support
+    if (old_->getAcls()) {
+      oldAcls.reset(new PrioAclMap());
+      oldAcls->addAcls(old_->getAcls());
+    }
+    if (new_->getAcls()) {
+      newAcls.reset(new PrioAclMap());
+      newAcls->addAcls(new_->getAcls());
+    }
   }
-  if (new_->getAcls()) {
-    newAcls.reset(new PrioAclMap());
-    newAcls->addAcls(new_->getAcls());
-  }
+
   return AclMapDelta(std::move(oldAcls), std::move(newAcls));
 }
 
-NodeMapDelta<AclTableMap> StateDelta::getAclTablesDelta() const {
+NodeMapDelta<AclTableMap> StateDelta::getAclTablesDelta(
+    cfg::AclStage aclStage) const {
   return NodeMapDelta<AclTableMap>(
-      old_->getAclTableGroup()->getAclTableMap().get(),
-      new_->getAclTableGroup()->getAclTableMap().get());
+      old_->getAclTablesForStage(aclStage).get(),
+      new_->getAclTablesForStage(aclStage).get());
+}
+
+NodeMapDelta<AclTableGroupMap> StateDelta::getAclTableGroupsDelta() const {
+  return NodeMapDelta<AclTableGroupMap>(
+      old_->getAclTableGroups().get(), new_->getAclTableGroups().get());
 }
 
 QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {
@@ -162,6 +187,7 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<AclMap>;
+template class NodeMapDelta<AclTableGroupMap>;
 template class NodeMapDelta<AclTableMap>;
 template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;

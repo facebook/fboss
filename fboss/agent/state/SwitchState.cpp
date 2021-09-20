@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ControlPlane.h"
@@ -58,6 +59,7 @@ constexpr auto kQcmCfg = "qcmConfig";
 constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
 constexpr auto kFibs = "fibs";
 constexpr auto kTransceivers = "transceivers";
+constexpr auto kAclTableGroups = "aclTableGroups";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -74,6 +76,7 @@ SwitchStateFields::SwitchStateFields()
       vlans(make_shared<VlanMap>()),
       interfaces(make_shared<InterfaceMap>()),
       acls(make_shared<AclMap>()),
+      aclTableGroups(make_shared<AclTableGroupMap>()),
       sFlowCollectors(make_shared<SflowCollectorMap>()),
       qosPolicies(make_shared<QosPolicyMap>()),
       controlPlane(make_shared<ControlPlane>()),
@@ -111,6 +114,9 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
   switchState[kFibs] = fibs->toFollyDynamic();
   switchState[kTransceivers] = transceivers->toFollyDynamic();
+  if (aclTableGroups) {
+    switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
+  }
   return switchState;
 }
 
@@ -181,6 +187,12 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
       values != swJson.items().end()) {
     switchState.transceivers = TransceiverMap::fromFollyDynamic(values->second);
   }
+
+  if (swJson.find(kAclTableGroups) != swJson.items().end()) {
+    switchState.aclTableGroups =
+        AclTableGroupMap::fromFollyDynamic(swJson[kAclTableGroups]);
+  }
+
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -274,10 +286,6 @@ void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   fields->acls->addEntry(acl);
 }
 
-void SwitchState::addAclTable(const std::shared_ptr<AclTable>& aclTable) {
-  writableFields()->aclTableGroup->getAclTableMap()->addTable(aclTable);
-}
-
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
   return getFields()->acls->getEntryIf(name);
 }
@@ -286,9 +294,9 @@ void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
   writableFields()->acls.swap(acls);
 }
 
-void SwitchState::resetAclTableGroup(
-    std::shared_ptr<AclTableGroup> aclTableGroup) {
-  writableFields()->aclTableGroup.swap(aclTableGroup);
+void SwitchState::resetAclTableGroups(
+    std::shared_ptr<AclTableGroupMap> aclTableGroups) {
+  writableFields()->aclTableGroups.swap(aclTableGroups);
 }
 
 void SwitchState::resetAggregatePorts(
@@ -369,6 +377,29 @@ void SwitchState::addTransceiver(
 void SwitchState::resetTransceivers(
     std::shared_ptr<TransceiverMap> transceivers) {
   writableFields()->transceivers.swap(transceivers);
+}
+
+std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
+    cfg::AclStage aclStage) const {
+  if (getAclTableGroups() &&
+      getAclTableGroups()->getAclTableGroupIf(aclStage) &&
+      getAclTableGroups()->getAclTableGroup(aclStage)->getAclTableMap()) {
+    return getAclTableGroups()->getAclTableGroup(aclStage)->getAclTableMap();
+  }
+
+  return nullptr;
+}
+
+std::shared_ptr<AclMap> SwitchState::getAclsForTable(
+    cfg::AclStage aclStage,
+    const std::string& tableName) const {
+  auto aclTableMap = getAclTablesForStage(aclStage);
+
+  if (aclTableMap && aclTableMap->getTableIf(tableName)) {
+    return aclTableMap->getTable(tableName)->getAclMap();
+  }
+
+  return nullptr;
 }
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;

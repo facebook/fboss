@@ -14,6 +14,8 @@
 #include <ostream>
 
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/AclTableGroup.h"
+#include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -64,8 +66,11 @@ class StateDelta {
   VlanMapDelta getVlansDelta() const;
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
-  AclMapDelta getAclsDelta() const;
-  NodeMapDelta<AclTableMap> getAclTablesDelta() const;
+  AclMapDelta getAclsDelta(
+      cfg::AclStage aclStage = cfg::AclStage::INGRESS,
+      std::optional<std::string> tableName = std::nullopt) const;
+  NodeMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
+  NodeMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;

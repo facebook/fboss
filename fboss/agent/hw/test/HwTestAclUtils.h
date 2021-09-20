@@ -24,6 +24,7 @@ void checkSwHwAclMatch(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
+    cfg::AclStage aclStage = cfg::AclStage::INGRESS,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
 bool isAclTableEnabled(
@@ -109,6 +110,7 @@ uint64_t getAclInOutPackets(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
     const std::string& statName,
+    cfg::AclStage aclStage = cfg::AclStage::INGRESS,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
 } // namespace facebook::fboss::utility

@@ -36,9 +36,10 @@ std::string getActualAclTableName(
 std::shared_ptr<AclEntry> getSwAcl(
     const std::shared_ptr<SwitchState>& state,
     const std::string& aclName,
+    cfg::AclStage aclStage,
     const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
-    auto aclTableGroup = state->getAclTableGroup();
+    auto aclTableGroup = state->getAclTableGroups()->getAclTableGroup(aclStage);
     auto aclTable = aclTableGroup->getAclTableMap()->getTableIf(aclTableName);
     return aclTable->getAclMap()->getEntry(aclName);
   } else {
@@ -66,8 +67,10 @@ void checkSwHwAclMatch(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
+    cfg::AclStage aclStage,
     const std::optional<std::string>& aclTableName) {
-  auto swAcl = getSwAcl(state, aclName, getActualAclTableName(aclTableName));
+  auto swAcl =
+      getSwAcl(state, aclName, aclStage, getActualAclTableName(aclTableName));
 
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
@@ -514,8 +517,10 @@ uint64_t getAclInOutPackets(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
     const std::string& /*statName*/,
+    cfg::AclStage aclStage,
     const std::optional<std::string>& aclTableName) {
-  auto swAcl = getSwAcl(state, aclName, getActualAclTableName(aclTableName));
+  auto swAcl =
+      getSwAcl(state, aclName, aclStage, getActualAclTableName(aclTableName));
   const auto& aclTableManager =
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
