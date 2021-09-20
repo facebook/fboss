@@ -89,5 +89,9 @@ class CmisFlatMemTransceiver : public FakeTransceiverImpl {
   explicit CmisFlatMemTransceiver(int module);
 };
 
+class Sfp10GTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Sfp10GTransceiver(int module);
+};
 } // namespace fboss
 } // namespace facebook

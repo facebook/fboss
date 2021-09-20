@@ -70,8 +70,8 @@ class Sff8472Module : public QsfpModule {
     return GlobalSensors();
   }
 
-  bool getSensorsPerChanInfo(std::vector<Channel>&) override {
-    return false;
+  bool getSensorsPerChanInfo(std::vector<Channel>& /* channels */) override {
+    return true;
   }
 
   bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>&) override {

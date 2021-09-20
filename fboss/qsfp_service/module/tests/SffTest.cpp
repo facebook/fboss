@@ -14,6 +14,7 @@
 #include <glog/logging.h>
 #include <cstdint>
 #include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
@@ -233,6 +234,22 @@ TEST(BadSffTest, simpleRead) {
       std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
 
   EXPECT_THROW(qsfp->refresh(), QsfpModuleError);
+}
+
+// Tests that a SFP module can properly refresh
+TEST(SfpTest, transceiverInfoTest) {
+  int idx = 1;
+  std::unique_ptr<Sfp10GTransceiver> qsfpImpl =
+      std::make_unique<Sfp10GTransceiver>(idx);
+  std::unique_ptr<Sff8472Module> sfp =
+      std::make_unique<Sff8472Module>(nullptr, std::move(qsfpImpl), 1);
+
+  sfp->refresh();
+  TransceiverInfo info = sfp->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+
+  EXPECT_EQ(sfp->numHostLanes(), 1);
+  EXPECT_EQ(sfp->numMediaLanes(), 1);
 }
 
 } // namespace

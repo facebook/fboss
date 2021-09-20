@@ -238,14 +238,12 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
   if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
     info.mediaLaneSignals_ref()->clear();
-    info.mediaLaneSignals_ref().reset();
   }
   if (auto mediaLaneSignals = info.mediaLaneSignals_ref()) {
     cacheMediaLaneSignals(*mediaLaneSignals);
   }
   if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
     info.hostLaneSignals_ref()->clear();
-    info.hostLaneSignals_ref().reset();
   }
 
   if (auto transceiverStats = getTransceiverStats()) {
