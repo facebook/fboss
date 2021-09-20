@@ -577,6 +577,7 @@ enum QueueScheduling {
 struct LinearQueueCongestionDetection {
   1: required i32 minimumLength;
   2: required i32 maximumLength;
+  3: i32 probability = 100;
 }
 
 // Determines when we will consider a queue to be experiencing congestion
