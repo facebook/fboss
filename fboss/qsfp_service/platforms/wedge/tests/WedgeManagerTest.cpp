@@ -358,4 +358,18 @@ TEST_F(WedgeManagerTest, getAndClearTransceiversMediaSignalsTest) {
       mediaSignalsMap, std::make_unique<std::vector<int32_t>>(ports));
   EXPECT_EQ(mediaSignalsMap.size(), 3);
 }
+
+TEST_F(WedgeManagerTest, sfpMgmtInterfaceDetectionTest) {
+  for (int id = 1; id <= 16; id++) {
+    wedgeManager_->overrideMgmtInterface(
+        id, uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
+    wedgeManager_->overridePresence(id, true);
+  }
+  wedgeManager_->refreshTransceivers();
+  auto currentModules = wedgeManager_->mgmtInterfaces();
+  EXPECT_EQ(currentModules.size(), 16);
+  for (auto module : currentModules) {
+    EXPECT_EQ(module.second, TransceiverManagementInterface::SFF8472);
+  }
+}
 } // namespace

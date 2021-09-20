@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include "folly/futures/Future.h"
@@ -522,7 +523,9 @@ void WedgeManager::updateTransceiverMap() {
   // transceivers_ before updating it
   auto lockedTransceivers = transceivers_.wlock();
   auto lockedPorts = ports_.rlock();
-  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+  auto numModules = getNumQsfpModules();
+  CHECK_EQ(qsfpImpls.size(), numModules);
+  for (int idx = 0; idx < numModules; idx++) {
     if (!futInterfaces[idx].isReady()) {
       XLOG(ERR) << "failed getting TransceiverManagementInterface at " << idx;
       continue;
@@ -559,6 +562,12 @@ void WedgeManager::updateTransceiverMap() {
           TransceiverID(idx),
           std::make_unique<SffModule>(
               this, std::move(qsfpImpls[idx]), portsPerTransceiver));
+    } else if (
+        futInterfaces[idx].value() == TransceiverManagementInterface::SFF8472) {
+      XLOG(INFO) << "making Sff8472 module for " << idx;
+      lockedTransceivers->emplace(
+          TransceiverID(idx),
+          std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx]), 1));
     } else {
       XLOG(ERR) << "Unknown Transceiver interface: "
                 << static_cast<int>(futInterfaces[idx].value()) << " at idx "

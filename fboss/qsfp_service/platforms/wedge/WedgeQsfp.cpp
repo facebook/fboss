@@ -156,6 +156,10 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
            static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
         return TransceiverManagementInterface::SFF;
       } else if (
+          buf[0] ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
+        return TransceiverManagementInterface::SFF8472;
+      } else if (
           buf[0] !=
           static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
         XLOG(WARNING) << folly::sformat(
