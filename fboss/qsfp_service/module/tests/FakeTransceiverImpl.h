@@ -14,11 +14,11 @@ class FakeTransceiverImpl : public TransceiverImpl {
  public:
   FakeTransceiverImpl(
       int module,
-      std::array<uint8_t, 128>& lowerPage,
-      std::map<int, std::array<uint8_t, 128>>& upperPages) {
+      std::map<uint8_t, std::array<uint8_t, 128>>& lowerPage,
+      std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>& upperPages) {
     module_ = module;
     moduleName_ = folly::to<std::string>(module);
-    std::copy(lowerPage.begin(), lowerPage.end(), pageLower_.begin());
+    lowerPages_.insert(lowerPage.begin(), lowerPage.end());
     upperPages_.insert(upperPages.begin(), upperPages.end());
   }
   /* This function is used to read the SFP EEprom */
@@ -40,8 +40,8 @@ class FakeTransceiverImpl : public TransceiverImpl {
   int module_{0};
   std::string moduleName_;
   int page_{0};
-  std::map<int, std::array<uint8_t, 128>> upperPages_;
-  std::array<uint8_t, 128> pageLower_;
+  std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> upperPages_;
+  std::map<uint8_t, std::array<uint8_t, 128>> lowerPages_;
 };
 
 class SffDacTransceiver : public FakeTransceiverImpl {
