@@ -6,7 +6,9 @@
 #include <folly/logging/Init.h>
 
 #include "fboss/agent/SwitchStats.h"
+#if defined(SAI_VER_MAJOR)
 #include "fboss/lib/phy/SaiPhyManager.h"
+#endif
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -64,6 +66,10 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_loop_interval),
       "refreshTransceivers");
+  // HACK: Our OSS build currently don't have any SAI XPHY platforms. Skipping
+  // SAI stuff if absent.
+  // TODO: Put this back once we added an SAI XPHY platform to OSS.
+#if defined(SAI_VER_MAJOR)
   scheduler.addFunction(
       [mgr = handler->getTransceiverManager()]() {
         auto phyManager = dynamic_cast<SaiPhyManager*>(mgr->getPhyManager());
@@ -77,6 +83,7 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_sai_stats_collection_interval),
       "updateStats");
+#endif
 
   // Schedule the function to periodically send the I2c transaction
   // stats to the ServiceData object which gets pulled by FBagent.
