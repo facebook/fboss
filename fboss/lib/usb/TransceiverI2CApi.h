@@ -108,6 +108,7 @@ class TransceiverI2CApi {
   // Addresses to be queried by external callers:
   enum : uint8_t {
     ADDR_QSFP = 0x50,
+    ADDR_QSFP_A2 = 0x51,
   };
 };
 
