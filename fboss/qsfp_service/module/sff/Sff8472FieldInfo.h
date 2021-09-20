@@ -20,6 +20,7 @@ namespace fboss {
 
 enum class Sff8472Field {
   IDENTIFIER, // Type of Transceiver
+  ETHERNET_10G_COMPLIANCE_CODE, // 10G Ethernet Compliance codes
 
   ALARM_WARNING_THRESHOLDS,
 };

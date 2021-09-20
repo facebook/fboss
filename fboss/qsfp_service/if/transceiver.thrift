@@ -161,6 +161,7 @@ enum MediaInterfaceCode {
   FR4_200G = 4,
   FR4_400G = 5,
   LR4_400G_10KM = 6,
+  LR_10G = 7,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -202,9 +203,17 @@ enum SMFMediaInterfaceCode {
   LR4_10_400G = 0x1E,
 }
 
+enum Ethernet10GComplianceCode {
+  SR_10G = 0x10,
+  LR_10G = 0x20,
+  LRM_10G = 0x40,
+  ER_10G = 0x80,
+}
+
 union MediaInterfaceUnion {
   1: SMFMediaInterfaceCode smfCode;
   2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
+  3: Ethernet10GComplianceCode ethernet10GComplianceCode;
 }
 
 enum MediaTypeEncodings {

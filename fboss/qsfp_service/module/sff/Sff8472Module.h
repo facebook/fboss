@@ -90,9 +90,7 @@ class Sff8472Module : public QsfpModule {
     return Cable();
   }
 
-  TransceiverSettings getTransceiverSettingsInfo() override {
-    return TransceiverSettings();
-  }
+  TransceiverSettings getTransceiverSettingsInfo() override;
 
   PowerControlState getPowerControlValue() override {
     return PowerControlState::HIGH_POWER_OVERRIDE;
@@ -124,6 +122,8 @@ class Sff8472Module : public QsfpModule {
  protected:
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
+
+  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
 };
 
 } // namespace fboss

@@ -250,6 +250,15 @@ TEST(SfpTest, transceiverInfoTest) {
 
   EXPECT_EQ(sfp->numHostLanes(), 1);
   EXPECT_EQ(sfp->numMediaLanes(), 1);
+  EXPECT_EQ(
+      (*info.settings_ref()->mediaInterface_ref()).size(),
+      sfp->numMediaLanes());
+  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+    EXPECT_EQ(
+        media.media_ref()->get_ethernet10GComplianceCode(),
+        Ethernet10GComplianceCode::LR_10G);
+    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::LR_10G);
+  }
 }
 
 } // namespace
