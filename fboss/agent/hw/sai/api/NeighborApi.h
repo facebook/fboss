@@ -48,6 +48,8 @@ struct SaiNeighborTraits {
         SAI_NEIGHBOR_ENTRY_ATTR_META_DATA,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    using NoHostRoute =
+        SaiAttribute<EnumType, SAI_NEIGHBOR_ENTRY_ATTR_NO_HOST_ROUTE, bool>;
   };
   class NeighborEntry {
    public:
@@ -90,14 +92,17 @@ struct SaiNeighborTraits {
    private:
     sai_neighbor_entry_t neighbor_entry{};
   };
-  using CreateAttributes =
-      std::tuple<Attributes::DstMac, std::optional<Attributes::Metadata>>;
+  using CreateAttributes = std::tuple<
+      Attributes::DstMac,
+      std::optional<Attributes::Metadata>,
+      std::optional<Attributes::NoHostRoute>>;
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
 };
 
 SAI_ATTRIBUTE_NAME(Neighbor, DstMac)
 SAI_ATTRIBUTE_NAME(Neighbor, Metadata)
+SAI_ATTRIBUTE_NAME(Neighbor, NoHostRoute)
 
 template <>
 struct IsSaiEntryStruct<SaiNeighborTraits::NeighborEntry>
