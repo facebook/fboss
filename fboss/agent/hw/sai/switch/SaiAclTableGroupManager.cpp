@@ -40,12 +40,15 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
 }
 
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
-    sai_acl_stage_t aclStage) {
+    cfg::AclStage aclStage) {
+  sai_acl_stage_t saiAclStage = cfgAclStageToSaiAclStage(aclStage);
+
   // If we already store a handle for this this Acl Table group, fail to add a
   // new one.
-  auto handle = getAclTableGroupHandle(aclStage);
+  auto handle = getAclTableGroupHandle(saiAclStage);
   if (handle) {
-    throw FbossError("attempted to add a duplicate aclTableGroup: ", aclStage);
+    throw FbossError(
+        "attempted to add a duplicate aclTableGroup: ", saiAclStage);
   }
 
   auto& aclTableGroupStore = saiStore_->get<SaiAclTableGroupTraits>();
@@ -53,16 +56,16 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
   sai_int32_t type = SAI_ACL_TABLE_GROUP_TYPE_PARALLEL;
 
   SaiAclTableGroupTraits::AdapterHostKey adapterHostKey{
-      aclStage, bindPointList, type};
+      saiAclStage, bindPointList, type};
   SaiAclTableGroupTraits::CreateAttributes attributes{
-      aclStage, bindPointList, type};
+      saiAclStage, bindPointList, type};
 
   auto saiAclTableGroup =
       aclTableGroupStore.setObject(adapterHostKey, attributes);
   auto aclTableGroupHandle = std::make_unique<SaiAclTableGroupHandle>();
   aclTableGroupHandle->aclTableGroup = saiAclTableGroup;
   auto [it, inserted] =
-      handles_.emplace(aclStage, std::move(aclTableGroupHandle));
+      handles_.emplace(saiAclStage, std::move(aclTableGroupHandle));
   CHECK(inserted);
 
   managerTable_->switchManager().setIngressAcl();

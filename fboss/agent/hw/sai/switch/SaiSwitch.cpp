@@ -1091,13 +1091,13 @@ void SaiSwitch::initStoreAndManagersLocked(
     if (getPlatform()->getAsic()->getAsicType() !=
         HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
       managerTable_->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS);
+          cfg::AclStage::INGRESS);
       if (!FLAGS_enable_acl_table_group) {
         auto table1 = std::make_shared<AclTable>(
             0,
             kAclTable1); // TODO(saranicholas): set appropriate table priority
         managerTable_->aclTableManager().addAclTable(
-            table1, SAI_ACL_STAGE_INGRESS);
+            table1, cfg::AclStage::INGRESS);
       }
     }
 

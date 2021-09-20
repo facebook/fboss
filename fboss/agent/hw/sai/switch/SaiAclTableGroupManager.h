@@ -45,7 +45,7 @@ class SaiAclTableGroupManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
-  AclTableGroupSaiId addAclTableGroup(sai_acl_stage_t aclStage);
+  AclTableGroupSaiId addAclTableGroup(cfg::AclStage aclStage);
 
   AclTableGroupMemberSaiId addAclTableGroupMember(
       sai_acl_stage_t aclStage,

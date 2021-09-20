@@ -100,14 +100,14 @@ class SaiAclTableManager {
 
   AclTableSaiId addAclTable(
       const std::shared_ptr<AclTable>& addedAclTable,
-      sai_acl_stage_t aclStage);
+      cfg::AclStage aclStage);
   void removeAclTable(
       const std::shared_ptr<AclTable>& removedAclTable,
-      sai_acl_stage_t aclStage);
+      cfg::AclStage aclStage);
   void changedAclTable(
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,
-      sai_acl_stage_t aclStage);
+      cfg::AclStage aclStage);
 
   const SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName) const;

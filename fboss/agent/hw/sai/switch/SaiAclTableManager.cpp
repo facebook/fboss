@@ -82,7 +82,10 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
 
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
-    sai_acl_stage_t aclStage) {
+    cfg::AclStage aclStage) {
+  auto saiAclStage =
+      managerTable_->aclTableGroupManager().cfgAclStageToSaiAclStage(aclStage);
+
   /*
    * TODO(skhare)
    * Add single ACL Table for now (called during SaiSwitch::init()).
@@ -105,7 +108,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   SaiAclTableTraits::CreateAttributes attributes;
 
   std::tie(adapterHostKey, attributes) =
-      aclTableCreateAttributes(aclStage, addedAclTable);
+      aclTableCreateAttributes(saiAclStage, addedAclTable);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
 
@@ -129,7 +132,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
-    sai_acl_stage_t /*aclStage*/) {
+    cfg::AclStage /*aclStage*/) {
   auto aclTableName = removedAclTable->getID();
 
   // remove from acl table group
@@ -145,7 +148,7 @@ void SaiAclTableManager::removeAclTable(
 void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
-    sai_acl_stage_t aclStage) {
+    cfg::AclStage aclStage) {
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to change

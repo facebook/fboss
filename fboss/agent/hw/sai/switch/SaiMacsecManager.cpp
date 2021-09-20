@@ -715,8 +715,8 @@ void SaiMacsecManager::setupMacsec(
     auto aclTableId = managerTable_->aclTableManager().addAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
-            ? SAI_ACL_STAGE_INGRESS_MACSEC
-            : SAI_ACL_STAGE_EGRESS_MACSEC);
+            ? cfg::AclStage::INGRESS_MACSEC
+            : cfg::AclStage::EGRESS_MACSEC);
     XLOG(DBG2) << "For linePort: " << linePort << ", created " << direction
                << " ACL table with sai ID " << aclTableId;
     aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);

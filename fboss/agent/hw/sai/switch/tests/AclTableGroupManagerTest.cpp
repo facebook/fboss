@@ -38,20 +38,20 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
   EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);
 }
 
-TEST_F(AclTableGroupManagerTest, addEgressAclTableGroup) {
+TEST_F(AclTableGroupManagerTest, addEgressMacSecAclTableGroup) {
   AclTableGroupSaiId aclTableGroupId2 =
       saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_EGRESS);
+          cfg::AclStage::EGRESS_MACSEC);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableGroupId2, SaiAclTableGroupTraits::Attributes::Stage());
-  EXPECT_EQ(stageGot, SAI_ACL_STAGE_EGRESS);
+  EXPECT_EQ(stageGot, SAI_ACL_STAGE_EGRESS_MACSEC);
 }
 
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroup) {
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS),
+          cfg::AclStage::INGRESS),
       FbossError);
 }
 
@@ -98,7 +98,7 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
   // When an ACL table is created, it is implicitly added to a group.
   auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
-      table2, SAI_ACL_STAGE_INGRESS);
+      table2, cfg::AclStage::INGRESS);
 
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
