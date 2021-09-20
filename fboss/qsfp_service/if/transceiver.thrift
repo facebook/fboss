@@ -112,6 +112,7 @@ enum TransceiverManagementInterface {
   SFF = 0,
   CMIS = 1,
   NONE = 2,
+  SFF8472 = 3,
 }
 
 enum FeatureState {
@@ -176,6 +177,7 @@ enum ExtendedSpecComplianceCode {
 // Transceiver identifier as read from module page 0 reg 0
 enum TransceiverModuleIdentifier {
   UNKNOWN = 0,
+  SFP_PLUS = 0x3,
   QSFP = 0xC,
   QSFP_PLUS = 0xD,
   QSFP28 = 0x11,
