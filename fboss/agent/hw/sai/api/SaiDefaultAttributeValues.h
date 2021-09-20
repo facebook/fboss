@@ -40,6 +40,13 @@ struct SaiInt1Default {
   }
 };
 
+template <typename SaiIntT>
+struct SaiInt100Default {
+  SaiIntT operator()() const {
+    return 100;
+  }
+};
+
 struct SaiBoolDefaultFalse {
   bool operator()() const {
     return false;

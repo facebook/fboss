@@ -23,12 +23,14 @@ class FakeWred {
       bool greenEnable,
       sai_uint32_t greenMinThreshold,
       sai_uint32_t greenMaxThreshold,
+      sai_uint32_t greenDropProbability,
       sai_int32_t ecnMarkMode,
       sai_uint32_t ecnGreenMinThreshold,
       sai_uint32_t ecnGreenMaxThreshold)
       : greenEnable_(greenEnable),
         greenMinThreshold_(greenMinThreshold),
         greenMaxThreshold_(greenMaxThreshold),
+        greenDropProbability_(greenDropProbability),
         ecnMarkMode_(ecnMarkMode),
         ecnGreenMinThreshold_(ecnGreenMinThreshold),
         ecnGreenMaxThreshold_(ecnGreenMaxThreshold) {}
@@ -51,6 +53,13 @@ class FakeWred {
   void setGreenMaxThreshold(sai_uint32_t greenMaxThreshold) {
     greenMaxThreshold_ = greenMaxThreshold;
   }
+  sai_uint32_t getGreenDropProbability() {
+    return greenDropProbability_;
+  }
+  void setGreenDropProbability(sai_uint32_t greenDropProbability) {
+    greenDropProbability_ = greenDropProbability;
+  }
+
   sai_int32_t getEcnMarkMode() {
     return ecnMarkMode_;
   }
@@ -76,6 +85,7 @@ class FakeWred {
   bool greenEnable_{false};
   sai_uint32_t greenMinThreshold_{0};
   sai_uint32_t greenMaxThreshold_{0};
+  sai_uint32_t greenDropProbability_{100};
   sai_int32_t ecnMarkMode_{SAI_ECN_MARK_MODE_NONE};
   sai_uint32_t ecnGreenMinThreshold_{0};
   sai_uint32_t ecnGreenMaxThreshold_{0};

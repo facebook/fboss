@@ -39,6 +39,10 @@ struct SaiWredTraits {
         SaiAttribute<EnumType, SAI_WRED_ATTR_GREEN_MIN_THRESHOLD, sai_uint32_t>;
     using GreenMaxThreshold =
         SaiAttribute<EnumType, SAI_WRED_ATTR_GREEN_MAX_THRESHOLD, sai_uint32_t>;
+    using GreenDropProbability = SaiAttribute<
+        EnumType,
+        SAI_WRED_ATTR_GREEN_DROP_PROBABILITY,
+        sai_uint32_t>;
 
     /* ECN */
     using EcnMarkMode =
@@ -58,6 +62,7 @@ struct SaiWredTraits {
       Attributes::GreenEnable,
       std::optional<Attributes::GreenMinThreshold>,
       std::optional<Attributes::GreenMaxThreshold>,
+      std::optional<Attributes::GreenDropProbability>,
       Attributes::EcnMarkMode,
       std::optional<Attributes::EcnGreenMinThreshold>,
       std::optional<Attributes::EcnGreenMaxThreshold>>;
@@ -67,6 +72,7 @@ struct SaiWredTraits {
 SAI_ATTRIBUTE_NAME(Wred, GreenEnable);
 SAI_ATTRIBUTE_NAME(Wred, GreenMinThreshold);
 SAI_ATTRIBUTE_NAME(Wred, GreenMaxThreshold);
+SAI_ATTRIBUTE_NAME(Wred, GreenDropProbability);
 SAI_ATTRIBUTE_NAME(Wred, EcnMarkMode);
 SAI_ATTRIBUTE_NAME(Wred, EcnGreenMinThreshold);
 SAI_ATTRIBUTE_NAME(Wred, EcnGreenMaxThreshold);

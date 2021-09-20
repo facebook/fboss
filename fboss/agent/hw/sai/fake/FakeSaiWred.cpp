@@ -34,6 +34,9 @@ sai_status_t set_wred_attribute_fn(
     case SAI_WRED_ATTR_GREEN_MAX_THRESHOLD:
       wred.setGreenMaxThreshold(attr->value.u32);
       break;
+    case SAI_WRED_ATTR_GREEN_DROP_PROBABILITY:
+      wred.setGreenDropProbability(attr->value.u32);
+      break;
     case SAI_WRED_ATTR_ECN_MARK_MODE:
       wred.setEcnMarkMode(attr->value.s32);
       break;
@@ -60,6 +63,7 @@ sai_status_t create_wred_fn(
   std::optional<bool> greenEnable;
   std::optional<sai_uint32_t> greenMinThreshold;
   std::optional<sai_uint32_t> greenMaxThreshold;
+  std::optional<sai_uint32_t> greenDropProbability;
   std::optional<sai_int32_t> ecnMarkMode;
   std::optional<sai_uint32_t> ecnGreenMinThreshold;
   std::optional<sai_uint32_t> ecnGreenMaxThreshold;
@@ -74,6 +78,9 @@ sai_status_t create_wred_fn(
         break;
       case SAI_WRED_ATTR_GREEN_MAX_THRESHOLD:
         greenMaxThreshold = attr_list[i].value.u32;
+        break;
+      case SAI_WRED_ATTR_GREEN_DROP_PROBABILITY:
+        greenDropProbability = attr_list[i].value.u32;
         break;
       case SAI_WRED_ATTR_ECN_MARK_MODE:
         ecnMarkMode = attr_list[i].value.s32;
@@ -90,8 +97,9 @@ sai_status_t create_wred_fn(
     }
   }
 
-  if (!greenEnable || !greenMinThreshold || !ecnGreenMaxThreshold ||
-      !ecnMarkMode || !ecnGreenMinThreshold || !ecnGreenMaxThreshold) {
+  if (!greenEnable || !greenMinThreshold || !greenMaxThreshold ||
+      !greenDropProbability || !ecnMarkMode || !ecnGreenMinThreshold ||
+      !ecnGreenMaxThreshold) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
 
@@ -99,6 +107,7 @@ sai_status_t create_wred_fn(
       greenEnable.value(),
       greenMinThreshold.value(),
       greenMaxThreshold.value(),
+      greenDropProbability.value(),
       ecnMarkMode.value(),
       ecnGreenMinThreshold.value(),
       ecnGreenMaxThreshold.value());
@@ -128,6 +137,9 @@ sai_status_t get_wred_attribute_fn(
         break;
       case SAI_WRED_ATTR_GREEN_MAX_THRESHOLD:
         attr_list[i].value.u32 = wred.getGreenMaxThreshold();
+        break;
+      case SAI_WRED_ATTR_GREEN_DROP_PROBABILITY:
+        attr_list[i].value.u32 = wred.getGreenDropProbability();
         break;
       case SAI_WRED_ATTR_ECN_MARK_MODE:
         attr_list[i].value.s32 = wred.getEcnMarkMode();

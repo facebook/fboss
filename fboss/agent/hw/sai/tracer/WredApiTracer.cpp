@@ -43,6 +43,7 @@ void setWredAttributes(
         break;
       case SAI_WRED_ATTR_GREEN_MIN_THRESHOLD:
       case SAI_WRED_ATTR_GREEN_MAX_THRESHOLD:
+      case SAI_WRED_ATTR_GREEN_DROP_PROBABILITY:
       case SAI_WRED_ATTR_ECN_GREEN_MIN_THRESHOLD:
       case SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD:
         attrLines.push_back(u32Attr(attr_list, i));

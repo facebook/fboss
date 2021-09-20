@@ -17,6 +17,8 @@
 
 namespace facebook::fboss {
 
+constexpr auto kDefaultDropProbability = 100;
+
 std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
     const PortQueue& queue) {
   if (!queue.getAqms().size()) {
@@ -40,21 +42,25 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
       std::get<std::optional<Attributes::GreenMinThreshold>>(attrs);
   auto& greenMax =
       std::get<std::optional<Attributes::GreenMaxThreshold>>(attrs);
+  auto& greenDropProbability =
+      std::get<std::optional<Attributes::GreenDropProbability>>(attrs);
   auto& ecnGreenMin =
       std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs);
   auto& ecnGreenMax =
       std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
-  std::tie(greenMin, greenMax, ecnGreenMin, ecnGreenMax) =
-      std::make_tuple(0, 0, 0, 0);
+  std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
+      std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
   for (const auto& [type, aqm] : queue.getAqms()) {
     auto thresholds = (*aqm.detection_ref()).get_linear();
     auto [minLen, maxLen] = std::make_pair(
         *thresholds.minimumLength_ref(), *thresholds.maximumLength_ref());
+    auto probability = *thresholds.probability_ref();
     switch (type) {
       case cfg::QueueCongestionBehavior::EARLY_DROP:
         std::get<Attributes::GreenEnable>(attrs) = true;
         greenMin = minLen;
         greenMax = maxLen;
+        greenDropProbability = probability;
         break;
       case cfg::QueueCongestionBehavior::ECN:
         std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
@@ -65,4 +71,17 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   }
   return attrs;
 }
+
+// CSP CS00012207175
+// Currently the sai implementation returns the incorrect default drop
+// probability. We workaround by explicitly removing all wred profile and
+// recreate them.
+void SaiWredManager::removeUnclaimedWredProfile() {
+  saiStore_->get<SaiWredTraits>().removeUnclaimedWarmbootHandlesIf(
+      [](const auto& wred) {
+        wred->release();
+        return true;
+      });
+}
+
 } // namespace facebook::fboss
