@@ -49,7 +49,13 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           return "--";
         }
         time_t t(secsSinceEpoch);
-        return std::ctime(&t);
+        std::string timeStr = std::ctime(&t);
+        // Trim trailing newline from ctime output
+        auto it = std::find_if(timeStr.rbegin(), timeStr.rend(), [](char c) {
+          return !std::isspace(c);
+        });
+        timeStr.erase(it.base(), timeStr.end());
+        return timeStr;
       };
       modelEntry.sakRxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledRxSince_ref());
@@ -60,29 +66,18 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
     return model;
   }
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    std::string fmtString = "{:<17}{:<25}{:<38}{:<17}{:<30}{:<30}\n";
-
-    out << fmt::format(
-        fmtString,
-        "Local Port",
-        "MAC",
-        "CKN",
-        "KeySrv elected",
-        "SAK Rx Since",
-        "SAK Tx Since");
-    out << std::string(155, '-') << std::endl;
 
     for (auto const& entry : model.get_mkaEntries()) {
-      out << fmt::format(
-          fmtString,
-          entry.get_localPort(),
-          entry.get_srcMac(),
-          entry.get_ckn(),
-          entry.get_keyServerElected(),
-          entry.get_sakRxInstalledSince(),
-          entry.get_sakTxInstalledSince());
+      out << "Port: " << entry.get_localPort() << std::endl;
+      out << std::string(20, '=') << std::endl;
+      out << " MAC: " << entry.get_srcMac() << std::endl;
+      out << " CKN: " << entry.get_ckn() << std::endl;
+      out << " Keyserver elected: "
+          << (entry.get_keyServerElected() ? "Y" : "N") << std::endl;
+      out << " SAK installed since: "
+          << " rx: " << entry.get_sakRxInstalledSince()
+          << " tx: " << entry.get_sakTxInstalledSince() << std::endl;
     }
-    out << std::endl;
   }
 };
 
