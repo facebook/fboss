@@ -47,6 +47,10 @@ const std::vector<cfg::AclLookupClass>& kLookupClasses();
 void addQueuePerHostQueueConfig(cfg::SwitchConfig* config);
 void addQueuePerHostAcls(cfg::SwitchConfig* config);
 
+std::string getAclTableGroupName();
+std::string getQueuePerHostAclTableName();
+std::string getTtlAclTableName();
+
 std::string getQueuePerHostTtlAclName();
 std::string getQueuePerHostTtlCounterName();
 
@@ -60,5 +64,7 @@ void verifyQueuePerHostMapping(
     const folly::IPAddress& dstIp,
     bool useFrontPanel,
     bool blockNeighbor);
+
+void addQueuePerHostAclTables(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility
