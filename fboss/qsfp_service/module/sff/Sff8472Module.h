@@ -10,6 +10,8 @@
 namespace facebook {
 namespace fboss {
 
+enum class Sff8472Field;
+
 class Sff8472Module : public QsfpModule {
  public:
   explicit Sff8472Module(
@@ -135,6 +137,9 @@ class Sff8472Module : public QsfpModule {
       int length,
       uint8_t transceiverI2CAddress,
       uint8_t* data) const;
+  uint8_t getSettingsValue(Sff8472Field field, uint8_t mask = 0xff) const;
+
+  Ethernet10GComplianceCode getEthernet10GComplianceCode() const;
 };
 
 } // namespace fboss

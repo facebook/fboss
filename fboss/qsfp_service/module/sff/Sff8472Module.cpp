@@ -88,6 +88,20 @@ void Sff8472Module::getSfpValue(
   memcpy(data, ptr, length);
 }
 
+uint8_t Sff8472Module::getSettingsValue(Sff8472Field field, uint8_t mask)
+    const {
+  int offset;
+  int length;
+  int dataAddress;
+  uint8_t transceiverI2CAddress;
+
+  getSfpFieldAddress(field, dataAddress, offset, length, transceiverI2CAddress);
+  const uint8_t* data =
+      getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+
+  return data[0] & mask;
+}
+
 Sff8472Module::Sff8472Module(
     TransceiverManager* transceiverManager,
     std::unique_ptr<TransceiverImpl> qsfpImpl,
@@ -146,7 +160,7 @@ bool Sff8472Module::getMediaInterfaceId(
   CHECK_EQ(mediaInterface.size(), numMediaLanes());
 
   // TODO: Read this from the module
-  auto ethernet10GCompliance = Ethernet10GComplianceCode::LR_10G;
+  auto ethernet10GCompliance = getEthernet10GComplianceCode();
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
@@ -165,6 +179,11 @@ bool Sff8472Module::getMediaInterfaceId(
   }
 
   return true;
+}
+
+Ethernet10GComplianceCode Sff8472Module::getEthernet10GComplianceCode() const {
+  return Ethernet10GComplianceCode(
+      getSettingsValue(Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE));
 }
 
 } // namespace fboss
