@@ -175,6 +175,40 @@ target_link_libraries(bcm_hgrid_uu_scale_route_del_speed
   Folly::follybenchmark
 )
 
+add_executable(bcm_anticipated_scale_route_add_speed /dev/null)
+
+target_link_libraries(bcm_anticipated_scale_route_add_speed
+  -Wl,--whole-archive
+  bcm
+  config
+  bcm_switch_ensemble
+  config_factory
+  hw_anticipated_scale_route_add_speed
+  route_scale_gen
+  -Wl,--no-whole-archive
+  hw_benchmark_main
+  Folly::folly
+  ${OPENNSA}
+  Folly::follybenchmark
+)
+
+add_executable(bcm_anticipated_scale_route_del_speed /dev/null)
+
+target_link_libraries(bcm_anticipated_scale_route_del_speed
+  -Wl,--whole-archive
+  bcm
+  config
+  bcm_switch_ensemble
+  config_factory
+  hw_anticipated_scale_route_del_speed
+  route_scale_gen
+  -Wl,--no-whole-archive
+  hw_benchmark_main
+  Folly::folly
+  ${OPENNSA}
+  Folly::follybenchmark
+)
+
 add_executable(bcm_stats_collection_speed /dev/null)
 
 target_link_libraries(bcm_stats_collection_speed

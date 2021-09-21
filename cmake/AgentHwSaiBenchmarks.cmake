@@ -154,6 +154,41 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
 
+  add_executable(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
+
+  target_link_libraries(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    sai_switch_ensemble
+    hw_anticipated_scale_route_add_speed
+    route_scale_gen
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+
+  set_target_properties(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
+
+  add_executable(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
+
+  target_link_libraries(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    sai_switch_ensemble
+    hw_anticipated_scale_route_del_speed
+    route_scale_gen
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+
+  set_target_properties(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
   add_executable(sai_stats_collection_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_stats_collection_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
