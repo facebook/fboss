@@ -56,6 +56,8 @@ TEST_F(HwRouteScaleTest, rswRouteScale) {
        PlatformMode::MINIPACK,
        PlatformMode::YAMP,
        PlatformMode::WEDGE400,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
@@ -68,6 +70,8 @@ TEST_F(HwRouteScaleTest, fswRouteScale) {
        PlatformMode::MINIPACK,
        PlatformMode::YAMP,
        PlatformMode::WEDGE400,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
@@ -76,7 +80,9 @@ TEST_F(HwRouteScaleTest, thAlpmScale) {
   runTest<utility::THAlpmRouteScaleGenerator>(
       {PlatformMode::WEDGE100,
        PlatformMode::GALAXY_LC,
-       PlatformMode::GALAXY_FC});
+       PlatformMode::GALAXY_FC,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER});
 }
 
 TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
@@ -84,6 +90,8 @@ TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
       {PlatformMode::MINIPACK,
        PlatformMode::YAMP,
        PlatformMode::WEDGE400,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
@@ -93,6 +101,8 @@ TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
       {PlatformMode::MINIPACK,
        PlatformMode::YAMP,
        PlatformMode::WEDGE400,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
@@ -110,6 +120,8 @@ TEST_F(HwRouteScaleTest, anticipatedRouteScaleGenerator) {
       {PlatformMode::MINIPACK,
        PlatformMode::YAMP,
        PlatformMode::WEDGE400,
+       PlatformMode::WEDGE400C,
+       PlatformMode::CLOUDRIPPER,
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }

@@ -40,7 +40,7 @@ constexpr unsigned int kDefaulEcmpWidth = 4;
  */
 class RSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  RSWRouteScaleGenerator(
+  explicit RSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -49,7 +49,7 @@ class RSWRouteScaleGenerator : public RouteDistributionGenerator {
 
 class FSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  FSWRouteScaleGenerator(
+  explicit FSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -58,7 +58,7 @@ class FSWRouteScaleGenerator : public RouteDistributionGenerator {
 
 class THAlpmRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  THAlpmRouteScaleGenerator(
+  explicit THAlpmRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -67,7 +67,7 @@ class THAlpmRouteScaleGenerator : public RouteDistributionGenerator {
 
 class HgridDuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  HgridDuRouteScaleGenerator(
+  explicit HgridDuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -76,7 +76,7 @@ class HgridDuRouteScaleGenerator : public RouteDistributionGenerator {
 
 class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  HgridUuRouteScaleGenerator(
+  explicit HgridUuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -85,7 +85,7 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
 
 class AnticipatedRouteScaleGenerator : public RouteDistributionGenerator {
  public:
-  AnticipatedRouteScaleGenerator(
+  explicit AnticipatedRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
@@ -96,7 +96,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   std::shared_ptr<SwitchState> resolveNextHops(
       std::shared_ptr<SwitchState> in) const override;
-  TurboFSWRouteScaleGenerator(
+  explicit TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
       // in reality, 33 are mesh links and 36 are ssw links, giving total of 69,
