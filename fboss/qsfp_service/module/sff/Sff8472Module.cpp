@@ -17,7 +17,7 @@ namespace {}
 namespace facebook {
 namespace fboss {
 
-enum Sff472Pages {
+enum Sff8472Pages {
   LOWER,
 };
 
@@ -30,14 +30,63 @@ static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
 static Sff8472FieldInfo::Sff8472FieldMap sfpFields = {
     // Address A0h fields
     {Sff8472Field::IDENTIFIER,
-     {TransceiverI2CApi::ADDR_QSFP, Sff472Pages::LOWER, 0, 1}},
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 0, 1}},
     {Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE,
-     {TransceiverI2CApi::ADDR_QSFP, Sff472Pages::LOWER, 3, 1}},
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 3, 1}},
 
     // Address A2h fields
     {Sff8472Field::ALARM_WARNING_THRESHOLDS,
-     {TransceiverI2CApi::ADDR_QSFP_A2, Sff472Pages::LOWER, 0, 40}},
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 0, 40}},
 };
+
+void getSfpFieldAddress(
+    Sff8472Field field,
+    int& dataAddress,
+    int& offset,
+    int& length,
+    uint8_t& transceiverI2CAddress) {
+  auto info = Sff8472FieldInfo::getSff8472FieldAddress(sfpFields, field);
+  dataAddress = info.dataAddress;
+  offset = info.offset;
+  length = info.length;
+  transceiverI2CAddress = info.transceiverI2CAddress;
+}
+
+const uint8_t* Sff8472Module::getSfpValuePtr(
+    int dataAddress,
+    int offset,
+    int length,
+    uint8_t transceiverI2CAddress) const {
+  /* if the cached values are not correct */
+  if (!cacheIsValid()) {
+    throw FbossError("Sfp is either not present or the data is not read");
+  }
+  if (dataAddress == Sff8472Pages::LOWER) {
+    if (transceiverI2CAddress == TransceiverI2CApi::ADDR_QSFP) {
+      CHECK_LE(offset + length, sizeof(a0LowerPage_));
+      return (a0LowerPage_ + offset);
+    } else if (transceiverI2CAddress == TransceiverI2CApi::ADDR_QSFP_A2) {
+      CHECK_LE(offset + length, sizeof(a2LowerPage_));
+      return (a2LowerPage_ + offset);
+    }
+  }
+  throw FbossError(
+      "Invalid Data Address 0x%d, transceiverI2CAddress 0x%d",
+      dataAddress,
+      transceiverI2CAddress);
+}
+
+void Sff8472Module::getSfpValue(
+    int dataAddress,
+    int offset,
+    int length,
+    uint8_t transceiverI2CAddress,
+    uint8_t* data) const {
+  const uint8_t* ptr =
+      getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+
+  memcpy(data, ptr, length);
+}
 
 Sff8472Module::Sff8472Module(
     TransceiverManager* transceiverManager,

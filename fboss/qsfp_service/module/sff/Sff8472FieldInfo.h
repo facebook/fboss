@@ -33,6 +33,10 @@ class Sff8472FieldInfo {
   std::uint32_t length;
 
   using Sff8472FieldMap = std::map<Sff8472Field, Sff8472FieldInfo>;
+
+  static Sff8472FieldInfo getSff8472FieldAddress(
+      const Sff8472FieldMap& map,
+      Sff8472Field field);
 };
 
 } // namespace fboss

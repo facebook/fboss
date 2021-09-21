@@ -124,6 +124,17 @@ class Sff8472Module : public QsfpModule {
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
 
   bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  const uint8_t* getSfpValuePtr(
+      int dataAddress,
+      int offset,
+      int length,
+      uint8_t transceiverI2CAddress) const;
+  void getSfpValue(
+      int dataAddress,
+      int offset,
+      int length,
+      uint8_t transceiverI2CAddress,
+      uint8_t* data) const;
 };
 
 } // namespace fboss
