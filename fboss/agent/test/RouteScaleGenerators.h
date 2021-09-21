@@ -83,6 +83,15 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 };
 
+class AnticipatedRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  AnticipatedRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
+};
+
 class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   std::shared_ptr<SwitchState> resolveNextHops(

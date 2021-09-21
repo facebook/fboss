@@ -104,4 +104,13 @@ TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
        PlatformMode::ELBERT,
        PlatformMode::FUJI});
 }
+
+TEST_F(HwRouteScaleTest, anticipatedRouteScaleGenerator) {
+  runTest<utility::AnticipatedRouteScaleGenerator>(
+      {PlatformMode::MINIPACK,
+       PlatformMode::YAMP,
+       PlatformMode::WEDGE400,
+       PlatformMode::ELBERT,
+       PlatformMode::FUJI});
+}
 } // namespace facebook::fboss

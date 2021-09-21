@@ -199,6 +199,53 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
           ecmpWidth,
           routerId) {}
 
+/*
+ * Double UU scale plus 4K /64 to give us just over ~100K prefixes.
+ * This is our anticupated worst case route scale in the near to mid
+ * term
+ */
+AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    RouterID routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          // v6 distribution
+          {
+              {127, 256},
+              {128, 2452},
+              {24, 2},
+              {37, 74},
+              {44, 36},
+              {46, 2096},
+              {47, 16},
+              {48, 50},
+              {52, 608},
+              {54, 32},
+              {56, 1536},
+              {57, 272},
+              {59, 1540},
+              {60, 1566},
+              {61, 56},
+              {62, 480},
+              {63, 4182},
+              {64, 50786},
+          },
+          // v4 distribution
+          {
+
+              {19, 16},
+              {21, 2},
+              {24, 304},
+              {27, 832},
+              {31, 256},
+              {32, 33250},
+          },
+          chunkSize,
+          ecmpWidth,
+          routerId) {}
+
 TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,
