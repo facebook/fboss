@@ -48,9 +48,43 @@ void SaiPortManager::removeRemovedHandleIf(PortID portID) {
   removedHandles_.erase(portID);
 }
 
+// On Sai TH3 we don't program IDriver and Preemphasis, hence the default values
+// are zero in SaiStore. However, across warmboot Brcm-sai would give us some
+// other default values, causing fboss to reprogram the serdes and thus causing
+// link flaps. Since the SDK is computing different values based on ASIC, port
+// speed and port type, we don't have a default value fixed per ASIC. This is a
+// temporary workaround to skip preemphasis and idriver if we're not using them,
+// but need to check what are the default values of them.
 bool SaiPortManager::checkPortSerdesAttributes(
     const SaiPortSerdesTraits::CreateAttributes& fromStore,
     const SaiPortSerdesTraits::CreateAttributes& fromSwPort) {
-  return fromSwPort == fromStore;
+  auto checkSerdesAttribute =
+      [](auto type, auto& attrs1, auto& attrs2) -> bool {
+    return (
+        (std::get<std::optional<std::decay_t<decltype(type)>>>(attrs1)) ==
+        (std::get<std::optional<std::decay_t<decltype(type)>>>(attrs2)));
+  };
+  auto iDriver = std::get<std::optional<
+      std::decay_t<decltype(SaiPortSerdesTraits::Attributes::IDriver{})>>>(
+      fromSwPort);
+  return (
+      (std::get<SaiPortSerdesTraits::Attributes::PortId>(fromStore) ==
+       std::get<SaiPortSerdesTraits::Attributes::PortId>(fromSwPort)) &&
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::TxFirPre1{},
+          fromSwPort,
+          fromStore)) &&
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::TxFirMain{},
+          fromSwPort,
+          fromStore)) &&
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::TxFirPost1{},
+          fromSwPort,
+          fromStore)) &&
+      (!iDriver.has_value() ||
+       iDriver ==
+           std::get<std::optional<std::decay_t<decltype(
+               SaiPortSerdesTraits::Attributes::IDriver{})>>>(fromStore)));
 }
 } // namespace facebook::fboss
