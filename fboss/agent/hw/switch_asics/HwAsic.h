@@ -80,6 +80,7 @@ class HwAsic {
     SAI_PORT_SERDES_FIELDS_RESET,
     ROUTE_COUNTERS,
     MULTIPLE_ACL_TABLES,
+    ROUTE_FLEX_COUNTERS,
   };
 
   enum class AsicType {

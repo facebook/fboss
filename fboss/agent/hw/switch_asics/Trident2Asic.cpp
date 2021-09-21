@@ -80,6 +80,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:
+    case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
       return false;
   }
   return false;

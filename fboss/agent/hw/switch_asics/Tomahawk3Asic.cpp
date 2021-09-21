@@ -80,6 +80,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
+    case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
       return false;
   }
   return false;
