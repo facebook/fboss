@@ -3813,6 +3813,23 @@ int BcmCinter::bcm_l3_route_stat_attach(
   return 0;
 }
 
+int BcmCinter::bcm_l3_route_flexctr_object_set(
+    int unit,
+    bcm_l3_route_t* l3_route,
+    uint32 value) {
+  auto cint = cintForL3Route(*l3_route);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_route_flexctr_object_set(",
+      makeParamStr(unit, "&l3_route", value),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* l3_route) {
   auto cint = cintForL3Route(*l3_route);
   auto cintForFn = wrapFunc(to<string>(

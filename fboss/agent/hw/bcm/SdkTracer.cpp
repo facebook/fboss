@@ -1743,6 +1743,11 @@ int __real_bcm_l3_route_stat_attach(
 
 int __real_bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info);
 
+int __real_bcm_l3_route_flexctr_object_set(
+    int unit,
+    bcm_l3_route_t* info,
+    uint32 value);
+
 int __real_bcm_stat_custom_group_create(
     int unit,
     uint32 mode_id,
@@ -4174,6 +4179,22 @@ int __wrap_bcm_l3_route_stat_attach(
     uint32 stat_counter_id) {
   CALL_WRAPPERS_RV(bcm_l3_route_stat_attach(unit, info, stat_counter_id));
 }
+
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+int __wrap_bcm_l3_route_flexctr_object_set(
+    int unit,
+    bcm_l3_route_t* info,
+    uint32 value) {
+  CALL_WRAPPERS_RV(bcm_l3_route_flexctr_object_set(unit, info, value));
+}
+#else
+int __wrap_bcm_l3_route_flexctr_object_set(
+    int /* unit*/,
+    bcm_l3_route_t* /*info*/,
+    uint32 /*value*/) {
+  return 0;
+}
+#endif
 
 int __wrap_bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) {
   CALL_WRAPPERS_RV(bcm_l3_route_stat_detach(unit, info));

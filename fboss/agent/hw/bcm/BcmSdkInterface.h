@@ -1082,6 +1082,11 @@ class BcmSdkInterface {
 
   virtual int bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) = 0;
 
+  virtual int bcm_l3_route_flexctr_object_set(
+      int unit,
+      bcm_l3_route_t* info,
+      uint32 value) = 0;
+
   virtual int bcm_stat_custom_group_create(
       int unit,
       uint32 mode_id,

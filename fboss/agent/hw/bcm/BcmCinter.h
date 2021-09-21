@@ -661,6 +661,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   int bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) override;
 
+  int bcm_l3_route_flexctr_object_set(
+      int unit,
+      bcm_l3_route_t* info,
+      uint32_t value) override;
+
   int bcm_stat_custom_group_create(
       int unit,
       uint32 mode_id,
