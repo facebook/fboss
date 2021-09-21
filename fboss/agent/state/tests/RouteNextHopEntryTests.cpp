@@ -45,6 +45,16 @@ const folly::IPAddress nextHopAddr2 =
     folly::IPAddress("2401:db00:e112:9103:1028::1b");
 const folly::IPAddress nextHopAddr3 =
     folly::IPAddress("2001:db8:ffff:ffff:ffff:ffff:ffff:ffff");
+const folly::IPAddress nextHopAddr4 =
+    folly::IPAddress("2401:db00:e113:9103:1028::1b");
+const folly::IPAddress nextHopAddr5 =
+    folly::IPAddress("2401:db00:e114:9103:1028::1b");
+const folly::IPAddress nextHopAddr6 =
+    folly::IPAddress("2401:db00:e115:9103:1028::1b");
+const folly::IPAddress nextHopAddr7 =
+    folly::IPAddress("2401:db00:e116:9103:1028::1b");
+const folly::IPAddress nextHopAddr8 =
+    folly::IPAddress("2401:db00:e117:9103:1028::1b");
 
 // These next-hops are in our internal representation.
 // Unlike other variables, it's not const so that it can be sorted
@@ -176,19 +186,22 @@ TEST(RouteNextHopEntry, NormalizedFixedSizeWideNextHop) {
   FLAGS_ecmp_width = 512;
   FLAGS_wide_ecmp = true;
 
-  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 55));
-  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 56));
-  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 57));
+  for (const auto ucmpOptimized : {false, true}) {
+    FLAGS_optimized_ucmp = ucmpOptimized;
+    nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 55));
+    nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 56));
+    nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 57));
 
-  auto normalizedNextHops =
-      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+    auto normalizedNextHops =
+        RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
 
-  NextHopWeight totalWeight = std::accumulate(
-      normalizedNextHops.begin(),
-      normalizedNextHops.end(),
-      0,
-      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
-  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+    NextHopWeight totalWeight = std::accumulate(
+        normalizedNextHops.begin(),
+        normalizedNextHops.end(),
+        0,
+        [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+    EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+  }
 }
 
 // Total weight greater than ecmp_width but can be reduced
@@ -199,19 +212,22 @@ TEST(RouteNextHopEntry, ScaledDownNormalizedFixedSizeWideNextHop) {
   FLAGS_ecmp_width = 512;
   FLAGS_wide_ecmp = true;
 
-  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 550));
-  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 560));
-  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 570));
+  for (const auto ucmpOptimized : {false, true}) {
+    FLAGS_optimized_ucmp = ucmpOptimized;
+    nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 550));
+    nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 560));
+    nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 570));
 
-  auto normalizedNextHops =
-      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+    auto normalizedNextHops =
+        RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
 
-  NextHopWeight totalWeight = std::accumulate(
-      normalizedNextHops.begin(),
-      normalizedNextHops.end(),
-      0,
-      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
-  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+    NextHopWeight totalWeight = std::accumulate(
+        normalizedNextHops.begin(),
+        normalizedNextHops.end(),
+        0,
+        [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+    EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+  }
 }
 
 // Total width exceeds 512 after proportionaly reducing weights.
@@ -222,19 +238,23 @@ TEST(RouteNextHopEntry, ScaledDownFixedSizeWideNextHop) {
   FLAGS_ecmp_width = 512;
   FLAGS_wide_ecmp = true;
 
-  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
-  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
-  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 25235));
+  for (const auto ucmpOptimized : {false, true}) {
+    FLAGS_optimized_ucmp = ucmpOptimized;
+    nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+    nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+    nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 25235));
 
-  auto normalizedNextHops =
-      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+    auto normalizedNextHops =
+        RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
 
-  NextHopWeight totalWeight = std::accumulate(
-      normalizedNextHops.begin(),
-      normalizedNextHops.end(),
-      0,
-      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
-  EXPECT_EQ(totalWeight, FLAGS_ecmp_width);
+    NextHopWeight totalWeight = std::accumulate(
+        normalizedNextHops.begin(),
+        normalizedNextHops.end(),
+        0,
+        [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+    // With optimized ucmp, the lowe weight paths should get removed
+    EXPECT_EQ(totalWeight, ucmpOptimized ? 1 : FLAGS_ecmp_width);
+  }
 }
 
 TEST(RouteNextHopEntry, NotNormalizedWideECmpEnabled) {
@@ -243,23 +263,95 @@ TEST(RouteNextHopEntry, NotNormalizedWideECmpEnabled) {
   FLAGS_ecmp_width = 512;
   FLAGS_wide_ecmp = true;
 
-  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 32));
-  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 32));
-  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 32));
+  for (const auto ucmpOptimized : {false, true}) {
+    FLAGS_optimized_ucmp = ucmpOptimized;
+    nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 32));
+    nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 33));
+    nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 34));
+
+    auto normalizedNextHops =
+        RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+    NextHopWeight totalWeight = std::accumulate(
+        normalizedNextHops.begin(),
+        normalizedNextHops.end(),
+        0,
+        [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+
+    auto originalTotalWeight = std::accumulate(
+        nhops.begin(), nhops.end(), 0, [](NextHopWeight w, const NextHop& nh) {
+          return w + nh.weight();
+        });
+
+    EXPECT_EQ(totalWeight, originalTotalWeight);
+  }
+}
+
+// optimized algorithm should remove the low weight and normalize remaining
+TEST(RouteNextHopEntry, OptimizedUcmpDiscardLowWeights) {
+  RouteNextHopSet nhops;
+
+  FLAGS_ecmp_width = 64;
+  FLAGS_optimized_ucmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr4, InterfaceID(4), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr5, InterfaceID(5), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr6, InterfaceID(6), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr7, InterfaceID(7), 36));
+  nhops.emplace(ResolvedNextHop(nextHopAddr8, InterfaceID(8), 36));
 
   auto normalizedNextHops =
       RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
 
-  NextHopWeight totalWeight = std::accumulate(
-      normalizedNextHops.begin(),
-      normalizedNextHops.end(),
-      0,
-      [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
+  std::map<folly::IPAddress, NextHopWeight> expectedWeights = {
+      {nextHopAddr1, 0},
+      {nextHopAddr2, 1},
+      {nextHopAddr3, 1},
+      {nextHopAddr4, 1},
+      {nextHopAddr5, 1},
+      {nextHopAddr6, 1},
+      {nextHopAddr7, 1},
+      {nextHopAddr8, 1}};
+  for (const auto nhop : normalizedNextHops) {
+    EXPECT_EQ(nhop.weight(), expectedWeights[nhop.addr()]);
+  }
+}
 
-  auto originalTotalWeight = std::accumulate(
-      nhops.begin(), nhops.end(), 0, [](NextHopWeight w, const NextHop& nh) {
-        return w + nh.weight();
-      });
+// optimized algorithm should remove the multiple weights
+// even if removing one increases max error deviation in
+// intermediate step
+TEST(RouteNextHopEntry, OptimizedUcmpDiscardMultipleLowWeights) {
+  RouteNextHopSet nhops;
 
-  EXPECT_EQ(totalWeight, originalTotalWeight);
+  FLAGS_ecmp_width = 64;
+  FLAGS_optimized_ucmp = true;
+
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 50));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 50));
+  nhops.emplace(ResolvedNextHop(nextHopAddr3, InterfaceID(3), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr4, InterfaceID(4), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr5, InterfaceID(5), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr6, InterfaceID(6), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr7, InterfaceID(7), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr8, InterfaceID(8), 1));
+
+  auto normalizedNextHops =
+      RouteNextHopEntry(nhops, kDefaultAdminDistance).normalizedNextHops();
+
+  // optimized algorithm should remove the low weight and normalize remaining
+  std::map<folly::IPAddress, NextHopWeight> expectedWeights = {
+      {nextHopAddr1, 1},
+      {nextHopAddr2, 1},
+      {nextHopAddr3, 0},
+      {nextHopAddr4, 0},
+      {nextHopAddr5, 0},
+      {nextHopAddr6, 0},
+      {nextHopAddr7, 0},
+      {nextHopAddr8, 0}};
+  for (const auto nhop : normalizedNextHops) {
+    EXPECT_EQ(nhop.weight(), expectedWeights[nhop.addr()]);
+  }
 }
