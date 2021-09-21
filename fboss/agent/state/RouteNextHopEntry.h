@@ -18,6 +18,7 @@
 #include "fboss/agent/state/RouteTypes.h"
 
 DECLARE_uint32(ecmp_width);
+DECLARE_bool(optimized_ucmp);
 
 namespace facebook::fboss {
 
@@ -117,6 +118,9 @@ class RouteNextHopEntry {
   static bool isUcmp(const NextHopSet& nhopSet);
 
  private:
+  void normalize(
+      std::vector<NextHopWeight>& scaledWeights,
+      NextHopWeight totalWeight) const;
   AdminDistance adminDistance_;
   Action action_{Action::DROP};
   std::optional<RouteCounterID> counterID_;

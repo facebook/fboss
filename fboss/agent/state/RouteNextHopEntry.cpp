@@ -40,6 +40,8 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
 } // namespace
 
 DEFINE_bool(wide_ecmp, false, "Enable fixed width wide ECMP feature");
+DEFINE_bool(optimized_ucmp, false, "Enable UCMP normalization optimizations");
+DEFINE_double(ucmp_max_error, 0.05, "Max UCMP normalization error");
 
 namespace facebook::fboss {
 
@@ -221,6 +223,117 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   return valid;
 }
 
+// A greedy algorithm to determine UCMP weight distribution when total
+// weight is greater than ecmp_width.
+// Input - [w(1), w(2), .., w(n)] represents weights of each path
+// Output - [w'(1), w'(2), .., w'(n)]
+// Constraints
+// w'(i) is an Integer
+// Sum[w'(i)] <= ecmp_width // Fits within ECMP Width, 64 or 128
+// Minimize - Max(ErrorDeviation(i)) for i = 1 to n
+// where ErrorDeviation(i) is percentage deviation of weight for index i
+// from optimal allocation (without constraints)
+
+//  a) Compute gcd and reduce weights by gcd
+//  b) Calculate the scaled factor FLAGS_ecmp_width/totalWeight.
+//     Without rounding, multiplying each weight by this will still yield
+//     correct weight ratios between the next hops.
+//  c) Scale each next hop by the scaling factor, rounding up.
+//  d) We might have exceeded ecmp_width at this point due to rounding up.
+//     while total weight > ecmp_width
+//           1) Find entry with maximum deviation from ideal distribution
+//           2) reduce the weight of max error entry
+//  e) we have a potential solution. Continue searching for an optimal solution.
+//     while total weight is not zero or tolernce not achieved
+//           1) Find entry with maximum deviation from ideal distribution
+//           2) reduce the weight of max error entry
+//           3) If newly created set has lower max deviation, record this
+//              as new optimal solution.
+
+void RouteNextHopEntry::normalize(
+    std::vector<NextHopWeight>& scaledWeights,
+    NextHopWeight totalWeight) const {
+  // This is the weight distribution without constraints
+  std::vector<double> idealWeights;
+
+  // compute normalization factor
+  double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
+  NextHopWeight scaledTotalWeight = 0;
+  for (auto& entry : scaledWeights) {
+    // Compute the ideal distribution
+    idealWeights.emplace_back(entry / static_cast<double>(totalWeight));
+    // compute scaled weights by rounding up
+    entry = static_cast<NextHopWeight>(std::ceil(entry * factor));
+    scaledTotalWeight += entry;
+  }
+
+  // find entry with max error
+  auto findMaxErrorEntry = [&idealWeights,
+                            &scaledTotalWeight](const auto& scaledWeights) {
+    double maxError = 0;
+    int maxErrorIndex = 0;
+    auto index = 0;
+    for (auto entry : scaledWeights) {
+      // percentage weight of total weight allocation for this member
+      auto allocation = (double)entry / scaledTotalWeight;
+      // measure of percentage weight deviation from ideal
+      auto error = (allocation - idealWeights[index]) / idealWeights[index];
+      // record the max error entry and it's key
+      if (error >= maxError) {
+        maxErrorIndex = index;
+        maxError = error;
+      }
+      index++;
+    }
+    return std::tuple(maxErrorIndex, maxError);
+  };
+
+  // current solution is not feasible till it can fit in ecmp_width value
+  while (scaledTotalWeight > FLAGS_ecmp_width) {
+    auto key = std::get<0>(findMaxErrorEntry(scaledWeights));
+    scaledWeights.at(key)--;
+    scaledTotalWeight--;
+  }
+
+  // we have a potential solution now
+  auto [maxErrorIndex, maxErrorVal] = findMaxErrorEntry(scaledWeights);
+  auto bestMaxError = maxErrorVal;
+
+  // Do not optimize further for wide ecmp
+  bool wideEcmp = FLAGS_wide_ecmp && scaledTotalWeight > kMinSizeForWideEcmp;
+  if (!wideEcmp) {
+    // map to continue searching for best result
+    auto newWeights = scaledWeights;
+
+    while (scaledTotalWeight > 1 && bestMaxError > FLAGS_ucmp_max_error) {
+      // reduce weight for entry with max error deviation
+      newWeights.at(maxErrorIndex)--;
+      scaledTotalWeight--;
+      // recompute the new error deviation
+      std::tie(maxErrorIndex, maxErrorVal) = findMaxErrorEntry(newWeights);
+      // save new solution if it reduces max eror deviation
+      if (maxErrorVal <= bestMaxError) {
+        scaledWeights = newWeights;
+        bestMaxError = maxErrorVal;
+      }
+    };
+  }
+
+  int commonFactor{0};
+  // reduce weights proportionaly by gcd if needed
+  for (const auto entry : scaledWeights) {
+    if (entry) {
+      commonFactor = std::gcd(commonFactor, entry);
+    }
+  }
+  commonFactor = std::max(commonFactor, 1);
+
+  // reduce weights by gcd if needed
+  for (auto& entry : scaledWeights) {
+    entry = entry / commonFactor;
+  }
+}
+
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   NextHopSet normalizedNextHops;
   // 1)
@@ -253,54 +366,75 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   // FLAGS_ecmp_width/totalWeight to all next hops.
   NextHopWeight scaledTotalWeight = 0;
   if (totalWeight > FLAGS_ecmp_width) {
-    XLOG(DBG2) << "Total weight of next hops exceeds max ecmp width: "
+    XLOG(DBG3) << "Total weight of next hops exceeds max ecmp width: "
                << totalWeight << " > " << FLAGS_ecmp_width << " ("
                << normalizedNextHops << ")";
-    // 2a)
-    double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
+
     NextHopSet scaledNextHops;
-    // 2b)
-    for (const auto& nhop : normalizedNextHops) {
-      NextHopWeight w = std::max(
-          static_cast<NextHopWeight>(nhop.weight() * factor), NextHopWeight(1));
-      scaledNextHops.insert(ResolvedNextHop(
-          nhop.addr(), nhop.intf(), w, nhop.labelForwardingAction()));
-      scaledTotalWeight += w;
-    }
-    // 2c)
-    if (scaledTotalWeight > FLAGS_ecmp_width) {
-      XLOG(WARNING) << "Total weight of scaled next hops STILL exceeds max "
-                    << "ecmp width: " << scaledTotalWeight << " > "
-                    << FLAGS_ecmp_width << " (" << scaledNextHops << ")";
-      // calculate number of times we need to decrement the max next hop
-      NextHopWeight overflow = scaledTotalWeight - FLAGS_ecmp_width;
-      for (int i = 0; i < overflow; ++i) {
-        // find the max weight next hop
-        auto maxItr = std::max_element(
-            scaledNextHops.begin(),
-            scaledNextHops.end(),
-            [](const NextHop& n1, const NextHop& n2) {
-              return n1.weight() < n2.weight();
-            });
-        XLOG(DBG2) << "Decrementing the weight of next hop: " << *maxItr;
-        // create a clone of the max weight next hop with weight decremented
-        ResolvedNextHop decMax = ResolvedNextHop(
-            maxItr->addr(),
-            maxItr->intf(),
-            maxItr->weight() - 1,
-            maxItr->labelForwardingAction());
-        // remove the max weight next hop and replace with the
-        // decremented version, if the decremented version would
-        // not have weight 0. If it would have weight 0, that means
-        // that we have > FLAGS_ecmp_width next hops.
-        scaledNextHops.erase(maxItr);
-        if (decMax.weight() > 0) {
-          scaledNextHops.insert(decMax);
-        }
+    if (FLAGS_optimized_ucmp) {
+      std::vector<NextHopWeight> scaledWeights;
+      for (const auto& nhop : normalizedNextHops) {
+        scaledWeights.emplace_back(nhop.weight());
       }
-      scaledTotalWeight = FLAGS_ecmp_width;
+      normalize(scaledWeights, totalWeight);
+
+      auto index = 0;
+      for (const auto& nhop : normalizedNextHops) {
+        auto weight = scaledWeights.at(index);
+        if (weight) {
+          scaledNextHops.insert(ResolvedNextHop(
+              nhop.addr(), nhop.intf(), weight, nhop.labelForwardingAction()));
+          scaledTotalWeight += weight;
+        }
+        index++;
+      }
+    } else {
+      // 2a)
+      double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
+      // 2b)
+      for (const auto& nhop : normalizedNextHops) {
+        NextHopWeight w = std::max(
+            static_cast<NextHopWeight>(nhop.weight() * factor),
+            NextHopWeight(1));
+        scaledNextHops.insert(ResolvedNextHop(
+            nhop.addr(), nhop.intf(), w, nhop.labelForwardingAction()));
+        scaledTotalWeight += w;
+      }
+      // 2c)
+      if (scaledTotalWeight > FLAGS_ecmp_width) {
+        XLOG(DBG3) << "Total weight of scaled next hops STILL exceeds max "
+                   << "ecmp width: " << scaledTotalWeight << " > "
+                   << FLAGS_ecmp_width << " (" << scaledNextHops << ")";
+        // calculate number of times we need to decrement the max next hop
+        NextHopWeight overflow = scaledTotalWeight - FLAGS_ecmp_width;
+        for (int i = 0; i < overflow; ++i) {
+          // find the max weight next hop
+          auto maxItr = std::max_element(
+              scaledNextHops.begin(),
+              scaledNextHops.end(),
+              [](const NextHop& n1, const NextHop& n2) {
+                return n1.weight() < n2.weight();
+              });
+          XLOG(DBG3) << "Decrementing the weight of next hop: " << *maxItr;
+          // create a clone of the max weight next hop with weight decremented
+          ResolvedNextHop decMax = ResolvedNextHop(
+              maxItr->addr(),
+              maxItr->intf(),
+              maxItr->weight() - 1,
+              maxItr->labelForwardingAction());
+          // remove the max weight next hop and replace with the
+          // decremented version, if the decremented version would
+          // not have weight 0. If it would have weight 0, that means
+          // that we have > FLAGS_ecmp_width next hops.
+          scaledNextHops.erase(maxItr);
+          if (decMax.weight() > 0) {
+            scaledNextHops.insert(decMax);
+          }
+        }
+        scaledTotalWeight = FLAGS_ecmp_width;
+      }
     }
-    XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
                << scaledNextHops;
     normalizedNextHops = scaledNextHops;
   } else {
@@ -323,7 +457,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
           nhopAndWeights[nhop.addr()],
           nhop.labelForwardingAction()));
     }
-    XLOG(DBG2) << "Scaled next hops from " << getNextHopSet() << " to "
+    XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
                << normalizedToMaxPathNextHops;
     return normalizedToMaxPathNextHops;
   }
