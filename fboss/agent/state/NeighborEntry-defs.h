@@ -50,7 +50,16 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
   InterfaceID intf(entryJson[kInterface].asInt());
   auto state = NeighborState(entryJson[kNeighborEntryState].asInt());
 
-  if (entryJson.find(kClassID) != entryJson.items().end()) {
+  // Recent bug fixes in vendor SDK implementation means that assigning classID
+  // to a link local neighbor is not supported. However, prior to D30800608,
+  // LookupClassUpdater could assign classID to a link local neighbor.
+  // Warmbooting from a version prior to vendor bug fix to a version that has
+  // vendor bug fix + D30800608, can still crash as the SwitchState (which has
+  // classID for link local) gets replayed.
+  // Prevent it by explicitly ignoring classID associated with link local
+  // neighbor during deserialization.
+  if (entryJson.find(kClassID) != entryJson.items().end() &&
+      !ip.isLinkLocal()) {
     auto classID = cfg::AclLookupClass(entryJson[kClassID].asInt());
     return NeighborEntryFields(ip, mac, port, intf, state, classID);
   } else {
