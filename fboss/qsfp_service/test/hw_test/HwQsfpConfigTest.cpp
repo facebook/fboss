@@ -55,17 +55,19 @@ TEST_F(HwTest, moduleConfigVerificationTest) {
     auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
     auto mediaIntefaces =
         apache::thrift::can_throw(*settings.mediaInterface_ref());
-    auto hostSettings =
-        apache::thrift::can_throw(*settings.hostLaneSettings_ref());
-
     if (mgmtInterface == TransceiverManagementInterface::CMIS) {
       moduleFactor.applicationCode_ref() =
           *mediaIntefaces[0].media_ref()->smfCode_ref();
     } else {
-      EXPECT_TRUE(mgmtInterface == TransceiverManagementInterface::SFF);
+      EXPECT_TRUE(
+          mgmtInterface == TransceiverManagementInterface::SFF ||
+          mgmtInterface == TransceiverManagementInterface::SFF8472);
       // TODO: Update this test for SFF configurations
       continue;
     }
+
+    auto hostSettings =
+        apache::thrift::can_throw(*settings.hostLaneSettings_ref());
 
     // Check if the config has an override for this kind of transceiver
     for (const auto& cfgOverride :
