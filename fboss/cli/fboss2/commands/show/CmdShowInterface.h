@@ -12,6 +12,8 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
+#include <folly/executors/IOThreadPoolExecutor.h>
+
 namespace facebook::fboss {
 
 struct CmdShowInterfaceTraits {
@@ -32,36 +34,42 @@ class CmdShowInterface
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
-    auto portInfo =
-        client->future_getAllPortInfo().thenValue([&](auto&& portInfo) {
-          if (queriedPorts.size() == 0) {
-            return std::move(portInfo);
-          }
+    folly::IOThreadPoolExecutor executor(4);
 
-          // TODO: move this to a utility since it seems we'll need to get
-          // filtered ports a lot
-
-          std::map<int32_t, facebook::fboss::PortInfoThrift> filteredPorts;
-          for (auto const& [portId, portInfo] : portInfo) {
-            for (auto const& queriedPort : queriedPorts) {
-              if (portInfo.get_name() == queriedPort) {
-                filteredPorts.insert(std::make_pair(portId, portInfo));
+    auto portInfos =
+        client->semifuture_getAllPortInfo()
+            .deferValue([&](auto portInfo) {
+              if (queriedPorts.size() == 0) {
+                return std::move(portInfo);
               }
-            }
-          }
-          return filteredPorts;
-        });
 
-    auto interfaceDetails = client->future_getAllInterfaces();
-    auto counters = client->future_getCounters();
-    auto getAggregatePortTable = client->future_getAggregatePortTable();
+              // TODO: move this to a utility since it
+              // seems we'll need to get filtered ports a lot
 
-    portInfo.wait();
+              std::map<int32_t, facebook::fboss::PortInfoThrift> filteredPorts;
+              for (auto const& [portId, portInfo] : portInfo) {
+                for (auto const& queriedPort : queriedPorts) {
+                  if (portInfo.get_name() == queriedPort) {
+                    filteredPorts.insert(std::make_pair(portId, portInfo));
+                  }
+                }
+              }
+              return filteredPorts;
+            })
+            .via(executor.getEventBase());
+    auto interfaceDetails =
+        client->semifuture_getAllInterfaces().via(executor.getEventBase());
+    auto counters =
+        client->semifuture_getCounters().via(executor.getEventBase());
+    auto getAggregatePortTable =
+        client->semifuture_getAggregatePortTable().via(executor.getEventBase());
+
+    portInfos.wait();
     interfaceDetails.wait();
     counters.wait();
     getAggregatePortTable.wait();
 
-    return portInfo.value();
+    return portInfos.value();
   }
 
   // TODO: implement output
