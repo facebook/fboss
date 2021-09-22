@@ -32,14 +32,13 @@ class NeighborApiTest : public ::testing::Test {
   }
   SaiNeighborTraits::CreateAttributes createAttrs(
       std::optional<sai_uint32_t> metadata = std::nullopt) const {
-    return {dstMac, metadata, noHostRoute};
+    return {dstMac, metadata};
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<NeighborApi> neighborApi;
   folly::IPAddress ip4{str4};
   folly::IPAddress ip6{str6};
   folly::MacAddress dstMac{strMac};
-  bool noHostRoute{false};
 };
 
 TEST_F(NeighborApiTest, createV4Neighbor) {

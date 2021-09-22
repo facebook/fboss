@@ -109,8 +109,7 @@ void SaiNeighborManager::addNeighbor(
       swEntry->getIntfID(),
       swEntry->getIP(),
       swEntry->getMac(),
-      metadata,
-      swEntry->getIP().isLinkLocal());
+      metadata);
 
   SaiObjectEventPublisher::getInstance()
       ->get<SaiVlanRouterInterfaceTraits>()
@@ -198,7 +197,7 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   bool resolveNexthop = manager_->isLinkUp(port_);
 
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
-      fdbEntry->adapterHostKey().mac(), metadata_, noHostRoute_};
+      fdbEntry->adapterHostKey().mac(), metadata_};
   auto object = manager_->createSaiObject(
       adapterHostKey, createAttributes, resolveNexthop);
   this->setObject(object);
