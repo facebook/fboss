@@ -137,28 +137,10 @@ enum MKAErrorLogType {
 struct KeyHash {
   // The CKN is send by called (key-server) while updating the profile on
   // interface. This will be typically the Unix timestamp when the key is
-  // created (KeyUpdate.primaryCak.ckn).
+  // created (mka_config.MKAConfig.primaryCak.ckn).
   1: string ckn;
   // Hashed MacSec Key, the original key cannot be extracted
   2: string hashedKey;
-}
-
-/*
- * Traffic policy tells about the interface macsec status - if it has active
- * SA to encrypt/decrypt traffic or some other state
- */
-enum TrafficPolicy {
-  // Unable to determine traffic policy (init state)
-  POLICY_UNKNOWN = 0,
-  // Profile Not set
-  POLICY_NULL = 1,
-  // allow transmit/receipt of encrypted traffic using operation SAK,
-  // block otherwise
-  POLICY_ACTIVE_SAK = 2,
-  // Allow transmit/receipt of unprotected traffic (macsec bypass)
-  POLICY_UNPROTECTED = 3,
-  // block transmit/receipt of unprotected traffic
-  POLICY_BLOCKED = 4,
 }
 
 /*
@@ -178,45 +160,9 @@ struct InterfaceProfile {
   // MKA timers (hello timer, life time of the key, sak timeout) in masec
   5: mka_config.MKATimers timers;
   // traffic policy for the profile, default to unknown
-  6: TrafficPolicy trafficPolicy = TrafficPolicy.POLICY_UNKNOWN;
+  6: mka_config.TrafficPolicy trafficPolicy = mka_config.TrafficPolicy.POLICY_UNKNOWN;
   // Cipher suite for the key
   7: mka_structs.MKACipherSuite cipherSuite;
-}
-
-/*
- * Key Type will be used by Key Server to tell whether to program primary key
- * or the secondary key
- */
-enum KeyType {
-  // Primary key, this will be active
-  PRIMARY_KEY = 0,
-  // Secondary key is for backup or rollover
-  SECONDARY_KEY = 1,
-}
-
-/*
- * Struct used to by thrift interface to update the keys for a profile. The
- * profile is associated with a port in our implementation
- */
-struct KeyUpdate {
-  // The profile name, this is something like Ethernet1234 which will get
-  // translated to eth1/23/4 for Fboss switch
-  1: string profileName;
-  // Key server priority
-  2: i16 priority = mka_config.DEFAULT_KEYSERVER_PRIORITY;
-  // The primary or secondary keys to use
-  3: optional mka_structs.Cak primaryCak;
-  // Secondary key
-  4: optional mka_structs.Cak secondaryCak;
-  // Key selector to choose primary or secondary key
-  5: KeyType keySelect = KeyType.PRIMARY_KEY;
-  // Traffic policy, Active SAK is the default/existing behavior
-  6: TrafficPolicy trafficPolicy = TrafficPolicy.POLICY_ACTIVE_SAK;
-  // Various timers (hello timer, life time of the key, sak timeout) in masec
-  // for a key
-  7: mka_config.MKATimers timers;
-  // Cipher suite for the key
-  8: mka_structs.MKACipherSuite cipherSuite = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
 }
 
 /*
@@ -299,7 +245,7 @@ service MKAService extends fb303.FacebookService {
 
   /*
    * This function creates/updates the macsec profile on a given interface. The
-   * KeyUpdate structure contains all the information like the profile name,
+   * MKAConfig structure contains all the information like the profile name,
    * macsec key information etc. The port name is derived from profile name and
    * the macsec configuration is applied there. The update of the existing
    * profile configuration will lead to calling the create Macsec configuration
@@ -307,8 +253,8 @@ service MKAService extends fb303.FacebookService {
    * it will lead to call for Create macsec configuration
    */
   void updateKey(
-    // The KeyUpdate structure for adding Macsec profile on the interface
-    1: KeyUpdate update,
+    // The MKAConfig structure for adding Macsec profile on the interface
+    1: mka_config.MKAConfig update,
     // Hostname of the switch being queried
     101: string targetedRouterName,
   ) throws (1: MKAServiceException error);
