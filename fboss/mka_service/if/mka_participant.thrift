@@ -23,9 +23,9 @@ struct MKAParticipantCtx {
   4: bool keyServerDistSAK = false;
   // set when the keyserver election is done
   5: bool elected = false;
-  // when sak is enabled on rx
+  // when current sak was enabled on rx
   6: i64 sakEnabledRxSince = 0;
-  // when sak is enabled on tx
+  // when current sak was enabled on tx
   7: i64 sakEnabledTxSince = 0;
   8: bool delayProtect = false;
   9: bool plainTx = false;
@@ -38,6 +38,8 @@ struct MKAParticipantCtx {
   16: mka_structs.MKACipherSuite cipher = mka_structs.MKACipherSuite.GCM_AES_XPN_128;
   17: string srcMac;
   18: bool valid = false;
+  // when sak was last rotated
+  19: i64 sakRotatedAt = 0;
 }
 
 struct MKAParticipantIOBufs {
