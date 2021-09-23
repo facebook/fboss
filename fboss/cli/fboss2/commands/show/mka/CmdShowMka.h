@@ -38,7 +38,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
   RetType createModel(
       std::vector<facebook::fboss::mka::MKASessionInfo> mkaEntries) {
     RetType model;
-    auto makeMkaEntry = [](auto participantCtx) {
+    auto makeMkaEntry = [](auto participantCtx, bool isPrimary) {
       cli::MkaEntry modelEntry;
       modelEntry.srcMac_ref() = *participantCtx.srcMac_ref();
       modelEntry.ckn_ref() = *participantCtx.cak_ref()->ckn_ref();
@@ -60,12 +60,18 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           strTime(*participantCtx.sakEnabledRxSince_ref());
       modelEntry.sakTxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledTxSince_ref());
+      modelEntry.isPrimary_ref() = isPrimary;
       return modelEntry;
 
     };
     for (const auto& entry : mkaEntries) {
       auto& participantCtx = *entry.participantCtx_ref();
-      model.portToMkaEntries_ref()[*participantCtx.l2Port_ref()].emplace_back(makeMkaEntry(participantCtx));
+      model.portToMkaEntries_ref()[*participantCtx.l2Port_ref()].emplace_back(
+          makeMkaEntry(participantCtx, true/*isPrimary*/));
+      if (entry.secondaryParticipantCtx_ref()) {
+        model.portToMkaEntries_ref()[*participantCtx.l2Port_ref()].emplace_back(
+            makeMkaEntry(participantCtx, false /*isPrimary*/));
+      }
     }
     return model;
   }
@@ -75,7 +81,9 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
       out << std::string(20, '=') << std::endl;
       for (auto& entry : portAndEntries.second) {
         out << " MAC: " << entry.get_srcMac() << std::endl;
-        out << " CKN: " << entry.get_ckn() << std::endl;
+        out << " CKN: " << entry.get_ckn() << " ("
+            << (*entry.isPrimary_ref() ? "Primary" : " Secondary") << ")"
+            << std::endl;
         out << " Keyserver elected: "
             << (entry.get_keyServerElected() ? "Y" : "N") << std::endl;
         out << " SAK installed since: "

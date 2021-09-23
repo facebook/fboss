@@ -10,5 +10,5 @@ struct MkaEntry {
   3: bool keyServerElected;
   4: string sakRxInstalledSince;
   5: string sakTxInstalledSince;
-  6: bool isSecondary;
+  6: bool isPrimary;
 }
