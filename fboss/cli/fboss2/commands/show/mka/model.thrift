@@ -16,6 +16,7 @@ struct MkaProfile {
   5: string sakTxInstalledSince;
   6: list<MkaPeer> activePeers;
   7: list<MkaPeer> potentialPeers;
+  8: string sakRotatedAt;
 }
 
 struct MkaEntry {

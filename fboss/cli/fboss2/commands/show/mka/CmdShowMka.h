@@ -78,6 +78,9 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           strTime(*participantCtx.sakEnabledRxSince_ref());
       profile.sakTxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledTxSince_ref());
+      profile.sakRotatedAt_ref() =
+          strTime(*participantCtx.sakRotatedAt_ref());
+
       auto makePeers = [](const auto& peerInfos) {
         std::vector<cli::MkaPeer> peers;
         for (const auto& peerInfo : peerInfos) {
@@ -127,6 +130,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
         out << " SAK installed since: "
             << " rx: " << profile.get_sakRxInstalledSince()
             << " tx: " << profile.get_sakTxInstalledSince() << std::endl;
+        out << " SAK rotated at: " << profile.get_sakRotatedAt() << std::endl;
         auto printPeers = [&out](const auto& type, const auto& peers) {
           if (!peers.size()) {
             return;
