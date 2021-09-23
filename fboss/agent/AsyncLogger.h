@@ -28,7 +28,7 @@ class AsyncLogger {
       uint32_t logTimeout,
       LoggerSrcType srcType);
 
-  ~AsyncLogger();
+  ~AsyncLogger() = default;
 
   /*
    * To handle unclean exit, we use terminate handler to write out the logs that

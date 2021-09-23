@@ -94,10 +94,6 @@ AsyncLogger::AsyncLogger(
   }
 }
 
-AsyncLogger::~AsyncLogger() {
-  fsync(logFile_.wlock()->fd());
-}
-
 void AsyncLogger::setBootType(bool canWarmBoot) {
   // Temporary workaround to unblock link testing T98189367.
   // Since qsfp service now creates multiple instances of Sai Switch, we'll need
