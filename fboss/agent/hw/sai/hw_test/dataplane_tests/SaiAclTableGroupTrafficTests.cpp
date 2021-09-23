@@ -33,8 +33,15 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
-    utility::addQueuePerHostQueueConfig(&cfg);
-    utility::addQueuePerHostAclTables(&cfg);
+
+    if (isSupported()) {
+      utility::addQueuePerHostQueueConfig(&cfg);
+      utility::addQueuePerHostAclTables(&cfg);
+    } else {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    }
+
     return cfg;
   }
 
