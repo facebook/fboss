@@ -214,6 +214,7 @@ struct EthernetStatus {
 
 struct MKASessionInfo {
   1: mka_participant.MKAParticipantCtx participantCtx;
+  2: optional mka_participant.MKAParticipantCtx secondaryParticipantCtx;
 }
 
 /*
