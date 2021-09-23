@@ -124,14 +124,26 @@ class MacsecTest : public LinkTest {
 
 void MacsecTest::SetUp() {
   LinkTest::SetUp();
+  checkWithRetry(
+      [this] {
+        try {
+          folly::SocketAddress addr("::1", 5920);
+          auto socket = folly::AsyncSocket::newSocket(
+              folly::EventBaseManager::get()->getEventBase(), addr, 5000);
+          auto channel = apache::thrift::RocketClientChannel::newChannel(
+              std::move(socket));
+          client_ =
+              std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
+                  std::move(channel));
+          client_->sync_getStatus();
+        } catch (const std::exception& e) {
+          XLOG(INFO) << " Failed to get mka_service status: " << e.what();
+          return false;
+        }
+        return true;
+      },
+      60 /*retries*/);
   checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
-  folly::SocketAddress addr("::1", 5920);
-  auto socket = folly::AsyncSocket::newSocket(
-      folly::EventBaseManager::get()->getEventBase(), addr, 5000);
-  auto channel =
-      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  client_ = std::make_unique<facebook::fboss::mka::MKAServiceAsyncClient>(
-      std::move(channel));
 }
 
 void MacsecTest::TearDown() {
