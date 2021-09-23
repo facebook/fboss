@@ -212,11 +212,21 @@ struct EthernetStatus {
   4: OperStatus operStatus = OperStatus.OPER_UNKNOWN;
 }
 
+struct MKAPeerInfo {
+  1: string id;
+  2: i32 priority;
+  3: bool sakUsed;
+  4: string secureChannelIdentifier;
+}
 struct MKASessionInfo {
   1: mka_participant.MKAParticipantCtx participantCtx;
   2: optional mka_participant.MKAParticipantCtx secondaryParticipantCtx;
   // Encrypted SAK key
   3: string encryptedSak;
+  4: list<MKAPeerInfo> activePeersPrimary;
+  5: list<MKAPeerInfo> potentialPeersPrimary;
+  6: list<MKAPeerInfo> activePeersSecondary;
+  7: list<MKAPeerInfo> potentialPeersSecondary;
 }
 
 /*
