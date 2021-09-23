@@ -145,10 +145,16 @@ std::string switchRunStateStr(SwitchRunState runState) {
 }
 
 folly::MacAddress getLocalMacAddress() {
-  if (!FLAGS_mac.empty()) {
-    return folly::MacAddress(FLAGS_mac);
+  static std::mutex macComputeLock;
+  static std::optional<folly::MacAddress> localMac;
+  std::lock_guard g(macComputeLock);
+  if (localMac) {
+    return *localMac;
   }
-
+  if (!FLAGS_mac.empty()) {
+    localMac = folly::MacAddress(FLAGS_mac);
+    return *localMac;
+  }
   // TODO(t4543375): Get the base MAC address from the BMC.
   //
   // For now, we take the MAC address from eth0, and enable the
@@ -164,12 +170,11 @@ folly::MacAddress getLocalMacAddress() {
     throw std::runtime_error("unable to determine local mac address");
   }
   folly::MacAddress eth0Mac(out.first.substr(idx + 11, 17));
-  folly::MacAddress localMac =
-      folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
-  XLOG(DBG2) << "Calculating local mac address=" << localMac << " took "
+  localMac = folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
+  XLOG(DBG2) << "Calculating local mac address=" << *localMac << " took "
              << duration_cast<milliseconds>(steady_clock::now() - begin).count()
              << "ms";
-  return localMac;
+  return *localMac;
 }
 
 std::vector<NextHopThrift> thriftNextHopsFromAddresses(
