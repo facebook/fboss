@@ -27,7 +27,8 @@ enum class PlatformMode : char {
   WEDGE400,
   FUJI,
   ELBERT,
-  CLOUDRIPPER
+  CLOUDRIPPER,
+  DARWIN
 };
 
 inline std::string toString(PlatformMode mode) {
@@ -60,6 +61,8 @@ inline std::string toString(PlatformMode mode) {
       return "ELBERT";
     case PlatformMode::CLOUDRIPPER:
       return "CLOUDRIPPER";
+    case PlatformMode::DARWIN:
+      return "DARWIN";
   }
 }
 

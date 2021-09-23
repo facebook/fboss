@@ -52,6 +52,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::WEDGE400:
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
+    case PlatformMode::DARWIN:
       /*
        * A route distribution 200,000 /128 does overflow the ASIC tables
        * but it takes 15min to generate, program and clean up such a
