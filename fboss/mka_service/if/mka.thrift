@@ -217,6 +217,7 @@ struct MKAPeerInfo {
   2: i32 priority;
   3: bool sakUsed;
   4: string secureChannelIdentifier;
+  5: bool isKeyServer;
 }
 
 struct MKASessionInfo {

@@ -71,6 +71,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           peer.sakUsed_ref() = *peerInfo.sakUsed_ref();
           peer.secureChannelIdentifier_ref() =
               *peerInfo.secureChannelIdentifier_ref();
+          peer.isKeyServer_ref() = *peerInfo.isKeyServer_ref();
           peers.emplace_back(std::move(peer));
         }
         return peers;
@@ -119,6 +120,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
             out <<"\t" <<" id: " << *peer.id_ref() << std::endl;
             out <<"\t" <<" priority: " << *peer.priority_ref() << std::endl;
             out <<"\t" <<" sakUsed: " << *peer.sakUsed_ref() << std::endl;
+            out <<"\t" <<" isKeyServer: " << *peer.isKeyServer_ref() << std::endl;
             out << "\t"
                 << " secureChannelIdentifier: "
                 << *peer.secureChannelIdentifier_ref() << std::endl;
