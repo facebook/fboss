@@ -38,11 +38,11 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
   RetType createModel(
       std::vector<facebook::fboss::mka::MKASessionInfo> mkaEntries) {
     RetType model;
-    auto makeMkaEntry = [](auto participantCtx, bool isPrimary) {
-      cli::MkaEntry modelEntry;
-      modelEntry.srcMac_ref() = *participantCtx.srcMac_ref();
-      modelEntry.ckn_ref() = *participantCtx.cak_ref()->ckn_ref();
-      modelEntry.keyServerElected_ref() = *participantCtx.elected_ref();
+    auto makeMkaProfile = [](auto participantCtx) {
+      cli::MkaProfile profile;
+      profile.srcMac_ref() = *participantCtx.srcMac_ref();
+      profile.ckn_ref() = *participantCtx.cak_ref()->ckn_ref();
+      profile.keyServerElected_ref() = *participantCtx.elected_ref();
       auto strTime = [](auto secsSinceEpoch) -> std::string {
         if (!secsSinceEpoch) {
           return "--";
@@ -56,40 +56,45 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
         timeStr.erase(it.base(), timeStr.end());
         return timeStr;
       };
-      modelEntry.sakRxInstalledSince_ref() =
+      profile.sakRxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledRxSince_ref());
-      modelEntry.sakTxInstalledSince_ref() =
+      profile.sakTxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledTxSince_ref());
-      modelEntry.isPrimary_ref() = isPrimary;
-      return modelEntry;
-
+      return profile;
     };
     for (const auto& entry : mkaEntries) {
       auto& participantCtx = *entry.participantCtx_ref();
-      model.portToMkaEntries_ref()[*participantCtx.l2Port_ref()].emplace_back(
-          makeMkaEntry(participantCtx, true/*isPrimary*/));
+      cli::MkaEntry modelEntry;
+      modelEntry.primaryProfile_ref() = makeMkaProfile(participantCtx);
       if (entry.secondaryParticipantCtx_ref()) {
-        model.portToMkaEntries_ref()[*participantCtx.l2Port_ref()].emplace_back(
-            makeMkaEntry(participantCtx, false /*isPrimary*/));
+        modelEntry.secondaryProfile_ref() = makeMkaProfile(participantCtx);
       }
+      modelEntry.encryptedSak_ref() = *entry.encryptedSak_ref();
+      model.portToMkaEntry_ref()[*participantCtx.l2Port_ref()] = modelEntry;
+
     }
     return model;
   }
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (auto const& portAndEntries : model.get_portToMkaEntries()) {
-      out << "Port: " << portAndEntries.first << std::endl;
+    for (auto const& portAndEntry : model.get_portToMkaEntry()) {
+      out << "Port: " << portAndEntry.first << std::endl;
       out << std::string(20, '=') << std::endl;
-      for (auto& entry : portAndEntries.second) {
-        out << " MAC: " << entry.get_srcMac() << std::endl;
-        out << " CKN: " << entry.get_ckn() << " ("
-            << (*entry.isPrimary_ref() ? "Primary" : " Secondary") << ")"
-            << std::endl;
+      auto printProfile = [&out](const auto& profile, bool isPrimary) {
+        out << " MAC: " << profile.get_srcMac() << std::endl;
+        out << " CKN: " << profile.get_ckn() << " ("
+            << (isPrimary ? "Primary" : " Secondary") << ")" << std::endl;
         out << " Keyserver elected: "
-            << (entry.get_keyServerElected() ? "Y" : "N") << std::endl;
+            << (profile.get_keyServerElected() ? "Y" : "N") << std::endl;
         out << " SAK installed since: "
-            << " rx: " << entry.get_sakRxInstalledSince()
-            << " tx: " << entry.get_sakTxInstalledSince() << std::endl;
+            << " rx: " << profile.get_sakRxInstalledSince()
+            << " tx: " << profile.get_sakTxInstalledSince() << std::endl;
+      };
+      auto& entry = portAndEntry.second;
+      printProfile(*entry.primaryProfile_ref(), true);
+      if (entry.secondaryProfile_ref()) {
+        printProfile(*entry.secondaryProfile_ref(), false);
       }
+      out << " Encrypted SAK: " << entry.get_encryptedSak() << std::endl;
     }
   }
 };

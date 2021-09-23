@@ -1,14 +1,19 @@
 namespace cpp2 facebook.fboss.cli
 
 struct ShowMkaModel {
-  1: map<string, list<MkaEntry>> portToMkaEntries;
+  1: map<string, MkaEntry> portToMkaEntry;
 }
 
-struct MkaEntry {
+struct MkaProfile {
   1: string srcMac;
   2: string ckn;
   3: bool keyServerElected;
   4: string sakRxInstalledSince;
   5: string sakTxInstalledSince;
-  6: bool isPrimary;
+}
+
+struct MkaEntry {
+  1: MkaProfile primaryProfile;
+  2: optional MkaProfile secondaryProfile;
+  3: string encryptedSak;
 }
