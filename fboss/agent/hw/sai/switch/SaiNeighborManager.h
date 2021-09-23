@@ -119,8 +119,7 @@ class SaiNeighborManager {
 
   std::shared_ptr<SaiNeighbor> createSaiObject(
       const SaiNeighborTraits::AdapterHostKey& key,
-      const SaiNeighborTraits::CreateAttributes& attributes,
-      bool notify);
+      const SaiNeighborTraits::CreateAttributes& attributes);
 
   bool isLinkUp(SaiPortDescriptor port);
 

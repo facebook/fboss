@@ -159,6 +159,9 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
 }
 
 void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
+  if (getHwSwitch()->getRunState() < SwitchRunState::INITIALIZED) {
+    return;
+  }
   linkToggler_->linkStateChanged(port, up);
   auto hwEventObservers = hwEventObservers_.rlock();
   std::for_each(

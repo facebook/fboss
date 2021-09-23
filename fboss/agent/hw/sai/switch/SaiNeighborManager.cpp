@@ -143,10 +143,9 @@ void SaiNeighborManager::clear() {
 
 std::shared_ptr<SaiNeighbor> SaiNeighborManager::createSaiObject(
     const SaiNeighborTraits::AdapterHostKey& key,
-    const SaiNeighborTraits::CreateAttributes& attributes,
-    bool notify) {
+    const SaiNeighborTraits::CreateAttributes& attributes) {
   auto& store = saiStore_->get<SaiNeighborTraits>();
-  return store.setObject(key, attributes, notify);
+  return store.setObject(key, attributes);
 }
 
 const SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
@@ -188,24 +187,14 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
 
-  // warm boot replay may expand ecmp even if link is down. this may happen
-  // because warm boot was triggered before sw switch could process link down
-  // event and enqueue neighbor delete. if this happens then on warm boot
-  // ecmp will be expanded to have members with link down. to prevent this
-  // check if link is up or if trunk has minimum links met before notifying
-  // next hops.
-  bool resolveNexthop = manager_->isLinkUp(port_);
-
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(), metadata_};
-  auto object = manager_->createSaiObject(
-      adapterHostKey, createAttributes, resolveNexthop);
+  auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();
   handle_->fdbEntry = fdbEntry.get();
 
-  XLOG(DBG2) << "ManagedNeigbhor::createObject: " << toString()
-             << " resolveNextHop: " << static_cast<int>(resolveNexthop);
+  XLOG(DBG2) << "ManagedNeigbhor::createObject: " << toString();
 }
 
 void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
@@ -218,7 +207,7 @@ void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
 
 void ManagedNeighbor::notifySubscribers() const {
   auto neighbor = this->getObject();
-  if (!neighbor || !manager_->isLinkUp(port_)) {
+  if (!neighbor) {
     return;
   }
   neighbor->notifyAfterCreate(neighbor);

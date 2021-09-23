@@ -215,6 +215,25 @@ HwInitResult SaiSwitch::init(
       } else {
         saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
       }
+
+      /* handle the case where warm boot happened before sw switch could be
+       * notified and process link down event. this retains objects such as
+       * static fdb entry and neighbor. reapplying warm boot state would expand
+       * ecmp group to a port that is down. rectify that as quick as possible to
+       * prevent drops. */
+      std::vector<sai_port_oper_status_notification_t> portStatus{};
+      for (auto entry : saiStore_->get<SaiPortTraits>()) {
+        auto port = entry.second.lock();
+        auto portOperStatus =
+            SaiApiTable::getInstance()->portApi().getAttribute(
+                port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+        sai_port_oper_status_notification_t notification{};
+        notification.port_id = port->adapterKey();
+        notification.port_state =
+            static_cast<sai_port_oper_status_t>(portOperStatus);
+        portStatus.push_back(notification);
+      }
+      linkStateChangedCallbackBottomHalf(std::move(portStatus));
     }
   }
   return ret;
