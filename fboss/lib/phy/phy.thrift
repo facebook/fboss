@@ -281,14 +281,20 @@ struct PmdInfo {
   1: map<i16, LaneInfo> lanes;
 }
 
+struct EyeInfo {
+  1: optional i32 width;
+  2: optional i32 height;
+}
+
 struct LaneInfo {
   1: i16 lane;
   2: bool signalDetectLive;
   3: bool signalDetectLatched;
   4: bool cdrLockLive;
   5: bool cdrLockLatched;
-  6: optional list<i32> eyeMargins;
   7: TxSettings txSettings;
+  8: optional list<EyeInfo> eyes;
+  9: optional float snr;
 }
 
 struct RsInfo {

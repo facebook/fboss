@@ -14,6 +14,7 @@
 
 #include <folly/Range.h>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -147,6 +148,7 @@ class ExternalPhy {
     PRBS_STATS,
     MACSEC,
     PORT_STATS,
+    PORT_INFO,
   };
   static std::string featureName(Feature feature);
 
@@ -188,6 +190,12 @@ class ExternalPhy {
   virtual ExternalPhyPortStats getPortStats(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes) = 0;
+
+  virtual PhyInfo getPortInfo(
+      const std::vector<LaneID>& /*sysLanes*/,
+      const std::vector<LaneID>& /*lineLanes*/) {
+    throw facebook::fboss::FbossError("Port info not supported");
+  }
 
   virtual ExternalPhyPortStats getPortPrbsStats(
       const std::vector<LaneID>& sysLanes,

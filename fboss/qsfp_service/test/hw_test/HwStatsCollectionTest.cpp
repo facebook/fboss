@@ -81,6 +81,77 @@ TEST_F(HwXphyPortStatsCollectionTest, checkXphyStatsCollectionDone) {
   runTest();
 }
 
+// This is a basic test that doesn't require hardware. It's here in hw_test
+// because Fake SDK doesn't support XPHY APIs in BCM SDK yet.
+//
+// Since this is not a link test, link is not established and all counter
+// values are meaningless. We only check struct sanity here.
+class HwXphyPortInfoTest : public HwExternalPhyPortTest {
+ public:
+  const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
+      const override {
+    static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
+        phy::ExternalPhy::Feature::PORT_INFO};
+    return kNeededFeatures;
+  }
+
+  void runTest() {
+    const auto& availableXphyPorts = findAvailableXphyPorts();
+    auto setup = [this, &availableXphyPorts]() {
+      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+      for (const auto& [port, profile] : availableXphyPorts) {
+        // First program the xphy port
+        wedgeManager->programXphyPort(port, profile);
+      }
+    };
+
+    auto verify = [&]() {
+      /* sleep override */
+      sleep(getSleepSeconds(
+          getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode()));
+      for (const auto& [port, _] : availableXphyPorts) {
+        // Assemble our own lane list
+        std::vector<LaneID> sysLanes, lineLanes;
+        auto portConfig =
+            getHwQsfpEnsemble()->getPhyManager()->getHwPhyPortConfig(port);
+        for (const auto& item : portConfig.config.system.lanes) {
+          sysLanes.push_back(item.first);
+        }
+        for (const auto& item : portConfig.config.line.lanes) {
+          lineLanes.push_back(item.first);
+        }
+
+        auto portInfo = getHwQsfpEnsemble()
+                            ->getPhyManager()
+                            ->getExternalPhy(port)
+                            ->getPortInfo(sysLanes, lineLanes);
+
+        // Sanity check the info we received
+        auto chipInfo = portInfo.phyChip_ref();
+        EXPECT_EQ(chipInfo->get_type(), phy::DataPlanePhyChipType::XPHY);
+        EXPECT_FALSE(chipInfo->get_name().empty());
+        if (auto sysInfo = portInfo.system_ref()) {
+          EXPECT_EQ(sysInfo->get_side(), phy::Side::SYSTEM);
+          for (auto const& [lane, laneInfo] : sysInfo->get_pmd().get_lanes()) {
+            EXPECT_EQ(lane, laneInfo.get_lane());
+          }
+        }
+        auto lineInfo = portInfo.get_line();
+        EXPECT_EQ(lineInfo.get_side(), phy::Side::LINE);
+        for (auto const& [lane, laneInfo] : lineInfo.get_pmd().get_lanes()) {
+          EXPECT_EQ(lane, laneInfo.get_lane());
+        }
+        EXPECT_GT(portInfo.get_timeCollected(), 0);
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+TEST_F(HwXphyPortInfoTest, getPortInfo) {
+  runTest();
+}
+
 class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
  public:
   const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
