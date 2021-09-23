@@ -38,7 +38,9 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
   RetType createModel(
       std::vector<facebook::fboss::mka::MKASessionInfo> mkaEntries) {
     RetType model;
-    auto makeMkaProfile = [](auto participantCtx) {
+    auto makeMkaProfile = [](const auto& participantCtx,
+                             const auto& activePeers,
+                             const auto& potentialPeers) {
       cli::MkaProfile profile;
       profile.srcMac_ref() = *participantCtx.srcMac_ref();
       profile.ckn_ref() = *participantCtx.cak_ref()->ckn_ref();
@@ -60,18 +62,37 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           strTime(*participantCtx.sakEnabledRxSince_ref());
       profile.sakTxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledTxSince_ref());
+      auto makePeers = [](const auto& peerInfos) {
+        std::vector<cli::MkaPeer> peers;
+        for (const auto& peerInfo : peerInfos) {
+          cli::MkaPeer peer;
+          peer.id_ref() = *peerInfo.id_ref();
+          peer.priority_ref() = *peerInfo.priority_ref();
+          peer.sakUsed_ref() = *peerInfo.sakUsed_ref();
+          peer.secureChannelIdentifier_ref() =
+              *peerInfo.secureChannelIdentifier_ref();
+          peers.emplace_back(std::move(peer));
+        }
+        return peers;
+      };
+      profile.activePeers_ref() = makePeers(activePeers);
+      profile.potentialPeers_ref() = makePeers(potentialPeers);
       return profile;
     };
     for (const auto& entry : mkaEntries) {
       auto& participantCtx = *entry.participantCtx_ref();
       cli::MkaEntry modelEntry;
-      modelEntry.primaryProfile_ref() = makeMkaProfile(participantCtx);
+      modelEntry.primaryProfile_ref() = makeMkaProfile(
+          participantCtx,
+          *entry.activePeersPrimary_ref(),
+          *entry.potentialPeersPrimary_ref());
       if (entry.secondaryParticipantCtx_ref()) {
-        modelEntry.secondaryProfile_ref() = makeMkaProfile(participantCtx);
+        modelEntry.secondaryProfile_ref() = makeMkaProfile(participantCtx,
+          *entry.activePeersSecondary_ref(),
+          *entry.potentialPeersSecondary_ref());
       }
       modelEntry.encryptedSak_ref() = *entry.encryptedSak_ref();
       model.portToMkaEntry_ref()[*participantCtx.l2Port_ref()] = modelEntry;
-
     }
     return model;
   }
@@ -79,6 +100,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
     for (auto const& portAndEntry : model.get_portToMkaEntry()) {
       out << "Port: " << portAndEntry.first << std::endl;
       out << std::string(20, '=') << std::endl;
+
       auto printProfile = [&out](const auto& profile, bool isPrimary) {
         out << " MAC: " << profile.get_srcMac() << std::endl;
         out << " CKN: " << profile.get_ckn() << " ("
@@ -88,6 +110,22 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
         out << " SAK installed since: "
             << " rx: " << profile.get_sakRxInstalledSince()
             << " tx: " << profile.get_sakTxInstalledSince() << std::endl;
+        auto printPeers = [&out](const auto& type, const auto& peers) {
+          if (!peers.size()) {
+            return;
+          }
+          out << type<< std::endl;
+          for (const auto& peer: peers) {
+            out <<"\t" <<" id: " << *peer.id_ref() << std::endl;
+            out <<"\t" <<" priority: " << *peer.priority_ref() << std::endl;
+            out <<"\t" <<" sakUsed: " << *peer.sakUsed_ref() << std::endl;
+            out << "\t"
+                << " secureChannelIdentifier: "
+                << *peer.secureChannelIdentifier_ref() << std::endl;
+          }
+        };
+        printPeers(" Active peers ", profile.get_activePeers());
+        printPeers(" Potential peers ", profile.get_potentialPeers());
       };
       auto& entry = portAndEntry.second;
       printProfile(*entry.primaryProfile_ref(), true);

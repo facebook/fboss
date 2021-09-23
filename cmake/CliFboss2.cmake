@@ -27,6 +27,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   show_mka_model
   fboss/cli/fboss2/commands/show/mka/model.thrift
+  DEPENDS
+    mka_cpp2
   OPTIONS
     json
 )

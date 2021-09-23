@@ -337,12 +337,16 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   mka_structs_cpp2
   fboss/mka_service/if/mka_structs.thrift
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mka_config_cpp2
   fboss/mka_service/if/mka_config.thrift
   DEPENDS
     mka_structs_cpp2
+  OPTIONS
+    json
 )
 add_fbthrift_cpp_library(
   mka_participant_cpp2
@@ -351,6 +355,8 @@ add_fbthrift_cpp_library(
     Folly::folly
     mka_structs_cpp2
     mka_config_cpp2
+  OPTIONS
+    json
 )
 
 add_fbthrift_cpp_library(
@@ -360,9 +366,12 @@ add_fbthrift_cpp_library(
     MKAService
   DEPENDS
     fb303_cpp2
+    common_cpp2
     mka_config_cpp2
     mka_structs_cpp2
     mka_participant_cpp2
+  OPTIONS
+    json
 )
 
 add_fbthrift_cpp_library(

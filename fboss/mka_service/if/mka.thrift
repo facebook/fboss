@@ -218,6 +218,7 @@ struct MKAPeerInfo {
   3: bool sakUsed;
   4: string secureChannelIdentifier;
 }
+
 struct MKASessionInfo {
   1: mka_participant.MKAParticipantCtx participantCtx;
   2: optional mka_participant.MKAParticipantCtx secondaryParticipantCtx;
