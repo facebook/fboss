@@ -24,10 +24,26 @@ struct CmdShowMkaTraits {
 };
 
 class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
+ private:
+  void cachePortInfo(const HostInfo& hostInfo) {
+    auto client =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+    client->sync_getAllPortInfo(portId2Info_);
+  }
+
+  std::string getPortName(const std::string& inPort) const {
+    try {
+      auto portId = folly::to<int32_t>(inPort);
+      return *portId2Info_.find(portId)->second.name_ref();
+    } catch (const std::exception& ) {
+      return inPort;
+    }
+  }
 
  public:
   using RetType = CmdShowMkaTraits::RetType;
   RetType queryClient(const HostInfo& hostInfo) {
+    cachePortInfo(hostInfo);
     auto client =
         utils::createClient<facebook::fboss::mka::MKAServiceAsyncClient>(hostInfo);
 
@@ -99,7 +115,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
   }
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     for (auto const& portAndEntry : model.get_portToMkaEntry()) {
-      out << "Port: " << portAndEntry.first << std::endl;
+      out << "Port: " << getPortName(portAndEntry.first) << std::endl;
       out << std::string(20, '=') << std::endl;
 
       auto printProfile = [&out](const auto& profile, bool isPrimary) {
@@ -137,6 +153,8 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
       out << " Encrypted SAK: " << entry.get_encryptedSak() << std::endl;
     }
   }
+ private:
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portId2Info_;
 };
 
 } // namespace facebook::fboss
