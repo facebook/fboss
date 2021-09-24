@@ -67,7 +67,10 @@ class MacsecTest : public LinkTest {
         config.l2Port_ref() = folly::to<std::string>(p);
         config.transport_ref() = MKATransport::THRIFT_TRANSPORT;
         config.capability_ref() = MACSecCapability::CAPABILITY_INGTY_CONF;
-        config.srcMac_ref() = macGen.get(srcMac++).toString();
+        // Gen MAC for only one of the ports in the pair. mka_service
+        // will fallback to local mac if srcMac is left empty
+        config.srcMac_ref() =
+            (p == port ? "" : macGen.get(srcMac++).toString());
         config.primaryCak_ref()->key_ref() = cak;
         config.primaryCak_ref()->ckn_ref() = ckn;
         // Different priorities to allow for key server election
