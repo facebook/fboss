@@ -135,8 +135,10 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
             out << "\t"
                 << " isKeyServer: " << *peer.isKeyServer_ref() << std::endl;
             out << "\t"
-                << " secureChannelIdentifier: "
+                << " Secure Channel Identifier: "
                 << *peer.secureChannelIdentifier_ref() << std::endl;
+            out << "\t"
+                << "Message number: " << *peer.messageNumber_ref() << std::endl;
           }
         };
         printPeers(" Active peers ", profile.get_activePeers());
