@@ -16,6 +16,12 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
+/*
+ * FLAGS_config is declared here specifically with HwProdInvariantTests.cpp in
+ * mind, since it doesn't have a header of its own.
+ */
+DECLARE_string(config);
+
 namespace facebook::fboss {
 
 /*

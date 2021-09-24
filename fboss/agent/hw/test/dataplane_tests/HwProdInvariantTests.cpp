@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
@@ -23,6 +24,11 @@
 
 #include "fboss/agent/state/Port.h"
 
+DEFINE_bool(
+    dynamic_config,
+    false,
+    "enable to load HwProdInvariants config from --config flag");
+
 namespace facebook::fboss {
 /*
  * Test to verify that standard invariants hold. DO NOT change the name
@@ -31,6 +37,33 @@ namespace facebook::fboss {
 class HwProdInvariantsTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
+    if (!FLAGS_dynamic_config) {
+      return initConfigHelper();
+    }
+
+    // Dynamic config testing is enabled with the --dynamic_config flag, so make
+    // sure if it's enabled that there's something in the --config arg.
+    // As of right now, --config defaults to "/etc/coop/agent.conf", so this
+    // should never be a problem... but you never know.
+    if (FLAGS_config.empty()) {
+      throw FbossError(
+          "if --dynamic_config is passed, --config must have a non-empty argument.");
+    }
+
+    auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+    auto config = *agentConfig->thrift.sw_ref();
+    XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
+
+    // If we're passed a config, there's a high probability that it's a prod
+    // config and the ports are not in loopback mode.
+    for (auto& port : *config.ports_ref()) {
+      port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+    }
+
+    return config;
+  }
+
+  virtual cfg::SwitchConfig initConfigHelper() const {
     auto cfg =
         utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
     utility::addProdFeaturesToConfig(cfg, getHwSwitch());
@@ -74,7 +107,7 @@ TEST_F(HwProdInvariantsTest, verifyInvariants) {
 
 class HwProdInvariantsRswTest : public HwProdInvariantsTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initConfigHelper() const override {
     auto config =
         utility::createProdRswConfig(getHwSwitch(), masterLogicalPortIds());
     return config;
@@ -100,7 +133,7 @@ TEST_F(HwProdInvariantsRswTest, verifyInvariants) {
 
 class HwProdInvariantsFswTest : public HwProdInvariantsTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initConfigHelper() const override {
     auto config =
         utility::createProdFswConfig(getHwSwitch(), masterLogicalPortIds());
     return config;
@@ -126,7 +159,7 @@ TEST_F(HwProdInvariantsFswTest, verifyInvariants) {
 
 class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswMhnicConfig(
         getHwSwitch(), masterLogicalPortIds());
     return config;
