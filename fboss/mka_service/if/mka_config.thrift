@@ -72,8 +72,9 @@ enum KeyType {
 struct MKAConfig {
   // This is FBOSS swicth ethernet port name string like: eth4/2/1
   1: string l2Port;
-  // Source MAC of MKA session endpoints
-  2: string srcMac;
+  // Source MAC of MKA session endpoints. If left empty, we fallback to
+  // (algorithmically computed) router MAC.
+  2: optional string srcMac;
   // The maximum priority value should be 255.
   // The datastructure here should be uint8_t (0-255)
   3: optional i16 priority = DEFAULT_KEYSERVER_PRIORITY;
