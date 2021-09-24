@@ -80,23 +80,8 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           strTime(*participantCtx.sakEnabledTxSince_ref());
       profile.sakRotatedAt_ref() =
           strTime(*participantCtx.sakRotatedAt_ref());
-
-      auto makePeers = [](const auto& peerInfos) {
-        std::vector<cli::MkaPeer> peers;
-        for (const auto& peerInfo : peerInfos) {
-          cli::MkaPeer peer;
-          peer.id_ref() = *peerInfo.id_ref();
-          peer.priority_ref() = *peerInfo.priority_ref();
-          peer.sakUsed_ref() = *peerInfo.sakUsed_ref();
-          peer.secureChannelIdentifier_ref() =
-              *peerInfo.secureChannelIdentifier_ref();
-          peer.isKeyServer_ref() = *peerInfo.isKeyServer_ref();
-          peers.emplace_back(std::move(peer));
-        }
-        return peers;
-      };
-      profile.activePeers_ref() = makePeers(activePeers);
-      profile.potentialPeers_ref() = makePeers(potentialPeers);
+      profile.activePeers_ref() = activePeers;
+      profile.potentialPeers_ref() = potentialPeers;
       return profile;
     };
     for (const auto& entry : mkaEntries) {
