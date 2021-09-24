@@ -39,13 +39,27 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
       return inPort;
     }
   }
+  static std::string strTime(int64_t secsSinceEpoch) {
+    if (!secsSinceEpoch) {
+      return "--";
+    }
+    time_t t(secsSinceEpoch);
+    std::string timeStr = std::ctime(&t);
+    // Trim trailing newline from ctime output
+    auto it = std::find_if(timeStr.rbegin(), timeStr.rend(), [](char c) {
+      return !std::isspace(c);
+    });
+    timeStr.erase(it.base(), timeStr.end());
+    return timeStr;
+  };
 
  public:
   using RetType = CmdShowMkaTraits::RetType;
   RetType queryClient(const HostInfo& hostInfo) {
     cachePortInfo(hostInfo);
     auto client =
-        utils::createClient<facebook::fboss::mka::MKAServiceAsyncClient>(hostInfo);
+        utils::createClient<facebook::fboss::mka::MKAServiceAsyncClient>(
+            hostInfo);
 
     std::vector<::facebook::fboss::mka::MKASessionInfo> mkaEntries;
     client->sync_getSessions(mkaEntries);
@@ -61,19 +75,6 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
       profile.srcMac_ref() = *participantCtx.srcMac_ref();
       profile.ckn_ref() = *participantCtx.cak_ref()->ckn_ref();
       profile.keyServerElected_ref() = *participantCtx.elected_ref();
-      auto strTime = [](auto secsSinceEpoch) -> std::string {
-        if (!secsSinceEpoch) {
-          return "--";
-        }
-        time_t t(secsSinceEpoch);
-        std::string timeStr = std::ctime(&t);
-        // Trim trailing newline from ctime output
-        auto it = std::find_if(timeStr.rbegin(), timeStr.rend(), [](char c) {
-          return !std::isspace(c);
-        });
-        timeStr.erase(it.base(), timeStr.end());
-        return timeStr;
-      };
       profile.sakRxInstalledSince_ref() =
           strTime(*participantCtx.sakEnabledRxSince_ref());
       profile.sakTxInstalledSince_ref() =
@@ -92,9 +93,10 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           *entry.activePeersPrimary_ref(),
           *entry.potentialPeersPrimary_ref());
       if (entry.secondaryParticipantCtx_ref()) {
-        modelEntry.secondaryProfile_ref() = makeMkaProfile(participantCtx,
-          *entry.activePeersSecondary_ref(),
-          *entry.potentialPeersSecondary_ref());
+        modelEntry.secondaryProfile_ref() = makeMkaProfile(
+            participantCtx,
+            *entry.activePeersSecondary_ref(),
+            *entry.potentialPeersSecondary_ref());
       }
       modelEntry.encryptedSak_ref() = *entry.encryptedSak_ref();
       model.portToMkaEntry_ref()[*participantCtx.l2Port_ref()] = modelEntry;
@@ -120,12 +122,18 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
           if (!peers.size()) {
             return;
           }
-          out << type<< std::endl;
-          for (const auto& peer: peers) {
-            out <<"\t" <<" id: " << *peer.id_ref() << std::endl;
-            out <<"\t" <<" priority: " << *peer.priority_ref() << std::endl;
-            out <<"\t" <<" sakUsed: " << *peer.sakUsed_ref() << std::endl;
-            out <<"\t" <<" isKeyServer: " << *peer.isKeyServer_ref() << std::endl;
+          out << type << std::endl;
+          for (const auto& peer : peers) {
+            out << "\t"
+                << " id: " << *peer.id_ref() << std::endl;
+            out << "\t"
+                << " live since: " << strTime(*peer.liveSince_ref()) << std::endl;
+            out << "\t"
+                << " priority: " << *peer.priority_ref() << std::endl;
+            out << "\t"
+                << " sakUsed: " << *peer.sakUsed_ref() << std::endl;
+            out << "\t"
+                << " isKeyServer: " << *peer.isKeyServer_ref() << std::endl;
             out << "\t"
                 << " secureChannelIdentifier: "
                 << *peer.secureChannelIdentifier_ref() << std::endl;
@@ -142,6 +150,7 @@ class CmdShowMka : public CmdHandler<CmdShowMka, CmdShowMkaTraits> {
       out << " Encrypted SAK: " << entry.get_encryptedSak() << std::endl;
     }
   }
+
  private:
   std::map<int32_t, facebook::fboss::PortInfoThrift> portId2Info_;
 };

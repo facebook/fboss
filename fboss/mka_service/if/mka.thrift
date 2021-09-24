@@ -218,6 +218,7 @@ struct MKAPeerInfo {
   3: bool sakUsed;
   4: string secureChannelIdentifier;
   5: bool isKeyServer;
+  6: i64 liveSince;
 }
 
 struct MKASessionInfo {
