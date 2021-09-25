@@ -7,6 +7,7 @@ namespace py.asyncio neteng.fboss.asyncio.switch_state
 namespace cpp2 facebook.fboss.state
 
 include "fboss/agent/switch_config.thrift"
+include "fboss/lib/phy/phy.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -86,6 +87,9 @@ struct PortFields {
   23: i32 maxFrameSize = switch_config.DEFAULT_PORT_MTU;
   24: optional switch_config.PortPfc pfc;
   25: optional list<PortPgFields> pgConfigs;
+  // TODO: Current warmboot state doesn't have such field yet
+  26: optional phy.ProfileSideConfig profileConfig;
+  27: optional list<phy.PinConfig> pinConfigs;
 }
 
 struct AclTtl {

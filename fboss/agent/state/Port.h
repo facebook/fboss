@@ -16,6 +16,7 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <map>
@@ -88,6 +89,12 @@ struct PortFields : public ThriftyFields {
   cfg::PortProfileID profileID{cfg::PortProfileID::PROFILE_DEFAULT};
   // Default value from switch_config.thrift
   int32_t maxFrameSize{cfg::switch_config_constants::DEFAULT_PORT_MTU()};
+  // Currently we use PlatformPort to fetch such config when we are trying to
+  // program Hardware. This config is from PlatformMapping. Since we need to
+  // program all this config into Hardware, it's a good practice to use a
+  // switch state to drive HwSwitch programming.
+  phy::ProfileSideConfig profileConfig;
+  std::vector<phy::PinConfig> pinConfigs;
 };
 
 /*
@@ -325,6 +332,20 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
           lookupClassesToDistrubuteTrafficOn) {
     writableFields()->lookupClassesToDistrubuteTrafficOn =
         lookupClassesToDistrubuteTrafficOn;
+  }
+
+  const phy::ProfileSideConfig& getProfileConfig() const {
+    return getFields()->profileConfig;
+  }
+  void setProfileConfig(const phy::ProfileSideConfig& profileCfg) {
+    writableFields()->profileConfig = profileCfg;
+  }
+
+  const std::vector<phy::PinConfig>& getPinConfigs() const {
+    return getFields()->pinConfigs;
+  }
+  void resetPinConfigs(std::vector<phy::PinConfig> pinCfgs) {
+    writableFields()->pinConfigs.swap(pinCfgs);
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

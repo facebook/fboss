@@ -198,7 +198,32 @@ TEST(Port, ToFromWithPgConfigs) {
               "recoveryTimeMsecs": 16,
               "recoveryAction": 1
             }
-          }
+          },
+          "profileConfig": {
+            "numLanes": 1,
+            "modulation": 1,
+            "fec": 1,
+            "medium": 1,
+            "interfaceMode": 10,
+            "interfaceType": 10
+          },
+          "pinConfigs": [
+            {
+              "id": {
+                "chip": "FC21",
+                "lane": 0
+              },
+              "tx": {
+                "pre": 2,
+                "pre2": 0,
+                "main": 72,
+                "post": 38,
+                "post2": 0,
+                "post3": 0,
+                "driveCurrent": 8
+              }
+            }
+          ]
        }
   )";
   auto port = Port::fromJson(jsonStr);
@@ -283,7 +308,32 @@ TEST(Port, ToFromJSON) {
               "recoveryTimeMsecs": 16,
               "recoveryAction": 1
             }
-          }
+          },
+          "profileConfig": {
+            "numLanes": 1,
+            "modulation": 1,
+            "fec": 1,
+            "medium": 1,
+            "interfaceMode": 10,
+            "interfaceType": 10
+          },
+          "pinConfigs": [
+            {
+              "id": {
+                "chip": "FC21",
+                "lane": 0
+              },
+              "tx": {
+                "pre": 2,
+                "pre2": 0,
+                "main": 72,
+                "post": 38,
+                "post2": 0,
+                "post3": 0,
+                "driveCurrent": 8
+              }
+            }
+          ]
        }
   )";
   auto port = Port::fromJson(jsonStr);

@@ -144,6 +144,14 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   if (portThrift.pfc_ref()) {
     port.pfc = portThrift.pfc_ref().value();
   }
+
+  if (auto profileCfg = portThrift.profileConfig_ref()) {
+    port.profileConfig = *profileCfg;
+  }
+  if (auto pinCfgs = portThrift.pinConfigs_ref()) {
+    port.pinConfigs = *pinCfgs;
+  }
+
   return port;
 }
 
@@ -224,6 +232,10 @@ state::PortFields PortFields::toThrift() const {
   if (pfc) {
     port.pfc_ref() = pfc.value();
   }
+
+  port.profileConfig_ref() = profileConfig;
+  port.pinConfigs_ref() = pinConfigs;
+
   return port;
 }
 

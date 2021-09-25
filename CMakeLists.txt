@@ -225,6 +225,7 @@ add_fbthrift_cpp_library(
     json
   DEPENDS
     switch_config_cpp2
+    phy_cpp2
 )
 add_fbthrift_cpp_library(
   transceiver_cpp2
