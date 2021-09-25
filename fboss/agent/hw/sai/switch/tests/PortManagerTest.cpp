@@ -127,8 +127,7 @@ class PortManagerTest : public ManagerTestBase {
       TestPort port,
       cfg::PortSpeed speed,
       std::vector<PortID> expectedPorts) {
-    std::shared_ptr<Port> swPort = makePort(port);
-    swPort->setSpeed(speed);
+    std::shared_ptr<Port> swPort = makePort(port, speed);
     saiManagerTable->portManager().addPort(swPort);
     SaiPlatformPort* platformPort = saiPlatform->getPort(swPort->getID());
     EXPECT_TRUE(platformPort);

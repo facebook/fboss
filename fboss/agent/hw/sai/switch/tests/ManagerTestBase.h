@@ -156,7 +156,11 @@ class ManagerTestBase : public ::testing::Test {
       const TestInterface& testInterface,
       const LabelForwardingAction& action) const;
 
-  std::shared_ptr<Port> makePort(const TestPort& testPort) const;
+  // If `expectedSpeed` is set, use this speed to create the new Port
+  // Otherwise it will just use testPort.portSpeed
+  std::shared_ptr<Port> makePort(
+      const TestPort& testPort,
+      std::optional<cfg::PortSpeed> expectedSpeed = std::nullopt) const;
 
   std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(
       const TestRoute& route) const;

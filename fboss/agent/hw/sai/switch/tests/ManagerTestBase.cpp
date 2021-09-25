@@ -155,7 +155,8 @@ void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
 }
 
 std::shared_ptr<Port> ManagerTestBase::makePort(
-    const TestPort& testPort) const {
+    const TestPort& testPort,
+    std::optional<cfg::PortSpeed> expectedSpeed) const {
   std::string name = folly::sformat("port{}", testPort.id);
   auto swPort = std::make_shared<Port>(PortID(testPort.id), name);
   if (testPort.enabled) {
@@ -168,8 +169,8 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   PortFields::VlanMembership vlanMemberShip{
       {vlan, PortFields::VlanInfo{false}}};
   swPort->setVlans(vlanMemberShip);
-  swPort->setSpeed(testPort.portSpeed);
-  switch (testPort.portSpeed) {
+  swPort->setSpeed(expectedSpeed ? *expectedSpeed : testPort.portSpeed);
+  switch (swPort->getSpeed()) {
     case cfg::PortSpeed::DEFAULT:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
       break;
@@ -201,6 +202,11 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
       break;
   }
+  auto platformPort = saiPlatform->getPort(swPort->getID());
+  swPort->setProfileConfig(
+      *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
+  swPort->resetPinConfigs(
+      platformPort->getIphyPinConfigs(swPort->getProfileID()));
   return swPort;
 }
 
