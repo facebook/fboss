@@ -189,7 +189,7 @@ struct SaiAclTableTraits {
   };
 
   using AdapterKey = AclTableSaiId;
-  using AdapterHostKey = std::tuple<
+  using CreateAttributes = std::tuple<
       Attributes::Stage,
       std::optional<Attributes::BindPointTypeList>,
       std::optional<Attributes::ActionTypeList>,
@@ -217,7 +217,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>>;
 
-  using CreateAttributes = AdapterHostKey;
+  using AdapterHostKey = std::string;
 };
 
 SAI_ATTRIBUTE_NAME(AclTable, Stage);

@@ -9,8 +9,12 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
+#include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
@@ -42,6 +46,9 @@ struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiLagTraits> : std::false_type {};
 
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
+};
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject
@@ -356,37 +363,42 @@ class SaiObjectStore {
   }
 
  private:
-  template <
-      typename T = SaiObjectTraits,
-      typename = std::enable_if_t<std::is_same_v<T, SaiLagTraits>>>
   ObjectType getObject(
-      typename T::AdapterKey key,
-      const folly::dynamic* adapterKey2AdapterHostKey) {
-    static_assert(
-        !AdapterHostKeyWarmbootRecoverable<SaiObjectTraits>::value, "LAG!");
-    auto ahk = getAdapterHostKey(key, adapterKey2AdapterHostKey);
-    if (ahk) {
-      return ObjectType(key, ahk.value());
-    }
-    auto label = SaiApiTable::getInstance()->lagApi().getAttribute(
-        key, SaiLagTraits::Attributes::Label{});
-    return ObjectType(key, label);
-  }
-
-  template <
-      typename T = SaiObjectTraits,
-      typename = std::enable_if_t<!std::is_same_v<T, SaiLagTraits>>>
-  ObjectType getObject(
-      typename SaiObjectTraits::AdapterKey key,
+      typename ObjectTraits::AdapterKey key,
       const folly::dynamic* adapterKey2AdapterHostKey) {
     if constexpr (!AdapterHostKeyWarmbootRecoverable<SaiObjectTraits>::value) {
-      if (auto ahk = getAdapterHostKey(key, adapterKey2AdapterHostKey)) {
+      auto ahk = getAdapterHostKey(key, adapterKey2AdapterHostKey);
+      if (ahk) {
         return ObjectType(key, ahk.value());
+      } else {
+        if constexpr (std::is_same_v<ObjectTraits, SaiAclTableTraits>) {
+          // TODO(pshaikh): hack to allow warm boot from version which doesn't
+          // save ahk
+          return ObjectType(
+              key, SaiAclTableTraits::AdapterHostKey{"AclTable1"});
+        }
+        if constexpr (std::is_same_v<ObjectTraits, SaiNextHopGroupTraits>) {
+          // a special handling has been added to deal with next hop group to
+          // recover itself even if adapter host key is not saved in warm boot
+          // state.
+          return ObjectType(key);
+        }
+        if constexpr (std::is_same_v<ObjectTraits, SaiLagTraits>) {
+          // TODO(pshaikh): clean this to make LAG's AHK recoverable on wb.
+          // mainly added this to support existing sai switch unit tests.
+          // LAG's adapter host key can be recoverable some platforms which
+          // support label attribute
+          auto label = SaiApiTable::getInstance()->lagApi().getAttribute(
+              key, SaiLagTraits::Attributes::Label{});
+          return ObjectType(key, label);
+        }
+
+        throw FbossError(
+            "attempting to load an object whose adapter host key is not found.");
       }
-      // API tests program using API and reload without json
-      // such cases has null adapterKeys2AdapterHostKey json
+    } else {
+      return ObjectType(key);
     }
-    return ObjectType(key);
   }
 
   std::pair<std::shared_ptr<ObjectType>, bool> program(

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/api/AclApi.h"
 
 namespace facebook {
 namespace fboss {
@@ -121,6 +122,18 @@ SaiObject<SaiLagTraits>::follyDynamicToAdapterHostKey(folly::dynamic json) {
   SaiLagTraits::AdapterHostKey::ValueType key{};
   std::copy(std::begin(label), std::end(label), std::begin(key));
   return key;
+}
+
+template <>
+folly::dynamic SaiObject<SaiAclTableTraits>::adapterHostKeyToFollyDynamic() {
+  return adapterHostKey_;
+}
+
+template <>
+typename SaiAclTableTraits::AdapterHostKey
+SaiObject<SaiAclTableTraits>::follyDynamicToAdapterHostKey(
+    folly::dynamic json) {
+  return json.asString();
 }
 } // namespace fboss
 } // namespace facebook

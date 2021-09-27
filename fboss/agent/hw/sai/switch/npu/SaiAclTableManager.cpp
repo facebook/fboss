@@ -160,7 +160,7 @@ std::
     return qualifierSet.find(qualifier) != qualifierSet.end();
   };
 
-  SaiAclTableTraits::AdapterHostKey adapterHostKey{
+  SaiAclTableTraits::CreateAttributes attributes{
       tableStage,
       bindPointList,
       actionTypeList,
@@ -189,7 +189,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
   };
 
-  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
+  SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};
 
   return std::make_pair(adapterHostKey, attributes);
 }

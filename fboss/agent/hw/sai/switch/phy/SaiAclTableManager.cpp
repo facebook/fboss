@@ -61,11 +61,11 @@ std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
     SaiAclTableManager::aclTableCreateAttributes(
         sai_acl_stage_t aclStage,
-        const std::shared_ptr<AclTable>& /*addedAclTable*/) {
+        const std::shared_ptr<AclTable>& addedAclTable) {
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_PORT};
 
-  SaiAclTableTraits::AdapterHostKey adapterHostKey{
+  SaiAclTableTraits::CreateAttributes attributes{
       tableStage, // stage
       bindPointList,
       std::nullopt, // actionTypeList
@@ -94,7 +94,7 @@ std::
       true, // ether type
   };
 
-  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
+  SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};
 
   return std::make_pair(adapterHostKey, attributes);
 }

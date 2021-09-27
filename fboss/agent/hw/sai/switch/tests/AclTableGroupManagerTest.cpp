@@ -117,9 +117,10 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
       aclTableGroupMemberHandle2->aclTableGroupMember->adapterKey();
   auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
       aclTableGroupMemberId2,
-      SaiAclTableGroupMemberTraits::Attributes::TableGroupId());
+      SaiAclTableGroupMemberTraits::Attributes::TableId());
   EXPECT_EQ(tableIdGot2, aclTableId2);
 }
+
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
   auto aclTableId = saiManagerTable->aclTableManager()
                         .getAclTableHandle(SaiSwitch::kAclTable1)

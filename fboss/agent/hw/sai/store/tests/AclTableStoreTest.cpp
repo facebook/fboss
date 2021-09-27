@@ -268,77 +268,15 @@ class AclTableStoreTest : public SaiStoreTest {
 
 TEST_F(AclTableStoreTest, loadAclTables) {
   auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
-  auto aclTableId2 = createAclTable(SAI_ACL_STAGE_EGRESS);
-
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiAclTableTraits>();
 
-  SaiAclTableTraits::AdapterHostKey k{
-      SAI_ACL_STAGE_INGRESS,
-      this->kBindPointTypeList(),
-      this->kActionTypeList(),
-      true, // srcIpv6
-      true, // dstIpv6
-      true, // srcIpv4
-      true, // dstIpv4
-      true, // l4SrcPort
-      true, // l4DstPort
-      true, // ipProtocol
-      true, // tcpFlags
-      true, // srcPort
-      true, // outPort
-      true, // ipFrag
-      true, // icmpv4Type
-      true, // icmpv4Code
-      true, // icmpv6Type
-      true, // icmpv6Code
-      true, // dscp
-      true, // dstMac
-      true, // ipType
-      true, // ttl
-      true, // fdb meta
-      true, // route meta
-      true, // neighbor meta
-      true, // ethertype
-  };
+  SaiAclTableTraits::AdapterHostKey k{"AclTable1"};
 
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclTableId);
-
-  SaiAclTableTraits::AdapterHostKey k2{
-      SAI_ACL_STAGE_EGRESS,
-      this->kBindPointTypeList(),
-      this->kActionTypeList(),
-      true, // srcIpv6
-      true, // dstIpv6
-      true, // srcIpv4
-      true, // dstIpv4
-      true, // l4SrcPort
-      true, // l4DstPort
-      true, // ipProtocol
-      true, // tcpFlags
-      true, // srcPort
-      true, // outPort
-      true, // ipFrag
-      true, // icmpv4Type
-      true, // icmpv4Code
-      true, // icmpv6Type
-      true, // icmpv6Code
-      true, // dscp
-      true, // dstMac
-      true, // ipType
-      true, // ttl
-      true, // fdb meta
-      true, // route meta
-      true, // neighbor meta
-      true, // ethertype
-  };
-
-  auto got2 = store.get(k2);
-  EXPECT_NE(got2, nullptr);
-  EXPECT_EQ(got2->adapterKey(), aclTableId2);
 }
 
 class AclTableStoreParamTest
@@ -376,7 +314,7 @@ TEST_P(AclTableStoreParamTest, loadAclCounter) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorLoad) {
   auto aclTableId = createAclTable(GetParam());
-  auto obj = createObj<SaiAclTableTraits>(aclTableId);
+  auto obj = createObj<SaiAclTableTraits>(aclTableId, "AclTable1");
   EXPECT_EQ(obj.adapterKey(), aclTableId);
 }
 
@@ -425,7 +363,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // ethertype
   };
 
-  SaiAclTableTraits::AdapterHostKey k{c};
+  SaiAclTableTraits::AdapterHostKey k{"AclTable1"};
 
   SaiObject<SaiAclTableTraits> obj = createObj<SaiAclTableTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());
