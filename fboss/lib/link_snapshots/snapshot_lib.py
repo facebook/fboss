@@ -24,8 +24,12 @@ WHERE
     AND (CONTAINS(`msg`, ARRAY('<port:{}>')))
 """
 
-SNAPSHOT_FORMAT = r"{}FBOSS_EVENT\(LINK_SNAPSHOT\): Collected snapshot for ports  <port:{}>  <linkSnapshot:{}>"
-SNAPSHOT_REGEX = SNAPSHOT_FORMAT.format(r".*", r"eth\d+/\d+/\d+", r"(.*)")
+SNAPSHOT_FORMAT = r"{}LINK_SNAPSHOT_EVENT(LINK_SNAPSHOT): Collected snapshot for ports  <port:{}>  <linkSnapshot:{}>"
+SNAPSHOT_REGEX = (
+    SNAPSHOT_FORMAT.replace("(", r"\(")
+    .replace(")", r"\)")
+    .format(r".*", r"eth\d+/\d+/\d+", r"(.*)")
+)
 
 
 def escape_sql(sql: str) -> str:
