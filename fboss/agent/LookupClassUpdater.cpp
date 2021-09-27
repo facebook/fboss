@@ -51,6 +51,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     VlanID vlan,
     const std::shared_ptr<RemovedEntryT>& removedEntry) {
   CHECK(removedEntry->getPort().isPhysicalPort());
+  CHECK(!isNoHostRoute(removedEntry));
 
   auto portID = removedEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
@@ -191,6 +192,26 @@ void LookupClassUpdater::updateNeighborClassID(
 }
 
 template <typename NeighborEntryT>
+bool LookupClassUpdater::isNoHostRoute(
+    const std::shared_ptr<NeighborEntryT>& entry) const {
+  /*
+   * classID could be associated with a Host entry. However, there is no
+   * Neighbor entry for Link Local addresses, thus don't assign classID for
+   * Link Local addresses.
+   * SAI implementations typically fail creation of SAI Neighbor Entry with
+   * both classID and NoHostRoute (set for IPv6 link local only) are set.
+   */
+  if constexpr (std::is_same_v<NeighborEntryT, NdpEntry>) {
+    if (entry->getIP().isLinkLocal()) {
+      XLOG(DBG2) << "No classID for IPv6 linkLocal: " << entry->str();
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename NeighborEntryT>
 bool LookupClassUpdater::shouldProcessNeighborEntry(
     const std::shared_ptr<NeighborEntryT>& entry) const {
   /*
@@ -217,20 +238,8 @@ bool LookupClassUpdater::shouldProcessNeighborEntry(
     return false;
   }
 
-  /*
-   * classID could be associated with a Host entry. However, there is no
-   * Neighbor entry for Link Local addresses, thus don't assign classID for
-   * Link Local addresses.
-   * SAI implementations typically fail creation of SAI Neighbor Entry with
-   * both classID and NoHostRoute (set for link local) are set.
-   */
-  if constexpr (
-      std::is_same_v<NeighborEntryT, ArpEntry> ||
-      std::is_same_v<NeighborEntryT, NdpEntry>) {
-    if (entry->getIP().isLinkLocal()) {
-      XLOG(DBG2) << "No classID for linkLocal: " << entry->str();
-      return false;
-    }
+  if (isNoHostRoute(entry)) {
+    return false;
   }
 
   return true;
@@ -264,8 +273,10 @@ void LookupClassUpdater::processRemoved(
   /*
    * At this point in time, queue-per-host fix is needed (and thus
    * supported) for physical link only.
+   * Entries with no Host Route do not have classID.
    */
-  if (!removedEntry->getPort().isPhysicalPort()) {
+  if (!removedEntry->getPort().isPhysicalPort() ||
+      isNoHostRoute(removedEntry)) {
     return;
   }
 
@@ -371,7 +382,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
        */
       if (entry->getPort().isPhysicalPort() &&
           entry->getPort().phyPortID() == portID &&
-          entry->getClassID().has_value()) {
+          entry->getClassID().has_value() && !isNoHostRoute(entry)) {
         removeNeighborFromLocalCacheForEntry(entry, vlanID);
         if constexpr (std::is_same_v<AddrT, MacAddress>) {
           auto removeMacClassIDFn =
@@ -409,7 +420,7 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
        * supported) for physical link only.
        */
       if (entry->getPort().isPhysicalPort() &&
-          entry->getPort().phyPortID() == portID) {
+          entry->getPort().phyPortID() == portID && !isNoHostRoute(entry)) {
         updateNeighborClassID(switchState, vlanID, entry);
       }
     }
@@ -554,6 +565,7 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
     const std::shared_ptr<RemovedEntryT>& removedEntry,
     VlanID vlanID) {
   CHECK(removedEntry->getPort().isPhysicalPort());
+  CHECK(!isNoHostRoute(removedEntry));
 
   auto portID = removedEntry->getPort().phyPortID();
   auto mac = removedEntry->getMac();

@@ -34,6 +34,9 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   bool portHasClassID(const std::shared_ptr<Port>& port);
 
   template <typename NeighborEntryT>
+  bool isNoHostRoute(const std::shared_ptr<NeighborEntryT>& entry) const;
+
+  template <typename NeighborEntryT>
   bool shouldProcessNeighborEntry(
       const std::shared_ptr<NeighborEntryT>& newEntry) const;
   template <typename AddedNeighborEntryT>
