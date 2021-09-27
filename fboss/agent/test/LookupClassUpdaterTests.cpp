@@ -582,6 +582,64 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
 
 TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
 
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    ResolveUnresolveResolveVerifyClassID) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<TypeParam, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  auto verifyClassIDs = [this]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress(),
+          this->kMacAddress(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+    });
+
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getLinkLocalIpAddress(),
+          this->kMacAddress(),
+          this->getExpectedLinkLocalClassID(
+              cfg::AclLookupClass::
+                  CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+    });
+  };
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+
+  verifyClassIDs();
+
+  this->unresolveNeighbor(this->getIpAddress());
+  this->unresolveNeighbor(this->getLinkLocalIpAddress());
+
+  auto state = this->sw_->getState();
+  auto vlan = state->getVlans()->getVlan(this->kVlan());
+  auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
+    EXPECT_EQ(
+        neighborTable->getEntryIf(this->getLinkLocalIpAddress().asV4()),
+        nullptr);
+  } else {
+    EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
+    EXPECT_EQ(
+        neighborTable->getEntryIf(this->getLinkLocalIpAddress().asV6()),
+        nullptr);
+  }
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+
+  verifyClassIDs();
+}
+
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyClassIDSameMacDifferentIPs) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolve(this->getIpAddress2(), this->kMacAddress());
