@@ -24,6 +24,7 @@ target_link_libraries(hw_mock
   pkt
   Folly::folly
   ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 
