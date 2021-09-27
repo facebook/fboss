@@ -81,6 +81,14 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return IPAddressV6("2401:db00:2110:3001::0002");
   }
 
+  IPAddressV4 kIp4LinkLocalAddr() const {
+    return IPAddressV4("169.254.0.1");
+  }
+
+  IPAddressV6 kIp6LinkLocalAddr() const {
+    return IPAddressV6("fe80::302:03ff:fe04:0506");
+  }
+
   IPAddressV4 kIp4Addr2() const {
     return IPAddressV4("10.0.0.3");
   }
@@ -147,7 +155,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void verifyNeighborClassIDHelper(
       folly::IPAddress ipAddress,
-      std::optional<cfg ::AclLookupClass> classID = std::nullopt) {
+      std::optional<cfg ::AclLookupClass> ipClassID,
+      std::optional<cfg ::AclLookupClass> macClassID) {
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpTable,
@@ -157,20 +166,21 @@ class LookupClassUpdaterTest : public ::testing::Test {
     auto vlan = state->getVlans()->getVlan(kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
-    auto verifyNeighbor = [this, classID, neighborTable](auto ipAddr) {
-      auto entry = neighborTable->getEntry(ipAddr);
-      XLOG(DBG) << entry->str();
-      EXPECT_EQ(entry->getClassID(), classID);
-      if (entry->isReachable() && !entry->getMac().isBroadcast()) {
-        // We assume here that class ID of mac matches that of
-        // neighbor. That's true for our tests, since for neighbor
-        // entries we add a Mac entry in sequence. And since Mac
-        // entries round robin over the same sequence of classIDs
-        // the paired MAC entry gets a identical classID.
-        verifyMacClassIDHelper(
-            entry->getMac(), classID, MacEntryType::STATIC_ENTRY);
-      }
-    };
+    auto verifyNeighbor =
+        [this, ipClassID, macClassID, neighborTable](auto ipAddr) {
+          auto entry = neighborTable->getEntry(ipAddr);
+          XLOG(DBG) << entry->str();
+          EXPECT_EQ(entry->getClassID(), ipClassID);
+          if (entry->isReachable() && !entry->getMac().isBroadcast()) {
+            // We assume here that class ID of mac matches that of
+            // neighbor. That's true for our tests, since for neighbor
+            // entries we add a Mac entry in sequence. And since Mac
+            // entries round robin over the same sequence of classIDs
+            // the paired MAC entry gets a identical classID.
+            verifyMacClassIDHelper(
+                entry->getMac(), macClassID, MacEntryType::STATIC_ENTRY);
+          }
+        };
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       verifyNeighbor(ipAddress.asV4());
     } else {
@@ -204,12 +214,14 @@ class LookupClassUpdaterTest : public ::testing::Test {
   void verifyClassIDHelper(
       const folly::IPAddress& ipAddress,
       const folly::MacAddress& macAddress,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+      std::optional<cfg::AclLookupClass> ipClassID,
+      std::optional<cfg::AclLookupClass> macClassID) {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
       // Learned Mac entries always get added as dynamic entries
-      verifyMacClassIDHelper(macAddress, classID, MacEntryType::DYNAMIC_ENTRY);
+      verifyMacClassIDHelper(
+          macAddress, macClassID, MacEntryType::DYNAMIC_ENTRY);
     } else {
-      this->verifyNeighborClassIDHelper(ipAddress, classID);
+      this->verifyNeighborClassIDHelper(ipAddress, ipClassID, macClassID);
     }
   }
 
@@ -237,6 +249,27 @@ class LookupClassUpdaterTest : public ::testing::Test {
     }
 
     return ipAddress;
+  }
+
+  IPAddress getLinkLocalIpAddress() {
+    IPAddress ipAddress;
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      ipAddress = IPAddress(this->kIp4LinkLocalAddr());
+    } else {
+      ipAddress = IPAddress(this->kIp6LinkLocalAddr());
+    }
+
+    return ipAddress;
+  }
+
+  std::optional<cfg::AclLookupClass> getExpectedLinkLocalClassID(
+      cfg::AclLookupClass classID) {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return classID;
+    } else {
+      // IPv6 Link local has noHostRoute set, so no classID
+      return std::nullopt;
+    }
   }
 
   IPAddress getIpAddress2() {
@@ -320,16 +353,28 @@ TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+  });
+
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getLinkLocalIpAddress(),
+        this->kMacAddress(),
+        this->getExpectedLinkLocalClassID(
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
   });
 }
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
   this->bringPortDown(this->kPortID());
   /*
    * On port down, ARP/NDP behavior differs from L2 entries:
@@ -344,7 +389,16 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
           MacEntryType::DYNAMIC_ENTRY);
 
     } else {
-      this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+      this->verifyClassIDHelper(
+          this->getIpAddress(),
+          this->kMacAddress(),
+          std::nullopt /* ipClassID */,
+          std::nullopt /* macClassID */);
+      this->verifyClassIDHelper(
+          this->getLinkLocalIpAddress(),
+          this->kMacAddress(),
+          std::nullopt /* ipClassID */,
+          std::nullopt /* macClassID */);
       // Mac entry should get pruned with neighbor entry
       EXPECT_EQ(this->getMacEntry(this->kMacAddress()), nullptr);
     }
@@ -353,18 +407,36 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
 
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
   this->updateLookupClasses({});
-  this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+  this->verifyClassIDHelper(
+      this->getIpAddress(),
+      this->kMacAddress(),
+      std::nullopt /* ipClassID */,
+      std::nullopt /* macClassID */);
+  this->verifyClassIDHelper(
+      this->getLinkLocalIpAddress(),
+      this->kMacAddress(),
+      std::nullopt /* ipClassID */,
+      std::nullopt /* macClassID */);
 }
 
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
   this->updateLookupClasses(
       {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
   this->verifyClassIDHelper(
       this->getIpAddress(),
       this->kMacAddress(),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+  this->verifyClassIDHelper(
+      this->getLinkLocalIpAddress(),
+      this->kMacAddress(),
+      this->getExpectedLinkLocalClassID(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3) /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
 }
 
 TYPED_TEST(LookupClassUpdaterTest, MacMove) {
@@ -468,10 +540,12 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
     this->verifyNeighborClassIDHelper(
         this->getIpAddress2(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
 
     // Verify that refCnt is 3
     // 2 for ipAddress +  ipAddress2 and 1 for static MAC entry
@@ -491,11 +565,17 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
     updateBlockedNeighbor(this->getSw(), this->kVlan(), blockNeighbors);
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       this->verifyClassIDHelper(
-          this->getIpAddress(), this->kMacAddress(), classID1);
+          this->getIpAddress(),
+          this->kMacAddress(),
+          classID1 /* ipClassID */,
+          classID1 /* macClassID */);
     });
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       this->verifyClassIDHelper(
-          this->getIpAddress2(), this->kMacAddress2(), classID2);
+          this->getIpAddress2(),
+          this->kMacAddress2(),
+          classID2 /* ipClassID */,
+          classID2 /* macClassID */);
     });
   }
 };
@@ -580,7 +660,8 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockNeighborThenResolve) {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
-        cfg::AclLookupClass::CLASS_DROP);
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
   });
 }
 
@@ -591,7 +672,8 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveThenBlockNeighbor) {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
-        cfg::AclLookupClass::CLASS_DROP);
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
   });
 }
 
@@ -607,7 +689,8 @@ TYPED_TEST(
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
-        cfg::AclLookupClass::CLASS_DROP);
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
   });
 }
 
@@ -619,7 +702,11 @@ TYPED_TEST(
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
-    this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        std::nullopt /* ipClassID */,
+        std::nullopt /* macClassID */);
   });
 
   updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
@@ -627,7 +714,8 @@ TYPED_TEST(
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
-        cfg::AclLookupClass::CLASS_DROP);
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
   });
 }
 
@@ -669,7 +757,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
 
   // resolve neighbor to different MAC address
   this->resolve(this->getIpAddress(), this->kMacAddress2());
@@ -678,7 +768,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborMacChange) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* macClassID */);
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
@@ -689,7 +781,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
 
   // block neighbor
   updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->getIpAddress()});
@@ -698,7 +792,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       cfg::AclLookupClass::CLASS_DROP,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_DROP);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+      cfg::AclLookupClass::CLASS_DROP /* macClassID */);
 
   // resolve blocked neighbor to different MAC address
   this->resolve(this->getIpAddress(), this->kMacAddress2());
@@ -707,7 +803,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       cfg::AclLookupClass::CLASS_DROP,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_DROP);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+      cfg::AclLookupClass::CLASS_DROP /* macClassID */);
 
   // unblock neighbor
   updateBlockedNeighbor(this->getSw(), this->kVlan(), {});
@@ -716,7 +814,9 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
   this->verifyNeighborClassIDHelper(
-      this->getIpAddress(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      this->getIpAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleNeighbors) {
@@ -816,15 +916,18 @@ TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
   this->verifyStateUpdate([=]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress2(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1 /* macClassID */);
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress3(),
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
   });
 }
 
