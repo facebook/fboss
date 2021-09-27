@@ -374,8 +374,7 @@ class SaiObjectStore {
         if constexpr (std::is_same_v<ObjectTraits, SaiAclTableTraits>) {
           // TODO(pshaikh): hack to allow warm boot from version which doesn't
           // save ahk
-          return ObjectType(
-              key, SaiAclTableTraits::AdapterHostKey{"AclTable1"});
+          return ObjectType(key, SaiAclTableTraits::AdapterHostKey{kAclTable1});
         }
         if constexpr (std::is_same_v<ObjectTraits, SaiNextHopGroupTraits>) {
           // a special handling has been added to deal with next hop group to

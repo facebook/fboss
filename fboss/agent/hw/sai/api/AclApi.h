@@ -26,6 +26,8 @@ namespace facebook::fboss {
 
 class AclApi;
 
+inline auto constexpr kAclTable1 = "AclTable1";
+
 struct SaiAclTableGroupTraits {
   static constexpr sai_object_type_t ObjectType =
       SAI_OBJECT_TYPE_ACL_TABLE_GROUP;

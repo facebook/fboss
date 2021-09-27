@@ -49,7 +49,7 @@ class AclTableManagerTest : public ManagerTestBase {
 
 TEST_F(AclTableManagerTest, addAclTable) {
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
   // Acl table is added as part of sai switch init in test setup
   auto stageGot = saiApiTable->aclApi().getAttribute(
@@ -74,7 +74,7 @@ TEST_F(AclTableManagerTest, addAclTable) {
 TEST_F(AclTableManagerTest, addTwoAclTable) {
   // AclTable1 should already be added
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
   auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
@@ -90,7 +90,7 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
 }
 
 TEST_F(AclTableManagerTest, addDupAclTable) {
-  auto table1 = std::make_shared<AclTable>(0, SaiSwitch::kAclTable1);
+  auto table1 = std::make_shared<AclTable>(0, kAclTable1);
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclTable(
           table1, cfg::AclStage::INGRESS),
@@ -98,8 +98,8 @@ TEST_F(AclTableManagerTest, addDupAclTable) {
 }
 
 TEST_F(AclTableManagerTest, getAclTable) {
-  auto handle = saiManagerTable->aclTableManager().getAclTableHandle(
-      SaiSwitch::kAclTable1);
+  auto handle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
 
   EXPECT_TRUE(handle);
   EXPECT_TRUE(handle->aclTable);
@@ -114,7 +114,7 @@ TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
 
 TEST_F(AclTableManagerTest, addAclEntryDscp) {
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
   auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
@@ -123,22 +123,21 @@ TEST_F(AclTableManagerTest, addAclEntryDscp) {
 
   // DSCP not supported
   EXPECT_THROW(
-      saiManagerTable->aclTableManager().addAclEntry(
-          aclEntry, SaiSwitch::kAclTable1),
+      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1),
       FbossError);
 }
 
 TEST_F(AclTableManagerTest, addAclEntryDstMac) {
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
   auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
   aclEntry->setDstMac(kMac());
   aclEntry->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  AclEntrySaiId aclEntryId =
+      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -147,7 +146,7 @@ TEST_F(AclTableManagerTest, addAclEntryDstMac) {
 
 TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
   auto counter = cfg::TrafficCounter();
@@ -159,8 +158,8 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   aclEntry->setDstMac(kMac());
   aclEntry->setAclAction(action);
 
-  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  AclEntrySaiId aclEntryId =
+      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -180,15 +179,15 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
 
 TEST_F(AclTableManagerTest, addTwoAclEntry) {
   auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
   auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
   aclEntry->setDstMac(kMac());
   aclEntry->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  AclEntrySaiId aclEntryId =
+      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -198,8 +197,8 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
   aclEntry->setDstMac(kMac2());
   aclEntry2->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry2, SaiSwitch::kAclTable1);
+  AclEntrySaiId aclEntryId2 =
+      saiManagerTable->aclTableManager().addAclEntry(aclEntry2, kAclTable1);
 
   auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
       aclEntryId2, SaiAclEntryTraits::Attributes::TableId());
@@ -211,16 +210,14 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
   aclEntry->setDstMac(kMac());
   aclEntry->setActionType(kActionType());
 
-  saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
   auto dupAclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
   dupAclEntry->setDstMac(kMac2());
   dupAclEntry->setActionType(cfg::AclActionType::DENY);
 
   EXPECT_THROW(
-      saiManagerTable->aclTableManager().addAclEntry(
-          dupAclEntry, SaiSwitch::kAclTable1),
+      saiManagerTable->aclTableManager().addAclEntry(dupAclEntry, kAclTable1),
       FbossError);
 }
 
@@ -229,11 +226,10 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   aclEntry->setDstMac(kMac());
   aclEntry->setActionType(kActionType());
 
-  saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, SaiSwitch::kAclTable1);
+  saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
-  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
-      SaiSwitch::kAclTable1);
+  auto aclTableHandle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
 
   EXPECT_TRUE(aclTableHandle);
   EXPECT_TRUE(aclTableHandle->aclTable);
@@ -246,8 +242,8 @@ TEST_F(AclTableManagerTest, getAclEntry) {
 }
 
 TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
-  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
-      SaiSwitch::kAclTable1);
+  auto aclTableHandle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
 
   EXPECT_TRUE(aclTableHandle);
   EXPECT_TRUE(aclTableHandle->aclTable);

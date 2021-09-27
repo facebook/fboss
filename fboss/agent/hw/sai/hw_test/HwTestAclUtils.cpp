@@ -29,8 +29,7 @@ std::string getActualAclTableName(
   // single acl table. Now support multiple tables so can accept table name. If
   // table name not provided we are still using single table, so continue using
   // kAclTable1.
-  return aclTableName.has_value() ? aclTableName.value()
-                                  : SaiSwitch::kAclTable1;
+  return aclTableName.has_value() ? aclTableName.value() : kAclTable1;
 }
 
 std::shared_ptr<AclEntry> getSwAcl(
