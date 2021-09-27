@@ -158,10 +158,11 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
   cfg.interfaces_ref()[0].name_ref() = "interface1";
   cfg.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   cfg.interfaces_ref()[0].mtu_ref() = 9000;
-  cfg.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+  cfg.interfaces_ref()[0].ipAddresses_ref()->resize(4);
   cfg.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
   cfg.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
   cfg.interfaces_ref()[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
+  cfg.interfaces_ref()[0].ipAddresses_ref()[3] = "fe80::/64"; // link local
 
   cfg.interfaces_ref()[1].intfID_ref() = 55;
   cfg.interfaces_ref()[1].routerID_ref() = 0;
@@ -169,10 +170,11 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
   cfg.interfaces_ref()[1].name_ref() = "interface55";
   cfg.interfaces_ref()[1].mac_ref() = "00:02:00:00:00:55";
   cfg.interfaces_ref()[1].mtu_ref() = 9000;
-  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(3);
+  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(4);
   cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "10.0.55.1/24";
   cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "192.168.55.1/24";
   cfg.interfaces_ref()[1].ipAddresses_ref()[2] = "2401:db00:2110:3055::0001/64";
+  cfg.interfaces_ref()[1].ipAddresses_ref()[3] = "169.254.0.0/16"; // link local
 
   return cfg;
 }
@@ -341,7 +343,11 @@ shared_ptr<SwitchState> testStateA() {
   Interface::Addresses addrs1;
   addrs1.emplace(IPAddress("10.0.0.1"), 24);
   addrs1.emplace(IPAddress("192.168.0.1"), 24);
+  addrs1.emplace(IPAddress("169.254.0.0"), 16); // link local
+
   addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
+  addrs1.emplace(IPAddress("fe80::"), 64); // link local
+
   intf1->setAddresses(addrs1);
   state->addIntf(intf1);
   vlan1->setInterfaceID(InterfaceID(1));

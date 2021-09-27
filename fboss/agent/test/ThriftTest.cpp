@@ -91,6 +91,7 @@ TEST_F(ThriftTest, getInterfaceDetail) {
       ipPrefix("192.168.0.1", 24),
       ipPrefix("2401:db00:2110:3001::0001", 64),
       ipPrefix("fe80::202:ff:fe00:1", 64),
+      ipPrefix("fe80::", 64),
   };
   EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
@@ -105,6 +106,7 @@ TEST_F(ThriftTest, getInterfaceDetail) {
       ipPrefix("192.168.55.1", 24),
       ipPrefix("2401:db00:2110:3055::0001", 64),
       ipPrefix("fe80::202:ff:fe00:55", 64),
+      ipPrefix("169.254.0.0", 16),
   };
   EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
@@ -474,7 +476,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(
-        7, v4Routes); // 4 intf routes + 2 routes from above + 1 default routes
+        8, v4Routes); // 5 intf routes + 2 routes from above + 1 default routes
     EXPECT_EQ(
         6, v6Routes); // 2 intf routes + 2 routes from above + 1 link local
                       // + 1 default route
@@ -557,7 +559,7 @@ TEST_F(ThriftTest, syncFib) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
     auto [v4Routes, v6Routes] = getRouteCount(state);
-    EXPECT_EQ(7, v4Routes);
+    EXPECT_EQ(8, v4Routes);
     EXPECT_EQ(6, v6Routes);
   }
 }
@@ -691,7 +693,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto [v4Routes, v6Routes] = getRouteCount(state);
     EXPECT_EQ(
-        7, v4Routes); // 4 intf routes + 2 routes from above + 1 default routes
+        8, v4Routes); // 5 intf routes + 2 routes from above + 1 default routes
     EXPECT_EQ(
         6, v6Routes); // 2 intf routes + 2 routes from above + 1 link local
                       // + 1 default route
@@ -780,7 +782,7 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
     auto [v4Routes, v6Routes] = getRouteCount(state);
-    EXPECT_EQ(7, v4Routes);
+    EXPECT_EQ(8, v4Routes);
     EXPECT_EQ(6, v6Routes);
   }
 }
@@ -946,9 +948,9 @@ TEST_F(ThriftTest, getRouteTable) {
   auto [v4Routes, v6Routes] = getRouteCount(sw_->getState());
   std::vector<UnicastRoute> routeTable;
   handler.getRouteTable(routeTable);
-  // 6 intf routes + 2 default routes + 1 link local route
-  EXPECT_EQ(9, v4Routes + v6Routes);
-  EXPECT_EQ(9, routeTable.size());
+  // 7 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(10, v4Routes + v6Routes);
+  EXPECT_EQ(10, routeTable.size());
 }
 
 TEST_F(ThriftTest, getRouteDetails) {
@@ -956,9 +958,9 @@ TEST_F(ThriftTest, getRouteDetails) {
   auto [v4Routes, v6Routes] = getRouteCount(sw_->getState());
   std::vector<RouteDetails> routeDetails;
   handler.getRouteTableDetails(routeDetails);
-  // 6 intf routes + 2 default routes + 1 link local route
-  EXPECT_EQ(9, v4Routes + v6Routes);
-  EXPECT_EQ(9, routeDetails.size());
+  // 7 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(10, v4Routes + v6Routes);
+  EXPECT_EQ(10, routeDetails.size());
 }
 
 TEST_F(ThriftTest, getRouteTableByClient) {
@@ -967,7 +969,7 @@ TEST_F(ThriftTest, getRouteTableByClient) {
   handler.getRouteTableByClient(
       routeTable, static_cast<int16_t>(ClientID::INTERFACE_ROUTE));
   // 6 intf routes + 2 default routes + 1 link local route
-  EXPECT_EQ(6, routeTable.size());
+  EXPECT_EQ(7, routeTable.size());
 }
 std::unique_ptr<MplsRoute> makeMplsRoute(
     int32_t mplsLabel,
