@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -352,6 +353,38 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of neighbor=" << neighborIp.str()
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyLldpPacketsCpuQueue(
+      int queueId,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeLLDPPacket(
+          getHwSwitch(),
+          neighborMac,
+          vlanId,
+          "FBOSS",
+          "rsw1dx.21.frc3",
+          "eth1/1/1",
+          "fsw001.p023.f01.frc3:eth4/9/1",
+          LldpManager::TTL_TLV_VALUE,
+          LldpManager::SYSTEM_CAPABILITY_ROUTER);
+      getHwSwitch()->sendPacketOutOfPortSync(
+          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    }
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of dstMac=" << LldpManager::LLDP_DEST_MAC.toString()
+               << ". Ethertype=" << std::hex << int(LldpManager::ETHERTYPE_LLDP)
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -1250,6 +1283,16 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
      * the COPP queue.
      */
     EXPECT_EQ(kHighPriorityPacketCount, rxPktCountMap[ipForHighPriorityQueue]);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, LldpProtocolToMidPriQ) {
+  auto setup = [=]() { this->setup(); };
+
+  auto verify = [=]() {
+    this->sendPktAndVerifyLldpPacketsCpuQueue(utility::kCoppMidPriQueueId);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
