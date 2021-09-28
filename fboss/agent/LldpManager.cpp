@@ -252,19 +252,16 @@ uint32_t LldpManager::LldpPktSize(
       + 2;
 }
 
-std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
-    SwSwitch* sw,
+void LldpManager::fillLldpTlv(
+    TxPacket* pkt,
     const MacAddress macaddr,
     VlanID vlanid,
+    const std::string& systemdescr,
     const std::string& hostname,
     const std::string& portname,
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities) {
-  static std::string lldpSysDescStr("FBOSS");
-  uint32_t frameLen = LldpPktSize(hostname, portname, portdesc, lldpSysDescStr);
-
-  auto pkt = sw->allocatePacket(frameLen);
   RWPrivateCursor cursor(pkt->buf());
   pkt->writeEthHeader(&cursor, LLDP_DEST_MAC, macaddr, vlanid, ETHERTYPE_LLDP);
   // now write chassis ID TLV
@@ -297,8 +294,7 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
   writeTlv(LldpTlvType::PORT_DESC, StringPiece(portdesc), &cursor);
 
   // system description TLV
-  writeTlv(
-      LldpTlvType::SYSTEM_DESCRIPTION, StringPiece(lldpSysDescStr), &cursor);
+  writeTlv(LldpTlvType::SYSTEM_DESCRIPTION, StringPiece(systemdescr), &cursor);
 
   // system capability TLV
   uint32_t enabledCapabilities = (capabilities << 16) | capabilities;
@@ -309,7 +305,31 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
 
   // Fill the padding with 0s
   memset(cursor.writableData(), 0, cursor.length());
+}
 
+std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
+    SwSwitch* sw,
+    const MacAddress macaddr,
+    VlanID vlanid,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities) {
+  static std::string lldpSysDescStr("FBOSS");
+  uint32_t frameLen = LldpPktSize(hostname, portname, portdesc, lldpSysDescStr);
+
+  auto pkt = sw->allocatePacket(frameLen);
+  fillLldpTlv(
+      pkt.get(),
+      macaddr,
+      vlanid,
+      lldpSysDescStr,
+      hostname,
+      portname,
+      portdesc,
+      ttl,
+      capabilities);
   return pkt;
 }
 

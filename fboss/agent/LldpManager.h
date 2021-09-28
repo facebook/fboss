@@ -92,6 +92,17 @@ class LldpManager : private folly::AsyncTimeout {
       const uint16_t ttl,
       const uint16_t capabilities);
 
+  static void fillLldpTlv(
+      TxPacket* pkt,
+      const folly::MacAddress macaddr,
+      VlanID vlanid,
+      const std::string& systemdescr,
+      const std::string& hostname,
+      const std::string& portname,
+      const std::string& portdesc,
+      const uint16_t ttl,
+      const uint16_t capabilities);
+
   // This function is internal.  It is only public for use in unit tests.
   void sendLldpOnAllPorts();
 
