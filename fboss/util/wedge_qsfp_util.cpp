@@ -506,6 +506,10 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
 
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
       // Restore current page
+      // Need a delay here otherwise certain modules
+      // fail to turn on the lasers
+      // sleep override
+      usleep(20 * 1000);
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
     } catch (const I2cError& ex) {
       fprintf(stderr, "QSFP %d: read/write error\n", port);
