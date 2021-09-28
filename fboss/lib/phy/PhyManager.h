@@ -147,7 +147,7 @@ class PhyManager {
 
   void restoreFromWarmbootState(const folly::dynamic& phyWarmbootState);
 
-  void updateAllXphyPortsStats();
+  virtual void updateAllXphyPortsStats();
 
   // The following two functions return whether the future job of xphy or prbs
   // stats collection is done.

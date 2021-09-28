@@ -10,6 +10,7 @@
 
 #include "fboss/lib/phy/SaiPhyManager.h"
 
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
@@ -66,6 +67,37 @@ std::vector<SaiSwitch*> SaiPhyManager::getSaiSwitches() const {
     }
   }
   return switches;
+}
+
+void SaiPhyManager::updateAllXphyPortsStats() {
+  for (auto& pimAndXphyToPlatforms : saiPlatforms_) {
+    auto pimId = pimAndXphyToPlatforms.first;
+    auto& ongoingStatsCollection = pim2OngoingStatsCollection_[pimId];
+    if (ongoingStatsCollection && !ongoingStatsCollection->isReady()) {
+      XLOG(DBG4) << " Sai stats collection for PIM : " << pimId
+                 << "is still ongoing";
+    } else {
+      pim2OngoingStatsCollection_[pimId] =
+          folly::via(getPimEventBase(pimId))
+              .thenValue([this, pimId](auto&&) {
+                auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
+                for (auto& [xphy, saiPlatform] : xphyToPlatform) {
+                  auto saiSwitch =
+                      static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+                  try {
+                    static SwitchStats unused;
+                    saiSwitch->updateStats(&unused);
+                  } catch (const std::exception& e) {
+                    XLOG(INFO) << "Stats collection failed on : "
+                               << "switch: " << saiSwitch->getSwitchId()
+                               << " xphy: " << xphy << " error: " << e.what();
+                  }
+                }
+              })
+              .delayed(
+                  std::chrono::seconds(getXphyPortStatsUpdateIntervalInSec()));
+    }
+  }
 }
 
 void SaiPhyManager::addSaiPlatform(

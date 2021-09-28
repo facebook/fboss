@@ -62,6 +62,7 @@ class SaiPhyManager : public PhyManager {
   void initializeSlotPhysImpl(PimID pimID);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
+  void updateAllXphyPortsStats() override;
 
  protected:
   void addSaiPlatform(
@@ -94,6 +95,8 @@ class SaiPhyManager : public PhyManager {
   const folly::MacAddress localMac_;
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
       saiPlatforms_;
+  std::map<PimID, std::optional<folly::Future<folly::Unit>>>
+      pim2OngoingStatsCollection_;
 };
 
 using namespace std::chrono;
