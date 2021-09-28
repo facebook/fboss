@@ -84,6 +84,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
           cfg::PacketRxReason::LACP, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
   };
   return rxReasonToQueues;
 }
