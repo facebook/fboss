@@ -5,10 +5,6 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
-#include "fboss/agent/SwitchStats.h"
-#ifndef IS_OSS
-#include "fboss/lib/phy/SaiPhyManager.h"
-#endif
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -31,10 +27,6 @@ DEFINE_int32(
     xphy_stats_loop_interval,
     60,
     "Interval (in seconds) to run the loop that updates all xphy ports stats");
-DEFINE_int32(
-    sai_stats_collection_interval,
-    10,
-    "Interval (in seconds) to update sai switch stats");
 
 DECLARE_int32(port);
 
@@ -66,24 +58,6 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_loop_interval),
       "refreshTransceivers");
-  // HACK: Our OSS build currently don't have any SAI XPHY platforms. Skipping
-  // SAI stuff if absent.
-  // TODO: Put this back once we added an SAI XPHY platform to OSS.
-#ifndef IS_OSS
-  scheduler.addFunction(
-      [mgr = handler->getTransceiverManager()]() {
-        auto phyManager = dynamic_cast<SaiPhyManager*>(mgr->getPhyManager());
-        if (!phyManager) {
-          return;
-        }
-        for (auto& saiSwitch : phyManager->getSaiSwitches()) {
-          SwitchStats dummy;
-          saiSwitch->updateStats(&dummy);
-        }
-      },
-      std::chrono::seconds(FLAGS_sai_stats_collection_interval),
-      "updateStats");
-#endif
 
   // Schedule the function to periodically send the I2c transaction
   // stats to the ServiceData object which gets pulled by FBagent.
