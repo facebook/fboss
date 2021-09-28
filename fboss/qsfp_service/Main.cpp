@@ -6,7 +6,7 @@
 #include <folly/logging/Init.h>
 
 #include "fboss/agent/SwitchStats.h"
-#if defined(SAI_VER_MAJOR)
+#ifndef IS_OSS
 #include "fboss/lib/phy/SaiPhyManager.h"
 #endif
 #include "fboss/qsfp_service/QsfpServer.h"
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
   // HACK: Our OSS build currently don't have any SAI XPHY platforms. Skipping
   // SAI stuff if absent.
   // TODO: Put this back once we added an SAI XPHY platform to OSS.
-#if defined(SAI_VER_MAJOR)
+#ifndef IS_OSS
   scheduler.addFunction(
       [mgr = handler->getTransceiverManager()]() {
         auto phyManager = dynamic_cast<SaiPhyManager*>(mgr->getPhyManager());
