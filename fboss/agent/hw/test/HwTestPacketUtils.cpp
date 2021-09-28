@@ -19,6 +19,7 @@
 #include "common/logging/logging.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
@@ -638,4 +639,32 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
       });
   return pkt;
 }
+
+std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
+    const HwSwitch* hw,
+    const folly::MacAddress srcMac,
+    VlanID vlanid,
+    const std::string& systemdescr,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities) {
+  uint32_t frameLen =
+      LldpManager::LldpPktSize(hostname, portname, portdesc, systemdescr);
+
+  auto pkt = hw->allocatePacket(frameLen);
+  LldpManager::fillLldpTlv(
+      pkt.get(),
+      srcMac,
+      vlanid,
+      systemdescr,
+      hostname,
+      portname,
+      portdesc,
+      ttl,
+      capabilities);
+  return pkt;
+}
+
 } // namespace facebook::fboss::utility

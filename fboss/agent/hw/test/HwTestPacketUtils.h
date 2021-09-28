@@ -223,4 +223,15 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
     folly::IPAddressV6 dstIp);
+
+std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
+    const HwSwitch* hw,
+    const folly::MacAddress srcMac,
+    VlanID vlanid,
+    const std::string& systemdescr,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities);
 } // namespace facebook::fboss::utility
