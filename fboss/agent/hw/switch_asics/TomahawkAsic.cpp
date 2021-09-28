@@ -47,6 +47,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

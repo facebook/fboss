@@ -47,6 +47,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HOT_SWAP:

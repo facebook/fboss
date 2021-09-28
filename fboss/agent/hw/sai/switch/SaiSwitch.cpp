@@ -486,46 +486,47 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiLagManager::addLag,
       &SaiLagManager::removeLag);
 
-  // Add/Change bridge ports
-  DeltaFunctions::forEachChanged(
-      delta.getPortsDelta(),
-      [&](const std::shared_ptr<Port>& oldPort,
-          const std::shared_ptr<Port>& newPort) {
-        auto portID = oldPort->getID();
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        if (managerTable_->lagManager().isLagMember(portID)) {
-          // if port is member of lag, ignore it
-          return;
-        }
-        managerTable_->portManager().changeBridgePort(oldPort, newPort);
-      });
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
+    // Add/Change bridge ports
+    DeltaFunctions::forEachChanged(
+        delta.getPortsDelta(),
+        [&](const std::shared_ptr<Port>& oldPort,
+            const std::shared_ptr<Port>& newPort) {
+          auto portID = oldPort->getID();
+          [[maybe_unused]] const auto& lock = lockPolicy.lock();
+          if (managerTable_->lagManager().isLagMember(portID)) {
+            // if port is member of lag, ignore it
+            return;
+          }
+          managerTable_->portManager().changeBridgePort(oldPort, newPort);
+        });
 
-  DeltaFunctions::forEachAdded(
-      delta.getPortsDelta(), [&](const std::shared_ptr<Port>& newPort) {
-        auto portID = newPort->getID();
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        if (managerTable_->lagManager().isLagMember(portID)) {
-          // if port is member of lag, ignore it
-          return;
-        }
-        managerTable_->portManager().addBridgePort(newPort);
-      });
+    DeltaFunctions::forEachAdded(
+        delta.getPortsDelta(), [&](const std::shared_ptr<Port>& newPort) {
+          auto portID = newPort->getID();
+          [[maybe_unused]] const auto& lock = lockPolicy.lock();
+          if (managerTable_->lagManager().isLagMember(portID)) {
+            // if port is member of lag, ignore it
+            return;
+          }
+          managerTable_->portManager().addBridgePort(newPort);
+        });
 
-  DeltaFunctions::forEachChanged(
-      delta.getAggregatePortsDelta(),
-      [&](const std::shared_ptr<AggregatePort>& oldAggPort,
-          const std::shared_ptr<AggregatePort>& newAggPort) {
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        managerTable_->lagManager().changeBridgePort(oldAggPort, newAggPort);
-      });
+    DeltaFunctions::forEachChanged(
+        delta.getAggregatePortsDelta(),
+        [&](const std::shared_ptr<AggregatePort>& oldAggPort,
+            const std::shared_ptr<AggregatePort>& newAggPort) {
+          [[maybe_unused]] const auto& lock = lockPolicy.lock();
+          managerTable_->lagManager().changeBridgePort(oldAggPort, newAggPort);
+        });
 
-  DeltaFunctions::forEachAdded(
-      delta.getAggregatePortsDelta(),
-      [&](const std::shared_ptr<AggregatePort>& newAggPort) {
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        managerTable_->lagManager().addBridgePort(newAggPort);
-      });
-
+    DeltaFunctions::forEachAdded(
+        delta.getAggregatePortsDelta(),
+        [&](const std::shared_ptr<AggregatePort>& newAggPort) {
+          [[maybe_unused]] const auto& lock = lockPolicy.lock();
+          managerTable_->lagManager().addBridgePort(newAggPort);
+        });
+  }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     processDefaultDataPlanePolicyDelta(
         delta, managerTable_->switchManager(), lockPolicy);

@@ -52,6 +52,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
