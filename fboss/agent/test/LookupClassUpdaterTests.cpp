@@ -88,6 +88,13 @@ class LookupClassUpdaterTest : public ::testing::Test {
   IPAddressV6 kIp6LinkLocalAddr() const {
     return IPAddressV6("fe80::302:03ff:fe04:0506");
   }
+  IPAddressV4 kNonMacIp4LinkLocalAddr() const {
+    return IPAddressV4("169.254.0.10");
+  }
+
+  IPAddressV6 kNonMacIp6LinkLocalAddr() const {
+    return IPAddressV6("fe80::991a:885b:34ad:d94a");
+  }
 
   IPAddressV4 kIp4Addr2() const {
     return IPAddressV4("10.0.0.3");
@@ -156,7 +163,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   void verifyNeighborClassIDHelper(
       folly::IPAddress ipAddress,
       std::optional<cfg ::AclLookupClass> ipClassID,
-      std::optional<cfg ::AclLookupClass> macClassID) {
+      std::optional<cfg ::AclLookupClass> macClassID) const {
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpTable,
@@ -215,7 +222,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
       const folly::IPAddress& ipAddress,
       const folly::MacAddress& macAddress,
       std::optional<cfg::AclLookupClass> ipClassID,
-      std::optional<cfg::AclLookupClass> macClassID) {
+      std::optional<cfg::AclLookupClass> macClassID) const {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
       // Learned Mac entries always get added as dynamic entries
       verifyMacClassIDHelper(
@@ -233,14 +240,14 @@ class LookupClassUpdaterTest : public ::testing::Test {
   void verifyMacClassIDHelper(
       const folly::MacAddress& macAddress,
       std::optional<cfg::AclLookupClass> classID,
-      MacEntryType type) {
+      MacEntryType type) const {
     auto entry = getMacEntry(macAddress);
     XLOG(DBG) << entry->str();
     EXPECT_EQ(entry->getClassID(), classID);
     EXPECT_EQ(entry->getType(), type);
   }
 
-  IPAddress getIpAddress() {
+  IPAddress getIpAddress() const {
     IPAddress ipAddress;
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       ipAddress = IPAddress(this->kIp4Addr());
@@ -251,19 +258,37 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return ipAddress;
   }
 
-  IPAddress getLinkLocalIpAddress() {
+  IPAddress getLinkLocalIpAddress() const {
     IPAddress ipAddress;
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       ipAddress = IPAddress(this->kIp4LinkLocalAddr());
     } else {
       ipAddress = IPAddress(this->kIp6LinkLocalAddr());
     }
-
     return ipAddress;
   }
 
+  IPAddress getNonMacLinkLocalIpAddress() const {
+    IPAddress ipAddress;
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      ipAddress = IPAddress(this->kNonMacIp4LinkLocalAddr());
+    } else {
+      ipAddress = IPAddress(this->kNonMacIp6LinkLocalAddr());
+    }
+    return ipAddress;
+  }
+
+  std::vector<IPAddress> getLinkLocalIpAddresses() const {
+    return {getLinkLocalIpAddress(), getNonMacLinkLocalIpAddress()};
+  }
+
+  void resolveLinkLocals(folly::MacAddress mac) {
+    for (const auto& ip : getLinkLocalIpAddresses()) {
+      this->resolve(ip, mac);
+    }
+  }
   std::optional<cfg::AclLookupClass> getExpectedLinkLocalClassID(
-      cfg::AclLookupClass classID) {
+      cfg::AclLookupClass classID) const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return classID;
     } else {
@@ -272,7 +297,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     }
   }
 
-  IPAddress getIpAddress2() {
+  IPAddress getIpAddress2() const {
     IPAddress ipAddress;
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       ipAddress = IPAddress(this->kIp4Addr2());
@@ -283,7 +308,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return ipAddress;
   }
 
-  IPAddress getIpAddress3() {
+  IPAddress getIpAddress3() const {
     IPAddress ipAddress;
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       ipAddress = IPAddress(this->kIp4Addr3());
@@ -294,7 +319,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return ipAddress;
   }
 
-  void bringPortDown(PortID portID) {
+  void bringPortDown(PortID portID) const {
     this->sw_->linkStateChanged(portID, false);
 
     waitForStateUpdates(this->sw_);
@@ -353,7 +378,7 @@ TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
@@ -363,18 +388,21 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   });
 
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
-    this->verifyClassIDHelper(
-        this->getLinkLocalIpAddress(),
-        this->kMacAddress(),
-        this->getExpectedLinkLocalClassID(
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
-        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+    for (const auto& ip : this->getLinkLocalIpAddresses()) {
+      this->verifyClassIDHelper(
+          ip,
+          this->kMacAddress(),
+          this->getExpectedLinkLocalClassID(
+              cfg::AclLookupClass::
+                  CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+    }
   });
 }
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
   this->bringPortDown(this->kPortID());
   /*
    * On port down, ARP/NDP behavior differs from L2 entries:
@@ -394,36 +422,40 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
           this->kMacAddress(),
           std::nullopt /* ipClassID */,
           std::nullopt /* macClassID */);
-      this->verifyClassIDHelper(
-          this->getLinkLocalIpAddress(),
-          this->kMacAddress(),
-          std::nullopt /* ipClassID */,
-          std::nullopt /* macClassID */);
-      // Mac entry should get pruned with neighbor entry
-      EXPECT_EQ(this->getMacEntry(this->kMacAddress()), nullptr);
+      for (const auto& ip : this->getLinkLocalIpAddresses()) {
+        this->verifyClassIDHelper(
+            ip,
+            this->kMacAddress(),
+            std::nullopt /* ipClassID */,
+            std::nullopt /* macClassID */);
+        // Mac entry should get pruned with neighbor entry
+        EXPECT_EQ(this->getMacEntry(this->kMacAddress()), nullptr);
+      }
     }
   });
 }
 
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
   this->updateLookupClasses({});
   this->verifyClassIDHelper(
       this->getIpAddress(),
       this->kMacAddress(),
       std::nullopt /* ipClassID */,
       std::nullopt /* macClassID */);
-  this->verifyClassIDHelper(
-      this->getLinkLocalIpAddress(),
-      this->kMacAddress(),
-      std::nullopt /* ipClassID */,
-      std::nullopt /* macClassID */);
+  for (const auto& ip : this->getLinkLocalIpAddresses()) {
+    this->verifyClassIDHelper(
+        ip,
+        this->kMacAddress(),
+        std::nullopt /* ipClassID */,
+        std::nullopt /* macClassID */);
+  }
 }
 
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
   this->updateLookupClasses(
       {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
   this->verifyClassIDHelper(
@@ -431,12 +463,14 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       this->kMacAddress(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* ipClassID */,
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
-  this->verifyClassIDHelper(
-      this->getLinkLocalIpAddress(),
-      this->kMacAddress(),
-      this->getExpectedLinkLocalClassID(
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3) /* ipClassID */,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+  for (const auto& ip : this->getLinkLocalIpAddresses()) {
+    this->verifyClassIDHelper(
+        ip,
+        this->kMacAddress(),
+        this->getExpectedLinkLocalClassID(
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3) /* ipClassID */,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 /* macClassID */);
+  }
 }
 
 TYPED_TEST(LookupClassUpdaterTest, MacMove) {
@@ -600,23 +634,26 @@ TYPED_TEST(
     });
 
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
-      this->verifyClassIDHelper(
-          this->getLinkLocalIpAddress(),
-          this->kMacAddress(),
-          this->getExpectedLinkLocalClassID(
-              cfg::AclLookupClass::
-                  CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+      for (const auto& ip : this->getLinkLocalIpAddresses()) {
+        this->verifyClassIDHelper(
+            ip,
+            this->kMacAddress(),
+            this->getExpectedLinkLocalClassID(
+                cfg::AclLookupClass::
+                    CLASS_QUEUE_PER_HOST_QUEUE_0) /* ipClassID */,
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0 /* macClassID */);
+      }
     });
   };
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
 
   verifyClassIDs();
 
   this->unresolveNeighbor(this->getIpAddress());
   this->unresolveNeighbor(this->getLinkLocalIpAddress());
+  this->unresolveNeighbor(this->getNonMacLinkLocalIpAddress());
 
   auto state = this->sw_->getState();
   auto vlan = state->getVlans()->getVlan(this->kVlan());
@@ -624,18 +661,18 @@ TYPED_TEST(
 
   if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
     EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
-    EXPECT_EQ(
-        neighborTable->getEntryIf(this->getLinkLocalIpAddress().asV4()),
-        nullptr);
+    for (const auto& ip : this->getLinkLocalIpAddresses()) {
+      EXPECT_EQ(neighborTable->getEntryIf(ip.asV4()), nullptr);
+    }
   } else {
     EXPECT_EQ(neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
-    EXPECT_EQ(
-        neighborTable->getEntryIf(this->getLinkLocalIpAddress().asV6()),
-        nullptr);
+    for (const auto& ip : this->getLinkLocalIpAddresses()) {
+      EXPECT_EQ(neighborTable->getEntryIf(ip.asV6()), nullptr);
+    }
   }
 
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->resolve(this->getLinkLocalIpAddress(), this->kMacAddress());
+  this->resolveLinkLocals(this->kMacAddress());
 
   verifyClassIDs();
 }
