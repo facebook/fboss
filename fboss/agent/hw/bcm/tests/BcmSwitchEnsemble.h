@@ -16,6 +16,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 DECLARE_bool(flexports);
+DECLARE_bool(qgroup_guarantee_enable);
 DECLARE_string(bcm_config);
 DECLARE_string(config);
 DECLARE_string(mode);

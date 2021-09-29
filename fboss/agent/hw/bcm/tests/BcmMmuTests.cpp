@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -24,6 +25,10 @@
 #include <soc/drv.h>
 #endif
 
+extern "C" {
+#include <bcm/cosq.h>
+}
+
 using namespace facebook::fboss;
 
 namespace {
@@ -36,6 +41,7 @@ class BcmMmuTests : public BcmTest {
  protected:
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
+    FLAGS_qgroup_guarantee_enable = true;
     BcmTest::SetUp();
   }
 
@@ -208,6 +214,64 @@ TEST_F(BcmMmuTests, PgMinLimitBytes) {
         EXPECT_EQ(bcmPort->getPgMinLimitBytes(i), expectedValues[i]);
       }
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+static int queueMinLimitBytesGportTraveralCallback(
+    int unit,
+    bcm_gport_t /* gport */,
+    int /* numq */,
+    uint32_t flags,
+    bcm_gport_t queueGport,
+    void* /* userData */) {
+  if (flags & BCM_COSQ_GPORT_UCAST_QUEUE_GROUP) {
+    int minLimit = 0;
+    bcm_cos_queue_t cosQ = BCM_GPORT_UCAST_QUEUE_GROUP_QID_GET(queueGport);
+    int rv = bcm_cosq_control_get(
+        unit,
+        queueGport,
+        cosQ,
+        bcmCosqControlEgressUCQueueGroupMinLimitBytes,
+        &minLimit);
+    bcmCheckError(
+        rv,
+        "Can not get unicast queue minimum limit bytes for gport ",
+        queueGport);
+    EXPECT_EQ(minLimit, 0);
+  }
+
+  if (flags & BCM_COSQ_GPORT_MCAST_QUEUE_GROUP) {
+    int minLimit = 0;
+    bcm_cos_queue_t cosQ = BCM_GPORT_MCAST_QUEUE_GROUP_QID_GET(queueGport);
+    int rv = bcm_cosq_control_get(
+        unit,
+        queueGport,
+        cosQ,
+        bcmCosqControlEgressMCQueueGroupMinLimitBytes,
+        &minLimit);
+    bcmCheckError(
+        rv,
+        "Can not get multicast queue minimum limit bytes for gport ",
+        queueGport);
+    EXPECT_EQ(minLimit, 0);
+  }
+  return BCM_E_NONE;
+}
+
+// Validate that unicast and multicast queue group min limit bytes
+// is set to 0. This is done by the config buf.qgroup.guarantee and
+// buf.qgroup.guarantee_mc.
+TEST_F(BcmMmuTests, UcMcQueueMinLimitBytes) {
+  if (!isSupported(HwAsic::Feature::PFC)) {
+    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
+    return;
+  }
+  auto setup = [&]() { setupPfcConfig(); };
+  auto verify = [&]() {
+    int rv = bcm_cosq_gport_traverse(
+        getUnit(), queueMinLimitBytesGportTraveralCallback, this);
+    bcmCheckError(rv, "failed to traverse queues");
   };
   verifyAcrossWarmBoots(setup, verify);
 }

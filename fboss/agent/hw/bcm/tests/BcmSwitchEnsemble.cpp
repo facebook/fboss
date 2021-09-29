@@ -28,6 +28,10 @@
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 
 DECLARE_bool(setup_thrift);
+DEFINE_bool(
+    qgroup_guarantee_enable,
+    false,
+    "Enable setting of unicast and multicast queue guaranteed buffer sizes");
 
 using apache::thrift::can_throw;
 
@@ -212,6 +216,10 @@ void BcmSwitchEnsemble::init(
     cfg["buf.mqueue.guarantee.0"] = "0C";
     cfg["mmu_config_override"] = "0";
     cfg["buf.prigroup7.guarantee"] = "0C";
+    if (FLAGS_qgroup_guarantee_enable) {
+      cfg["buf.qgroup.guarantee_mc"] = "0";
+      cfg["buf.qgroup.guarantee"] = "0";
+    }
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
