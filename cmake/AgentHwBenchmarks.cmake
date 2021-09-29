@@ -259,3 +259,29 @@ target_link_libraries(hw_init_and_exit_100Gx100G
   config_factory
   hw_init_and_exit_benchmark_helper
 )
+
+add_library(hw_anticipated_scale_route_add_speed
+  fboss/agent/hw/benchmarks/HwAnticipatedScaleRouteAddBenchmark.cpp
+)
+
+target_link_libraries(hw_anticipated_scale_route_add_speed
+  config_factory
+  hw_packet_utils
+  ecmp_helper
+  hw_benchmark_main
+  function_call_time_reporter
+  Folly::folly
+)
+
+add_library(hw_anticipated_scale_route_del_speed
+  fboss/agent/hw/benchmarks/HwAnticipatedScaleRouteDelBenchmark.cpp
+)
+
+target_link_libraries(hw_anticipated_scale_route_del_speed
+  config_factory
+  hw_packet_utils
+  ecmp_helper
+  hw_benchmark_main
+  function_call_time_reporter
+  Folly::folly
+)
