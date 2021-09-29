@@ -48,6 +48,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PTP_TC_PCS:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HOT_SWAP:
@@ -64,8 +66,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::PTP_TC:
-    case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
