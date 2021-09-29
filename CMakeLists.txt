@@ -458,6 +458,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/module/sff/SffFieldInfo.cpp
       fboss/qsfp_service/module/sff/SffModule.cpp
       fboss/qsfp_service/module/sff/Sff8472Module.cpp
+      fboss/qsfp_service/module/sff/Sff8472FieldInfo.cpp
       fboss/qsfp_service/module/oss/SffModule.cpp
       fboss/qsfp_service/module/cmis/CmisFieldInfo.cpp
       fboss/qsfp_service/module/cmis/CmisModule.cpp
@@ -468,6 +469,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/oss/QsfpServer.cpp
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp
+      fboss/qsfp_service/TransceiverManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
