@@ -22,11 +22,16 @@ DEFINE_bool(write_reg, false,
   "Write register from device, use with --offset --data");
 DEFINE_int32(data, -1,
   "Register data for write");
+DEFINE_bool(qsfp_info, false,
+  "Display QSFP related info");
 
 struct scd_info_s {
   unsigned int mapSize;
   unsigned char *mapAddr;
 };
+
+constexpr uint32_t kQsfpRegAddr = 0xA010;
+constexpr uint32_t kMaxQsfpModules = 32;
 
 /*
  * scdReadRegInternal
@@ -96,6 +101,28 @@ bool scdWriteReg(struct scd_info_s *pMem, uint32_t regAddr, uint32_t regVal) {
 }
 
 /*
+ * scdQsfpInfo
+ *
+ * Prints QSFP related information
+ */
+bool scdQsfpInfo(struct scd_info_s *pMem) {
+  uint32_t regAddr = kQsfpRegAddr;
+  uint32_t regVal;
+
+  printf("Port        ModReset    LowPower    Present\n");
+
+  for (int port = 0; port < kMaxQsfpModules; port++) {
+    regVal = scdReadRegInternal(pMem, regAddr + port * 0x10);
+    printf("%2d          %d           %d           %d\n",
+      port + 1,
+      (regVal & 0x80) >> 7,
+      (regVal & 0x40) >> 6,
+      !((regVal & 0x4) >> 2));
+  }
+  return true;
+}
+
+/*
  * scd_fpga_util
  *
  * This utility finds the SCD FPGA on PCI link in Darwin platform. It then
@@ -155,6 +182,10 @@ int main(int argc, char* argv[]) {
     printf("Calling scdWriteReg with address 0x%x value 0x%x\n",
             FLAGS_offset, FLAGS_data);
     scdWriteReg(&scdInfo, FLAGS_offset, FLAGS_data);
+  }
+  if (FLAGS_qsfp_info) {
+    printf("Calling scdQsfpInfo\n");
+    scdQsfpInfo(&scdInfo);
   }
 
   munmap(scdInfo.mapAddr, 0x80000);
