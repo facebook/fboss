@@ -46,9 +46,13 @@ class CmdShowInterfaceFlaps
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
-    std::map<std::string, std::int64_t> wedgeCounters;
+    std::map<std::string, int64_t> wedgeCounters;
+#ifdef IS_OSS
+    // TODO - figure out why getRegexCounters fails for OSS
+    client->sync_getCounters(wedgeCounters);
+#else
     client->sync_getRegexCounters(wedgeCounters, "^eth.*flap.sum.*");
-
+#endif
     std::unordered_set<std::string> distinctInterfaceNames;
     for (const auto& counter : wedgeCounters) {
       std::vector<std::string> result;
