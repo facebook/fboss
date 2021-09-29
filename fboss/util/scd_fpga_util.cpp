@@ -20,7 +20,7 @@ DEFINE_int32(length, 1,
   "Number of registers to read");
 DEFINE_bool(write_reg, false,
   "Write register from device, use with --offset --data");
-DEFINE_int32(data, -1,
+DEFINE_uint32(data, -1,
   "Register data for write");
 DEFINE_bool(qsfp_info, false,
   "Display QSFP related info");
