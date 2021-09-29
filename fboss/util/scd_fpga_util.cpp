@@ -1,0 +1,109 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#include <fcntl.h>
+#include <folly/Conv.h>
+#include <folly/String.h>
+#include <folly/init/Init.h>
+#include <gflags/gflags.h>
+#include <sys/mman.h>
+#include <sysexits.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string>
+#include <sstream>
+
+DEFINE_bool(read_reg, false,
+  "Read register from device, use with --reg_addr");
+DEFINE_int32(offset, 0,
+  "Device register address");
+
+struct scd_info_s {
+  unsigned int mapSize;
+  unsigned char *mapAddr;
+};
+
+/*
+ * scdReadRegInternal
+ *
+ * Read the SCD/SAT FPGA register. The register address is 16 bit value, the data
+ * read is 32 bit value. The register could be in SCD or SAT FPGA
+ */
+unsigned int scdReadRegInternal(struct scd_info_s *pMem, uint32_t regAddr) {
+
+  unsigned char *ptr = pMem->mapAddr;
+  if (regAddr >= pMem->mapSize) {
+    // Reg offset should not be more than map size
+    throw std::runtime_error("Register offset exceeds memory map size");
+  }
+  ptr += regAddr;
+  return *(unsigned int *) ptr;
+}
+
+/*
+ * scdReadReg
+ *
+ * Reads the SCD/SAT FPGA register.
+ */
+bool scdReadReg(struct scd_info_s *pMem, uint32_t regAddr) {
+  unsigned int regVal = scdReadRegInternal(pMem, regAddr);
+  printf("Reg 0x%x = 0x%.8x\n",  regAddr, regVal);
+  return true;
+}
+
+/*
+ * scd_fpga_util
+ *
+ * This utility finds the SCD FPGA on PCI link in Darwin platform. It then
+ * allows user to read/write to the SCD/SAT FPGA registers
+ */
+int main(int argc, char* argv[]) {
+  folly::init(&argc, &argv, true);
+  gflags::SetCommandLineOptionWithMode(
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
+
+  std::string sysfsPath;
+  std::array<char, 64> busId;
+
+  FILE *fp = popen("lspci -d 3475:0001 | sed -e \'s/ .*//\'", "r");
+  if (!fp) {
+    printf("SCD FPGA not found on PCI bus\n");
+    return EX_SOFTWARE;
+  }
+  fgets(busId.data(), 64, fp);
+  std::istringstream iStream(folly::to<std::string>(busId));
+  std::string busIdStr;
+  iStream >> busIdStr;
+
+  // Build the sysfs file path for resource0 where all registers are mapped
+  sysfsPath = folly::to<std::string>("/sys/bus/pci/devices/0000:", busIdStr, "/resource0");
+
+  pclose(fp);
+
+  // Open the sysfs file to access the device
+  int fd = open(sysfsPath.c_str(), O_RDWR | O_SYNC);
+  if (fd == -1) {
+    printf("Unable to open up the sysfs file %s\n", sysfsPath.c_str());
+    return EX_SOFTWARE;
+  }
+
+  // Mmeory map the device's 512KB memory register space to our
+  // user space
+  struct scd_info_s scdInfo;
+  scdInfo.mapSize = 0x80000;
+  scdInfo.mapAddr = (unsigned char*)mmap(nullptr, 0x80000,
+                        PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  if (scdInfo.mapAddr == MAP_FAILED) {
+    printf("mmap failed for resource\n");
+    close(fd);
+    return EX_SOFTWARE;
+  }
+
+  if (FLAGS_read_reg) {
+    printf("Calling scdReadReg with address 0x%x\n", FLAGS_offset);
+    scdReadReg(&scdInfo, FLAGS_offset);
+  }
+
+  munmap(scdInfo.mapAddr, 0x80000);
+  close(fd);
+  return EX_OK;
+}
