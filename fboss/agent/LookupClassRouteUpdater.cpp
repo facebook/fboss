@@ -95,7 +95,6 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
     VlanID vlanID,
     const folly::IPAddressV6& ipAddressV6) {
   CHECK(ipAddressV6.isLinkLocal());
-  CHECK(ipAddressV6.getMacAddressFromLinkLocal().has_value());
 
   auto vlan = switchState->getVlans()->getVlanIf(vlanID);
   if (!vlan) {
@@ -106,10 +105,21 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
    * Link local neighbors don't have classID, thus classID for a route whose
    * nexthop is link local is derived from MAC address corresponding to the
    * link local address.
+   * Try extracting MAC for LL from IP itself. If it fails, fallback to
+   * looking up MAC from corresponding NDP entry
    */
-  auto mac = ipAddressV6.getMacAddressFromLinkLocal().value();
-  auto macEntry = vlan->getMacTable()->getNodeIf(mac);
-  return macEntry ? macEntry->getClassID() : std::nullopt;
+  auto mac = ipAddressV6.getMacAddressFromLinkLocal();
+  if (!mac) {
+    auto ndpEntry = vlan->getNdpTable()->getNodeIf(ipAddressV6);
+    if (ndpEntry) {
+      mac = ndpEntry->getMac();
+    }
+  }
+  if (mac) {
+    auto macEntry = vlan->getMacTable()->getNodeIf(*mac);
+    return macEntry ? macEntry->getClassID() : std::nullopt;
+  }
+  return std::nullopt;
 }
 
 std::optional<cfg::AclLookupClass>
