@@ -52,6 +52,8 @@ DECLARE_bool(client_parser);
 DECLARE_bool(verbose);
 DECLARE_bool(list_commands);
 DECLARE_bool(vdm_info);
+DECLARE_bool(batch_ops);
+DECLARE_string(batchfile);
 
 enum LoopbackMode {
   noLoopback,
@@ -102,6 +104,12 @@ int doWriteReg(
     int offset,
     int page,
     uint8_t data,
+    folly::EventBase& evb);
+
+int doBatchOps(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    std::string batchfile,
     folly::EventBase& evb);
 
 std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(

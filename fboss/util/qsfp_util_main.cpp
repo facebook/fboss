@@ -41,6 +41,7 @@ std::vector<FlagCommand> kCommands = {
   {"get_module_fw_info", {}},
   {"update_bulk_module_fw", {
     "port_range", "firmware_filename", "module_type", "fw_version"}},
+  {"batch_ops", {"batchfile"}},
 };
 
 void listCommands() {
@@ -198,6 +199,10 @@ int main(int argc, char* argv[]) {
   if (FLAGS_write_reg) {
     return doWriteReg(
         bus.get(), ports, FLAGS_offset, FLAGS_page, FLAGS_data, evb);
+  }
+
+  if  (FLAGS_batch_ops) {
+    return doBatchOps(bus.get(), ports, FLAGS_batchfile, evb);
   }
 
   int retcode = EX_OK;

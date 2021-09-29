@@ -220,6 +220,8 @@ DEFINE_bool(
 DEFINE_bool(verbose, false, "Print more details");
 DEFINE_bool(list_commands, false, "Print the list of commands");
 DEFINE_bool(vdm_info, false, "get the VDM monitoring info");
+DEFINE_bool(batch_ops, false, "Do batch read/write operations on module, use with --batchfile and --direct_i2c");
+DEFINE_string(batchfile, "", "Batch file for bulk read/write operations, Format: OP(R/W) Offset Value DelayMS");
 
 namespace {
 struct ModulePartInfo_s {
@@ -625,7 +627,7 @@ int doReadReg(
   if (FLAGS_direct_i2c) {
     for (unsigned int portNum : ports) {
       printf("Port Id : %d\n", portNum);
-      doReadRegDirect(bus, portNum, FLAGS_offset, FLAGS_length);
+      doReadRegDirect(bus, portNum, offset, length);
     }
   } else {
     // Release the bus access for QSFP service
@@ -707,6 +709,62 @@ int doWriteReg(
     bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     doWriteRegViaService(idx, offset, page, data, evb);
+  }
+  return EX_OK;
+}
+
+/*
+ * doBatchOps
+ *
+ * This function does the batch operation of read/write to a module. The batch
+ * of instructions is provided by batchfile. The format of batchfile is below:
+ *
+ * OPCODE  REG_OFFSET  REG_VAL  DELAY_MS
+ * W       127         0x0      10
+ * R       148         0x0      5
+ * R       149         0x0      5
+ * R       150         0x0      5
+ * R       151         0x0      5
+ * W       127         0x13     10
+ * R       130         0x0      5
+ *
+ * CLI format:
+ *   wedge_qsfp_util <module> --batch_ops --batchfile <filename> [--direct_i2c]
+ */
+int doBatchOps(
+    TransceiverI2CApi* bus,
+    std::vector<unsigned int>& ports,
+    std::string batchfile,
+    folly::EventBase& evb) {
+  std::string fileContents;
+  int rc, regAddr, regVal, delayMsec;
+  char opCode;
+
+  std::ifstream batchFileStream(batchfile.c_str());
+  std::string commandLine;
+  std::string headerLine;
+
+  if (!getline(batchFileStream, commandLine)){
+    printf("Batchfile empty or read failure\n");
+    return EX_USAGE;
+  }
+
+  while (getline(batchFileStream, commandLine)) {
+    rc = std::sscanf(commandLine.c_str(), "%c %d %x %d", &opCode, &regAddr, &regVal, &delayMsec);
+    if (rc != 4) {
+      printf("Batchfile formating issue\n");
+      return EX_USAGE;
+    }
+
+    if (opCode == 'R') {
+      printf("Reading Reg offset %d, Postdelay %d msec\n", regAddr, delayMsec);
+      doReadReg(bus, ports, regAddr, 1, -1, evb);
+    } else {
+      printf("Writing Reg offset %d value 0x%x, Postdelay %d msec\n", regAddr, regVal, delayMsec);
+      doWriteReg(bus, ports, regAddr, -1, regVal, evb);
+    }
+    /* sleep override */
+    usleep(delayMsec * 1000);
   }
   return EX_OK;
 }
