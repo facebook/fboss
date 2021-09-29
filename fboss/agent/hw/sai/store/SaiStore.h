@@ -44,9 +44,6 @@ struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
     : std::false_type {};
 
 template <>
-struct AdapterHostKeyWarmbootRecoverable<SaiLagTraits> : std::false_type {};
-
-template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 };
 /*
@@ -382,16 +379,6 @@ class SaiObjectStore {
           // state.
           return ObjectType(key);
         }
-        if constexpr (std::is_same_v<ObjectTraits, SaiLagTraits>) {
-          // TODO(pshaikh): clean this to make LAG's AHK recoverable on wb.
-          // mainly added this to support existing sai switch unit tests.
-          // LAG's adapter host key can be recoverable some platforms which
-          // support label attribute
-          auto label = SaiApiTable::getInstance()->lagApi().getAttribute(
-              key, SaiLagTraits::Attributes::Label{});
-          return ObjectType(key, label);
-        }
-
         throw FbossError(
             "attempting to load an object whose adapter host key is not found.");
       }

@@ -40,7 +40,8 @@ struct SaiLagTraits {
   };
   using AdapterKey = LagSaiId;
   using AdapterHostKey = Attributes::Label;
-  using CreateAttributes = std::tuple<std::optional<Attributes::PortVlanId>>;
+  using CreateAttributes =
+      std::tuple<Attributes::Label, std::optional<Attributes::PortVlanId>>;
 };
 
 SAI_ATTRIBUTE_NAME(Lag, PortList);

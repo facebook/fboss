@@ -23,7 +23,9 @@ class LagStoreTest : public SaiStoreTest {
   }
 
   LagSaiId createLag(std::string label, uint16_t vlan) {
-    SaiLagTraits::CreateAttributes c{vlan};
+    std::array<char, 32> labelValue{"lag0"};
+    std::copy(label.begin(), label.end(), labelValue.data());
+    SaiLagTraits::CreateAttributes c{labelValue, vlan};
     auto lagId = saiApiTable->lagApi().create<SaiLagTraits>(c, 0);
 
     std::array<char, 32> data{};
@@ -44,7 +46,7 @@ TEST_F(LagStoreTest, setObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {labelValue, 1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   for (auto i : {1, 2, 3, 4}) {
     SaiLagMemberTraits::AdapterHostKey adapterHostLey{lag->adapterKey(), i};
@@ -65,7 +67,7 @@ TEST_F(LagStoreTest, updateObject) {
   s.reload();
   std::array<char, 32> labelValue{"lag0"};
   SaiLagTraits::Attributes::Label label{labelValue};
-  auto lag = s.get<SaiLagTraits>().setObject(label, {1});
+  auto lag = s.get<SaiLagTraits>().setObject(label, {labelValue, 1});
   std::vector<std::shared_ptr<SaiObject<SaiLagMemberTraits>>> members;
   std::vector<LagMemberSaiId> memberIds;
   for (auto i : {1, 2, 3, 4}) {
@@ -144,10 +146,5 @@ TEST_F(LagStoreTest, toAndFromDynamic) {
 
   auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
   auto& lagAk2AhkJson = ak2AhkJson[saiObjectTypeToString(SAI_OBJECT_TYPE_LAG)];
-  EXPECT_TRUE(!lagAk2AhkJson.empty());
-  EXPECT_EQ(lagAk2AhkJson.size(), 1);
-
-  auto iter = lagAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
-  EXPECT_FALSE(lagAk2AhkJson.items().end() == iter);
-  EXPECT_EQ(iter->second, k0);
+  EXPECT_TRUE(lagAk2AhkJson.empty());
 }
