@@ -98,6 +98,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
       mode_ = PlatformMode::WEDGE400;
+    } else if (modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0) {
+      mode_ = PlatformMode::DARWIN;
     } else if (modelName.find("Wedge") == 0 || modelName.find("WEDGE") == 0) {
       mode_ = PlatformMode::WEDGE;
     } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
@@ -146,6 +148,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::FUJI;
     } else if (FLAGS_mode == "elbert") {
       mode_ = PlatformMode::ELBERT;
+    } else if (FLAGS_mode == "darwin") {
+      mode_ = PlatformMode::DARWIN;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
