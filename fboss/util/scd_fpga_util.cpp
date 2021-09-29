@@ -13,9 +13,11 @@
 #include <sstream>
 
 DEFINE_bool(read_reg, false,
-  "Read register from device, use with --offset");
+  "Read register from device, use with --offset [--length]");
 DEFINE_int32(offset, 0,
   "Device register address");
+DEFINE_int32(length, 1,
+  "Number of registers to read");
 DEFINE_bool(write_reg, false,
   "Write register from device, use with --offset --data");
 DEFINE_int32(data, -1,
@@ -48,9 +50,20 @@ unsigned int scdReadRegInternal(struct scd_info_s *pMem, uint32_t regAddr) {
  *
  * Reads the SCD/SAT FPGA register.
  */
-bool scdReadReg(struct scd_info_s *pMem, uint32_t regAddr) {
-  unsigned int regVal = scdReadRegInternal(pMem, regAddr);
-  printf("Reg 0x%x = 0x%.8x\n",  regAddr, regVal);
+bool scdReadReg(struct scd_info_s *pMem, uint32_t regAddr, uint32_t length) {
+  unsigned int regVal;
+
+  for (int i = 0; i < length; i++) {
+    regVal = scdReadRegInternal(pMem, regAddr + i * 4);
+    if (!(i % 4)) {
+      if (i) {
+        printf("\n");
+      }
+      printf("0x%x: ", regAddr + i * 4);
+    }
+    printf("%.8x ", regVal);
+  }
+  printf("\n");
   return true;
 }
 
@@ -131,8 +144,8 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_read_reg) {
-    printf("Calling scdReadReg with address 0x%x\n", FLAGS_offset);
-    scdReadReg(&scdInfo, FLAGS_offset);
+    printf("Calling scdReadReg with address 0x%x length %d\n", FLAGS_offset, FLAGS_length);
+    scdReadReg(&scdInfo, FLAGS_offset, FLAGS_length);
   }
   if (FLAGS_write_reg) {
     if (FLAGS_data == -1) {
