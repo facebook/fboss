@@ -13,9 +13,13 @@
 #include <sstream>
 
 DEFINE_bool(read_reg, false,
-  "Read register from device, use with --reg_addr");
+  "Read register from device, use with --offset");
 DEFINE_int32(offset, 0,
   "Device register address");
+DEFINE_bool(write_reg, false,
+  "Write register from device, use with --offset --data");
+DEFINE_int32(data, -1,
+  "Register data for write");
 
 struct scd_info_s {
   unsigned int mapSize;
@@ -46,6 +50,34 @@ unsigned int scdReadRegInternal(struct scd_info_s *pMem, uint32_t regAddr) {
  */
 bool scdReadReg(struct scd_info_s *pMem, uint32_t regAddr) {
   unsigned int regVal = scdReadRegInternal(pMem, regAddr);
+  printf("Reg 0x%x = 0x%.8x\n",  regAddr, regVal);
+  return true;
+}
+
+/*
+ * scdWriteRegInternal
+ *
+ * Write the SCD/SAT FPGA register. The register address is 16 bit value, the data
+ * is 32 bit value. The register could be in SCD or SAT FPGA
+ */
+void scdWriteRegInternal(struct scd_info_s *pMem, uint32_t regAddr, uint32_t regVal) {
+
+  unsigned char *ptr = pMem->mapAddr;
+  if (regAddr >= pMem->mapSize) {
+    return;
+  }
+  ptr += regAddr;
+  *(unsigned int*)ptr = regVal;
+}
+
+/*
+ * scdWriteReg
+ *
+ * Writes to the SCD/SAT FPGA register.
+ */
+bool scdWriteReg(struct scd_info_s *pMem, uint32_t regAddr, uint32_t regVal) {
+  scdWriteRegInternal(pMem, regAddr, regVal);
+  regVal = scdReadRegInternal(pMem, regAddr);
   printf("Reg 0x%x = 0x%.8x\n",  regAddr, regVal);
   return true;
 }
@@ -101,6 +133,15 @@ int main(int argc, char* argv[]) {
   if (FLAGS_read_reg) {
     printf("Calling scdReadReg with address 0x%x\n", FLAGS_offset);
     scdReadReg(&scdInfo, FLAGS_offset);
+  }
+  if (FLAGS_write_reg) {
+    if (FLAGS_data == -1) {
+      printf("Valid data need to be specified for write operation\n");
+      return EX_SOFTWARE;
+    }
+    printf("Calling scdWriteReg with address 0x%x value 0x%x\n",
+            FLAGS_offset, FLAGS_data);
+    scdWriteReg(&scdInfo, FLAGS_offset, FLAGS_data);
   }
 
   munmap(scdInfo.mapAddr, 0x80000);
