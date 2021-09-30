@@ -31,8 +31,19 @@ sai_macsec_direction_t mkaDirectionToSaiDirection(
 } // namespace
 
 namespace facebook::fboss {
+
+SaiPhyManager::PlatformInfo::PlatformInfo(
+    std::unique_ptr<SaiHwPlatform> platform)
+    : saiPlatform_(std::move(platform)) {}
+
+SaiPhyManager::PlatformInfo::~PlatformInfo() {}
+
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
     : PhyManager(platformMapping), localMac_(getLocalMacAddress()) {}
+
+SaiSwitch* SaiPhyManager::PlatformInfo::getHwSwitch() const {
+  return static_cast<SaiSwitch*>(saiPlatform_->getHwSwitch());
+}
 
 SaiPhyManager::~SaiPhyManager() {}
 

@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
@@ -76,11 +75,11 @@ class SaiPhyManager : public PhyManager {
  private:
   class PlatformInfo {
    public:
-    explicit PlatformInfo(std::unique_ptr<SaiHwPlatform> platform)
-        : saiPlatform_(std::move(platform)) {}
-    SaiSwitch* getHwSwitch() const {
-      return static_cast<SaiSwitch*>(saiPlatform_->getHwSwitch());
-    }
+    explicit PlatformInfo(std::unique_ptr<SaiHwPlatform> platform);
+    PlatformInfo(PlatformInfo&&) = default;
+    PlatformInfo& operator=(PlatformInfo&&) = default;
+    ~PlatformInfo();
+    SaiSwitch* getHwSwitch() const;
     SaiHwPlatform* getPlatform() const {
       return saiPlatform_.get();
     }
