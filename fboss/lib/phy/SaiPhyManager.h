@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
@@ -73,6 +74,20 @@ class SaiPhyManager : public PhyManager {
   }
 
  private:
+  class PlatformInfo {
+   public:
+    explicit PlatformInfo(std::unique_ptr<SaiHwPlatform> platform)
+        : saiPlatform_(std::move(platform)) {}
+    SaiSwitch* getHwSwitch() const {
+      return static_cast<SaiSwitch*>(saiPlatform_->getHwSwitch());
+    }
+    SaiHwPlatform* getPlatform() const {
+      return saiPlatform_.get();
+    }
+
+   private:
+    std::unique_ptr<SaiHwPlatform> saiPlatform_;
+  };
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;
@@ -92,8 +107,7 @@ class SaiPhyManager : public PhyManager {
   // use a const private member to store the local mac once, and then pass this
   // mac address when creating each single SaiHwPlatform
   const folly::MacAddress localMac_;
-  std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<SaiHwPlatform>>>
-      saiPlatforms_;
+  std::map<PimID, std::map<GlobalXphyID, PlatformInfo>> saiPlatforms_;
   std::map<PimID, std::optional<folly::Future<folly::Unit>>>
       pim2OngoingStatsCollection_;
 };
