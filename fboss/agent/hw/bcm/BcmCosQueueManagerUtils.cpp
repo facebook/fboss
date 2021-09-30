@@ -30,6 +30,8 @@ using facebook::fboss::BcmCosQueueStatType;
 using facebook::fboss::cfg::QueueCongestionBehavior;
 using AqmMap = facebook::fboss::PortQueueFields::AQMMap;
 
+constexpr int kWredDiscardProbability = 100;
+
 const std::map<BcmCosQueueStatType, bcm_cosq_stat_t> kBcmCosqStats = {
     {BcmCosQueueStatType::DROPPED_BYTES, bcmCosqStatDroppedBytes},
     {BcmCosQueueStatType::DROPPED_PACKETS, bcmCosqStatDroppedPackets},
@@ -80,6 +82,7 @@ AqmMap makeDefauleAqmMap(int32_t threshold) {
   facebook::fboss::cfg::LinearQueueCongestionDetection detection;
   detection.minimumLength_ref() = threshold;
   detection.maximumLength_ref() = threshold;
+  detection.probability_ref() = kWredDiscardProbability;
   for (auto behavior :
        {QueueCongestionBehavior::EARLY_DROP, QueueCongestionBehavior::ECN}) {
     facebook::fboss::cfg::ActiveQueueManagement aqm;

@@ -137,7 +137,8 @@ bcm_cosq_gport_discard_t cfgAqmToBcmAqm(
       case cfg::QueueCongestionDetection::Type::linear:
         discard.min_thresh = detection.value().get_linear().minimumLength;
         discard.max_thresh = detection.value().get_linear().maximumLength;
-        discard.drop_probability = kWredDiscardProbability;
+        discard.drop_probability =
+            detection.value().get_linear().get_probability();
         break;
       case cfg::QueueCongestionDetection::Type::__EMPTY__:
         LOG(WARNING) << "Invalid queue congestion detection config";
@@ -170,11 +171,13 @@ std::optional<cfg::ActiveQueueManagement> bcmAqmToCfgAqm(
   cfg::ActiveQueueManagement aqm;
   cfg::QueueCongestionDetection detection;
   cfg::LinearQueueCongestionDetection linear;
+  auto behavior = cfgQuenBehaviorFromBcmAqm(discard);
   linear.minimumLength = discard.min_thresh;
   linear.maximumLength = discard.max_thresh;
+  linear.probability_ref() = discard.drop_probability;
   detection.linear_ref() = linear;
   aqm.detection_ref() = detection;
-  aqm.behavior_ref() = cfgQuenBehaviorFromBcmAqm(discard);
+  aqm.behavior_ref() = behavior;
   return aqm;
 }
 

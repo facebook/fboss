@@ -25,6 +25,7 @@ namespace {
 
 constexpr auto kQueue0ReservedBytesCells = 16;
 constexpr auto kQueue1ReservedBytesCells = 96;
+constexpr auto KProbability = 100;
 
 std::vector<cfg::PortQueue> getConfigPortQueues(int mmuCellBytes) {
   std::vector<cfg::PortQueue> portQueues;
@@ -79,6 +80,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig(int mmuCellBytes) {
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
   earlyDropLQCD.minimumLength = mmuCellBytes;
   earlyDropLQCD.maximumLength = 2 * mmuCellBytes;
+  earlyDropLQCD.probability_ref() = KProbability / 2;
   earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
   earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
@@ -89,6 +91,7 @@ cfg::ActiveQueueManagement getECNAqmConfig(int mmuCellBytes) {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength = 3 * mmuCellBytes;
   ecnLQCD.maximumLength = 3 * mmuCellBytes;
+  ecnLQCD.probability_ref() = KProbability;
   ecnAQM.detection.linear_ref() = ecnLQCD;
   ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;

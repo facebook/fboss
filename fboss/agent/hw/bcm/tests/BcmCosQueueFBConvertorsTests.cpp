@@ -27,6 +27,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
   earlyDropLQCD.minimumLength = 208;
   earlyDropLQCD.maximumLength = 416;
+  earlyDropLQCD.probability_ref() = 50;
   earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
   earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
@@ -37,6 +38,7 @@ cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength = 624;
   ecnLQCD.maximumLength = 624;
+  ecnLQCD.probability_ref() = 100;
   ecnAQM.detection.linear_ref() = ecnLQCD;
   ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
