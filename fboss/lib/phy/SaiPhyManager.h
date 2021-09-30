@@ -34,7 +34,6 @@ class SaiPhyManager : public PhyManager {
 
   SaiSwitch* getSaiSwitch(GlobalXphyID xphyID) const;
   SaiSwitch* getSaiSwitch(PortID portID) const;
-  std::vector<SaiSwitch*> getSaiSwitches() const;
 
   void sakInstallTx(const mka::MKASak& sak) override;
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
