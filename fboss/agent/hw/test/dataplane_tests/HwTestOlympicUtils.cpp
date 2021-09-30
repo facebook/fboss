@@ -13,18 +13,6 @@
 
 namespace facebook::fboss::utility {
 
-namespace {
-cfg::ActiveQueueManagement kGetWredConfig() {
-  cfg::ActiveQueueManagement wredAQM;
-  cfg::LinearQueueCongestionDetection wredLQCD;
-  wredLQCD.minimumLength_ref() = 41600;
-  wredLQCD.maximumLength_ref() = 41600;
-  wredAQM.detection_ref()->linear_ref() = wredLQCD;
-  wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
-  return wredAQM;
-}
-} // namespace
-
 cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
@@ -33,6 +21,17 @@ cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
   ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
   ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
+}
+cfg::ActiveQueueManagement
+kGetWredConfig(int minLength, int maxLength, int probability) {
+  cfg::ActiveQueueManagement wredAQM;
+  cfg::LinearQueueCongestionDetection wredLQCD;
+  wredLQCD.minimumLength_ref() = minLength;
+  wredLQCD.maximumLength_ref() = maxLength;
+  wredLQCD.probability_ref() = probability;
+  wredAQM.detection_ref()->linear_ref() = wredLQCD;
+  wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  return wredAQM;
 }
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueConfig(
@@ -105,6 +104,45 @@ void addOlympicQueueConfig(
   queue7.streamType_ref() = streamType;
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
+
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  for (auto& port : *config->ports_ref()) {
+    port.portQueueConfigName_ref() = "queue_config";
+  }
+}
+
+// Configure two queues (silver and ecn) with the same weight but different drop
+// probability. It is used to verify the queue with higher drop probability will
+// have more drops and lower watermark.
+void addQueueWredDropConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType) {
+  std::vector<cfg::PortQueue> portQueues;
+
+  // 256 packets in the test, where each packet has a payload of 7000 bytes
+  auto constexpr maxThresh = 7000 * 256;
+
+  cfg::PortQueue queue0;
+  queue0.id_ref() = kOlympicSilverQueueId;
+  queue0.name_ref() = "queue0";
+  queue0.streamType_ref() = streamType;
+  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight_ref() = kOlympicEcn1Weight;
+  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
+  queue0.aqms_ref() = {};
+  queue0.aqms_ref()->push_back(kGetWredConfig(0, maxThresh, 0));
+  portQueues.push_back(queue0);
+
+  cfg::PortQueue queue2;
+  queue2.id_ref() = kOlympicEcn1QueueId;
+  queue2.name_ref() = "queue2";
+  queue2.streamType_ref() = streamType;
+  queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue2.weight_ref() = kOlympicEcn1Weight;
+  queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
+  queue2.aqms_ref() = {};
+  queue2.aqms_ref()->push_back(kGetWredConfig(0, maxThresh, 5));
+  portQueues.push_back(queue2);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
   for (auto& port : *config->ports_ref()) {

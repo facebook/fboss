@@ -57,6 +57,9 @@ void addOlympicQueueConfig(
     cfg::StreamType streamType,
     const HwAsic* asic,
     bool addWredConfig = false);
+void addQueueWredDropConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType);
 void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
@@ -81,5 +84,9 @@ void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg);
 const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp();
 const std::vector<int>& kOlympicAllSPQueueIds();
 cfg::ActiveQueueManagement kGetOlympicEcnConfig();
+cfg::ActiveQueueManagement kGetWredConfig(
+    int minLength = 41600,
+    int maxLength = 41600,
+    int probability = 100);
 
 } // namespace facebook::fboss::utility
