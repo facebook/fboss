@@ -14,6 +14,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/NullPortStats.h"
 
@@ -214,10 +215,13 @@ void SaiPhyManager::programOnePort(
   portObj->setProfileId(portProfileId);
   portObj->setAdminState(cfg::PortState::ENABLED);
 
+  auto newState = std::make_shared<SwitchState>();
+  newState->getPorts()->addPort(std::move(portObj));
   // Finally adding the port (sysport, lineport and port connector).
   // Return value is line port
-  PortSaiId saiPort = saiSwitch->managerTable()->portManager().addPort(portObj);
-  XLOG(INFO) << "Created Sai port " << saiPort << " for id=" << portId;
+  saiSwitch->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), newState));
+  XLOG(INFO) << "Created Sai port  for id=" << portId;
 
   // Once the port is programmed successfully, update the portToLanesInfo_
   setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
