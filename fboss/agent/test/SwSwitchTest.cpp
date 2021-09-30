@@ -190,6 +190,48 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   stateV2->publish();
 
   EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+
+  // PortQueue with valid WRED probability
+  auto stateV3 = stateV0->clone();
+  auto portMap0 = stateV3->getPorts()->modify(&stateV3);
+
+  auto port0 = std::make_shared<Port>(PortID(0), "port0");
+  auto portQueue0 = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+  cfg::ActiveQueueManagement aqm0;
+  cfg::LinearQueueCongestionDetection lqcd0;
+  lqcd0.minimumLength_ref() = 0;
+  lqcd0.maximumLength_ref() = 0;
+  lqcd0.probability_ref() = 50;
+  aqm0.detection_ref()->linear_ref() = lqcd0;
+  aqm0.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  portQueue0->resetAqms({aqm0});
+  port0->resetPortQueues({portQueue0});
+  portMap0->addPort(port0);
+
+  stateV3->publish();
+
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV3)));
+
+  // PortQueue with invalid ECN probability
+  auto stateV4 = stateV0->clone();
+  auto portMap1 = stateV4->getPorts()->modify(&stateV4);
+
+  auto port1 = std::make_shared<Port>(PortID(1), "port1");
+  auto portQueue1 = std::make_shared<PortQueue>(static_cast<uint8_t>(1));
+  cfg::ActiveQueueManagement aqm1;
+  cfg::LinearQueueCongestionDetection lqcd1;
+  lqcd1.minimumLength_ref() = 0;
+  lqcd1.maximumLength_ref() = 0;
+  lqcd1.probability_ref() = 50;
+  aqm1.detection_ref()->linear_ref() = lqcd1;
+  aqm1.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
+  portQueue1->resetAqms({aqm1});
+  port1->resetPortQueues({portQueue1});
+  portMap1->addPort(port1);
+
+  stateV4->publish();
+
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV4)));
 }
 
 TEST_F(SwSwitchTest, gracefulExit) {

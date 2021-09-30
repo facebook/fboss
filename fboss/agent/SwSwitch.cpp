@@ -1711,6 +1711,19 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
 
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& /* oldport */,
+          const shared_ptr<Port>& newport) {
+        isValid = isValid && newport->hasValidPortQueues();
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<Port>& addport) {
+        isValid = isValid && addport->hasValidPortQueues();
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<Port>& /* delport */) {});
+
   return isValid && hw_->isValidStateUpdate(delta);
 }
 

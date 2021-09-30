@@ -200,6 +200,21 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     return getFields()->queues;
   }
 
+  bool hasValidPortQueues() {
+    constexpr auto kDefaultProbability = 100;
+    for (auto& portQueue : getFields()->queues) {
+      for (auto& entry : portQueue->getAqms()) {
+        if (entry.second.behavior_ref() ==
+                facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
+            entry.second.detection_ref()->linear_ref()->probability_ref() !=
+                kDefaultProbability) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   void resetPortQueues(QueueConfig queues) {
     writableFields()->queues.swap(queues);
   }
