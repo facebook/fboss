@@ -99,6 +99,14 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   return saiLinePort->adapterKey();
 }
 
+void SaiPortManager::changePort(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& newPort) {
+  // TODO - properly handle attribute update, rather than treting
+  // all changes as a port addition
+  addPort(newPort);
+}
+
 /*
  * SaiPortManager::attributesFromSwPort
  *

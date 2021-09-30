@@ -483,64 +483,6 @@ bool SaiPortManager::createOnlyAttributeChanged(
         std::get<SaiPortTraits::Attributes::Speed>(newAttributes)));
 }
 
-void SaiPortManager::changePort(
-    const std::shared_ptr<Port>& oldPort,
-    const std::shared_ptr<Port>& newPort) {
-  SaiPortHandle* existingPort = getPortHandle(newPort->getID());
-  if (!existingPort) {
-    throw FbossError("Attempted to change non-existent port ");
-  }
-  SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
-  SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
-
-  if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
-    XLOG(INFO) << "Create only attribute (e.g. lane, speed etc.) changed for "
-               << oldPort->getID();
-    removePort(oldPort);
-    addPort(newPort);
-    return;
-  }
-
-  SaiPortTraits::AdapterHostKey portKey{
-      GET_ATTR(Port, HwLaneList, newAttributes)};
-  auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
-  programSerdes(saiPort, newPort, existingPort);
-  // if vlan changed update it, this is important for rx processing
-  if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
-    concurrentIndices_->vlanIds.insert_or_assign(
-        PortDescriptorSaiId(saiPort->adapterKey()), newPort->getIngressVlan());
-    XLOG(INFO) << "changed vlan on port " << newPort->getID()
-               << ": old vlan: " << oldPort->getIngressVlan()
-               << ", new vlan: " << newPort->getIngressVlan();
-  }
-  if (newPort->getProfileID() != oldPort->getProfileID()) {
-    auto platformPort = platform_->getPort(newPort->getID());
-    platformPort->setCurrentProfile(newPort->getProfileID());
-  }
-
-  changeSamplePacket(oldPort, newPort);
-  changeMirror(oldPort, newPort);
-
-  if (newPort->isEnabled()) {
-    if (!oldPort->isEnabled()) {
-      // Port transitioned from disabled to enabled, setup port stats
-      portStats_.emplace(
-          newPort->getID(),
-          std::make_unique<HwPortFb303Stats>(newPort->getName()));
-    } else if (oldPort->getName() != newPort->getName()) {
-      // Port was already enabled, but Port name changed - update stats
-      portStats_.find(newPort->getID())
-          ->second->portNameChanged(newPort->getName());
-    }
-  } else if (oldPort->isEnabled()) {
-    // Port transitioned from enabled to disabled, remove stats
-    portStats_.erase(newPort->getID());
-  }
-  changeQueue(
-      newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
-}
-
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     SaiPortTraits::CreateAttributes attributes) const {
   auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
