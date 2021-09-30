@@ -19,10 +19,12 @@
 
 #include <chrono>
 #include <map>
+#include <mutex>
 
 namespace facebook::fboss {
 
 class SaiHwPlatform;
+class StateUpdate;
 
 class SaiPhyManager : public PhyManager {
  public:
@@ -79,13 +81,24 @@ class SaiPhyManager : public PhyManager {
     PlatformInfo(PlatformInfo&&) = default;
     PlatformInfo& operator=(PlatformInfo&&) = default;
     ~PlatformInfo();
+
+    using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
+        const std::shared_ptr<SwitchState>&)>;
+
     SaiSwitch* getHwSwitch() const;
     SaiHwPlatform* getPlatform() const {
       return saiPlatform_.get();
     }
+    void applyUpdate(folly::StringPiece name, StateUpdateFn fn);
 
    private:
+    std::shared_ptr<SwitchState> getState() const {
+      return curState_;
+    }
+    void setState(const std::shared_ptr<SwitchState>& newState);
     std::unique_ptr<SaiHwPlatform> saiPlatform_;
+    std::shared_ptr<SwitchState> curState_;
+    std::mutex updateMutex_;
   };
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
@@ -106,7 +119,8 @@ class SaiPhyManager : public PhyManager {
   // use a const private member to store the local mac once, and then pass this
   // mac address when creating each single SaiHwPlatform
   const folly::MacAddress localMac_;
-  std::map<PimID, std::map<GlobalXphyID, PlatformInfo>> saiPlatforms_;
+  std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<PlatformInfo>>>
+      saiPlatforms_;
   std::map<PimID, std::optional<folly::Future<folly::Unit>>>
       pim2OngoingStatsCollection_;
 };

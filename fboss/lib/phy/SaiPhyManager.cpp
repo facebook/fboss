@@ -14,6 +14,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/NullPortStats.h"
@@ -45,6 +46,26 @@ SaiSwitch* SaiPhyManager::PlatformInfo::getHwSwitch() const {
   return static_cast<SaiSwitch*>(saiPlatform_->getHwSwitch());
 }
 
+void SaiPhyManager::PlatformInfo::setState(
+    const std::shared_ptr<SwitchState>& newState) {
+  curState_ = newState;
+  curState_->publish();
+}
+
+void SaiPhyManager::PlatformInfo::applyUpdate(
+    folly::StringPiece name,
+    StateUpdateFn updateFn) {
+  std::lock_guard<std::mutex> g(updateMutex_);
+  XLOG(INFO) << " Applying update : " << name;
+  auto oldState = getState();
+  auto newState = updateFn(oldState);
+  if (newState) {
+    auto appliedState =
+        getHwSwitch()->stateChanged(StateDelta(oldState, newState));
+    setState(appliedState);
+  }
+}
+
 SaiPhyManager::~SaiPhyManager() {}
 
 SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) const {
@@ -57,7 +78,7 @@ SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) const {
   if (platformItr == pimPlatforms->second.end()) {
     throw FbossError("SaiHwPlatform is not created for globalPhyID:", xphyID);
   }
-  return platformItr->second.getPlatform();
+  return platformItr->second->getPlatform();
 }
 
 SaiHwPlatform* SaiPhyManager::getSaiPlatform(PortID portID) const {
@@ -86,11 +107,11 @@ void SaiPhyManager::updateAllXphyPortsStats() {
                 for (auto& [xphy, platformInfo] : xphyToPlatform) {
                   try {
                     static SwitchStats unused;
-                    platformInfo.getHwSwitch()->updateStats(&unused);
+                    platformInfo->getHwSwitch()->updateStats(&unused);
                   } catch (const std::exception& e) {
                     XLOG(INFO) << "Stats collection failed on : "
                                << "switch: "
-                               << platformInfo.getHwSwitch()->getSwitchId()
+                               << platformInfo->getHwSwitch()->getSwitchId()
                                << " xphy: " << xphy << " error: " << e.what();
                   }
                 }
@@ -105,8 +126,8 @@ void SaiPhyManager::addSaiPlatform(
     GlobalXphyID xphyID,
     std::unique_ptr<SaiHwPlatform> platform) {
   const auto phyIDInfo = getPhyIDInfo(xphyID);
-  saiPlatforms_[phyIDInfo.pimID].emplace(
-      std::make_pair(xphyID, PlatformInfo(std::move(platform))));
+  saiPlatforms_[phyIDInfo.pimID].emplace(std::make_pair(
+      xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
 }
 
 void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
