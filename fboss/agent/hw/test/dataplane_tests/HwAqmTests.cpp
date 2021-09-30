@@ -36,6 +36,22 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  cfg::SwitchConfig wredDropConfig() const {
+    auto cfg = utility::oneL3IntfConfig(
+        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addQueueWredDropConfig(&cfg, streamType);
+      utility::addOlympicQosMaps(cfg);
+    }
+    return cfg;
+  }
+
+  uint8_t kSilverDscp() const {
+    return 0;
+  }
+
   uint8_t kDscp() const {
     return 5;
   }
@@ -139,6 +155,71 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  void runWredDropTest() {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+    auto setup = [=]() {
+      applyNewConfig(wredDropConfig());
+      auto kEcmpWidthForTest = 1;
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getIntfMac()};
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      disableTTLDecrements(ecmpHelper6);
+    };
+    auto verify = [=]() {
+      // Send packets to queue0 and queue2 (both configured to the same weight).
+      // Queue0 is configured with 0% drop probability and queue2 is configured
+      // with 5% drop probability.
+      sendPkts(kDscp(), false);
+      sendPkts(kSilverDscp(), false);
+
+      // Avoid flakiness
+      sleep(1);
+
+      constexpr auto queue2Id = 2;
+      constexpr auto queue0Id = 0;
+
+      // Verify queue2 watermark being updated.
+      auto queueId = queue2Id;
+
+      auto countIncremented = [&](const auto& newStats) {
+        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        auto queueWatermark = portStatsIter->second.get_queueWatermarkBytes_()
+                                  .find(queueId)
+                                  ->second;
+        XLOG(DBG0) << "Queue " << queueId << " watermark : " << queueWatermark;
+        return queueWatermark > 0;
+      };
+
+      EXPECT_TRUE(
+          getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
+
+      // Verify queue0 watermark being updated.
+      queueId = queue0Id;
+      EXPECT_TRUE(
+          getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
+
+      auto watermarkBytes = getHwSwitchEnsemble()
+                                ->getLatestPortStats(masterLogicalPortIds()[0])
+                                .get_queueWatermarkBytes_();
+
+      // Queue0 watermark should be higher than queue2 since it drops less
+      // packets.
+      auto queue0Watermark = watermarkBytes.find(queue0Id)->second;
+      auto queue2Watermark = watermarkBytes.find(queue2Id)->second;
+
+      XLOG(DBG0) << "Expecting queue 0 watermark " << queue0Watermark
+                 << " larger than queue 2 watermark : " << queue2Watermark;
+      EXPECT_TRUE(queue0Watermark > queue2Watermark);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
 };
 
 TEST_F(HwAqmTest, verifyEcn) {
@@ -147,5 +228,9 @@ TEST_F(HwAqmTest, verifyEcn) {
 
 TEST_F(HwAqmTest, verifyWred) {
   runTest(false);
+}
+
+TEST_F(HwAqmTest, verifyWredDrop) {
+  runWredDropTest();
 }
 } // namespace facebook::fboss
