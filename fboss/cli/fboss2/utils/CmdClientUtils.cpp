@@ -28,10 +28,4 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createClient(
   return utils::createQsfpClient(hostInfo);
 }
 
-template <>
-std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> createClient(
-    const HostInfo& hostInfo) {
-  return utils::createMkaClient(hostInfo);
-}
-
 } // namespace facebook::fboss::utils

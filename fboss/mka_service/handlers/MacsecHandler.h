@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #pragma once
 
-#include <fboss/mka_service/if/gen-cpp2/mka_types.h>
+#include <fboss/mka_service/if/gen-cpp2/mka_structs_types.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook {

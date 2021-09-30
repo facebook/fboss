@@ -16,7 +16,7 @@
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
-#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 

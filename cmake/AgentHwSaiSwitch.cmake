@@ -73,7 +73,7 @@ target_link_libraries(sai_switch
   hw_port_fb303_stats
   hw_resource_stats_publisher
   hw_switch_warmboot_helper
-  mka_cpp2
+  mka_structs_cpp2
   sai_api
   sai_platform
   sai_store

@@ -9,7 +9,6 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
-include "fboss/mka_service/if/mka.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 
 service QsfpService extends fb303.FacebookService {
@@ -97,26 +96,26 @@ service QsfpService extends fb303.FacebookService {
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,
-  ) throws (1: mka.MKAServiceException ex) (cpp.coroutine);
+  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
 
   bool sakInstallTx(1: mka_structs.MKASak sak) throws (
-    1: mka.MKAServiceException ex,
+    1: mka_structs.MKAServiceException ex,
   ) (cpp.coroutine);
 
   bool sakDeleteRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToRemove,
-  ) throws (1: mka.MKAServiceException ex) (cpp.coroutine);
+  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
 
   bool sakDelete(1: mka_structs.MKASak sak) throws (
-    1: mka.MKAServiceException ex,
+    1: mka_structs.MKAServiceException ex,
   ) (cpp.coroutine);
 
-  mka.MKASakHealthResponse sakHealthCheck(1: mka_structs.MKASak sak) throws (
-    1: mka.MKAServiceException ex,
-  ) (cpp.coroutine);
+  mka_structs.MKASakHealthResponse sakHealthCheck(
+    1: mka_structs.MKASak sak,
+  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
 
-  mka.MacsecPortPhyMap macsecGetPhyPortInfo() throws (
+  mka_structs.MacsecPortPhyMap macsecGetPhyPortInfo() throws (
     1: fboss.FbossBaseError error,
   ) (cpp.coroutine);
 
@@ -128,21 +127,21 @@ service QsfpService extends fb303.FacebookService {
     cpp.coroutine,
   );
 
-  mka.MacsecAllScInfo macsecGetAllScInfo(1: string portName) throws (
+  mka_structs.MacsecAllScInfo macsecGetAllScInfo(1: string portName) throws (
     1: fboss.FbossBaseError error,
   ) (cpp.coroutine);
 
-  mka.MacsecPortStats macsecGetPortStats(
+  mka_structs.MacsecPortStats macsecGetPortStats(
     1: string portName,
     2: bool directionIngress,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
-  mka.MacsecFlowStats macsecGetFlowStats(
+  mka_structs.MacsecFlowStats macsecGetFlowStats(
     1: string portName,
     2: bool directionIngress,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
-  mka.MacsecSaStats macsecGetSaStats(
+  mka_structs.MacsecSaStats macsecGetSaStats(
     1: string portName,
     2: bool directionIngress,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);

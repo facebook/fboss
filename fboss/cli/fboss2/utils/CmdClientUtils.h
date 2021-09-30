@@ -14,7 +14,6 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
-#include <fboss/mka_service/if/gen-cpp2/MKAService.h>
 
 #include <memory>
 #include <string>
@@ -48,6 +47,4 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
     const HostInfo& hostInfo);
 
-std::unique_ptr<facebook::fboss::mka::MKAServiceAsyncClient> createMkaClient(
-    const HostInfo& hostInfo);
 } // namespace facebook::fboss::utils

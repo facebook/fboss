@@ -341,39 +341,6 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
 )
-add_fbthrift_cpp_library(
-  mka_config_cpp2
-  fboss/mka_service/if/mka_config.thrift
-  DEPENDS
-    mka_structs_cpp2
-  OPTIONS
-    json
-)
-add_fbthrift_cpp_library(
-  mka_participant_cpp2
-  fboss/mka_service/if/mka_participant.thrift
-  DEPENDS
-    Folly::folly
-    mka_structs_cpp2
-    mka_config_cpp2
-  OPTIONS
-    json
-)
-
-add_fbthrift_cpp_library(
-  mka_cpp2
-  fboss/mka_service/if/mka.thrift
-  SERVICES
-    MKAService
-  DEPENDS
-    fb303_cpp2
-    common_cpp2
-    mka_config_cpp2
-    mka_structs_cpp2
-    mka_participant_cpp2
-  OPTIONS
-    json
-)
 
 add_fbthrift_cpp_library(
   qsfp_cpp2
@@ -389,7 +356,7 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
     switch_config_cpp2
     mpls_cpp2
-    mka_cpp2
+    mka_structs_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -477,6 +444,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
       fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
+      fboss/qsfp_service/TransceiverManager.cpp
   )
 
   # TODO (skhare) refactor fboss_agent and remove this library

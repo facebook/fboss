@@ -9,7 +9,7 @@
 #include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/mdio/Mdio.h"
-#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>

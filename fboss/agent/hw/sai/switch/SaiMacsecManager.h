@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <fboss/mka_service/if/gen-cpp2/mka_types.h>
+#include <fboss/mka_service/if/gen-cpp2/mka_structs_types.h>
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"

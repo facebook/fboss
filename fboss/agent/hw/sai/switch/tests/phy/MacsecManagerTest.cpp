@@ -14,7 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/types.h"
-#include "fboss/mka_service/if/gen-cpp2/mka_types.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
 #include <gtest/gtest.h>
 
