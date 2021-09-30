@@ -20,6 +20,7 @@
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
+#include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
@@ -69,11 +70,17 @@ const CommandTree& kCommandTree() {
        "Show Interface information",
        commandHandler<CmdShowInterface>,
        {
+            {"errors",
+             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+             "Show Interace Error Counters",
+             commandHandler<CmdShowInterfaceErrors>},
+
             {"flaps",
              utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
              "Show Interace Flap Counters",
-             commandHandler<CmdShowInterfaceFlaps>}}},
-
+             commandHandler<CmdShowInterfaceFlaps>},
+       }
+      },
       {"show",
        "transceiver",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
