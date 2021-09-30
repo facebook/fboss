@@ -299,6 +299,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   void reloadConfig() override;
 
+  /*
+   * Get last time(ms since epoch) of the config is applied.
+   * NOTE: If no config has ever been applied, the default timestamp is 0.
+   */
+  int64_t getLastConfigAppliedInMs() override;
+
   /**
    * Serialize live running switch state at the path pointer by JSON Pointer
    */

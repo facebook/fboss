@@ -1007,6 +1007,12 @@ service FbossCtrl extends fb303.FacebookService {
   void reloadConfig();
 
   /*
+   * Get last time(ms since epoch) of the config is applied.
+   * NOTE: If no config has ever been applied, the default timestamp is 0.
+   */
+  i64 getLastConfigAppliedInMs();
+
+  /*
    * Serialize switch state at path pointed by JSON pointer
    */
   string getCurrentStateJSON(1: string jsonPointer);

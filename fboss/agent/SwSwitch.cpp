@@ -1667,6 +1667,14 @@ void SwSwitch::applyConfig(
         }
         return newState;
       });
+  // Since we're using blocking state update, once we reach here, the new config
+  // should be already applied and programmed into hardware.
+  lastConfigAppliedInMs_ =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch());
+  XLOG(DBG2) << "Finished applied config, new lastConfigAppliedInMs_="
+             << lastConfigAppliedInMs_.count();
+
   /*
    * For RIB always make route programming go through the routeUpdater wrapper
    * abstraction. For rib when routes are applied 2 things happen

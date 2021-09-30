@@ -30,6 +30,7 @@
 #include <optional>
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -301,6 +302,14 @@ class SwSwitch : public HwSwitch::Callback {
   void applyConfig(
       const std::string& reason,
       const cfg::SwitchConfig& newConfig);
+
+  /*
+   * Get last time of the config is applied.
+   * NOTE: If no config has ever been applied, the default timestamp is 0.
+   */
+  std::chrono::milliseconds getLastConfigAppliedInMs() const {
+    return lastConfigAppliedInMs_;
+  }
 
   /*
    * Registers an observer of all state updates. An observer will be notified of
@@ -946,6 +955,8 @@ class SwSwitch : public HwSwitch::Callback {
 #endif
 
   std::unique_ptr<PhySnapshotManager> phySnapshotManager_;
+
+  std::chrono::milliseconds lastConfigAppliedInMs_{0};
 };
 
 } // namespace facebook::fboss

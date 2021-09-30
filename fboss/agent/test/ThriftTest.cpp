@@ -1502,3 +1502,22 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_TRUE(tcvr == nullptr);
   EXPECT_EQ(beforeGen, sw_->getState()->getGeneration());
 }
+
+TEST_F(ThriftTest, getLastConfigAppliedInMs) {
+  ThriftHandler handler(sw_);
+  // The SetUp() will applied an initialed config, so we should verify the
+  // lastConfigAppliedInMs should be > 0 and < now.
+  auto initConfigAppliedInMs = handler.getLastConfigAppliedInMs();
+  EXPECT_GT(initConfigAppliedInMs, 0);
+  EXPECT_LT(
+      initConfigAppliedInMs,
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count());
+
+  // Try to apply a new config, the lastConfigAppliedTime should changed
+  sw_->applyConfig(
+      "New config with new speed profile", testConfigAWithLookupClasses());
+  auto newConfigAppliedInMs = handler.getLastConfigAppliedInMs();
+  EXPECT_GT(newConfigAppliedInMs, initConfigAppliedInMs);
+}

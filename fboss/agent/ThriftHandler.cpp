@@ -1853,6 +1853,11 @@ void ThriftHandler::reloadConfig() {
   return sw_->applyConfig("reload config initiated by thrift call", true);
 }
 
+int64_t ThriftHandler::getLastConfigAppliedInMs() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  return sw_->getLastConfigAppliedInMs().count();
+}
+
 void ThriftHandler::getLacpPartnerPair(
     LacpPartnerPair& lacpPartnerPair,
     int32_t portID) {
