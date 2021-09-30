@@ -31,11 +31,10 @@ class SaiPhyManager : public PhyManager {
   explicit SaiPhyManager(const PlatformMapping* platformMapping);
   ~SaiPhyManager() override;
 
-  SaiHwPlatform* getSaiPlatform(GlobalXphyID xphyID) const;
-  SaiHwPlatform* getSaiPlatform(PortID portID) const;
-
-  SaiSwitch* getSaiSwitch(GlobalXphyID xphyID) const;
-  SaiSwitch* getSaiSwitch(PortID portID) const;
+  SaiHwPlatform* getSaiPlatform(GlobalXphyID xphyID);
+  SaiHwPlatform* getSaiPlatform(PortID portID);
+  SaiSwitch* getSaiSwitch(GlobalXphyID xphyID);
+  SaiSwitch* getSaiSwitch(PortID portID);
 
   void sakInstallTx(const mka::MKASak& sak) override;
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
@@ -85,8 +84,8 @@ class SaiPhyManager : public PhyManager {
     using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
         const std::shared_ptr<SwitchState>&)>;
 
-    SaiSwitch* getHwSwitch() const;
-    SaiHwPlatform* getPlatform() const {
+    SaiSwitch* getHwSwitch();
+    SaiHwPlatform* getPlatform() {
       return saiPlatform_.get();
     }
     void applyUpdate(folly::StringPiece name, StateUpdateFn fn);
@@ -100,6 +99,8 @@ class SaiPhyManager : public PhyManager {
     std::shared_ptr<SwitchState> curState_;
     std::mutex updateMutex_;
   };
+  PlatformInfo* getPlatformInfo(GlobalXphyID xphyID);
+  PlatformInfo* getPlatformInfo(PortID portID);
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;

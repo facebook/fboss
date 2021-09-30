@@ -42,7 +42,7 @@ SaiPhyManager::PlatformInfo::~PlatformInfo() {}
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
     : PhyManager(platformMapping), localMac_(getLocalMacAddress()) {}
 
-SaiSwitch* SaiPhyManager::PlatformInfo::getHwSwitch() const {
+SaiSwitch* SaiPhyManager::PlatformInfo::getHwSwitch() {
   return static_cast<SaiSwitch*>(saiPlatform_->getHwSwitch());
 }
 
@@ -68,7 +68,8 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
 
 SaiPhyManager::~SaiPhyManager() {}
 
-SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) const {
+SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(
+    GlobalXphyID xphyID) {
   const auto& phyIDInfo = getPhyIDInfo(xphyID);
   auto pimPlatforms = saiPlatforms_.find(phyIDInfo.pimID);
   if (pimPlatforms == saiPlatforms_.end()) {
@@ -78,17 +79,25 @@ SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) const {
   if (platformItr == pimPlatforms->second.end()) {
     throw FbossError("SaiHwPlatform is not created for globalPhyID:", xphyID);
   }
-  return platformItr->second->getPlatform();
+  return platformItr->second.get();
 }
 
-SaiHwPlatform* SaiPhyManager::getSaiPlatform(PortID portID) const {
+SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(PortID portID) {
+  return getPlatformInfo(getGlobalXphyIDbyPortID(portID));
+}
+
+SaiHwPlatform* SaiPhyManager::getSaiPlatform(GlobalXphyID xphyID) {
+  return getPlatformInfo(xphyID)->getPlatform();
+}
+
+SaiHwPlatform* SaiPhyManager::getSaiPlatform(PortID portID) {
   return getSaiPlatform(getGlobalXphyIDbyPortID(portID));
 }
 
-SaiSwitch* SaiPhyManager::getSaiSwitch(GlobalXphyID xphyID) const {
+SaiSwitch* SaiPhyManager::getSaiSwitch(GlobalXphyID xphyID) {
   return static_cast<SaiSwitch*>(getSaiPlatform(xphyID)->getHwSwitch());
 }
-SaiSwitch* SaiPhyManager::getSaiSwitch(PortID portID) const {
+SaiSwitch* SaiPhyManager::getSaiSwitch(PortID portID) {
   return static_cast<SaiSwitch*>(getSaiPlatform(portID)->getHwSwitch());
 }
 
