@@ -512,7 +512,7 @@ void BcmPort::disableLinkscan() {
   bcmCheckError(rv, "Failed to disable linkscan on port ", port_);
 }
 
-bool BcmPort::isEnabled() {
+bool BcmPort::isEnabled() const {
   auto settings = getProgrammedSettings();
   if (settings) {
     return settings->isEnabled();
@@ -520,14 +520,14 @@ bool BcmPort::isEnabled() {
   return isEnabledInSDK();
 }
 
-bool BcmPort::isEnabledInSDK() {
+bool BcmPort::isEnabledInSDK() const {
   int enabled;
   auto rv = bcm_port_enable_get(unit_, port_, &enabled);
   bcmCheckError(rv, "Failed to determine if port is already disabled");
   return static_cast<bool>(enabled);
 }
 
-bool BcmPort::isUp() {
+bool BcmPort::isUp() const {
   if (!isEnabled()) {
     return false;
   }

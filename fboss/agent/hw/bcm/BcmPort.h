@@ -114,10 +114,10 @@ class BcmPort {
 
   // Return whether we have enabled the port from cached programmedSetting_
   // isEnabled() should be used whenever possible to improve performance
-  bool isEnabled();
+  bool isEnabled() const;
   // Return whether the link status of the port is actually up.
   // Note: if it is not enabled, return false
-  bool isUp();
+  bool isUp() const;
   bool isProgrammed();
 
   cfg::PortSpeed getSpeed() const;
@@ -338,10 +338,10 @@ class BcmPort {
       cfg::SampleDestination newDestination);
 
   // Return whether we have enabled the port from SDK
-  bool isEnabledInSDK();
+  bool isEnabledInSDK() const;
 
   // Return programmed port config
-  std::shared_ptr<Port> getProgrammedSettings() {
+  std::shared_ptr<Port> getProgrammedSettings() const {
     auto savedSettings = programmedSettings_.rlock();
     return *savedSettings;
   }
