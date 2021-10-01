@@ -679,6 +679,9 @@ TEST(Port, emptyConfig) {
   port->setAdminState(cfg::PortState::DISABLED);
   port->setSpeed(cfg::PortSpeed::XG);
   port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
+  port->setProfileConfig(*platform->getPlatformPort(port->getID())
+                              ->getPortProfileConfig(port->getProfileID())
+                              .iphy_ref());
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg.
   QueueConfig queues;
@@ -824,6 +827,9 @@ TEST(Port, pauseConfig) {
   auto port = state->getPorts()->getPortIf(portID);
   port->setSpeed(cfg::PortSpeed::XG);
   port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
+  port->setProfileConfig(*platform->getPlatformPort(port->getID())
+                              ->getPortProfileConfig(port->getProfileID())
+                              .iphy_ref());
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
   QueueConfig queues;
@@ -1053,6 +1059,9 @@ TEST(PortMap, applyConfig) {
         std::make_shared<Port>(PortID(i), folly::format("port{}", i).str());
     port->setSpeed(cfg::PortSpeed::XG);
     port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
+    port->setProfileConfig(*platform->getPlatformPort(port->getID())
+                                ->getPortProfileConfig(port->getProfileID())
+                                .iphy_ref());
     QueueConfig defaultQueues;
     for (int q = 0; q < platform->getAsic()->getDefaultNumPortQueues(
                             cfg::StreamType::UNICAST, false);

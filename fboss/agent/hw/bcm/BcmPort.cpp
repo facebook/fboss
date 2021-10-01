@@ -687,16 +687,14 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
     cfg::PortSpeed speed,
     const std::shared_ptr<Port>& swPort) {
   const auto profileID = swPort->getProfileID();
-  const auto& portProfileConfig =
-      getPlatformPort()->getPortProfileConfig(profileID);
-  // All profiles should have medium info at this poin
-  if (!portProfileConfig.iphy_ref()->medium_ref()) {
+  const auto& portProfileConfig = swPort->getProfileConfig();
+  // All profiles should have medium info at this point
+  if (!portProfileConfig.medium_ref()) {
     throw FbossError(
         "Missing medium info in profile ",
         apache::thrift::util::enumNameSafe(profileID));
   }
-  TransmitterTechnology transmitterTech =
-      *portProfileConfig.iphy_ref()->medium_ref();
+  TransmitterTechnology transmitterTech = *portProfileConfig.medium_ref();
 
   // If speed or transmitter type isn't in map
   try {
@@ -1294,12 +1292,12 @@ void BcmPort::updateFecStats(
   // get fec from programmed cache to improve performance if possible
   auto settings = getProgrammedSettings();
   if (settings) {
-    auto profileID = settings->getProfileID();
-    const auto profileConf =
-        platformPort_->getPortProfileConfigFromCache(profileID);
+    // With the profileConfig is stored in Port, we can just read from the
+    // programmed settings.
     fec = utility::phyFecModeToBcmPortPhyFec(
-        platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
-                                          : profileConf.get_iphy().get_fec());
+        platformPort_->shouldDisableFEC()
+            ? phy::FecMode::NONE
+            : *settings->getProfileConfig().fec_ref());
   } else {
     fec = getCurrentPortResource(unit_, gport_).fec_type;
   }
@@ -1931,8 +1929,6 @@ void BcmPort::setTxSettingViaPhyTx(
     return;
   }
 
-  auto portProfileConfig = getPlatformPort()->getPortProfileConfig(profileID);
-
   const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(iphyPinConfigs);
   if (iphyLaneConfigs.empty()) {
     XLOG(INFO) << "No iphy lane configs needed to program for "
@@ -1940,7 +1936,8 @@ void BcmPort::setTxSettingViaPhyTx(
     return;
   }
 
-  auto modulation = *portProfileConfig.iphy_ref()->modulation_ref();
+  auto portProfileConfig = swPort->getProfileConfig();
+  auto modulation = *portProfileConfig.modulation_ref();
   auto desiredSignalling = (modulation == phy::IpModulation::PAM4)
       ? bcmPortPhySignallingModePAM4
       : bcmPortPhySignallingModeNRZ;
@@ -2524,14 +2521,14 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   auto desiredPortResource = curPortResource;
 
   auto profileID = swPort->getProfileID();
-  const auto profileConf = getPlatformPort()->getPortProfileConfig(profileID);
+  const auto& profileConf = swPort->getProfileConfig();
 
   XLOG(DBG1) << "Program port resource based on speed profile: "
              << apache::thrift::util::enumNameSafe(profileID);
-  desiredPortResource.speed = static_cast<int>(profileConf.get_speed());
+  desiredPortResource.speed = static_cast<int>(swPort->getSpeed());
   desiredPortResource.fec_type = utility::phyFecModeToBcmPortPhyFec(
       platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
-                                        : profileConf.get_iphy().get_fec());
+                                        : *profileConf.fec_ref());
   desiredPortResource.phy_lane_config =
       utility::getDesiredPhyLaneConfig(profileConf);
 

@@ -9,11 +9,12 @@
  */
 
 #pragma once
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss {
 class HwSwitch;
@@ -87,7 +88,8 @@ void updateFlexConfig(
 void verifyInterfaceMode(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform);
+    Platform* platform,
+    const phy::ProfileSideConfig& expectedProfileConfig);
 
 void verifyTxSettting(
     PortID portID,
@@ -99,7 +101,11 @@ void verifyRxSettting(
     cfg::PortProfileID profileID,
     Platform* platform);
 
-void verifyFec(PortID portID, cfg::PortProfileID profileID, Platform* platform);
+void verifyFec(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform,
+    const phy::ProfileSideConfig& expectedProfileConfig);
 
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
 TransmitterTechnology getMediaType(cfg::PortProfileID profile);

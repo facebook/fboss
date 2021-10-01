@@ -169,7 +169,8 @@ void assertSINGLEMode(
 void verifyInterfaceMode(
     PortID portID,
     cfg::PortProfileID /*profileID*/,
-    Platform* platform) {
+    Platform* platform,
+    const phy::ProfileSideConfig& /* expectedProfileConfig */) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::PORT_INTERFACE_TYPE) ||
@@ -339,7 +340,8 @@ void verifyRxSettting(
 void verifyFec(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const phy::ProfileSideConfig& /* expectedProfileConfig */) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto* saiPortHandle =

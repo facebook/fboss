@@ -164,7 +164,8 @@ void assertSINGLEMode(
 void verifyInterfaceMode(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const phy::ProfileSideConfig& expectedProfileConfig) {
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   auto* bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
   auto platformPort = bcmPort->getPlatformPort();
@@ -177,8 +178,14 @@ void verifyInterfaceMode(
         ret, "Failed to get current interface setting for port ", portID);
     // TODO - Feed other transmitter technology, speed and build a
     // exhaustive set of speed, transmitter tech to test for
+    // All profiles should have medium info at this point
+    if (!expectedProfileConfig.medium_ref()) {
+      throw FbossError(
+          "Missing medium info in profile ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
     auto expectedMode = getSpeedToTransmitterTechAndMode().at(speed).at(
-        platformPort->getTransmitterTech().value());
+        *expectedProfileConfig.medium_ref());
     EXPECT_EQ(expectedMode, curMode);
   } else {
     // On platforms that use port resource APIs, phy lane config determines
@@ -189,8 +196,8 @@ void verifyInterfaceMode(
     bcmCheckError(
         ret, "Failed to get current port resource settings for: ", portID);
 
-    const auto profileConf = platformPort->getPortProfileConfig(profileID);
-    auto expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(profileConf);
+    auto expectedPhyLaneConfig =
+        utility::getDesiredPhyLaneConfig(expectedProfileConfig);
     EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
   }
 }
@@ -249,11 +256,10 @@ void verifyRxSettting(
 void verifyFec(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const phy::ProfileSideConfig& expectedProfileConfig) {
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
-  const auto desiredFecMode = bcmSwitch->getPlatform()->getPhyFecMode(
-      PlatformPortProfileConfigMatcher(profileID, portID));
-  EXPECT_EQ(desiredFecMode, bcmPort->getFECMode());
+  EXPECT_EQ(*expectedProfileConfig.fec_ref(), bcmPort->getFECMode());
 }
 } // namespace facebook::fboss::utility

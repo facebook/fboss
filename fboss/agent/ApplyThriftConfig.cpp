@@ -1364,6 +1364,26 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   sort(newLookupClasses.begin(), newLookupClasses.end());
   auto lookupClassesUnchanged = (origLookupClasses == newLookupClasses);
 
+  // Prepare the new profileConfig
+  const auto& portProfileCfg =
+      platform_->getPlatformPort(orig->getID())
+          ->getPortProfileConfig(*portConf->profileID_ref());
+  if (*portConf->state_ref() == cfg::PortState::ENABLED &&
+      *portProfileCfg.speed_ref() != *portConf->speed_ref()) {
+    throw FbossError(
+        orig->getName(),
+        " has mismatched speed on profile:",
+        apache::thrift::util::enumNameSafe(*portConf->profileID_ref()),
+        " and config:",
+        apache::thrift::util::enumNameSafe(*portConf->speed_ref()));
+  }
+  auto newProfileConfigRef = portProfileCfg.iphy_ref();
+  auto profileConfigUnchanged =
+      (*newProfileConfigRef == orig->getProfileConfig());
+  XLOG_IF(DBG2, !profileConfigUnchanged)
+      << orig->getName()
+      << " has profileConfigUnchanged:" << profileConfigUnchanged;
+
   // Ensure portConf has actually changed, before applying
   if (*portConf->state_ref() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan_ref()) == orig->getIngressVlan() &&
@@ -1381,7 +1401,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues_ref() == orig->getLLDPValidations() &&
       *portConf->maxFrameSize_ref() == orig->getMaxFrameSize() &&
-      lookupClassesUnchanged) {
+      lookupClassesUnchanged && profileConfigUnchanged) {
     return nullptr;
   }
 
@@ -1415,6 +1435,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPfc(newPfc);
   newPort->setPfcPriorities(newPfcPriorities);
   newPort->resetPgConfigs(portPgCfgs);
+  newPort->setProfileConfig(*newProfileConfigRef);
   return newPort;
 }
 

@@ -45,7 +45,10 @@ class HwPortProfileTest : public HwTest {
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
     utility::verifyInterfaceMode(
-        port->getID(), port->getProfileID(), getPlatform());
+        port->getID(),
+        port->getProfileID(),
+        getPlatform(),
+        port->getProfileConfig());
     // verify tx settings
     utility::verifyTxSettting(
         port->getID(), port->getProfileID(), getPlatform());
@@ -53,7 +56,11 @@ class HwPortProfileTest : public HwTest {
     utility::verifyRxSettting(
         port->getID(), port->getProfileID(), getPlatform());
     // (TODO): verify speed
-    utility::verifyFec(port->getID(), port->getProfileID(), getPlatform());
+    utility::verifyFec(
+        port->getID(),
+        port->getProfileID(),
+        getPlatform(),
+        port->getProfileConfig());
     // (TODO): verify lane count (for sai)
   }
 

@@ -576,7 +576,8 @@ void configurePortProfile(
     auto profile = supportedProfiles.find(profileID);
     if (profile == supportedProfiles.end()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)
-                    << "Doesn't support profile " << static_cast<int>(profileID)
+                    << " doesn't support profile "
+                    << apache::thrift::util::enumNameSafe(profileID)
                     << ", disabling it instead";
       // Port doesn't support this speed, just disable it.
       cfgPort->speed_ref() = cfg::PortSpeed::DEFAULT;

@@ -1521,3 +1521,19 @@ TEST_F(ThriftTest, getLastConfigAppliedInMs) {
   auto newConfigAppliedInMs = handler.getLastConfigAppliedInMs();
   EXPECT_GT(newConfigAppliedInMs, initConfigAppliedInMs);
 }
+
+TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
+  ThriftHandler handler(sw_);
+  auto mismatchConfig = testConfigA();
+  // Change the speed mismatch with the profile
+  CHECK(!mismatchConfig.ports_ref()->empty());
+  mismatchConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  mismatchConfig.ports_ref()[0].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
+  mismatchConfig.ports_ref()[0].profileID_ref() =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+
+  EXPECT_THROW(
+      sw_->applyConfig(
+          "Mismatch config with wrong speed and profile", mismatchConfig),
+      FbossError);
+}

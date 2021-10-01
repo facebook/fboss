@@ -131,12 +131,12 @@ phy::FecMode bcmPortPhyFecToPhyFecMode(bcm_port_phy_fec_t fec) {
   };
 }
 
-uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg) {
+uint32_t getDesiredPhyLaneConfig(const phy::ProfileSideConfig& profileCfg) {
   uint32_t laneConfig = 0;
 
   // PortResource setting needs interface mode from profile config
   uint32_t medium = 0;
-  if (auto interfaceMode = profileCfg.get_iphy().interfaceMode_ref()) {
+  if (auto interfaceMode = profileCfg.interfaceMode_ref()) {
     switch (*interfaceMode) {
       case phy::InterfaceMode::KR:
       case phy::InterfaceMode::KR2:
@@ -163,13 +163,11 @@ uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg) {
             apache::thrift::util::enumNameSafe(*interfaceMode));
     }
   } else {
-    throw facebook::fboss::FbossError(
-        "No iphy interface mode in profileCfg for speed: ",
-        apache::thrift::util::enumNameSafe(profileCfg.get_speed()));
+    throw facebook::fboss::FbossError("No iphy interface mode in profileCfg");
   }
   BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
 
-  switch (profileCfg.get_iphy().get_modulation()) {
+  switch (profileCfg.get_modulation()) {
     case phy::IpModulation::PAM4:
       // PAM4 + NS
       BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);

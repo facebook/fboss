@@ -152,7 +152,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
 
   for (auto port : filteredPorts) {
     auto platformPort = hw_->getPlatform()->getPlatformPort(port->getID());
-    auto profileConf = platformPort->getPortProfileConfig(port->getProfileID());
+    const auto& profileConf = port->getProfileConfig();
 
     bcm_port_resource_t newPortRes;
     bcm_port_resource_t_init(&newPortRes);
@@ -165,10 +165,10 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
             hw_->getPlatform()->getAsic()->getNumLanesPerPhysicalPort();
 
     newPortRes.lanes = desiredLaneMode_;
-    newPortRes.speed = static_cast<int>(*profileConf.speed_ref());
+    newPortRes.speed = static_cast<int>(port->getSpeed());
     newPortRes.fec_type = utility::phyFecModeToBcmPortPhyFec(
         platformPort->shouldDisableFEC() ? phy::FecMode::NONE
-                                         : profileConf.get_iphy().get_fec());
+                                         : *profileConf.fec_ref());
     newPortRes.phy_lane_config = utility::getDesiredPhyLaneConfig(profileConf);
     newPortRes.link_training = 0; /* turn off link training as default */
     portResources_.push_back(newPortRes);
