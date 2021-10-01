@@ -1088,6 +1088,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() const {
   phy::DataPlanePhyChip phyChip;
   phyChip.type_ref() = phy::DataPlanePhyChipType::IPHY;
   info.phyChip_ref() = phyChip;
+  info.linkState_ref() = isUp();
 
   // PCS parameters
   phy::PcsInfo pcs;

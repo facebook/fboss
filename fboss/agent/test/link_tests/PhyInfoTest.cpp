@@ -20,6 +20,8 @@ void validatePhyInfo(
   EXPECT_TRUE(*curr.timeCollected_ref() > *prev.timeCollected_ref());
   EXPECT_EQ(*curr.phyChip_ref()->type_ref(), chipType);
   EXPECT_EQ(*prev.phyChip_ref()->type_ref(), chipType);
+  EXPECT_EQ(curr.linkState_ref().value_or({}), true);
+  EXPECT_EQ(prev.linkState_ref().value_or({}), true);
   // Assert that fec uncorrectable error count didn't increase
   auto prevRsFecInfo =
       prev.line_ref()->pcs_ref().value_or({}).rsFec_ref().value_or({});
@@ -43,7 +45,8 @@ TEST_F(LinkTest, iPhyInfoTest) {
     phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
     for (const auto& port : cabledPorts) {
       if (phyInfoBefore.find(port) == phyInfoBefore.end() ||
-          *(phyInfoBefore[port].timeCollected_ref()) == 0) {
+          *(phyInfoBefore[port].timeCollected_ref()) == 0 ||
+          !phyInfoBefore[port].linkState_ref().value_or({})) {
         return false;
       }
     }
