@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/NullPortStats.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -253,8 +254,16 @@ void SaiPhyManager::programOnePort(
           .mapping_ref()
           ->name_ref()
           .value());
+  portObj->setSpeed(desiredPhyPortConfig.profile.speed);
   portObj->setProfileId(portProfileId);
   portObj->setAdminState(cfg::PortState::ENABLED);
+  // Prepare the side profileConfig and pinConfigs for both system and line
+  // sides by using desiredPhyPortConfig
+  portObj->setProfileConfig(desiredPhyPortConfig.profile.system);
+  portObj->resetPinConfigs(desiredPhyPortConfig.config.system.getPinConfigs());
+  portObj->setLineProfileConfig(desiredPhyPortConfig.profile.line);
+  portObj->resetLinePinConfigs(
+      desiredPhyPortConfig.config.line.getPinConfigs());
 
   auto newState = std::make_shared<SwitchState>();
   newState->getPorts()->addPort(std::move(portObj));

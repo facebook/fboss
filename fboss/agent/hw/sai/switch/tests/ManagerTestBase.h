@@ -158,9 +158,14 @@ class ManagerTestBase : public ::testing::Test {
 
   // If `expectedSpeed` is set, use this speed to create the new Port
   // Otherwise it will just use testPort.portSpeed
+  // Because xphy port needs both system and line side profileConfig and
+  // pinConfigs while iphy port just need system side config, use a new input
+  // `isXphyPort` to differentiate the preparation of profileConfig and
+  // pinConfigs
   std::shared_ptr<Port> makePort(
       const TestPort& testPort,
-      std::optional<cfg::PortSpeed> expectedSpeed = std::nullopt) const;
+      std::optional<cfg::PortSpeed> expectedSpeed = std::nullopt,
+      bool isXphyPort = false) const;
 
   std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(
       const TestRoute& route) const;

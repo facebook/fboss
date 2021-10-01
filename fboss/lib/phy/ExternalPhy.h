@@ -84,6 +84,7 @@ struct PhySideConfig {
 
   bool operator==(const PhySideConfig& rhs) const;
   folly::dynamic toDynamic() const;
+  std::vector<PinConfig> getPinConfigs() const;
 };
 
 struct ExternalPhyConfig {

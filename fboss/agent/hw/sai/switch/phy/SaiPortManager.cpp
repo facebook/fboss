@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
-#include <folly/logging/xlog.h>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
@@ -23,6 +23,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -119,39 +121,40 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort,
     bool lineSide) const {
   // Get the user specified swPortId and portProfileId
-  auto profileId = swPort->getProfileID();
+  auto speed = swPort->getSpeed();
   auto portId = swPort->getID();
   auto enabled = swPort->isEnabled();
-  auto platPort = platform_->getPort(portId);
 
-  const auto& platformPortEntry = platPort->getPlatformPortEntry();
-  const auto& portPinConfig = platPort->getPortXphyPinConfig(profileId);
-  const auto& portProfileConfig = platPort->getPortProfileConfig(profileId);
-
-  const auto& chips = platform_->getDataPlanePhyChips();
-  if (chips.empty()) {
-    throw FbossError("No DataPlanePhyChips found");
+  // Now use profileConfig from SW port as the source of truth
+  if (lineSide && !swPort->getLineProfileConfig()) {
+    throw FbossError(
+        "Invalid sw Port, missing line profileConfig for port:",
+        swPort->getID(),
+        ", profile:",
+        apache::thrift::util::enumNameSafe(swPort->getProfileID()));
   }
+  phy::FecMode fecMode = lineSide ? *swPort->getLineProfileConfig()->fec_ref()
+                                  : *swPort->getProfileConfig().fec_ref();
 
-  const auto& config = phy::ExternalPhyConfig::fromConfigeratorTypes(
-      portPinConfig,
-      utility::getXphyLinePolaritySwapMap(
-          *platformPortEntry.mapping_ref()->pins_ref(), chips));
-  const auto& profile =
-      phy::ExternalPhyProfileConfig::fromPortProfileConfig(portProfileConfig);
-
-  auto speed = profile.speed;
-  auto fecMode = lineSide ? profile.line.fec_ref() : profile.system.fec_ref();
-
+  // Now use pinConfigs from SW port as the source of truth
+  // TODO: Support programming dynamic tx_settings
   std::vector<uint32_t> laneList;
-  const auto& lanes = lineSide ? config.line.lanes : config.system.lanes;
-  for (auto& lane : lanes) {
-    laneList.push_back(lane.first);
+  if (lineSide && !swPort->getLinePinConfigs()) {
+    throw FbossError(
+        "Invalid sw Port, missing line pinConfigs for port:",
+        swPort->getID(),
+        ", profile:",
+        apache::thrift::util::enumNameSafe(swPort->getProfileID()));
+  }
+  const auto& pinCfgs =
+      lineSide ? *swPort->getLinePinConfigs() : swPort->getPinConfigs();
+  for (const auto& pinCfg : pinCfgs) {
+    laneList.push_back(*pinCfg.id_ref()->lane_ref());
   }
 
   return SaiPortTraits::CreateAttributes {
     laneList, static_cast<uint32_t>(speed), enabled,
-        utility::getSaiPortFecMode(*fecMode), std::nullopt, std::nullopt,
+        utility::getSaiPortFecMode(fecMode), std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt,

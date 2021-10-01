@@ -156,7 +156,8 @@ void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
 
 std::shared_ptr<Port> ManagerTestBase::makePort(
     const TestPort& testPort,
-    std::optional<cfg::PortSpeed> expectedSpeed) const {
+    std::optional<cfg::PortSpeed> expectedSpeed,
+    bool isXphyPort) const {
   std::string name = folly::sformat("port{}", testPort.id);
   auto swPort = std::make_shared<Port>(PortID(testPort.id), name);
   if (testPort.enabled) {
@@ -196,17 +197,36 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL);
       break;
     case cfg::PortSpeed::TWOHUNDREDG:
-      swPort->setProfileId(cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N);
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
       break;
     case cfg::PortSpeed::FOURHUNDREDG:
-      swPort->setProfileId(cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL);
       break;
   }
   auto platformPort = saiPlatform->getPort(swPort->getID());
-  swPort->setProfileConfig(
-      *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
-  swPort->resetPinConfigs(
-      platformPort->getIphyPinConfigs(swPort->getProfileID()));
+  if (isXphyPort) {
+    // Update both system and line sides config
+    const auto& pinConfigs =
+        platformPort->getPortXphyPinConfig(swPort->getProfileID());
+    const auto& profileConfigs =
+        platformPort->getPortProfileConfig(swPort->getProfileID());
+    CHECK(profileConfigs.xphySystem_ref());
+    swPort->setProfileConfig(*profileConfigs.xphySystem_ref());
+    CHECK(pinConfigs.xphySys_ref());
+    swPort->resetPinConfigs(*pinConfigs.xphySys_ref());
+    CHECK(profileConfigs.xphyLine_ref());
+    swPort->setLineProfileConfig(*profileConfigs.xphyLine_ref());
+    CHECK(pinConfigs.xphyLine_ref());
+    swPort->resetLinePinConfigs(*pinConfigs.xphyLine_ref());
+  } else {
+    // Use the iphy profileConfig and pinConfigs from PlatformMapping to update
+    swPort->setProfileConfig(
+        *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
+    swPort->resetPinConfigs(
+        platformPort->getIphyPinConfigs(swPort->getProfileID()));
+  }
   return swPort;
 }
 

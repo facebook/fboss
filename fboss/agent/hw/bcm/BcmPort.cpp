@@ -701,16 +701,17 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
     auto result =
         getSpeedToTransmitterTechAndMode().at(speed).at(transmitterTech);
     XLOG(DBG1) << "Getting desired interface mode for port " << swPort->getID()
-               << " (speed=" << static_cast<int>(speed)
-               << ", tech=" << static_cast<int>(transmitterTech)
+               << " (speed=" << apache::thrift::util::enumNameSafe(speed)
+               << ", tech="
+               << apache::thrift::util::enumNameSafe(transmitterTech)
                << "). RESULT=" << result;
     return result;
   } catch (const std::out_of_range& ex) {
     throw FbossError(
         "Unsupported speed (",
-        speed,
+        apache::thrift::util::enumNameSafe(speed),
         ") or transmitter technology (",
-        transmitterTech,
+        apache::thrift::util::enumNameSafe(transmitterTech),
         ") setting on port ",
         swPort->getID());
   }

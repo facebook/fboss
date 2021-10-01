@@ -129,6 +129,22 @@ folly::dynamic PhySideConfig::toDynamic() const {
   return elements;
 }
 
+std::vector<PinConfig> PhySideConfig::getPinConfigs() const {
+  std::vector<phy::PinConfig> pinCfgs;
+  for (const auto& lane : lanes) {
+    PinConfig pinConfig;
+    pinConfig.id_ref()->lane_ref() = lane.first;
+    if (auto tx = lane.second.tx) {
+      pinConfig.tx_ref() = *tx;
+    }
+    if (auto polaritySwap = lane.second.polaritySwap) {
+      pinConfig.polaritySwap_ref() = *polaritySwap;
+    }
+    pinCfgs.push_back(pinConfig);
+  }
+  return pinCfgs;
+}
+
 folly::dynamic ExternalPhyConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["system"] = system.toDynamic();

@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
@@ -178,7 +179,7 @@ TEST_F(MacsecManagerTest, addMacsecPort) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_EGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -197,7 +198,7 @@ TEST_F(MacsecManagerTest, addMacsecPort) {
 }
 
 TEST_F(MacsecManagerTest, addMacsecPortForNonexistentMacsec) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   EXPECT_THROW(
@@ -220,7 +221,7 @@ TEST_F(MacsecManagerTest, addDuplicateMacsecPort) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -235,7 +236,7 @@ TEST_F(MacsecManagerTest, removeMacsecPort) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -275,7 +276,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureChannel) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -292,7 +293,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureChannel) {
 }
 
 TEST_F(MacsecManagerTest, addMacsecSecureChannelForNonexistentMacsec) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   EXPECT_THROW(
@@ -308,7 +309,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureChannelForNonexistentMacsecPort) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   EXPECT_THROW(
@@ -324,7 +325,7 @@ TEST_F(MacsecManagerTest, addDuplicateMacsecSecureChannel) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -346,7 +347,7 @@ TEST_F(MacsecManagerTest, removeMacsecSecureChannel) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -385,7 +386,7 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecSecureChannel) {
           PortID(p0.id), packSci(remoteSci), SAI_MACSEC_DIRECTION_INGRESS),
       FbossError);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -402,7 +403,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureAssoc) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -435,7 +436,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureAssocForNonexistentSecureChannel) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
   saiManagerTable->macsecManager().addMacsecPort(
       swPort->getID(), SAI_MACSEC_DIRECTION_INGRESS);
@@ -457,7 +458,7 @@ TEST_F(MacsecManagerTest, addDuplicateMacsecSecureAssoc) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -493,7 +494,7 @@ TEST_F(MacsecManagerTest, removeMacsecSecureAssoc) {
   saiManagerTable->macsecManager().addMacsec(
       SAI_MACSEC_DIRECTION_INGRESS, false);
 
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().addMacsecPort(
@@ -559,7 +560,7 @@ TEST_F(MacsecManagerTest, invalidLinePort) {
 }
 
 TEST_F(MacsecManagerTest, installKeys) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   // Install RX
@@ -623,7 +624,7 @@ TEST_F(MacsecManagerTest, installKeys) {
 }
 
 TEST_F(MacsecManagerTest, deleteNonexistentKeys) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   // delete RX
@@ -643,7 +644,7 @@ TEST_F(MacsecManagerTest, deleteNonexistentKeys) {
 }
 
 TEST_F(MacsecManagerTest, deleteKeysWithOneSecureAssoc) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   // Install RX
@@ -674,7 +675,7 @@ TEST_F(MacsecManagerTest, deleteKeysWithOneSecureAssoc) {
 }
 
 TEST_F(MacsecManagerTest, deleteKeysWithMultipleSecureAssoc) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   // Install 2 RX channels
@@ -707,7 +708,7 @@ TEST_F(MacsecManagerTest, deleteKeysWithMultipleSecureAssoc) {
 }
 
 TEST_F(MacsecManagerTest, deleteKeysWithSingleSecureAssoc) {
-  std::shared_ptr<Port> swPort = makePort(p0);
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
   saiManagerTable->portManager().addPort(swPort);
 
   saiManagerTable->macsecManager().setupMacsec(

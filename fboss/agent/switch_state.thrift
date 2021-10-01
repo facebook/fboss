@@ -90,6 +90,8 @@ struct PortFields {
   // TODO: Current warmboot state doesn't have such field yet
   26: optional phy.ProfileSideConfig profileConfig;
   27: optional list<phy.PinConfig> pinConfigs;
+  28: optional phy.ProfileSideConfig lineProfileConfig;
+  29: optional list<phy.PinConfig> linePinConfigs;
 }
 
 struct AclTtl {

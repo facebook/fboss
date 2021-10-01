@@ -95,6 +95,11 @@ struct PortFields : public ThriftyFields {
   // switch state to drive HwSwitch programming.
   phy::ProfileSideConfig profileConfig;
   std::vector<phy::PinConfig> pinConfigs;
+  // Due to we also use SW Port to program phy ports, which have system and line
+  // profileConfig and pinConfigs, using these two new fields to represent the
+  // configs of line side if needed
+  std::optional<phy::ProfileSideConfig> lineProfileConfig;
+  std::optional<std::vector<phy::PinConfig>> linePinConfigs;
 };
 
 /*
@@ -361,6 +366,20 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void resetPinConfigs(std::vector<phy::PinConfig> pinCfgs) {
     writableFields()->pinConfigs.swap(pinCfgs);
+  }
+
+  std::optional<phy::ProfileSideConfig> getLineProfileConfig() const {
+    return getFields()->lineProfileConfig;
+  }
+  void setLineProfileConfig(const phy::ProfileSideConfig& profileCfg) {
+    writableFields()->lineProfileConfig = profileCfg;
+  }
+
+  std::optional<std::vector<phy::PinConfig>> getLinePinConfigs() const {
+    return getFields()->linePinConfigs;
+  }
+  void resetLinePinConfigs(std::vector<phy::PinConfig> pinCfgs) {
+    writableFields()->linePinConfigs = pinCfgs;
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);
