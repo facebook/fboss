@@ -636,6 +636,10 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     auto platformPort = getPlatform()->getPlatformPort(portID);
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
+    swPort->setProfileConfig(
+        *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
+    swPort->resetPinConfigs(
+        platformPort->getIphyPinConfigs(swPort->getProfileID()));
     swPort->setSpeed(bcmPort->getSpeed());
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
       auto queues = bcmPort->getCurrentQueueSettings();
@@ -884,6 +888,32 @@ HwInitResult BcmSwitch::init(
       ret.rib = RoutingInformationBase::fromFollyDynamic(
           switchStateJson[kRib], ret.switchState->getFibs());
     }
+    // Due to current warmboot cache might not have the recently added
+    // profileConfig and pinConfigs for ports, manually added them back to the
+    // init state.
+    // TODO(joseph5wu) Will remove such logic once warmboot cache have these
+    // two configs for each port.
+    auto clonedPorts = ret.switchState->getPorts()->clone();
+    for (auto port : *ret.switchState->getPorts()) {
+      if (*port->getProfileConfig().numLanes_ref() == 0) {
+        XLOG(WARN) << "Can't get profileConfig from warmboot cache for port:"
+                   << port->getName() << ", manually update warmboot state";
+        auto clonedPort = port->clone();
+        clonedPort->setProfileConfig(
+            *getPortTable()
+                 ->getBcmPort(port->getID())
+                 ->getPlatformPort()
+                 ->getPortProfileConfig(port->getProfileID())
+                 .iphy_ref());
+        clonedPort->resetPinConfigs(
+            getPortTable()
+                ->getBcmPort(port->getID())
+                ->getPlatformPort()
+                ->getIphyPinConfigs(port->getProfileID()));
+        clonedPorts->updateNode(clonedPort);
+      }
+    }
+    ret.switchState->resetPorts(clonedPorts);
     stateChangedImpl(StateDelta(make_shared<SwitchState>(), ret.switchState));
     hostTable_->warmBootHostEntriesSynced();
     // Done with warm boot, clear warm boot cache

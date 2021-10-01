@@ -1076,6 +1076,29 @@ HwInitResult SaiSwitch::initLocked(
   if (bootType_ == BootType::WARM_BOOT) {
     auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
+    // Due to current warmboot cache might not have the recently added
+    // profileConfig and pinConfigs for ports, manually added them back to the
+    // init state.
+    // TODO(joseph5wu) Will remove such logic once warmboot cache have these
+    // two configs for each port.
+    auto clonedPorts = ret.switchState->getPorts()->clone();
+    for (auto port : *ret.switchState->getPorts()) {
+      if (*port->getProfileConfig().numLanes_ref() == 0) {
+        XLOG(WARN) << "Can't get profileConfig from warmboot cache for port:"
+                   << port->getName() << ", manually update warmboot state";
+        auto clonedPort = port->clone();
+        clonedPort->setProfileConfig(
+            *platform_->getPort(port->getID())
+                 ->getPortProfileConfig(port->getProfileID())
+                 .iphy_ref());
+        clonedPort->resetPinConfigs(
+            platform_->getPort(port->getID())
+                ->getIphyPinConfigs(port->getProfileID()));
+        clonedPorts->updateNode(clonedPort);
+      }
+    }
+    ret.switchState->resetPorts(clonedPorts);
+
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);

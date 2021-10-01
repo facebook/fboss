@@ -493,6 +493,9 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
   // speed, hw lane list, fec mode
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
+  port->setProfileConfig(
+      *platformPort->getPortProfileConfig(port->getProfileID()).iphy_ref());
+  port->resetPinConfigs(platformPort->getIphyPinConfigs(port->getProfileID()));
   port->setSpeed(speed);
 
   // admin state
