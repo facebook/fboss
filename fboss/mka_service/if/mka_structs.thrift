@@ -4,9 +4,6 @@ namespace py3 neteng.fboss.mka
 namespace py.asyncio neteng.fboss.asyncio.mka_structs
 namespace go neteng.fboss.mka.mka_structs
 
-// All the timeouts are expected in milliseconds
-const i64 DEFAULT_CAK_TIMEOUT_IN_MSEC = 0; // never expires
-
 enum MKAErrorResponseCode {
   INVALID_CKN = 0,
   INVALID_INTERFACE = 1,
@@ -129,12 +126,6 @@ enum MKACipherSuite {
   GCM_AES_256 = 1,
   GCM_AES_XPN_128 = 2,
   GCM_AES_XPN_256 = 3,
-}
-
-struct Cak {
-  1: string key;
-  2: string ckn;
-  3: i64 expiration = DEFAULT_CAK_TIMEOUT_IN_MSEC;
 }
 
 // IEEE 8021X.2010 TABLE 11.6
