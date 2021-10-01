@@ -761,10 +761,6 @@ void SaiPortManager::programSerdes(
   if (!platform_->isSerdesApiSupported()) {
     return;
   }
-  auto txSettings = platform_->getPlatformPortTxSettings(
-      swPort->getID(), swPort->getProfileID());
-  auto rxSettings = platform_->getPlatformPortRxSettings(
-      swPort->getID(), swPort->getProfileID());
 
   auto& portKey = saiPort->adapterHostKey();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
@@ -789,17 +785,31 @@ void SaiPortManager::programSerdes(
     // remove warm boot handle if reloaded from adapter but not yet programmed
     serdes = store.setObject(serdesKey, serdes->attributes());
   }
-  if (!txSettings.empty()) {
-    CHECK_EQ(txSettings.size(), portKey.value().size())
+
+  // Check if there are expected tx/rx settings from SW port, the number of
+  // lanes should match to the number of portKey
+  auto numExpectedTxLanes = 0;
+  auto numExpectedRxLanes = 0;
+  for (const auto& pinConfig : swPort->getPinConfigs()) {
+    if (auto tx = pinConfig.tx_ref()) {
+      ++numExpectedTxLanes;
+    }
+    if (auto rx = pinConfig.rx_ref()) {
+      ++numExpectedRxLanes;
+    }
+  }
+  if (numExpectedTxLanes) {
+    CHECK_EQ(numExpectedTxLanes, portKey.value().size())
         << "some lanes are missing for tx-settings";
   }
-  if (!rxSettings.empty()) {
-    CHECK_EQ(rxSettings.size(), portKey.value().size())
+  if (numExpectedRxLanes) {
+    CHECK_EQ(numExpectedRxLanes, portKey.value().size())
         << "some lanes are missing for rx-settings";
   }
-  SaiPortSerdesTraits::CreateAttributes serdesAttributes =
-      serdesAttributesFromSwPort(saiPort->adapterKey(), swPort);
 
+  SaiPortSerdesTraits::CreateAttributes serdesAttributes =
+      serdesAttributesFromSwPinConfigs(
+          saiPort->adapterKey(), swPort->getPinConfigs());
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -821,15 +831,10 @@ void SaiPortManager::programSerdes(
 }
 
 SaiPortSerdesTraits::CreateAttributes
-SaiPortManager::serdesAttributesFromSwPort(
+SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
-    const std::shared_ptr<Port>& swPort) {
+    const std::vector<phy::PinConfig>& pinConfigs) {
   SaiPortSerdesTraits::CreateAttributes attrs;
-
-  auto txSettings = platform_->getPlatformPortTxSettings(
-      swPort->getID(), swPort->getProfileID());
-  auto rxSettings = platform_->getPlatformPortRxSettings(
-      swPort->getID(), swPort->getProfileID());
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
@@ -842,13 +847,32 @@ SaiPortManager::serdesAttributesFromSwPort(
   SaiPortSerdesTraits::Attributes::RxAcCouplingByPass::ValueType
       rxAcCouplingByPass;
 
-  if (!txSettings.empty()) {
-    for (auto& tx : txSettings) {
-      txPre1.push_back(*tx.pre_ref());
-      txMain.push_back(*tx.main_ref());
-      txPost1.push_back(*tx.post_ref());
-      if (auto driveCurrent = tx.driveCurrent_ref()) {
+  // Now use pinConfigs from SW port as the source of truth
+  auto numExpectedTxLanes = 0;
+  auto numExpectedRxLanes = 0;
+  for (const auto& pinConfig : pinConfigs) {
+    if (auto tx = pinConfig.tx_ref()) {
+      ++numExpectedTxLanes;
+      txPre1.push_back(*tx->pre_ref());
+      txMain.push_back(*tx->main_ref());
+      txPost1.push_back(*tx->post_ref());
+      if (auto driveCurrent = tx->driveCurrent_ref()) {
         txIDriver.push_back(driveCurrent.value());
+      }
+    }
+    if (auto rx = pinConfig.rx_ref()) {
+      ++numExpectedRxLanes;
+      if (auto ctlCode = rx->ctlCode_ref()) {
+        rxCtleCode.push_back(*ctlCode);
+      }
+      if (auto dscpMode = rx->dspMode_ref()) {
+        rxDspMode.push_back(*dscpMode);
+      }
+      if (auto afeTrim = rx->afeTrim_ref()) {
+        rxAfeTrim.push_back(*afeTrim);
+      }
+      if (auto acCouplingByPass = rx->acCouplingBypass_ref()) {
+        rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
     }
   }
@@ -859,6 +883,7 @@ SaiPortManager::serdesAttributesFromSwPort(
       attr = val;
     }
   };
+
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
       static_cast<sai_object_id_t>(portSaiId);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
@@ -868,27 +893,13 @@ SaiPortManager::serdesAttributesFromSwPort(
 
   if (platform_->getAsic()->getPortSerdesPreemphasis().has_value()) {
     SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
-        txSettings.size(),
+        numExpectedTxLanes,
         platform_->getAsic()->getPortSerdesPreemphasis().value());
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
 
-  if (!rxSettings.empty()) {
-    for (auto& rx : rxSettings) {
-      if (auto ctlCode = rx.ctlCode_ref()) {
-        rxCtleCode.push_back(*ctlCode);
-      }
-      if (auto dscpMode = rx.dspMode_ref()) {
-        rxDspMode.push_back(*dscpMode);
-      }
-      if (auto afeTrim = rx.afeTrim_ref()) {
-        rxAfeTrim.push_back(*afeTrim);
-      }
-      if (auto acCouplingByPass = rx.acCouplingBypass_ref()) {
-        rxAcCouplingByPass.push_back(*acCouplingByPass);
-      }
-    }
+  if (numExpectedRxLanes) {
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxDspMode{}, rxDspMode);

@@ -134,15 +134,6 @@ PlatformMode Platform::getMode() const {
   return productInfo_->getMode();
 }
 
-phy::FecMode Platform::getPhyFecMode(
-    PlatformPortProfileConfigMatcher matcher) const {
-  auto profile = getPortProfileConfig(matcher);
-  if (!profile) {
-    throw FbossError("Failed to find profile config");
-  }
-  return *profile->iphy_ref()->fec_ref();
-}
-
 void Platform::setPort2OverrideTransceiverInfo(
     const std::map<PortID, TransceiverInfo>& port2TransceiverInfo) {
   port2OverrideTransceiverInfo_.emplace(port2TransceiverInfo);

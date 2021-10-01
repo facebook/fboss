@@ -37,22 +37,6 @@ SaiPortTraits::AdapterKey getPortAdapterKey(const HwSwitch* hw, PortID port) {
   CHECK(handle);
   return handle->port->adapterKey();
 }
-
-std::vector<sai_uint32_t> getTxSetting(
-    const std::vector<phy::TxSettings>& tx,
-    std::function<sai_uint32_t(phy::TxSettings)> func) {
-  std::vector<sai_uint32_t> result{};
-  std::transform(tx.begin(), tx.end(), std::back_inserter(result), func);
-  return result;
-}
-
-std::vector<sai_int32_t> getRxSetting(
-    const std::vector<phy::RxSettings>& rx,
-    std::function<sai_uint32_t(phy::RxSettings)> func) {
-  std::vector<sai_int32_t> result{};
-  std::transform(rx.begin(), rx.end(), std::back_inserter(result), func);
-  return result;
-}
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -168,9 +152,9 @@ void assertSINGLEMode(
 
 void verifyInterfaceMode(
     PortID portID,
-    cfg::PortProfileID /*profileID*/,
+    cfg::PortProfileID profileID,
     Platform* platform,
-    const phy::ProfileSideConfig& /* expectedProfileConfig */) {
+    const phy::ProfileSideConfig& expectedProfileConfig) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::PORT_INTERFACE_TYPE) ||
@@ -178,8 +162,6 @@ void verifyInterfaceMode(
     return;
   }
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-  auto* saiPlatformPort =
-      static_cast<SaiPlatformPort*>(saiPlatform->getPlatformPort(portID));
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
@@ -187,9 +169,14 @@ void verifyInterfaceMode(
   auto speed = portApi.getAttribute(
       saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::Speed{});
 
+  if (!expectedProfileConfig.medium_ref()) {
+    throw FbossError(
+        "Missing medium info in profile ",
+        apache::thrift::util::enumNameSafe(profileID));
+  }
+  auto transmitterTech = *expectedProfileConfig.medium_ref();
   auto expectedInterfaceType = saiPlatform->getInterfaceType(
-      saiPlatformPort->getTransmitterTech(),
-      static_cast<cfg::PortSpeed>(speed));
+      transmitterTech, static_cast<cfg::PortSpeed>(speed));
   auto programmedInterfaceType = portApi.getAttribute(
       saiPortHandle->port->adapterKey(),
       SaiPortTraits::Attributes::InterfaceType{});
@@ -200,21 +187,31 @@ void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform,
-    const std::vector<phy::PinConfig>& /* expectedPinConfigs */) {
+    const std::vector<phy::PinConfig>& expectedPinConfigs) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->isSerdesApiSupported()) {
     return;
   }
+
+  auto numExpectedTxLanes = 0;
+  for (const auto& pinConfig : expectedPinConfigs) {
+    if (auto tx = pinConfig.tx_ref()) {
+      ++numExpectedTxLanes;
+    }
+  }
+  if (numExpectedTxLanes == 0) {
+    return;
+  }
+
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
+  // Prepare expected SaiPortSerdesTraits::CreateAttributes
+  SaiPortSerdesTraits::CreateAttributes expectedTx =
+      saiSwitch->managerTable()->portManager().serdesAttributesFromSwPinConfigs(
+          saiPortHandle->port->adapterKey(), expectedPinConfigs);
+
   auto serdes = saiPortHandle->serdes;
-
-  auto txSettings = saiPlatform->getPlatformPortTxSettings(portID, profileID);
-
-  if (txSettings.empty()) {
-    return;
-  }
 
   auto& portApi = SaiApiTable::getInstance()->portApi();
   auto pre = portApi.getAttribute(
@@ -224,29 +221,24 @@ void verifyTxSettting(
   auto post = portApi.getAttribute(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost1{});
 
-  auto expectedPre = getTxSetting(txSettings, [](phy::TxSettings tx) {
-    return static_cast<sai_uint32_t>(*tx.pre_ref());
-  });
-  auto expectedMain = getTxSetting(txSettings, [](phy::TxSettings tx) {
-    return static_cast<sai_uint32_t>(*tx.main_ref());
-  });
-  auto expectedPost = getTxSetting(txSettings, [](phy::TxSettings tx) {
-    return static_cast<sai_uint32_t>(*tx.post_ref());
-  });
-  auto expectedDriverCurrent =
-      getTxSetting(txSettings, [](phy::TxSettings tx) -> sai_uint32_t {
-        if (auto driveCurrent = tx.driveCurrent_ref()) {
-          return driveCurrent.value();
-        }
-        return 0;
-      });
-  EXPECT_EQ(pre, expectedPre);
-  EXPECT_EQ(main, expectedMain);
-  EXPECT_EQ(post, expectedPost);
-  if (txSettings[0].driveCurrent_ref()) {
+  EXPECT_EQ(pre, GET_OPT_ATTR(PortSerdes, TxFirPre1, expectedTx));
+  EXPECT_EQ(main, GET_OPT_ATTR(PortSerdes, TxFirMain, expectedTx));
+  EXPECT_EQ(post, GET_OPT_ATTR(PortSerdes, TxFirPost1, expectedTx));
+  if (auto expectedDriveCurrent =
+          std::get<std::optional<SaiPortSerdesTraits::Attributes::IDriver>>(
+              expectedTx)) {
     auto driverCurrent = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::IDriver{});
-    EXPECT_EQ(driverCurrent, expectedDriverCurrent);
+    EXPECT_EQ(driverCurrent, expectedDriveCurrent->value());
+  }
+
+  // Also need to check Preemphasis is set correctly
+  if (saiPlatform->getAsic()->getPortSerdesPreemphasis().has_value()) {
+    EXPECT_EQ(
+        portApi.getAttribute(
+            serdes->adapterKey(),
+            SaiPortSerdesTraits::Attributes::Preemphasis{}),
+        GET_OPT_ATTR(PortSerdes, Preemphasis, expectedTx));
   }
 }
 
@@ -283,59 +275,67 @@ void verifyRxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform,
-    const std::vector<phy::PinConfig>& /* expectedPinConfigs */) {
+    const std::vector<phy::PinConfig>& expectedPinConfigs) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->isSerdesApiSupported()) {
     return;
   }
+
+  auto numExpectedRxLanes = 0;
+  for (const auto& pinConfig : expectedPinConfigs) {
+    if (auto tx = pinConfig.rx_ref()) {
+      ++numExpectedRxLanes;
+    }
+  }
+
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
   auto serdes = saiPortHandle->serdes;
 
-  auto rxSettings = saiPlatform->getPlatformPortRxSettings(portID, profileID);
   if (!serdes) {
-    EXPECT_TRUE(rxSettings.empty());
+    EXPECT_TRUE(numExpectedRxLanes == 0);
     return;
   }
-  if (rxSettings.empty()) {
+  if (numExpectedRxLanes == 0) {
     // not all platforms may have these settings
     return;
   }
+
+  // Prepare expected SaiPortSerdesTraits::CreateAttributes
+  SaiPortSerdesTraits::CreateAttributes expectedSerdes =
+      saiSwitch->managerTable()->portManager().serdesAttributesFromSwPinConfigs(
+          saiPortHandle->port->adapterKey(), expectedPinConfigs);
+
   auto& portApi = SaiApiTable::getInstance()->portApi();
-  if (rxSettings[0].ctlCode_ref()) {
+  if (auto expectedRxCtlCode =
+          std::get<std::optional<SaiPortSerdesTraits::Attributes::RxCtleCode>>(
+              expectedSerdes)) {
     auto rxCtlCode = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxCtleCode{});
-    auto expectedRxCtlCode = getRxSetting(rxSettings, [](phy::RxSettings rx) {
-      return static_cast<sai_int32_t>(*rx.ctlCode_ref());
-    });
-    EXPECT_EQ(rxCtlCode, expectedRxCtlCode);
+    EXPECT_EQ(rxCtlCode, expectedRxCtlCode->value());
   }
-  if (rxSettings[0].dspMode_ref()) {
+  if (auto expectedRxDspMode =
+          std::get<std::optional<SaiPortSerdesTraits::Attributes::RxDspMode>>(
+              expectedSerdes)) {
     auto rxDspMode = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxDspMode{});
-    auto expectedRxDspMode = getRxSetting(rxSettings, [](phy::RxSettings rx) {
-      return static_cast<sai_int32_t>(*rx.dspMode_ref());
-    });
-    EXPECT_EQ(rxDspMode, expectedRxDspMode);
+    EXPECT_EQ(rxDspMode, expectedRxDspMode->value());
   }
-  if (rxSettings[0].afeTrim_ref()) {
+  if (auto expectedRxAfeTrim =
+          std::get<std::optional<SaiPortSerdesTraits::Attributes::RxAfeTrim>>(
+              expectedSerdes)) {
     auto rxAafeTrim = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxAfeTrim{});
-    auto expectedRxAfeTrim = getRxSetting(rxSettings, [](phy::RxSettings rx) {
-      return static_cast<sai_int32_t>(*rx.afeTrim_ref());
-    });
-    EXPECT_EQ(rxAafeTrim, expectedRxAfeTrim);
+    EXPECT_EQ(rxAafeTrim, expectedRxAfeTrim->value());
   }
-  if (rxSettings[0].acCouplingBypass_ref()) {
+  if (auto expectedRxAcCouplingBypass = std::get<
+          std::optional<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass>>(
+          expectedSerdes)) {
     auto rxAcCouplingBypass = portApi.getAttribute(
         serdes->adapterKey(),
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{});
-    auto expectedRxAcCouplingBypass =
-        getRxSetting(rxSettings, [](phy::RxSettings rx) {
-          return static_cast<sai_int32_t>(*rx.acCouplingBypass_ref());
-        });
-    EXPECT_EQ(rxAcCouplingBypass, expectedRxAcCouplingBypass);
+    EXPECT_EQ(rxAcCouplingBypass, expectedRxAcCouplingBypass->value());
   }
 }
 
@@ -343,15 +343,15 @@ void verifyFec(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform,
-    const phy::ProfileSideConfig& /* expectedProfileConfig */) {
+    const phy::ProfileSideConfig& expectedProfileConfig) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
   // retrive configured fec.
-  auto expectedFec = utility::getSaiPortFecMode(platform->getPhyFecMode(
-      PlatformPortProfileConfigMatcher(profileID, portID)));
+  auto expectedFec =
+      utility::getSaiPortFecMode(*expectedProfileConfig.fec_ref());
 
   // retrive programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();

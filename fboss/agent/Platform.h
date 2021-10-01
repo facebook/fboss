@@ -257,8 +257,6 @@ class Platform {
     return false;
   }
 
-  phy::FecMode getPhyFecMode(PlatformPortProfileConfigMatcher matcher) const;
-
   const PlatformMapping* getPlatformMapping() const {
     return platformMapping_.get();
   }

@@ -1732,10 +1732,7 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  auto profileID = swPort->getProfileID();
-  const auto desiredFecMode = hw_->getPlatform()->getPhyFecMode(
-      PlatformPortProfileConfigMatcher(profileID, swPort->getID()));
-
+  const auto desiredFecMode = *swPort->getProfileConfig().fec_ref();
   bool shouldEnableFec = !platformPort_->shouldDisableFEC() &&
       desiredFecMode != phy::FecMode::NONE;
   auto desiredFecStatus = shouldEnableFec ? BCM_PORT_PHY_CONTROL_FEC_ON

@@ -91,14 +91,6 @@ class SaiPlatform : public Platform, public StateObserver {
 
   virtual bool isSerdesApiSupported() const = 0;
 
-  std::vector<phy::TxSettings> getPlatformPortTxSettings(
-      PortID port,
-      cfg::PortProfileID profile);
-
-  std::vector<phy::RxSettings> getPlatformPortRxSettings(
-      PortID port,
-      cfg::PortProfileID profile);
-
   std::vector<SaiPlatformPort*> getPortsWithTransceiverID(
       TransceiverID id) const;
 
