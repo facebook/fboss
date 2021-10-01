@@ -28,6 +28,19 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 
+namespace {
+void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
+  port->setAdminState(cfg::PortState::DISABLED);
+  port->setSpeed(cfg::PortSpeed::XG);
+  port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
+  port->setProfileConfig(*platform->getPlatformPort(port->getID())
+                              ->getPortProfileConfig(port->getProfileID())
+                              .iphy_ref());
+  port->resetPinConfigs(platform->getPlatformPort(port->getID())
+                            ->getIphyPinConfigs(port->getProfileID()));
+}
+} // namespace
+
 TEST(Port, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
@@ -676,12 +689,7 @@ TEST(Port, emptyConfig) {
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
   auto port = state->getPorts()->getPortIf(portID);
-  port->setAdminState(cfg::PortState::DISABLED);
-  port->setSpeed(cfg::PortSpeed::XG);
-  port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
-  port->setProfileConfig(*platform->getPlatformPort(port->getID())
-                              ->getPortProfileConfig(port->getProfileID())
-                              .iphy_ref());
+  prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg.
   QueueConfig queues;
@@ -825,11 +833,7 @@ TEST(Port, pauseConfig) {
   auto portID = PortID(1);
   state->registerPort(portID, "port1");
   auto port = state->getPorts()->getPortIf(portID);
-  port->setSpeed(cfg::PortSpeed::XG);
-  port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
-  port->setProfileConfig(*platform->getPlatformPort(port->getID())
-                              ->getPortProfileConfig(port->getProfileID())
-                              .iphy_ref());
+  prepareDefaultSwPort(platform.get(), port);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
   QueueConfig queues;
@@ -1057,11 +1061,7 @@ TEST(PortMap, applyConfig) {
   auto registerPort = [&](int i) {
     auto port =
         std::make_shared<Port>(PortID(i), folly::format("port{}", i).str());
-    port->setSpeed(cfg::PortSpeed::XG);
-    port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
-    port->setProfileConfig(*platform->getPlatformPort(port->getID())
-                                ->getPortProfileConfig(port->getProfileID())
-                                .iphy_ref());
+    prepareDefaultSwPort(platform.get(), port);
     QueueConfig defaultQueues;
     for (int q = 0; q < platform->getAsic()->getDefaultNumPortQueues(
                             cfg::StreamType::UNICAST, false);

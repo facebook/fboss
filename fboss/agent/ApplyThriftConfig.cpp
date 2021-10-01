@@ -1380,9 +1380,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   auto newProfileConfigRef = portProfileCfg.iphy_ref();
   auto profileConfigUnchanged =
       (*newProfileConfigRef == orig->getProfileConfig());
-  XLOG_IF(DBG2, !profileConfigUnchanged)
-      << orig->getName()
-      << " has profileConfigUnchanged:" << profileConfigUnchanged;
+
+  const auto& newPinConfigs =
+      platform_->getPlatformPort(orig->getID())
+          ->getIphyPinConfigs(*portConf->profileID_ref());
+  auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
+
+  XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)
+      << orig->getName() << " has profileConfig: "
+      << (profileConfigUnchanged ? "UNCHANGED" : "CHANGED")
+      << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED");
 
   // Ensure portConf has actually changed, before applying
   if (*portConf->state_ref() == orig->getAdminState() &&
@@ -1401,7 +1408,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues_ref() == orig->getLLDPValidations() &&
       *portConf->maxFrameSize_ref() == orig->getMaxFrameSize() &&
-      lookupClassesUnchanged && profileConfigUnchanged) {
+      lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged) {
     return nullptr;
   }
 
@@ -1436,6 +1443,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPfcPriorities(newPfcPriorities);
   newPort->resetPgConfigs(portPgCfgs);
   newPort->setProfileConfig(*newProfileConfigRef);
+  newPort->resetPinConfigs(newPinConfigs);
   return newPort;
 }
 

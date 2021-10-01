@@ -51,10 +51,16 @@ class HwPortProfileTest : public HwTest {
         port->getProfileConfig());
     // verify tx settings
     utility::verifyTxSettting(
-        port->getID(), port->getProfileID(), getPlatform());
+        port->getID(),
+        port->getProfileID(),
+        getPlatform(),
+        port->getPinConfigs());
     // verify rx settings
     utility::verifyRxSettting(
-        port->getID(), port->getProfileID(), getPlatform());
+        port->getID(),
+        port->getProfileID(),
+        getPlatform(),
+        port->getPinConfigs());
     // (TODO): verify speed
     utility::verifyFec(
         port->getID(),

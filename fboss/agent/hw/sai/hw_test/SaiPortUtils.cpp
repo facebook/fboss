@@ -199,7 +199,8 @@ void verifyInterfaceMode(
 void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const std::vector<phy::PinConfig>& /* expectedPinConfigs */) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->isSerdesApiSupported()) {
     return;
@@ -281,7 +282,8 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
 void verifyRxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const std::vector<phy::PinConfig>& /* expectedPinConfigs */) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->isSerdesApiSupported()) {
     return;

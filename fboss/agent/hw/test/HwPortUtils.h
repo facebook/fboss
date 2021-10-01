@@ -94,12 +94,14 @@ void verifyInterfaceMode(
 void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform);
+    Platform* platform,
+    const std::vector<phy::PinConfig>& expectedPinConfigs);
 
 void verifyRxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform);
+    Platform* platform,
+    const std::vector<phy::PinConfig>& expectedPinConfigs);
 
 void verifyFec(
     PortID portID,

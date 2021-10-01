@@ -1828,8 +1828,7 @@ phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
 }
 
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
-  const auto& iphyPinConfigs =
-      getPlatformPort()->getIphyPinConfigs(swPort->getProfileID());
+  const auto& iphyPinConfigs = swPort->getPinConfigs();
   if (iphyPinConfigs.empty()) {
     XLOG(INFO) << "No iphy pin configs to program for " << swPort->getName();
     return;

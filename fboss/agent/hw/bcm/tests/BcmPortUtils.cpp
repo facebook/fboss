@@ -205,7 +205,8 @@ void verifyInterfaceMode(
 void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
-    Platform* platform) {
+    Platform* platform,
+    const std::vector<phy::PinConfig>& expectedPinConfigs) {
   if (platform->getMode() == PlatformMode::FAKE_WEDGE ||
       platform->getMode() == PlatformMode::FAKE_WEDGE40) {
     // TODO: skip fake now, add support for TxSettings in fake SDK
@@ -213,29 +214,27 @@ void verifyTxSettting(
   }
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   auto platformPort = platform->getPlatformPort(portID);
-  const auto& iphyConfigs = platformPort->getIphyPinConfigs(profileID);
   int minLane = -1;
-  for (const auto& iphy : iphyConfigs) {
-    if (minLane < 0 || iphy.get_id().get_lane() < minLane) {
-      minLane = iphy.get_id().get_lane();
+  for (const auto& pinCfg : expectedPinConfigs) {
+    auto lane = *pinCfg.id_ref()->lane_ref();
+    if (minLane < 0 || lane < minLane) {
+      minLane = lane;
     }
   }
-  for (const auto& iphy : iphyConfigs) {
-    auto expectedTx = iphy.tx_ref();
+  for (const auto& pinCfg : expectedPinConfigs) {
+    auto expectedTx = pinCfg.tx_ref();
     if (!expectedTx.has_value()) {
       continue;
     }
 
-    auto lane = iphy.get_id().get_lane() - minLane;
+    auto lane = *pinCfg.id_ref()->lane_ref() - minLane;
     auto* bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
     auto programmedTx = bcmPort->getTxSettingsForLane(lane);
-    EXPECT_EQ(*programmedTx.pre_ref(), *expectedTx->pre_ref());
-    EXPECT_EQ(*programmedTx.main_ref(), *expectedTx->main_ref());
-    EXPECT_EQ(*programmedTx.post_ref(), *expectedTx->post_ref());
-    EXPECT_EQ(*programmedTx.pre2_ref(), *expectedTx->pre2_ref());
-    if (auto programmedDC = expectedTx->driveCurrent_ref()) {
-      EXPECT_EQ(*programmedDC, *expectedTx->driveCurrent_ref());
-    }
+    EXPECT_EQ(programmedTx.pre_ref(), expectedTx->pre_ref());
+    EXPECT_EQ(programmedTx.main_ref(), expectedTx->main_ref());
+    EXPECT_EQ(programmedTx.post_ref(), expectedTx->post_ref());
+    EXPECT_EQ(programmedTx.pre2_ref(), expectedTx->pre2_ref());
+    EXPECT_EQ(programmedTx.driveCurrent_ref(), expectedTx->driveCurrent_ref());
   }
 }
 
@@ -248,7 +247,8 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
 void verifyRxSettting(
     PortID /*portID*/,
     cfg::PortProfileID /*profileID*/,
-    Platform* /*platform*/) {
+    Platform* /*platform*/,
+    const std::vector<phy::PinConfig>& /* expectedPinConfigs */) {
   // no rx settings
   return;
 }
