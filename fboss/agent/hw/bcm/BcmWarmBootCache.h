@@ -603,6 +603,14 @@ class BcmWarmBootCache {
     return l2LearningMode_;
   }
 
+  bool ptpTcSettingMatches(bool enable) const {
+    return ptpTcEnabled_.has_value() && *ptpTcEnabled_ == enable;
+  }
+
+  void ptpTcProgrammed() {
+    ptpTcEnabled_ = std::nullopt;
+  }
+
   int getRouteCounterModeId() const {
     return routeCounterModeId_;
   }
@@ -709,6 +717,7 @@ class BcmWarmBootCache {
   QosMapId2QosMap qosMapId2QosMap_;
 
   cfg::L2LearningMode l2LearningMode_;
+  std::optional<bool> ptpTcEnabled_;
 
   RouteCounterIDMap routeCounterIDs_;
   int routeCounterModeId_{-1};

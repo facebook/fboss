@@ -17,12 +17,7 @@ namespace facebook::fboss::utility {
 
 bool getPtpTcEnabled(const facebook::fboss::HwSwitch* hw) {
   const auto bcmSw = static_cast<const BcmSwitch*>(hw);
-  return bcmSw->getPtpTcMgr()->isPtpTcEnabled();
-}
-
-bool getPtpTcNoTransition(const facebook::fboss::HwSwitch* hw) {
-  const auto bcmSw = static_cast<const BcmSwitch*>(hw);
-  return bcmSw->getPtpTcMgr()->getPtpTcNoTransition();
+  return BcmPtpTcMgr::isPtpTcEnabled(bcmSw);
 }
 
 } // namespace facebook::fboss::utility

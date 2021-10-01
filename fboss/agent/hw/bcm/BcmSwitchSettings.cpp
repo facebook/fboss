@@ -249,15 +249,28 @@ void BcmSwitchSettings::setQcmEnable(
 void BcmSwitchSettings::setPtpTc(
     bool enable,
     const std::shared_ptr<SwitchState>& /* unused */) {
-  XLOG(DBG3) << "Set ptp tc =" << enable;
-  if (ptpTcEnable_.has_value() && ptpTcEnable_.value() == enable) {
-    return;
+  if (ptpTcEnable_.has_value()) {
+    if (ptpTcEnable_.value() == enable) {
+      XLOG(DBG3) << "Skip setting ptp tc = " << enable
+                 << " as no-op based on previous config";
+      return;
+    }
+  } else {
+    if (hw_->getWarmBootCache()->ptpTcSettingMatches(enable)) {
+      XLOG(DBG3) << "Skip setting ptp tc = " << enable
+                 << " as no-op based on warmboot cache";
+      ptpTcEnable_ = enable;
+      return;
+    }
   }
+
+  XLOG(DBG3) << "Set ptp tc =" << enable;
 
   const auto ptpTcMgr = hw_->getPtpTcMgr();
   (enable) ? ptpTcMgr->enablePtpTc() : ptpTcMgr->disablePtpTc();
 
   ptpTcEnable_ = enable;
+  hw_->getWarmBootCache()->ptpTcProgrammed();
 }
 
 void BcmSwitchSettings::setL2AgeTimerSeconds(uint32_t val) {

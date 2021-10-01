@@ -24,6 +24,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
+// static
 int BcmPtpTcMgr::getTsBitModeArg(HwAsic::AsicType asicType) {
   // TODO(rajukumarfb5368): integrate with HwAsic::isSupported() or a variant
   switch (asicType) {
@@ -85,8 +86,11 @@ void BcmPtpTcMgr::disablePcsBasedOneStepTimestamping(bcm_port_t port) {
       port);
 }
 
-bool BcmPtpTcMgr::isPcsBasedOneStepTimestampingEnabled(bcm_port_t port) {
-  const auto unit = hw_->getUnit();
+// static
+bool BcmPtpTcMgr::isPcsBasedOneStepTimestampingEnabled(
+    const BcmSwitchIf* hw,
+    bcm_port_t port) {
+  const auto unit = hw->getUnit();
 
   bcm_port_phy_timesync_config_t phy;
   bcm_port_phy_timesync_config_t_init(&phy);
@@ -112,21 +116,24 @@ void BcmPtpTcMgr::disableTimeInterface() {
   bcm_time_interface_delete_all(hw_->getUnit());
 }
 
-bool BcmPtpTcMgr::isTimeInterfaceEnabled() {
+// static
+bool BcmPtpTcMgr::isTimeInterfaceEnabled(const BcmSwitchIf* hw) {
   bcm_time_interface_t time_interface;
   bcm_time_interface_t_init(&time_interface);
 
-  const auto unit = hw_->getUnit();
+  const auto unit = hw->getUnit();
   bcm_time_interface_get(unit, &time_interface);
 
   return time_interface.flags & BCM_TIME_ENABLE;
 }
 
-bool BcmPtpTcMgr::isPtpTcSupported(BcmSwitch* hw) {
+// static
+bool BcmPtpTcMgr::isPtpTcSupported(const BcmSwitchIf* hw) {
   return hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC);
 }
 
-bool BcmPtpTcMgr::isPtpTcPcsSupported(BcmSwitch* hw) {
+// static
+bool BcmPtpTcMgr::isPtpTcPcsSupported(const BcmSwitchIf* hw) {
   return hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC_PCS);
 }
 
@@ -135,11 +142,6 @@ bool BcmPtpTcMgr::isPtpTcPcsSupported(BcmSwitch* hw) {
 void BcmPtpTcMgr::enablePtpTc() {
   if (!isPtpTcSupported(hw_)) {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
-    return;
-  }
-  if (isPtpTcEnabled()) {
-    ptpTcNoTransition_ = true;
-    XLOG(INFO) << "Ignore PTP TC no-op transition: ON -> ON";
     return;
   }
 
@@ -192,11 +194,6 @@ void BcmPtpTcMgr::disablePtpTc() {
     XLOG(INFO) << "[PTP] Ignore configuration of unsupported feature";
     return;
   }
-  if (!isPtpTcEnabled()) {
-    ptpTcNoTransition_ = true;
-    XLOG(INFO) << "Ignore PTP TC no-op transition: OFF -> OFF";
-    return;
-  }
 
   XLOG(INFO) << "[PTP] Start disable";
 
@@ -235,19 +232,22 @@ void BcmPtpTcMgr::disablePtpTc() {
   XLOG(INFO) << "[PTP] Disabled timestamping on " << count << " ports";
 }
 
-bool BcmPtpTcMgr::isPtpTcEnabled() {
+// static
+bool BcmPtpTcMgr::isPtpTcEnabled(const BcmSwitchIf* hw) {
   bcm_port_config_t portConfig;
   bcm_port_config_t_init(&portConfig);
 
-  const auto unit = hw_->getUnit();
+  XLOG(DBG3) << "Check if PTP TC is enabled";
+
+  const auto unit = hw->getUnit();
   BCM_CHECK_ERROR(
       bcm_port_config_get(unit, &portConfig),
       "failed to get port configuration");
 
   bcm_port_t port;
   BCM_PBMP_ITER(portConfig.port, port) {
-    if (isPtpTcPcsSupported(hw_)) {
-      if (!isPcsBasedOneStepTimestampingEnabled(port)) {
+    if (isPtpTcPcsSupported(hw)) {
+      if (!isPcsBasedOneStepTimestampingEnabled(hw, port)) {
         return false;
       }
     }
@@ -286,13 +286,13 @@ bool BcmPtpTcMgr::isPtpTcEnabled() {
             &tsBitModeArgFound),
         "failed to get control port configuration");
     static const int tsBitModeArg =
-        getTsBitModeArg(hw_->getPlatform()->getAsic()->getAsicType());
+        getTsBitModeArg(hw->getPlatform()->getAsic()->getAsicType());
     if (tsBitModeArg != tsBitModeArgFound) {
       return false;
     }
   }
 
-  return isTimeInterfaceEnabled();
+  return isTimeInterfaceEnabled(hw);
 }
 
 } // namespace facebook::fboss

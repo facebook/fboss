@@ -20,9 +20,4 @@ bool getPtpTcEnabled(const facebook::fboss::HwSwitch* hw) {
   return saiSwitch->managerTable()->portManager().isPtpTcEnabled();
 }
 
-bool getPtpTcNoTransition(const facebook::fboss::HwSwitch* hw) {
-  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
-  return saiSwitch->managerTable()->portManager().getPtpTcNoTransition();
-}
-
 } // namespace facebook::fboss::utility

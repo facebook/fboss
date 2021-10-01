@@ -168,9 +168,6 @@ class SaiPortManager {
 
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
-  bool getPtpTcNoTransition() const {
-    return ptpTcNoTransition_;
-  }
 
  private:
   void addRemovedHandle(PortID portID);
@@ -238,10 +235,6 @@ class SaiPortManager {
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
-
-  // used by test to check that warmboot indeed
-  // results in a no-op transition that is detected and skipped
-  bool ptpTcNoTransition_{false};
 };
 
 } // namespace facebook::fboss

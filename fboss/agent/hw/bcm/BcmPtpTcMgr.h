@@ -18,34 +18,27 @@ class BcmPtpTcMgr {
   void disablePtpTc();
 
   // utility routines
-  static bool isPtpTcSupported(BcmSwitch* hw);
-  static bool isPtpTcPcsSupported(BcmSwitch* hw);
-
-  // utility routines used by tests
-  bool isPtpTcEnabled();
-  bool getPtpTcNoTransition() const {
-    return ptpTcNoTransition_;
-  }
+  static bool isPtpTcSupported(const BcmSwitchIf* hw);
+  static bool isPtpTcPcsSupported(const BcmSwitchIf* hw);
+  static bool isPtpTcEnabled(const BcmSwitchIf* hw);
 
  private:
-  int getTsBitModeArg(HwAsic::AsicType asicType);
+  static int getTsBitModeArg(HwAsic::AsicType asicType);
 
   void enablePortTimesyncConfig(
       bcm_port_timesync_config_t* port_timesync_config);
 
   void enablePcsBasedOneStepTimestamping(bcm_port_t port);
   void disablePcsBasedOneStepTimestamping(bcm_port_t port);
-  bool isPcsBasedOneStepTimestampingEnabled(bcm_port_t port);
+  static bool isPcsBasedOneStepTimestampingEnabled(
+      const BcmSwitchIf* hw,
+      bcm_port_t port);
 
   void enableTimeInterface();
   void disableTimeInterface();
-  bool isTimeInterfaceEnabled();
+  static bool isTimeInterfaceEnabled(const BcmSwitchIf* hw);
 
   BcmSwitch* hw_;
-
-  // used by test to check that warmboot indeed
-  // results in a no-op transition that is detected and skipped
-  bool ptpTcNoTransition_{false};
 };
 
 } // namespace facebook::fboss

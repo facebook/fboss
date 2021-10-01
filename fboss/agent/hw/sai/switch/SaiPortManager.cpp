@@ -1144,13 +1144,6 @@ bool SaiPortManager::isPtpTcEnabled() const {
 }
 
 void SaiPortManager::setPtpTcEnable(bool enable) {
-  if (enable == isPtpTcEnabled()) {
-    ptpTcNoTransition_ = true;
-    XLOG(INFO) << fmt::format(
-        "Ignore PTP TC no-op transition: {0} -> {0}", (enable ? "ON" : "OFF"));
-    return;
-  }
-
   for (const auto& portIdAndHandle : handles_) {
     portIdAndHandle.second->port->setOptionalAttribute(
         SaiPortTraits::Attributes::PtpMode{utility::getSaiPortPtpMode(enable)});

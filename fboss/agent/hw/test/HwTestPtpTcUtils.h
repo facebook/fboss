@@ -21,7 +21,6 @@ class HwSwitch;
 namespace utility {
 
 bool getPtpTcEnabled(const facebook::fboss::HwSwitch* hw);
-bool getPtpTcNoTransition(const facebook::fboss::HwSwitch* hw);
 
 } // namespace utility
 } // namespace facebook::fboss

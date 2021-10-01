@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmPtpTcMgr.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
@@ -948,6 +949,8 @@ void BcmWarmBootCache::clear() {
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();
   checkUnclaimedQosMaps();
+
+  ptpTcEnabled_ = std::nullopt;
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -1612,6 +1615,9 @@ void BcmWarmBootCache::populateSwitchSettings() {
     throw FbossError(
         "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
   }
+
+  XLOG(DBG3) << "Check if PTP TC is enabled to populate warmboot cache";
+  ptpTcEnabled_ = BcmPtpTcMgr::isPtpTcEnabled(hw_);
 }
 
 } // namespace facebook::fboss
