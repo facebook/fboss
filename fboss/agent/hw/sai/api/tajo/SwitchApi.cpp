@@ -21,7 +21,7 @@ SaiSwitchTraits::Attributes::AttributeLedResetIdWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
-  return SAI_SWITCH_ATTR_EXT_ACL_FIELD_LIST;
+  return std::nullopt;
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
