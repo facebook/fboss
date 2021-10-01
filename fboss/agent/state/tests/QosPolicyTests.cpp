@@ -404,10 +404,8 @@ TEST(QosPolicy, PortDefaultQosPolicy) {
   stateV0->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
   config.qosPolicies_ref()->resize(1);
   *config.qosPolicies_ref()[0].name_ref() = "qp1";
   *config.qosPolicies_ref()[0].rules_ref() = dscpRules({{0, {44, 45, 46}}});
@@ -430,10 +428,8 @@ TEST(QosPolicy, PortQosPolicyOverride) {
   stateV0->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
   config.qosPolicies_ref()->resize(2);
   *config.qosPolicies_ref()[0].name_ref() = "qp1";
   *config.qosPolicies_ref()[0].rules_ref() = dscpRules({{0, {46}}});
@@ -545,10 +541,8 @@ TEST(QosPolicy, DefaultQosPolicyOnPorts) {
   state->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
 
   config.qosPolicies_ref()->resize(1);
   auto& policy = config.qosPolicies_ref()[0];
@@ -574,10 +568,8 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   state->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
 
   config.qosPolicies_ref()->resize(2);
   auto& policy0 = config.qosPolicies_ref()[0];
@@ -664,8 +656,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   stateV0->registerPort(PortID(1), "port1");
 
   config0.ports_ref()->resize(1);
-  *config0.ports_ref()[0].logicalID_ref() = 1;
-  config0.ports_ref()[0].name_ref() = "port1";
+  preparedMockPortConfig(config0.ports_ref()[0], 1);
   cfg::TrafficPolicyConfig trafficPolicy0;
   trafficPolicy0.portIdToQosPolicy_ref() = {{1, "qp3"}};
   config0.dataPlaneTrafficPolicy_ref() = trafficPolicy0;
@@ -678,8 +669,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   stateV1->registerPort(PortID(1), "port1");
 
   config1.ports_ref()->resize(1);
-  *config1.ports_ref()[0].logicalID_ref() = 1;
-  config1.ports_ref()[0].name_ref() = "port1";
+  preparedMockPortConfig(config1.ports_ref()[0], 1);
   cfg::TrafficPolicyConfig trafficPolicy1;
   trafficPolicy1.defaultQosPolicy_ref() = "qp1";
   config1.dataPlaneTrafficPolicy_ref() = trafficPolicy1;

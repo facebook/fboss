@@ -47,9 +47,7 @@ TEST(Port, applyConfig) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
   config.ports_ref()[0].sampleDest_ref() = cfg::SampleDestination::MIRROR;
   *config.ports_ref()[0].sFlowIngressRate_ref() = 10;
   config.vlans_ref()->resize(2);
@@ -80,6 +78,10 @@ TEST(Port, applyConfig) {
   EXPECT_EQ("port1", portV1->getName());
   EXPECT_EQ(1, portV1->getGeneration());
   EXPECT_EQ(cfg::PortState::ENABLED, portV1->getAdminState());
+  EXPECT_EQ(cfg::PortSpeed::XG, portV1->getSpeed());
+  EXPECT_EQ(
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      portV1->getProfileID());
   EXPECT_FALSE(portV1->isPublished());
   Port::VlanMembership expectedVlans;
   expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false)));
@@ -109,6 +111,10 @@ TEST(Port, applyConfig) {
   EXPECT_EQ("port1", portV2->getName());
   EXPECT_EQ(2, portV2->getGeneration());
   EXPECT_EQ(cfg::PortState::ENABLED, portV2->getAdminState());
+  EXPECT_EQ(cfg::PortSpeed::XG, portV2->getSpeed());
+  EXPECT_EQ(
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      portV2->getProfileID());
   EXPECT_FALSE(portV2->isPublished());
   EXPECT_EQ(expectedVlansV2, portV2->getVlans());
   EXPECT_TRUE(portV1->getSampleDestination().has_value());
@@ -116,13 +122,18 @@ TEST(Port, applyConfig) {
       cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
   // Applying the same config with a different speed should result in changes
-  *config.ports_ref()[0].speed_ref() = cfg::PortSpeed::GIGE;
+  config.ports_ref()[0].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
+  config.ports_ref()[0].profileID_ref() =
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portV3 = stateV3->getPort(PortID(1));
   ASSERT_NE(nullptr, portV3);
   EXPECT_NE(portV2, portV3);
-  EXPECT_EQ(cfg::PortSpeed::GIGE, portV3->getSpeed());
+  EXPECT_EQ(cfg::PortSpeed::TWENTYFIVEG, portV3->getSpeed());
+  EXPECT_EQ(
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
+      portV3->getProfileID());
 }
 
 TEST(Port, ToFromWithPgConfigs) {
@@ -664,7 +675,10 @@ TEST(Port, emptyConfig) {
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
-  state->getPorts()->getPortIf(portID)->setAdminState(cfg::PortState::DISABLED);
+  auto port = state->getPorts()->getPortIf(portID);
+  port->setAdminState(cfg::PortState::DISABLED);
+  port->setSpeed(cfg::PortSpeed::XG);
+  port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg.
   QueueConfig queues;
@@ -680,9 +694,8 @@ TEST(Port, emptyConfig) {
   // Applying same config should result in no change.
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+  preparedMockPortConfig(
+      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // If platform does not support addRemovePort (by default),
@@ -714,9 +727,8 @@ TEST(Port, verifyPfcWithPauseConfig) {
   pause.rx_ref() = true;
 
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+  preparedMockPortConfig(
+      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
   config.ports_ref()[0].pfc_ref() = pfc;
   config.ports_ref()[0].pause_ref() = pause;
 
@@ -736,9 +748,8 @@ TEST(Port, verifyPfcConfig) {
   cfg::PortPfc pfc;
 
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+  preparedMockPortConfig(
+      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
   config.ports_ref()[0].pfc_ref() = pfc;
   auto newState = publishAndApplyConfig(state, &config, platform.get());
 
@@ -808,7 +819,11 @@ TEST(Port, verifyPfcConfig) {
 TEST(Port, pauseConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
-  state->registerPort(PortID(1), "port1");
+  auto portID = PortID(1);
+  state->registerPort(portID, "port1");
+  auto port = state->getPorts()->getPortIf(portID);
+  port->setSpeed(cfg::PortSpeed::XG);
+  port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
   // Make sure we also update the port queues to default queue so that the
   // config change won't be triggered because of empty queue cfg
   QueueConfig queues;
@@ -831,9 +846,8 @@ TEST(Port, pauseConfig) {
     auto oldPause = state->getPort(PortID(1))->getPause();
     cfg::SwitchConfig config;
     config.ports_ref()->resize(1);
-    *config.ports_ref()[0].logicalID_ref() = 1;
-    config.ports_ref()[0].name_ref() = "port1";
-    *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+    preparedMockPortConfig(
+        config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
     config.ports_ref()[0].pause_ref() = newPause;
     auto newState = publishAndApplyConfig(state, &config, platform.get());
 
@@ -881,9 +895,8 @@ TEST(Port, loopbackModeConfig) {
         auto oldLoopbackMode = state->getPort(PortID(1))->getLoopbackMode();
         cfg::SwitchConfig config;
         config.ports_ref()->resize(1);
-        *config.ports_ref()[0].logicalID_ref() = 1;
-        config.ports_ref()[0].name_ref() = "port1";
-        *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+        preparedMockPortConfig(
+            config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
         *config.ports_ref()[0].loopbackMode_ref() = newLoopbackMode;
         auto newState = publishAndApplyConfig(state, &config, platform.get());
 
@@ -923,9 +936,8 @@ TEST(Port, sampleDestinationConfig) {
         auto oldDestination = state->getPort(PortID(1))->getSampleDestination();
         cfg::SwitchConfig config;
         config.ports_ref()->resize(1);
-        *config.ports_ref()[0].logicalID_ref() = 1;
-        config.ports_ref()[0].name_ref() = "port1";
-        *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+        preparedMockPortConfig(
+            config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
         if (newDestination.has_value()) {
           config.ports_ref()[0].sampleDest_ref() = newDestination.value();
         }
@@ -1039,6 +1051,8 @@ TEST(PortMap, applyConfig) {
   auto registerPort = [&](int i) {
     auto port =
         std::make_shared<Port>(PortID(i), folly::format("port{}", i).str());
+    port->setSpeed(cfg::PortSpeed::XG);
+    port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
     QueueConfig defaultQueues;
     for (int q = 0; q < platform->getAsic()->getDefaultNumPortQueues(
                             cfg::StreamType::UNICAST, false);
@@ -1064,14 +1078,13 @@ TEST(PortMap, applyConfig) {
   // Applying an empty config shouldn't change a newly-constructed PortMap
   cfg::SwitchConfig config;
   config.ports_ref()->resize(4);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
-  *config.ports_ref()[2].logicalID_ref() = 3;
-  config.ports_ref()[2].name_ref() = "port3";
-  *config.ports_ref()[3].logicalID_ref() = 4;
-  config.ports_ref()[3].name_ref() = "port4";
+  for (int i = 0; i < 4; ++i) {
+    preparedMockPortConfig(
+        config.ports_ref()[i],
+        i + 1,
+        fmt::format("port{}", i + 1),
+        cfg::PortState::DISABLED);
+  }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
@@ -1146,18 +1159,11 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(portsV2->getPort(PortID(4))->isPublished());
 
   // If we disable port3 from the config, it should be marked down
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
-  config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
-  config.ports_ref()[2].logicalID_ref() = 3;
-  config.ports_ref()[2].name_ref() = "port3";
-  config.ports_ref()[2].state_ref() = cfg::PortState::DISABLED;
-  config.ports_ref()[3].logicalID_ref() = 4;
-  config.ports_ref()[3].name_ref() = "port4";
-  config.ports_ref()[3].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
+  preparedMockPortConfig(
+      config.ports_ref()[2], 3, "port3", cfg::PortState::DISABLED);
+  preparedMockPortConfig(config.ports_ref()[3], 4);
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);

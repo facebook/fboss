@@ -81,9 +81,7 @@ cfg::PortQueue generateTestQueueConfig(const int id) {
 cfg::SwitchConfig generateTestConfig(int queueCount = 1) {
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
   // program multiple queues if needed, settings can be default
   for (int i = 0; i < queueCount; ++i) {
     auto queue0 = generateTestQueueConfig(i);
@@ -200,9 +198,7 @@ TEST(PortQueue, stateDelta) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     cfg::PortQueue queue;
     queue.id_ref() = i;
@@ -266,9 +262,7 @@ TEST(PortQueue, aqmState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
   cfg::PortQueue queue;
   queue.id_ref() = 0;
   queue.weight_ref() = 1;
@@ -296,9 +290,7 @@ TEST(PortQueue, aqmBadState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
   cfg::PortQueue queue;
   queue.id_ref() = 0;
   queue.weight_ref() = 1;
@@ -390,9 +382,7 @@ TEST(PortQueue, checkValidPortQueueConfigRef) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   cfg::PortQueue queue0;
   queue0.id_ref() = 0;

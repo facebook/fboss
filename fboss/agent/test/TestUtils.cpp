@@ -240,16 +240,14 @@ unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* config,
     SwitchFlags flags) {
   shared_ptr<SwitchState> initialState{nullptr};
-  // Create the initial state, which only has ports
+  // Create the initial state, which only has the same number of ports with the
+  // init config
   initialState = make_shared<SwitchState>();
-  uint32_t maxPort{0};
   if (config) {
     for (const auto& port : *config->ports_ref()) {
-      maxPort = std::max(static_cast<int32_t>(maxPort), *port.logicalID_ref());
+      auto id = *port.logicalID_ref();
+      initialState->registerPort(PortID(id), folly::to<string>("port", id));
     }
-  }
-  for (uint32_t idx = 1; idx <= maxPort; ++idx) {
-    initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
   }
 
   auto handle = createTestHandle(initialState, flags);
@@ -651,6 +649,20 @@ std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     }
   }
   return lbPorts;
+}
+
+void preparedMockPortConfig(
+    cfg::Port& portCfg,
+    int32_t id,
+    std::optional<std::string> name,
+    cfg::PortState state) {
+  portCfg.logicalID_ref() = id;
+  portCfg.state_ref() = state;
+  portCfg.name_ref() = name ? *name : fmt::format("port{}", id);
+  // Always use 10G because all the platform ports from MockPlatform can
+  // support such speed and profile
+  portCfg.speed_ref() = cfg::PortSpeed::XG;
+  portCfg.profileID_ref() = cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER;
 }
 
 } // namespace facebook::fboss

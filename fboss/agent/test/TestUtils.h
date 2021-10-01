@@ -417,4 +417,10 @@ void programRoutes(
 
 std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     const std::shared_ptr<SwitchState>& state);
+
+void preparedMockPortConfig(
+    cfg::Port& portCfg,
+    int32_t id,
+    std::optional<std::string> name = std::nullopt,
+    cfg::PortState state = cfg::PortState::ENABLED);
 } // namespace facebook::fboss

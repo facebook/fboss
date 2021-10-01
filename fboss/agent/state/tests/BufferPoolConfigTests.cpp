@@ -34,9 +34,7 @@ TEST(BufferPoolConfigTest, bufferPoolName) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;

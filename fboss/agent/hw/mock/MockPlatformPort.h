@@ -9,10 +9,6 @@
  */
 #pragma once
 
-#include <folly/experimental/TestUtil.h>
-#include <folly/futures/Future.h>
-#include <folly/io/async/EventBase.h>
-#include <optional>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -21,8 +17,12 @@
 
 namespace facebook::fboss {
 
+class MockPlatform;
+
 class MockPlatformPort : public PlatformPort {
  public:
+  MockPlatformPort(PortID id, MockPlatform* platform)
+      : PlatformPort(id, platform) {}
   MOCK_CONST_METHOD0(getPortID, PortID());
   MOCK_METHOD1(preDisable, void(bool temporary));
   MOCK_METHOD1(postDisable, void(bool temporary));
@@ -43,6 +43,10 @@ class MockPlatformPort : public PlatformPort {
           bool errors));
   MOCK_METHOD0(prepareForGracefulExit, void());
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
+  MOCK_METHOD1(externalState, void(PortLedExternalState));
+  MOCK_CONST_METHOD0(
+      getFutureTransceiverInfo,
+      folly::Future<TransceiverInfo>());
 };
 
 } // namespace facebook::fboss

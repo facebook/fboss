@@ -34,9 +34,7 @@ TEST(PortPgConfig, TestPortPgNameMismatch) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   cfg::PortPfc pfc;
   pfc.portPgConfigName_ref() = "not_foo";
@@ -118,9 +116,7 @@ TEST(PortPgConfig, TestPortPgWatchdogConfigMismatch) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   cfg::PortPfc pfc;
   cfg::PfcWatchdog watchdog;
@@ -162,13 +158,8 @@ TEST(PortPgConfig, applyConfig) {
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::SwitchConfig config;
   config.ports_ref()->resize(2);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-
-  config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
-  config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;

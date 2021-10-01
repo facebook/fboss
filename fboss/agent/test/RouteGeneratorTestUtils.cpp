@@ -10,7 +10,9 @@
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -32,19 +34,21 @@ uint64_t getRouteCountImpl(const Chunks& routeChunks) {
 } // namespace
 namespace facebook::fboss {
 
-// Random test config with 2 ports and 2 vlans
 cfg::SwitchConfig getTestConfig() {
+  // Because this test will eventually use MockPlatform which is using
+  // Wedge100PlatformMapping for creating platform configs.
+  auto platformMapping = std::make_unique<Wedge100PlatformMapping>();
+  const auto& platformPorts = platformMapping->getPlatformPorts();
   cfg::SwitchConfig cfg;
-  cfg.ports_ref()->resize(64);
-  cfg.vlans_ref()->resize(64);
-  cfg.vlanPorts_ref()->resize(64);
-  cfg.interfaces_ref()->resize(64);
-  for (int i = 0; i < 64; ++i) {
-    auto id = i + 1;
+  cfg.ports_ref()->resize(platformPorts.size());
+  cfg.vlans_ref()->resize(platformPorts.size());
+  cfg.vlanPorts_ref()->resize(platformPorts.size());
+  cfg.interfaces_ref()->resize(platformPorts.size());
+  auto i = 0;
+  for (const auto& entry : platformPorts) {
+    auto id = entry.first;
     // port
-    *cfg.ports_ref()[i].logicalID_ref() = id;
-    cfg.ports_ref()[i].name_ref() = folly::to<string>("port", id);
-    cfg.ports_ref()[i].state_ref() = cfg::PortState::ENABLED;
+    preparedMockPortConfig(cfg.ports_ref()[i], id);
     // vlans
     *cfg.vlans_ref()[i].id_ref() = id;
     *cfg.vlans_ref()[i].name_ref() = folly::to<string>("Vlan", id);
@@ -57,15 +61,19 @@ cfg::SwitchConfig getTestConfig() {
     *cfg.interfaces_ref()[i].routerID_ref() = 0;
     *cfg.interfaces_ref()[i].vlanID_ref() = id;
     cfg.interfaces_ref()[i].name_ref() = folly::to<string>("interface", id);
-    cfg.interfaces_ref()[i].mac_ref() =
-        folly::to<string>("00:02:00:00:00:", id);
+    cfg.interfaces_ref()[i].mac_ref() = fmt::format("00:02:00:00:00:{:x}", i);
     cfg.interfaces_ref()[i].mtu_ref() = 9000;
     cfg.interfaces_ref()[i].ipAddresses_ref()->resize(2);
     cfg.interfaces_ref()[i].ipAddresses_ref()[0] =
-        folly::to<std::string>("10.0.", id, ".0/24");
+        folly::to<std::string>("10.0.", i, ".0/24");
     cfg.interfaces_ref()[i].ipAddresses_ref()[1] =
-        folly::to<std::string>("2400:", id, "::/64");
+        folly::to<std::string>("2400:", i, "::/64");
+
+    ++i;
   }
+
+  XLOG(INFO) << "Created " << platformPorts.size() << " port config";
+
   return cfg;
 }
 

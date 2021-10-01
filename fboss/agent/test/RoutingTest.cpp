@@ -294,8 +294,7 @@ class RoutingFixture : public ::testing::Test {
     config.vlanPorts_ref()->resize(2);
     for (int i = 0; i < 2; ++i) {
       auto& port = config.ports_ref()[i];
-      *port.logicalID_ref() = i + 1;
-      *port.state_ref() = cfg::PortState::ENABLED;
+      preparedMockPortConfig(port, i + 1);
       *port.minFrameSize_ref() = 64;
       *port.maxFrameSize_ref() = 9000;
       *port.routable_ref() = true;

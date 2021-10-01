@@ -44,7 +44,7 @@ TEST(Vlan, applyConfig) {
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
   stateV0->addVlan(vlanV0);
   stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(99), "port99");
+  stateV0->registerPort(PortID(2), "port2");
 
   NodeID nodeID = vlanV0->getNodeID();
   EXPECT_EQ(0, vlanV0->getGeneration());
@@ -58,13 +58,11 @@ TEST(Vlan, applyConfig) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[1].logicalID_ref() = 99;
-  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
   config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1234;
-  *config.vlans_ref()[0].name_ref() = kVlan1234;
+  config.vlans_ref()[0].id_ref() = 1234;
+  config.vlans_ref()[0].name_ref() = kVlan1234;
   config.vlans_ref()[0].dhcpRelayOverridesV4_ref() = {};
   (*config.vlans_ref()[0].dhcpRelayOverridesV4_ref())["02:00:00:00:00:02"] =
       "1.2.3.4";
@@ -73,16 +71,16 @@ TEST(Vlan, applyConfig) {
       "2a03:2880:10:1f07:face:b00c:0:0";
   config.vlans_ref()[0].intfID_ref() = 1;
   config.vlanPorts_ref()->resize(2);
-  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
-  *config.vlanPorts_ref()[0].vlanID_ref() = 1234;
-  *config.vlanPorts_ref()[0].emitTags_ref() = false;
-  *config.vlanPorts_ref()[1].logicalPort_ref() = 99;
-  *config.vlanPorts_ref()[1].vlanID_ref() = 1234;
-  *config.vlanPorts_ref()[1].emitTags_ref() = true;
+  config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  config.vlanPorts_ref()[0].vlanID_ref() = 1234;
+  config.vlanPorts_ref()[0].emitTags_ref() = false;
+  config.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  config.vlanPorts_ref()[1].vlanID_ref() = 1234;
+  config.vlanPorts_ref()[1].emitTags_ref() = true;
 
   Vlan::MemberPorts expectedPorts;
   expectedPorts.insert(make_pair(PortID(1), Vlan::PortInfo(false)));
-  expectedPorts.insert(make_pair(PortID(99), Vlan::PortInfo(true)));
+  expectedPorts.insert(make_pair(PortID(2), Vlan::PortInfo(true)));
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlanV1 = stateV1->getVlans()->getVlan(VlanID(1234));
@@ -287,9 +285,11 @@ TEST(VlanMap, applyConfig) {
   for (int i = 0; i < ports.size(); i++) {
     int port = ports[i];
     stateV0->registerPort(PortID(port), folly::format("port{}", port).str());
-    config.ports_ref()[i].logicalID_ref() = port;
-    config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
-    config.ports_ref()[i].state_ref() = cfg::PortState::DISABLED;
+    preparedMockPortConfig(
+        config.ports_ref()[i],
+        port,
+        fmt::format("port{}", port),
+        cfg::PortState::DISABLED);
   }
 
   auto vlansV0 = stateV0->getVlans();

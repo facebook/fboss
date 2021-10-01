@@ -67,9 +67,7 @@ TEST(Acl, applyConfig) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   config.acls_ref()->resize(1);
   *config.acls_ref()[0].name_ref() = "acl1";
@@ -119,9 +117,7 @@ TEST(Acl, applyConfig) {
 
   cfg::SwitchConfig configV1;
   configV1.ports_ref()->resize(1);
-  *configV1.ports_ref()[0].logicalID_ref() = 1;
-  configV1.ports_ref()[0].name_ref() = "port1";
-  *configV1.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(configV1.ports_ref()[0], 1);
 
   configV1.acls_ref()->resize(1);
   *configV1.acls_ref()[0].name_ref() = "acl3";
@@ -166,9 +162,7 @@ TEST(Acl, applyConfig) {
 
   cfg::SwitchConfig configV2;
   configV2.ports_ref()->resize(1);
-  *configV2.ports_ref()[0].logicalID_ref() = 1;
-  configV2.ports_ref()[0].name_ref() = "port1";
-  *configV2.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(configV2.ports_ref()[0], 1);
   configV2.acls_ref()->resize(1);
   *configV2.acls_ref()[0].name_ref() = "acl3";
   // Make sure it's used so that it isn't ignored
@@ -361,12 +355,8 @@ TEST(Acl, AclGeneration) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  config.ports_ref()[1].name_ref() = "port2";
-  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
 
   config.acls_ref()->resize(5);
   *config.acls_ref()[0].name_ref() = "acl1";

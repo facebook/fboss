@@ -113,8 +113,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   // This config has an aggregate port comprised of a single physical port
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
 
   config.vlans_ref()->resize(1);
   *config.vlans_ref()[0].id_ref() = 1000;
@@ -159,10 +158,8 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
-  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
-  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(baseConfig.ports_ref()[0], 1);
+  preparedMockPortConfig(baseConfig.ports_ref()[1], 2);
 
   baseConfig.vlans_ref()->resize(1);
   *baseConfig.vlans_ref()[0].id_ref() = 1000;
@@ -216,10 +213,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
-  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
-  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(baseConfig.ports_ref()[0], 1);
+  preparedMockPortConfig(baseConfig.ports_ref()[1], 2);
 
   baseConfig.vlans_ref()->resize(1);
   *baseConfig.vlans_ref()[0].id_ref() = 1000;
@@ -275,10 +270,8 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
-  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
-  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(baseConfig.ports_ref()[0], 1);
+  preparedMockPortConfig(baseConfig.ports_ref()[1], 2);
 
   baseConfig.vlans_ref()->resize(1);
   *baseConfig.vlans_ref()[0].id_ref() = 1000;
@@ -338,10 +331,8 @@ TEST(AggregatePort, noTrunk) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
-  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
-  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(baseConfig.ports_ref()[0], 1);
+  preparedMockPortConfig(baseConfig.ports_ref()[1], 2);
 
   baseConfig.vlans_ref()->resize(1);
   *baseConfig.vlans_ref()[0].id_ref() = 1000;

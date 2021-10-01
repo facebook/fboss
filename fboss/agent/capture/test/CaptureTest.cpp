@@ -57,10 +57,9 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   thriftIface.mac_ref() = "02:01:02:03:04:05";
   thriftCfg.interfaces_ref()->push_back(thriftIface);
 
-  for (int idx = 1; idx < 40; ++idx) {
+  for (int idx = 1; idx < 10; ++idx) {
     cfg::Port thriftPort;
-    *thriftPort.logicalID_ref() = idx;
-    *thriftPort.state_ref() = cfg::PortState::ENABLED;
+    preparedMockPortConfig(thriftPort, idx);
     *thriftPort.parserType_ref() = cfg::ParserType::L3;
     *thriftPort.routable_ref() = true;
     *thriftPort.ingressVlan_ref() = 1;

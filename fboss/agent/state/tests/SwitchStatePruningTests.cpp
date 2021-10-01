@@ -104,10 +104,7 @@ void registerPortsAndPopulateConfig(
   config.ports_ref()->resize(port2Vlan.size());
   int index = 0;
   for (const auto& portAndVlan : port2Vlan) {
-    auto& portObj = config.ports_ref()[index++];
-    int portInt = int(portAndVlan.first);
-    *portObj.logicalID_ref() = portInt;
-    portObj.name_ref() = folly::to<std::string>("port", portInt);
+    preparedMockPortConfig(config.ports_ref()[index++], int(portAndVlan.first));
   }
 
   index = 0;

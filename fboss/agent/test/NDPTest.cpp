@@ -82,8 +82,7 @@ cfg::SwitchConfig createSwitchConfig(
   config.vlanPorts_ref()->resize(10);
   config.ports_ref()->resize(10);
   for (int n = 0; n < 10; ++n) {
-    *config.ports_ref()[n].logicalID_ref() = n + 1;
-    *config.ports_ref()[n].state_ref() = cfg::PortState::ENABLED;
+    preparedMockPortConfig(config.ports_ref()[n], n + 1);
     *config.ports_ref()[n].minFrameSize_ref() = 64;
     *config.ports_ref()[n].maxFrameSize_ref() = 9000;
     *config.ports_ref()[n].routable_ref() = true;

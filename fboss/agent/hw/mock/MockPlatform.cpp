@@ -13,6 +13,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
+#include "fboss/agent/hw/mock/MockPlatformPort.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
@@ -56,6 +57,11 @@ MockPlatform::MockPlatform(
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
   asic_ = std::make_unique<MockAsic>();
+  for (auto portEntry : getPlatformMapping()->getPlatformPorts()) {
+    auto portID = PortID(portEntry.first);
+    portMapping_.emplace(
+        portID, std::make_unique<MockPlatformPort>(portID, this));
+  }
 }
 
 MockPlatform::MockPlatform()
@@ -84,6 +90,13 @@ std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
 
 HwAsic* MockPlatform::getAsic() const {
   return asic_.get();
+}
+
+PlatformPort* MockPlatform::getPlatformPort(PortID id) const {
+  if (auto port = portMapping_.find(id); port != portMapping_.end()) {
+    return port->second.get();
+  }
+  throw FbossError("Can't find MockPlatform PlatformPort for ", id);
 }
 
 } // namespace facebook::fboss

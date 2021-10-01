@@ -28,10 +28,8 @@ namespace {
 cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   cfg::SwitchConfig config;
   config.ports_ref()->resize(2);
-  *config.ports_ref()[0].logicalID_ref() = 1;
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[1].logicalID_ref() = 2;
-  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  preparedMockPortConfig(config.ports_ref()[0], 1);
+  preparedMockPortConfig(config.ports_ref()[1], 2);
 
   config.vlans_ref()->resize(1);
   *config.vlans_ref()[0].id_ref() = 3;
