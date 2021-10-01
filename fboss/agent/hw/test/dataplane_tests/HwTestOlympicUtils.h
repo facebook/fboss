@@ -52,6 +52,15 @@ constexpr int kOlympicAllSPDefaultQueueId = kOlympicAllSPSilverQueueId;
 constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
 constexpr int kOlympicAllSPHighestQueueId = kOlympicAllSPNCQueueId;
 
+/* network AI Qos queues*/
+constexpr int kNetworkAIMonitoringQueueId = 0;
+constexpr int kNetworkAIRdmaQueueId = 6;
+constexpr int kNetworkAINCQueueId = 7;
+
+void addNetworkAIQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType);
+
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
@@ -60,6 +69,7 @@ void addOlympicQueueConfig(
 void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType);
+
 void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);

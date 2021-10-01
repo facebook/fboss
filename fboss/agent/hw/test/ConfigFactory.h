@@ -19,7 +19,8 @@
 
 namespace facebook::fboss {
 class PortMap;
-}
+class HwSwitchEnsemble;
+} // namespace facebook::fboss
 
 /*
  * This utility is to provide utils for test.
@@ -118,6 +119,15 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     cfg::PortSpeed downlinkPortSpeed,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true);
+
+cfg::SwitchConfig createRtswUplinkDownlinkConfig(
+    const HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
+    const std::vector<PortID>& masterLogicalPortIds,
+    cfg::PortSpeed portSpeed,
+    cfg::PortLoopbackMode lbMode,
+    std::vector<PortID>& uplinks,
+    std::vector<PortID>& downlinks);
 
 /*
  * Currently we rely on port max speed to set the PortProfileID in the default

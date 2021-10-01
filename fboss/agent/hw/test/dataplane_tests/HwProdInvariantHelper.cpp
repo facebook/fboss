@@ -47,8 +47,7 @@ void HwProdInvariantHelper::setupEcmpWithNextHopMac(
 
 void HwProdInvariantHelper::sendTraffic() {
   CHECK(ecmpHelper_);
-  ecmpHelper_->pumpTrafficThroughPort(
-      ensemble_->masterLogicalPortIds()[kEcmpWidth]);
+  ecmpHelper_->pumpTrafficThroughPort(getTxPort());
 }
 
 void HwProdInvariantHelper::verifyLoadBalacing() {
@@ -59,6 +58,17 @@ void HwProdInvariantHelper::verifyLoadBalacing() {
 
 std::shared_ptr<SwitchState> HwProdInvariantHelper::getProgrammedState() const {
   return ensemble_->getProgrammedState();
+}
+
+PortID HwProdRtswInvariantHelper::getTxPort() {
+  // TODO: pick this hard coded for now
+  // follow up with picking up downlink
+  auto ensemble = getHwSwitchEnsemble();
+  return ensemble->masterLogicalPortIds()[kEcmpWidth - 1];
+}
+
+PortID HwProdInvariantHelper::getTxPort() {
+  return ensemble_->masterLogicalPortIds()[kEcmpWidth];
 }
 
 void HwProdInvariantHelper::sendAndVerifyPkts(
@@ -79,7 +89,7 @@ void HwProdInvariantHelper::sendAndVerifyPkts(
         dstIp,
         utility::kNonSpecialPort1,
         destPort,
-        ensemble_->masterLogicalPortIds()[0]);
+        getTxPort());
   };
 
   utility::sendPktAndVerifyCpuQueue(
@@ -114,7 +124,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
           folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
           8000,
           8001,
-          ensemble_->masterLogicalPortIds()[kEcmpWidth],
+          getTxPort(),
           dscp);
     }
   }

@@ -202,6 +202,13 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void clearPfcDeadlockRecoveryCounter(const PortID& port);
   void clearPfcDeadlockDetectionCounter(const PortID& port);
 
+  virtual void createEqualDistributedUplinkDownlinks(
+      const std::vector<PortID>& ports,
+      std::vector<PortID>& uplinks,
+      std::vector<PortID>& downlinks,
+      std::vector<PortID>& disabled,
+      const int totalLinkCount);
+
  protected:
   /*
    * Setup ensemble

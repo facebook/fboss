@@ -88,6 +88,7 @@ class HwProdInvariantHelper {
     }
   }
   void sendTraffic();
+  virtual PortID getTxPort();
   static HwSwitchEnsemble::Features featuresDesired() {
     return {
         HwSwitchEnsemble::LINKSCAN,
@@ -95,6 +96,10 @@ class HwProdInvariantHelper {
         HwSwitchEnsemble::STATS_COLLECTION};
   }
   void verifyNoDiscards();
+  HwSwitchEnsemble* getHwSwitchEnsemble() {
+    return ensemble_;
+  }
+  virtual ~HwProdInvariantHelper() {}
 
  private:
   cfg::SwitchConfig initialConfig() const {
@@ -112,6 +117,17 @@ class HwProdInvariantHelper {
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;
   cfg::SwitchConfig initialCfg_;
+};
+
+class HwProdRtswInvariantHelper : public HwProdInvariantHelper {
+ public:
+  HwProdRtswInvariantHelper(
+      HwSwitchEnsemble* ensemble,
+      const cfg::SwitchConfig& initialCfg)
+      : HwProdInvariantHelper(ensemble, initialCfg) {}
+
+  virtual PortID getTxPort() override;
+  virtual ~HwProdRtswInvariantHelper() override {}
 };
 
 } // namespace facebook::fboss

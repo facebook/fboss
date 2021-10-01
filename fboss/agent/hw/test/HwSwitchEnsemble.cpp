@@ -205,6 +205,15 @@ void HwSwitchEnsemble::removeHwEventObserver(
   }
 }
 
+void HwSwitchEnsemble::createEqualDistributedUplinkDownlinks(
+    const std::vector<PortID>& /*ports*/,
+    std::vector<PortID>& /*uplinks*/,
+    std::vector<PortID>& /*downlinks*/,
+    std::vector<PortID>& /*disabled*/,
+    const int /*totalLinkCount*/) {
+  throw FbossError("Needs to be implemented by the derived class");
+}
+
 bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
   bool result = getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));

@@ -59,6 +59,13 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
 
   void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) override;
 
+  void createEqualDistributedUplinkDownlinks(
+      const std::vector<PortID>& ports,
+      std::vector<PortID>& uplinks,
+      std::vector<PortID>& downlinks,
+      std::vector<PortID>& disabled,
+      const int totalLinktCount) override;
+
  private:
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());

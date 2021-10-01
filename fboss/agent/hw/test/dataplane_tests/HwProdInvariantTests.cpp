@@ -225,16 +225,15 @@ TEST_F(HwProdInvariantsRswMhnicTest, verifyInvariants) {
 class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-    utility::addProdFeaturesToConfig(
-        cfg, getHwSwitch(), FLAGS_mmu_lossless_mode, masterLogicalPortIds());
+    auto cfg = utility::createProdRtswConfig(
+        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble());
     return cfg;
   }
 
   void SetUp() override {
+    FLAGS_mmu_lossless_mode = true;
     HwLinkStateDependentTest::SetUp();
-    prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
+    prodInvariants_ = std::make_unique<HwProdRtswInvariantHelper>(
         getHwSwitchEnsemble(), initialConfig());
     // explicitly creating with interfaceMac as nexthop, causes
     // routed pkts to be not dropped when looped to ingress
@@ -274,7 +273,7 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   }
 
  private:
-  std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
+  std::unique_ptr<HwProdRtswInvariantHelper> prodInvariants_;
 };
 
 // validate that running there are no discards during line rate run

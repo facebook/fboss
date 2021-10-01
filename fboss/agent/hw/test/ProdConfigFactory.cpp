@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 
 namespace facebook::fboss::utility {
@@ -34,6 +35,17 @@ void addOlympicQosToConfig(
   addOlympicQosMaps(config);
   auto streamType = *hwAsic->getQueueStreamTypes(false).begin();
   addOlympicQueueConfig(&config, streamType, hwAsic);
+}
+
+void addNetworkAIQosToConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch) {
+  auto hwAsic = hwSwitch->getPlatform()->getAsic();
+  // network AI qos map is the same as olympic
+  addOlympicQosMaps(config);
+  auto streamType = *hwAsic->getQueueStreamTypes(false).begin();
+  // queue configuration is different
+  addNetworkAIQueueConfig(&config, streamType);
 }
 
 /*
@@ -137,6 +149,44 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
 void addQueuePerHostToConfig(cfg::SwitchConfig& config) {
   utility::addQueuePerHostQueueConfig(&config);
   utility::addQueuePerHostAcls(&config);
+}
+
+cfg::SwitchConfig createProdRtswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    const HwSwitchEnsemble* ensemble) {
+  auto platform = hwSwitch->getPlatform();
+  auto hwAsic = platform->getAsic();
+
+  // its the same speed used for the uplink and downlink for now
+  auto portSpeed = getPortSpeed(hwSwitch);
+
+  std::vector<PortID> uplinks, downlinks;
+  // Create initial config to which we can add the rest of the features.
+  auto config = createRtswUplinkDownlinkConfig(
+      hwSwitch,
+      const_cast<HwSwitchEnsemble*>(ensemble),
+      masterLogicalPortIds,
+      portSpeed,
+      cfg::PortLoopbackMode::MAC,
+      uplinks,
+      downlinks);
+
+  addCpuQueueConfig(config, hwAsic);
+
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addNetworkAIQosToConfig(config, hwSwitch);
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+  }
+
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  if (hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    // pfc works reliably only in mmu lossless mode
+    utility::addUplinkDownlinkPfcConfig(config, hwSwitch, uplinks, downlinks);
+  }
+  return config;
 }
 
 /*

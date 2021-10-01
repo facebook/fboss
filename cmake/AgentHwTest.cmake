@@ -237,6 +237,14 @@ target_link_libraries(hw_switch_test
   validated_shell_commands_cpp2
 )
 
+add_library(hw_pfc_utils
+  fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
+)  
+
+target_link_libraries(hw_pfc_utils
+  hw_switch_ensemble
+)  
+
 add_library(prod_config_factory
   fboss/agent/hw/test/ProdConfigFactory.cpp
 )
@@ -247,6 +255,7 @@ target_link_libraries(prod_config_factory
   hw_qos_utils
   hw_queue_per_host_utils
   load_balancer_utils
+  hw_pfc_utils
 )
 
 add_library(hw_queue_per_host_utils

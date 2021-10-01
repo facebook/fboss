@@ -248,4 +248,55 @@ void BcmSwitchEnsemble::init(
       std::move(platform), std::move(linkToggler), std::move(thriftThread));
   getPlatform()->initLEDs(getHwSwitch()->getUnit());
 }
+
+// intent of this routine is to pick uplinks, downlinks from
+// 2 BCM ITMs equally. Since this configuraiton validates
+// production configuration values, we want to pick ports equally
+// from 2 MMU buffers
+void BcmSwitchEnsemble::createEqualDistributedUplinkDownlinks(
+    const std::vector<PortID>& ports,
+    std::vector<PortID>& uplinks,
+    std::vector<PortID>& downlinks,
+    std::vector<PortID>& disabled,
+    const int totalLinkCount) {
+  std::map<int, std::vector<PortID>> pipeToPortMap;
+  for (const auto& mp : ports) {
+    auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(mp);
+    auto pipe = bcmPort->getPipe();
+    auto pipeToPortMapIter = pipeToPortMap.find(pipe);
+    if (pipeToPortMapIter != pipeToPortMap.end()) {
+      pipeToPortMapIter->second.emplace_back(mp);
+    } else {
+      pipeToPortMap[pipe] = {mp};
+    }
+  }
+
+  // in zionex case, we have totalLinkCount = 32
+  // there are 8 pipes, we should pick 4 per pipe
+  // and 2 donwlinks, 2 uplinks
+  const int perPipeCount = (int)(totalLinkCount / pipeToPortMap.size());
+  const int upOrDownlinkCount = perPipeCount / 2;
+
+  // assign ports to uplink, downlink
+  for (const auto& pipeToPortEntry : pipeToPortMap) {
+    // for every pipe, pick first 2 uplinks, next 2 downlinks .. rest all
+    // disabled
+    int uplinkCount = 0;
+    int downlinkCount = 0;
+    for (const auto& port : pipeToPortEntry.second) {
+      if (uplinkCount < upOrDownlinkCount) {
+        uplinks.emplace_back(static_cast<PortID>(port));
+        uplinkCount++;
+      } else {
+        if (downlinkCount >= upOrDownlinkCount) {
+          disabled.emplace_back(static_cast<PortID>(port));
+        } else {
+          downlinks.emplace_back(static_cast<PortID>(port));
+        }
+        downlinkCount++;
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss

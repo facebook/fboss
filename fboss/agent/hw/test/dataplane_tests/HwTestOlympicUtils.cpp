@@ -22,6 +22,7 @@ cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
   ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
+
 cfg::ActiveQueueManagement
 kGetWredConfig(int minLength, int maxLength, int probability) {
   cfg::ActiveQueueManagement wredAQM;
@@ -33,6 +34,39 @@ kGetWredConfig(int minLength, int maxLength, int probability) {
   wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
 }
+
+void addNetworkAIQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType) {
+  std::vector<cfg::PortQueue> portQueues;
+
+  cfg::PortQueue queue0;
+  queue0.id_ref() = kNetworkAIMonitoringQueueId;
+  queue0.name_ref() = "queue0.monitoring";
+  queue0.streamType_ref() = streamType;
+  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  portQueues.push_back(queue0);
+
+  cfg::PortQueue queue1;
+  queue0.id_ref() = kNetworkAIRdmaQueueId;
+  queue0.name_ref() = "queue6.rdma";
+  queue0.streamType_ref() = streamType;
+  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  portQueues.push_back(queue1);
+
+  cfg::PortQueue queue2;
+  queue0.id_ref() = kNetworkAINCQueueId;
+  queue0.name_ref() = "queue7.nc";
+  queue0.streamType_ref() = streamType;
+  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  portQueues.push_back(queue2);
+
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  for (auto& port : *config->ports_ref()) {
+    port.portQueueConfigName_ref() = "queue_config";
+  }
+}
+
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,

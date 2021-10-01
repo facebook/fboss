@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -605,6 +606,40 @@ std::vector<PortID> getAllPortsInGroup(
     }
   }
   return allPortsinGroup;
+}
+
+cfg::SwitchConfig createRtswUplinkDownlinkConfig(
+    const HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
+    const std::vector<PortID>& masterLogicalPortIds,
+    cfg::PortSpeed portSpeed,
+    cfg::PortLoopbackMode lbMode,
+    std::vector<PortID>& uplinks,
+    std::vector<PortID>& downlinks) {
+  const int kTotalLinkCount = 32;
+  std::vector<PortID> disabledLinks;
+  ensemble->createEqualDistributedUplinkDownlinks(
+      masterLogicalPortIds, uplinks, downlinks, disabledLinks, kTotalLinkCount);
+
+  // make all logicalPorts have their own vlan id
+  auto cfg =
+      utility::onePortPerVlanConfig(hwSwitch, masterLogicalPortIds, lbMode);
+  for (auto portId : uplinks) {
+    utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
+  }
+  for (auto portId : downlinks) {
+    utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
+  }
+
+  // disable all ports other than uplinks/downlinks
+  // this is needed to consume the guranteed buffer space same as
+  // we do for RTSW in production
+  for (auto& port : disabledLinks) {
+    auto portCfg = utility::findCfgPort(cfg, port);
+    portCfg->state_ref() = cfg::PortState::DISABLED;
+  }
+
+  return cfg;
 }
 
 cfg::SwitchConfig createUplinkDownlinkConfig(
