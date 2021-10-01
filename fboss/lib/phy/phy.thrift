@@ -254,6 +254,8 @@ struct PhyInfo {
   2: optional PhyFwVersion fwVersion;
   3: switch_config.PortSpeed speed;
   4: string name; // port name
+  5: optional bool linkState;
+  6: optional i64 linkFlapCount;
   10: optional PhySideInfo system;
   11: PhySideInfo line;
   12: i32 timeCollected; // Time the diagnostic info was collected at
@@ -267,8 +269,8 @@ struct PhySideInfo {
 }
 
 struct PcsInfo {
-  1: bool pcsRxStatusLive;
-  2: bool pcsRxStatusLatched;
+  1: optional bool pcsRxStatusLive;
+  2: optional bool pcsRxStatusLatched;
   20: optional RsFecInfo rsFec;
 }
 
@@ -288,10 +290,10 @@ struct EyeInfo {
 
 struct LaneInfo {
   1: i16 lane;
-  2: bool signalDetectLive;
-  3: bool signalDetectLatched;
-  4: bool cdrLockLive;
-  5: bool cdrLockLatched;
+  2: optional bool signalDetectLive;
+  3: optional bool signalDetectLatched;
+  4: optional bool cdrLockLive;
+  5: optional bool cdrLockLatched;
   7: TxSettings txSettings;
   8: optional list<EyeInfo> eyes;
   9: optional float snr;
