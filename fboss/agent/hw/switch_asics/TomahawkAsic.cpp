@@ -82,6 +82,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
+    case HwAsic::Feature::FEC_DIAG_COUNTERS:
       return false;
   }
   return false;

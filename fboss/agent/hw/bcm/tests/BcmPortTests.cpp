@@ -434,16 +434,16 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
 
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 TEST_F(BcmPortTest, PortFdrStats) {
+  // Feature supported in Tomahawk4 and above. This test is marked known bad
+  // in platforms with unsupported ASICs.
+  EXPECT_TRUE(getPlatform()->getAsic()->isSupported(
+      HwAsic::Feature::FEC_DIAG_COUNTERS));
+
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {
     tcData().publishStats();
     for (auto portId : initialConfiguredPorts()) {
       auto port = getHwSwitch()->getPortTable()->getBcmPort(portId);
-      // Since FDR support is a function of ASIC chipset, if 1 port doesn't
-      // support it, no other port will support it. Fail the whole test
-      // and let known_bad_tests disable us on unsupported platforms.
-      EXPECT_TRUE(port->getPlatformPort()->supportsFlightDataRecorder());
-
       EXPECT_TRUE(port->getFdrEnabled());
     }
   };

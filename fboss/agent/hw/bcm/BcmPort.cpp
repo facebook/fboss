@@ -1334,7 +1334,8 @@ void BcmPort::updateFecStats(
 
 void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-  if (!platformPort_->supportsFlightDataRecorder()) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     return;
   }
 
@@ -1624,7 +1625,8 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
       flexCounterMgr->attachToPort(gport_);
     }
 
-    if (platformPort_->supportsFlightDataRecorder()) {
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::FEC_DIAG_COUNTERS)) {
       fdrStatConfigure(unit_, port_, true);
     }
   }
@@ -1647,7 +1649,8 @@ void BcmPort::disableStatCollection() {
     flexCounterMgr->detachFromPort(gport_);
   }
 
-  if (platformPort_->supportsFlightDataRecorder()) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     fdrStatConfigure(unit_, port_, false);
   }
 
@@ -2060,7 +2063,8 @@ phy::FecMode BcmPort::getFECMode() const {
 
 bool BcmPort::getFdrEnabled() const {
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-  if (!platformPort_->supportsFlightDataRecorder()) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     return false;
   }
 

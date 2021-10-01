@@ -82,6 +82,7 @@ class HwAsic {
     MULTIPLE_ACL_TABLES,
     ROUTE_FLEX_COUNTERS,
     BRIDGE_PORT_8021Q,
+    FEC_DIAG_COUNTERS,
   };
 
   enum class AsicType {

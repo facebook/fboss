@@ -65,6 +65,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::FEC_DIAG_COUNTERS:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
