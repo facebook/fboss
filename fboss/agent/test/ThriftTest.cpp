@@ -1509,6 +1509,9 @@ TEST_F(ThriftTest, getLastConfigAppliedInMs) {
   // lastConfigAppliedInMs should be > 0 and < now.
   auto initConfigAppliedInMs = handler.getLastConfigAppliedInMs();
   EXPECT_GT(initConfigAppliedInMs, 0);
+  // Adding sleep in case we immediatly check the last config applied time
+  /* sleep override */
+  usleep(1000);
   EXPECT_LT(
       initConfigAppliedInMs,
       std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1516,6 +1519,9 @@ TEST_F(ThriftTest, getLastConfigAppliedInMs) {
           .count());
 
   // Try to apply a new config, the lastConfigAppliedTime should changed
+  // Adding sleep in case we apply a new config immediatly after the last config
+  /* sleep override */
+  usleep(1000);
   sw_->applyConfig(
       "New config with new speed profile", testConfigAWithLookupClasses());
   auto newConfigAppliedInMs = handler.getLastConfigAppliedInMs();
