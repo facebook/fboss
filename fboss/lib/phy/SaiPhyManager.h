@@ -102,10 +102,11 @@ class SaiPhyManager : public PhyManager {
     }
     void applyUpdate(folly::StringPiece name, StateUpdateFn fn);
 
-   private:
     std::shared_ptr<SwitchState> getState() const {
       return *appliedStateDontUseDirectly_.rlock();
     }
+
+   private:
     void setState(const std::shared_ptr<SwitchState>& newState);
     std::unique_ptr<SaiHwPlatform> saiPlatform_;
     // Don't hold locked access to SwitchState for long periods. Instead
@@ -116,7 +117,13 @@ class SaiPhyManager : public PhyManager {
     std::mutex updateMutex_;
   };
   PlatformInfo* getPlatformInfo(GlobalXphyID xphyID);
+  const PlatformInfo* getPlatformInfo(GlobalXphyID xphyID) const {
+    return const_cast<SaiPhyManager*>(this)->getPlatformInfo(xphyID);
+  }
   PlatformInfo* getPlatformInfo(PortID portID);
+  const PlatformInfo* getPlatformInfo(PortID portId) const {
+    return const_cast<SaiPhyManager*>(this)->getPlatformInfo(portId);
+  }
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;

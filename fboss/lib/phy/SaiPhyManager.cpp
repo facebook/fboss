@@ -207,8 +207,24 @@ void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
 mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
     const mka::MKASak sak) const {
   auto portId = getPortId(*sak.l2Port_ref());
-  auto macsecManager = getMacsecManager(portId);
-  return macsecManager->sakHealthCheck(portId, sak);
+  mka::MKASakHealthResponse health;
+  health.active_ref() = false;
+  // TODO - get egress packet stats to obtain packet number
+  health.lowestAcceptablePN_ref() = 1;
+  bool rxActive{false}, txActive{false};
+  auto switchState = getPlatformInfo(portId)->getState();
+  auto port = switchState->getPorts()->getPortIf(portId);
+  if (port) {
+    txActive = port->getTxSak() && *port->getTxSak() == sak;
+    for (const auto& keyAndSak : port->getRxSaks()) {
+      if (keyAndSak.second == sak) {
+        rxActive = true;
+        break;
+      }
+    }
+  }
+  health.active_ref() = txActive && rxActive;
+  return health;
 }
 
 SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) {
