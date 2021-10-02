@@ -104,11 +104,15 @@ class SaiPhyManager : public PhyManager {
 
    private:
     std::shared_ptr<SwitchState> getState() const {
-      return curState_;
+      return *appliedStateDontUseDirectly_.rlock();
     }
     void setState(const std::shared_ptr<SwitchState>& newState);
     std::unique_ptr<SaiHwPlatform> saiPlatform_;
-    std::shared_ptr<SwitchState> curState_;
+    // Don't hold locked access to SwitchState for long periods. Instead
+    // Just access via set/getState apis, to allow for many readers just
+    // accessing the COW SwitchState object w/o holding a lock.
+    folly::Synchronized<std::shared_ptr<SwitchState>>
+        appliedStateDontUseDirectly_;
     std::mutex updateMutex_;
   };
   PlatformInfo* getPlatformInfo(GlobalXphyID xphyID);

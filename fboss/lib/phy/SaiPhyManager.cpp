@@ -43,8 +43,9 @@ SaiSwitch* SaiPhyManager::PlatformInfo::getHwSwitch() {
 
 void SaiPhyManager::PlatformInfo::setState(
     const std::shared_ptr<SwitchState>& newState) {
-  curState_ = newState;
-  curState_->publish();
+  auto wCurState = appliedStateDontUseDirectly_.wlock();
+  *wCurState = newState;
+  (*wCurState)->publish();
 }
 
 void SaiPhyManager::PlatformInfo::applyUpdate(
