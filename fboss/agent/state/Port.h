@@ -59,13 +59,18 @@ struct PortFields : public ThriftyFields {
   state::PortFields toThrift() const;
 
   struct MKASakKey {
-    mka::MKASci sci;
-    int associationNum;
     bool operator<(const MKASakKey& r) const {
       return std::tie(*sci.macAddress_ref(), *sci.port_ref(), associationNum) <
           std::tie(
                  *r.sci.macAddress_ref(), *r.sci.port_ref(), r.associationNum);
     }
+    bool operator==(const MKASakKey& r) const {
+      return std::tie(*sci.macAddress_ref(), *sci.port_ref(), associationNum) ==
+          std::tie(
+                 *r.sci.macAddress_ref(), *r.sci.port_ref(), r.associationNum);
+    }
+    mka::MKASci sci;
+    int associationNum;
   };
 
   const PortID id{0};
@@ -111,8 +116,9 @@ struct PortFields : public ThriftyFields {
   // configs of line side if needed
   std::optional<phy::ProfileSideConfig> lineProfileConfig;
   std::optional<std::vector<phy::PinConfig>> linePinConfigs;
-  std::map<MKASakKey, mka::MKASak> rxSecureAssociationKeys_;
-  std::optional<mka::MKASak> txSecureAssociationKey_;
+  // Macsec configs
+  std::map<MKASakKey, mka::MKASak> rxSecureAssociationKeys;
+  std::optional<mka::MKASak> txSecureAssociationKey;
 };
 
 /*
@@ -124,6 +130,7 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   using VlanMembership = PortFields::VlanMembership;
   using OperState = PortFields::OperState;
   using LLDPValidations = PortFields::LLDPValidations;
+  using MKASakKey = PortFields::MKASakKey;
 
   Port(PortID id, const std::string& name);
 
@@ -195,6 +202,18 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     return getFields()->operState == OperState::UP;
   }
 
+  std::optional<mka::MKASak> getTxSak() const {
+    return getFields()->txSecureAssociationKey;
+  }
+  void setTxSak(std::optional<mka::MKASak> txSak) {
+    writableFields()->txSecureAssociationKey = txSak;
+  }
+  const std::map<MKASakKey, mka::MKASak>& getRxSaks() const {
+    return getFields()->rxSecureAssociationKeys;
+  }
+  void setRxSaks(const std::map<MKASakKey, mka::MKASak>& rxSaks) {
+    writableFields()->rxSecureAssociationKeys = rxSaks;
+  }
   /**
    * Tells you Oper+Admin state of port. Will be UP only if both admin and
    * oper state is UP.
