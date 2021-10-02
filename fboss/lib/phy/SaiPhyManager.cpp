@@ -158,18 +158,37 @@ void SaiPhyManager::sakInstallRx(
     const mka::MKASak& sak,
     const mka::MKASci& sci) {
   auto portId = getPortId(*sak.l2Port_ref());
-  auto macsecManager = getMacsecManager(portId);
-  // Use the SCI of the peer
-  macsecManager->setupMacsec(portId, sak, sci, SAI_MACSEC_DIRECTION_INGRESS);
+  auto saiPlatform = getSaiPlatform(portId);
+  auto updateFn = [saiPlatform, portId, this, &sak, &sci](
+                      std::shared_ptr<SwitchState> in) {
+    return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
+      auto rxSaks = port->getRxSaks();
+      PortFields::MKASakKey key{sci, *sak.assocNum_ref()};
+      rxSaks.erase(key);
+      rxSaks.emplace(std::make_pair(key, sak));
+      port->setRxSaks(rxSaks);
+    });
+  };
+  getPlatformInfo(portId)->applyUpdate(
+      folly::sformat("Add SAK rx for : {}", *sak.l2Port_ref()), updateFn);
 }
 
 void SaiPhyManager::sakDeleteRx(
     const mka::MKASak& sak,
     const mka::MKASci& sci) {
   auto portId = getPortId(*sak.l2Port_ref());
-  auto macsecManager = getMacsecManager(portId);
-  // Use the SCI of the peer
-  macsecManager->deleteMacsec(portId, sak, sci, SAI_MACSEC_DIRECTION_INGRESS);
+  auto saiPlatform = getSaiPlatform(portId);
+  auto updateFn = [saiPlatform, portId, this, &sak, &sci](
+                      std::shared_ptr<SwitchState> in) {
+    return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
+      auto rxSaks = port->getRxSaks();
+      PortFields::MKASakKey key{sci, *sak.assocNum_ref()};
+      rxSaks.erase(key);
+      port->setRxSaks(rxSaks);
+    });
+  };
+  getPlatformInfo(portId)->applyUpdate(
+      folly::sformat("Delete SAK rx for : {}", *sak.l2Port_ref()), updateFn);
 }
 
 void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
