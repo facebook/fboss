@@ -25,6 +25,7 @@ namespace facebook::fboss {
 
 class SaiHwPlatform;
 class StateUpdate;
+class Port;
 
 class SaiPhyManager : public PhyManager {
  public:
@@ -32,7 +33,13 @@ class SaiPhyManager : public PhyManager {
   ~SaiPhyManager() override;
 
   SaiHwPlatform* getSaiPlatform(GlobalXphyID xphyID);
+  const SaiHwPlatform* getSaiPlatform(GlobalXphyID xphyID) const {
+    return const_cast<SaiPhyManager*>(this)->getSaiPlatform(xphyID);
+  }
   SaiHwPlatform* getSaiPlatform(PortID portID);
+  const SaiHwPlatform* getSaiPlatform(PortID portID) const {
+    return const_cast<SaiPhyManager*>(this)->getSaiPlatform(portID);
+  }
   SaiSwitch* getSaiSwitch(GlobalXphyID xphyID);
   SaiSwitch* getSaiSwitch(PortID portID);
 
@@ -74,6 +81,11 @@ class SaiPhyManager : public PhyManager {
   }
 
  private:
+  std::shared_ptr<SwitchState> portUpdateHelper(
+      std::shared_ptr<SwitchState> in,
+      PortID port,
+      const SaiHwPlatform* platform,
+      const std::function<void(std::shared_ptr<Port>&)>& modify) const;
   class PlatformInfo {
    public:
     explicit PlatformInfo(std::unique_ptr<SaiHwPlatform> platform);

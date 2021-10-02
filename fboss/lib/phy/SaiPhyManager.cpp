@@ -207,6 +207,32 @@ PortID SaiPhyManager::getPortId(std::string portName) const {
   throw FbossError("Could not find port ID for port ", portName);
 }
 
+std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
+    std::shared_ptr<SwitchState> in,
+    PortID portId,
+    const SaiHwPlatform* saiPlatform,
+    const std::function<void(std::shared_ptr<Port>&)>& modify) const {
+  auto newState = in->clone();
+  auto newPorts = newState->getPorts()->modify(&newState);
+  // Lookup or create SwitchState port
+  auto portObj = newPorts->getPortIf(portId);
+  portObj = portObj ? portObj->clone()
+                    : std::make_shared<Port>(
+                          PortID(portId),
+                          saiPlatform->getPlatformPort(portId)
+                              ->getPlatformPortEntry()
+                              .mapping_ref()
+                              ->name_ref()
+                              .value());
+  // Modify port fields
+  modify(portObj);
+  if (newPorts->getPortIf(portId)) {
+    newPorts->updatePort(std::move(portObj));
+  } else {
+    newPorts->addPort(std::move(portObj));
+  }
+  return newState;
+}
 /*
  * programOnePort
  *
@@ -248,32 +274,27 @@ void SaiPhyManager::programOnePort(
     }
   }
 
-  auto updateFn = [&saiPlatform, portId, portProfileId, desiredPhyPortConfig](
-                      std::shared_ptr<SwitchState> in) {
-    auto newState = in->clone();
-    auto newPorts = newState->getPorts()->modify(&newState);
-    // Temporary object to pass port and profile id to SaiPortManager
-    auto port = std::make_shared<Port>(
-        PortID(portId),
-        saiPlatform->getPlatformPort(PortID(portId))
-            ->getPlatformPortEntry()
-            .mapping_ref()
-            ->name_ref()
-            .value());
-    port->setSpeed(desiredPhyPortConfig.profile.speed);
-    port->setProfileId(portProfileId);
-    port->setAdminState(cfg::PortState::ENABLED);
-    port->setProfileConfig(desiredPhyPortConfig.profile.system);
-    port->resetPinConfigs(desiredPhyPortConfig.config.system.getPinConfigs());
-    port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
-    port->resetLinePinConfigs(desiredPhyPortConfig.config.line.getPinConfigs());
-    if (newPorts->getPortIf(portId)) {
-      newPorts->updatePort(std::move(port));
-    } else {
-      newPorts->addPort(std::move(port));
-    }
-    return newState;
-  };
+  auto updateFn =
+      [this, &saiPlatform, portId, portProfileId, desiredPhyPortConfig](
+          std::shared_ptr<SwitchState> in) {
+        return portUpdateHelper(
+            in,
+            portId,
+            saiPlatform,
+            [portProfileId, desiredPhyPortConfig](auto& port) {
+              port->setSpeed(desiredPhyPortConfig.profile.speed);
+              port->setProfileId(portProfileId);
+              port->setAdminState(cfg::PortState::ENABLED);
+              // Prepare the side profileConfig and pinConfigs for both system
+              // and line sides by using desiredPhyPortConfig
+              port->setProfileConfig(desiredPhyPortConfig.profile.system);
+              port->resetPinConfigs(
+                  desiredPhyPortConfig.config.system.getPinConfigs());
+              port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
+              port->resetLinePinConfigs(
+                  desiredPhyPortConfig.config.line.getPinConfigs());
+            });
+      };
   getPlatformInfo(globalPhyID)
       ->applyUpdate(
           folly::sformat("Port {} program", static_cast<int>(portId)),
