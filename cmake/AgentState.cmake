@@ -68,6 +68,7 @@ target_link_libraries(state
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
+  mka_structs_cpp2
   fboss_cpp2
   label_forwarding_action
   state_utils

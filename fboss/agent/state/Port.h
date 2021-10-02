@@ -17,6 +17,7 @@
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <map>
@@ -56,6 +57,16 @@ struct PortFields : public ThriftyFields {
 
   static PortFields fromThrift(state::PortFields const& pf);
   state::PortFields toThrift() const;
+
+  struct MKASakKey {
+    mka::MKASci sci;
+    int associationNum;
+    bool operator<(const MKASakKey& r) const {
+      return std::tie(*sci.macAddress_ref(), *sci.port_ref(), associationNum) <
+          std::tie(
+                 *r.sci.macAddress_ref(), *r.sci.port_ref(), r.associationNum);
+    }
+  };
 
   const PortID id{0};
   std::string name;
@@ -100,6 +111,8 @@ struct PortFields : public ThriftyFields {
   // configs of line side if needed
   std::optional<phy::ProfileSideConfig> lineProfileConfig;
   std::optional<std::vector<phy::PinConfig>> linePinConfigs;
+  std::map<MKASakKey, mka::MKASak> rxSecureAssociationKeys_;
+  std::optional<mka::MKASak> txSecureAssociationKey_;
 };
 
 /*
