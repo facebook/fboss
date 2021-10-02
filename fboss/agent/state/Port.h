@@ -72,6 +72,7 @@ struct PortFields : public ThriftyFields {
     mka::MKASci sci;
     int associationNum;
   };
+  using RxSaks = std::map<MKASakKey, mka::MKASak>;
 
   const PortID id{0};
   std::string name;
@@ -117,7 +118,7 @@ struct PortFields : public ThriftyFields {
   std::optional<phy::ProfileSideConfig> lineProfileConfig;
   std::optional<std::vector<phy::PinConfig>> linePinConfigs;
   // Macsec configs
-  std::map<MKASakKey, mka::MKASak> rxSecureAssociationKeys;
+  RxSaks rxSecureAssociationKeys;
   std::optional<mka::MKASak> txSecureAssociationKey;
 };
 
@@ -131,6 +132,7 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   using OperState = PortFields::OperState;
   using LLDPValidations = PortFields::LLDPValidations;
   using MKASakKey = PortFields::MKASakKey;
+  using RxSaks = PortFields::RxSaks;
 
   Port(PortID id, const std::string& name);
 
@@ -208,10 +210,10 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   void setTxSak(std::optional<mka::MKASak> txSak) {
     writableFields()->txSecureAssociationKey = txSak;
   }
-  const std::map<MKASakKey, mka::MKASak>& getRxSaks() const {
+  const RxSaks& getRxSaks() const {
     return getFields()->rxSecureAssociationKeys;
   }
-  void setRxSaks(const std::map<MKASakKey, mka::MKASak>& rxSaks) {
+  void setRxSaks(const RxSaks& rxSaks) {
     writableFields()->rxSecureAssociationKeys = rxSaks;
   }
   /**

@@ -1155,6 +1155,7 @@ void SaiPortManager::programMacsec(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   CHECK(newPort);
+  auto portId = newPort->getID();
   auto& macsecManager = managerTable_->macsecManager();
   // TX SAKs
   std::optional<mka::MKASak> oldTxSak =
@@ -1164,18 +1165,35 @@ void SaiPortManager::programMacsec(
     if (!newTxSak) {
       auto txSak = *oldTxSak;
       macsecManager.deleteMacsec(
-          oldPort->getID(),
-          txSak,
-          *txSak.sci_ref(),
-          SAI_MACSEC_DIRECTION_EGRESS);
+          portId, txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
     } else {
+      // TX SAK mismatch between old and new. Reprogram SAK TX
       auto txSak = *newTxSak;
       macsecManager.setupMacsec(
-          newPort->getID(),
-          txSak,
-          *txSak.sci_ref(),
-          SAI_MACSEC_DIRECTION_EGRESS);
+          portId, txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
     }
+  }
+  // RX SAKS
+  auto oldRxSaks = oldPort ? oldPort->getRxSaks() : PortFields::RxSaks{};
+  auto newRxSaks = newPort->getRxSaks();
+  for (const auto& keyAndSak : newRxSaks) {
+    const auto& [key, sak] = keyAndSak;
+    auto kitr = oldRxSaks.find(key);
+    if (kitr == oldRxSaks.end() || sak != kitr->second) {
+      // Use the SCI from the key. Since for RX we use SCI of peer, which
+      // is stored in MKASakKey
+      macsecManager.setupMacsec(
+          portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
+      oldRxSaks.erase(key);
+    }
+  }
+  // Erase whatever could not be found in newRxSaks
+  for (const auto& keyAndSak : oldRxSaks) {
+    const auto& [key, sak] = keyAndSak;
+    // Use the SCI from the key. Since for RX we use SCI of peer, which
+    // is stored in MKASakKey
+    macsecManager.deleteMacsec(
+        portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }
 }
 } // namespace facebook::fboss
