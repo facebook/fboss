@@ -34,12 +34,6 @@ sai_macsec_direction_t mkaDirectionToSaiDirection(
 
 namespace facebook::fboss {
 
-SaiPhyManager::PlatformInfo::PlatformInfo(
-    std::unique_ptr<SaiHwPlatform> platform)
-    : saiPlatform_(std::move(platform)) {}
-
-SaiPhyManager::PlatformInfo::~PlatformInfo() {}
-
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)
     : PhyManager(platformMapping), localMac_(getLocalMacAddress()) {}
 
@@ -68,6 +62,14 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
 }
 
 SaiPhyManager::~SaiPhyManager() {}
+
+SaiPhyManager::PlatformInfo::PlatformInfo(
+    std::unique_ptr<SaiHwPlatform> platform)
+    : saiPlatform_(std::move(platform)) {
+  setState(std::make_shared<SwitchState>());
+}
+
+SaiPhyManager::PlatformInfo::~PlatformInfo() {}
 
 SaiPhyManager::PlatformInfo* SaiPhyManager::getPlatformInfo(
     GlobalXphyID xphyID) {
@@ -246,32 +248,36 @@ void SaiPhyManager::programOnePort(
     }
   }
 
-  // Temporary object to pass port and profile id to SaiPortManager
-  auto portObj = std::make_shared<Port>(
-      PortID(portId),
-      saiPlatform->getPlatformPort(PortID(portId))
-          ->getPlatformPortEntry()
-          .mapping_ref()
-          ->name_ref()
-          .value());
-  portObj->setSpeed(desiredPhyPortConfig.profile.speed);
-  portObj->setProfileId(portProfileId);
-  portObj->setAdminState(cfg::PortState::ENABLED);
-  // Prepare the side profileConfig and pinConfigs for both system and line
-  // sides by using desiredPhyPortConfig
-  portObj->setProfileConfig(desiredPhyPortConfig.profile.system);
-  portObj->resetPinConfigs(desiredPhyPortConfig.config.system.getPinConfigs());
-  portObj->setLineProfileConfig(desiredPhyPortConfig.profile.line);
-  portObj->resetLinePinConfigs(
-      desiredPhyPortConfig.config.line.getPinConfigs());
-
-  auto newState = std::make_shared<SwitchState>();
-  newState->getPorts()->addPort(std::move(portObj));
-  // Finally adding the port (sysport, lineport and port connector).
-  // Return value is line port
-  saiSwitch->stateChanged(
-      StateDelta(std::make_shared<SwitchState>(), newState));
-  XLOG(INFO) << "Created Sai port  for id=" << portId;
+  auto updateFn = [&saiPlatform, portId, portProfileId, desiredPhyPortConfig](
+                      std::shared_ptr<SwitchState> in) {
+    auto newState = in->clone();
+    auto newPorts = newState->getPorts()->modify(&newState);
+    // Temporary object to pass port and profile id to SaiPortManager
+    auto port = std::make_shared<Port>(
+        PortID(portId),
+        saiPlatform->getPlatformPort(PortID(portId))
+            ->getPlatformPortEntry()
+            .mapping_ref()
+            ->name_ref()
+            .value());
+    port->setSpeed(desiredPhyPortConfig.profile.speed);
+    port->setProfileId(portProfileId);
+    port->setAdminState(cfg::PortState::ENABLED);
+    port->setProfileConfig(desiredPhyPortConfig.profile.system);
+    port->resetPinConfigs(desiredPhyPortConfig.config.system.getPinConfigs());
+    port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
+    port->resetLinePinConfigs(desiredPhyPortConfig.config.line.getPinConfigs());
+    if (newPorts->getPortIf(portId)) {
+      newPorts->updatePort(std::move(port));
+    } else {
+      newPorts->addPort(std::move(port));
+    }
+    return newState;
+  };
+  getPlatformInfo(globalPhyID)
+      ->applyUpdate(
+          folly::sformat("Port {} program", static_cast<int>(portId)),
+          updateFn);
 
   // Once the port is programmed successfully, update the portToLanesInfo_
   setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
