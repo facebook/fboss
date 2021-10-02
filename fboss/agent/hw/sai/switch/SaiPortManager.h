@@ -219,6 +219,9 @@ class SaiPortManager {
   bool checkPortSerdesAttributes(
       const SaiPortSerdesTraits::CreateAttributes& fromStore,
       const SaiPortSerdesTraits::CreateAttributes& fromSwPort);
+  void programMacsec(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

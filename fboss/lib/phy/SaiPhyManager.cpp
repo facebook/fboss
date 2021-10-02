@@ -144,9 +144,14 @@ void SaiPhyManager::addSaiPlatform(
 
 void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
   auto portId = getPortId(*sak.l2Port_ref());
-  auto macsecManager = getMacsecManager(portId);
-  macsecManager->setupMacsec(
-      portId, sak, *sak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+  auto saiPlatform = getSaiPlatform(portId);
+  auto updateFn = [saiPlatform, portId, this, &sak](
+                      std::shared_ptr<SwitchState> in) {
+    return portUpdateHelper(
+        in, portId, saiPlatform, [&sak](auto& port) { port->setTxSak(sak); });
+  };
+  getPlatformInfo(portId)->applyUpdate(
+      folly::sformat("Add SAK tx for : {}", *sak.l2Port_ref()), updateFn);
 }
 
 void SaiPhyManager::sakInstallRx(
@@ -169,9 +174,14 @@ void SaiPhyManager::sakDeleteRx(
 
 void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
   auto portId = getPortId(*sak.l2Port_ref());
-  auto macsecManager = getMacsecManager(portId);
-  macsecManager->deleteMacsec(
-      portId, sak, *sak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+  auto saiPlatform = getSaiPlatform(portId);
+  auto updateFn = [portId, saiPlatform, this](std::shared_ptr<SwitchState> in) {
+    return portUpdateHelper(in, portId, saiPlatform, [](auto& port) {
+      port->setTxSak(std::nullopt);
+    });
+  };
+  getPlatformInfo(portId)->applyUpdate(
+      folly::sformat("Delete SAK tx for : {}", *sak.l2Port_ref()), updateFn);
 }
 
 mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(

@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -98,15 +99,30 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   // set platform port's speed
   auto platformPort = platform_->getPort(swPort->getID());
   platformPort->setCurrentProfile(swPort->getProfileID());
+  programMacsec(nullptr, swPort);
   return saiLinePort->adapterKey();
 }
 
 void SaiPortManager::changePort(
-    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
-  // TODO - properly handle attribute update, rather than treting
-  // all changes as a port addition
-  addPort(newPort);
+  auto nonMacsecFieldsChange = [](const auto& l, const auto& r) {
+    if (l.getTxSak() == r.getTxSak() && l.getRxSaks() == r.getRxSaks()) {
+      // We got a port change, while MACSEC fields did not change
+      return true;
+    }
+    return false;
+  };
+
+  // Onle add/reprogram port if something besides MACSEC changed
+  if (nonMacsecFieldsChange(*oldPort, *newPort)) {
+    // Clear MACSEC, we will program that just after addPort
+    auto portSansMacsec = newPort->clone();
+    portSansMacsec->setTxSak(std::nullopt);
+    portSansMacsec->setRxSaks({});
+    addPort(portSansMacsec);
+  }
+  programMacsec(oldPort, newPort);
 }
 
 /*

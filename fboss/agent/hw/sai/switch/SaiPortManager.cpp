@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -1150,4 +1151,31 @@ void SaiPortManager::setPtpTcEnable(bool enable) {
   }
 }
 
+void SaiPortManager::programMacsec(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  CHECK(newPort);
+  auto& macsecManager = managerTable_->macsecManager();
+  // TX SAKs
+  std::optional<mka::MKASak> oldTxSak =
+      oldPort ? oldPort->getTxSak() : std::nullopt;
+  std::optional<mka::MKASak> newTxSak = newPort->getTxSak();
+  if (oldTxSak != newTxSak) {
+    if (!newTxSak) {
+      auto txSak = *oldTxSak;
+      macsecManager.deleteMacsec(
+          oldPort->getID(),
+          txSak,
+          *txSak.sci_ref(),
+          SAI_MACSEC_DIRECTION_EGRESS);
+    } else {
+      auto txSak = *newTxSak;
+      macsecManager.setupMacsec(
+          newPort->getID(),
+          txSak,
+          *txSak.sci_ref(),
+          SAI_MACSEC_DIRECTION_EGRESS);
+    }
+  }
+}
 } // namespace facebook::fboss
