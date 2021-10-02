@@ -262,14 +262,9 @@ std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
   auto newPorts = newState->getPorts()->modify(&newState);
   // Lookup or create SwitchState port
   auto portObj = newPorts->getPortIf(portId);
-  portObj = portObj ? portObj->clone()
-                    : std::make_shared<Port>(
-                          PortID(portId),
-                          saiPlatform->getPlatformPort(portId)
-                              ->getPlatformPortEntry()
-                              .mapping_ref()
-                              ->name_ref()
-                              .value());
+  portObj = portObj
+      ? portObj->clone()
+      : std::make_shared<Port>(PortID(portId), getPortName(portId));
   // Modify port fields
   modify(portObj);
   if (newPorts->getPortIf(portId)) {
