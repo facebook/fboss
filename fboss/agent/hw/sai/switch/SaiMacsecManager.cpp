@@ -566,25 +566,6 @@ SaiMacsecSecureAssoc* FOLLY_NULLABLE SaiMacsecManager::getMacsecSecureAssocImpl(
   return itr->second.get();
 }
 
-mka::MKASakHealthResponse SaiMacsecManager::sakHealthCheck(
-    PortID linePort,
-    const mka::MKASak& sak) const {
-  mka::MKASakHealthResponse health;
-  health.active_ref() = false;
-  // TODO - get egress packet stats to obtain packet number
-  health.lowestAcceptablePN_ref() = 1;
-  auto sci = *sak.sci_ref();
-  // First convert sci mac address string and the port id to a uint64
-  folly::MacAddress mac = folly::MacAddress(*sci.macAddress_ref());
-  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
-  auto egressFlow =
-      getMacsecFlow(linePort, scIdentifier, SAI_MACSEC_DIRECTION_EGRESS);
-  if (egressFlow) {
-    health.active_ref() = true;
-  }
-  return health;
-}
-
 void SaiMacsecManager::setupMacsec(
     PortID linePort,
     const mka::MKASak& sak,
