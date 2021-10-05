@@ -1598,6 +1598,12 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
           auto bcmPort = portTable_->getBcmPort(id);
           bcmPort->linkStatusChanged(newPort);
         }
+
+        if (auto faultStatus = newPort->getIPhyLinkFaultStatus()) {
+          XLOG(DBG1) << newPort->getName() << " Fault status on port " << id
+                     << " LocalFault: " << *(*faultStatus).localFault_ref()
+                     << ", RemoteFault: " << *(*faultStatus).remoteFault_ref();
+        }
       });
 }
 
@@ -2419,9 +2425,14 @@ void BcmSwitch::linkscanCallback(
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* hw = static_cast<BcmSwitch*>(unitObj->getCookie());
     bool up = info->linkstatus == BCM_PORT_LINK_STATUS_UP;
+    phy::LinkFaultStatus linkFault;
+    linkFault.localFault_ref() = info->fault & BCM_PORT_FAULT_LOCAL;
+    linkFault.localFault_ref() = info->fault & BCM_PORT_FAULT_REMOTE;
 
     hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
-        [hw, bcmPort, up]() { hw->linkStateChangedHwNotLocked(bcmPort, up); });
+        [hw, bcmPort, up, linkFault]() {
+          hw->linkStateChangedHwNotLocked(bcmPort, up, linkFault);
+        });
   } catch (const std::exception& ex) {
     XLOG(ERR) << "unhandled exception while processing linkscan callback "
               << "for unit " << unit << " port " << bcmPort << ": "
@@ -2429,7 +2440,10 @@ void BcmSwitch::linkscanCallback(
   }
 }
 
-void BcmSwitch::linkStateChangedHwNotLocked(bcm_port_t bcmPortId, bool up) {
+void BcmSwitch::linkStateChangedHwNotLocked(
+    bcm_port_t bcmPortId,
+    bool up,
+    phy::LinkFaultStatus iPhyLinkFaultStatus) {
   CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
 
   if (!up) {
@@ -2444,7 +2458,8 @@ void BcmSwitch::linkStateChangedHwNotLocked(bcm_port_t bcmPortId, bool up) {
     // are re resolved after port up before adding them
     // back. Adding them earlier leads to packet loss.
   }
-  callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
+  callback_->linkStateChanged(
+      portTable_->getPortId(bcmPortId), up, iPhyLinkFaultStatus);
 }
 
 // The callback provided to bcm_rx_register()

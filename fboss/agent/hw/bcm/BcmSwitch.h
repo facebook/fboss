@@ -755,7 +755,10 @@ class BcmSwitch : public BcmSwitchIf {
    * Back traces from deadlocked process here
    * https://phabricator.fb.com/P20042479
    */
-  void linkStateChangedHwNotLocked(bcm_port_t port, bool up);
+  void linkStateChangedHwNotLocked(
+      bcm_port_t port,
+      bool up,
+      phy::LinkFaultStatus iPhyFaultStatus);
 
   /*
    * For any actions that require a lock or might need to
