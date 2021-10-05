@@ -123,7 +123,11 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) = 0;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
-  void linkStateChanged(PortID port, bool up) override;
+  void linkStateChanged(
+      PortID port,
+      bool up,
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
+          std::nullopt) override;
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;

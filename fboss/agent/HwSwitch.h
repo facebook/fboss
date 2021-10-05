@@ -88,7 +88,10 @@ class HwSwitch {
      * linkStateChanged() is invoked by the HwSwitch whenever the link
      * status changes on a port.
      */
-    virtual void linkStateChanged(PortID port, bool up) = 0;
+    virtual void linkStateChanged(
+        PortID port,
+        bool up,
+        std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt) = 0;
 
     /*
      * l2LearningUpdateReceived() is invoked by the HwSwitch when there is

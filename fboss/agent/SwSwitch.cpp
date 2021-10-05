@@ -1226,7 +1226,10 @@ void SwSwitch::pfcWatchdogStateChanged(
   }
 }
 
-void SwSwitch::linkStateChanged(PortID portId, bool up) {
+void SwSwitch::linkStateChanged(
+    PortID portId,
+    bool up,
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
         << "Ignore link state change event before we are fully initialized...";
@@ -1245,6 +1248,9 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
                    << (up ? "UP" : "DOWN") << "]";
         port = port->modify(&newState);
         port->setOperState(up);
+        if (iPhyFaultStatus) {
+          port->setIPhyLinkFaultStatus(*iPhyFaultStatus);
+        }
         // Log event and update counters if there is a change
         logLinkStateEvent(portId, up);
         setPortStatusCounter(portId, up);

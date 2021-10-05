@@ -461,7 +461,11 @@ class SwSwitch : public HwSwitch::Callback {
 
   // HwSwitch::Callback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
-  void linkStateChanged(PortID port, bool up) override;
+  void linkStateChanged(
+      PortID port,
+      bool up,
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
+          std::nullopt) override;
   void pfcWatchdogStateChanged(
       const PortID& portId,
       const bool deadlockDetected) override;

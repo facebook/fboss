@@ -158,7 +158,10 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   switchRunStateChanged(SwitchRunState::CONFIGURED);
 }
 
-void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
+void HwSwitchEnsemble::linkStateChanged(
+    PortID port,
+    bool up,
+    std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */) {
   if (getHwSwitch()->getRunState() < SwitchRunState::INITIALIZED) {
     return;
   }
