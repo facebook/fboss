@@ -213,7 +213,6 @@ void verifyTxSettting(
     return;
   }
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
-  auto platformPort = platform->getPlatformPort(portID);
   int minLane = -1;
   for (const auto& pinCfg : expectedPinConfigs) {
     auto lane = *pinCfg.id_ref()->lane_ref();
