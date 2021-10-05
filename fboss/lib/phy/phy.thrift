@@ -299,9 +299,13 @@ struct LaneInfo {
   9: optional float snr;
 }
 
-struct RsInfo {
+struct LinkFaultStatus {
   1: bool localFault;
   2: bool remoteFault;
+}
+
+struct RsInfo {
+  1: LinkFaultStatus faultStatus;
 }
 
 union LinkSnapshot {

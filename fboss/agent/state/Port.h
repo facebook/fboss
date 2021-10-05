@@ -79,6 +79,7 @@ struct PortFields : public ThriftyFields {
   std::string description;
   cfg::PortState adminState{cfg::PortState::DISABLED}; // is the port enabled
   OperState operState{OperState::DOWN}; // is the port actually up
+  std::optional<phy::LinkFaultStatus> iPhyLinkFaultStatus;
   phy::PortPrbsState asicPrbs = phy::PortPrbsState();
   phy::PortPrbsState gbSystemPrbs = phy::PortPrbsState();
   phy::PortPrbsState gbLinePrbs = phy::PortPrbsState();
@@ -186,6 +187,14 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   void setAdminState(cfg::PortState adminState) {
     writableFields()->adminState = adminState;
+  }
+
+  std::optional<phy::LinkFaultStatus> getIPhyLinkFaultStatus() const {
+    return getFields()->iPhyLinkFaultStatus;
+  }
+
+  void setIPhyLinkFaultStatus(std::optional<phy::LinkFaultStatus> faultStatus) {
+    writableFields()->iPhyLinkFaultStatus = faultStatus;
   }
 
   OperState getOperState() const {
