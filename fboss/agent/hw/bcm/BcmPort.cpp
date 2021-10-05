@@ -660,6 +660,11 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   }
 }
 
+void BcmPort::cacheFaultStatus(phy::LinkFaultStatus faultStatus) {
+  auto faultStatusPtr = cachedFaultStatus.wlock();
+  *faultStatusPtr = faultStatus;
+}
+
 void BcmPort::linkStatusChanged(const std::shared_ptr<Port>& port) {
   getPlatformPort()->linkStatusChanged(port->isUp(), port->isEnabled());
 }
@@ -1079,7 +1084,7 @@ std::string BcmPort::statName(
   return folly::to<string>(portName, ".", statName);
 }
 
-phy::PhyInfo BcmPort::updateIPhyInfo() const {
+phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::PhyInfo info;
 
   info.name_ref() = getPortName();
@@ -1110,6 +1115,18 @@ phy::PhyInfo BcmPort::updateIPhyInfo() const {
   phy::PhySideInfo lineSideInfo;
   lineSideInfo.side_ref() = phy::Side::LINE;
   lineSideInfo.pcs_ref() = pcs;
+
+  // Local/Remote Fault Status
+  auto faultStatusPtr = cachedFaultStatus.wlock();
+  if (*faultStatusPtr) {
+    phy::RsInfo rsInfo;
+    rsInfo.faultStatus_ref() = **faultStatusPtr;
+    lineSideInfo.rs_ref() = rsInfo;
+    // Reset the cached status back to nullopt. We want to only update
+    // the fault status in PhyInfo when port state update happens
+    *faultStatusPtr = std::nullopt;
+  }
+
   info.line_ref() = lineSideInfo;
 
   // PhyInfo update timestamp

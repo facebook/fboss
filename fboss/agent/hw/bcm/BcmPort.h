@@ -180,6 +180,8 @@ class BcmPort {
    */
   void linkStatusChanged(const std::shared_ptr<Port>& port);
 
+  void cacheFaultStatus(phy::LinkFaultStatus faultStatus);
+
   static bcm_gport_t asGPort(bcm_port_t port);
   static bool isValidLocalPort(bcm_gport_t gport);
   BcmCosQueueManager* getQueueManager() const {
@@ -226,7 +228,7 @@ class BcmPort {
   uint8_t determinePipe() const;
   int getPgMinLimitBytes(const int pgId) const;
   int getIngressSharedBytes(const int pgId) const;
-  phy::PhyInfo updateIPhyInfo() const;
+  phy::PhyInfo updateIPhyInfo();
 
  private:
   class BcmPortStats {
@@ -388,6 +390,14 @@ class BcmPort {
   folly::Synchronized<std::optional<BcmPortStats>> portStats_;
 
   std::atomic<bool> destroyed_{false};
+
+  // Need to synchronize cachedFaultStatus since it can be accessed from
+  // different threads. The updateStats thread will read the cachedFaultStatus
+  // and update in the periodic PhyInfo snapshot, and then clear it to nullopt.
+  // A port state update also updates this cachedFaultStatus with the status
+  // provided in linkscan callback
+  folly::Synchronized<std::optional<phy::LinkFaultStatus>> cachedFaultStatus{
+      std::nullopt};
 };
 
 } // namespace facebook::fboss

@@ -1578,6 +1578,7 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
         auto id = newPort->getID();
+        auto bcmPort = portTable_->getBcmPort(id);
 
         auto adminStateChanged =
             oldPort->getAdminState() != newPort->getAdminState();
@@ -1595,7 +1596,6 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
         }
 
         if (adminStateChanged || operStateChanged) {
-          auto bcmPort = portTable_->getBcmPort(id);
           bcmPort->linkStatusChanged(newPort);
         }
 
@@ -1603,6 +1603,7 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
           XLOG(DBG1) << newPort->getName() << " Fault status on port " << id
                      << " LocalFault: " << *(*faultStatus).localFault_ref()
                      << ", RemoteFault: " << *(*faultStatus).remoteFault_ref();
+          bcmPort->cacheFaultStatus(*faultStatus);
         }
       });
 }
