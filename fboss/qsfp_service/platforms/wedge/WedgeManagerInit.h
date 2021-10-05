@@ -31,6 +31,8 @@ std::unique_ptr<WedgeManager> createFBWedgeManager(
 
 std::unique_ptr<WedgeManager> createYampWedgeManager();
 
+std::unique_ptr<WedgeManager> createDarwinWedgeManager();
+
 std::unique_ptr<WedgeManager> createElbertWedgeManager();
 } // namespace fboss
 } // namespace facebook

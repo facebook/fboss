@@ -39,6 +39,8 @@ std::unique_ptr<WedgeManager> createWedgeManager(bool forceColdBoot) {
     return std::make_unique<GalaxyManager>(mode);
   } else if (mode == PlatformMode::YAMP) {
     return createYampWedgeManager();
+  } else if (mode == PlatformMode::DARWIN) {
+    return createDarwinWedgeManager();
   } else if (mode == PlatformMode::ELBERT) {
     return createElbertWedgeManager();
   } else if (
