@@ -309,6 +309,39 @@ TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
   runSimpleUcmpTest(nhops, normalizedNhops);
 }
 
+TEST_F(HwWideEcmpTest, WideUcmp256WidthUnderflow) {
+  const int numSpineNhops = 5;
+  const int numMeshNhops = 3;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  // skip unsupported platforms
+  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WIDE_ECMP)) {
+    return;
+  }
+
+  FLAGS_ecmp_width = 256;
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // 5 spine nhops of weight 31 and 3 mesh nhops of weight 1
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {5, 31}, {3, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  // normalized weights manually computed to compare against
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {3, 51}, {2, 50}, {3, 1}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
+}
 TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
   const int numSpineNhops = 4;
   const int numMeshNhops = 4;

@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <folly/logging/xlog.h>
 #include <string>
@@ -862,12 +863,12 @@ void BcmEcmpEgress::programWideEcmp(
   // Need at least one member to create weighted path
   if (activeMembers.size()) {
     obj.ecmp_group_flags |= BCM_L3_ECMP_WEIGHTED;
-    obj.max_paths = kMaxWeightedEcmpPaths;
+    obj.max_paths = FLAGS_ecmp_width;
     EgressId2Weight normalizedEgressId2WeightInSw;
     normalizeUcmpToMaxPath(
         egressId2Weight,
         activeMembers,
-        kMaxWeightedEcmpPaths,
+        FLAGS_ecmp_width,
         normalizedEgressId2WeightInSw);
     for (const auto& path : normalizedEgressId2WeightInSw) {
       for (auto i = 0; i < path.second; i++) {
@@ -884,11 +885,11 @@ void BcmEcmpEgress::programWideEcmp(
       "failed to program L3 wide ECMP egress object ",
       id,
       " with ",
-      kMaxWeightedEcmpPaths,
+      FLAGS_ecmp_width,
       " paths");
   id = obj.ecmp_intf;
   XLOG(DBG2) << "Programmed L3 wide ECMP egress object " << id << " for "
-             << kMaxWeightedEcmpPaths << " paths";
+             << FLAGS_ecmp_width << " paths";
   CHECK_NE(id, INVALID);
 }
 
@@ -975,7 +976,7 @@ bcm_mpls_label_t getLabel(const bcm_l3_egress_t& egress) {
 }
 
 bool BcmEcmpEgress::isWideEcmpEnabled(bool wideEcmpSupported) {
-  return wideEcmpSupported && FLAGS_ecmp_width == kMaxWeightedEcmpPaths;
+  return wideEcmpSupported && FLAGS_ecmp_width > kMaxNonWeightedEcmpPaths;
 }
 
 } // namespace facebook::fboss
