@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 
 #include "fboss/agent/Constants.h"
-#include "fboss/agent/NexthopUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -829,16 +828,17 @@ void BcmEcmpEgress::normalizeUcmpToMaxPath(
     const std::set<EgressId>& activeMembers,
     const uint32_t normalizedPathCount,
     EgressId2Weight& normalizedEgressId2Weight) {
-  std::map<EgressId, uint64_t> EgressIdAndWeight;
+  std::vector<uint64_t> egressWeights;
   for (const auto& member : activeMembers) {
-    EgressIdAndWeight[member] = egressId2Weight.at(member);
+    egressWeights.emplace_back(egressId2Weight.at(member));
   }
-  normalizeNextHopWeightsToMaxPaths<EgressId>(
-      EgressIdAndWeight, normalizedPathCount);
+  RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
+      egressWeights, normalizedPathCount);
 
+  int idx = 0;
   for (const auto& member : activeMembers) {
     normalizedEgressId2Weight.insert(
-        std::make_pair(member, EgressIdAndWeight[member]));
+        std::make_pair(member, egressWeights.at(idx++)));
   }
   XLOG(DBG2) << "Updated weights for WideECMP "
              << egressId2WeightToString(normalizedEgressId2Weight);

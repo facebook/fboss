@@ -10,7 +10,6 @@
 #include "RouteNextHopEntry.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/NexthopUtils.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
 #include <folly/logging/xlog.h>
@@ -443,18 +442,18 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
 
   if (FLAGS_wide_ecmp && scaledTotalWeight > kMinSizeForWideEcmp &&
       scaledTotalWeight < FLAGS_ecmp_width) {
-    std::map<folly::IPAddress, uint64_t> nhopAndWeights;
+    std::vector<uint64_t> nhopWeights;
     for (const auto& nhop : normalizedNextHops) {
-      nhopAndWeights.insert(std::make_pair(nhop.addr(), nhop.weight()));
+      nhopWeights.emplace_back(nhop.weight());
     }
-    normalizeNextHopWeightsToMaxPaths<folly::IPAddress>(
-        nhopAndWeights, FLAGS_ecmp_width);
+    normalizeNextHopWeightsToMaxPaths(nhopWeights, FLAGS_ecmp_width);
     NextHopSet normalizedToMaxPathNextHops;
+    int idx = 0;
     for (const auto& nhop : normalizedNextHops) {
       normalizedToMaxPathNextHops.insert(ResolvedNextHop(
           nhop.addr(),
           nhop.intf(),
-          nhopAndWeights[nhop.addr()],
+          nhopWeights.at(idx++),
           nhop.labelForwardingAction()));
     }
     XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
@@ -535,6 +534,112 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
 
 bool RouteNextHopEntry::isUcmp(const NextHopSet& nhopSet) {
   return totalWeight(nhopSet) != nhopSet.size();
+}
+
+/*
+ * utility to normalize weights to a fixed total count
+ */
+
+// Modify ucmp weight distribution such that total weight is equal to
+// a fixed value (normalizedPathCount). This is needed to support
+// wide ucmp on TH3 where the total member count in ECMP structure
+// programmed in hardware has be a power of 2. A high level description
+// of normalization steps with an example walk through is included below.
+//
+// Consider a UCMP with following weight distribution
+//      Number of nexthops      Weight
+//          20                    8
+//          10                    5
+//          15                    7
+//          10                    2
+//
+// 1. Compute a scale factor for weight so that weights can be adjusted
+//    to a number close to normalized count.
+//         factor = normalized count / total weight
+//    In this example factor = 512/335 = 1.528
+// 2. Scale weights by the factor computed
+//    In the example, the scaled weights are
+//      Number of nexthops      Weight
+//          20                   12
+//          10                    7
+//          15                   10
+//          10                    3
+//    total scaled weight = 490
+// 3. Compute underflow = normalized count - total weight.
+//    In this example underflow = 512 - 490 = 22
+// 4. Allocate the underflow slots to the highest weight next
+//    hop sets that can accommodate the slots. This is done
+//    with the intention of reducing the percent traffic load
+//    difference between members of same weight group to minimum.
+//    In this example, the largest 2 weights (12 and 10) has total
+//    20 + 15 = 35 nexthops. Allocate 22 remaining slots among
+//    these 2 weight groups by filling the lowest weight group first.
+//    Weight 10 will get 15 slots (weight becomes 11 now) and
+//    weight 12 will get 7 nexthops (split to 2 groups of weight 12 and 13)
+//      Number of nexthops      Weight
+//           7                   13
+//          13                   12
+//          10                    7
+//          15                   11
+//          10                    3
+// Total count = 512
+
+void RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
+    std::vector<uint64_t>& nhWeights,
+    uint64_t normalizedPathCount) {
+  uint64_t totalWeight = 0;
+  for (const auto weight : nhWeights) {
+    totalWeight += weight;
+  }
+  // compute the scale factor
+  double factor = normalizedPathCount / static_cast<double>(totalWeight);
+  uint64_t scaledTotalWeight = 0;
+  std::map<uint64_t, uint32_t> WeightMap;
+
+  for (auto& weight : nhWeights) {
+    weight = std::max(int(weight * factor), 1);
+    WeightMap[weight]++;
+    scaledTotalWeight += weight;
+  }
+  if (scaledTotalWeight < normalizedPathCount) {
+    int underflow = normalizedPathCount - scaledTotalWeight;
+
+    std::map<int, int> underflowWeightAllocation;
+    // distribute any remaining underflows to most weighted nhops
+    int underflowAllocated = 0;
+    // check from highest weight to lowest
+    for (auto it = WeightMap.rbegin(); it != WeightMap.rend(); it++) {
+      underflowAllocated += it->second;
+      underflowWeightAllocation[it->first] = it->second;
+      // stop when we find enough nexthops to absord underflow
+      if (underflowAllocated >= underflow) {
+        break;
+      }
+    }
+
+    uint32_t overAllocation = underflowAllocated - underflow;
+    // Shift uneven allocation to the highest weight groups
+    // so that percentage error between members of same group is minimum.
+    for (auto it = WeightMap.rbegin(); it != WeightMap.rend(); it++) {
+      int delta = std::min(overAllocation, it->second);
+      underflowWeightAllocation[it->first] -= delta;
+      overAllocation -= delta;
+      if (!overAllocation) {
+        break;
+      }
+    }
+
+    // distribute the underflow evenly across the members in weight groups
+    for (auto& weight : nhWeights) {
+      if (underflow && underflowWeightAllocation[weight]) {
+        underflowWeightAllocation[weight]--;
+        weight++;
+        underflow--;
+      }
+    }
+    // we should allocate all underflow slots
+    CHECK_EQ(underflow, 0);
+  }
 }
 
 } // namespace facebook::fboss
