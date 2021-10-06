@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -25,10 +26,12 @@ constexpr auto kTxRxThresholdMs = 2000;
 namespace facebook::fboss {
 
 cfg::SwitchConfig HwOverflowTest::initialConfig() const {
-  auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-  utility::addProdFeaturesToConfig(cfg, getHwSwitch());
-  return cfg;
+  // Since we run inavriant tests based on switch role, we just pick the
+  // most common switch role (i.e. rsw) for convenience of testing.
+  // Not intended to extend coverage for every platform
+  auto config =
+      utility::createProdRswConfig(getHwSwitch(), masterLogicalPortIds());
+  return config;
 }
 void HwOverflowTest::SetUp() {
   HwLinkStateDependentTest::SetUp();
