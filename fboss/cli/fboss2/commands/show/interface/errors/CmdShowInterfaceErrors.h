@@ -25,7 +25,7 @@ struct CmdShowInterfaceErrorsTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
-  using RetType = cli::InterfaceCountersModel;
+  using RetType = cli::InterfaceErrorsModel;
 };
 
 class CmdShowInterfaceErrors

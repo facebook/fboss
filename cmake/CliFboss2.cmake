@@ -59,6 +59,12 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  show_interface_counters
+  fboss/cli/fboss2/commands/show/interface/counters/model.thrift
+  OPTIONS
+    json
+)
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -76,6 +82,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
+  fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/Main.cpp
@@ -107,6 +114,7 @@ target_link_libraries(fboss2
   show_transceiver_model
   show_interface_flaps
   show_interface_errors
+  show_interface_counters
 )
 
 add_library(tabulate

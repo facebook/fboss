@@ -1,6 +1,6 @@
 namespace cpp2 facebook.fboss.cli
 
-struct InterfaceCountersModel {
+struct InterfaceErrorsModel {
   1: list<ErrorCounters> error_counters;
 }
 
