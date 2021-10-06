@@ -23,6 +23,7 @@
 
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <optional>
 
 namespace facebook::fboss::test {
 
@@ -572,8 +573,8 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
-  TransceiverInfo transceiverInfo = TransceiverInfo();
-  transceiverInfo.extendedSpecificationComplianceCode_ref() =
+  cfg::PlatformPortConfigOverrideFactor factor;
+  factor.transceiverSpecComplianceCode_ref() =
       ExtendedSpecComplianceCode::FR1_100G;
   for (auto port : mapping->getPlatformPorts()) {
     auto portProfileConfig =
@@ -590,7 +591,9 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
 
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, transceiverInfo));
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            std::nullopt,
+            factor));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
 
@@ -605,19 +608,19 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
 
 TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
-  TransceiverInfo transceiverInfo = TransceiverInfo();
+  cfg::PlatformPortConfigOverrideFactor factor;
 
   std::array<int, 6> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0};
   std::array<int, 6> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0};
 
   for (auto port : mapping->getPlatformPorts()) {
-    transceiverInfo.transceiverManagementInterface_ref() =
+    factor.transceiverManagementInterface_ref() =
         TransceiverManagementInterface::SFF;
     auto portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
             PortID(port.first),
-            transceiverInfo),
+            factor),
         phy::Side::LINE);
 
     EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
@@ -628,14 +631,14 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
       }
     }
 
-    transceiverInfo.transceiverManagementInterface_ref() =
+    factor.transceiverManagementInterface_ref() =
         TransceiverManagementInterface::CMIS;
     FLAGS_override_cmis_tx_setting = false;
     portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
             PortID(port.first),
-            transceiverInfo),
+            factor),
         phy::Side::LINE);
 
     EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
@@ -651,7 +654,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
         PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
             PortID(port.first),
-            transceiverInfo),
+            factor),
         phy::Side::LINE);
 
     EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
@@ -938,15 +941,13 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
       const auto& txSettingsGroup =
           kWedge100DownlinkTxGroups[kWedge100DownlinkPortGroupMapping[transID]];
       for (auto& setting : txSettingsGroup) {
-        TransceiverInfo transceiverInfo = TransceiverInfo();
-        Cable cable = Cable();
-        cable.length_ref() = setting.first;
-        transceiverInfo.cable_ref() = cable;
+        cfg::PlatformPortConfigOverrideFactor factor;
+        factor.cableLengths_ref() = {setting.first};
         auto expectedTx = setting.second.first;
         auto expectedDriveCurrent = setting.second.second;
         auto pinCfgs =
             mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
-                profile.first, PortID(port.first), transceiverInfo));
+                profile.first, PortID(port.first), factor));
         auto pinCfg = pinCfgs.at(0);
         auto tx = pinCfg.tx_ref();
         EXPECT_TRUE(tx.has_value());
@@ -965,10 +966,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
   static auto constexpr kLastYV3T1DownlinkTransceiverID = 23;
   static std::array<int, 6> YV3T1DownlinkTx = {0, 16, 96, 56, 0, 0};
   static auto constexpr YV3T1DownlinkDriveCurrent = 8;
-  TransceiverInfo transceiverInfo = TransceiverInfo();
-  Cable cable = Cable();
-  cable.length_ref() = 1.5;
-  transceiverInfo.cable_ref() = cable;
+  cfg::PlatformPortConfigOverrideFactor factor;
+  factor.cableLengths_ref() = {1.5};
 
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
@@ -986,10 +985,10 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
     for (auto profile : YV3T1DownlinkProfiles) {
       if (const auto& profileConfigIt = supportedProfiles.find(profile);
           profileConfigIt != supportedProfiles.end()) {
-        // Check whether we can get the new serdes even with TransceiverInfo
+        // Check whether we can get the new serdes even with override factor
         const auto& pinCfgs =
             mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
-                profileConfigIt->first, PortID(port.first), transceiverInfo));
+                profileConfigIt->first, PortID(port.first), factor));
         const auto& pinCfg = pinCfgs.at(0);
         auto tx = pinCfg.tx_ref();
         EXPECT_TRUE(tx.has_value());

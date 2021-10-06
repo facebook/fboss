@@ -68,7 +68,9 @@ phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     if (transceiverInfo) {
       return platform_->getPlatformMapping()->getPortXphyPinConfig(
           PlatformPortProfileConfigMatcher(
-              profileID, id_, transceiverInfo.value()));
+              profileID,
+              id_,
+              buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
     }
   }
   return platform_->getPlatformMapping()->getPortXphyPinConfig(
@@ -169,7 +171,9 @@ PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
     std::optional<TransceiverInfo> transceiverInfo = getTransceiverInfo(&evb);
     if (transceiverInfo.has_value()) {
       return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-          profileID, id_, transceiverInfo.value()));
+          profileID,
+          id_,
+          buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
     }
   }
   return platform_->getPortProfileConfig(

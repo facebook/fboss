@@ -248,8 +248,10 @@ std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
       continue;
     }
     const auto& chip = platformMapping->getPortIphyChip(PortID(portID));
+    cfg::PlatformPortConfigOverrideFactor factor;
+    factor.chips_ref() = {chip};
     corePinMapping[chip] = platformMapping->getPortIphyPinConfigs(
-        PlatformPortProfileConfigMatcher(profileID, chip));
+        PlatformPortProfileConfigMatcher(profileID, std::nullopt, factor));
   }
   return corePinMapping;
 }

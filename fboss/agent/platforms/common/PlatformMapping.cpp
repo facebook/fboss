@@ -30,6 +30,22 @@ const re2::RE2 portNameRegex(kFbossPortNameRegex);
 namespace facebook {
 namespace fboss {
 
+cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
+    const TransceiverInfo& transceiverInfo) {
+  cfg::PlatformPortConfigOverrideFactor factor;
+  if (auto cable = transceiverInfo.cable_ref(); cable && cable->length_ref()) {
+    factor.cableLengths_ref() = {*cable->length_ref()};
+  }
+  // TODO(joseph5wu) Will deprecate this and use `mediaInterfaceCode` instead
+  if (auto code = transceiverInfo.extendedSpecificationComplianceCode_ref()) {
+    factor.transceiverSpecComplianceCode_ref() = *code;
+  }
+  if (auto interface = transceiverInfo.transceiverManagementInterface_ref()) {
+    factor.transceiverManagementInterface_ref() = *interface;
+  }
+  return factor;
+}
+
 bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
     const cfg::PlatformPortConfigOverrideFactor& factor) {
   if (auto overridePorts = factor.ports_ref()) {
@@ -49,43 +65,45 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
     }
   }
   if (auto overrideCableLength = factor.cableLengths_ref()) {
-    if (!transceiverInfo_.has_value() ||
-        !transceiverInfo_->cable_ref().has_value() ||
-        !transceiverInfo_->cable_ref()->length_ref().has_value()) {
+    if (!portConfigOverrideFactor_ ||
+        !portConfigOverrideFactor_->cableLengths_ref()) {
       return false;
     }
-    if (std::find(
-            overrideCableLength->begin(),
-            overrideCableLength->end(),
-            transceiverInfo_->cable_ref()->length_ref().value()) ==
-        overrideCableLength->end()) {
-      return false;
+    for (auto cableLength : *portConfigOverrideFactor_->cableLengths_ref()) {
+      if (std::find(
+              overrideCableLength->begin(),
+              overrideCableLength->end(),
+              cableLength) == overrideCableLength->end()) {
+        return false;
+      }
     }
   }
+  // TODO(joseph5wu) Will deprecate this and use `mediaInterfaceCode` instead
   if (auto overrideTransceiverSpecComplianceCode =
           factor.transceiverSpecComplianceCode_ref()) {
-    if (!transceiverInfo_.has_value() ||
-        !transceiverInfo_->extendedSpecificationComplianceCode_ref()
-             .has_value() ||
-        transceiverInfo_->extendedSpecificationComplianceCode_ref().value() !=
+    if (!portConfigOverrideFactor_ ||
+        portConfigOverrideFactor_->transceiverSpecComplianceCode_ref() !=
             overrideTransceiverSpecComplianceCode) {
       return false;
     }
   }
   if (auto overrideTransceiverManagementInterface =
           factor.transceiverManagementInterface_ref()) {
-    if (!transceiverInfo_.has_value() || !FLAGS_override_cmis_tx_setting ||
-        !transceiverInfo_->transceiverManagementInterface_ref().has_value() ||
-        transceiverInfo_->transceiverManagementInterface_ref().value() !=
+    if (!portConfigOverrideFactor_ || !FLAGS_override_cmis_tx_setting ||
+        portConfigOverrideFactor_->transceiverManagementInterface_ref() !=
             overrideTransceiverManagementInterface) {
       return false;
     }
   }
   if (auto overrideChips = factor.chips_ref()) {
-    if (!chip_.has_value() ||
-        std::find(overrideChips->begin(), overrideChips->end(), chip_) ==
-            overrideChips->end()) {
+    if (!portConfigOverrideFactor_ || !portConfigOverrideFactor_->chips_ref()) {
       return false;
+    }
+    for (const auto& chip : *portConfigOverrideFactor_->chips_ref()) {
+      if (std::find(overrideChips->begin(), overrideChips->end(), chip) ==
+          overrideChips->end()) {
+        return false;
+      }
     }
   }
   return true;
@@ -111,16 +129,22 @@ bool PlatformPortProfileConfigMatcher::matchProfileWithFactor(
 }
 
 std::string PlatformPortProfileConfigMatcher::toString() const {
-  auto pimID = pimID_.has_value() ? static_cast<int>(pimID_.value()) : -1;
-  auto portID = portID_.has_value() ? static_cast<int>(portID_.value()) : -1;
-  auto chipName = chip_.has_value() ? chip_->get_name() : "";
-  return folly::format(
-             "profileID={}, pimID={}, portID={}, chip={}",
-             apache::thrift::util::enumNameSafe(profileID_),
-             pimID,
-             portID,
-             chipName)
-      .str();
+  std::string str = folly::to<std::string>(
+      "profileID=", apache::thrift::util::enumNameSafe(profileID_));
+  if (portID_) {
+    str = folly::to<std::string>(str, ", portID=", *portID_);
+  }
+  if (pimID_) {
+    str = folly::to<std::string>(str, ", pimID=", *pimID_);
+  }
+  if (portConfigOverrideFactor_) {
+    str = folly::to<std::string>(
+        str,
+        ", portConfigOverrideFactor=",
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            *portConfigOverrideFactor_));
+  }
+  return str;
 }
 
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
@@ -266,7 +290,12 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
 
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PlatformPortProfileConfigMatcher matcher) const {
-  auto chip = matcher.getChipIf();
+  std::optional<phy::DataPlanePhyChip> chip;
+  if (auto overrideFactor = matcher.getPortConfigOverrideFactorIf()) {
+    if (auto chips = overrideFactor->chips_ref(); chips && !chips->empty()) {
+      chip = (*chips)[0];
+    }
+  }
   auto portID = matcher.getPortIDIf();
   auto profileID = matcher.getProfileID();
 

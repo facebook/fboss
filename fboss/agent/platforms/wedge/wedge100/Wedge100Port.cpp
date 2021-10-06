@@ -27,10 +27,11 @@ std::vector<phy::PinConfig> Wedge100Port::getIphyPinConfigs(
   if (transceiverInfo) {
     if (auto cable = transceiverInfo->cable_ref()) {
       if (auto cableLength = cable->length_ref()) {
-        cable->length_ref() = std::max(1.0, std::min(3.0, *cableLength));
+        cfg::PlatformPortConfigOverrideFactor matcher;
+        matcher.cableLengths_ref() = {
+            std::max(1.0, std::min(3.0, *cableLength))};
         return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-            PlatformPortProfileConfigMatcher(
-                profileID, getPortID(), transceiverInfo.value()));
+            PlatformPortProfileConfigMatcher(profileID, getPortID(), matcher));
       }
     }
   }

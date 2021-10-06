@@ -95,16 +95,15 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
     throw FbossError("No DataPlanePhyChips found");
   }
 
-  std::optional<PlatformPortProfileConfigMatcher> matcher;
+  std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
   if (transceiverInfo) {
-    matcher = PlatformPortProfileConfigMatcher(
-        portProfileId, portId, *transceiverInfo);
-  } else {
-    matcher = PlatformPortProfileConfigMatcher(portProfileId, portId);
+    factor = buildPlatformPortConfigOverrideFactor(*transceiverInfo);
   }
-  const auto& portPinConfig = platformMapping_->getPortXphyPinConfig(*matcher);
+  PlatformPortProfileConfigMatcher matcher =
+      PlatformPortProfileConfigMatcher(portProfileId, portId, factor);
+  const auto& portPinConfig = platformMapping_->getPortXphyPinConfig(matcher);
   const auto& portProfileConfig =
-      platformMapping_->getPortProfileConfig(*matcher);
+      platformMapping_->getPortProfileConfig(matcher);
   if (!portProfileConfig.has_value()) {
     throw FbossError(
         "No port profile with id ",

@@ -19,6 +19,9 @@ DECLARE_bool(override_cmis_tx_setting);
 namespace facebook {
 namespace fboss {
 
+cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
+    const TransceiverInfo& transceiverInfo);
+
 class PlatformMapping;
 class PlatformPortProfileConfigMatcher {
  public:
@@ -27,33 +30,22 @@ class PlatformPortProfileConfigMatcher {
       std::optional<PimID> pimID)
       : profileID_(profileID), pimID_(pimID) {}
 
-  PlatformPortProfileConfigMatcher(cfg::PortProfileID profileID, PortID portID)
-      : profileID_(profileID), portID_(portID) {}
-
-  PlatformPortProfileConfigMatcher(
+  explicit PlatformPortProfileConfigMatcher(
       cfg::PortProfileID profileID,
-      phy::DataPlanePhyChip chip)
-      : profileID_(profileID), chip_(chip) {}
-
-  PlatformPortProfileConfigMatcher(
-      cfg::PortProfileID profileID,
-      PortID portID,
-      TransceiverInfo transceiverInfo)
+      std::optional<PortID> portID = std::nullopt,
+      std::optional<cfg::PlatformPortConfigOverrideFactor>
+          portConfigOverrideFactor = std::nullopt)
       : profileID_(profileID),
         portID_(portID),
-        transceiverInfo_(transceiverInfo) {}
-
-  PlatformPortProfileConfigMatcher(
-      cfg::PortProfileID profileID,
-      TransceiverInfo transceiverInfo)
-      : profileID_(profileID), transceiverInfo_(transceiverInfo) {}
+        portConfigOverrideFactor_(portConfigOverrideFactor) {}
 
   std::optional<PortID> getPortIDIf() const {
     return portID_;
   }
 
-  std::optional<phy::DataPlanePhyChip> getChipIf() const {
-    return chip_;
+  std::optional<cfg::PlatformPortConfigOverrideFactor>
+  getPortConfigOverrideFactorIf() const {
+    return portConfigOverrideFactor_;
   }
 
   cfg::PortProfileID getProfileID() const {
@@ -70,11 +62,11 @@ class PlatformPortProfileConfigMatcher {
   std::string toString() const;
 
  private:
-  cfg::PortProfileID profileID_;
+  const cfg::PortProfileID profileID_;
   std::optional<PimID> pimID_;
   std::optional<PortID> portID_;
-  std::optional<TransceiverInfo> transceiverInfo_;
-  std::optional<phy::DataPlanePhyChip> chip_;
+  const std::optional<cfg::PlatformPortConfigOverrideFactor>
+      portConfigOverrideFactor_;
 };
 
 class PlatformMapping {

@@ -176,7 +176,9 @@ std::vector<phy::PinConfig> SaiPlatformPort::getIphyPinConfigs(
   if (transceiverInfo) {
     return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
         PlatformPortProfileConfigMatcher(
-            profileID, getPortID(), transceiverInfo.value()));
+            profileID,
+            getPortID(),
+            buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
   }
   return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
       PlatformPortProfileConfigMatcher(profileID, getPortID()));
