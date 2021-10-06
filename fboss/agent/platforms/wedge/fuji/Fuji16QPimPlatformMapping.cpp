@@ -507,6 +507,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                2
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1493,6 +1732,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                4
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -2487,6 +2965,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                6
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3473,6 +4190,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -4467,6 +5423,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                18
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5453,6 +6648,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                20
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -6447,6 +7881,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                22
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -7433,6 +9106,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                24
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -8427,6 +10339,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                35
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -9413,6 +11564,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                37
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -10407,6 +12797,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                39
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -11393,6 +14022,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                41
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -12387,6 +15255,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                52
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -13373,6 +16480,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                54
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -14367,6 +17713,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                56
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -15353,6 +18938,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                58
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -16347,6 +20171,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                69
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -17333,6 +21396,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                71
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -18327,6 +22629,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                73
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -19313,6 +23854,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                75
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -20307,6 +25087,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                86
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -21293,6 +26312,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                88
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -22287,6 +27545,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                90
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -23273,6 +28770,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                92
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -24267,6 +30003,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                103
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -25253,6 +31228,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                105
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -26247,6 +32461,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                107
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -27233,6 +33686,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                109
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -28227,6 +34919,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                120
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -29213,6 +36144,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                122
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -30207,6 +37377,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                124
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -31193,6 +38602,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                126
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -32187,6 +39835,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                137
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -33173,6 +41060,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                139
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -34167,6 +42293,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                141
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -35153,6 +43518,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                143
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -36147,6 +44751,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                154
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -37133,6 +45976,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -38127,6 +47209,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                158
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -39113,6 +48434,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -40107,6 +49667,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                171
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -41093,6 +50892,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                173
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -42087,6 +52125,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                175
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -43073,6 +53350,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                177
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -44067,6 +54583,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                188
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -45053,6 +55808,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                190
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -46047,6 +57041,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -47033,6 +58266,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                194
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -48027,6 +59499,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                205
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -49013,6 +60724,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                207
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -50007,6 +61957,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                209
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -50993,6 +63182,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                211
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -51987,6 +64415,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                222
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -52973,6 +65640,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                224
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -53967,6 +66873,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                226
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -54953,6 +68098,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                228
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -55947,6 +69331,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                239
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -56933,6 +70556,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                241
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -57927,6 +71789,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                243
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -58913,6 +73014,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                245
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -59907,6 +74247,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                256
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -60893,6 +75472,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                258
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -61887,6 +76705,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "26": {
+              "subsumedPorts": [
+                260
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 8
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 9
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 10
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 11
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 12
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 15
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 9
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 10
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 11
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 13
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 14
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 15
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -62873,6 +77930,245 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post": 0,
                       "post2": 0,
                       "post3": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "26": {
+              "subsumedPorts": [
+                262
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 1
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 2
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 3
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 5
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 6
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 7
+                    },
+                    "polaritySwap": {
+                      "rx": true,
+                      "tx": true
                     }
                   }
                 ]
@@ -64842,6 +80138,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "xphySystem": {
           "numLanes": 4,
+          "modulation": 2,
+          "fec": 1,
+          "medium": 3,
+          "interfaceMode": 46,
+          "interfaceType": 46
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 26
+      },
+      "profile": {
+        "speed": 400000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 3,
+          "interfaceMode": 4,
+          "interfaceType": 4
+        },
+        "xphyLine": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 47,
+          "interfaceType": 47
+        },
+        "xphySystem": {
+          "numLanes": 8,
           "modulation": 2,
           "fec": 1,
           "medium": 3,
