@@ -17,25 +17,15 @@ using namespace std::chrono;
 
 template <size_t length>
 SnapshotManager<length>::SnapshotManager(std::set<std::string> portNames)
-    : portNames_(portNames) {
-  lastScheduledPublish_ =
-      steady_clock::now() - seconds(FLAGS_link_snapshot_publish_interval);
-}
+    : portNames_(portNames) {}
 
 template <size_t length>
 void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
   auto snapshot = SnapshotWrapper(val);
   buf_.write(snapshot);
-  auto now = steady_clock::now();
-  auto intervalElapsed =
-      lastScheduledPublish_ + seconds(FLAGS_link_snapshot_publish_interval) <=
-      now;
 
-  if (intervalElapsed || numSnapshotsToPublish_ > 0) {
+  if (numSnapshotsToPublish_ > 0) {
     snapshot.publish(portNames_);
-  }
-  if (intervalElapsed) {
-    lastScheduledPublish_ = now;
   }
   if (numSnapshotsToPublish_ > 0) {
     numSnapshotsToPublish_--;

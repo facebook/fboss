@@ -17,7 +17,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/logging/xlog.h"
 
-DECLARE_int32(link_snapshot_publish_interval);
 namespace facebook::fboss {
 
 using namespace fboss::phy;
@@ -45,7 +44,6 @@ class SnapshotManager {
   void publishIfNecessary();
 
   RingBuffer<SnapshotWrapper, length> buf_;
-  std::chrono::steady_clock::time_point lastScheduledPublish_;
   int numSnapshotsToPublish_{0};
   std::set<std::string> portNames_;
 };

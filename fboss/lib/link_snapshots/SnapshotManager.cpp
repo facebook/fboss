@@ -14,11 +14,6 @@
 
 using namespace std::chrono;
 
-DEFINE_int32(
-    link_snapshot_publish_interval,
-    duration_cast<seconds>(std::chrono::hours(1)).count(),
-    "Time interval between link snapshots (in seconds)");
-
 namespace facebook::fboss {
 
 void SnapshotWrapper::publish(std::set<std::string> portNames) {
