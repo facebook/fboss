@@ -12,6 +12,8 @@
 
 #include "fboss/agent/FbossError.h"
 
+DEFINE_bool(use_new_state_machine, false, "Use the new state machine logic");
+
 namespace facebook::fboss {
 
 std::string getModuleStateMachineEventName(ModuleStateMachineEvent event) {

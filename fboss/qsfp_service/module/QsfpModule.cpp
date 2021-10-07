@@ -39,7 +39,6 @@ DEFINE_int32(
     initial_remediate_interval,
     120,
     "seconds to wait before running first destructive remediations on down ports after bootup");
-DEFINE_bool(use_new_state_machine, false, "Use the new state machine logic");
 
 using folly::IOBuf;
 using std::lock_guard;

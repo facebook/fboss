@@ -45,5 +45,25 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   auto portNames = getPortNames(tcvrId);
   return portNames.empty() ? "" : *portNames.begin();
 }
+
+TransceiverManager::TransceiverToStateMachine
+TransceiverManager::setupTransceiverToStateMachine() {
+  // Set up NewModuleStateMachine map
+  TransceiverToStateMachine stateMachineMap;
+  if (FLAGS_use_new_state_machine) {
+    for (auto chip : platformMapping_->getChips()) {
+      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+        continue;
+      }
+      // Init state should be "NEW_MODULE_STATE_NOT_PRESENT"
+      auto stateMachine = std::make_unique<folly::Synchronized<
+          msm::back::state_machine<NewModuleStateMachine>>>();
+      stateMachineMap.emplace(
+          TransceiverID(*chip.second.physicalID_ref()),
+          std::move(stateMachine));
+    }
+  }
+  return stateMachineMap;
+}
 } // namespace fboss
 } // namespace facebook

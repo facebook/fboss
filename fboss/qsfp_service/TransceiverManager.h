@@ -38,7 +38,8 @@ class TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping)
       : qsfpPlatApi_(std::move(api)),
-        platformMapping_(std::move(platformMapping)) {}
+        platformMapping_(std::move(platformMapping)),
+        moduleStateMachines_(setupTransceiverToStateMachine()) {}
   virtual ~TransceiverManager() {}
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(
@@ -188,6 +189,12 @@ class TransceiverManager {
   TransceiverManager(TransceiverManager const&) = delete;
   TransceiverManager& operator=(TransceiverManager const&) = delete;
 
+  using TransceiverToStateMachine = std::unordered_map<
+      TransceiverID,
+      std::unique_ptr<folly::Synchronized<
+          msm::back::state_machine<NewModuleStateMachine>>>>;
+  virtual TransceiverToStateMachine setupTransceiverToStateMachine();
+
   using StateUpdateList = folly::IntrusiveList<
       ModuleStateMachineUpdate,
       &ModuleStateMachineUpdate::listHook_>;
@@ -196,6 +203,14 @@ class TransceiverManager {
    */
   folly::SpinLock pendingUpdatesLock_;
   StateUpdateList pendingUpdates_;
+
+  /*
+   * A map to maintain all transceivers(present and not present) state machines.
+   * As each platform has its own fixed supported module num
+   * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
+   * and no other functions will erase any items from this map.
+   */
+  const TransceiverToStateMachine moduleStateMachines_;
 };
 } // namespace fboss
 } // namespace facebook

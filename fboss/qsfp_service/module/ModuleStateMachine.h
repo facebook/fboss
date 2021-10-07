@@ -20,6 +20,8 @@
 #include <iostream>
 #include <vector>
 
+DECLARE_bool(use_new_state_machine);
+
 namespace facebook {
 namespace fboss {
 
