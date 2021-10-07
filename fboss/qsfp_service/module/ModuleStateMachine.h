@@ -74,6 +74,38 @@ inline std::string getModuleStateMachineEventName(
   throw FbossError("Unsupported ModuleStateMachineEvent");
 }
 
+/**************************** New Module State Machine ***********************/
+// TODO(joseph5wu) The following new module state machine is planned to replace
+// the current `moduleStateMachine` and `modulePortStateMachine`. Because the
+// change is quite massive and right now they have been heavily used in
+// QsfpModule, it might be safer to start the new change on a new state machine
+// rather than tamper the current one.
+
+// Module State Machine States
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_NOT_PRESENT)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_PRESENT)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_DISCOVERED)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_IPHY_PORTS_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_XPHY_PORTS_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_TRANSCEIVER_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_ACTIVE)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_INACTIVE)
+BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_UPGRADING)
+
+// Module State Machine Events
+BOOST_MSM_EUML_EVENT(NEW_MODULE_EVENT_OPTICS_DETECTED)
+
+// Module State Machine State transition table
+BOOST_MSM_EUML_TRANSITION_TABLE(
+    (NEW_MODULE_STATE_NOT_PRESENT + NEW_MODULE_EVENT_OPTICS_DETECTED ==
+     NEW_MODULE_STATE_PRESENT),
+    NewModuleTransitionTable)
+
+// Define a Module State Machine
+BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
+    (NewModuleTransitionTable, init_ << NEW_MODULE_STATE_NOT_PRESENT),
+    NewModuleStateMachine)
+
 /**************************** Module State Machine ***************************/
 
 // Module state machine attribute telling whether the module bring up is
