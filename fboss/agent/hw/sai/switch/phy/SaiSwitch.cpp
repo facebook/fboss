@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 namespace facebook::fboss {
 void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
@@ -19,6 +20,8 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   while (portsIter != concurrentIndices_->portIds.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+      managerTable_->portManager().updateStats(
+          portsIter->second, false /*updateWatermarks*/);
       managerTable_->macsecManager().updateStats(portsIter->second);
     }
     ++portsIter;

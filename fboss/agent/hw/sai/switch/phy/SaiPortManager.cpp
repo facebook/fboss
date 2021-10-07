@@ -29,6 +29,10 @@
 
 namespace facebook::fboss {
 
+const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
+  static std::vector<sai_stat_id_t> kPhyPortStats;
+  return kPhyPortStats;
+}
 /*
  * SaiPortManager::addPort
  *

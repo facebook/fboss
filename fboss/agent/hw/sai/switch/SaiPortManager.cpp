@@ -593,33 +593,6 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
   return getQueueHandleImpl(swId, saiQueueConfig);
 }
 
-const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
-  static std::vector<sai_stat_id_t> counterIds;
-  if (counterIds.size()) {
-    return counterIds;
-  }
-  std::set<sai_stat_id_t> countersToFilter;
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
-    countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);
-  }
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
-    countersToFilter.insert(SAI_PORT_STAT_WRED_DROPPED_PACKETS);
-  }
-  counterIds.reserve(SaiPortTraits::CounterIdsToRead.size() + 1);
-  std::copy_if(
-      SaiPortTraits::CounterIdsToRead.begin(),
-      SaiPortTraits::CounterIdsToRead.end(),
-      std::back_inserter(counterIds),
-      [&countersToFilter](auto statId) {
-        return countersToFilter.find(statId) == countersToFilter.end();
-      });
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
-    counterIds.emplace_back(
-        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId());
-  }
-  return counterIds;
-}
-
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
