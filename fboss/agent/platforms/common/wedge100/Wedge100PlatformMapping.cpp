@@ -41044,5 +41044,15 @@ namespace facebook {
 namespace fboss {
 Wedge100PlatformMapping::Wedge100PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
+void Wedge100PlatformMapping::customizePlatformPortConfigOverrideFactor(
+    std::optional<cfg::PlatformPortConfigOverrideFactor>& factor) const {
+  // Wedge100PlatformMapping downlink cable length can only support 1.0 to 3.0
+  if (factor && factor->cableLengths_ref() &&
+      !factor->cableLengths_ref()->empty()) {
+    auto cableLength = (*factor->cableLengths_ref())[0];
+    factor->cableLengths_ref() = {std::max(1.0, std::min(3.0, cableLength))};
+  }
+}
 } // namespace fboss
 } // namespace facebook

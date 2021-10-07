@@ -1379,8 +1379,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   if (transceiver != nullptr) {
     factor = transceiver->toPlatformPortConfigOverrideFactor();
   }
+  platform_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+      factor);
   PlatformPortProfileConfigMatcher matcher{
       *portConf->profileID_ref(), orig->getID(), factor};
+
   auto portProfileCfg = platform_->getPortProfileConfig(matcher);
   if (!portProfileCfg) {
     throw FbossError(

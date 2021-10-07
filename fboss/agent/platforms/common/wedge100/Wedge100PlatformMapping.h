@@ -18,6 +18,10 @@ class Wedge100PlatformMapping : public PlatformMapping {
  public:
   Wedge100PlatformMapping();
 
+  void customizePlatformPortConfigOverrideFactor(
+      std::optional<cfg::PlatformPortConfigOverrideFactor>& factor)
+      const override;
+
  private:
   // Forbidden copy constructor and assignment operator
   Wedge100PlatformMapping(Wedge100PlatformMapping const&) = delete;

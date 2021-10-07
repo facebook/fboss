@@ -1097,6 +1097,8 @@ HwInitResult SaiSwitch::initLocked(
             factor = tcvr->toPlatformPortConfigOverrideFactor();
           }
         }
+        platform_->getPlatformMapping()
+            ->customizePlatformPortConfigOverrideFactor(factor);
         PlatformPortProfileConfigMatcher matcher{
             port->getProfileID(), port->getID(), factor};
         auto profileConfig = platform_->getPortProfileConfig(matcher);

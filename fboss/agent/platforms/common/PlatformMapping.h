@@ -132,6 +132,14 @@ class PlatformMapping {
       int32_t port,
       std::vector<cfg::PlatformPortConfigOverride> overrides);
 
+  /*
+   * Some platforms need customize their raw override factor generated from
+   * Transceiver or Chip to match their PlatformMapping PortConfigOverrides
+   */
+  virtual void customizePlatformPortConfigOverrideFactor(
+      std::optional<cfg::PlatformPortConfigOverrideFactor>& /* factor */)
+      const {}
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;

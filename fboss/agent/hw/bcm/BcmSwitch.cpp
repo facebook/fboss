@@ -917,6 +917,8 @@ HwInitResult BcmSwitch::init(
             factor = tcvr->toPlatformPortConfigOverrideFactor();
           }
         }
+        platform_->getPlatformMapping()
+            ->customizePlatformPortConfigOverrideFactor(factor);
         PlatformPortProfileConfigMatcher matcher{
             port->getProfileID(), port->getID(), factor};
         if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
