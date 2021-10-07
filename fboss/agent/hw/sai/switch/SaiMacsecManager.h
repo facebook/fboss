@@ -118,7 +118,7 @@ class SaiMacsecManager {
       const mka::MKASci& sci,
       sai_macsec_direction_t direction);
 
-  void updateStats();
+  void updateStats(PortID port);
 
  private:
   SaiMacsecHandle* FOLLY_NULLABLE

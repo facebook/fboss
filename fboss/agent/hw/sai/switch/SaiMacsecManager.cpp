@@ -840,17 +840,20 @@ void SaiMacsecManager::removeAcls(
   }
 }
 
-void SaiMacsecManager::updateStats() {
+void SaiMacsecManager::updateStats(PortID port) {
   for (const auto& macsec : macsecHandles_) {
-    for (const auto& macsecPort : macsec.second->ports) {
-      for (const auto& macsecSc : macsecPort.second->secureChannels) {
-        for (const auto& macsecSa : macsecSc.second->secureAssocs) {
-          macsecSa.second->updateStats<SaiMacsecSATraits>();
-        }
-        macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
-      }
-      macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
+    auto pitr = macsec.second->ports.find(port);
+    if (pitr == macsec.second->ports.end()) {
+      return;
     }
+    auto& macsecPort = *pitr;
+    for (const auto& macsecSc : macsecPort.second->secureChannels) {
+      for (const auto& macsecSa : macsecSc.second->secureAssocs) {
+        macsecSa.second->updateStats<SaiMacsecSATraits>();
+      }
+      macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
+    }
+    macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
   }
 }
 
