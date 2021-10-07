@@ -1300,6 +1300,8 @@ void ThriftHandler::programInternalPhyPorts(
 
   const auto tcvr =
       sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);
+  const auto& platformPorts = utility::getPlatformPortsByChip(
+      sw_->getPlatform()->getPlatformPorts(), *tcvrChip);
   // Check whether the current Transceiver in the SwitchState matches the
   // input TransceiverInfo
   if (!tcvr && !newTransceiver) {
@@ -1310,8 +1312,7 @@ void ThriftHandler::programInternalPhyPorts(
     XLOG(DBG2) << "programInternalPhyPorts for present Transceiver:" << tcvrID
                << " matches current SwitchState. Skip re-programming";
   } else {
-    auto updateFn = [tcvrID,
-                     newTransceiver](const shared_ptr<SwitchState>& state) {
+    auto updateFn = [&, tcvrID](const shared_ptr<SwitchState>& state) {
       auto newState = state->clone();
       auto newTransceiverMap = newState->getTransceivers()->modify(&newState);
       if (!newTransceiver) {
@@ -1321,14 +1322,53 @@ void ThriftHandler::programInternalPhyPorts(
       } else {
         newTransceiverMap->addTransceiver(newTransceiver);
       }
+
+      auto platform = sw_->getPlatform();
+      // Now we also need to update the port profile config and pin configs
+      // using the newTransceiver
+      std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+      if (newTransceiver != nullptr) {
+        factor = newTransceiver->toPlatformPortConfigOverrideFactor();
+      }
+      platform->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+          factor);
+      for (const auto& platformPort : platformPorts) {
+        const auto oldPort = state->getPorts()->getPortIf(
+            PortID(*platformPort.mapping_ref()->id_ref()));
+        if (!oldPort) {
+          continue;
+        }
+        PlatformPortProfileConfigMatcher matcher{
+            oldPort->getProfileID(), oldPort->getID(), factor};
+        auto portProfileCfg = platform->getPortProfileConfig(matcher);
+        if (!portProfileCfg) {
+          throw FbossError(
+              "No port profile config found with matcher:", matcher.toString());
+        }
+        if (oldPort->isEnabled() &&
+            *portProfileCfg->speed_ref() != oldPort->getSpeed()) {
+          throw FbossError(
+              oldPort->getName(),
+              " has mismatched speed on profile:",
+              apache::thrift::util::enumNameSafe(oldPort->getProfileID()),
+              " and config:",
+              apache::thrift::util::enumNameSafe(oldPort->getSpeed()));
+        }
+        auto newProfileConfigRef = portProfileCfg->iphy_ref();
+        const auto& newPinConfigs =
+            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+
+        auto newPort = oldPort->modify(&newState);
+        newPort->setProfileConfig(*newProfileConfigRef);
+        newPort->resetPinConfigs(newPinConfigs);
+      }
+
       return newState;
     };
     sw_->updateStateBlocking(
         fmt::format("program iphy ports for transceiver: {}", id), updateFn);
   }
 
-  const auto& platformPorts = utility::getPlatformPortsByChip(
-      sw_->getPlatform()->getPlatformPorts(), *tcvrChip);
   // fetch the programmed profiles
   for (const auto& platformPort : platformPorts) {
     const auto port = sw_->getState()->getPorts()->getPortIf(

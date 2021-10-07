@@ -1396,6 +1396,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   // Using Wedge100PlatformMapping in MockPlatform. Transceiver 4 is used by
   // eth1/5/[1-4], which is software port 1/2/3/4
   TransceiverID id = TransceiverID(4);
+  constexpr auto kEnabledPort = 1;
   constexpr auto kCableLength = 3.5;
   constexpr auto kMediaInterface = MediaInterfaceCode::CWDM4_100G;
   constexpr auto kComplianceCode = ExtendedSpecComplianceCode::CWDM4_100G;
@@ -1417,12 +1418,6 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
       MediaInterfaceId intf;
       intf.lane_ref() = i;
       intf.code_ref() = kMediaInterface;
-      // TODO(joseph5wu) Will deprecate this compliance code and use the new
-      // media interface type
-      MediaInterfaceUnion interfaceUnion;
-      interfaceUnion.extendedSpecificationComplianceCode_ref() =
-          kComplianceCode;
-      intf.media_ref() = interfaceUnion;
       mediaInterfaces.push_back(intf);
     }
     tcvrSettings.mediaInterface_ref() = std::move(mediaInterfaces);
@@ -1432,8 +1427,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
 
   // Only enabled ports should be return
   auto checkProgrammedPorts =
-      [](const std::map<int32_t, cfg::PortProfileID>& programmedPorts) {
-        constexpr auto kEnabledPort = 1;
+      [&](const std::map<int32_t, cfg::PortProfileID>& programmedPorts) {
         EXPECT_EQ(programmedPorts.size(), 1);
         EXPECT_TRUE(
             programmedPorts.find(kEnabledPort) != programmedPorts.end());
@@ -1441,6 +1435,31 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
         EXPECT_EQ(
             programmedPorts.find(kEnabledPort)->second,
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER);
+
+        // Make sure the enabled ports using the new profile config/pin configs
+        auto platform = sw_->getPlatform();
+        auto tcvr = sw_->getState()->getTransceivers()->getTransceiverIf(id);
+        std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+        if (tcvr != nullptr) {
+          factor = tcvr->toPlatformPortConfigOverrideFactor();
+        }
+        platform->getPlatformMapping()
+            ->customizePlatformPortConfigOverrideFactor(factor);
+        // Port must exist in the SwitchState
+        const auto port =
+            sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
+        EXPECT_TRUE(port->isEnabled());
+        PlatformPortProfileConfigMatcher matcher{
+            port->getProfileID(), port->getID(), factor};
+        auto portProfileCfg = platform->getPortProfileConfig(matcher);
+        CHECK(portProfileCfg) << "No port profile config found with matcher:"
+                              << matcher.toString();
+        auto expectedProfileConfig = *portProfileCfg->iphy_ref();
+        const auto& expectedPinConfigs =
+            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+
+        EXPECT_TRUE(expectedProfileConfig == port->getProfileConfig());
+        EXPECT_TRUE(expectedPinConfigs == port->getPinConfigs());
       };
 
   std::map<int32_t, cfg::PortProfileID> programmedPorts;
@@ -1455,6 +1474,8 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
 
   // Now change the cable length
+  const auto oldPort =
+      sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
   constexpr auto kCableLength2 = 1;
   std::map<int32_t, cfg::PortProfileID> programmedPorts2;
   handler.programInternalPhyPorts(
@@ -1466,6 +1487,12 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_EQ(*tcvr->getCableLength(), kCableLength2);
   EXPECT_EQ(*tcvr->getMediaInterface(), kMediaInterface);
   EXPECT_EQ(*tcvr->getManagementInterface(), kManagementInterface);
+  const auto newPort =
+      sw_->getState()->getPorts()->getPort(PortID(kEnabledPort));
+  // Because we're using Wedge100PlatformMapping here, we should see pinConfig
+  // change due to the cable length change
+  EXPECT_TRUE(oldPort->getProfileConfig() == newPort->getProfileConfig());
+  EXPECT_TRUE(oldPort->getPinConfigs() != newPort->getPinConfigs());
 
   // Using the same transceiver info to program and no new state created
   auto beforeGen = sw_->getState()->getGeneration();
