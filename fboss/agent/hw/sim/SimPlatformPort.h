@@ -30,7 +30,6 @@ class SimPlatformPort : public PlatformPort {
   bool isMediaPresent() override;
   void linkStatusChanged(bool up, bool adminUp) override;
   bool supportsTransceiver() const override;
-  std::optional<TransceiverID> getTransceiverID() const override;
   void statusIndication(
       bool enabled,
       bool link,

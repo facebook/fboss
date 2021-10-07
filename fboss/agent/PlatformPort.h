@@ -141,7 +141,9 @@ class PlatformPort {
    * Returns the transceiver's id if the port supports a transceiver,
    * otherwise, returns an empty std::optional
    */
-  virtual std::optional<TransceiverID> getTransceiverID() const = 0;
+  std::optional<TransceiverID> getTransceiverID() const {
+    return transceiverID_;
+  }
 
   /*
    * statusIndication() will be called by the hardware code once a second.
@@ -204,13 +206,23 @@ class PlatformPort {
 
   void clearCachedProfileConfig();
 
- private:
-  PortID id_{0};
-  Platform* platform_{nullptr};
+ protected:
+  // Get Transceiver lanes from config
+  // Return empty vector if the port doesn't support transceivers
+  // Return non-empty vector to maintain the lanes of the transceivers
+  std::vector<phy::PinID> getTransceiverLanes(
+      std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
 
+ private:
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const&) = delete;
   PlatformPort& operator=(PlatformPort const&) = delete;
+
+  PortID id_{0};
+  Platform* platform_{nullptr};
+  // transceiver id should be fixed once the PlatformPort is created
+  std::optional<TransceiverID> transceiverID_;
+
   // Cached port profile config when transceiver info is required
   folly::Synchronized<
       std::optional<std::pair<cfg::PortProfileID, phy::PortProfileConfig>>>

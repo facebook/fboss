@@ -54,10 +54,6 @@ class WedgePort : public BcmPlatformPort {
 
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 
-  std::optional<TransceiverID> getTransceiverID() const override {
-    return transceiverID_;
-  }
-
   bool supportsTransceiver() const override;
 
   // TODO: deprecate this
@@ -92,15 +88,6 @@ class WedgePort : public BcmPlatformPort {
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const&) = delete;
   WedgePort& operator=(WedgePort const&) = delete;
-
-  // Get Transceiver lanes from config
-  // Return empty vector if the port doesn't support transceivers
-  // Return non-empty vector to maintain the lanes of the transceivers
-  std::vector<phy::PinID> getTransceiverLanes(
-      std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
-
-  // transceiver id should be fixed once the PlatformPort is created
-  std::optional<TransceiverID> transceiverID_;
 };
 
 } // namespace facebook::fboss

@@ -58,10 +58,6 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
       TransmitterTechnology::UNKNOWN);
 }
 
-std::optional<TransceiverID> BcmTestPort::getTransceiverID() const {
-  return std::nullopt;
-}
-
 bool BcmTestPort::supportsTransceiver() const {
   return true;
 }

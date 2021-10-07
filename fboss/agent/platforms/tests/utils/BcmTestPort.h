@@ -36,7 +36,6 @@ class BcmTestPort : public BcmPlatformPort {
   void externalState(PortLedExternalState) override;
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  std::optional<TransceiverID> getTransceiverID() const override;
   bool supportsTransceiver() const override;
   void statusIndication(
       bool enabled,

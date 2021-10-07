@@ -19,7 +19,22 @@
 namespace facebook::fboss {
 
 PlatformPort::PlatformPort(PortID id, Platform* platform)
-    : id_(id), platform_(platform) {}
+    : id_(id), platform_(platform) {
+  const auto& tcvrList = getTransceiverLanes();
+  // If the platform port comes with transceiver lanes
+  if (!tcvrList.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    auto chipCfg = getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
+    if (!chipCfg) {
+      throw FbossError(
+          "Port ",
+          getPortID(),
+          " is using platform unsupported chip ",
+          *tcvrList[0].chip_ref());
+    }
+    transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
+  }
+}
 
 std::ostream& operator<<(std::ostream& os, PortLedExternalState lfs) {
   switch (lfs) {
@@ -232,6 +247,12 @@ std::optional<TransceiverInfo> PlatformPort::getTransceiverInfo(
 void PlatformPort::clearCachedProfileConfig() {
   auto cachedProfileConfig = cachedProfileConfig_.wlock();
   *cachedProfileConfig = std::nullopt;
+}
+
+std::vector<phy::PinID> PlatformPort::getTransceiverLanes(
+    std::optional<cfg::PortProfileID> profileID) const {
+  return utility::getTransceiverLanes(
+      getPlatformPortEntry(), getPlatform()->getDataPlanePhyChips(), profileID);
 }
 
 } // namespace facebook::fboss

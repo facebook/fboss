@@ -41,10 +41,6 @@ bool SimPlatformPort::shouldDisableFEC() const {
   return true;
 }
 
-std::optional<TransceiverID> SimPlatformPort::getTransceiverID() const {
-  return std::nullopt;
-}
-
 folly::Future<TransceiverInfo> SimPlatformPort::getFutureTransceiverInfo()
     const {
   if (auto transceiver =

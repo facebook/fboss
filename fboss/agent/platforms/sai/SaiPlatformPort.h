@@ -33,9 +33,6 @@ class SaiPlatformPort : public PlatformPort {
   void postEnable() override;
   bool isMediaPresent() override;
   void linkStatusChanged(bool up, bool adminUp) override;
-  std::optional<TransceiverID> getTransceiverID() const override {
-    return transceiverID_;
-  }
   void statusIndication(
       bool enabled,
       bool link,
@@ -73,10 +70,8 @@ class SaiPlatformPort : public PlatformPort {
   virtual uint32_t getCurrentLedState() const = 0;
 
  private:
-  std::vector<phy::PinID> getTransceiverLanes() const;
   folly::Future<TransmitterTechnology> getTransmitterTechInternal(
       folly::EventBase* evb);
-  std::optional<TransceiverID> transceiverID_;
   cfg::PortProfileID profile_{};
 };
 

@@ -21,28 +21,7 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
-    : PlatformPort(id, platform) {
-  auto transceiverLanes = getTransceiverLanes();
-  if (!transceiverLanes.empty()) {
-    // All the transceiver lanes should use the same transceiver id
-    auto chipConfig =
-        getPlatform()->getDataPlanePhyChip(*transceiverLanes[0].chip_ref());
-    if (!chipConfig.has_value()) {
-      throw FbossError(
-          "Port ",
-          getPortID(),
-          " is using platform unsupported chip ",
-          *transceiverLanes[0].chip_ref());
-    }
-    transceiverID_.emplace(TransceiverID(*chipConfig->physicalID_ref()));
-  }
-}
-
-std::vector<phy::PinID> SaiPlatformPort::getTransceiverLanes() const {
-  const auto& platformPortEntry = getPlatformPortEntry();
-  return utility::getTransceiverLanes(
-      platformPortEntry, getPlatform()->getDataPlanePhyChips(), std::nullopt);
-}
+    : PlatformPort(id, platform) {}
 
 void SaiPlatformPort::preDisable(bool /* temporary */) {}
 void SaiPlatformPort::postDisable(bool /* temporary */) {}
@@ -63,7 +42,7 @@ void SaiPlatformPort::statusIndication(
 void SaiPlatformPort::prepareForGracefulExit() {}
 bool SaiPlatformPort::shouldDisableFEC() const {
   // disable for backplane port for galaxy switches
-  return !transceiverID_.has_value();
+  return !getTransceiverID().has_value();
 }
 
 bool SaiPlatformPort::checkSupportsTransceiver() const {
@@ -71,7 +50,7 @@ bool SaiPlatformPort::checkSupportsTransceiver() const {
     return true;
   }
   return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
-      transceiverID_.has_value();
+      getTransceiverID().has_value();
 }
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(

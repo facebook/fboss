@@ -25,22 +25,7 @@
 namespace facebook::fboss {
 
 WedgePort::WedgePort(PortID id, WedgePlatform* platform)
-    : BcmPlatformPort(id, platform) {
-  const auto& tcvrList = getTransceiverLanes();
-  // If the platform port comes with transceiver lanes
-  if (!tcvrList.empty()) {
-    // All the transceiver lanes should use the same transceiver id
-    auto chipCfg = getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
-    if (!chipCfg) {
-      throw FbossError(
-          "Port ",
-          getPortID(),
-          " is using platform unsupported chip ",
-          *tcvrList[0].chip_ref());
-    }
-    transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
-  }
-}
+    : BcmPlatformPort(id, platform) {}
 
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -118,7 +103,7 @@ bool WedgePort::isControllingPort() const {
 }
 
 bool WedgePort::supportsTransceiver() const {
-  return transceiverID_.has_value();
+  return getTransceiverID().has_value();
 }
 
 std::optional<ChannelID> WedgePort::getChannel() const {
@@ -144,8 +129,8 @@ std::vector<int32_t> WedgePort::getChannels() const {
 
 TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
   TransceiverIdxThrift xcvr;
-  if (transceiverID_) {
-    xcvr.transceiverId_ref() = static_cast<int32_t>(*transceiverID_);
+  if (auto transceiverID = getTransceiverID()) {
+    xcvr.transceiverId_ref() = static_cast<int32_t>(*transceiverID);
     xcvr.channels_ref() = getChannels();
   }
   return xcvr;
@@ -163,12 +148,6 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
     status.transceiverIdx_ref().emplace(getTransceiverMapping());
   }
   return status;
-}
-
-std::vector<phy::PinID> WedgePort::getTransceiverLanes(
-    std::optional<cfg::PortProfileID> profileID) const {
-  return utility::getTransceiverLanes(
-      getPlatformPortEntry(), getPlatform()->getDataPlanePhyChips(), profileID);
 }
 
 BcmPortGroup::LaneMode WedgePort::getLaneMode() const {
