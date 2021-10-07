@@ -648,6 +648,11 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setupStatsIfNeeded(port);
   setupPrbs(port);
 
+  // Update Inter-packet frame if needed.
+  if (auto ipgBits = port->getProfileConfig().interPacketGapBits_ref()) {
+    setInterPacketGapBits(*ipgBits);
+  }
+
   if (!isProgrammed()) {
     // enable linkscan when port is programmed for the first time
     enableLinkscan();
@@ -2645,6 +2650,43 @@ int BcmPort::getPgMinLimitBytes(const int pgId) const {
 
 int BcmPort::getIngressSharedBytes(const int pgId) const {
   return ingressBufferManager_->getIngressSharedBytes(pgId);
+}
+
+uint32_t BcmPort::getInterPacketGapBits() const {
+  int ipgBits = 0;
+  auto rv = bcm_port_ifg_get(
+      unit_,
+      port_,
+      static_cast<int>(getSpeed()),
+      BCM_PORT_DUPLEX_FULL,
+      &ipgBits);
+  bcmCheckError(
+      rv, "failed to get port inter-packet gap bits for port:", port_);
+  return ipgBits;
+}
+
+void BcmPort::setInterPacketGapBits(uint32_t ipgBits) {
+  uint32_t currentIPG = getInterPacketGapBits();
+  if (currentIPG == ipgBits) {
+    XLOG(DBG2) << "Port:" << port_
+               << " current inter-packet gap bits:" << currentIPG
+               << " matches the desired gap bits:" << ipgBits
+               << ", skip setInterPacketGapBits";
+    return;
+  }
+
+  auto rv = bcm_port_ifg_set(
+      unit_,
+      port_,
+      static_cast<int>(getSpeed()),
+      BCM_PORT_DUPLEX_FULL,
+      ipgBits);
+  bcmCheckError(
+      rv,
+      "failed to set port inter-packet gap bits:",
+      ipgBits,
+      " for port:",
+      port_);
 }
 
 } // namespace facebook::fboss

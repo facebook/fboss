@@ -230,6 +230,8 @@ class BcmPort {
   int getIngressSharedBytes(const int pgId) const;
   phy::PhyInfo updateIPhyInfo();
 
+  uint32_t getInterPacketGapBits() const;
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a
@@ -347,6 +349,8 @@ class BcmPort {
     auto savedSettings = programmedSettings_.rlock();
     return *savedSettings;
   }
+
+  void setInterPacketGapBits(uint32_t ipgBits);
 
   BcmSwitch* const hw_{nullptr};
   const bcm_port_t port_; // Broadcom physical port number

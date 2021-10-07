@@ -91,7 +91,7 @@ class Platform {
    * PlatformPortProfileConfigMatcher
    * Return std::nullopt if the platform doesn't match profile.
    */
-  const std::optional<phy::PortProfileConfig> getPortProfileConfig(
+  virtual const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher profileMatcher) const;
 
   /*

@@ -65,14 +65,19 @@ TEST_F(BcmPortTest, PortApplyConfig) {
   auto verify = [this]() {
     for (auto portId : initialConfiguredPorts()) {
       // check port should exist in portTable_
-      ASSERT_TRUE(
-          getHwSwitch()->getPortTable()->getBcmPortIf(PortID(portId)) !=
-          nullptr);
+      auto bcmPort =
+          getHwSwitch()->getPortTable()->getBcmPortIf(PortID(portId));
+      ASSERT_TRUE(bcmPort != nullptr);
       utility::assertPortStatus(getHwSwitch(), portId);
       int loopbackMode;
       auto rv = bcm_port_loopback_get(getUnit(), portId, &loopbackMode);
       bcmCheckError(rv, "Failed to get loopback mode for port:", portId);
       EXPECT_EQ(BCM_PORT_LOOPBACK_NONE, loopbackMode);
+
+      // default inter-packet gap if there's no override
+      static auto constexpr kDefaultPortInterPacketGapBits = 96;
+      EXPECT_EQ(
+          bcmPort->getInterPacketGapBits(), kDefaultPortInterPacketGapBits);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -451,4 +456,32 @@ TEST_F(BcmPortTest, PortFdrStats) {
 }
 #endif
 
+TEST_F(BcmPortTest, SetInterPacketGapBits) {
+  static auto constexpr expectedInterPacketGapBits = 352;
+  // Enable all master ports
+  auto setup = [this]() {
+    getPlatform()->setOverridePortInterPacketGapBits(
+        expectedInterPacketGapBits);
+    applyNewConfig(utility::oneL3IntfNPortConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+  };
+  auto verify = [this]() {
+    for (const auto& port : *getProgrammedState()->getPorts()) {
+      if (!port->isEnabled()) {
+        continue;
+      }
+      // Due to the override port IPG is set, so the profileConfig should have
+      // the override value
+      EXPECT_TRUE(port->getProfileConfig().interPacketGapBits_ref());
+      EXPECT_EQ(
+          *port->getProfileConfig().interPacketGapBits_ref(),
+          expectedInterPacketGapBits);
+
+      // Check BcmPort is also programmed to use the override IGP
+      auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(port->getID());
+      EXPECT_EQ(bcmPort->getInterPacketGapBits(), expectedInterPacketGapBits);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

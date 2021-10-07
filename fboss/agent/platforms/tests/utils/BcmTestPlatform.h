@@ -88,6 +88,13 @@ class BcmTestPlatform : public BcmPlatform {
     return nullptr;
   }
 
+  void setOverridePortInterPacketGapBits(uint32_t ipgBits) {
+    overridePortInterPacketGapBits_ = ipgBits;
+  }
+
+  const std::optional<phy::PortProfileConfig> getPortProfileConfig(
+      PlatformPortProfileConfigMatcher profileMatcher) const override;
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<PortID> logicalPortIds_;
@@ -107,6 +114,7 @@ class BcmTestPlatform : public BcmPlatform {
   std::map<PortID, std::unique_ptr<BcmTestPort>> ports_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
   std::unique_ptr<BcmSwitch> bcmSwitch_;
+  std::optional<uint32_t> overridePortInterPacketGapBits_;
 };
 
 } // namespace facebook::fboss

@@ -124,4 +124,18 @@ void BcmTestPlatform::initLEDs(
   BcmLedUtils::initLED1(unit, led1);
 }
 
+const std::optional<phy::PortProfileConfig>
+BcmTestPlatform::getPortProfileConfig(
+    PlatformPortProfileConfigMatcher profileMatcher) const {
+  auto originalConfig = Platform::getPortProfileConfig(profileMatcher);
+  if (!overridePortInterPacketGapBits_ || !originalConfig) {
+    return originalConfig;
+  }
+  // change the return config to use override ipg
+  phy::PortProfileConfig newConfig = *originalConfig;
+  newConfig.iphy_ref()->interPacketGapBits_ref() =
+      *overridePortInterPacketGapBits_;
+  return newConfig;
+}
+
 } // namespace facebook::fboss
