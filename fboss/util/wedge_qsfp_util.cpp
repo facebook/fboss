@@ -756,11 +756,23 @@ int doBatchOps(
       return EX_USAGE;
     }
 
+    // Print high resolution current time with command
+    std::chrono::milliseconds ms =
+      duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch());
+    std::time_t t = duration_cast<seconds>(ms).count();
+    int fractional_seconds = ms.count() % 1000;
+    auto tm = std::tm{};
+    localtime_r(&t, &tm);
+
     if (opCode == 'R') {
-      printf("Reading Reg offset %d, Postdelay %d msec\n", regAddr, delayMsec);
+      printf("%.2d:%.2d:%.2d.%.3d: Reading Reg offset %d, Postdelay %d msec\n",
+              tm.tm_hour, tm.tm_min, tm.tm_sec, fractional_seconds,
+              regAddr, delayMsec);
       doReadReg(bus, ports, regAddr, 1, -1, evb);
     } else {
-      printf("Writing Reg offset %d value 0x%x, Postdelay %d msec\n", regAddr, regVal, delayMsec);
+      printf("%.2d:%.2d:%.2d.%.3d: Writing Reg offset %d value 0x%x, Postdelay %d msec\n",
+              tm.tm_hour, tm.tm_min, tm.tm_sec, fractional_seconds,
+              regAddr, regVal, delayMsec);
       doWriteReg(bus, ports, regAddr, -1, regVal, evb);
     }
     /* sleep override */
