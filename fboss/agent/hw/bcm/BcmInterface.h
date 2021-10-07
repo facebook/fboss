@@ -646,6 +646,20 @@ class BcmInterface {
       int unit,
       bcm_trunk_t tid,
       bcm_trunk_member_t* member) = 0;
+
+  virtual int bcm_port_ifg_get(
+      int unit,
+      bcm_port_t port,
+      int speed,
+      bcm_port_duplex_t duplex,
+      int* bit_times) = 0;
+
+  virtual int bcm_port_ifg_set(
+      int unit,
+      bcm_port_t port,
+      int speed,
+      bcm_port_duplex_t duplex,
+      int bit_times) = 0;
 };
 
 } // namespace facebook::fboss

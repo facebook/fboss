@@ -1718,6 +1718,22 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   }
 #endif
 
+  int bcm_port_ifg_get(
+      int /* unit */,
+      bcm_port_t /* port */,
+      int /* speed */,
+      bcm_port_duplex_t /* duplex */,
+      int* /* bit_times */) override {
+    return 0;
+  }
+
+  int bcm_port_ifg_set(
+      int unit,
+      bcm_port_t port,
+      int speed,
+      bcm_port_duplex_t duplex,
+      int bit_times) override;
+
  private:
   enum class Dir { SRC, DST };
   int bcmFieldQualifyIp6(

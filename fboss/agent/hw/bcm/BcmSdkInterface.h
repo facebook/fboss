@@ -1107,7 +1107,7 @@ class BcmSdkInterface {
   virtual int bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id) = 0;
 
   virtual int
-  bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID_) = 0;
+  bcm_port_stat_attach(int unit, bcm_port_t port, uint32 counterID) = 0;
 
   virtual int bcm_port_stat_detach_with_id(
       int unit,

@@ -3922,4 +3922,17 @@ int BcmCinter::bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id) {
   return 0;
 }
 
+int BcmCinter::bcm_port_ifg_set(
+    int unit,
+    bcm_port_t port,
+    int speed,
+    bcm_port_duplex_t duplex,
+    int bit_times) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_ifg_set(",
+      makeParamStr(unit, port, speed, duplex, bit_times),
+      ")")));
+  return 0;
+}
+
 } // namespace facebook::fboss

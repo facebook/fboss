@@ -1766,6 +1766,21 @@ int __real_bcm_stat_group_mode_id_create(
     uint32* mode_id);
 
 int __real_bcm_stat_group_mode_id_destroy(int unit, uint32 mode_id);
+
+int __real_bcm_port_ifg_get(
+    int unit,
+    bcm_port_t port,
+    int speed,
+    bcm_port_duplex_t duplex,
+    int* bit_times);
+
+int __real_bcm_port_ifg_set(
+    int unit,
+    bcm_port_t port,
+    int speed,
+    bcm_port_duplex_t duplex,
+    int bit_times);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -4276,6 +4291,24 @@ int __wrap_bcm_flexctr_action_create(
 
 int __wrap_bcm_flexctr_action_destroy(int unit, uint32 stat_counter_id) {
   CALL_WRAPPERS_RV(bcm_flexctr_action_destroy(unit, stat_counter_id));
+}
+
+int __wrap_bcm_port_ifg_get(
+    int unit,
+    bcm_port_t port,
+    int speed,
+    bcm_port_duplex_t duplex,
+    int* bit_times) {
+  CALL_WRAPPERS_RV(bcm_port_ifg_get(unit, port, speed, duplex, bit_times));
+}
+
+int __wrap_bcm_port_ifg_set(
+    int unit,
+    bcm_port_t port,
+    int speed,
+    bcm_port_duplex_t duplex,
+    int bit_times) {
+  CALL_WRAPPERS_RV(bcm_port_ifg_set(unit, port, speed, duplex, bit_times));
 }
 
 } // extern "C"
