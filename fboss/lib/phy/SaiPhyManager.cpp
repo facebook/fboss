@@ -385,6 +385,13 @@ SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   return std::make_unique<NullPortStats>(getPortName(portID));
 }
 
+MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
+  auto saiSwitch = getSaiSwitch(getPortId(portName));
+  auto hwPortStats = saiSwitch->getPortStats()[portName];
+  return hwPortStats.macsecStats_ref() ? *hwPortStats.macsecStats_ref()
+                                       : MacsecStats{};
+}
+
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
     mka::MacsecDirection direction) {

@@ -41,7 +41,13 @@ class SaiPhyManager : public PhyManager {
     return const_cast<SaiPhyManager*>(this)->getSaiPlatform(portID);
   }
   SaiSwitch* getSaiSwitch(GlobalXphyID xphyID);
+  const SaiSwitch* getSaiSwitch(GlobalXphyID xphyID) const {
+    return const_cast<SaiPhyManager*>(this)->getSaiSwitch(xphyID);
+  }
   SaiSwitch* getSaiSwitch(PortID portID);
+  const SaiSwitch* getSaiSwitch(PortID portID) const {
+    return const_cast<SaiPhyManager*>(this)->getSaiSwitch(portID);
+  }
 
   void sakInstallTx(const mka::MKASak& sak) override;
   void sakInstallRx(const mka::MKASak& sak, const mka::MKASci& sci) override;
@@ -124,6 +130,7 @@ class SaiPhyManager : public PhyManager {
   const PlatformInfo* getPlatformInfo(PortID portId) const {
     return const_cast<SaiPhyManager*>(this)->getPlatformInfo(portId);
   }
+  MacsecStats getMacsecStats(const std::string& portName) const;
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;
