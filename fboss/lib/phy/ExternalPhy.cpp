@@ -16,6 +16,7 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <sstream>
 
 namespace {
 template <typename T>
@@ -183,6 +184,14 @@ int PhyPortConfig::getLaneSpeedInMb(Side side) const {
 std::string PhyIDInfo::str() const {
   return folly::to<std::string>(
       "[PIM:", pimID, ", MDIO:", controllerID, ", PHY:", phyAddr, "]");
+}
+
+std::string getLaneListStr(const std::vector<facebook::fboss::LaneID>& lanes) {
+  std::stringstream ss;
+  for (auto i = 0; i < lanes.size(); i++) {
+    ss << static_cast<int>(lanes[i]) << (i == lanes.size() - 1 ? "" : ",");
+  }
+  return ss.str();
 }
 
 std::string ExternalPhy::featureName(Feature feature) {

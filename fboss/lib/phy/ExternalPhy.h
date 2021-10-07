@@ -17,6 +17,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
@@ -141,6 +142,8 @@ struct PhyIDInfo {
   std::string str() const;
 };
 
+std::string getLaneListStr(const std::vector<facebook::fboss::LaneID>& lanes);
+
 class ExternalPhy {
  public:
   enum class Feature {
@@ -156,6 +159,16 @@ class ExternalPhy {
   virtual ~ExternalPhy() {}
 
   virtual PhyFwVersion fwVersion() = 0;
+
+  void logPortProgrammed(
+      int32_t phyId,
+      std::string sysLanes,
+      std::string lineLanes,
+      std::string speed) {
+    XLOG(INFO) << PlatformAlert() << "Programmed phy id=" << phyId
+               << " system lanes=" << sysLanes << " line lanes=" << lineLanes
+               << " speed=" << speed;
+  }
 
   virtual void programOnePort(PhyPortConfig config) = 0;
 
