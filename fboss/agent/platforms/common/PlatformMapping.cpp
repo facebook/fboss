@@ -36,9 +36,12 @@ cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
   if (auto cable = transceiverInfo.cable_ref(); cable && cable->length_ref()) {
     factor.cableLengths_ref() = {*cable->length_ref()};
   }
-  // TODO(joseph5wu) Will deprecate this and use `mediaInterfaceCode` instead
-  if (auto code = transceiverInfo.extendedSpecificationComplianceCode_ref()) {
-    factor.transceiverSpecComplianceCode_ref() = *code;
+  if (auto settings = transceiverInfo.settings_ref()) {
+    if (auto mediaInterfaces = settings->mediaInterface_ref();
+        mediaInterfaces && !mediaInterfaces->empty()) {
+      // Use the first lane mediaInterface
+      factor.mediaInterfaceCode_ref() = *(*mediaInterfaces)[0].code_ref();
+    }
   }
   if (auto interface = transceiverInfo.transceiverManagementInterface_ref()) {
     factor.transceiverManagementInterface_ref() = *interface;
@@ -78,12 +81,10 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
       }
     }
   }
-  // TODO(joseph5wu) Will deprecate this and use `mediaInterfaceCode` instead
-  if (auto overrideTransceiverSpecComplianceCode =
-          factor.transceiverSpecComplianceCode_ref()) {
+  if (auto overrideMediaInterfaceCode = factor.mediaInterfaceCode_ref()) {
     if (!portConfigOverrideFactor_ ||
-        portConfigOverrideFactor_->transceiverSpecComplianceCode_ref() !=
-            overrideTransceiverSpecComplianceCode) {
+        portConfigOverrideFactor_->mediaInterfaceCode_ref() !=
+            overrideMediaInterfaceCode) {
       return false;
     }
   }
@@ -526,8 +527,8 @@ void PlatformMapping::mergePortConfigOverrides(
               curOverride.factor_ref()->profiles_ref() ||
           portOverrides.factor_ref()->cableLengths_ref() !=
               curOverride.factor_ref()->cableLengths_ref() ||
-          portOverrides.factor_ref()->transceiverSpecComplianceCode_ref() !=
-              curOverride.factor_ref()->transceiverSpecComplianceCode_ref() ||
+          portOverrides.factor_ref()->mediaInterfaceCode_ref() !=
+              curOverride.factor_ref()->mediaInterfaceCode_ref() ||
           portOverrides.factor_ref()->chips_ref() !=
               curOverride.factor_ref()->chips_ref()) {
         numMismatch++;

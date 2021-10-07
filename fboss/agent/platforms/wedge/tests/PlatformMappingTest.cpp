@@ -574,8 +574,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
   cfg::PlatformPortConfigOverrideFactor factor;
-  factor.transceiverSpecComplianceCode_ref() =
-      ExtendedSpecComplianceCode::FR1_100G;
+  factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR1_100G;
   for (auto port : mapping->getPlatformPorts()) {
     auto portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(

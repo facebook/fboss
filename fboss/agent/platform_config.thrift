@@ -77,10 +77,6 @@ struct PlatformPortConfigOverrideFactor {
   1: optional list<i32> ports;
   2: optional list<switch_config.PortProfileID> profiles;
   3: optional list<double> cableLengths;
-  // TODO(joseph5wu) Will deprecate this compilance code which is only used for
-  // SFF module and not supported in CMIS module. Replace it with the new field
-  // `mediaInterfaceCode`
-  4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode;
   5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface;
   6: optional list<phy.DataPlanePhyChip> chips;
   7: optional transceiver.MediaInterfaceCode mediaInterfaceCode;

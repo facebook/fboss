@@ -115063,7 +115063,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "profiles": [
           8
         ],
-        "transceiverSpecComplianceCode": 38,
         "mediaInterfaceCode": 3
       },
       "portProfileConfig": {
@@ -115097,7 +115096,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       },
       "pins": {
         "iphy": [
-          
         ],
         "xphyLine": [
           {
