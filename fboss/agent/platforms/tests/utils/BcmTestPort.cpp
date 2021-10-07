@@ -40,14 +40,11 @@ void BcmTestPort::externalState(PortLedExternalState /* unused */) {}
 
 folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
     folly::EventBase* /*evb*/) const {
-  if (auto info = getPlatform()->getPort2OverrideTransceiverInfo()) {
-    auto iter = info->find(getPortID());
-    if (iter != info->end()) {
-      return *(iter->second.cable_ref()->transmitterTech_ref());
-    }
-  }
-  if (auto info = getPlatform()->getOverrideTransceiverInfo()) {
-    return *(info->cable_ref()->transmitterTech_ref());
+  if (auto transceiver =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    // Override should always set media type
+    CHECK(transceiver->cable_ref());
+    return *(transceiver->cable_ref()->transmitterTech_ref());
   }
   const auto& entry = getPlatformPortEntry();
   if (entry.mapping_ref()->name_ref()->find("fab") == 0) {
@@ -75,9 +72,6 @@ void BcmTestPort::prepareForGracefulExit() {}
 folly::Future<TransceiverInfo> BcmTestPort::getFutureTransceiverInfo() const {
   if (auto transceiver =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
-    return transceiver.value();
-  }
-  if (auto transceiver = getPlatform()->getOverrideTransceiverInfo()) {
     return transceiver.value();
   }
   throw FbossError("failed to get transceiver info for ", getPortID());

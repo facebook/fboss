@@ -1409,7 +1409,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)
       << orig->getName() << " has profileConfig: "
       << (profileConfigUnchanged ? "UNCHANGED" : "CHANGED")
-      << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED");
+      << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED")
+      << ", with matcher:" << matcher.toString();
 
   // Ensure portConf has actually changed, before applying
   if (*portConf->state_ref() == orig->getAdminState() &&

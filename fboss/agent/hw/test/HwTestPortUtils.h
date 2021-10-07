@@ -23,9 +23,7 @@ void setPortLoopbackMode(
     PortID port,
     cfg::PortLoopbackMode lbMode);
 
-TransceiverInfo getTransceiverInfo(
-    PortID port,
-    TransmitterTechnology tech = TransmitterTechnology::COPPER);
+TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID);
 
 void setPortTxEnable(const HwSwitch* hw, PortID port, bool enable);
 

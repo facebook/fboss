@@ -74,9 +74,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   };
   void stopObservers();
   struct HwSwitchEnsembleInitInfo {
-    std::optional<std::map<PortID, TransceiverInfo>>
-        port2OverrideTransceiverInfo{};
-    std::optional<TransceiverInfo> overrideTransceiverInfo{};
+    std::optional<TransceiverInfo> overrideTransceiverInfo;
   };
   enum Feature : uint32_t {
     PACKET_RX,

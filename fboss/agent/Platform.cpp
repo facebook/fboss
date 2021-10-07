@@ -10,12 +10,13 @@
 
 #include "fboss/agent/Platform.h"
 
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
+#include <folly/logging/xlog.h>
 #include <string>
-#include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/FbossError.h"
 
 DEFINE_string(
     crash_switch_state_file,
@@ -134,28 +135,46 @@ PlatformMode Platform::getMode() const {
   return productInfo_->getMode();
 }
 
-void Platform::setPort2OverrideTransceiverInfo(
-    const std::map<PortID, TransceiverInfo>& port2TransceiverInfo) {
-  port2OverrideTransceiverInfo_.emplace(port2TransceiverInfo);
-}
-
-std::optional<std::map<PortID, TransceiverInfo>>
-Platform::getPort2OverrideTransceiverInfo() const {
-  return port2OverrideTransceiverInfo_;
+void Platform::setOverrideTransceiverInfo(
+    const TransceiverInfo& overrideTransceiverInfo) {
+  // Use the template to create TransceiverInfo map based on PlatformMapping
+  std::unordered_map<TransceiverID, TransceiverInfo> overrideTcvrs;
+  for (const auto& port : getPlatformPorts()) {
+    auto portID = PortID(port.first);
+    auto platformPort = getPlatformPort(portID);
+    if (auto transceiverID = platformPort->getTransceiverID(); transceiverID &&
+        overrideTcvrs.find(*transceiverID) == overrideTcvrs.end()) {
+      // Use the overrideTransceiverInfo_ as template to copy a new
+      // TransceiverInfo with the corresponding TransceiverID
+      auto tcvrInfo = TransceiverInfo(overrideTransceiverInfo);
+      tcvrInfo.port_ref() = *transceiverID;
+      overrideTcvrs.emplace(*transceiverID, tcvrInfo);
+    }
+  }
+  XLOG(INFO) << "Build override TransceiverInfo map, size="
+             << overrideTcvrs.size();
+  overrideTransceiverInfos_.emplace(overrideTcvrs);
 }
 
 std::optional<TransceiverInfo> Platform::getOverrideTransceiverInfo(
     PortID port) const {
-  if (!port2OverrideTransceiverInfo_) {
+  if (!overrideTransceiverInfos_) {
     return std::nullopt;
   }
   // only for test environments this will be set, to avoid querying QSFP in
   // HwTest
-  auto iter = port2OverrideTransceiverInfo_->find(port);
-  if (iter == port2OverrideTransceiverInfo_->end()) {
-    return std::nullopt;
+  if (auto tcvrID = getPlatformPort(port)->getTransceiverID()) {
+    if (auto overrideTcvrInfo = overrideTransceiverInfos_->find(*tcvrID);
+        overrideTcvrInfo != overrideTransceiverInfos_->end()) {
+      return overrideTcvrInfo->second;
+    }
   }
-  return iter->second;
+  return std::nullopt;
+}
+
+std::optional<std::unordered_map<TransceiverID, TransceiverInfo>>
+Platform::getOverrideTransceiverInfos() const {
+  return overrideTransceiverInfos_;
 }
 
 int Platform::getLaneCount(cfg::PortProfileID profile) const {

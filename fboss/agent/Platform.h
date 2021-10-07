@@ -13,6 +13,7 @@
 #include <folly/MacAddress.h>
 #include <folly/io/async/EventBase.h>
 #include <memory>
+#include <unordered_map>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -261,18 +262,15 @@ class Platform {
     return platformMapping_.get();
   }
 
-  void setPort2OverrideTransceiverInfo(
-      const std::map<PortID, TransceiverInfo>& port2TransceiverInfo);
-  std::optional<std::map<PortID, TransceiverInfo>>
-  getPort2OverrideTransceiverInfo() const;
-
-  void setOverrideTransceiverInfo(TransceiverInfo info) {
-    overrideTransceiverInfo_ = info;
-  }
-  std::optional<TransceiverInfo> getOverrideTransceiverInfo() const {
-    return overrideTransceiverInfo_;
-  }
+  /*
+   * The override transceiver map functions are only used for testing
+   */
+  void setOverrideTransceiverInfo(
+      const TransceiverInfo& overrideTransceiverInfo);
   std::optional<TransceiverInfo> getOverrideTransceiverInfo(PortID port) const;
+  std::optional<std::unordered_map<TransceiverID, TransceiverInfo>>
+  getOverrideTransceiverInfos() const;
+
   int getLaneCount(cfg::PortProfileID profile) const;
 
   // Whether or not we need the Transceiver spec when programming ports.
@@ -303,12 +301,12 @@ class Platform {
   const std::unique_ptr<PlatformMapping> platformMapping_;
   const folly::MacAddress localMac_;
 
-  // the map to transceiver info for ports, this is to be used only for HwTests
-  // under test environment, qsfp may be unavailable and this map is to mock
-  // possible transceiver info data qsfp may returns
-  std::optional<std::map<PortID, TransceiverInfo>>
-      port2OverrideTransceiverInfo_;
-  std::optional<TransceiverInfo> overrideTransceiverInfo_;
+  // The map of override version of TransceiverInfo.
+  // This is to be used only for HwTests under test environment,
+  // qsfp may be unavailable and this override version is to mock possible
+  // transceiver info data qsfp may returns
+  std::optional<std::unordered_map<TransceiverID, TransceiverInfo>>
+      overrideTransceiverInfos_;
 };
 
 } // namespace facebook::fboss

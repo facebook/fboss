@@ -157,13 +157,8 @@ void SaiSwitchEnsemble::init(
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
   if (info) {
-    if (info->port2OverrideTransceiverInfo) {
-      platform->setPort2OverrideTransceiverInfo(
-          info->port2OverrideTransceiverInfo.value());
-    }
-    if (info->overrideTransceiverInfo) {
-      platform->setOverrideTransceiverInfo(
-          info->overrideTransceiverInfo.value());
+    if (auto tcvr = info->overrideTransceiverInfo) {
+      platform->setOverrideTransceiverInfo(*tcvr);
     }
   }
   std::unique_ptr<HwLinkStateToggler> linkToggler;

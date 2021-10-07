@@ -98,10 +98,6 @@ class HwTest : public ::testing::Test,
     return {};
   }
 
-  virtual std::optional<std::map<PortID, TransceiverInfo>>
-  port2transceiverInfoMap() const {
-    return std::nullopt;
-  }
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }

@@ -22,25 +22,6 @@ class HwPortProfileTest : public HwTest {
         getHwSwitch(), ports[0], ports[1], lbMode);
   }
 
-  std::vector<PortID> findPorts() {
-    std::vector<PortID> ports;
-    auto& platformPorts = getPlatform()->getPlatformPorts();
-    for (auto port : masterLogicalPortIds()) {
-      auto iter = platformPorts.find(port);
-      EXPECT_TRUE(iter != platformPorts.end());
-      if (!getPlatform()->getPortProfileConfig(
-              PlatformPortProfileConfigMatcher(Profile, port))) {
-        continue;
-      }
-      if (iter->second.supportedProfiles_ref()->find(Profile) ==
-          iter->second.supportedProfiles_ref()->end()) {
-        continue;
-      }
-      ports.push_back(port);
-    }
-    return ports;
-  }
-
   void verifyPort(PortID portID) {
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
@@ -71,8 +52,8 @@ class HwPortProfileTest : public HwTest {
   }
 
   void runTest() {
-    std::vector<PortID> ports = findPorts();
-    if (ports.size() < 2) {
+    const auto& availablePorts = findAvailablePorts();
+    if (availablePorts.size() < 2) {
 // profile is not supported.
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -80,8 +61,8 @@ class HwPortProfileTest : public HwTest {
       return;
     }
     auto setup = [=]() {
-      auto config = initialConfig(ports);
-      for (auto port : {ports[0], ports[1]}) {
+      auto config = initialConfig(availablePorts);
+      for (auto port : {availablePorts[0], availablePorts[1]}) {
         auto hwSwitch = getHwSwitch();
         utility::configurePortProfile(
             *hwSwitch, config, Profile, getAllPortsInGroup(port), port);
@@ -89,7 +70,7 @@ class HwPortProfileTest : public HwTest {
       applyNewConfig(config);
     };
     auto verify = [=]() {
-      for (auto portID : {ports[0], ports[1]}) {
+      for (auto portID : {availablePorts[0], availablePorts[1]}) {
         verifyPort(portID);
       }
     };
@@ -97,8 +78,27 @@ class HwPortProfileTest : public HwTest {
   }
 
   std::optional<TransceiverInfo> overrideTransceiverInfo() const override {
-    auto tech = utility::getMediaType(Profile);
-    return utility::getTransceiverInfo(PortID(1) /*unused*/, tech);
+    return utility::getTransceiverInfo(Profile);
+  }
+
+ private:
+  std::vector<PortID> findAvailablePorts() {
+    std::vector<PortID> availablePorts;
+    auto& platformPorts = getPlatform()->getPlatformPorts();
+    for (auto port : masterLogicalPortIds()) {
+      auto iter = platformPorts.find(port);
+      EXPECT_TRUE(iter != platformPorts.end());
+      if (!getPlatform()->getPortProfileConfig(
+              PlatformPortProfileConfigMatcher(Profile, port))) {
+        continue;
+      }
+      if (iter->second.supportedProfiles_ref()->find(Profile) ==
+          iter->second.supportedProfiles_ref()->end()) {
+        continue;
+      }
+      availablePorts.push_back(port);
+    }
+    return availablePorts;
   }
 };
 

@@ -1666,8 +1666,8 @@ void SwSwitch::applyConfig(
             originalState = tempState;
           }
         } else {
-          XLOG(WARNING) << "Current platform doesn't have QsfpCache. "
-                        << "No need to build TransceiverMap";
+          XLOG(WARN) << "Current platform doesn't have QsfpCache. "
+                     << "No need to build TransceiverMap";
         }
         auto newState = rib_
             ? applyThriftConfig(

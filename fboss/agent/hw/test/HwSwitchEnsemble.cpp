@@ -114,17 +114,20 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const cfg::SwitchConfig& config) {
   // Mimic SwSwitch::applyConfig() to modifyTransceiverMap
   auto originalState = getProgrammedState();
+  auto overrideTcvrInfos = platform_->getOverrideTransceiverInfos();
   auto qsfpCache = getPlatform()->getQsfpCache();
-  if (qsfpCache) {
-    const auto& currentTcvrs = qsfpCache->getAllTransceivers();
+  if (overrideTcvrInfos || qsfpCache) {
+    const auto& currentTcvrs = overrideTcvrInfos
+        ? *overrideTcvrInfos
+        : qsfpCache->getAllTransceivers();
     auto tempState =
         SwitchState::modifyTransceivers(getProgrammedState(), currentTcvrs);
     if (tempState) {
       originalState = tempState;
     }
   } else {
-    XLOG(WARNING) << "Current platform doesn't have QsfpCache. "
-                  << "No need to build TransceiverMap";
+    XLOG(WARN) << "Current platform doesn't have QsfpCache and "
+               << "OverrideTransceiverInfos. No need to build TransceiverMap";
   }
 
   if (routingInformationBase_) {

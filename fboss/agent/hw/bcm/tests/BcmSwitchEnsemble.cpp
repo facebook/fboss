@@ -150,16 +150,6 @@ void BcmSwitchEnsemble::runDiagCommand(
 void BcmSwitchEnsemble::init(
     const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) {
   auto platform = createTestPlatform();
-  if (info) {
-    if (info->port2OverrideTransceiverInfo) {
-      platform->setPort2OverrideTransceiverInfo(
-          info->port2OverrideTransceiverInfo.value());
-    }
-    if (info->overrideTransceiverInfo) {
-      platform->setOverrideTransceiverInfo(
-          info->overrideTransceiverInfo.value());
-    }
-  }
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
@@ -233,6 +223,12 @@ void BcmSwitchEnsemble::init(
   }
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), getHwSwitchFeatures());
+  if (info) {
+    if (auto tcvr = info->overrideTransceiverInfo) {
+      platform->setOverrideTransceiverInfo(*tcvr);
+    }
+  }
+
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = createLinkToggler(

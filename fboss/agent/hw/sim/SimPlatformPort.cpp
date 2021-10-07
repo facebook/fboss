@@ -47,9 +47,6 @@ folly::Future<TransceiverInfo> SimPlatformPort::getFutureTransceiverInfo()
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return transceiver.value();
   }
-  if (auto transceiver = getPlatform()->getOverrideTransceiverInfo()) {
-    return transceiver.value();
-  }
   throw FbossError("failed to get transceiver info for ", getPortID());
 }
 } // namespace facebook::fboss

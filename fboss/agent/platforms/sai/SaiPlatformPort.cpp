@@ -154,9 +154,6 @@ folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     return transceiver.value();
   }
-  if (auto transceiver = getPlatform()->getOverrideTransceiverInfo()) {
-    return transceiver.value();
-  }
   auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
   return qsfpCache->futureGet(getTransceiverID().value());
 }
