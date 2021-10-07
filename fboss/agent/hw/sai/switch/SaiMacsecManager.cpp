@@ -93,6 +93,29 @@ const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
 
   return entry;
 }
+
+void fillHwPortStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwPortStats& hwPortStats) {
+  if (!hwPortStats.macsecStats_ref()) {
+    hwPortStats.macsecStats_ref() = MacsecStats();
+  }
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    auto& macsecStats = *hwPortStats.macsecStats_ref();
+    switch (counterId) {
+      case SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS:
+        macsecStats.portStats_ref()->preMacsecDropPkts_ref() = value;
+        break;
+      case SAI_MACSEC_PORT_STAT_CONTROL_PKTS:
+        macsecStats.portStats_ref()->controlPkts_ref() = value;
+        break;
+      case SAI_MACSEC_PORT_STAT_DATA_PKTS:
+        macsecStats.portStats_ref()->dataPkts_ref() = value;
+        break;
+    }
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -840,7 +863,7 @@ void SaiMacsecManager::removeAcls(
   }
 }
 
-void SaiMacsecManager::updateStats(PortID port, HwPortStats& /*portStats*/) {
+void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
   for (const auto& macsec : macsecHandles_) {
     auto pitr = macsec.second->ports.find(port);
     if (pitr == macsec.second->ports.end()) {
@@ -854,6 +877,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& /*portStats*/) {
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
     }
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
+    fillHwPortStats(macsecPort.second->port->getStats(), portStats);
   }
 }
 
