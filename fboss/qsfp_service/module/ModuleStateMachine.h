@@ -45,34 +45,7 @@ enum class ModuleStateMachineEvent {
   REMEDIATE_DONE,
 };
 
-inline std::string getModuleStateMachineEventName(
-    ModuleStateMachineEvent event) {
-  switch (event) {
-    case ModuleStateMachineEvent::OPTICS_DETECTED:
-      return "OPTICS_DETECTED";
-    case ModuleStateMachineEvent::OPTICS_REMOVED:
-      return "OPTICS_REMOVED";
-    case ModuleStateMachineEvent::OPTICS_RESET:
-      return "OPTICS_RESET";
-    case ModuleStateMachineEvent::EEPROM_READ:
-      return "EEPROM_READ";
-    case ModuleStateMachineEvent::ALL_PORTS_DOWN:
-      return "ALL_PORTS_DOWN";
-    case ModuleStateMachineEvent::PORT_UP:
-      return "PORT_UP";
-    case ModuleStateMachineEvent::TRIGGER_UPGRADE:
-      return "TRIGGER_UPGRADE";
-    case ModuleStateMachineEvent::FORCED_UPGRADE:
-      return "FORCED_UPGRADE";
-    case ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT:
-      return "AGENT_SYNC_TIMEOUT";
-    case ModuleStateMachineEvent::BRINGUP_DONE:
-      return "BRINGUP_DONE";
-    case ModuleStateMachineEvent::REMEDIATE_DONE:
-      return "REMEDIATE_DONE";
-  }
-  throw FbossError("Unsupported ModuleStateMachineEvent");
-}
+std::string getModuleStateMachineEventName(ModuleStateMachineEvent event);
 
 /**************************** New Module State Machine ***********************/
 // TODO(joseph5wu) The following new module state machine is planned to replace

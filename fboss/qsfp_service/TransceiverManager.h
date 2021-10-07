@@ -10,11 +10,6 @@
 
 #pragma once
 
-#include <map>
-#include <vector>
-
-#include <folly/Synchronized.h>
-
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
@@ -23,7 +18,14 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/module/ModuleStateMachineUpdate.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
+
+#include <folly/IntrusiveList.h>
+#include <folly/SpinLock.h>
+#include <folly/Synchronized.h>
+#include <map>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
@@ -158,11 +160,6 @@ class TransceiverManager {
   // returns empty string when there is no name found
   const std::string getPortName(TransceiverID tcvrId) const;
 
- private:
-  // Forbidden copy constructor and assignment operator
-  TransceiverManager(TransceiverManager const&) = delete;
-  TransceiverManager& operator=(TransceiverManager const&) = delete;
-
  protected:
   virtual void loadConfig() = 0;
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
@@ -185,6 +182,20 @@ class TransceiverManager {
   mutable PortNameMap portNameToModule_;
   PortGroups portGroupMap_;
   std::unique_ptr<QsfpConfig> qsfpConfig_;
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  TransceiverManager(TransceiverManager const&) = delete;
+  TransceiverManager& operator=(TransceiverManager const&) = delete;
+
+  using StateUpdateList = folly::IntrusiveList<
+      ModuleStateMachineUpdate,
+      &ModuleStateMachineUpdate::listHook_>;
+  /*
+   * A list of pending state updates to be applied.
+   */
+  folly::SpinLock pendingUpdatesLock_;
+  StateUpdateList pendingUpdates_;
 };
 } // namespace fboss
 } // namespace facebook
