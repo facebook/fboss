@@ -505,8 +505,13 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
   // speed, hw lane list, fec mode
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
-  port->setProfileConfig(
-      *platformPort->getPortProfileConfig(port->getProfileID()).iphy_ref());
+  PlatformPortProfileConfigMatcher matcher{port->getProfileID(), portID};
+  if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
+    port->setProfileConfig(*profileConfig->iphy_ref());
+  } else {
+    throw FbossError(
+        "No port profile config found with matcher:", matcher.toString());
+  }
   port->resetPinConfigs(platformPort->getIphyPinConfigs(port->getProfileID()));
   port->setSpeed(speed);
 

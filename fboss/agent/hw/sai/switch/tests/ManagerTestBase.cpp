@@ -206,24 +206,28 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       break;
   }
   auto platformPort = saiPlatform->getPort(swPort->getID());
+  PlatformPortProfileConfigMatcher matcher{
+      swPort->getProfileID(), swPort->getID()};
+  auto profileConfig = saiPlatform->getPortProfileConfig(matcher);
+  if (!profileConfig) {
+    throw FbossError(
+        "No port profile config found with matcher:", matcher.toString());
+  }
   if (isXphyPort) {
     // Update both system and line sides config
     const auto& pinConfigs =
         platformPort->getPortXphyPinConfig(swPort->getProfileID());
-    const auto& profileConfigs =
-        platformPort->getPortProfileConfig(swPort->getProfileID());
-    CHECK(profileConfigs.xphySystem_ref());
-    swPort->setProfileConfig(*profileConfigs.xphySystem_ref());
+    CHECK(profileConfig->xphySystem_ref());
+    swPort->setProfileConfig(*profileConfig->xphySystem_ref());
     CHECK(pinConfigs.xphySys_ref());
     swPort->resetPinConfigs(*pinConfigs.xphySys_ref());
-    CHECK(profileConfigs.xphyLine_ref());
-    swPort->setLineProfileConfig(*profileConfigs.xphyLine_ref());
+    CHECK(profileConfig->xphyLine_ref());
+    swPort->setLineProfileConfig(*profileConfig->xphyLine_ref());
     CHECK(pinConfigs.xphyLine_ref());
     swPort->resetLinePinConfigs(*pinConfigs.xphyLine_ref());
   } else {
     // Use the iphy profileConfig and pinConfigs from PlatformMapping to update
-    swPort->setProfileConfig(
-        *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
+    swPort->setProfileConfig(*profileConfig->iphy_ref());
     swPort->resetPinConfigs(
         platformPort->getIphyPinConfigs(swPort->getProfileID()));
   }

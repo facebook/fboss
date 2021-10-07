@@ -136,7 +136,8 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
   const auto& platformPortEntry = getPlatformPortEntry();
   for (auto profile : *platformPortEntry.supportedProfiles_ref()) {
     auto profileID = profile.first;
-    if (auto profileCfg = getPortProfileConfigIf(profileID)) {
+    if (auto profileCfg = platform_->getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profileID, getPortID()))) {
       if (*profileCfg->speed_ref() == speed) {
         return profileID;
       }

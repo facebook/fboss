@@ -65,6 +65,10 @@ class PlatformPort {
    * Helper functions for getting port profiles. Platform port generall should
    * have all information needed to create profile matchers, so we just need
    * profile id here
+   * TODO(joseph5wu) Eventually we don't need to use platform port to fetch
+   * TransceiverInfo, and use SwitchState TransceiverMap to calculate platform
+   * config. Will remove these helper functions once we have the new port
+   * programming logic ready in qsfp_service.
    */
   const phy::PortProfileConfig getPortProfileConfig(
       cfg::PortProfileID PortProfileID) const;

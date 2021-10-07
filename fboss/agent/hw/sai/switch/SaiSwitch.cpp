@@ -1087,10 +1087,22 @@ HwInitResult SaiSwitch::initLocked(
         XLOG(WARN) << "Can't get profileConfig from warmboot cache for port:"
                    << port->getName() << ", manually update warmboot state";
         auto clonedPort = port->clone();
-        clonedPort->setProfileConfig(
-            *platform_->getPort(port->getID())
-                 ->getPortProfileConfig(port->getProfileID())
-                 .iphy_ref());
+        auto platformPort = platform_->getPort(port->getID());
+        // Now use TransceiverMap as the source of truth to build matcher
+        std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+        if (auto tcvrID = platformPort->getTransceiverID()) {
+          auto tcvr =
+              ret.switchState->getTransceivers()->getTransceiverIf(*tcvrID);
+          if (tcvr != nullptr) {
+            factor = tcvr->toPlatformPortConfigOverrideFactor();
+          }
+        }
+        PlatformPortProfileConfigMatcher matcher{
+            port->getProfileID(), port->getID(), factor};
+        auto profileConfig = platform_->getPortProfileConfig(matcher);
+        CHECK(profileConfig) << "No port profile config found with matcher:"
+                             << matcher.toString();
+        clonedPort->setProfileConfig(*profileConfig->iphy_ref());
         clonedPort->resetPinConfigs(
             platform_->getPort(port->getID())
                 ->getIphyPinConfigs(port->getProfileID()));

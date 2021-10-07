@@ -33,9 +33,13 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
   port->setAdminState(cfg::PortState::DISABLED);
   port->setSpeed(cfg::PortSpeed::XG);
   port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
-  port->setProfileConfig(*platform->getPlatformPort(port->getID())
-                              ->getPortProfileConfig(port->getProfileID())
-                              .iphy_ref());
+  PlatformPortProfileConfigMatcher matcher{port->getProfileID(), port->getID()};
+  if (auto profileConfig = platform->getPortProfileConfig(matcher)) {
+    port->setProfileConfig(*profileConfig->iphy_ref());
+  } else {
+    throw FbossError(
+        "No port profile config found with matcher:", matcher.toString());
+  }
   port->resetPinConfigs(platform->getPlatformPort(port->getID())
                             ->getIphyPinConfigs(port->getProfileID()));
 }

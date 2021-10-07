@@ -204,10 +204,12 @@ class ThriftConfigApplier {
 
   void processVlanPorts();
   void updateVlanInterfaces(const Interface* intf);
-  std::shared_ptr<PortMap> updatePorts();
+  std::shared_ptr<PortMap> updatePorts(
+      const std::shared_ptr<TransceiverMap>& transceiverMap);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
-      const cfg::Port* cfg);
+      const cfg::Port* cfg,
+      const std::shared_ptr<Transceiver>& transceiver);
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
       const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -414,7 +416,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto newPorts = updatePorts();
+    auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
       changed = true;
@@ -765,7 +767,8 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
   entry.addresses.emplace(IPAddress(linkLocalAddr), linkLocalInfo);
 }
 
-shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
+shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
+    const std::shared_ptr<TransceiverMap>& transceiverMap) {
   auto origPorts = orig_->getPorts();
   PortMap::NodeContainer newPorts;
   bool changed = false;
@@ -777,12 +780,17 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
     PortID id(*portCfg.logicalID_ref());
     auto origPort = origPorts->getPortIf(id);
     std::shared_ptr<Port> newPort;
+    // Find present Transceiver if it exists in TransceiverMap
+    std::shared_ptr<Transceiver> transceiver;
+    if (auto tcvrID = platform_->getPlatformPort(id)->getTransceiverID()) {
+      transceiver = transceiverMap->getTransceiverIf(*tcvrID);
+    }
     if (!origPort) {
       auto port = std::make_shared<Port>(
           PortID(*portCfg.logicalID_ref()), portCfg.name_ref().value_or({}));
-      newPort = updatePort(port, &portCfg);
+      newPort = updatePort(port, &portCfg, transceiver);
     } else {
-      newPort = updatePort(origPort, &portCfg);
+      newPort = updatePort(origPort, &portCfg, transceiver);
     }
     changed |= updateMap(&newPorts, origPort, newPort);
   }
@@ -1187,7 +1195,8 @@ void ThriftConfigApplier::validateUpdatePgBufferPoolName(
 
 shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<Port>& orig,
-    const cfg::Port* portConf) {
+    const cfg::Port* portConf,
+    const shared_ptr<Transceiver>& transceiver) {
   CHECK_EQ(orig->getID(), *portConf->logicalID_ref());
 
   auto vlans = portVlans_[orig->getID()];
@@ -1364,12 +1373,21 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   sort(newLookupClasses.begin(), newLookupClasses.end());
   auto lookupClassesUnchanged = (origLookupClasses == newLookupClasses);
 
+  // Now use TransceiverMap as the source of truth to build matcher
   // Prepare the new profileConfig
-  const auto& portProfileCfg =
-      platform_->getPlatformPort(orig->getID())
-          ->getPortProfileConfig(*portConf->profileID_ref());
+  std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+  if (transceiver != nullptr) {
+    factor = transceiver->toPlatformPortConfigOverrideFactor();
+  }
+  PlatformPortProfileConfigMatcher matcher{
+      *portConf->profileID_ref(), orig->getID(), factor};
+  auto portProfileCfg = platform_->getPortProfileConfig(matcher);
+  if (!portProfileCfg) {
+    throw FbossError(
+        "No port profile config found with matcher:", matcher.toString());
+  }
   if (*portConf->state_ref() == cfg::PortState::ENABLED &&
-      *portProfileCfg.speed_ref() != *portConf->speed_ref()) {
+      *portProfileCfg->speed_ref() != *portConf->speed_ref()) {
     throw FbossError(
         orig->getName(),
         " has mismatched speed on profile:",
@@ -1377,7 +1395,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         " and config:",
         apache::thrift::util::enumNameSafe(*portConf->speed_ref()));
   }
-  auto newProfileConfigRef = portProfileCfg.iphy_ref();
+  auto newProfileConfigRef = portProfileCfg->iphy_ref();
   auto profileConfigUnchanged =
       (*newProfileConfigRef == orig->getProfileConfig());
 

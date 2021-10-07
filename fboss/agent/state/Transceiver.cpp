@@ -99,5 +99,20 @@ bool Transceiver::operator==(const Transceiver& tcvr) const {
       getManagementInterface() == tcvr.getManagementInterface();
 }
 
+cfg::PlatformPortConfigOverrideFactor
+Transceiver::toPlatformPortConfigOverrideFactor() const {
+  cfg::PlatformPortConfigOverrideFactor factor;
+  if (auto cableLength = getCableLength()) {
+    factor.cableLengths_ref() = {*cableLength};
+  }
+  if (auto mediaInterface = getMediaInterface()) {
+    factor.mediaInterfaceCode_ref() = *mediaInterface;
+  }
+  if (auto managerInterface = getManagementInterface()) {
+    factor.transceiverManagementInterface_ref() = *managerInterface;
+  }
+  return factor;
+}
+
 template class NodeBaseT<Transceiver, TransceiverFields>;
 } // namespace facebook::fboss

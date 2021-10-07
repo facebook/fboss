@@ -58,6 +58,9 @@ class Transceiver : public NodeBaseT<Transceiver, TransceiverFields> {
     return getFields()->toFollyDynamic();
   }
 
+  cfg::PlatformPortConfigOverrideFactor toPlatformPortConfigOverrideFactor()
+      const;
+
   TransceiverID getID() const {
     return getFields()->id;
   }

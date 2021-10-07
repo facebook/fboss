@@ -101,6 +101,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/TransceiverMap.h"
 
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
@@ -636,8 +637,14 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     auto platformPort = getPlatform()->getPlatformPort(portID);
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
-    swPort->setProfileConfig(
-        *platformPort->getPortProfileConfig(swPort->getProfileID()).iphy_ref());
+    // Coldboot state can assume transceiver doesn't exist
+    PlatformPortProfileConfigMatcher matcher{swPort->getProfileID(), portID};
+    if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
+      swPort->setProfileConfig(*profileConfig->iphy_ref());
+    } else {
+      throw FbossError(
+          "No port profile config found with matcher:", matcher.toString());
+    }
     swPort->resetPinConfigs(
         platformPort->getIphyPinConfigs(swPort->getProfileID()));
     swPort->setSpeed(bcmPort->getSpeed());
@@ -899,17 +906,27 @@ HwInitResult BcmSwitch::init(
         XLOG(WARN) << "Can't get profileConfig from warmboot cache for port:"
                    << port->getName() << ", manually update warmboot state";
         auto clonedPort = port->clone();
-        clonedPort->setProfileConfig(
-            *getPortTable()
-                 ->getBcmPort(port->getID())
-                 ->getPlatformPort()
-                 ->getPortProfileConfig(port->getProfileID())
-                 .iphy_ref());
+        auto platformPort =
+            getPortTable()->getBcmPort(port->getID())->getPlatformPort();
+        // Now use TransceiverMap as the source of truth to build matcher
+        std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
+        if (auto tcvrID = platformPort->getTransceiverID()) {
+          auto tcvr =
+              ret.switchState->getTransceivers()->getTransceiverIf(*tcvrID);
+          if (tcvr != nullptr) {
+            factor = tcvr->toPlatformPortConfigOverrideFactor();
+          }
+        }
+        PlatformPortProfileConfigMatcher matcher{
+            port->getProfileID(), port->getID(), factor};
+        if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
+          clonedPort->setProfileConfig(*profileConfig->iphy_ref());
+        } else {
+          throw FbossError(
+              "No port profile config found with matcher:", matcher.toString());
+        }
         clonedPort->resetPinConfigs(
-            getPortTable()
-                ->getBcmPort(port->getID())
-                ->getPlatformPort()
-                ->getIphyPinConfigs(port->getProfileID()));
+            platformPort->getIphyPinConfigs(port->getProfileID()));
         clonedPorts->updateNode(clonedPort);
       }
     }
