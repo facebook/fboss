@@ -157,6 +157,7 @@ struct ProfileSideConfig {
   // [DEPRECATED] Replace interfaceMode with interfaceType
   5: optional InterfaceMode interfaceMode;
   6: optional InterfaceType interfaceType;
+  7: optional i32 interPacketGapBits;
 }
 
 struct PortProfileConfig {
