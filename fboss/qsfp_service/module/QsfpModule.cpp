@@ -185,7 +185,9 @@ bool QsfpModule::detectPresenceLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
   if (currentQsfpStatus != present_) {
     XLOG(DBG1) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-               << " QSFP status changed to " << currentQsfpStatus;
+               << " QSFP status changed from "
+               << (present_ ? "PRESENT" : "NOT PRESENT") << " to "
+               << (currentQsfpStatus ? "PRESENT" : "NOT PRESENT");
     dirty_ = true;
     present_ = currentQsfpStatus;
     moduleResetCounter_ = 0;

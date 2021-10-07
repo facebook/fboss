@@ -36,11 +36,8 @@ class TransceiverManager {
  public:
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping)
-      : qsfpPlatApi_(std::move(api)),
-        platformMapping_(std::move(platformMapping)),
-        moduleStateMachines_(setupTransceiverToStateMachine()) {}
-  virtual ~TransceiverManager() {}
+      std::unique_ptr<PlatformMapping> platformMapping);
+  virtual ~TransceiverManager();
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(
       std::map<int32_t, TransceiverInfo>& info,
@@ -195,6 +192,10 @@ class TransceiverManager {
           msm::back::state_machine<NewModuleStateMachine>>>>;
   virtual TransceiverToStateMachine setupTransceiverToStateMachine();
 
+  void startThreads();
+  void stopThreads();
+  void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
   using StateUpdateList = folly::IntrusiveList<
       ModuleStateMachineUpdate,
       &ModuleStateMachineUpdate::listHook_>;
@@ -203,6 +204,13 @@ class TransceiverManager {
    */
   folly::SpinLock pendingUpdatesLock_;
   StateUpdateList pendingUpdates_;
+
+  /*
+   * A thread for processing ModuleStateMachine updates.
+   */
+  std::unique_ptr<std::thread> updateThread_;
+  folly::EventBase updateEventBase_;
+  // TODO(joseph5wu) Will add heartbeat watchdog later
 
   /*
    * A map to maintain all transceivers(present and not present) state machines.
