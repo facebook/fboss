@@ -24,6 +24,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class HwPortStats;
 
 using SaiMacsec = SaiObject<SaiMacsecTraits>;
 using SaiMacsecPort = SaiObjectWithCounters<SaiMacsecPortTraits>;
@@ -118,7 +119,7 @@ class SaiMacsecManager {
       const mka::MKASci& sci,
       sai_macsec_direction_t direction);
 
-  void updateStats(PortID port);
+  void updateStats(PortID port, HwPortStats& portStats);
 
  private:
   SaiMacsecHandle* FOLLY_NULLABLE

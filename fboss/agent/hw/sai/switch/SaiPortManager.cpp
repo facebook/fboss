@@ -627,6 +627,7 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
       toSubtractFromInDiscardsRaw);
   managerTable_->queueManager().updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
+  managerTable_->macsecManager().updateStats(portId, curPortStats);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 

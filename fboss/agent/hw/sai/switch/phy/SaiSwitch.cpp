@@ -22,7 +22,6 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
       managerTable_->portManager().updateStats(
           portsIter->second, false /*updateWatermarks*/);
-      managerTable_->macsecManager().updateStats(portsIter->second);
     }
     ++portsIter;
   }

@@ -840,7 +840,7 @@ void SaiMacsecManager::removeAcls(
   }
 }
 
-void SaiMacsecManager::updateStats(PortID port) {
+void SaiMacsecManager::updateStats(PortID port, HwPortStats& /*portStats*/) {
   for (const auto& macsec : macsecHandles_) {
     auto pitr = macsec.second->ports.find(port);
     if (pitr == macsec.second->ports.end()) {
