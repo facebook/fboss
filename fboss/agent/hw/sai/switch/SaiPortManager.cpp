@@ -512,7 +512,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
   }
-  port->resetPinConfigs(platformPort->getIphyPinConfigs(port->getProfileID()));
+  port->resetPinConfigs(
+      platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   port->setSpeed(speed);
 
   // admin state

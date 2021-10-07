@@ -229,7 +229,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     // Use the iphy profileConfig and pinConfigs from PlatformMapping to update
     swPort->setProfileConfig(*profileConfig->iphy_ref());
     swPort->resetPinConfigs(
-        platformPort->getIphyPinConfigs(swPort->getProfileID()));
+        saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   }
   return swPort;
 }

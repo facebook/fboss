@@ -20,8 +20,6 @@ class SaiFakePlatformPort : public SaiPlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
   virtual bool supportsTransceiver() const override;
-  std::vector<phy::PinConfig> getIphyPinConfigs(
-      cfg::PortProfileID profileID) const override;
   uint32_t getCurrentLedState() const override;
   void portChanged(
       std::shared_ptr<Port> /*newPort*/,

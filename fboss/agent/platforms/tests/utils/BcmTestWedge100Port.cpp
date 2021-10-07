@@ -21,17 +21,6 @@ BcmTestWedge100Port::BcmTestWedge100Port(
     BcmTestWedge100Platform* platform)
     : BcmTestPort(id, platform) {}
 
-std::vector<phy::PinConfig> BcmTestWedge100Port::getIphyPinConfigs(
-    cfg::PortProfileID profileID) const {
-  // For Wedge100 getPortIphyPinConfigs needs a cable length to be able to
-  // match platform port config overrides. Hardcode cable length for tests so we
-  // don't need qsfp service
-  cfg::PlatformPortConfigOverrideFactor factor;
-  factor.cableLengths_ref() = {1.0};
-  return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-      PlatformPortProfileConfigMatcher(profileID, getPortID(), factor));
-}
-
 void BcmTestWedge100Port::linkStatusChanged(bool up, bool adminUp) {
   // Using non-compact mode with single lane mode
   auto bcmPort = getBcmPort();

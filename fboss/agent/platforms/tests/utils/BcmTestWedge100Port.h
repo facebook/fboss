@@ -27,9 +27,6 @@ class BcmTestWedge100Port : public BcmTestPort {
     };
   }
 
-  std::vector<phy::PinConfig> getIphyPinConfigs(
-      cfg::PortProfileID profileID) const override;
-
   void linkStatusChanged(bool up, bool adminUp) override;
 
  private:

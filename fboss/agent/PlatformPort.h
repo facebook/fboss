@@ -44,9 +44,6 @@ class PlatformPort {
 
   const cfg::PlatformPortEntry& getPlatformPortEntry() const;
 
-  virtual std::vector<phy::PinConfig> getIphyPinConfigs(
-      cfg::PortProfileID profileID) const;
-
   std::optional<std::vector<phy::PinConfig>> getTransceiverPinConfigs(
       cfg::PortProfileID profileID) const;
 

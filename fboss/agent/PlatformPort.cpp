@@ -48,12 +48,6 @@ const cfg::PlatformPortEntry& PlatformPort::getPlatformPortEntry() const {
   throw FbossError("Can't find PlatformPortEntry for port=", id_);
 }
 
-std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
-    cfg::PortProfileID profileID) const {
-  return platform_->getPlatformMapping()->getPortIphyPinConfigs(
-      PlatformPortProfileConfigMatcher(profileID, id_));
-}
-
 std::optional<std::vector<phy::PinConfig>>
 PlatformPort::getTransceiverPinConfigs(cfg::PortProfileID profileID) const {
   return platform_->getPlatformMapping()->getPortTransceiverPinConfigs(
@@ -79,8 +73,9 @@ phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
 
 phy::PortPinConfig PlatformPort::getPortPinConfigs(
     cfg::PortProfileID profileID) const {
+  // Now iphy pin configs can read it from sw port, will eventually deprecate
+  // this function in the future
   auto pinConfig = getPortXphyPinConfig(profileID);
-  pinConfig.iphy_ref() = getIphyPinConfigs(profileID);
   if (auto transceiverPins = getTransceiverPinConfigs(profileID)) {
     pinConfig.transceiver_ref() = *transceiverPins;
   }

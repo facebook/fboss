@@ -166,24 +166,6 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   return xcvr;
 }
 
-std::vector<phy::PinConfig> SaiPlatformPort::getIphyPinConfigs(
-    cfg::PortProfileID profileID) const {
-  if (!checkSupportsTransceiver()) {
-    return {};
-  }
-  folly::EventBase evb;
-  auto transceiverInfo = getTransceiverInfo(&evb);
-  if (transceiverInfo) {
-    return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-        PlatformPortProfileConfigMatcher(
-            profileID,
-            getPortID(),
-            buildPlatformPortConfigOverrideFactor(*transceiverInfo)));
-  }
-  return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-      PlatformPortProfileConfigMatcher(profileID, getPortID()));
-}
-
 folly::Future<TransceiverInfo> SaiPlatformPort::getFutureTransceiverInfo()
     const {
   // use this method to query transceiver info

@@ -310,6 +310,8 @@ void getPortInfoHelper(
     hw.profileConfig_ref() =
         platformPort->getPortProfileConfigFromCache(*hw.profile_ref());
     hw.pinConfig_ref() = platformPort->getPortPinConfigs(*hw.profile_ref());
+    // Use SW Port pinConfig directly
+    hw.pinConfig_ref()->iphy_ref() = port->getPinConfigs();
     hw.chips_ref() = platformPort->getPortDataplaneChips(*hw.profile_ref());
     portInfo.hw_ref() = hw;
 

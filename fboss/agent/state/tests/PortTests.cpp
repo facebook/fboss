@@ -40,8 +40,8 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
   }
-  port->resetPinConfigs(platform->getPlatformPort(port->getID())
-                            ->getIphyPinConfigs(port->getProfileID()));
+  port->resetPinConfigs(
+      platform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
 }
 } // namespace
 

@@ -1106,8 +1106,7 @@ HwInitResult SaiSwitch::initLocked(
                              << matcher.toString();
         clonedPort->setProfileConfig(*profileConfig->iphy_ref());
         clonedPort->resetPinConfigs(
-            platform_->getPort(port->getID())
-                ->getIphyPinConfigs(port->getProfileID()));
+            platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
         clonedPorts->updateNode(clonedPort);
       }
     }

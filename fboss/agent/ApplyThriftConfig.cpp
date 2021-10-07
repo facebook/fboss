@@ -1403,8 +1403,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       (*newProfileConfigRef == orig->getProfileConfig());
 
   const auto& newPinConfigs =
-      platform_->getPlatformPort(orig->getID())
-          ->getIphyPinConfigs(*portConf->profileID_ref());
+      platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
 
   XLOG_IF(DBG2, !profileConfigUnchanged || !pinConfigsUnchanged)

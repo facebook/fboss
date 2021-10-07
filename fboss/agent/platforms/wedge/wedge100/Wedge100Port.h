@@ -48,9 +48,6 @@ class Wedge100Port : public WedgePort {
     throw FbossError("Unexpected pipe ", pipe);
   }
 
-  std::vector<phy::PinConfig> getIphyPinConfigs(
-      cfg::PortProfileID profileID) const override;
-
  private:
   bool isTop();
 

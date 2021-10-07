@@ -22,12 +22,6 @@ bool SaiFakePlatformPort::supportsTransceiver() const {
   return false;
 }
 
-std::vector<phy::PinConfig> SaiFakePlatformPort::getIphyPinConfigs(
-    cfg::PortProfileID profileID) const {
-  return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
-      PlatformPortProfileConfigMatcher(profileID, getPortID()));
-}
-
 uint32_t SaiFakePlatformPort::getCurrentLedState() const {
   return 0;
 }

@@ -646,7 +646,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
           "No port profile config found with matcher:", matcher.toString());
     }
     swPort->resetPinConfigs(
-        platformPort->getIphyPinConfigs(swPort->getProfileID()));
+        platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
     swPort->setSpeed(bcmPort->getSpeed());
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
       auto queues = bcmPort->getCurrentQueueSettings();
@@ -928,7 +928,7 @@ HwInitResult BcmSwitch::init(
               "No port profile config found with matcher:", matcher.toString());
         }
         clonedPort->resetPinConfigs(
-            platformPort->getIphyPinConfigs(port->getProfileID()));
+            platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
         clonedPorts->updateNode(clonedPort);
       }
     }
