@@ -170,6 +170,7 @@ class SaiPortManager {
   bool isPtpTcEnabled() const;
 
  private:
+  PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
   void releasePorts();

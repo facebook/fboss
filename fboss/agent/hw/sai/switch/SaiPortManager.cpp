@@ -216,6 +216,17 @@ void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
+  auto portSaiId = addPortImpl(swPort);
+  concurrentIndices_->portIds.emplace(portSaiId, swPort->getID());
+  concurrentIndices_->portSaiIds.emplace(swPort->getID(), portSaiId);
+  concurrentIndices_->vlanIds.emplace(
+      PortDescriptorSaiId(portSaiId), swPort->getIngressVlan());
+  XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
+             << swPort->getIngressVlan();
+  return portSaiId;
+}
+
 void SaiPortManager::addSamplePacket(const std::shared_ptr<Port>& swPort) {
   if (swPort->getSflowIngressRate()) {
     programSampling(

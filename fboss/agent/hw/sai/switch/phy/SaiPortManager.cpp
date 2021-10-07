@@ -38,7 +38,7 @@ namespace facebook::fboss {
  * call. This function creates system port, line port and then port connector.
  * It stores all port objects in SaiPortHandle.
  */
-PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
+PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   if (portHandle) {
     // TODO(ccpowers): We should throw an error here once we have a

@@ -28,7 +28,7 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
 }
 } // namespace
 
-PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
+PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   if (portHandle) {
     throw FbossError(
@@ -99,14 +99,6 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
 
   addSamplePacket(swPort);
   addMirror(swPort);
-
-  concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
-  concurrentIndices_->portSaiIds.emplace(
-      swPort->getID(), saiPort->adapterKey());
-  concurrentIndices_->vlanIds.emplace(
-      PortDescriptorSaiId(saiPort->adapterKey()), swPort->getIngressVlan());
-  XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
-             << swPort->getIngressVlan();
 
   // set platform port's speed
   auto platformPort = platform_->getPort(swPort->getID());
