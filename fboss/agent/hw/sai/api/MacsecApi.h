@@ -63,7 +63,7 @@ struct SaiMacsecPortTraits {
       std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
   using CreateAttributes =
       std::tuple<Attributes::PortID, Attributes::MacsecDirection>;
-  static constexpr std::array<sai_stat_id_t, 12> CounterIdsToRead = {
+  static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
       SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS,
       SAI_MACSEC_PORT_STAT_CONTROL_PKTS,
       SAI_MACSEC_PORT_STAT_DATA_PKTS,
