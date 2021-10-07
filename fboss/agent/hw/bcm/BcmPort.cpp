@@ -1409,7 +1409,11 @@ void BcmPort::BcmPortStats::setQueueWaterMarks(
 
 void BcmPort::setQueueWaterMarks(
     std::map<int16_t, int64_t> queueId2WatermarkBytes) {
-  (*portStats_.wlock())->setQueueWaterMarks(std::move(queueId2WatermarkBytes));
+  auto lockedPortStatsPtr = portStats_.wlock();
+  if (!lockedPortStatsPtr->has_value()) {
+    return;
+  }
+  (*lockedPortStatsPtr)->setQueueWaterMarks(std::move(queueId2WatermarkBytes));
 }
 
 std::string BcmPort::getPfcPriorityStatsKey(
