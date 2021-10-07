@@ -108,7 +108,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
-      int l4DstPort) {
+      int l4DstPort,
+      uint8_t ttl,
+      bool outOfPort) {
     auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     // arbit
@@ -124,8 +126,15 @@ class HwCoppTest : public HwLinkStateDependentTest {
           srcIp,
           dstIpAddress,
           l4SrcPort,
-          l4DstPort);
-      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+          l4DstPort,
+          0 /* dscp */,
+          ttl);
+      if (outOfPort) {
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+      } else {
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
     }
   }
 
@@ -242,10 +251,13 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const int l4SrcPort,
       const int l4DstPort,
       const int numPktsToSend = 1,
-      const int expectedPktDelta = 0) {
+      const int expectedPktDelta = 0,
+      const int ttl = 255,
+      bool outOfPort = false) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-    sendUdpPkts(numPktsToSend, dstIpAddress, l4SrcPort, l4DstPort);
+    sendUdpPkts(
+        numPktsToSend, dstIpAddress, l4SrcPort, l4DstPort, ttl, outOfPort);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
@@ -1293,6 +1305,25 @@ TYPED_TEST(HwCoppTest, LldpProtocolToMidPriQ) {
 
   auto verify = [=]() {
     this->sendPktAndVerifyLldpPacketsCpuQueue(utility::kCoppMidPriQueueId);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, Ttl1PacketToLowPriQ) {
+  auto setup = [=]() { this->setup(); };
+
+  auto verify = [=]() {
+    auto randomIP = folly::IPAddressV6("2::2");
+    this->sendUdpPktAndVerify(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        1 /* send pkt count */,
+        1 /* expected rx count */,
+        1 /* TTL */,
+        true /* send out of port */);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
