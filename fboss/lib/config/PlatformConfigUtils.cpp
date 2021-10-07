@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/lib/config/PlatformConfigUtils.h"
-
 #include "fboss/agent/FbossError.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -201,18 +200,65 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
 }
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
-    const std::vector<phy::PinConnection>& pinConnections,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+    const cfg::PlatformPortEntry& platformPortEntry,
+    cfg::PortProfileID profileID,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    const phy::PortProfileConfig& portProfileConfig) {
   std::map<int32_t, phy::PolaritySwap> xphyPolaritySwapMap;
-  const auto& xphyPinList = getPinsByChipType(
-      chipsMap, pinConnections, phy::DataPlanePhyChipType::XPHY);
-  for (const auto& pin : xphyPinList) {
-    checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
-    for (const auto& connection : *pin.get_junction().line_ref()) {
-      if (auto pn = connection.polaritySwap_ref()) {
-        xphyPolaritySwapMap.emplace(*connection.a_ref()->lane_ref(), *pn);
+
+  auto profile = platformPortEntry.supportedProfiles_ref()->find(profileID);
+  if (profile == platformPortEntry.supportedProfiles_ref()->end()) {
+    throw FbossError(
+        "Unsupported profile in getXphyLinePolaritySwapMap: ",
+        apache::thrift::util::enumNameSafe(profileID));
+  }
+
+  if (!portProfileConfig.xphyLine_ref()) {
+    throw FbossError("No xphy line info in portProfileConfig");
+  }
+
+  auto numLanes = portProfileConfig.xphyLine_ref()->numLanes_ref();
+
+  // If the profile has an Xphy pin config, use that to determine the number of
+  //   lanes, otherwise use the default pin count in the platformPortEntry
+
+  // If the profile has an Xphy pin config, use that to determine the mapping.
+  // If there's no profile pin config, or the profile doesn't contain any
+  //   polarity swap info, get the polarity swap from the default pin mapping
+  //   from the platformPortEntry
+  auto profilePins = profile->second.pins_ref()->xphyLine_ref();
+  if (profilePins) {
+    for (const auto& pin : *profilePins) {
+      if (pin.polaritySwap_ref()) {
+        xphyPolaritySwapMap[*pin.id_ref()->lane_ref()] =
+            *pin.polaritySwap_ref();
       }
     }
+  }
+  if (xphyPolaritySwapMap.empty()) {
+    auto portEntryLanes = 0;
+    const auto& xphyPinList = getPinsByChipType(
+        chipsMap,
+        *platformPortEntry.mapping_ref()->pins_ref(),
+        phy::DataPlanePhyChipType::XPHY);
+    for (const auto& pin : xphyPinList) {
+      checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
+      for (const auto& connection : *pin.get_junction().line_ref()) {
+        portEntryLanes++;
+        if (auto pn = connection.polaritySwap_ref()) {
+          xphyPolaritySwapMap.emplace(*connection.a_ref()->lane_ref(), *pn);
+        }
+      }
+    }
+  }
+  if (!(xphyPolaritySwapMap.size() == 0 ||
+        xphyPolaritySwapMap.size() == *numLanes)) {
+    throw FbossError(
+        "Computed polarity swap map contained ",
+        xphyPolaritySwapMap.size(),
+        " lanes, but either 0 or ",
+        *numLanes,
+        " lanes are required.");
   }
   return xphyPolaritySwapMap;
 }

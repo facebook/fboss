@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
+#include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
 #include <gtest/gtest.h>
@@ -1146,5 +1147,21 @@ TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
   // expect an error
   EXPECT_THROW(
       platformMapping.mergePlatformSupportedProfile(configEntry4), FbossError);
+}
+
+TEST_F(PlatformMappingTest, VerifyYampXphyLinePolaritySwap) {
+  auto mapping = std::make_unique<Yamp16QPimPlatformMapping>();
+
+  std::map<cfg::PortProfileID, std::map<LaneID, phy::PolaritySwap>>
+      expectedPolaritySwap = {
+          {cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC, {}},
+          {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, {}},
+          {cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N, {}},
+          {cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL, {}},
+          {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL, {}},
+          {cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL, {}},
+      };
+  verifyXphyLinePolaritySwapByProfile(
+      mapping.get(), mapping->getPlatformPorts(), expectedPolaritySwap);
 }
 } // namespace facebook::fboss::test

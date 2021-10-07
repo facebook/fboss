@@ -9,7 +9,9 @@
  */
 #pragma once
 
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -47,8 +49,10 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     std::optional<phy::DataPlanePhyChipType> chipType = std::nullopt);
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
-    const std::vector<phy::PinConnection>& pinConnections,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+    const cfg::PlatformPortEntry& platformPortEntry,
+    cfg::PortProfileID profileID,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    const phy::PortProfileConfig& portProfileConfig);
 
 std::optional<TransceiverID> getTransceiverId(
     const cfg::PlatformPortEntry& port,

@@ -10,8 +10,11 @@
 #pragma once
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook {
 namespace fboss {
@@ -123,6 +126,56 @@ class PlatformMappingTest : public ::testing::Test {
           } else {
             EXPECT_FALSE(tx.has_value());
           }
+        }
+      }
+    }
+  }
+
+  // The LaneID in expectedPolaritySwapMap is 0-based regardless of the actual
+  // start lane of the port, so we don't need to know the physical lanes of the
+  // ports
+  void verifyXphyLinePolaritySwapByProfile(
+      PlatformMapping* platformMapping,
+      const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+      const std::map<cfg::PortProfileID, std::map<LaneID, phy::PolaritySwap>>&
+          expectedPolaritySwapMap) {
+    for (auto& [portId, portEntry] : platformPorts) {
+      const auto& profiles = *portEntry.supportedProfiles_ref();
+      for (auto [profileID, profileConfig] : profiles) {
+        const auto& chips = platformMapping->getChips();
+        if (chips.empty()) {
+          throw FbossError("No DataPlanePhyChips found");
+        }
+        auto expectedPsMap = expectedPolaritySwapMap.find(profileID);
+        CHECK(expectedPsMap != expectedPolaritySwapMap.end())
+            << "No expected polarity swap map for profile "
+            << apache::thrift::util::enumNameSafe(profileID);
+
+        auto matcher =
+            PlatformPortProfileConfigMatcher(profileID, PortID(portId));
+        const auto& portProfileConfig =
+            platformMapping->getPortProfileConfig(matcher);
+
+        CHECK(portProfileConfig);
+
+        auto actualPsMap = utility::getXphyLinePolaritySwapMap(
+            portEntry, profileID, chips, *portProfileConfig);
+        if (actualPsMap.empty()) {
+          CHECK(expectedPsMap->second.empty());
+          continue;
+        }
+
+        auto baseLane = actualPsMap.begin();
+        CHECK(baseLane != actualPsMap.end()) << "No pin configs found.";
+
+        // Verify that all expected values are set
+        CHECK_EQ(actualPsMap.size(), expectedPsMap->second.size());
+        for (const auto& [lane, expectedPs] : expectedPsMap->second) {
+          auto actualLane = lane + baseLane->first;
+          auto actualPs = actualPsMap.find(actualLane);
+          CHECK(actualPs != actualPsMap.end());
+          EXPECT_EQ(*actualPs->second.rx_ref(), *expectedPs.rx_ref());
+          EXPECT_EQ(*actualPs->second.tx_ref(), *expectedPs.tx_ref());
         }
       }
     }

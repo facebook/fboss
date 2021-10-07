@@ -116,7 +116,7 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
       portPinConfig,
       utility::getXphyLinePolaritySwapMap(
-          *platformPortEntry->second.mapping_ref()->pins_ref(), chips));
+          platformPortEntry->second, portProfileId, chips, *portProfileConfig));
   phyPortConfig.profile =
       phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
   return phyPortConfig;

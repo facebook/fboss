@@ -790,8 +790,10 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
 
   // Get the line polarity swap map
   auto linePolaritySwapMap = utility::getXphyLinePolaritySwapMap(
-      *platformPortEntry->second.get_mapping().pins_ref(),
-      platformMapping_->getChips());
+      platformPortEntry->second,
+      portProfileId,
+      platformMapping_->getChips(),
+      *portProfileConfig);
 
   // Build the PhyPortConfig using platform port config pins list, polrity swap
   // map, port profile config

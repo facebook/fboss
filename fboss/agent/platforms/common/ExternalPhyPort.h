@@ -73,7 +73,7 @@ class ExternalPhyPort {
     phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
         portPinConfig,
         utility::getXphyLinePolaritySwapMap(
-            *platformPortEntry.mapping_ref()->pins_ref(), chips));
+            platformPortEntry, profileID, chips, portProfileConfig));
     phyPortConfig.profile =
         phy::ExternalPhyProfileConfig::fromPortProfileConfig(portProfileConfig);
 
