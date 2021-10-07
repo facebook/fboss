@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/hw/HwCpuFb303Stats.h"
+#include "fboss/agent/hw/HwFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 #include "folly/container/F14Map.h"
@@ -72,10 +72,12 @@ class HwPortFb303Stats {
 
   static std::array<folly::StringPiece, 23> kPortStatKeys();
   static std::array<folly::StringPiece, 4> kQueueStatKeys();
+  static std::array<folly::StringPiece, 3> kMacsecStatKeys();
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
  private:
   void reinitStats(std::optional<std::string> oldPortName);
+  void reinitMacsecStats(std::optional<std::string> oldPortName);
   /*
    * Reinit port stat
    */
@@ -120,6 +122,7 @@ class HwPortFb303Stats {
   HwFb303Stats portCounters_;
   QueueId2Name queueId2Name_;
   HwPortStats portStats_;
+  bool macsecStatsInited_{false};
 };
 
 } // namespace facebook::fboss

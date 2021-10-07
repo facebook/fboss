@@ -161,5 +161,20 @@ inline folly::StringPiece constexpr kObmHighWatermark() {
  * Maximum FEC errors we can ever see under any config
  */
 constexpr int kMaxFecErrors = 16;
+/*
+ * Macsec constants
+ */
+
+inline folly::StringPiece constexpr kPreMacsecDropPkts() {
+  return "premacsec_drop_pkts";
+}
+
+inline folly::StringPiece constexpr kMacsecControlPkts() {
+  return "macsec_control_pkts";
+}
+
+inline folly::StringPiece constexpr kMacsecDataPkts() {
+  return "macsec_data_pkts";
+}
 
 } // namespace facebook::fboss

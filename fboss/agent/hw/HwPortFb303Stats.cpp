@@ -52,6 +52,10 @@ std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
       kOutPkts()};
 }
 
+std::array<folly::StringPiece, 3> HwPortFb303Stats::kMacsecStatKeys() {
+  return {kPreMacsecDropPkts(), kMacsecControlPkts(), kMacsecDataPkts()};
+}
+
 std::string HwPortFb303Stats::statName(
     folly::StringPiece statName,
     folly::StringPiece portName) {
@@ -92,8 +96,21 @@ void HwPortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
       portCounters_.reinitStat(newStatName, oldStatName);
     }
   }
+  if (macsecStatsInited_) {
+    reinitMacsecStats(oldPortName);
+  }
 }
 
+/*
+ * Reinit macsec stats
+ */
+void HwPortFb303Stats::reinitMacsecStats(
+    std::optional<std::string> oldPortName) {
+  for (auto statKey : kMacsecStatKeys()) {
+    reinitStat(statKey, portName_, oldPortName);
+  }
+  macsecStatsInited_ = true;
+}
 /*
  * Reinit port stat
  */
@@ -226,6 +243,12 @@ void HwPortFb303Stats::updateStats(
   }
   if (curPortStats.queueWatermarkBytes__ref()->size()) {
     updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes__ref());
+  }
+  // Macsec stats
+  if (curPortStats.macsecStats_ref()) {
+    if (!macsecStatsInited_) {
+      reinitMacsecStats(std::nullopt);
+    }
   }
   portStats_ = curPortStats;
 }
