@@ -63,6 +63,7 @@ HwPortStats getInitedStats() {
       {{0, 3}, {7, 3}}, // outPfc_
       0, // timestamp
       "test", // portName
+      {}, // macsec stats
   };
 }
 

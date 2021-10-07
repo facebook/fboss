@@ -1,7 +1,25 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.hardware_stats
 
+include "fboss/mka_service/if/mka_structs.thrift"
+
 const i64 STAT_UNINITIALIZED = -1;
+
+struct MacsecStats {
+  1: mka_structs.MacsecPortStats portStats;
+  // Cumalative stats for all macsec flows on a port
+  2: mka_structs.MacsecFlowStats ingressFlowStats;
+  3: mka_structs.MacsecFlowStats egressFlowStats;
+  // Secure association stats
+  4: map<
+    mka_structs.MKASecureAssociationId,
+    mka_structs.MacsecSaStats
+  > rxSecureAssociationStats;
+  5: map<
+    mka_structs.MKASecureAssociationId,
+    mka_structs.MacsecSaStats
+  > txSecureAssociationStats;
+}
 
 struct HwPortStats {
   1: i64 inBytes_ = STAT_UNINITIALIZED;
@@ -46,6 +64,7 @@ struct HwPortStats {
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
   51: string portName_ = "";
+  52: optional MacsecStats macsecStats;
 }
 
 struct HwTrunkStats {
@@ -73,6 +92,7 @@ struct HwTrunkStats {
   20: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
   21: i64 outEcnCounter_ = STAT_UNINITIALIZED;
   22: i64 wredDroppedPackets_ = STAT_UNINITIALIZED;
+  23: optional MacsecStats macsecStats;
 }
 
 struct HwResourceStats {

@@ -141,6 +141,11 @@ struct MKASci {
   2: i32 port = 1;
 }
 
+struct MKASecureAssociationId {
+  1: MKASci sci;
+  2: i16 assocNum;
+}
+
 struct MKASak {
   1: MKASci sci;
   2: string l2Port;
