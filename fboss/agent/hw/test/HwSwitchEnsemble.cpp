@@ -27,6 +27,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/experimental/FunctionScheduler.h>
 
@@ -111,15 +112,30 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
     const cfg::SwitchConfig& config) {
+  // Mimic SwSwitch::applyConfig() to modifyTransceiverMap
+  auto originalState = getProgrammedState();
+  auto qsfpCache = getPlatform()->getQsfpCache();
+  if (qsfpCache) {
+    const auto& currentTcvrs = qsfpCache->getAllTransceivers();
+    auto tempState =
+        SwitchState::modifyTransceivers(getProgrammedState(), currentTcvrs);
+    if (tempState) {
+      originalState = tempState;
+    }
+  } else {
+    XLOG(WARNING) << "Current platform doesn't have QsfpCache. "
+                  << "No need to build TransceiverMap";
+  }
+
   if (routingInformationBase_) {
     auto routeUpdater = getRouteUpdater();
     applyNewState(applyThriftConfig(
-        getProgrammedState(), &config, getPlatform(), &routeUpdater));
+        originalState, &config, getPlatform(), &routeUpdater));
     routeUpdater.program();
     return getProgrammedState();
   }
   return applyNewState(
-      applyThriftConfig(getProgrammedState(), &config, getPlatform()));
+      applyThriftConfig(originalState, &config, getPlatform()));
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(

@@ -229,6 +229,15 @@ folly::Future<TransceiverInfo> QsfpCache::futureGet(TransceiverID tcvrId) {
   });
 }
 
+const std::unordered_map<TransceiverID, TransceiverInfo>&
+QsfpCache::getAllTransceivers() const {
+  if (!initialized_.load(std::memory_order_acquire)) {
+    throw std::runtime_error("Cache not yet initialized...");
+  }
+
+  return *tcvrs_.rlock();
+}
+
 void QsfpCache::timeoutExpired() noexcept {
   confirmAlive().then(&QsfpCache::maybeSync, this);
   scheduleTimeout(kLivenessCheckInterval);

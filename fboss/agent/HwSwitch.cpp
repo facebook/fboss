@@ -8,12 +8,14 @@
  *
  */
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/hw/HwSwitchStats.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/normalization/Normalizer.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/normalization/Normalizer.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/TransceiverMap.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/FileUtil.h>

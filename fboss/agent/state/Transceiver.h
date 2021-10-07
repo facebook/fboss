@@ -51,6 +51,9 @@ class Transceiver : public NodeBaseT<Transceiver, TransceiverFields> {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
+  static std::shared_ptr<Transceiver> createPresentTransceiver(
+      const TransceiverInfo& tcvrInfo);
+
   folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }

@@ -66,6 +66,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -1650,9 +1651,28 @@ void SwSwitch::applyConfig(
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
+        auto originalState = state;
+        // Eventually we'll allow qsfp_service to call programInternalPhyPorts
+        // with specific TransceiverInfo, and then build the TransceiverMap from
+        // there. Before we can enable qsfp_service to do that, we need to have
+        // wedge_agent use TrransceiverMap to build Port::profileConfig and
+        // pinConfigs. To do so, we need to manually build this TransceiverMap
+        // by using QsfpCache to fetch all transceiver infos.
+        auto qsfpCache = getPlatform()->getQsfpCache();
+        if (qsfpCache) {
+          const auto& currentTcvrs = qsfpCache->getAllTransceivers();
+          auto tempState = SwitchState::modifyTransceivers(state, currentTcvrs);
+          if (tempState) {
+            originalState = tempState;
+          }
+        } else {
+          XLOG(WARNING) << "Current platform doesn't have QsfpCache. "
+                        << "No need to build TransceiverMap";
+        }
         auto newState = rib_
-            ? applyThriftConfig(state, &newConfig, getPlatform(), &routeUpdater)
-            : applyThriftConfig(state, &newConfig, getPlatform());
+            ? applyThriftConfig(
+                  originalState, &newConfig, getPlatform(), &routeUpdater)
+            : applyThriftConfig(originalState, &newConfig, getPlatform());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");
@@ -1854,5 +1874,4 @@ bool SwSwitch::sendNdpSolicitationHelper(
 
   return sent;
 }
-
 } // namespace facebook::fboss

@@ -107,6 +107,8 @@ class QsfpCache : private folly::AsyncTimeout {
   TransceiverInfo get(TransceiverID tcvrId);
   std::optional<TransceiverInfo> getIf(TransceiverID tcvrId);
   folly::Future<TransceiverInfo> futureGet(TransceiverID tcvrId);
+  const std::unordered_map<TransceiverID, TransceiverInfo>& getAllTransceivers()
+      const;
 
   // output state of the cache. Useful for debugging
   void dump();

@@ -72,6 +72,27 @@ TransceiverFields TransceiverFields::fromFollyDynamic(
 
 Transceiver::Transceiver(TransceiverID id) : NodeBaseT(id) {}
 
+std::shared_ptr<Transceiver> Transceiver::createPresentTransceiver(
+    const TransceiverInfo& tcvrInfo) {
+  std::shared_ptr<Transceiver> newTransceiver;
+  if (*tcvrInfo.present_ref()) {
+    newTransceiver =
+        std::make_shared<Transceiver>(TransceiverID(*tcvrInfo.port_ref()));
+    if (tcvrInfo.cable_ref() && tcvrInfo.cable_ref()->length_ref()) {
+      newTransceiver->setCableLength(*tcvrInfo.cable_ref()->length_ref());
+    }
+    if (auto settings = tcvrInfo.settings_ref();
+        settings && settings->mediaInterface_ref()) {
+      const auto& interface = (*settings->mediaInterface_ref())[0];
+      newTransceiver->setMediaInterface(*interface.code_ref());
+    }
+    if (auto interface = tcvrInfo.transceiverManagementInterface_ref()) {
+      newTransceiver->setManagementInterface(*interface);
+    }
+  }
+  return newTransceiver;
+}
+
 bool Transceiver::operator==(const Transceiver& tcvr) const {
   return getID() == tcvr.getID() && getCableLength() == tcvr.getCableLength() &&
       getMediaInterface() == tcvr.getMediaInterface() &&

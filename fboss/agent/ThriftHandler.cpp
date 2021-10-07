@@ -1294,21 +1294,7 @@ void ThriftHandler::programInternalPhyPorts(
   }
 
   TransceiverID tcvrID = TransceiverID(id);
-  std::shared_ptr<Transceiver> newTransceiver;
-  if (*transceiver->present_ref()) {
-    newTransceiver = std::make_shared<Transceiver>(tcvrID);
-    if (transceiver->cable_ref() && transceiver->cable_ref()->length_ref()) {
-      newTransceiver->setCableLength(*transceiver->cable_ref()->length_ref());
-    }
-    if (auto settings = transceiver->settings_ref();
-        settings && settings->mediaInterface_ref()) {
-      const auto& interface = (*settings->mediaInterface_ref())[0];
-      newTransceiver->setMediaInterface(*interface.code_ref());
-    }
-    if (auto interface = transceiver->transceiverManagementInterface_ref()) {
-      newTransceiver->setManagementInterface(*interface);
-    }
-  }
+  auto newTransceiver = Transceiver::createPresentTransceiver(*transceiver);
 
   const auto tcvr =
       sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);
