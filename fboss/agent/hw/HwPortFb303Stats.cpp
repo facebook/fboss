@@ -249,6 +249,18 @@ void HwPortFb303Stats::updateStats(
     if (!macsecStatsInited_) {
       reinitMacsecStats(std::nullopt);
     }
+    const auto& macsecPortStats =
+        *curPortStats.macsecStats_ref()->portStats_ref();
+    updateStat(
+        timeRetrieved_,
+        kPreMacsecDropPkts(),
+        *macsecPortStats.preMacsecDropPkts_ref());
+    updateStat(
+        timeRetrieved_, kMacsecDataPkts(), *macsecPortStats.dataPkts_ref());
+    updateStat(
+        timeRetrieved_,
+        kMacsecControlPkts(),
+        *macsecPortStats.controlPkts_ref());
   }
   portStats_ = curPortStats;
 }

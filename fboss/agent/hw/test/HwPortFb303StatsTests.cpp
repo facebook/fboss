@@ -27,6 +27,15 @@ HwPortFb303Stats::QueueId2Name kQueue2Name = {
 };
 
 HwPortStats getInitedStats() {
+  MacsecStats macsecStats{
+      apache::thrift::FragileConstructor(),
+      mka::MacsecPortStats{
+          apache::thrift::FragileConstructor(), 1, 2, 3}, // macsec port stats
+      {}, // ingress flow stats
+      {}, // egress flow stats
+      {{}}, // rx SA stats
+      {{}}, // tx SA stats
+  };
   return {
       apache::thrift::FragileConstructor(),
       1, // inBytes
@@ -64,7 +73,7 @@ HwPortStats getInitedStats() {
       {{0, 3}, {7, 3}}, // outPfc_
       0, // timestamp
       "test", // portName
-      {}, // macsec stats
+      macsecStats,
   };
 }
 
@@ -72,6 +81,16 @@ void updateStats(HwPortFb303Stats& portStats) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   // To get last increment from monotonic counter we need to update it twice
   HwPortStats empty{};
+  MacsecStats emptyMacsecStats{
+      apache::thrift::FragileConstructor(),
+      mka::MacsecPortStats{
+          apache::thrift::FragileConstructor(), 0, 0, 0}, // macsec port stats
+      {}, // ingress flow stats
+      {}, // egress flow stats
+      {{}}, // rx SA stats
+      {{}}, // tx SA stats
+  };
+  empty.macsecStats_ref() = emptyMacsecStats;
   // Need to populate queue stats, since by default these
   // maps are empty
   *empty.queueOutDiscardPackets__ref() = *empty.queueOutDiscardBytes__ref() =
@@ -102,6 +121,13 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
           curValue);
     }
     ++curValue;
+  }
+  curValue = 1;
+  for (auto counterName : HwPortFb303Stats::kMacsecStatKeys()) {
+    EXPECT_EQ(
+        portStats.getCounterLastIncrement(
+            HwPortFb303Stats::statName(counterName, kPortName)),
+        curValue++);
   }
 }
 } // namespace
