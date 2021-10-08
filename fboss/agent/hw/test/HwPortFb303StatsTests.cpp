@@ -30,7 +30,15 @@ HwPortStats getInitedStats() {
   MacsecStats macsecStats{
       apache::thrift::FragileConstructor(),
       mka::MacsecPortStats{
-          apache::thrift::FragileConstructor(), 1, 2, 3}, // macsec port stats
+          apache::thrift::FragileConstructor(),
+          1,
+          2,
+          3}, // ingress macsec port stats
+      mka::MacsecPortStats{
+          apache::thrift::FragileConstructor(),
+          1,
+          2,
+          3}, // egress macsec port stats
       {}, // ingress flow stats
       {}, // egress flow stats
       {{}}, // rx SA stats
@@ -84,7 +92,15 @@ void updateStats(HwPortFb303Stats& portStats) {
   MacsecStats emptyMacsecStats{
       apache::thrift::FragileConstructor(),
       mka::MacsecPortStats{
-          apache::thrift::FragileConstructor(), 0, 0, 0}, // macsec port stats
+          apache::thrift::FragileConstructor(),
+          0,
+          0,
+          0}, // ingress  macsec port stats
+      mka::MacsecPortStats{
+          apache::thrift::FragileConstructor(),
+          0,
+          0,
+          0}, // egress  macsec port stats
       {}, // ingress flow stats
       {}, // egress flow stats
       {{}}, // rx SA stats
@@ -122,12 +138,14 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     }
     ++curValue;
   }
-  curValue = 1;
-  for (auto counterName : HwPortFb303Stats::kMacsecStatKeys()) {
-    EXPECT_EQ(
-        portStats.getCounterLastIncrement(
-            HwPortFb303Stats::statName(counterName, kPortName)),
-        curValue++);
+  for (auto ingress : {true, false}) {
+    curValue = 1;
+    for (auto counterName : HwPortFb303Stats::kMacsecPortStatKeys(ingress)) {
+      EXPECT_EQ(
+          portStats.getCounterLastIncrement(
+              HwPortFb303Stats::statName(counterName, kPortName)),
+          curValue++);
+    }
   }
 }
 } // namespace

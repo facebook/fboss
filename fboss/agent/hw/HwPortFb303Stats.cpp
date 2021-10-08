@@ -52,8 +52,14 @@ std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
       kOutPkts()};
 }
 
-std::array<folly::StringPiece, 3> HwPortFb303Stats::kMacsecStatKeys() {
-  return {kPreMacsecDropPkts(), kMacsecControlPkts(), kMacsecDataPkts()};
+std::array<folly::StringPiece, 3> HwPortFb303Stats::kMacsecPortStatKeys(
+    bool ingress) {
+  if (ingress) {
+    return {
+        kInPreMacsecDropPkts(), kInMacsecControlPkts(), kInMacsecDataPkts()};
+  }
+  return {
+      kOutPreMacsecDropPkts(), kOutMacsecControlPkts(), kOutMacsecDataPkts()};
 }
 
 std::string HwPortFb303Stats::statName(
@@ -106,8 +112,10 @@ void HwPortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
  */
 void HwPortFb303Stats::reinitMacsecStats(
     std::optional<std::string> oldPortName) {
-  for (auto statKey : kMacsecStatKeys()) {
-    reinitStat(statKey, portName_, oldPortName);
+  for (auto ingress : {true, false}) {
+    for (auto statKey : kMacsecPortStatKeys(ingress)) {
+      reinitStat(statKey, portName_, oldPortName);
+    }
   }
   macsecStatsInited_ = true;
 }
@@ -249,18 +257,24 @@ void HwPortFb303Stats::updateStats(
     if (!macsecStatsInited_) {
       reinitMacsecStats(std::nullopt);
     }
-    const auto& macsecPortStats =
-        *curPortStats.macsecStats_ref()->portStats_ref();
-    updateStat(
-        timeRetrieved_,
-        kPreMacsecDropPkts(),
-        *macsecPortStats.preMacsecDropPkts_ref());
-    updateStat(
-        timeRetrieved_, kMacsecDataPkts(), *macsecPortStats.dataPkts_ref());
-    updateStat(
-        timeRetrieved_,
-        kMacsecControlPkts(),
-        *macsecPortStats.controlPkts_ref());
+    auto updateMacsecPortStats = [this](auto& macsecPortStats, bool ingress) {
+      updateStat(
+          timeRetrieved_,
+          ingress ? kInPreMacsecDropPkts() : kOutPreMacsecDropPkts(),
+          *macsecPortStats.preMacsecDropPkts_ref());
+      updateStat(
+          timeRetrieved_,
+          ingress ? kInMacsecDataPkts() : kOutMacsecDataPkts(),
+          *macsecPortStats.dataPkts_ref());
+      updateStat(
+          timeRetrieved_,
+          ingress ? kInMacsecControlPkts() : kOutMacsecControlPkts(),
+          *macsecPortStats.controlPkts_ref());
+    };
+    updateMacsecPortStats(
+        *curPortStats.macsecStats_ref()->ingressPortStats_ref(), true);
+    updateMacsecPortStats(
+        *curPortStats.macsecStats_ref()->egressPortStats_ref(), false);
   }
   portStats_ = curPortStats;
 }

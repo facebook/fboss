@@ -165,16 +165,27 @@ constexpr int kMaxFecErrors = 16;
  * Macsec constants
  */
 
-inline folly::StringPiece constexpr kPreMacsecDropPkts() {
-  return "premacsec_drop_pkts";
+inline folly::StringPiece constexpr kInPreMacsecDropPkts() {
+  return "in_premacsec_drop_pkts";
 }
 
-inline folly::StringPiece constexpr kMacsecControlPkts() {
-  return "macsec_control_pkts";
+inline folly::StringPiece constexpr kInMacsecControlPkts() {
+  return "in_macsec_control_pkts";
 }
 
-inline folly::StringPiece constexpr kMacsecDataPkts() {
-  return "macsec_data_pkts";
+inline folly::StringPiece constexpr kInMacsecDataPkts() {
+  return "in_macsec_data_pkts";
 }
 
+inline folly::StringPiece constexpr kOutPreMacsecDropPkts() {
+  return "out_premacsec_drop_pkts";
+}
+
+inline folly::StringPiece constexpr kOutMacsecControlPkts() {
+  return "out_macsec_control_pkts";
+}
+
+inline folly::StringPiece constexpr kOutMacsecDataPkts() {
+  return "out_macsec_data_pkts";
+}
 } // namespace facebook::fboss

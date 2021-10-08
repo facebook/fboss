@@ -96,22 +96,18 @@ const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
 
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
-    HwPortStats& hwPortStats) {
-  if (!hwPortStats.macsecStats_ref()) {
-    hwPortStats.macsecStats_ref() = MacsecStats();
-  }
+    mka::MacsecPortStats& portStats) {
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
-    auto& macsecStats = *hwPortStats.macsecStats_ref();
     switch (counterId) {
       case SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS:
-        macsecStats.portStats_ref()->preMacsecDropPkts_ref() = value;
+        portStats.preMacsecDropPkts_ref() = value;
         break;
       case SAI_MACSEC_PORT_STAT_CONTROL_PKTS:
-        macsecStats.portStats_ref()->controlPkts_ref() = value;
+        portStats.controlPkts_ref() = value;
         break;
       case SAI_MACSEC_PORT_STAT_DATA_PKTS:
-        macsecStats.portStats_ref()->dataPkts_ref() = value;
+        portStats.dataPkts_ref() = value;
         break;
     }
   }
@@ -988,7 +984,14 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
           fillFlowStats(macsecSc.second->flow->getStats(), direction));
     }
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
-    fillHwPortStats(macsecPort.second->port->getStats(), portStats);
+    if (!portStats.macsecStats_ref()) {
+      portStats.macsecStats_ref() = MacsecStats{};
+    }
+    auto& macsecStats = *portStats.macsecStats_ref();
+    auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *macsecStats.ingressPortStats_ref()
+        : *macsecStats.egressPortStats_ref();
+    fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
     fillHwPortFlowStats(
         flowStats,
         direction == SAI_MACSEC_DIRECTION_INGRESS

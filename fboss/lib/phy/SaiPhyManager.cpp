@@ -386,8 +386,12 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
     mka::MacsecDirection direction) {
-  return *getMacsecStats(portName).portStats_ref();
+  auto macsecStats = getMacsecStats(portName);
+  return direction == mka::MacsecDirection::INGRESS
+      ? *macsecStats.ingressPortStats_ref()
+      : *macsecStats.egressPortStats_ref();
 }
+
 mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
     std::string portName,
     mka::MacsecDirection direction) {

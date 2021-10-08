@@ -6,16 +6,17 @@ include "fboss/mka_service/if/mka_structs.thrift"
 const i64 STAT_UNINITIALIZED = -1;
 
 struct MacsecStats {
-  1: mka_structs.MacsecPortStats portStats;
+  1: mka_structs.MacsecPortStats ingressPortStats;
+  2: mka_structs.MacsecPortStats egressPortStats;
   // Cumalative stats for all macsec flows on a port
-  2: mka_structs.MacsecFlowStats ingressFlowStats;
-  3: mka_structs.MacsecFlowStats egressFlowStats;
+  3: mka_structs.MacsecFlowStats ingressFlowStats;
+  4: mka_structs.MacsecFlowStats egressFlowStats;
   // Secure association stats
-  4: map<
+  5: map<
     mka_structs.MKASecureAssociationId,
     mka_structs.MacsecSaStats
   > rxSecureAssociationStats;
-  5: map<
+  6: map<
     mka_structs.MKASecureAssociationId,
     mka_structs.MacsecSaStats
   > txSecureAssociationStats;
