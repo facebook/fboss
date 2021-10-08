@@ -158,11 +158,17 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
  */
 typedef std::pair<std::vector<PortID>, std::vector<PortID>> UplinkDownlinkPair;
 
-UplinkDownlinkPair getRswUplinkDownlinkPorts(const cfg::SwitchConfig& config);
+UplinkDownlinkPair getRswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth);
+UplinkDownlinkPair getRtswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth);
 
 UplinkDownlinkPair getAllUplinkDownlinkPorts(
     const HwSwitch* hwSwitch,
     const cfg::SwitchConfig& config,
-    int kEcmpWidth = 4);
+    const int ecmpWidth = 4,
+    const bool mmu_lossless = false);
 
 } // namespace facebook::fboss::utility

@@ -153,7 +153,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
  * just the vector of port descriptors to set up.
  */
 template <typename AddrT>
-void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
+void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutesVecHelper(
     const std::vector<PortDescriptor>& portDescs,
     const std::vector<NextHopWeight>& weights) {
   boost::container::flat_set<PortDescriptor> fsDescs;

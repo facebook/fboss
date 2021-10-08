@@ -74,7 +74,7 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
     HwLinkStateDependentTest::SetUp();
     prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
         getHwSwitchEnsemble(), initialConfig());
-    prodInvariants_->setupEcmp();
+    prodInvariants_->setupEcmpOnUplinks();
   }
 
   virtual void verifyInvariants(HwInvariantBitmask options) {
@@ -99,11 +99,6 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };
-
-TEST_F(HwProdInvariantsTest, verifyInvariants) {
-  verifyAcrossWarmBoots(
-      []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
-}
 
 class HwProdInvariantsRswTest : public HwProdInvariantsTest {
  protected:
@@ -265,11 +260,11 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
     // since ports in ecmp width start from 0, just ensure atleast first port
     // has attained the line rate
     getHwSwitchEnsemble()->waitForLineRateOnPort(
-        getHwSwitchEnsemble()->masterLogicalPortIds()[0]);
+        prodInvariants_->getEcmpPortIds()[0]);
   }
 
   HwInvariantBitmask getInvariantOptions() const override {
-    return DEFAULT_INVARIANTS | MMU_LOSSLESS_INVARIANT;
+    return DEFAULT_INVARIANTS;
   }
 
  private:

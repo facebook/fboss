@@ -37,7 +37,7 @@ void HwOverflowTest::SetUp() {
   HwLinkStateDependentTest::SetUp();
   prodInvariants_ = std::make_unique<HwProdInvariantHelper>(
       getHwSwitchEnsemble(), initialConfig());
-  prodInvariants_->setupEcmp();
+  prodInvariants_->setupEcmpOnUplinks();
 }
 
 void HwOverflowTest::startPacketTxRxVerify() {
@@ -57,7 +57,11 @@ void HwOverflowTest::startPacketTxRxVerify() {
         dstIp,
         utility::kNonSpecialPort1,
         utility::kBgpPort,
-        masterLogicalPortIds()[0]);
+        // tests using invariants need to ensure
+        // that they don't step over the invariant tests
+        // hence explicitly pick a port to send traffic from
+        // else can result in test failures
+        prodInvariants_->getDownlinkPort());
   };
   packetRxVerifyThread_ =
       std::make_unique<std::thread>([this, sendBgpPktToMe]() {

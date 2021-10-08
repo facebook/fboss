@@ -63,6 +63,7 @@ class HwProdInvariantHelper {
 
   void setupEcmp();
   void setupEcmpWithNextHopMac(const folly::MacAddress& nextHop);
+  void setupEcmpOnUplinks();
   void disableTtl();
   void verifyInvariants(HwInvariantBitmask options) {
     // No point if we're gonna skip all the tests, should receive at least one
@@ -88,7 +89,8 @@ class HwProdInvariantHelper {
     }
   }
   void sendTraffic();
-  virtual PortID getTxPort();
+  PortID getDownlinkPort();
+  void sendTrafficOnDownlink();
   static HwSwitchEnsemble::Features featuresDesired() {
     return {
         HwSwitchEnsemble::LINKSCAN,
@@ -100,6 +102,14 @@ class HwProdInvariantHelper {
     return ensemble_;
   }
   virtual ~HwProdInvariantHelper() {}
+  std::vector<PortID> getEcmpPortIds();
+  std::vector<PortDescriptor> getUplinksForEcmp(const int uplinkCount);
+  void set_mmu_lossless(bool mmu_lossless) {
+    _mmu_lossless_mode = mmu_lossless;
+  }
+  bool is_mmu_lossless_mode() {
+    return _mmu_lossless_mode;
+  }
 
  private:
   cfg::SwitchConfig initialConfig() const {
@@ -117,6 +127,8 @@ class HwProdInvariantHelper {
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;
   cfg::SwitchConfig initialCfg_;
+  std::vector<PortDescriptor> ecmpPorts_{};
+  bool _mmu_lossless_mode = false;
 };
 
 class HwProdRtswInvariantHelper : public HwProdInvariantHelper {
@@ -124,9 +136,10 @@ class HwProdRtswInvariantHelper : public HwProdInvariantHelper {
   HwProdRtswInvariantHelper(
       HwSwitchEnsemble* ensemble,
       const cfg::SwitchConfig& initialCfg)
-      : HwProdInvariantHelper(ensemble, initialCfg) {}
+      : HwProdInvariantHelper(ensemble, initialCfg) {
+    set_mmu_lossless(true);
+  }
 
-  virtual PortID getTxPort() override;
   virtual ~HwProdRtswInvariantHelper() override {}
 };
 

@@ -77,7 +77,7 @@ class HwIpEcmpDataPlaneTestUtil
   void programRoutes(
       const boost::container::flat_set<PortDescriptor>& portDescs,
       const std::vector<NextHopWeight>& weights);
-  void programRoutes(
+  void programRoutesVecHelper(
       const std::vector<PortDescriptor>& portDescs,
       const std::vector<NextHopWeight>& weights);
   /* pump IP traffic */
