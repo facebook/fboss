@@ -81,6 +81,7 @@ add_library(hw_switch_ensemble
 target_link_libraries(hw_switch_ensemble
   hw_link_state_toggler
   core
+  qsfp_cache
 )
 
 add_library(load_balancer_utils
