@@ -575,32 +575,40 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
   cfg::PlatformPortConfigOverrideFactor factor;
-  factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR1_100G;
   for (auto port : mapping->getPlatformPorts()) {
+    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::CWDM4_100G;
     auto portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC, PortID(port.first)));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
-
-    portProfileConfig =
-        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, PortID(port.first)));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS528);
-
-    portProfileConfig =
-        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
-            std::nullopt,
+            cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+            PortID(port.first),
             factor));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
 
+    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::CWDM4_100G;
+    portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            factor));
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS528);
+
+    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR1_100G;
+    portProfileConfig =
+        mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+            PortID(port.first),
+            factor));
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+
+    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR4_200G;
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N,
-            PortID(port.first)));
+            PortID(port.first),
+            factor));
     EXPECT_TRUE(
         *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
   }
@@ -633,23 +641,6 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
 
     factor.transceiverManagementInterface_ref() =
         TransceiverManagementInterface::CMIS;
-    FLAGS_override_cmis_tx_setting = false;
-    portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
-        PlatformPortProfileConfigMatcher(
-            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
-            PortID(port.first),
-            factor),
-        phy::Side::LINE);
-
-    EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
-    for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
-      auto pinId = *portXphyLinePinConfig.id_ref();
-      if (auto tx = portXphyLinePinConfig.tx_ref()) {
-        verifyTxSettings(*tx, YampPort100GSffXphyLinePinConfig);
-      }
-    }
-
-    FLAGS_override_cmis_tx_setting = true;
     portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,

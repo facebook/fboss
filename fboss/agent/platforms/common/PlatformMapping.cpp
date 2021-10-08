@@ -90,7 +90,7 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
   }
   if (auto overrideTransceiverManagementInterface =
           factor.transceiverManagementInterface_ref()) {
-    if (!portConfigOverrideFactor_ || !FLAGS_override_cmis_tx_setting ||
+    if (!portConfigOverrideFactor_ ||
         portConfigOverrideFactor_->transceiverManagementInterface_ref() !=
             overrideTransceiverManagementInterface) {
       return false;
