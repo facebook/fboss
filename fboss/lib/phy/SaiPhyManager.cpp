@@ -209,8 +209,6 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
   auto portId = getPortId(*sak.l2Port_ref());
   mka::MKASakHealthResponse health;
   health.active_ref() = false;
-  // TODO - get egress packet stats to obtain packet number
-  health.lowestAcceptablePN_ref() = 1;
   bool rxActive{false}, txActive{false};
   auto switchState = getPlatformInfo(portId)->getState();
   auto port = switchState->getPorts()->getPortIf(portId);
@@ -224,15 +222,24 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
     }
   }
   health.active_ref() = txActive && rxActive;
+  health.lowestAcceptablePN_ref() = 1;
+  if (*health.active_ref()) {
+    auto macsecStats = getMacsecStats(*sak.l2Port_ref());
+    mka::MKASecureAssociationId saId;
+    saId.sci_ref() = *sak.sci_ref();
+    saId.assocNum_ref() = *sak.assocNum_ref();
+    auto saItr = macsecStats.txSecureAssociationStats_ref()->find(saId);
+    if (saItr != macsecStats.txSecureAssociationStats_ref()->end()) {
+      health.lowestAcceptablePN_ref() = *saItr->second.outEncryptedPkts_ref();
+    }
+  }
   return health;
 }
 
 PortID SaiPhyManager::getPortId(std::string portName) const {
-  try {
-    return PortID(folly::to<int>(portName));
-  } catch (const std::exception& e) {
-    XLOG(INFO) << "Unable to convert port: " << portName
-               << " to int. Looking up port id";
+  auto portIdVal = folly::tryTo<int>(portName);
+  if (portIdVal.hasValue()) {
+    return PortID(portIdVal.value());
   }
   auto platPorts = getPlatformMapping()->getPlatformPorts();
   for (const auto& pair : platPorts) {
@@ -377,8 +384,11 @@ SaiPhyManager::createExternalPhyPortStats(PortID portID) {
 }
 
 MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
-  auto saiSwitch = getSaiSwitch(getPortId(portName));
-  auto hwPortStats = saiSwitch->getPortStats()[portName];
+  auto portId = getPortId(portName);
+  auto saiSwitch = getSaiSwitch(portId);
+  auto pName =
+      folly::tryTo<int>(portName).hasValue() ? getPortName(portId) : portName;
+  auto hwPortStats = saiSwitch->getPortStats()[pName];
   return hwPortStats.macsecStats_ref() ? *hwPortStats.macsecStats_ref()
                                        : MacsecStats{};
 }
