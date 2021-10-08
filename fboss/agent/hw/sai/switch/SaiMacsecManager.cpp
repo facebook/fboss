@@ -116,6 +116,76 @@ void fillHwPortStats(
     }
   }
 }
+mka::MacsecFlowStats fillFlowStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    sai_macsec_direction_t direction) {
+  mka::MacsecFlowStats flowStats{};
+  flowStats.directionIngress_ref() = direction == SAI_MACSEC_DIRECTION_INGRESS;
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+      case SAI_MACSEC_FLOW_STAT_UCAST_PKTS_UNCONTROLLED:
+        flowStats.ucastUncontrolledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_UCAST_PKTS_CONTROLLED:
+        flowStats.ucastControlledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_UNCONTROLLED:
+        flowStats.mcastUncontrolledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_CONTROLLED:
+        flowStats.mcastControlledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_UNCONTROLLED:
+        flowStats.bcastUncontrolledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_CONTROLLED:
+        flowStats.bcastControlledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_CONTROL_PKTS:
+        flowStats.controlPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_PKTS_UNTAGGED:
+        flowStats.untaggedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_OTHER_ERR:
+        flowStats.otherErrPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_OCTETS_UNCONTROLLED:
+        flowStats.octetsUncontrolled_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_OCTETS_CONTROLLED:
+        flowStats.octetsControlled_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_OUT_OCTETS_COMMON:
+        flowStats.outCommonOctets_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_OUT_PKTS_TOO_LONG:
+        flowStats.outTooLongPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_TAGGED_CONTROL_PKTS:
+        flowStats.inTaggedControlledPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_TAG:
+        flowStats.inUntaggedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_PKTS_BAD_TAG:
+        flowStats.inBadTagPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_SCI:
+        flowStats.noSciPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_PKTS_UNKNOWN_SCI:
+        flowStats.unknownSciPkts_ref() = value;
+        break;
+      case SAI_MACSEC_FLOW_STAT_IN_PKTS_OVERRUN:
+        flowStats.overrunPkts_ref() = value;
+        break;
+    }
+  }
+  return flowStats;
+}
+
 } // namespace
 
 namespace facebook::fboss {
