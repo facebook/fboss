@@ -219,6 +219,54 @@ void fillHwPortFlowStats(
       });
 }
 
+mka::MacsecSaStats fillSaStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    sai_macsec_direction_t direction) {
+  mka::MacsecSaStats saStats{};
+  saStats.directionIngress_ref() = direction == SAI_MACSEC_DIRECTION_INGRESS;
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+      case SAI_MACSEC_SA_STAT_OCTETS_ENCRYPTED:
+        saStats.octetsEncrypted_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_OCTETS_PROTECTED:
+        saStats.octetsProtected_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_OUT_PKTS_ENCRYPTED:
+        saStats.outEncryptedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_OUT_PKTS_PROTECTED:
+        saStats.outProtectedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_UNCHECKED:
+        saStats.inUncheckedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_DELAYED:
+        saStats.inDelayedPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_LATE:
+        saStats.inLatePkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_INVALID:
+        saStats.inInvalidPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_NOT_VALID:
+        saStats.inNotValidPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_NOT_USING_SA:
+        saStats.inNoSaPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_UNUSED_SA:
+        saStats.inUnusedSaPkts_ref() = value;
+        break;
+      case SAI_MACSEC_SA_STAT_IN_PKTS_OK:
+        saStats.inOkPkts_ref() = value;
+        break;
+    }
+  }
+  return saStats;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -974,29 +1022,43 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       return;
     }
     auto& macsecPort = *pitr;
+    if (!portStats.macsecStats_ref()) {
+      portStats.macsecStats_ref() = MacsecStats{};
+    }
+    auto& macsecStats = *portStats.macsecStats_ref();
     std::vector<mka::MacsecFlowStats> flowStats;
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
+      MacsecSecureChannelId secureChannelId = macsecSc.first;
+      mka::MKASci sci;
+      sci.macAddress_ref() =
+          folly::MacAddress::fromNBO((secureChannelId >> 16) << 16).toString();
+      sci.port_ref() = secureChannelId & 0xFF;
+      auto& saStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+          ? *macsecStats.rxSecureAssociationStats_ref()
+          : *macsecStats.txSecureAssociationStats_ref();
       for (const auto& macsecSa : macsecSc.second->secureAssocs) {
         macsecSa.second->updateStats<SaiMacsecSATraits>();
+        mka::MKASecureAssociationId saId;
+        saId.sci_ref() = sci;
+        saId.assocNum_ref() = macsecSa.first;
+        saStats[saId] = fillSaStats(macsecSa.second->getStats(), direction);
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
       flowStats.emplace_back(
           fillFlowStats(macsecSc.second->flow->getStats(), direction));
     }
-    macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
-    if (!portStats.macsecStats_ref()) {
-      portStats.macsecStats_ref() = MacsecStats{};
-    }
-    auto& macsecStats = *portStats.macsecStats_ref();
-    auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *macsecStats.ingressPortStats_ref()
-        : *macsecStats.egressPortStats_ref();
-    fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
+    // Flow stats
     fillHwPortFlowStats(
         flowStats,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? *portStats.macsecStats_ref()->ingressFlowStats_ref()
             : *portStats.macsecStats_ref()->egressFlowStats_ref());
+    // Port stats
+    macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
+    auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *macsecStats.ingressPortStats_ref()
+        : *macsecStats.egressPortStats_ref();
+    fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
   }
 }
 
