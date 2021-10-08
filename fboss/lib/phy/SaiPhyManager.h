@@ -135,8 +135,6 @@ class SaiPhyManager : public PhyManager {
   SaiPhyManager(SaiPhyManager const&) = delete;
   SaiPhyManager& operator=(SaiPhyManager const&) = delete;
 
-  SaiMacsecManager* getMacsecManager(PortID portId);
-  const SaiMacsecManager* getMacsecManager(PortID portId) const;
   PortID getPortId(std::string portName) const;
 
   std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(

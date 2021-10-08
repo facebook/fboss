@@ -227,15 +227,6 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
   return health;
 }
 
-SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) {
-  auto saiSwitch = getSaiSwitch(portId);
-  return &saiSwitch->managerTable()->macsecManager();
-}
-
-const SaiMacsecManager* SaiPhyManager::getMacsecManager(PortID portId) const {
-  return const_cast<SaiPhyManager*>(this)->getMacsecManager(portId);
-}
-
 PortID SaiPhyManager::getPortId(std::string portName) const {
   try {
     return PortID(folly::to<int>(portName));
