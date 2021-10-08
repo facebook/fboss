@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 import typing as t
+from datetime import datetime, timedelta
 
 import MySQLdb
 from libfb.py.employee import get_current_unix_user_fbid
@@ -23,6 +24,7 @@ WHERE
     AND ((`originator`) IN ('wedge_agent', 'qsfp_service'))
     AND (CONTAINS(`msg`, ARRAY('linkSnapshot')))
     AND (CONTAINS(`msg`, ARRAY('<port:{}>')))
+    AND `timestamp` BETWEEN {} and {}
 """
 
 SNAPSHOT_FORMAT = r"{}LINK_SNAPSHOT_EVENT(LINK_SNAPSHOT): Collected snapshot for ports  <port:{}>  <linkSnapshot:{}>"
@@ -31,6 +33,8 @@ SNAPSHOT_REGEX = (
     .replace(")", r"\)")
     .format(r".*", r"eth\d+/\d+/\d+", r"(.*)")
 )
+
+DEFAULT_TIME_RANGE = timedelta(hours=1)
 
 
 class SnapshotCollection:
@@ -64,19 +68,55 @@ def escape_sql(sql: str) -> str:
     return MySQLdb.escape_string(sql.encode()).decode()
 
 
+# convert Datetime object to nanosecond timestamp
+def datetime_to_ns(dt: datetime) -> int:
+    return int(dt.timestamp() * 1e9)
+
+
 class SnapshotClient:
     def __init__(self, user):
         self._user = user
 
-    async def fetch_snapshots(
+    # fetches snapshots within the past 3 hours
+    async def fetch_recent_snapshots(
         self, hostname: str, port_name: str
+    ) -> SnapshotCollection:
+        return await self.fetch_snapshots_around_time(
+            hostname, port_name, datetime.now(), timedelta(hours=3)
+        )
+
+    # Fetch the snapshots posted between (timestamp - time_delta) and (timestamp + time_delta)
+    # Note that this filters based on the time that the snapshot was posted,
+    #   and not the time that the snapshot was collected
+    async def fetch_snapshots_around_time(
+        self,
+        hostname: str,
+        port_name: str,
+        timestamp: datetime,
+        time_delta: timedelta = DEFAULT_TIME_RANGE,
+    ) -> SnapshotCollection:
+        return await self.fetch_snapshots_in_timespan(
+            hostname, port_name, timestamp - time_delta, timestamp + time_delta
+        )
+
+    async def fetch_snapshots_in_timespan(
+        self,
+        hostname: str,
+        port_name: str,
+        time_start: datetime,
+        time_end: datetime,
     ) -> SnapshotCollection:
         qc = QueryCommon(
             source="snapshot_manager",
             user_id=self._user,
             instance="network_event_log",
         )
-        sql = SQL.format(escape_sql(hostname), escape_sql(port_name))
+        sql = SQL.format(
+            escape_sql(hostname),
+            escape_sql(port_name),
+            datetime_to_ns(time_start),
+            datetime_to_ns(time_end),
+        )
         async with get_rfe_client() as client:
             scuba_entries = await client.querySQL(qc, sql)
 
