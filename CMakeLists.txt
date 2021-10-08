@@ -324,22 +324,23 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/bcm/packettrace.thrift
 )
 add_fbthrift_cpp_library(
+  mka_structs_cpp2
+  fboss/mka_service/if/mka_structs.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
   hardware_stats_cpp2
   fboss/agent/hw/hardware_stats.thrift
   OPTIONS
     json
     visitation
+  DEPENDS
+    mka_structs_cpp2
 )
 add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
-)
-
-add_fbthrift_cpp_library(
-  mka_structs_cpp2
-  fboss/mka_service/if/mka_structs.thrift
-  OPTIONS
-    json
 )
 
 add_fbthrift_cpp_library(
@@ -419,6 +420,11 @@ if (NOT SAI_ONLY)
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   )
 
+  add_library(module_state_machine STATIC
+    fboss/qsfp_service/module/ModuleStateMachine.cpp
+    fboss/qsfp_service/module/ModuleStateMachineUpdate.cpp
+  )
+
   add_library(qsfp_module STATIC
       fboss/qsfp_service/module/QsfpModule.cpp
       fboss/qsfp_service/module/oss/QsfpModule.cpp
@@ -444,7 +450,6 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
       fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
-      fboss/qsfp_service/TransceiverManager.cpp
   )
 
   # TODO (skhare) refactor fboss_agent and remove this library
@@ -843,6 +848,11 @@ if (NOT SAI_ONLY)
     "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
   )
 
+  target_link_libraries(module_state_machine
+    fboss_error
+    fboss_types
+  )
+
   target_link_libraries(qsfp_module
     fboss_i2c_lib
     qsfp_config_parser
@@ -856,6 +866,7 @@ if (NOT SAI_ONLY)
       fboss_agent
       qsfp_config
       phy_management_base
+      module_state_machine
   )
 
   add_executable(cp2112_util
@@ -890,6 +901,7 @@ if (NOT SAI_ONLY)
       qsfp_module
       ${YAML-CPP}
       phy_management_base
+      module_state_machine
   )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp
