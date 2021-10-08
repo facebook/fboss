@@ -395,92 +395,32 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
     mka::MacsecDirection direction) {
-  mka::MacsecPortStats result;
-  auto portId = getPortId(portName);
-  auto macsecManager = getMacsecManager(portId);
-  auto macsecPort = macsecManager->getMacsecPortHandle(
-      portId, mkaDirectionToSaiDirection(direction));
-  auto stats = macsecPort->port->getStats<SaiMacsecPortTraits>();
-  result.preMacsecDropPkts_ref() =
-      stats[SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS];
-  result.controlPkts_ref() = stats[SAI_MACSEC_PORT_STAT_CONTROL_PKTS];
-  result.dataPkts_ref() = stats[SAI_MACSEC_PORT_STAT_DATA_PKTS];
-  return result;
+  return *getMacsecStats(portName).portStats_ref();
 }
 mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
     std::string portName,
     mka::MacsecDirection direction) {
-  mka::MacsecFlowStats result;
-  auto portId = getPortId(portName);
-  auto macsecManager = getMacsecManager(portId);
-  auto macsecPort = macsecManager->getMacsecPortHandle(
-      portId, mkaDirectionToSaiDirection(direction));
-
-  auto& secureChannel = macsecPort->secureChannels.begin()->second;
-  auto flow = secureChannel->flow;
-
-  // TODO: get active secure channel instead of just using first?
-
-  auto stats = flow->getStats<SaiMacsecFlowTraits>();
-  result.directionIngress_ref() = direction == mka::MacsecDirection::INGRESS;
-  result.ucastUncontrolledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_UCAST_PKTS_UNCONTROLLED];
-  result.ucastControlledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_UCAST_PKTS_CONTROLLED];
-  result.mcastUncontrolledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_UNCONTROLLED];
-  result.mcastControlledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_CONTROLLED];
-  result.bcastUncontrolledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_UNCONTROLLED];
-  result.bcastControlledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_CONTROLLED];
-  result.controlPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_CONTROL_PKTS];
-  result.untaggedPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_PKTS_UNTAGGED];
-  result.otherErrPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_OTHER_ERR];
-  result.octetsUncontrolled_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_OCTETS_UNCONTROLLED];
-  result.octetsControlled_ref() = stats[SAI_MACSEC_FLOW_STAT_OCTETS_CONTROLLED];
-  result.outCommonOctets_ref() = stats[SAI_MACSEC_FLOW_STAT_OUT_OCTETS_COMMON];
-  result.outTooLongPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_OUT_PKTS_TOO_LONG];
-  result.inTaggedControlledPkts_ref() =
-      stats[SAI_MACSEC_FLOW_STAT_IN_TAGGED_CONTROL_PKTS];
-  result.inUntaggedPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_TAG];
-  result.inBadTagPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_IN_PKTS_BAD_TAG];
-  result.noSciPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_SCI];
-  result.unknownSciPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_IN_PKTS_UNKNOWN_SCI];
-  result.overrunPkts_ref() = stats[SAI_MACSEC_FLOW_STAT_IN_PKTS_OVERRUN];
-  return result;
+  auto macsecStats = getMacsecStats(portName);
+  return direction == mka::MacsecDirection::INGRESS
+      ? *macsecStats.ingressFlowStats_ref()
+      : *macsecStats.egressFlowStats_ref();
 }
+
+// TODO this API should really require a SCI
 mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
     std::string portName,
     mka::MacsecDirection direction) {
-  mka::MacsecSaStats result;
-  auto portId = getPortId(portName);
-  auto macsecManager = getMacsecManager(portId);
-  auto macsecPort = macsecManager->getMacsecPortHandle(
-      portId, mkaDirectionToSaiDirection(direction));
-  auto& secureChannel = macsecPort->secureChannels.begin()->second;
-  auto& secureAssoc = secureChannel->secureAssocs.begin()->second;
-
+  auto macsecStats = getMacsecStats(portName);
   // TODO: get active SA from SC
-
-  auto stats = secureAssoc->getStats<SaiMacsecSATraits>();
-
-  result.directionIngress_ref() = direction == mka::MacsecDirection::INGRESS;
-  result.octetsEncrypted_ref() = stats[SAI_MACSEC_SA_STAT_OCTETS_ENCRYPTED];
-  result.octetsProtected_ref() = stats[SAI_MACSEC_SA_STAT_OCTETS_PROTECTED];
-  result.outEncryptedPkts_ref() = stats[SAI_MACSEC_SA_STAT_OUT_PKTS_ENCRYPTED];
-  result.outProtectedPkts_ref() = stats[SAI_MACSEC_SA_STAT_OUT_PKTS_PROTECTED];
-  result.inUncheckedPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_UNCHECKED];
-  result.inDelayedPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_DELAYED];
-  result.inLatePkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_LATE];
-  result.inInvalidPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_INVALID];
-  result.inNotValidPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_NOT_VALID];
-  result.inNoSaPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_NOT_USING_SA];
-  result.inUnusedSaPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_UNUSED_SA];
-  result.inOkPkts_ref() = stats[SAI_MACSEC_SA_STAT_IN_PKTS_OK];
-  return result;
+  if (direction == mka::MacsecDirection::INGRESS) {
+    return macsecStats.rxSecureAssociationStats_ref()->size()
+        ? macsecStats.rxSecureAssociationStats_ref()->begin()->second
+        : mka::MacsecSaStats{};
+  } else {
+    return macsecStats.txSecureAssociationStats_ref()->size()
+        ? macsecStats.txSecureAssociationStats_ref()->begin()->second
+        : mka::MacsecSaStats{};
+  }
 }
 
 } // namespace facebook::fboss
