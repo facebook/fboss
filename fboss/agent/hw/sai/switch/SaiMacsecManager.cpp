@@ -186,6 +186,43 @@ mka::MacsecFlowStats fillFlowStats(
   return flowStats;
 }
 
+void fillHwPortFlowStats(
+    const std::vector<mka::MacsecFlowStats>& flowStats,
+    mka::MacsecFlowStats& portFlowStats) {
+  // Accumulate - TODO check if h/w gives us cumulative stats or stats from last
+  // read
+  std::for_each(
+      flowStats.begin(), flowStats.end(), [&portFlowStats](const auto& stats) {
+        *portFlowStats.ucastUncontrolledPkts_ref() +=
+            *stats.ucastUncontrolledPkts_ref();
+        *portFlowStats.ucastControlledPkts_ref() +=
+            *stats.ucastControlledPkts_ref();
+        *portFlowStats.mcastUncontrolledPkts_ref() +=
+            *stats.mcastUncontrolledPkts_ref();
+        *portFlowStats.mcastControlledPkts_ref() +=
+            *stats.mcastControlledPkts_ref();
+        *portFlowStats.bcastUncontrolledPkts_ref() +=
+            *stats.bcastUncontrolledPkts_ref();
+        *portFlowStats.bcastControlledPkts_ref() +=
+            *stats.bcastControlledPkts_ref();
+        *portFlowStats.controlPkts_ref() += *stats.controlPkts_ref();
+        *portFlowStats.untaggedPkts_ref() += *stats.untaggedPkts_ref();
+        *portFlowStats.otherErrPkts_ref() += *stats.otherErrPkts_ref();
+        *portFlowStats.octetsUncontrolled_ref() +=
+            *stats.octetsUncontrolled_ref();
+        *portFlowStats.octetsControlled_ref() += *stats.octetsControlled_ref();
+        *portFlowStats.outCommonOctets_ref() += *stats.outCommonOctets_ref();
+        *portFlowStats.outTooLongPkts_ref() += *stats.outTooLongPkts_ref();
+        *portFlowStats.inTaggedControlledPkts_ref() +=
+            *stats.inTaggedControlledPkts_ref();
+        *portFlowStats.inUntaggedPkts_ref() += *stats.inUntaggedPkts_ref();
+        *portFlowStats.inBadTagPkts_ref() += *stats.inBadTagPkts_ref();
+        *portFlowStats.noSciPkts_ref() += *stats.noSciPkts_ref();
+        *portFlowStats.unknownSciPkts_ref() += *stats.unknownSciPkts_ref();
+        *portFlowStats.overrunPkts_ref() += *stats.overrunPkts_ref();
+      });
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -934,20 +971,29 @@ void SaiMacsecManager::removeAcls(
 }
 
 void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
-  for (const auto& macsec : macsecHandles_) {
-    auto pitr = macsec.second->ports.find(port);
-    if (pitr == macsec.second->ports.end()) {
+  for (const auto& dirAndMacsec : macsecHandles_) {
+    const auto& [direction, macsec] = dirAndMacsec;
+    auto pitr = macsec->ports.find(port);
+    if (pitr == macsec->ports.end()) {
       return;
     }
     auto& macsecPort = *pitr;
+    std::vector<mka::MacsecFlowStats> flowStats;
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       for (const auto& macsecSa : macsecSc.second->secureAssocs) {
         macsecSa.second->updateStats<SaiMacsecSATraits>();
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
+      flowStats.emplace_back(
+          fillFlowStats(macsecSc.second->flow->getStats(), direction));
     }
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
     fillHwPortStats(macsecPort.second->port->getStats(), portStats);
+    fillHwPortFlowStats(
+        flowStats,
+        direction == SAI_MACSEC_DIRECTION_INGRESS
+            ? *portStats.macsecStats_ref()->ingressFlowStats_ref()
+            : *portStats.macsecStats_ref()->egressFlowStats_ref());
   }
 }
 
