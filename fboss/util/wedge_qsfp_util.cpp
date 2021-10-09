@@ -282,7 +282,7 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::Ev
  */
 TransceiverManagementInterface getModuleType(
   TransceiverI2CApi* bus, unsigned int port) {
-  uint8_t moduleId;
+  uint8_t moduleId = static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN);
 
   // Get the module id to differentiate between CMIS (0x1e) and SFF
   for (auto retry = 0; retry < numRetryGetModuleType; retry++) {
@@ -1405,6 +1405,45 @@ void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
   }
 }
 
+void printSff8472DetailService(
+    const TransceiverInfo& transceiverInfo,
+    unsigned int port,
+    bool /* verbose */) {
+  auto settings = *(transceiverInfo.settings_ref());
+
+  printf("Port %d\n", port);
+
+  // ------ Module Status -------
+  printf("  Module Status:\n");
+  if (auto identifier = transceiverInfo.identifier_ref()) {
+    printf(
+        "    Transceiver Identifier: %s\n",
+        apache::thrift::util::enumNameSafe(*identifier).c_str());
+  }
+
+  printManagementInterface(
+      transceiverInfo, "    Transceiver Management Interface: %s\n");
+  if (auto mediaInterfaceId = settings.mediaInterface_ref()) {
+    printf(
+        "  Media Interface: %s\n",
+        apache::thrift::util::enumNameSafe(
+            (*mediaInterfaceId)[0].media_ref()->get_ethernet10GComplianceCode())
+            .c_str());
+  }
+  printSignalsAndSettings(transceiverInfo);
+  printDomMonitors(transceiverInfo);
+
+  // if (verbose) {
+  //   printVerboseInfo(transceiverInfo);
+  // }
+
+  // printVendorInfo(transceiverInfo);
+
+  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+    printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
+  }
+}
+
 void printSffDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
@@ -1887,6 +1926,8 @@ void printPortDetailService(
           transceiverInfo.transceiverManagementInterface_ref()) {
     if (*mgmtInterface == TransceiverManagementInterface::SFF) {
       printSffDetailService(transceiverInfo, port, verbose);
+    } else if (*mgmtInterface == TransceiverManagementInterface::SFF8472) {
+      printSff8472DetailService(transceiverInfo, port, verbose);
     } else {
       assert(*mgmtInterface == TransceiverManagementInterface::CMIS);
       printCmisDetailService(transceiverInfo, port, verbose);
