@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
@@ -206,6 +207,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::WEDGE400) {
       saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::DARWIN) {
+      saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::YAMP) {
