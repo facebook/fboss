@@ -39,11 +39,23 @@ class FbFpgaI2c : public I2cController {
       uint32_t pim,
       int version);
 
-  uint8_t readByte(uint8_t channel, uint8_t offset);
-  void read(uint8_t channel, uint8_t offset, folly::MutableByteRange buf);
+  uint8_t readByte(uint8_t channel, uint8_t offset, uint8_t i2cAddress = 0x50);
+  void read(
+      uint8_t channel,
+      uint8_t offset,
+      folly::MutableByteRange buf,
+      uint8_t i2cAddress = 0x50);
 
-  void writeByte(uint8_t channel, uint8_t offset, uint8_t val);
-  void write(uint8_t channel, uint8_t offset, folly::ByteRange buf);
+  void writeByte(
+      uint8_t channel,
+      uint8_t offset,
+      uint8_t val,
+      uint8_t i2cAddress = 0x50);
+  void write(
+      uint8_t channel,
+      uint8_t offset,
+      folly::ByteRange buf,
+      uint8_t i2cAddress = 0x50);
 
  private:
   bool waitForResponse(size_t len);
@@ -81,11 +93,23 @@ class FbFpgaI2cController {
       int version = 0);
   ~FbFpgaI2cController();
 
-  uint8_t readByte(uint8_t channel, uint8_t offset);
-  void read(uint8_t channel, uint8_t offset, folly::MutableByteRange buf);
+  uint8_t readByte(uint8_t channel, uint8_t offset, uint8_t i2cAddress = 0x50);
+  void read(
+      uint8_t channel,
+      uint8_t offset,
+      folly::MutableByteRange buf,
+      uint8_t i2cAddress = 0x50);
 
-  void writeByte(uint8_t channel, uint8_t offset, uint8_t val);
-  void write(uint8_t channel, uint8_t offset, folly::ByteRange buf);
+  void writeByte(
+      uint8_t channel,
+      uint8_t offset,
+      uint8_t val,
+      uint8_t i2cAddress = 0x50);
+  void write(
+      uint8_t channel,
+      uint8_t offset,
+      folly::ByteRange buf,
+      uint8_t i2cAddress = 0x50);
 
   folly::EventBase* getEventBase();
 

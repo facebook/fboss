@@ -70,16 +70,18 @@ bool FbFpgaI2c::waitForResponse(size_t len) {
   return rtcStatus.dataUnion.desc0done;
 }
 
-uint8_t FbFpgaI2c::readByte(uint8_t channel, uint8_t offset) {
+uint8_t
+FbFpgaI2c::readByte(uint8_t channel, uint8_t offset, uint8_t i2cAddress) {
   uint8_t byte = 0;
-  read(channel, offset, folly::MutableByteRange(&byte, 1));
+  read(channel, offset, folly::MutableByteRange(&byte, 1), i2cAddress);
   return byte;
 }
 
 void FbFpgaI2c::read(
     uint8_t channel,
     uint8_t offset,
-    folly::MutableByteRange buf) {
+    folly::MutableByteRange buf,
+    uint8_t i2cAddress) {
   I2cDescriptorLower descLower(version_);
   I2cDescriptorUpper descUpper(version_);
   descLower.dataUnion.reg = 0;
@@ -91,6 +93,7 @@ void FbFpgaI2c::read(
   descUpper.dataUnion.offset = offset;
   descUpper.dataUnion.channel = channel;
   descUpper.dataUnion.valid = 1;
+  descUpper.dataUnion.i2cA2Access = (i2cAddress == 0x51);
 
   writeReg(descLower);
   writeReg(descUpper);
@@ -120,11 +123,19 @@ void FbFpgaI2c::read(
   }
 }
 
-void FbFpgaI2c::writeByte(uint8_t channel, uint8_t offset, uint8_t val) {
-  write(channel, offset, folly::ByteRange(&val, 1));
+void FbFpgaI2c::writeByte(
+    uint8_t channel,
+    uint8_t offset,
+    uint8_t val,
+    uint8_t i2cAddress) {
+  write(channel, offset, folly::ByteRange(&val, 1), i2cAddress);
 }
 
-void FbFpgaI2c::write(uint8_t channel, uint8_t offset, folly::ByteRange buf) {
+void FbFpgaI2c::write(
+    uint8_t channel,
+    uint8_t offset,
+    folly::ByteRange buf,
+    uint8_t i2cAddress) {
   I2cDescriptorLower descLower(version_);
   I2cDescriptorUpper descUpper(version_);
   descLower.dataUnion.reg = 0;
@@ -136,6 +147,7 @@ void FbFpgaI2c::write(uint8_t channel, uint8_t offset, folly::ByteRange buf) {
   descUpper.dataUnion.offset = offset;
   descUpper.dataUnion.channel = channel;
   descUpper.dataUnion.valid = 1;
+  descUpper.dataUnion.i2cA2Access = (i2cAddress == 0x51);
 
   // Increment the counter for write transaction issued
   incrWriteTotal();
@@ -241,7 +253,10 @@ FbFpgaI2cController::~FbFpgaI2cController() {
   thread_->join();
 }
 
-uint8_t FbFpgaI2cController::readByte(uint8_t channel, uint8_t offset) {
+uint8_t FbFpgaI2cController::readByte(
+    uint8_t channel,
+    uint8_t offset,
+    uint8_t i2cAddress) {
   uint8_t buf;
   XLOG(DBG5) << folly::sformat(
       "FbFpgaI2cController::readByte pim {:d} rtc {:d} chan {:d} offset {:d}",
@@ -250,11 +265,11 @@ uint8_t FbFpgaI2cController::readByte(uint8_t channel, uint8_t offset) {
       channel,
       offset);
   if (eventBase_->isInEventBaseThread()) {
-    buf = syncedFbI2c_.lock()->readByte(channel, offset);
+    buf = syncedFbI2c_.lock()->readByte(channel, offset, i2cAddress);
   } else {
     via(eventBase_.get())
         .thenValue([&](auto&&) mutable {
-          buf = syncedFbI2c_.lock()->readByte(channel, offset);
+          buf = syncedFbI2c_.lock()->readByte(channel, offset, i2cAddress);
         })
         .get();
   }
@@ -264,7 +279,8 @@ uint8_t FbFpgaI2cController::readByte(uint8_t channel, uint8_t offset) {
 void FbFpgaI2cController::read(
     uint8_t channel,
     uint8_t offset,
-    folly::MutableByteRange buf) {
+    folly::MutableByteRange buf,
+    uint8_t i2cAddress) {
   XLOG(DBG5) << folly::sformat(
       "FbFpgaI2cController::read pim {:d} rtc {:d} chan {:d} offset {:d}",
       pim_,
@@ -272,11 +288,11 @@ void FbFpgaI2cController::read(
       channel,
       offset);
   if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->read(channel, offset, buf);
+    syncedFbI2c_.lock()->read(channel, offset, buf, i2cAddress);
   } else {
     via(eventBase_.get())
         .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->read(channel, offset, buf);
+          syncedFbI2c_.lock()->read(channel, offset, buf, i2cAddress);
         })
         .get();
   }
@@ -285,7 +301,8 @@ void FbFpgaI2cController::read(
 void FbFpgaI2cController::writeByte(
     uint8_t channel,
     uint8_t offset,
-    uint8_t val) {
+    uint8_t val,
+    uint8_t i2cAddress) {
   XLOG(DBG5) << folly::sformat(
       "FbFpgaI2cController::writeByte pim {:d} rtc {:d} chan {:d} offset {:d} val {:d}",
       pim_,
@@ -294,11 +311,11 @@ void FbFpgaI2cController::writeByte(
       offset,
       val);
   if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->writeByte(channel, offset, val);
+    syncedFbI2c_.lock()->writeByte(channel, offset, val, i2cAddress);
   } else {
     via(eventBase_.get())
         .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->writeByte(channel, offset, val);
+          syncedFbI2c_.lock()->writeByte(channel, offset, val, i2cAddress);
         })
         .get();
   }
@@ -307,7 +324,8 @@ void FbFpgaI2cController::writeByte(
 void FbFpgaI2cController::write(
     uint8_t channel,
     uint8_t offset,
-    folly::ByteRange buf) {
+    folly::ByteRange buf,
+    uint8_t i2cAddress) {
   XLOG(DBG5) << folly::sformat(
       "FbFpgaI2cController::write pim {:d} rtc {:d} chan {:d} offset {:d}",
       pim_,
@@ -315,11 +333,11 @@ void FbFpgaI2cController::write(
       channel,
       offset);
   if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->write(channel, offset, buf);
+    syncedFbI2c_.lock()->write(channel, offset, buf, i2cAddress);
   } else {
     via(eventBase_.get())
         .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->write(channel, offset, buf);
+          syncedFbI2c_.lock()->write(channel, offset, buf, i2cAddress);
         })
         .get();
   }

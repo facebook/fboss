@@ -47,7 +47,10 @@ union I2cDescriptorUpperDataUnion {
     uint32_t page : 8;
     uint32_t bank : 8;
     uint32_t channel : 2;
-    uint32_t reserved : 5;
+    uint32_t reserved : 4;
+    uint32_t i2cA2Access : 1; // Enables I2C Access from 0xA2 address (default
+                              // 0xA0 access). Only for FPGA version
+                              // >= 1.10, no-op for others
     uint32_t valid : 1; // Write 1 to trigger a new I2C txn.
   };
 };
@@ -65,7 +68,7 @@ inline std::ostream& operator<<(
   auto data = upper.dataUnion;
   os << "I2cDescriptorUpper: offset=0x" << std::hex << data.offset << " page=0x"
      << data.page << " bank=0x" << data.bank << " channel=0x" << data.channel
-     << " valid=0x" << data.valid;
+     << " valid=0x" << data.valid << " i2cA2Access=0x" << data.i2cA2Access;
   return os;
 }
 
