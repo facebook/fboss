@@ -350,7 +350,7 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
       "  Flow direction: %s\n",
       *flowStats.directionIngress_ref() ? "Ingress" : "Egress");
   printf(
-      "  UnicastControlledPackets: %ld\n",
+      "  UnicastUncontrolledPackets: %ld\n",
       *flowStats.ucastUncontrolledPkts_ref());
   printf(
       "  UnicastControlledPackets: %ld\n",
