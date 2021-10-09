@@ -58,13 +58,16 @@ class SaiPhyManager : public PhyManager {
 
   mka::MacsecPortStats getMacsecPortStats(
       std::string portName,
-      mka::MacsecDirection direction) override;
+      mka::MacsecDirection direction,
+      bool readFromHw) override;
   mka::MacsecFlowStats getMacsecFlowStats(
       std::string portName,
-      mka::MacsecDirection direction) override;
+      mka::MacsecDirection direction,
+      bool readFromHw) override;
   mka::MacsecSaStats getMacsecSecureAssocStats(
       std::string portName,
-      mka::MacsecDirection direction) override;
+      mka::MacsecDirection direction,
+      bool readFromHw) override;
 
   void programOnePort(
       PortID portId,
@@ -130,6 +133,11 @@ class SaiPhyManager : public PhyManager {
   const PlatformInfo* getPlatformInfo(PortID portId) const {
     return const_cast<SaiPhyManager*>(this)->getPlatformInfo(portId);
   }
+  MacsecStats getMacsecStats(const std::string& portName, bool readFromHw) {
+    return readFromHw ? getMacsecStatsFromHw(portName)
+                      : getMacsecStats(portName);
+  }
+  MacsecStats getMacsecStatsFromHw(const std::string& portName);
   MacsecStats getMacsecStats(const std::string& portName) const;
   // Forbidden copy constructor and assignment operator
   SaiPhyManager(SaiPhyManager const&) = delete;

@@ -123,16 +123,19 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   folly::coro::Task<std::unique_ptr<mka::MacsecPortStats>>
   co_macsecGetPortStats(
       std::unique_ptr<std::string> portName,
-      bool directionIngress) override;
+      bool directionIngress,
+      bool readFromHw) override;
 
   folly::coro::Task<std::unique_ptr<mka::MacsecFlowStats>>
   co_macsecGetFlowStats(
       std::unique_ptr<std::string> portName,
-      bool directionIngress) override;
+      bool directionIngress,
+      bool readFromHw) override;
 
   folly::coro::Task<std::unique_ptr<mka::MacsecSaStats>> co_macsecGetSaStats(
       std::unique_ptr<std::string> portName,
-      bool directionIngress) override;
+      bool directionIngress,
+      bool readFromHw) override;
 #endif
 
  private:

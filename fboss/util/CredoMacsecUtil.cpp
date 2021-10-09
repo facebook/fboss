@@ -46,6 +46,7 @@ DEFINE_bool(
     false,
     "Get SA stats, use with --port --ingress/--egress");
 
+constexpr bool kReadFromHw = true;
 /*
  * getMacsecSaFromJson()
  * Reads MacSec SA information from JSON file to MKASak structure.
@@ -321,7 +322,7 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   MacsecPortStats portStats;
   fbMacsecHandler->sync_macsecGetPortStats(
-      portStats, FLAGS_port, FLAGS_ingress);
+      portStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
 
   printf("Printing stats for %s\n", FLAGS_port.c_str());
   printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");
@@ -342,7 +343,7 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   MacsecFlowStats flowStats;
   fbMacsecHandler->sync_macsecGetFlowStats(
-      flowStats, FLAGS_port, FLAGS_ingress);
+      flowStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
 
   printf("Printing stats for %s\n", FLAGS_port.c_str());
   printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");
@@ -398,7 +399,7 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   MacsecSaStats saStats;
-  fbMacsecHandler->sync_macsecGetSaStats(saStats, FLAGS_port, FLAGS_ingress);
+  fbMacsecHandler->sync_macsecGetSaStats(saStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
 
   printf("Printing stats for %s\n", FLAGS_port.c_str());
   printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");

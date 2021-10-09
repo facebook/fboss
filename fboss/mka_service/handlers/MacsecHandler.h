@@ -74,8 +74,9 @@ class MacsecHandler {
    * Get the macsec Sa stats
    */
   virtual MacsecPortStats macsecGetPortStats(
-    const std::string& /* portName */,
-    bool /* directionIngress */) {
+      const std::string& /* portName */,
+      bool /* directionIngress */,
+      bool /* readFromHw */) {
     return MacsecPortStats{};
   }
 
@@ -84,7 +85,8 @@ class MacsecHandler {
    */
   virtual MacsecFlowStats macsecGetFlowStats(
     const std::string& /* portName */,
-    bool /* directionIngress */) {
+    bool /* directionIngress */,
+    bool /* readFromHw */) {
     return MacsecFlowStats{};
   }
 
@@ -93,7 +95,8 @@ class MacsecHandler {
    */
   virtual MacsecSaStats macsecGetSaStats(
       const std::string& /* portName */,
-    bool /* directionIngress */) {
+    bool /* directionIngress */,
+    bool /* readFromHw */) {
     return MacsecSaStats{};
   }
 

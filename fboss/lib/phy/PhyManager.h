@@ -107,19 +107,22 @@ class PhyManager {
 
   virtual mka::MacsecPortStats getMacsecPortStats(
       std::string /* portName */,
-      mka::MacsecDirection /* direction */) {
+      mka::MacsecDirection /* direction */,
+      bool /*readFromHw*/) {
     throw FbossError(
         "Attempted to call getMacsecPortStats from non-SaiPhyManager");
   }
   virtual mka::MacsecFlowStats getMacsecFlowStats(
       std::string /* portName */,
-      mka::MacsecDirection /* direction */) {
+      mka::MacsecDirection /* direction */,
+      bool /* readFromHw */) {
     throw FbossError(
         "Attempted to call getMacsecFlowStats from non-SaiPhyManager");
   }
   virtual mka::MacsecSaStats getMacsecSecureAssocStats(
       std::string /* portName */,
-      mka::MacsecDirection /* direction */) {
+      mka::MacsecDirection /* direction */,
+      bool /* readFromHw */) {
     throw FbossError(
         "Attempted to call getMacsecSecureAssocStats from non-SaiPhyManager");
   }

@@ -383,6 +383,13 @@ SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   return std::make_unique<NullPortStats>(getPortName(portID));
 }
 
+MacsecStats SaiPhyManager::getMacsecStatsFromHw(const std::string& portName) {
+  auto saiSwitch = getSaiSwitch(getPortId(portName));
+  static SwitchStats unused;
+  saiSwitch->updateStats(&unused);
+  return getMacsecStats(portName);
+}
+
 MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
   auto portId = getPortId(portName);
   auto saiSwitch = getSaiSwitch(portId);
@@ -395,8 +402,9 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
 
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
-    mka::MacsecDirection direction) {
-  auto macsecStats = getMacsecStats(portName);
+    mka::MacsecDirection direction,
+    bool readFromHw) {
+  auto macsecStats = getMacsecStats(portName, readFromHw);
   return direction == mka::MacsecDirection::INGRESS
       ? *macsecStats.ingressPortStats_ref()
       : *macsecStats.egressPortStats_ref();
@@ -404,8 +412,9 @@ mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
 
 mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
     std::string portName,
-    mka::MacsecDirection direction) {
-  auto macsecStats = getMacsecStats(portName);
+    mka::MacsecDirection direction,
+    bool readFromHw) {
+  auto macsecStats = getMacsecStats(portName, readFromHw);
   return direction == mka::MacsecDirection::INGRESS
       ? *macsecStats.ingressFlowStats_ref()
       : *macsecStats.egressFlowStats_ref();
@@ -414,8 +423,9 @@ mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
 // TODO this API should really require a SCI
 mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
     std::string portName,
-    mka::MacsecDirection direction) {
-  auto macsecStats = getMacsecStats(portName);
+    mka::MacsecDirection direction,
+    bool readFromHw) {
+  auto macsecStats = getMacsecStats(portName, readFromHw);
   // TODO: get active SA from SC
   if (direction == mka::MacsecDirection::INGRESS) {
     return macsecStats.rxSecureAssociationStats_ref()->size()
