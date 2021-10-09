@@ -68,13 +68,14 @@ class Sff8472Module : public QsfpModule {
     return std::nullopt;
   }
 
-  GlobalSensors getSensorInfo() override {
-    return GlobalSensors();
-  }
+  /*
+   * returns individual sensor values after scaling
+   */
+  double getSfpSensor(Sff8472Field field, double (*conversion)(uint16_t value));
 
-  bool getSensorsPerChanInfo(std::vector<Channel>& /* channels */) override {
-    return true;
-  }
+  GlobalSensors getSensorInfo() override;
+
+  bool getSensorsPerChanInfo(std::vector<Channel>& channels) override;
 
   bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>&) override {
     return false;

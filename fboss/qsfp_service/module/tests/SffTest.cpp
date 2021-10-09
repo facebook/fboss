@@ -259,6 +259,14 @@ TEST(SfpTest, transceiverInfoTest) {
         Ethernet10GComplianceCode::LR_10G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::LR_10G);
   }
+  tests.verifyTemp(18.203125);
+  tests.verifyVcc(2.2136);
+  std::map<std::string, std::vector<double>> laneDom = {
+      {"TxBias", {79.224}},
+      {"TxPwr", {5.6849}},
+      {"RxPwr", {0.8755}},
+  };
+  tests.verifyLaneDom(laneDom, sfp->numMediaLanes());
 }
 
 } // namespace

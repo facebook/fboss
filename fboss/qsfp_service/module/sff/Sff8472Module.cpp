@@ -201,5 +201,79 @@ Ethernet10GComplianceCode Sff8472Module::getEthernet10GComplianceCode() const {
       getSettingsValue(Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE));
 }
 
+double Sff8472Module::getSfpSensor(
+    Sff8472Field field,
+    double (*conversion)(uint16_t value)) {
+  auto info = Sff8472FieldInfo::getSff8472FieldAddress(sfpFields, field);
+  const uint8_t* data = getSfpValuePtr(
+      info.dataAddress, info.offset, info.length, info.transceiverI2CAddress);
+  CHECK_EQ(info.length, 2);
+  return conversion(data[0] << 8 | data[1]);
+}
+
+GlobalSensors Sff8472Module::getSensorInfo() {
+  GlobalSensors info = GlobalSensors();
+  info.temp_ref()->value_ref() =
+      getSfpSensor(Sff8472Field::TEMPERATURE, Sff8472FieldInfo::getTemp);
+  info.vcc_ref()->value_ref() =
+      getSfpSensor(Sff8472Field::VCC, Sff8472FieldInfo::getVcc);
+  return info;
+}
+
+bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
+  int offset;
+  int length;
+  int dataAddress;
+  uint8_t transceiverI2CAddress;
+
+  // TX Bias
+  getSfpFieldAddress(
+      Sff8472Field::CHANNEL_TX_BIAS,
+      dataAddress,
+      offset,
+      length,
+      transceiverI2CAddress);
+  const uint8_t* data =
+      getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+  uint16_t value = data[0] << 8 | data[1];
+  CHECK_EQ(channels.size(), 1);
+  CHECK_EQ(numMediaLanes(), 1);
+  auto firstChannel = channels.begin();
+  firstChannel->sensors_ref()->txBias_ref()->value_ref() =
+      Sff8472FieldInfo::getTxBias(value);
+
+  // TX Power
+  getSfpFieldAddress(
+      Sff8472Field::CHANNEL_TX_PWR,
+      dataAddress,
+      offset,
+      length,
+      transceiverI2CAddress);
+  data = getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+  value = data[0] << 8 | data[1];
+  auto pwr = Sff8472FieldInfo::getPwr(value);
+  firstChannel->sensors_ref()->txPwr_ref()->value_ref() = pwr;
+  Sensor txDbm;
+  txDbm.value_ref() = mwToDb(pwr);
+  firstChannel->sensors_ref()->txPwrdBm_ref() = txDbm;
+
+  // RX Power
+  getSfpFieldAddress(
+      Sff8472Field::CHANNEL_RX_PWR,
+      dataAddress,
+      offset,
+      length,
+      transceiverI2CAddress);
+  data = getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+  value = data[0] << 8 | data[1];
+  pwr = Sff8472FieldInfo::getPwr(value);
+  firstChannel->sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+  Sensor rxDbm;
+  rxDbm.value_ref() = mwToDb(pwr);
+  firstChannel->sensors_ref()->rxPwrdBm_ref() = rxDbm;
+
+  return true;
+}
+
 } // namespace fboss
 } // namespace facebook
