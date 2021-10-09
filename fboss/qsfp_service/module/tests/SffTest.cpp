@@ -267,6 +267,18 @@ TEST(SfpTest, transceiverInfoTest) {
       {"RxPwr", {0.8755}},
   };
   tests.verifyLaneDom(laneDom, sfp->numMediaLanes());
+
+  std::map<std::string, std::vector<bool>> expectedMediaSignals = {
+      {"Rx_Los", {1}},
+      {"Tx_Fault", {1}},
+  };
+  tests.verifyMediaLaneSignals(expectedMediaSignals, sfp->numMediaLanes());
+
+  std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
+      {"TxDisable", {1}},
+  };
+  tests.verifyMediaLaneSettings(
+      expectedMediaLaneSettings, sfp->numMediaLanes());
 }
 
 } // namespace

@@ -167,6 +167,11 @@ TransceiverSettings Sff8472Module::getTransceiverSettingsInfo() {
     settings.mediaInterface_ref().reset();
   }
 
+  settings.mediaLaneSettings_ref() =
+      std::vector<MediaLaneSettings>(numMediaLanes());
+  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
+    settings.mediaLaneSettings_ref().reset();
+  }
   return settings;
 }
 
@@ -272,6 +277,47 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   rxDbm.value_ref() = mwToDb(pwr);
   firstChannel->sensors_ref()->rxPwrdBm_ref() = rxDbm;
 
+  return true;
+}
+
+SignalFlags Sff8472Module::getSignalFlagInfo() {
+  SignalFlags signalFlags = SignalFlags();
+
+  signalFlags.rxLos_ref() = getSettingsValue(
+      Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::RX_LOS_MASK);
+
+  return signalFlags;
+}
+
+/*
+ * Iterate through the media channels collecting appropriate data;
+ */
+bool Sff8472Module::getSignalsPerMediaLane(
+    std::vector<MediaLaneSignals>& signals) {
+  auto rxLos = getSettingsValue(
+      Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::RX_LOS_MASK);
+  auto txFault = getSettingsValue(
+      Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::TX_FAULT_MASK);
+
+  CHECK_EQ(signals.size(), 1);
+  CHECK_EQ(numMediaLanes(), 1);
+  auto firstSignal = signals.begin();
+  firstSignal->lane_ref() = 0;
+  firstSignal->rxLos_ref() = rxLos;
+  firstSignal->txFault_ref() = txFault;
+
+  return true;
+}
+
+bool Sff8472Module::getMediaLaneSettings(
+    std::vector<MediaLaneSettings>& laneSettings) {
+  auto txDisable = getSettingsValue(
+      Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::TX_DISABLE_STATE_MASK);
+
+  CHECK_EQ(laneSettings.size(), 1);
+  auto firstLane = laneSettings.begin();
+  firstLane->lane_ref() = 0;
+  firstLane->txDisable_ref() = txDisable;
   return true;
 }
 

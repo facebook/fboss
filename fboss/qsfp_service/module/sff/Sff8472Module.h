@@ -77,13 +77,17 @@ class Sff8472Module : public QsfpModule {
 
   bool getSensorsPerChanInfo(std::vector<Channel>& channels) override;
 
-  bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>&) override {
-    return false;
-  }
+  bool getSignalsPerMediaLane(std::vector<MediaLaneSignals>&) override;
 
   bool getSignalsPerHostLane(std::vector<HostLaneSignals>&) override {
     return false;
   }
+
+  /*
+   * Gather media side per lane configuration settings and return false when it
+   * fails
+   */
+  bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
 
   Vendor getVendorInfo() override {
     return Vendor();
@@ -99,9 +103,7 @@ class Sff8472Module : public QsfpModule {
     return PowerControlState::HIGH_POWER_OVERRIDE;
   }
 
-  virtual SignalFlags getSignalFlagInfo() override {
-    return SignalFlags();
-  }
+  virtual SignalFlags getSignalFlagInfo() override;
 
   ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
       const override {

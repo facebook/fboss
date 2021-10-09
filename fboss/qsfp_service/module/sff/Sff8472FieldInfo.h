@@ -32,6 +32,12 @@ enum class Sff8472Field {
   ALARM_WARNING_FLAGS,
 };
 
+enum FieldMasks : uint8_t {
+  RX_LOS_MASK = 1 << 1,
+  TX_FAULT_MASK = 1 << 2,
+  TX_DISABLE_STATE_MASK = 1 << 7,
+};
+
 class Sff8472FieldInfo {
  public:
   uint8_t transceiverI2CAddress;
