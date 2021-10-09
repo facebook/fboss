@@ -222,6 +222,7 @@ DEFINE_bool(list_commands, false, "Print the list of commands");
 DEFINE_bool(vdm_info, false, "get the VDM monitoring info");
 DEFINE_bool(batch_ops, false, "Do batch read/write operations on module, use with --batchfile and --direct_i2c");
 DEFINE_string(batchfile, "", "Batch file for bulk read/write operations, Format: OP(R/W) Offset Value DelayMS");
+DEFINE_uint32(i2c_address, 0x50, "i2c address");
 
 namespace {
 struct ModulePartInfo_s {
@@ -594,7 +595,7 @@ void doReadRegViaService(
 void doReadRegDirect(TransceiverI2CApi* bus, unsigned int port, int offset, int length) {
   std::array<uint8_t, 128> buf;
   try {
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+    bus->moduleRead(port, FLAGS_i2c_address, offset, length, buf.data());
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to read module\n", port);
     return;
@@ -641,7 +642,7 @@ int doReadReg(
 void doWriteRegDirect(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value) {
   uint8_t buf[1] = {value};
   try {
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, offset, 1, buf);
+    bus->moduleWrite(port, FLAGS_i2c_address, offset, 1, buf);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return;

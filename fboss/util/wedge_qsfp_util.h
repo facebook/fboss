@@ -54,6 +54,7 @@ DECLARE_bool(list_commands);
 DECLARE_bool(vdm_info);
 DECLARE_bool(batch_ops);
 DECLARE_string(batchfile);
+DECLARE_uint32(i2c_address);
 
 enum LoopbackMode {
   noLoopback,

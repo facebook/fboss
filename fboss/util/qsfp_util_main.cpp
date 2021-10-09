@@ -21,8 +21,8 @@ using std::chrono::steady_clock;
 std::vector<FlagCommand> kCommands = {
   {"pause_remediation", {}},
   {"get_remediation_until_time", {}},
-  {"read_reg", {"offset", "length", "page"}},
-  {"write_reg", {"offset", "length", "page"}},
+  {"read_reg", {"offset", "length", "page", "i2c_address"}},
+  {"write_reg", {"offset", "length", "page", "i2c_address"}},
   {"clear_low_power", {}},
   {"set_low_power", {}},
   {"tx_enable", {}},
