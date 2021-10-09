@@ -23,6 +23,13 @@ enum class Sff8472Field {
   ETHERNET_10G_COMPLIANCE_CODE, // 10G Ethernet Compliance codes
 
   ALARM_WARNING_THRESHOLDS,
+  TEMPERATURE,
+  VCC,
+  CHANNEL_TX_BIAS,
+  CHANNEL_TX_PWR,
+  CHANNEL_RX_PWR,
+  STATUS_AND_CONTROL_BITS,
+  ALARM_WARNING_FLAGS,
 };
 
 class Sff8472FieldInfo {
@@ -37,6 +44,18 @@ class Sff8472FieldInfo {
   static Sff8472FieldInfo getSff8472FieldAddress(
       const Sff8472FieldMap& map,
       Sff8472Field field);
+
+  // Render degrees Celcius from fix-point integer value
+  static double getTemp(uint16_t temp);
+
+  // Render Vcc in volts from fixed-point value
+  static double getVcc(uint16_t temp);
+
+  // Render TxBias in mA from fixed-point value
+  static double getTxBias(uint16_t temp);
+
+  // Render power in mW from fixed-point value
+  static double getPwr(uint16_t temp);
 };
 
 } // namespace fboss

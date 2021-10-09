@@ -28,5 +28,32 @@ Sff8472FieldInfo Sff8472FieldInfo::getSff8472FieldAddress(
   return info->second;
 }
 
+double Sff8472FieldInfo::getTemp(const uint16_t temp) {
+  double data;
+  data = temp / 256.0;
+  if (data > 128) {
+    data = data - 256;
+  }
+  return data;
+}
+
+double Sff8472FieldInfo::getVcc(const uint16_t vcc) {
+  double data;
+  data = vcc / 10000.0;
+  return data;
+}
+
+double Sff8472FieldInfo::getTxBias(const uint16_t txBias) {
+  double data;
+  data = txBias * 2.0 / 1000;
+  return data;
+}
+
+double Sff8472FieldInfo::getPwr(const uint16_t pwr) {
+  double data;
+  data = pwr * 0.1 / 1000;
+  return data;
+}
+
 } // namespace fboss
 } // namespace facebook

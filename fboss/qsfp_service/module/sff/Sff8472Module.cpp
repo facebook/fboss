@@ -37,6 +37,20 @@ static Sff8472FieldInfo::Sff8472FieldMap sfpFields = {
     // Address A2h fields
     {Sff8472Field::ALARM_WARNING_THRESHOLDS,
      {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 0, 40}},
+    {Sff8472Field::TEMPERATURE,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 96, 2}},
+    {Sff8472Field::VCC,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 98, 2}},
+    {Sff8472Field::CHANNEL_TX_BIAS,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 100, 2}},
+    {Sff8472Field::CHANNEL_TX_PWR,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 102, 2}},
+    {Sff8472Field::CHANNEL_RX_PWR,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 104, 2}},
+    {Sff8472Field::STATUS_AND_CONTROL_BITS,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 110, 1}},
+    {Sff8472Field::ALARM_WARNING_FLAGS,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 112, 6}},
 };
 
 void getSfpFieldAddress(
