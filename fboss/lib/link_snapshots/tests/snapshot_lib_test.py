@@ -1,8 +1,10 @@
+import typing as t
+from datetime import datetime, timedelta
+
 import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
 from fboss.lib.link_snapshots.snapshot_lib import SNAPSHOT_FORMAT
 from later.unittest.mock import AsyncContextManager, AsyncMock, patch
-from libfb.py.asyncio.unittest import async_test
-from libfb.py.testutil import BaseFacebookTestCase
+from libfb.py.asyncio.unittest import TestCase
 from neteng.fboss.phy.phy.types import (
     LinkSnapshot,
     PhyInfo,
@@ -19,48 +21,47 @@ from thrift.py3 import serialize, Protocol
 # filtering logic here, as that would need to be processed by an actual MySQL DB
 # but we can at least unit test some of the other method logic
 
+HOSTNAME = "test_host"
+TCVR_ID = 1
+PORT_ID = 2
+PORT_NAME = "eth2/1/1"
 
-class SnapshotLibTest(BaseFacebookTestCase):
-    def setUp(self):
-        pass
 
-    def build_iphy_snapshot(
-        self, timestamp: int, hostname: int, port_id: int, port_name: str
-    ) -> LinkSnapshot:
-        chip = DataPlanePhyChip(
-            name="PHY", type=DataPlanePhyChipType.IPHY, physicalID=0
-        )
-        line = PhySideInfo(side=Side.LINE)
-        phy_info = PhyInfo(
-            phyChip=chip, name=port_name, line=line, timeCollected=timestamp
-        )
-        return LinkSnapshot(phyInfo=phy_info)
+def build_iphy_snapshot(timestamp: int, port_name: str) -> LinkSnapshot:
+    chip = DataPlanePhyChip(name="PHY", type=DataPlanePhyChipType.IPHY, physicalID=0)
+    line = PhySideInfo(side=Side.LINE)
+    phy_info = PhyInfo(phyChip=chip, name=port_name, line=line, timeCollected=timestamp)
+    return LinkSnapshot(phyInfo=phy_info)
 
-    def build_transceiver_snapshot(
-        self, timestamp: int, hostname: str, tcvr_id: int
-    ) -> LinkSnapshot:
-        tcvr_info = TransceiverInfo(port=tcvr_id)
-        return LinkSnapshot(transceiverInfo=tcvr_info)
 
+def build_xphy_snapshot(timestamp: int, port_name: str) -> LinkSnapshot:
+    chip = DataPlanePhyChip(name="PHY", type=DataPlanePhyChipType.IPHY, physicalID=0)
+    line = PhySideInfo(side=Side.LINE)
+    system = PhySideInfo(side=Side.SYSTEM)
+    phy_info = PhyInfo(
+        phyChip=chip, name=port_name, line=line, timeCollected=timestamp, system=system
+    )
+    return LinkSnapshot(phyInfo=phy_info)
+
+
+def build_transceiver_snapshot(timestamp: int, tcvr_id: int) -> LinkSnapshot:
+    tcvr_info = TransceiverInfo(port=tcvr_id, timeCollected=timestamp)
+    return LinkSnapshot(transceiverInfo=tcvr_info)
+
+
+class SnapshotLibTest(TestCase):
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
-    @async_test
-    async def fetch_snapshots(self, mock_get_rfe_client):
-        """
-        sql query resulting in empty result
-        """
-
+    async def test_fetch_recent_snapshots(self, mock_get_rfe_client):
         NUM_SNAPSHOTS = 10
-        HOSTNAME = "test_host"
-        TCVR_ID = 0xAAAAAAAA
-        PORT_ID = 0xBBBBBBBB
-
         mock_snapshots = []
         for i in range(NUM_SNAPSHOTS):
-            tcvr_snapshot = self.build_transceiver_snapshot(i, HOSTNAME, TCVR_ID)
-            iphy_snapshot = self.build_iphy_snapshot(i, HOSTNAME, PORT_ID)
+            iphy_snapshot = build_iphy_snapshot(i, PORT_NAME)
+            xphy_snapshot = build_xphy_snapshot(i, PORT_NAME)
+            tcvr_snapshot = build_transceiver_snapshot(i, TCVR_ID)
 
-            mock_snapshots.append(tcvr_snapshot)
             mock_snapshots.append(iphy_snapshot)
+            mock_snapshots.append(xphy_snapshot)
+            mock_snapshots.append(tcvr_snapshot)
 
         rfe_client = AsyncMock()
         mock_get_rfe_client.return_value = AsyncContextManager(
@@ -72,8 +73,8 @@ class SnapshotLibTest(BaseFacebookTestCase):
                 [
                     SNAPSHOT_FORMAT.format(
                         "",
-                        serialize(snapshot, protocol=Protocol.JSON).decode(),
                         "eth2/1/1",
+                        serialize(snapshot, protocol=Protocol.JSON).decode(),
                     )
                 ]
                 for snapshot in mock_snapshots
@@ -81,21 +82,55 @@ class SnapshotLibTest(BaseFacebookTestCase):
         )
         rfe_client.querySQL.return_value = sql_result
         client = await snapshot_lib.get_client()
-        snapshots = await client.fetch_transceiver_snapshots(HOSTNAME, TCVR_ID)
+        # We're using fetch_recent_snapshots for simplicity. We dont go to an
+        # actual SQL engine so we never check the timestamps in these tests
+        snapshot_collection = await client.fetch_recent_snapshots(HOSTNAME, PORT_NAME)
+        iphy_snapshots, xphy_snapshots, tcvr_snapshots = snapshot_collection.unpack()
 
-        self.assertEqual(len(snapshots), NUM_SNAPSHOTS)
-        num_tcvr_snapshots = 0
-        num_iphy_snapshots = 0
-        for i in range(NUM_SNAPSHOTS):
-            self.assertTrue(i in snapshots)
-            snapshot = snapshots[i]
-            if snapshot.type is LinkSnapshot.Type.transceiverInfo:
-                self.assertEqual(snapshot.transceiverInfo.timeCollected, i)
-                num_tcvr_snapshots += 1
-            elif snapshot.type is LinkSnapshot.Type.phyInfo:
-                self.assertEqual(snapshot.phyInfo.timeCollected, i)
-                num_iphy_snapshots += 1
-            else:
-                raise Exception("Invalid type for snapshot: ", snapshot.type)
-        self.assertEqual(num_tcvr_snapshots, NUM_SNAPSHOTS)
-        self.assertEqual(num_iphy_snapshots, NUM_SNAPSHOTS)
+        def check_snapshots(snapshots: t.Mapping[int, t.Any]):
+            for i in range(NUM_SNAPSHOTS):
+                self.assertTrue(i in snapshots)
+                snapshot = snapshots[i]
+                self.assertTrue(snapshot is PhyInfo or snapshot is TransceiverInfo)
+                self.assertEqual(snapshot.timeCollected, i)
+
+        self.assertEqual(len(iphy_snapshots), NUM_SNAPSHOTS)
+        self.assertEqual(len(xphy_snapshots), NUM_SNAPSHOTS)
+        self.assertEqual(len(tcvr_snapshots), NUM_SNAPSHOTS)
+
+    # Just verify that we can call these functions without exceptions.
+    # (The only functional differences between these can't really be tested
+    # without calling out to a real sql engine)
+    @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
+    async def test_fetch_snapshots_around_time(self, mock_get_rfe_client):
+        rfe_client = AsyncMock()
+        mock_get_rfe_client.return_value = AsyncContextManager(
+            return_value=rfe_client, instance=True
+        )
+
+        sql_result = rfe.SQLQueryResult(value=[])
+        rfe_client.querySQL.return_value = sql_result
+        client = await snapshot_lib.get_client()
+
+        # test default param
+        await client.fetch_snapshots_around_time(HOSTNAME, PORT_NAME, datetime.now())
+
+        # test non-default param
+        await client.fetch_snapshots_around_time(
+            HOSTNAME, PORT_NAME, datetime.now(), timedelta(seconds=1)
+        )
+
+    @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
+    async def test_fetch_snapshots_in_timespan(self, mock_get_rfe_client):
+        rfe_client = AsyncMock()
+        mock_get_rfe_client.return_value = AsyncContextManager(
+            return_value=rfe_client, instance=True
+        )
+
+        sql_result = rfe.SQLQueryResult(value=[])
+        rfe_client.querySQL.return_value = sql_result
+        client = await snapshot_lib.get_client()
+
+        await client.fetch_snapshots_in_timespan(
+            HOSTNAME, PORT_NAME, datetime.now(), datetime.now()
+        )
