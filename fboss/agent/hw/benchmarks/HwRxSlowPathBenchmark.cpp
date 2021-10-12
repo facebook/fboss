@@ -45,6 +45,7 @@ void runRxSlowPathBenchmark() {
   auto hwSwitch = ensemble->getHwSwitch();
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
+  utility::addCpuQueueConfig(config, ensemble->getPlatform()->getAsic());
   ensemble->applyInitialConfig(config);
   // capture packet exiting port 0 (entering due to loopback)
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
