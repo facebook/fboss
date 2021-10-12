@@ -669,6 +669,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -678,6 +686,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -689,6 +705,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -698,6 +722,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -709,6 +741,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -718,6 +758,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -729,6 +777,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -738,6 +794,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -1898,6 +1962,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -1907,6 +1979,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -1918,6 +1998,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -1927,6 +2015,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -1938,6 +2034,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -1947,6 +2051,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -1958,6 +2070,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -1967,6 +2087,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -3127,6 +3255,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -3136,6 +3272,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -3147,6 +3291,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -3156,6 +3308,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -3167,6 +3327,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -3176,6 +3344,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -3187,6 +3363,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -3196,6 +3380,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -4356,6 +4548,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -4365,6 +4565,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -4376,6 +4584,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -4385,6 +4601,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -4396,6 +4620,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -4405,6 +4637,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -4416,6 +4656,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -4425,6 +4673,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -5585,6 +5841,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -5594,6 +5858,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -5605,6 +5877,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -5614,6 +5894,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -5625,6 +5913,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -5634,6 +5930,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -5645,6 +5949,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -5654,6 +5966,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -6814,6 +7134,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -6823,6 +7151,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -6834,6 +7170,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -6843,6 +7187,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -6854,6 +7206,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -6863,6 +7223,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -6874,6 +7242,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY40",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -6883,6 +7259,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -8043,6 +8427,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -8052,6 +8444,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -8063,6 +8463,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -8072,6 +8480,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -8083,6 +8499,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -8092,6 +8516,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -8103,6 +8535,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY68",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -8112,6 +8552,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -9272,6 +9720,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -9281,6 +9737,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -9292,6 +9756,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -9301,6 +9773,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -9312,6 +9792,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -9321,6 +9809,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -9332,6 +9828,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY104",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -9341,6 +9845,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -10501,6 +11013,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -10510,6 +11030,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -10521,6 +11049,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -10530,6 +11066,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -10541,6 +11085,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -10550,6 +11102,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -10561,6 +11121,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -10570,6 +11138,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -11730,6 +12306,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -11739,6 +12323,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -11750,6 +12342,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -11759,6 +12359,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -11770,6 +12378,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -11779,6 +12395,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -11790,6 +12414,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -11799,6 +12431,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -12959,6 +13599,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -12968,6 +13616,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -12979,6 +13635,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -12988,6 +13652,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -12999,6 +13671,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -13008,6 +13688,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -13019,6 +13707,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -13028,6 +13724,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -14188,6 +14892,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -14197,6 +14909,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -14208,6 +14928,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -14217,6 +14945,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -14228,6 +14964,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -14237,6 +14981,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -14248,6 +15000,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -14257,6 +15017,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -15417,6 +16185,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -15426,6 +16202,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -15437,6 +16221,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -15446,6 +16238,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -15457,6 +16257,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -15466,6 +16274,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -15477,6 +16293,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -15486,6 +16310,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -16646,6 +17478,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -16655,6 +17495,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -16666,6 +17514,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -16675,6 +17531,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -16686,6 +17550,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -16695,6 +17567,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -16706,6 +17586,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY32",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -16715,6 +17603,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -17875,6 +18771,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -17884,6 +18788,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -17895,6 +18807,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -17904,6 +18824,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -17915,6 +18843,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -17924,6 +18860,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -17935,6 +18879,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY76",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -17944,6 +18896,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -19104,6 +20064,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -19113,6 +20081,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -19124,6 +20100,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -19133,6 +20117,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -19144,6 +20136,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -19153,6 +20153,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -19164,6 +20172,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY96",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -19173,6 +20189,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -20333,6 +21357,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -20342,6 +21374,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -20353,6 +21393,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -20362,6 +21410,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -20373,6 +21429,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -20382,6 +21446,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -20393,6 +21465,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -20402,6 +21482,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -21562,6 +22650,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -21571,6 +22667,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -21582,6 +22686,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -21591,6 +22703,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -21602,6 +22722,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -21611,6 +22739,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -21622,6 +22758,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -21631,6 +22775,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -22791,6 +23943,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -22800,6 +23960,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -22811,6 +23979,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -22820,6 +23996,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -22831,6 +24015,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -22840,6 +24032,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -22851,6 +24051,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -22860,6 +24068,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -24020,6 +25236,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -24029,6 +25253,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -24040,6 +25272,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -24049,6 +25289,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -24060,6 +25308,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -24069,6 +25325,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -24080,6 +25344,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -24089,6 +25361,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -25249,6 +26529,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -25258,6 +26546,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -25269,6 +26565,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -25278,6 +26582,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -25289,6 +26601,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -25298,6 +26618,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -25309,6 +26637,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -25318,6 +26654,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -26478,6 +27822,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -26487,6 +27839,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -26498,6 +27858,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -26507,6 +27875,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -26518,6 +27894,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -26527,6 +27911,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -26538,6 +27930,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY36",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -26547,6 +27947,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -27707,6 +29115,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -27716,6 +29132,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -27727,6 +29151,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -27736,6 +29168,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -27747,6 +29187,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -27756,6 +29204,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -27767,6 +29223,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY72",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -27776,6 +29240,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -28936,6 +30408,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -28945,6 +30425,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -28956,6 +30444,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -28965,6 +30461,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -28976,6 +30480,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -28985,6 +30497,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -28996,6 +30516,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY100",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -29005,6 +30533,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -30165,6 +31701,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -30174,6 +31718,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -30185,6 +31737,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -30194,6 +31754,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -30205,6 +31773,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -30214,6 +31790,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -30225,6 +31809,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -30234,6 +31826,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -31394,6 +32994,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -31403,6 +33011,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -31414,6 +33030,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -31423,6 +33047,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -31434,6 +33066,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -31443,6 +33083,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -31454,6 +33102,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -31463,6 +33119,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -32623,6 +34287,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -32632,6 +34304,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -32643,6 +34323,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -32652,6 +34340,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -32663,6 +34359,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -32672,6 +34376,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -32683,6 +34395,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -32692,6 +34412,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -33852,6 +35580,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -33861,6 +35597,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -33872,6 +35616,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -33881,6 +35633,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -33892,6 +35652,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -33901,6 +35669,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -33912,6 +35688,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -33921,6 +35705,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -35081,6 +36873,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -35090,6 +36890,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -35101,6 +36909,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -35110,6 +36926,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -35121,6 +36945,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -35130,6 +36962,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -35141,6 +36981,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -35150,6 +36998,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -36310,6 +38166,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -36319,6 +38183,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -36330,6 +38202,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -36339,6 +38219,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -36350,6 +38238,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -36359,6 +38255,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -36370,6 +38274,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY44",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -36379,6 +38291,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -37539,6 +39459,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -37548,6 +39476,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -37559,6 +39495,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -37568,6 +39512,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -37579,6 +39531,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -37588,6 +39548,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -37599,6 +39567,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY108",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -37608,6 +39584,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -38768,6 +40752,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -38777,6 +40769,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -38788,6 +40788,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -38797,6 +40805,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -38808,6 +40824,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -38817,6 +40841,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -38828,6 +40860,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY64",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -38837,6 +40877,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -20,
+                      "pre2": 4,
+                      "main": 140,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -39997,6 +42045,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -40006,6 +42062,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -40017,6 +42081,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -40026,6 +42098,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -40037,6 +42117,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -40046,6 +42134,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -40057,6 +42153,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -40066,6 +42170,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -41226,6 +43338,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -41235,6 +43355,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -41246,6 +43374,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -41255,6 +43391,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -41266,6 +43410,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -41275,6 +43427,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -41286,6 +43446,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -41295,6 +43463,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -42455,6 +44631,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -42464,6 +44648,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -42475,6 +44667,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -42484,6 +44684,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -42495,6 +44703,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -42504,6 +44720,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -42515,6 +44739,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -42524,6 +44756,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -43684,6 +45924,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -43693,6 +45941,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -43704,6 +45960,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -43713,6 +45977,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -43724,6 +45996,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -43733,6 +46013,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -43744,6 +46032,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -43753,6 +46049,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -44913,6 +47217,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -44922,6 +47234,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -44933,6 +47253,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -44942,6 +47270,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -44953,6 +47289,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -44962,6 +47306,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -44973,6 +47325,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY140",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -44982,6 +47342,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -46142,6 +48510,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -46151,6 +48527,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -46162,6 +48546,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -46171,6 +48563,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -46182,6 +48582,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -46191,6 +48599,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -46202,6 +48618,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY160",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -46211,6 +48635,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -47371,6 +49803,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -47380,6 +49820,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -47391,6 +49839,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -47400,6 +49856,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -47411,6 +49875,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -47420,6 +49892,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -47431,6 +49911,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY204",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -47440,6 +49928,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -48600,6 +51096,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -48609,6 +51113,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -48620,6 +51132,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -48629,6 +51149,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -48640,6 +51168,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -48649,6 +51185,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -48660,6 +51204,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY224",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -48669,6 +51221,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -49829,6 +52389,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -49838,6 +52406,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -49849,6 +52425,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -49858,6 +52442,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -49869,6 +52461,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -49878,6 +52478,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -49889,6 +52497,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -49898,6 +52514,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -51058,6 +53682,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -51067,6 +53699,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -51078,6 +53718,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -51087,6 +53735,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -51098,6 +53754,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -51107,6 +53771,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -51118,6 +53790,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -51127,6 +53807,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -52287,6 +54975,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -52296,6 +54992,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -52307,6 +55011,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -52316,6 +55028,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -52327,6 +55047,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -52336,6 +55064,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -52347,6 +55083,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -52356,6 +55100,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -53516,6 +56268,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -53525,6 +56285,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -53536,6 +56304,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -53545,6 +56321,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -53556,6 +56340,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -53565,6 +56357,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -53576,6 +56376,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -53585,6 +56393,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -54745,6 +57561,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -54754,6 +57578,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -54765,6 +57597,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -54774,6 +57614,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -54785,6 +57633,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -54794,6 +57650,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -54805,6 +57669,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY132",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -54814,6 +57686,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -55974,6 +58854,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -55983,6 +58871,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -55994,6 +58890,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -56003,6 +58907,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -56014,6 +58926,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -56023,6 +58943,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -56034,6 +58962,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY168",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -56043,6 +58979,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -57203,6 +60147,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -57212,6 +60164,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -57223,6 +60183,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -57232,6 +60200,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -57243,6 +60219,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -57252,6 +60236,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -57263,6 +60255,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY196",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -57272,6 +60272,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -58432,6 +61440,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -58441,6 +61457,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -58452,6 +61476,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -58461,6 +61493,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -58472,6 +61512,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -58481,6 +61529,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -58492,6 +61548,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY232",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -58501,6 +61565,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -59661,6 +62733,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -59670,6 +62750,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -59681,6 +62769,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -59690,6 +62786,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -59701,6 +62805,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -59710,6 +62822,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -59721,6 +62841,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -59730,6 +62858,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -60890,6 +64026,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -60899,6 +64043,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -60910,6 +64062,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -60919,6 +64079,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -60930,6 +64098,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -60939,6 +64115,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -60950,6 +64134,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -60959,6 +64151,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -62119,6 +65319,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -62128,6 +65336,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -62139,6 +65355,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -62148,6 +65372,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -62159,6 +65391,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -62168,6 +65408,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -62179,6 +65427,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -62188,6 +65444,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -63348,6 +66612,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -63357,6 +66629,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -63368,6 +66648,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -63377,6 +66665,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -63388,6 +66684,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -63397,6 +66701,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -63408,6 +66720,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -63417,6 +66737,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -64577,6 +67905,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -64586,6 +67922,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -64597,6 +67941,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -64606,6 +67958,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -64617,6 +67977,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -64626,6 +67994,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -64637,6 +68013,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY128",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -64646,6 +68030,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -65806,6 +69198,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -65815,6 +69215,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -65826,6 +69234,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -65835,6 +69251,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -65846,6 +69270,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -65855,6 +69287,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -65866,6 +69306,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY172",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -65875,6 +69323,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -67035,6 +70491,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -67044,6 +70508,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -67055,6 +70527,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -67064,6 +70544,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -67075,6 +70563,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -67084,6 +70580,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -67095,6 +70599,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY192",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -67104,6 +70616,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -68264,6 +71784,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -68273,6 +71801,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -68284,6 +71820,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -68293,6 +71837,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -68304,6 +71856,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -68313,6 +71873,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -68324,6 +71892,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY236",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -68333,6 +71909,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -69493,6 +73077,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -69502,6 +73094,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -69513,6 +73113,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -69522,6 +73130,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -69533,6 +73149,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -69542,6 +73166,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -69553,6 +73185,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -69562,6 +73202,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -70722,6 +74370,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -70731,6 +74387,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -70742,6 +74406,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -70751,6 +74423,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -70762,6 +74442,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -70771,6 +74459,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -70782,6 +74478,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -70791,6 +74495,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -71951,6 +75663,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -71960,6 +75680,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -71971,6 +75699,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -71980,6 +75716,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -71991,6 +75735,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -72000,6 +75752,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -72011,6 +75771,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -72020,6 +75788,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -73180,6 +76956,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -73189,6 +76973,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -73200,6 +76992,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -73209,6 +77009,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -73220,6 +77028,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -73229,6 +77045,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -73240,6 +77064,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -73249,6 +77081,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -74409,6 +78249,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -74418,6 +78266,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -74429,6 +78285,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -74438,6 +78302,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -74449,6 +78321,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -74458,6 +78338,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -74469,6 +78357,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY136",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -74478,6 +78374,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -75638,6 +79542,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -75647,6 +79559,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -75658,6 +79578,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -75667,6 +79595,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -75678,6 +79614,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -75687,6 +79631,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -75698,6 +79650,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY164",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -75707,6 +79667,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -76867,6 +80835,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 8
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -76876,6 +80852,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 9
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -76887,6 +80871,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 10
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -76896,6 +80888,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 11
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -76907,6 +80907,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 12
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -76916,6 +80924,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 13
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -76927,6 +80943,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY228",
                       "lane": 14
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -76936,6 +80960,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 15
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -78096,6 +82128,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 0
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -78105,6 +82145,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -78116,6 +82164,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 2
                     },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": false,
                       "tx": false
@@ -78125,6 +82181,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 112,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": false,
@@ -78136,6 +82200,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 4
                     },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -78145,6 +82217,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
@@ -78156,6 +82236,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY200",
                       "lane": 6
                     },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
+                    },
                     "polaritySwap": {
                       "rx": true,
                       "tx": true
@@ -78165,6 +82253,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0
                     },
                     "polaritySwap": {
                       "rx": true,
