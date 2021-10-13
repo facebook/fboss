@@ -104,9 +104,14 @@ void SaiNeighborManager::addNeighbor(
     metadata = static_cast<sai_uint32_t>(swEntry->getClassID().value());
   }
 
+  auto saiRouterIntf =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+          swEntry->getIntfID());
+
   auto subscriber = std::make_shared<ManagedNeighbor>(
       this,
-      saiPortDesc,
+      std::make_tuple(
+          saiPortDesc, saiRouterIntf->routerInterface->adapterKey()),
       std::make_tuple(
           swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
       metadata);
@@ -225,10 +230,11 @@ std::string ManagedNeighbor::toString() const {
       : "FdbEntry: none";
 
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
+  auto saiPortDesc = getSaiPortDesc();
   return folly::to<std::string>(
       "ip: ",
       ip.str(),
-      port_.str(),
+      saiPortDesc.str(),
       " metadata: ",
       metadataStr,
       " ",
