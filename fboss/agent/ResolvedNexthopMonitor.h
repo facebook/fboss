@@ -115,7 +115,7 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
   SwSwitch* sw_{nullptr};
   std::vector<ResolvedNextHop> added_;
   std::vector<ResolvedNextHop> removed_;
-  bool scheduleProbes_{false}; // trigger next hop probe scheduler
+  std::atomic_bool scheduleProbes_{false}; // trigger next hop probe scheduler
   static folly::Synchronized<std::set<ClientID>> kMonitoredClients;
 };
 
