@@ -523,6 +523,8 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
   auto flow = createMacsecFlow(direction);
   auto flowId = flow->adapterKey();
 
+  XLOG(DBG2) << "For ScId " << secureChannelId << " Created Flow " << flowId;
+
   std::optional<bool> secureChannelEnable;
   std::optional<sai_int32_t> replayProtectionWindow;
 
@@ -856,7 +858,7 @@ void SaiMacsecManager::setupMacsec(
         keyId,
         kDefaultSsciValue);
     XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
-               << direction << " SA " << sciKeyString << secureAssocSaiId;
+               << direction << " SA " << secureAssocSaiId;
   }
 
   // // Step5: Create the ACL table if it does not exist
