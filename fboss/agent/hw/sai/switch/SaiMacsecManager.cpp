@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -992,6 +993,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     }
     auto& macsecStats = *portStats.macsecStats_ref();
     std::map<mka::MKASci, mka::MacsecFlowStats> flowStats;
+    int64_t newOctetsEncrytpted{0};
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       MacsecSecureChannelId secureChannelId = macsecSc.first;
       mka::MKASci sci;
@@ -1006,7 +1008,14 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         mka::MKASecureAssociationId saId;
         saId.sci_ref() = sci;
         saId.assocNum_ref() = macsecSa.first;
+        auto saItr = saStats.find(saId);
+        auto prevSaOctetsEncrypted =
+            saItr == saStats.end() ? 0L : *saItr->second.octetsEncrypted_ref();
         saStats[saId] = fillSaStats(macsecSa.second->getStats(), direction);
+        newOctetsEncrytpted +=
+            utility::CounterPrevAndCur(
+                prevSaOctetsEncrypted, *saStats[saId].octetsEncrypted_ref())
+                .incrementFromPrev();
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
       flowStats[sci] =
@@ -1023,6 +1032,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         ? *macsecStats.ingressPortStats_ref()
         : *macsecStats.egressPortStats_ref();
     fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
+    *macsecPortStats.octetsEncrypted_ref() += newOctetsEncrytpted;
   }
 }
 

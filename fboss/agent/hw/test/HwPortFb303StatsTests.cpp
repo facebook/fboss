@@ -33,12 +33,14 @@ HwPortStats getInitedStats() {
           apache::thrift::FragileConstructor(),
           1,
           2,
-          3}, // ingress macsec port stats
+          3,
+          4}, // ingress macsec port stats
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
           1,
           2,
-          3}, // egress macsec port stats
+          3,
+          4}, // egress macsec port stats
       {}, // ingress flow stats
       {}, // egress flow stats
       {{}}, // rx SA stats
@@ -95,9 +97,11 @@ void updateStats(HwPortFb303Stats& portStats) {
           apache::thrift::FragileConstructor(),
           0,
           0,
+          0,
           0}, // ingress  macsec port stats
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
+          0,
           0,
           0,
           0}, // egress  macsec port stats

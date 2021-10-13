@@ -329,6 +329,8 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   printf("  PreMacsecDropPackets: %ld\n", *portStats.preMacsecDropPkts_ref());
   printf("  ControlPackets: %ld\n", *portStats.controlPkts_ref());
   printf("  DataPackets: %ld\n", *portStats.dataPkts_ref());
+  printf("  EncryptedOctets: %ld\n", *portStats.octetsEncrypted_ref());
+
 }
 
 void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {

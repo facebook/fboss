@@ -80,6 +80,7 @@ struct MacsecPortStats {
   1: i64 preMacsecDropPkts;
   2: i64 controlPkts;
   3: i64 dataPkts;
+  4: i64 octetsEncrypted = 0;
 }
 
 struct MacsecFlowStats {
