@@ -101,6 +101,10 @@ class CmdGlobalOptions {
     agentThriftPort_ = port;
   }
 
+  void setBgpThriftPort(int port) {
+    bgpThriftPort_ = port;
+  }
+
  private:
   void initAdditional(CLI::App& app);
 
