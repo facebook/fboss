@@ -415,18 +415,24 @@ mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
     mka::MacsecDirection direction,
     bool readFromHw) {
   auto macsecStats = getMacsecStats(portName, readFromHw);
-  return direction == mka::MacsecDirection::INGRESS
-      ? *macsecStats.ingressFlowStats_ref()
-      : *macsecStats.egressFlowStats_ref();
+  // TODO: sum stats across SCIs
+  if (direction == mka::MacsecDirection::INGRESS) {
+    return macsecStats.ingressFlowStats_ref()->size()
+        ? macsecStats.ingressFlowStats_ref()->begin()->second
+        : mka::MacsecFlowStats{};
+  } else {
+    return macsecStats.egressFlowStats_ref()->size()
+        ? macsecStats.egressFlowStats_ref()->begin()->second
+        : mka::MacsecFlowStats{};
+  }
 }
 
-// TODO this API should really require a SCI
 mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
     std::string portName,
     mka::MacsecDirection direction,
     bool readFromHw) {
   auto macsecStats = getMacsecStats(portName, readFromHw);
-  // TODO: get active SA from SC
+  // TODO: sum stats across SAs
   if (direction == mka::MacsecDirection::INGRESS) {
     return macsecStats.rxSecureAssociationStats_ref()->size()
         ? macsecStats.rxSecureAssociationStats_ref()->begin()->second

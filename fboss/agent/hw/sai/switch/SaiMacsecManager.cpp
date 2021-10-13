@@ -182,43 +182,6 @@ mka::MacsecFlowStats fillFlowStats(
   return flowStats;
 }
 
-void fillHwPortFlowStats(
-    const std::vector<mka::MacsecFlowStats>& flowStats,
-    mka::MacsecFlowStats& portFlowStats) {
-  // Accumulate - TODO check if h/w gives us cumulative stats or stats from last
-  // read
-  std::for_each(
-      flowStats.begin(), flowStats.end(), [&portFlowStats](const auto& stats) {
-        *portFlowStats.ucastUncontrolledPkts_ref() +=
-            *stats.ucastUncontrolledPkts_ref();
-        *portFlowStats.ucastControlledPkts_ref() +=
-            *stats.ucastControlledPkts_ref();
-        *portFlowStats.mcastUncontrolledPkts_ref() +=
-            *stats.mcastUncontrolledPkts_ref();
-        *portFlowStats.mcastControlledPkts_ref() +=
-            *stats.mcastControlledPkts_ref();
-        *portFlowStats.bcastUncontrolledPkts_ref() +=
-            *stats.bcastUncontrolledPkts_ref();
-        *portFlowStats.bcastControlledPkts_ref() +=
-            *stats.bcastControlledPkts_ref();
-        *portFlowStats.controlPkts_ref() += *stats.controlPkts_ref();
-        *portFlowStats.untaggedPkts_ref() += *stats.untaggedPkts_ref();
-        *portFlowStats.otherErrPkts_ref() += *stats.otherErrPkts_ref();
-        *portFlowStats.octetsUncontrolled_ref() +=
-            *stats.octetsUncontrolled_ref();
-        *portFlowStats.octetsControlled_ref() += *stats.octetsControlled_ref();
-        *portFlowStats.outCommonOctets_ref() += *stats.outCommonOctets_ref();
-        *portFlowStats.outTooLongPkts_ref() += *stats.outTooLongPkts_ref();
-        *portFlowStats.inTaggedControlledPkts_ref() +=
-            *stats.inTaggedControlledPkts_ref();
-        *portFlowStats.inUntaggedPkts_ref() += *stats.inUntaggedPkts_ref();
-        *portFlowStats.inBadTagPkts_ref() += *stats.inBadTagPkts_ref();
-        *portFlowStats.noSciPkts_ref() += *stats.noSciPkts_ref();
-        *portFlowStats.unknownSciPkts_ref() += *stats.unknownSciPkts_ref();
-        *portFlowStats.overrunPkts_ref() += *stats.overrunPkts_ref();
-      });
-}
-
 mka::MacsecSaStats fillSaStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     sai_macsec_direction_t direction) {
@@ -1028,7 +991,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       portStats.macsecStats_ref() = MacsecStats{};
     }
     auto& macsecStats = *portStats.macsecStats_ref();
-    std::vector<mka::MacsecFlowStats> flowStats;
+    std::map<mka::MKASci, mka::MacsecFlowStats> flowStats;
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       MacsecSecureChannelId secureChannelId = macsecSc.first;
       mka::MKASci sci;
@@ -1046,15 +1009,14 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         saStats[saId] = fillSaStats(macsecSa.second->getStats(), direction);
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
-      flowStats.emplace_back(
-          fillFlowStats(macsecSc.second->flow->getStats(), direction));
+      flowStats[sci] =
+          fillFlowStats(macsecSc.second->flow->getStats(), direction);
     }
     // Flow stats
-    fillHwPortFlowStats(
-        flowStats,
-        direction == SAI_MACSEC_DIRECTION_INGRESS
-            ? *portStats.macsecStats_ref()->ingressFlowStats_ref()
-            : *portStats.macsecStats_ref()->egressFlowStats_ref());
+    auto& portFlowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *portStats.macsecStats_ref()->ingressFlowStats_ref()
+        : *portStats.macsecStats_ref()->egressFlowStats_ref();
+    portFlowStats = std::move(flowStats);
     // Port stats
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
     auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS

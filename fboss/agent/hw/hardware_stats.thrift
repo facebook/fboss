@@ -8,9 +8,8 @@ const i64 STAT_UNINITIALIZED = -1;
 struct MacsecStats {
   1: mka_structs.MacsecPortStats ingressPortStats;
   2: mka_structs.MacsecPortStats egressPortStats;
-  // Cumalative stats for all macsec flows on a port
-  3: mka_structs.MacsecFlowStats ingressFlowStats;
-  4: mka_structs.MacsecFlowStats egressFlowStats;
+  3: map<mka_structs.MKASci, mka_structs.MacsecFlowStats> ingressFlowStats;
+  4: map<mka_structs.MKASci, mka_structs.MacsecFlowStats> egressFlowStats;
   // Secure association stats
   5: map<
     mka_structs.MKASecureAssociationId,
