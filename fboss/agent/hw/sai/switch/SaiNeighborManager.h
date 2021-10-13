@@ -55,14 +55,17 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
   ManagedNeighbor(
       SaiNeighborManager* manager,
       SaiPortDescriptor port,
-      InterfaceID interfaceId,
-      folly::IPAddress ip,
-      folly::MacAddress mac,
+      std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+          intfIDAndIpAndMac,
       std::optional<sai_uint32_t> metadata)
-      : Base(interfaceId, std::make_tuple(interfaceId, mac)),
+      : Base(
+            std::get<InterfaceID>(intfIDAndIpAndMac),
+            std::make_tuple(
+                std::get<InterfaceID>(intfIDAndIpAndMac),
+                std::get<folly::MacAddress>(intfIDAndIpAndMac))),
         manager_(manager),
         port_(port),
-        ip_(ip),
+        intfIDAndIpAndMac_(intfIDAndIpAndMac),
         handle_(std::make_unique<SaiNeighborHandle>()),
         metadata_(metadata) {}
 
@@ -81,7 +84,8 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
 
   SaiNeighborManager* manager_;
   SaiPortDescriptor port_;
-  folly::IPAddress ip_;
+  std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+      intfIDAndIpAndMac_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   std::optional<sai_uint32_t> metadata_;
 };

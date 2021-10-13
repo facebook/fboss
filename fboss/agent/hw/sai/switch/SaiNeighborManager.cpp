@@ -21,6 +21,7 @@
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "folly/IPAddress.h"
 
 namespace facebook::fboss {
 
@@ -106,9 +107,8 @@ void SaiNeighborManager::addNeighbor(
   auto subscriber = std::make_shared<ManagedNeighbor>(
       this,
       saiPortDesc,
-      swEntry->getIntfID(),
-      swEntry->getIP(),
-      swEntry->getMac(),
+      std::make_tuple(
+          swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
       metadata);
 
   SaiObjectEventPublisher::getInstance()
@@ -184,8 +184,9 @@ bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
 void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
+  const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
-      fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
+      fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip);
 
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(), metadata_};
@@ -223,9 +224,10 @@ std::string ManagedNeighbor::toString() const {
       ? handle_->fdbEntry->adapterKey().toString()
       : "FdbEntry: none";
 
+  const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   return folly::to<std::string>(
       "ip: ",
-      ip_.str(),
+      ip.str(),
       port_.str(),
       " metadata: ",
       metadataStr,
