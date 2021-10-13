@@ -177,6 +177,10 @@ inline folly::StringPiece constexpr kInMacsecDataPkts() {
   return "in_macsec_data_pkts";
 }
 
+inline folly::StringPiece constexpr kInMacsecDecryptedBytes() {
+  return "in_macsec_decrypted_bytes";
+}
+
 inline folly::StringPiece constexpr kOutPreMacsecDropPkts() {
   return "out_premacsec_drop_pkts";
 }
@@ -187,5 +191,9 @@ inline folly::StringPiece constexpr kOutMacsecControlPkts() {
 
 inline folly::StringPiece constexpr kOutMacsecDataPkts() {
   return "out_macsec_data_pkts";
+}
+
+inline folly::StringPiece constexpr kOutMacsecEncryptedBytes() {
+  return "out_macsec_encrypted_bytes";
 }
 } // namespace facebook::fboss

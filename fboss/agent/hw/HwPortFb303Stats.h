@@ -72,7 +72,7 @@ class HwPortFb303Stats {
 
   static std::array<folly::StringPiece, 23> kPortStatKeys();
   static std::array<folly::StringPiece, 4> kQueueStatKeys();
-  static std::array<folly::StringPiece, 3> kMacsecPortStatKeys(bool ingress);
+  static std::array<folly::StringPiece, 4> kMacsecPortStatKeys(bool ingress);
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
  private:

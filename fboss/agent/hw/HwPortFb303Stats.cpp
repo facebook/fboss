@@ -52,14 +52,20 @@ std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
       kOutPkts()};
 }
 
-std::array<folly::StringPiece, 3> HwPortFb303Stats::kMacsecPortStatKeys(
+std::array<folly::StringPiece, 4> HwPortFb303Stats::kMacsecPortStatKeys(
     bool ingress) {
   if (ingress) {
     return {
-        kInPreMacsecDropPkts(), kInMacsecControlPkts(), kInMacsecDataPkts()};
+        kInPreMacsecDropPkts(),
+        kInMacsecControlPkts(),
+        kInMacsecDataPkts(),
+        kInMacsecDecryptedBytes()};
   }
   return {
-      kOutPreMacsecDropPkts(), kOutMacsecControlPkts(), kOutMacsecDataPkts()};
+      kOutPreMacsecDropPkts(),
+      kOutMacsecControlPkts(),
+      kOutMacsecDataPkts(),
+      kOutMacsecEncryptedBytes()};
 }
 
 std::string HwPortFb303Stats::statName(
@@ -270,6 +276,10 @@ void HwPortFb303Stats::updateStats(
           timeRetrieved_,
           ingress ? kInMacsecControlPkts() : kOutMacsecControlPkts(),
           *macsecPortStats.controlPkts_ref());
+      updateStat(
+          timeRetrieved_,
+          ingress ? kInMacsecDecryptedBytes() : kOutMacsecEncryptedBytes(),
+          *macsecPortStats.octetsEncrypted_ref());
     };
     updateMacsecPortStats(
         *curPortStats.macsecStats_ref()->ingressPortStats_ref(), true);
