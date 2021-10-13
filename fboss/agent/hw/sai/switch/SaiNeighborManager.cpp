@@ -116,9 +116,6 @@ void SaiNeighborManager::addNeighbor(
           swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
       metadata);
 
-  SaiObjectEventPublisher::getInstance()
-      ->get<SaiVlanRouterInterfaceTraits>()
-      .subscribe(subscriber);
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);
   managedNeighbors_.emplace(subscriberKey, std::move(subscriber));
@@ -187,11 +184,10 @@ bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
 }
 
 void ManagedNeighbor::createObject(PublisherObjects objects) {
-  auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
-      fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip);
+      fdbEntry->adapterHostKey().switchId(), getRouterInterfaceSaiId(), ip);
 
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(), metadata_};

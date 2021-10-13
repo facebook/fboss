@@ -39,18 +39,14 @@ struct SaiNeighborHandle {
 class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
                             ManagedNeighbor,
                             SaiNeighborTraits,
-                            SaiVlanRouterInterfaceTraits,
                             SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       ManagedNeighbor,
       SaiNeighborTraits,
-      SaiVlanRouterInterfaceTraits,
       SaiFdbTraits>;
-  using RouterInterfaceWeakPtr =
-      std::weak_ptr<const SaiObject<SaiVlanRouterInterfaceTraits>>;
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
-  using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
+  using PublisherObjects = std::tuple<FdbWeakptr>;
 
   ManagedNeighbor(
       SaiNeighborManager* manager,
@@ -58,11 +54,9 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
       std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
           intfIDAndIpAndMac,
       std::optional<sai_uint32_t> metadata)
-      : Base(
+      : Base(std::make_tuple(
             std::get<InterfaceID>(intfIDAndIpAndMac),
-            std::make_tuple(
-                std::get<InterfaceID>(intfIDAndIpAndMac),
-                std::get<folly::MacAddress>(intfIDAndIpAndMac))),
+            std::get<folly::MacAddress>(intfIDAndIpAndMac))),
         manager_(manager),
         saiPortAndIntf_(saiPortAndIntf),
         intfIDAndIpAndMac_(intfIDAndIpAndMac),
@@ -79,6 +73,10 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
 
   SaiPortDescriptor getSaiPortDesc() const {
     return std::get<SaiPortDescriptor>(saiPortAndIntf_);
+  }
+
+  RouterInterfaceSaiId getRouterInterfaceSaiId() const {
+    return std::get<RouterInterfaceSaiId>(saiPortAndIntf_);
   }
 
   void notifySubscribers() const;
