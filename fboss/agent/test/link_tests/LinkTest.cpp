@@ -99,25 +99,41 @@ void LinkTest::assertNoInDiscards() {
   EXPECT_EQ(numRounds, 2);
 }
 
-void LinkTest::createL3DataplaneFlood(
-    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+void LinkTest::programDefaultRoute(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    utility::EcmpSetupTargetedPorts6& ecmp6) {
   ASSERT_GT(ecmpPorts.size(), 0);
-  sw()->updateStateBlocking("Resolve nhops", [this, ecmpPorts](auto state) {
-    utility::EcmpSetupTargetedPorts6 ecmp6(
-        state, sw()->getPlatform()->getLocalMac());
+  sw()->updateStateBlocking("Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
     return ecmp6.resolveNextHops(state, ecmpPorts);
   });
-  utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getPlatform()->getLocalMac());
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ecmpPorts);
+}
+
+void LinkTest::programDefaultRoute(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    std::optional<folly::MacAddress> dstMac) {
+  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), dstMac);
+  programDefaultRoute(ecmpPorts, ecmp6);
+}
+
+void LinkTest::disableTTLDecrements(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) const {
+  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   for (const auto& nextHop : ecmp6.getNextHops()) {
     if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
       utility::disableTTLDecrements(
           sw()->getHw(), ecmp6.getRouterId(), nextHop);
     }
   }
+}
+void LinkTest::createL3DataplaneFlood(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      sw()->getState(), sw()->getPlatform()->getLocalMac());
+  programDefaultRoute(ecmpPorts, ecmp6);
+  disableTTLDecrements(ecmpPorts);
   utility::pumpTraffic(
       true,
       sw()->getHw(),

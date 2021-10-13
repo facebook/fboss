@@ -4,6 +4,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -36,6 +37,18 @@ class LinkTest : public AgentTest {
    */
   void assertNoInDiscards();
   /*
+   * Program default (v6) route over ports
+   */
+
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      std::optional<folly::MacAddress> dstMac = std::nullopt);
+  /*
+   * Disable TTL decrement on a set of ports
+   */
+  void disableTTLDecrements(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts) const;
+  /*
    * Create a L3 data plane loop and seed it with traffic
    */
   void createL3DataplaneFlood(
@@ -47,6 +60,9 @@ class LinkTest : public AgentTest {
   std::string getPortName(PortID port) const;
 
  private:
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
   void setupFlags() const override;
   void initializeCabledPorts();
   std::vector<PortID> cabledPorts_;
