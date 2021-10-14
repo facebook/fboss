@@ -2,7 +2,7 @@
    hide_page_title=true
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    sai_replayer
    tunnel_intfs

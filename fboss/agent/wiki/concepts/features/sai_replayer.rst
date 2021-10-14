@@ -1,5 +1,8 @@
-.. fb:display_title::
-  Sai Replayer
+.. fbmeta::
+   hide_page_title=true
+
+Sai Replayer
+############
 
 NOTE: USE LATEST SUPPORTED VERSIONS - :fb:wiki:`Fboss/wiki/latest_versions`
 
