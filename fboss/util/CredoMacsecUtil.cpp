@@ -379,7 +379,7 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     printf(
         "  InTaggedControlledPackets: %ld\n",
         *flowStats.inTaggedControlledPkts_ref());
-    printf("  InUntaggedPackets: %ld\n", *flowStats.inUntaggedPkts_ref());
+    printf("  InUntaggedPackets: %ld\n", *flowStats.untaggedPkts_ref());
     printf("  InBadTagPackets: %ld\n", *flowStats.inBadTagPkts_ref());
     printf("  NoSciPackets: %ld\n", *flowStats.noSciPkts_ref());
     printf("  UnknownSciPackets: %ld\n", *flowStats.unknownSciPkts_ref());

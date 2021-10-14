@@ -164,7 +164,7 @@ mka::MacsecFlowStats fillFlowStats(
         flowStats.inTaggedControlledPkts_ref() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_TAG:
-        flowStats.inUntaggedPkts_ref() = value;
+        flowStats.inNoTagPkts_ref() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_BAD_TAG:
         flowStats.inBadTagPkts_ref() = value;

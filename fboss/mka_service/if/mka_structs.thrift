@@ -82,43 +82,83 @@ struct MacsecPortStats {
   3: i64 dataPkts;
   4: i64 octetsEncrypted = 0;
 }
-
+/*
+ Macsec stats are explained in 802.1AE IEEE Std - 2006, chapter 10
+ Inline comments below briefly explain counter semantics
+ Tag here refers to MACSEC frame SecTag
+ ICV - integrity check validation
+ PN - packet number
+ Controlled port - Port with MACSEC protection (ICV) and optionally encryption
+ FBOSS always programs with both protection and encryption
+ Uncontrolled port - unsecured port
+ */
 struct MacsecFlowStats {
   1: bool directionIngress;
+  // ucast, mcast, bcast (in, out) packets on (uncontrolled, controlled) ports
   2: i64 ucastUncontrolledPkts;
   3: i64 ucastControlledPkts;
   4: i64 mcastUncontrolledPkts;
   5: i64 mcastControlledPkts;
   6: i64 bcastUncontrolledPkts;
   7: i64 bcastControlledPkts;
+  // Control pkts that bypass macsec security
   8: i64 controlPkts;
+  // in (dir = ingress) or out (dir == egress) untgaged packets
   9: i64 untaggedPkts;
   10: i64 otherErrPkts;
+  // in/out octets on uncontrolled port
   11: i64 octetsUncontrolled;
+  // in/out octets on controlled port
   12: i64 octetsControlled;
+  // out octets on common port
   13: i64 outCommonOctets;
+  // packet_len > common_port->max_len
   14: i64 outTooLongPkts;
+  /*
+  Ingress only stats, 0 for egress
+  */
+  // In packets with MACSEC Tag
   15: i64 inTaggedControlledPkts;
-  16: i64 inUntaggedPkts;
+  // In packets w/o MACSEC Tag (validate == Strict)
+  // 802.1AE also defines inUntaggedPkts for in packets w/o
+  // macsec tag and (validate != Strict). But SAI does not support
+  // it
+  16: i64 inNoTagPkts;
+  // Invalid tag or ICV fail
   17: i64 inBadTagPkts;
+  // SCI not found and validate == Strict
   18: i64 noSciPkts;
+  // SCI not found and validate != Strict
   19: i64 unknownSciPkts;
+  // In packets exceeds capabilities of Cipher suite
   20: i64 overrunPkts;
 }
 
 struct MacsecSaStats {
   1: bool directionIngress;
+  // Octets encrypted/decrypted by controlled port
   2: i64 octetsEncrypted;
+  // Octets on controlled port that were
+  // Egress - not encrypted, but protected (by say integrity check validation)
+  // Ingress - not decrypted but validated
   3: i64 octetsProtected;
   4: i64 outEncryptedPkts;
   5: i64 outProtectedPkts;
+  // Validation disabled pkts
   6: i64 inUncheckedPkts;
+  // Replay protection OFF and packet number (PN) < sa->lowestAcceptable_PN
   7: i64 inDelayedPkts;
+  // Replay protection ON and packet number (PN) < sa->lowestAcceptable_PN
   8: i64 inLatePkts;
+  // Pkt failed validation and validateFrames != Strict
   9: i64 inInvalidPkts;
+  // Pkt failed validation and validateFrames == Strict
   10: i64 inNotValidPkts;
+  // SA not found and validate != strict
   11: i64 inNoSaPkts;
+  // SA not found and validate == strict
   12: i64 inUnusedSaPkts;
+  // In packets that passed all checks on a controlled port
   13: i64 inOkPkts;
 }
 
