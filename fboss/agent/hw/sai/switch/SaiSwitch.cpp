@@ -1524,6 +1524,33 @@ bool SaiSwitch::isValidStateUpdateLocked(
     isValid = false;
   }
 
+  auto qualifiersSupported =
+      managerTable_->aclTableManager().getSupportedQualifierSet();
+  DeltaFunctions::forEachChanged(
+      delta.getAclsDelta(),
+      [qualifiersSupported, &isValid](
+          const std::shared_ptr<AclEntry>& /*oldEntry*/,
+          const std::shared_ptr<AclEntry>& newEntry) {
+        auto qualifiersRequired = newEntry->getRequiredAclTableQualifiers();
+        std::vector<cfg::AclTableQualifier> difference{
+            qualifiersRequired.size()};
+        auto iter = std::set_difference(
+            qualifiersRequired.begin(),
+            qualifiersRequired.end(),
+            qualifiersSupported.begin(),
+            qualifiersSupported.end(),
+            difference.begin());
+        difference.resize(iter - difference.begin());
+        if (!difference.empty()) {
+          XLOG(ERR) << "Invalid ACL qualifier used";
+          isValid = false;
+          return LoopAction::BREAK;
+        }
+        return LoopAction::CONTINUE;
+      }
+
+  );
+
   return isValid;
 }
 
