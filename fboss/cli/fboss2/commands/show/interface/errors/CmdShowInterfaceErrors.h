@@ -37,7 +37,6 @@ class CmdShowInterfaceErrors
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedIfs) {
-
     RetType countersEntries;
 
     auto client =
@@ -50,13 +49,12 @@ class CmdShowInterfaceErrors
   }
 
   RetType createModel(
-    std::map<int32_t, facebook::fboss::PortInfoThrift> portCounters,
-    const ObjectArgType& queriedIfs) {
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portCounters,
+      const ObjectArgType& queriedIfs) {
     RetType ret;
 
     std::unordered_set<std::string> queriedSet(
-      queriedIfs.begin(), queriedIfs.end()
-    );
+        queriedIfs.begin(), queriedIfs.end());
 
     for (const auto& port : portCounters) {
       auto portInfo = port.second;
@@ -64,38 +62,43 @@ class CmdShowInterfaceErrors
         cli::ErrorCounters counter;
 
         counter.interfaceName_ref() = portInfo.get_name();
-        counter.inputErrors_ref() = portInfo.get_input().get_errors().get_errors();
-        counter.inputDiscards_ref() = portInfo.get_input().get_errors().get_discards();
-        counter.outputErrors_ref() = portInfo.get_output().get_errors().get_errors();
-        counter.outputDiscards_ref() = portInfo.get_output().get_errors().get_discards();
+        counter.inputErrors_ref() =
+            portInfo.get_input().get_errors().get_errors();
+        counter.inputDiscards_ref() =
+            portInfo.get_input().get_errors().get_discards();
+        counter.outputErrors_ref() =
+            portInfo.get_output().get_errors().get_errors();
+        counter.outputDiscards_ref() =
+            portInfo.get_output().get_errors().get_discards();
 
         ret.error_counters_ref()->push_back(counter);
       }
     }
 
     std::sort(
-      ret.error_counters_ref()->begin(),
-      ret.error_counters_ref()->end(),
-      [](cli::ErrorCounters& a, cli::ErrorCounters b) {
-        return a.get_interfaceName() < b.get_interfaceName();
-      }
-    );
+        ret.error_counters_ref()->begin(),
+        ret.error_counters_ref()->end(),
+        [](cli::ErrorCounters& a, cli::ErrorCounters b) {
+          return a.get_interfaceName() < b.get_interfaceName();
+        });
 
     return ret;
   }
 
   Table::StyledCell stylizeCounterValue(int64_t counterValue) {
-    return counterValue == 0 ? Table::StyledCell(std::to_string(counterValue), Table::Style::NONE)
-            : Table::StyledCell(std::to_string(counterValue), Table::Style::ERROR);
+    return counterValue == 0
+        ? Table::StyledCell(std::to_string(counterValue), Table::Style::NONE)
+        : Table::StyledCell(std::to_string(counterValue), Table::Style::ERROR);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader(
-      {
-        "Interface Name", "Input Errors", "Input Discards", "Output Errors", "Output Discards"
-      }
-    );
+        {"Interface Name",
+         "Input Errors",
+         "Input Discards",
+         "Output Errors",
+         "Output Discards"});
 
     for (const auto& counter : model.get_error_counters()) {
       table.addRow({

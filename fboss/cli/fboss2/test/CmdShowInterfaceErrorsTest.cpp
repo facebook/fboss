@@ -101,7 +101,8 @@ class CmdShowInterfaceErrorsTestFixture : public CmdHandlerTestBase {
 TEST_F(CmdShowInterfaceErrorsTestFixture, queryClient) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
-      .WillOnce(Invoke([&](auto& countersEntries) { countersEntries = portEntries; }));
+      .WillOnce(Invoke(
+          [&](auto& countersEntries) { countersEntries = portEntries; }));
 
   auto cmd = CmdShowInterfaceErrors();
   auto result = cmd.queryClient(localhost(), queriedEntries);
@@ -134,7 +135,6 @@ TEST_F(CmdShowInterfaceErrorsTestFixture, createModel) {
   EXPECT_EQ(errorCounters[2].get_inputDiscards(), 100);
   EXPECT_EQ(errorCounters[2].get_outputErrors(), 0);
   EXPECT_EQ(errorCounters[2].get_outputDiscards(), 100);
-
 }
 
 TEST_F(CmdShowInterfaceErrorsTestFixture, printOutput) {
@@ -146,11 +146,11 @@ TEST_F(CmdShowInterfaceErrorsTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-    " Interface Name  Input Errors  Input Discards  Output Errors  Output Discards \n"
-    "------------------------------------------------------------------------------------\n"
-    " eth1/1/1        0             0               0              0               \n"
-    " eth2/1/1        100           0               100            0               \n"
-    " eth3/1/1        0             100             0              100             \n\n";
+      " Interface Name  Input Errors  Input Discards  Output Errors  Output Discards \n"
+      "------------------------------------------------------------------------------------\n"
+      " eth1/1/1        0             0               0              0               \n"
+      " eth2/1/1        100           0               100            0               \n"
+      " eth3/1/1        0             100             0              100             \n\n";
   EXPECT_EQ(output, expectOutput);
 }
 

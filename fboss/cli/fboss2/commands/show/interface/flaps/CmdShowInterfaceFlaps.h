@@ -37,9 +37,9 @@ class CmdShowInterfaceFlaps
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedIfs) {
-    /* Interface flap stats are stored as a FB303 counter.  Will call getRegexCounters
-       so we can filter out just the interface counters and ignore the multitude of other
-       counters we don't need.
+    /* Interface flap stats are stored as a FB303 counter.  Will call
+       getRegexCounters so we can filter out just the interface counters and
+       ignore the multitude of other counters we don't need.
     */
     RetType flapsEntries;
 
@@ -59,19 +59,19 @@ class CmdShowInterfaceFlaps
       boost::split(result, counter.first, boost::is_any_of("."));
       distinctInterfaceNames.insert(result[0]);
     }
-    std::vector<std::string> ifNames(distinctInterfaceNames.begin(), distinctInterfaceNames.end());
+    std::vector<std::string> ifNames(
+        distinctInterfaceNames.begin(), distinctInterfaceNames.end());
     return createModel(ifNames, wedgeCounters, queriedIfs);
   }
 
   RetType createModel(
-    std::vector<std::string>& ifNames,
-    std::map<std::string, std::int64_t> wedgeCounters,
-    const ObjectArgType& queriedIfs) {
+      std::vector<std::string>& ifNames,
+      std::map<std::string, std::int64_t> wedgeCounters,
+      const ObjectArgType& queriedIfs) {
     RetType ret;
 
     std::unordered_set<std::string> queriedSet(
-      queriedIfs.begin(), queriedIfs.end()
-    );
+        queriedIfs.begin(), queriedIfs.end());
 
     for (std::string interface : ifNames) {
       if (queriedIfs.size() == 0 || queriedSet.count(interface)) {
@@ -93,12 +93,11 @@ class CmdShowInterfaceFlaps
     }
 
     std::sort(
-      ret.flap_counters_ref()->begin(),
-      ret.flap_counters_ref()->end(),
-      [](cli::FlapCounters& a, cli::FlapCounters b) {
-        return a.get_interfaceName() < b.get_interfaceName();
-      }
-    );
+        ret.flap_counters_ref()->begin(),
+        ret.flap_counters_ref()->end(),
+        [](cli::FlapCounters& a, cli::FlapCounters b) {
+          return a.get_interfaceName() < b.get_interfaceName();
+        });
 
     return ret;
   }
@@ -106,11 +105,9 @@ class CmdShowInterfaceFlaps
   Table::Style get_FlapStyle(int64_t counter) {
     if (counter == 0) {
       return Table::Style::NONE;
-    }
-    else if (counter > 0 && counter < 100) {
+    } else if (counter > 0 && counter < 100) {
       return Table::Style::WARN;
-    }
-    else {
+    } else {
       return Table::Style::ERROR;
     }
   }
@@ -118,18 +115,27 @@ class CmdShowInterfaceFlaps
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader(
-      {
-        "Interface Name", "1 Min", "10 Min", "60 Min", "Total (since last reboot)"
-      }
-    );
+        {"Interface Name",
+         "1 Min",
+         "10 Min",
+         "60 Min",
+         "Total (since last reboot)"});
 
     for (const auto& counter : model.get_flap_counters()) {
       table.addRow({
-        counter.get_interfaceName(),
-        Table::StyledCell(std::to_string(counter.get_oneMinute()), get_FlapStyle(counter.get_oneMinute())),
-        Table::StyledCell(std::to_string(counter.get_tenMinute()), get_FlapStyle(counter.get_tenMinute())),
-        Table::StyledCell(std::to_string(counter.get_oneHour()), get_FlapStyle(counter.get_oneHour())),
-        Table::StyledCell(std::to_string(counter.get_totalFlaps()), get_FlapStyle(counter.get_totalFlaps())),
+          counter.get_interfaceName(),
+          Table::StyledCell(
+              std::to_string(counter.get_oneMinute()),
+              get_FlapStyle(counter.get_oneMinute())),
+          Table::StyledCell(
+              std::to_string(counter.get_tenMinute()),
+              get_FlapStyle(counter.get_tenMinute())),
+          Table::StyledCell(
+              std::to_string(counter.get_oneHour()),
+              get_FlapStyle(counter.get_oneHour())),
+          Table::StyledCell(
+              std::to_string(counter.get_totalFlaps()),
+              get_FlapStyle(counter.get_totalFlaps())),
       });
     }
 

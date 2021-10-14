@@ -13,7 +13,8 @@
 namespace facebook::fboss::utils {
 CLI::App* getSubcommandIf(CLI::App& cmd, const std::string& subcommand) {
   auto subcommands = cmd.get_subcommands([subcommand](CLI::App* app) {
-      return app->get_name().compare(subcommand) == 0; });
+    return app->get_name().compare(subcommand) == 0;
+  });
 
   return subcommands.empty() ? nullptr : subcommands.front();
 }

@@ -12,17 +12,16 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/hardware/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/clients/BmcClient.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
+#include "fboss/cli/fboss2/utils/clients/BmcClient.h"
 #include "folly/json.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
-#include <algorithm>
 #include <boost/algorithm/string.hpp>
+#include <algorithm>
 #include <cstdint>
-
 
 namespace facebook::fboss {
 
@@ -39,8 +38,8 @@ struct CmdShowHardwareTraits {
   using RetType = cli::ShowHardwareModel;
 };
 
-
-class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits> {
+class CmdShowHardware
+    : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits> {
  public:
   using ObjectArgType = CmdShowHardwareTraits::ObjectArgType;
   using RetType = CmdShowHardwareTraits::RetType;
@@ -50,16 +49,16 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
     facebook::fboss::ProductInfo product_info;
 
     // Initialize the clients we will be using
-    // This command makes multiple calls to the BMC.  Due to the slow/single threaded
-    // Nature of the BMC, this command has a rather slow runtime.  Unfortunately this
-    // is expected
+    // This command makes multiple calls to the BMC.  Due to the slow/single
+    // threaded Nature of the BMC, this command has a rather slow runtime.
+    // Unfortunately this is expected
     auto bmc = utils::createClient<BmcClient>(hostInfo);
     auto wedgeClient = utils::createClient<FbossCtrlAsyncClient>(hostInfo);
     auto bgpClient = utils::createClient<
-      facebook::neteng::fboss::bgp::thrift::TBgpServiceAsyncClient>(hostInfo);
+        facebook::neteng::fboss::bgp::thrift::TBgpServiceAsyncClient>(hostInfo);
 
-    // Product info helps us make some decisions when there need to be per platform
-    // treatment of certain outputs
+    // Product info helps us make some decisions when there need to be per
+    // platform treatment of certain outputs
     wedgeClient->sync_getProductInfo(product_info);
     std::string product = product_info.get_product();
 
@@ -71,9 +70,9 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
     entries["WedgeAgentUptime"] = utils::getPrettyElapsedTime(wedgeAliveSince);
 
     std::map<std::string, std::string> endpoints = bmc->get_endpoints();
-    // Not all platforms will have all of these endpoints.  Any null results won't
-    // be added to the data structure.  The structure is a simple map of the
-    // endpoint name to the JSON returned from the HTTP call
+    // Not all platforms will have all of these endpoints.  Any null results
+    // won't be added to the data structure.  The structure is a simple map of
+    // the endpoint name to the JSON returned from the HTTP call
     for (const auto& endpoint : endpoints) {
       auto bmc_result = bmc->fetchRaw(endpoint.second);
       if (!bmc_result.isNull()) {
@@ -92,17 +91,15 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
 
     if (data.find("WedgeAgentUptime") != data.items().end()) {
       ret.ctrlUptime_ref() = data["WedgeAgentUptime"].asString();
-    }
-    else {
+    } else {
       ret.ctrlUptime_ref() = "DOWN";
     }
     if (data.find("BGPDUptime") != data.items().end()) {
       ret.bgpdUptime_ref() = data["BGPDUptime"].asString();
-    }
-    else {
+    } else {
       ret.bgpdUptime_ref() = "CRASHED";
     }
-    //Process PIMs for platforms that have PIMS
+    // Process PIMs for platforms that have PIMS
     if (auto pimInfo = data.find("PIMINFO"); pimInfo != data.items().end()) {
       for (const auto& [pim, pimdata] : pimInfo->second.items()) {
         cli::HWModule hwmod;
@@ -112,25 +109,24 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
         std::string lower_pim = boost::algorithm::to_lower_copy(pim.asString());
         std::string pim_status = "";
         // Unfortunately, BMC does not adhere to a single standard so detecting
-        // PIM presence is on a per platform basis.  So far we have observerd that
-        // if a chassis has PIMs it will have some indication of if they are present
-        // Have to look for both endpoints to determine presence.
+        // PIM presence is on a per platform basis.  So far we have observerd
+        // that if a chassis has PIMs it will have some indication of if they
+        // are present Have to look for both endpoints to determine presence.
         if (data.find("PIMPRESENT") != data.items().end()) {
           pim_status = data["PIMPRESENT"][lower_pim].asString();
-        }
-        else if (data.find("PRESENCE") != data.items().end()) {
+        } else if (data.find("PRESENCE") != data.items().end()) {
           // Minipack2 does not use 'PIMPRESENT' Endpoint.  Instead it uses a
           // binary value in 'PRESENCE' endpoint which is a list of JSON objects
           // Would be nice to have BMC team standardize this
           for (const auto& element : data["PRESENCE"]) {
             for (const auto& [k, v] : element.items()) {
               if (boost::algorithm::trim_copy(k.asString()) == lower_pim) {
-                pim_status = v == "1" ? "Present":"NotPresent";
+                pim_status = v == "1" ? "Present" : "NotPresent";
               }
             }
           }
         }
-        hwmod.modStatus_ref() = pim_status == "Present" ? "OK":"Fail";
+        hwmod.modStatus_ref() = pim_status == "Present" ? "OK" : "Fail";
         hwmod.fpgaVersion_ref() = pimdata["fpga_ver"].asString();
         ret.modules_ref()->push_back(hwmod);
       }
@@ -141,7 +137,8 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
         cli::HWModule chassis;
         chassis.moduleName_ref() = "CHASSIS";
         chassis.moduleType_ref() = data["FRUID"]["Product Name"].asString();
-        chassis.serialNumber_ref() = data["FRUID"]["Product Serial Number"].asString();
+        chassis.serialNumber_ref() =
+            data["FRUID"]["Product Serial Number"].asString();
         chassis.macAddress_ref() = data["FRUID"]["Local MAC"].asString();
         chassis.modStatus_ref() = "OK";
         ret.modules_ref()->push_back(chassis);
@@ -153,25 +150,27 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
         cli::HWModule chassis;
         chassis.moduleName_ref() = "CHASSIS";
         chassis.moduleType_ref() = "CHASSIS";
-        chassis.serialNumber_ref() = data["FRUID"]["Product Serial Number"].asString();
-        chassis.macAddress_ref() = data["FRUID"]["Extended MAC Base"].asString();
+        chassis.serialNumber_ref() =
+            data["FRUID"]["Product Serial Number"].asString();
+        chassis.macAddress_ref() =
+            data["FRUID"]["Extended MAC Base"].asString();
         chassis.modStatus_ref() = "OK";
         ret.modules_ref()->push_back(chassis);
       }
-      // Again we have deviation of endpoints amongst platforms so we have to read
-      // from different locations to populate our object
+      // Again we have deviation of endpoints amongst platforms so we have to
+      // read from different locations to populate our object
       std::string fab_endpoint = "";
       if (data.find("SEUTIL") != data.items().end()) {
         fab_endpoint = "SEUTIL";
-      }
-      else if (data.find("SEUTIL_MP2") != data.items().end()) {
+      } else if (data.find("SEUTIL_MP2") != data.items().end()) {
         fab_endpoint = "SEUTIL_MP2";
       }
       if (fab_endpoint != "") {
         cli::HWModule fab;
         fab.moduleName_ref() = "SCM";
         fab.moduleType_ref() = "SCM";
-        fab.serialNumber_ref() = data[fab_endpoint]["Product Serial Number"].asString();
+        fab.serialNumber_ref() =
+            data[fab_endpoint]["Product Serial Number"].asString();
         fab.macAddress_ref() = data[fab_endpoint]["Local MAC"].asString();
         fab.modStatus_ref() = "OK";
         ret.modules_ref()->push_back(fab);
@@ -179,12 +178,11 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
     }
     // Sort our list of modules before outputing to table
     std::sort(
-      ret.modules_ref()->begin(),
-      ret.modules_ref()->end(),
-      [](cli::HWModule& a, cli::HWModule& b) {
-        return a.get_moduleName() < b.get_moduleName();
-      }
-    );
+        ret.modules_ref()->begin(),
+        ret.modules_ref()->end(),
+        [](cli::HWModule& a, cli::HWModule& b) {
+          return a.get_moduleName() < b.get_moduleName();
+        });
     return ret;
   }
 
@@ -194,19 +192,21 @@ class CmdShowHardware : public CmdHandler<CmdShowHardware, CmdShowHardwareTraits
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     // Recommended to use the Table library if suitable
     Table table;
-    table.setHeader({
-      "Module", "Type", "Serial", "MAC", "Status", "FPGA Version"});
+    table.setHeader(
+        {"Module", "Type", "Serial", "MAC", "Status", "FPGA Version"});
 
     for (auto const& data : model.get_modules()) {
       table.addRow({
-        data.get_moduleName() != "" ? data.get_moduleName() : "N/A",
-        data.get_moduleType() != "" ? data.get_moduleType() : "N/A",
-        data.get_serialNumber() != ""
-          ? data.get_serialNumber() : Table::StyledCell("N/A", Table::Style::ERROR),
-        data.get_macAddress() != "" ? data.get_macAddress() : "N/A",
-        data.get_modStatus() == "OK"
-          ?  Table::StyledCell("OK", Table::Style::GOOD) : Table::StyledCell("N/A", Table::Style::ERROR),
-        data.get_fpgaVersion() != "" ? data.get_fpgaVersion() : "N/A",
+          data.get_moduleName() != "" ? data.get_moduleName() : "N/A",
+          data.get_moduleType() != "" ? data.get_moduleType() : "N/A",
+          data.get_serialNumber() != ""
+              ? data.get_serialNumber()
+              : Table::StyledCell("N/A", Table::Style::ERROR),
+          data.get_macAddress() != "" ? data.get_macAddress() : "N/A",
+          data.get_modStatus() == "OK"
+              ? Table::StyledCell("OK", Table::Style::GOOD)
+              : Table::StyledCell("N/A", Table::Style::ERROR),
+          data.get_fpgaVersion() != "" ? data.get_fpgaVersion() : "N/A",
       });
     }
 

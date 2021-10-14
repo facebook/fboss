@@ -83,7 +83,8 @@ class CmdShowInterfaceCountersTestFixture : public CmdHandlerTestBase {
 TEST_F(CmdShowInterfaceCountersTestFixture, queryClient) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
-      .WillOnce(Invoke([&](auto& countersEntries) { countersEntries = portEntries; }));
+      .WillOnce(Invoke(
+          [&](auto& countersEntries) { countersEntries = portEntries; }));
 
   auto cmd = CmdShowInterfaceCounters();
   auto result = cmd.queryClient(localhost(), queriedEntries);

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <cstdint>
 
 #include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
@@ -30,11 +30,13 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
 
-  /* This unit test is a special case because the thrift spec for getRegexCounters
-  uses "thread = eb".  This requires a pretty ugly mock definition and call to work */
+  /* This unit test is a special case because the thrift spec for
+  getRegexCounters uses "thread = eb".  This requires a pretty ugly mock
+  definition and call to work */
   MOCK_METHOD2(
       async_eb_getRegexCounters,
-      void(std::unique_ptr<apache::thrift::HandlerCallback<
+      void(
+          std::unique_ptr<apache::thrift::HandlerCallback<
               std::unique_ptr<std::map<std::string, int64_t>>>>,
           std::unique_ptr<std::string> regex));
 };

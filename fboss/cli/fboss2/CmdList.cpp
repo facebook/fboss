@@ -17,12 +17,12 @@
 #include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
-#include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
-#include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
-#include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
+#include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
@@ -71,22 +71,21 @@ const CommandTree& kCommandTree() {
        "Show Interface information",
        commandHandler<CmdShowInterface>,
        {
-            {"counters",
-             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
-             "Show Interace Counters",
-             commandHandler<CmdShowInterfaceCounters>},
+           {"counters",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            "Show Interace Counters",
+            commandHandler<CmdShowInterfaceCounters>},
 
-            {"errors",
-             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
-             "Show Interace Error Counters",
-             commandHandler<CmdShowInterfaceErrors>},
+           {"errors",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            "Show Interace Error Counters",
+            commandHandler<CmdShowInterfaceErrors>},
 
-            {"flaps",
-             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
-             "Show Interace Flap Counters",
-             commandHandler<CmdShowInterfaceFlaps>},
-       }
-      },
+           {"flaps",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            "Show Interace Flap Counters",
+            commandHandler<CmdShowInterfaceFlaps>},
+       }},
       {"show",
        "transceiver",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,

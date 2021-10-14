@@ -87,7 +87,6 @@ TEST_F(CmdShowNdpTestFixture, createModel) {
   EXPECT_EQ(entries[1].get_state(), "REACHABLE");
   EXPECT_EQ(entries[1].get_ttl(), 21045);
   EXPECT_EQ(entries[1].get_classID(), 0);
-
 }
 
 TEST_F(CmdShowNdpTestFixture, printOutput) {
@@ -100,11 +99,10 @@ TEST_F(CmdShowNdpTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-"IP Address                                   MAC Address        Port        VLAN               State         TTL      CLASSID     \n"
-"fe80::526b:4bff:fe28:8fb0                    50:6b:4b:28:8f:b0  46          downlinks (2000)   REACHABLE     45013    0           \n"
-"fe80::464c:a8ff:fee4:1c3f                    44:4c:a8:e4:1c:3f  102         uplink_1 (4001)    REACHABLE     21045    0           \n\n";
+      "IP Address                                   MAC Address        Port        VLAN               State         TTL      CLASSID     \n"
+      "fe80::526b:4bff:fe28:8fb0                    50:6b:4b:28:8f:b0  46          downlinks (2000)   REACHABLE     45013    0           \n"
+      "fe80::464c:a8ff:fee4:1c3f                    44:4c:a8:e4:1c:3f  102         uplink_1 (4001)    REACHABLE     21045    0           \n\n";
   EXPECT_EQ(output, expectOutput);
 }
-
 
 } // namespace facebook::fboss

@@ -13,16 +13,16 @@
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
-#include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/CmdShowInterface.h"
-#include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
-#include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
-#include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
+#include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
-#include "fboss/cli/fboss2/commands/show/CmdShowPortQueue.h"
-#include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
+#include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -91,9 +91,12 @@ template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
-template void CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
-template void CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::run();
-template void CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::run();
+template void
+CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
+template void
+CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::run();
+template void
+CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();

@@ -34,7 +34,8 @@ std::vector<facebook::fboss::LinkNeighborThrift> createLldpEntries() {
   lldpEntry3.systemName_ref() = "fsw003.p001.f01.atn1";
   lldpEntry3.printablePortId_ref() = "Ethernet3/2/1";
 
-  std::vector<fboss::LinkNeighborThrift> entries{lldpEntry1, lldpEntry2, lldpEntry3};
+  std::vector<fboss::LinkNeighborThrift> entries{
+      lldpEntry1, lldpEntry2, lldpEntry3};
   return entries;
 }
 
@@ -78,13 +79,12 @@ TEST_F(CmdShowLldpTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-"Local Port       Name                                  Port        \n"
-"--------------------------------------------------------------------------------\n"
-"102              fsw001.p001.f01.atn1                  Ethernet3/2/1\n"
-"106              fsw002.p001.f01.atn1                  Ethernet3/2/1\n"
-"110              fsw003.p001.f01.atn1                  Ethernet3/2/1\n\n";
+      "Local Port       Name                                  Port        \n"
+      "--------------------------------------------------------------------------------\n"
+      "102              fsw001.p001.f01.atn1                  Ethernet3/2/1\n"
+      "106              fsw002.p001.f01.atn1                  Ethernet3/2/1\n"
+      "110              fsw003.p001.f01.atn1                  Ethernet3/2/1\n\n";
   EXPECT_EQ(output, expectOutput);
 }
-
 
 } // namespace facebook::fboss
