@@ -80,16 +80,35 @@ struct MacsecPortStats {
   1: i64 preMacsecDropPkts;
   2: i64 controlPkts;
   3: i64 dataPkts;
-  4: i64 octetsEncrypted = 0;
+  // Derived counters, extracted from SA, flow counters
+  // For macsec stats behavior refer 802.1AE IEEE Std - 2006, chapter 10,
+  // figure 10-5.
+  4: i64 octetsEncrypted = 0; // from SA.octetsEncrypted
+  // In errors - counters with Dropped in their name reflect
+  // packets dropped, while others reflect MASEC errors that
+  // are firther passed on for ICV or ASIC processing
+  // Behaivior is defined in
+  5: i64 inBadOrNoMacsecTagDroppedPkts = 0; // from Flow.{inNoTagPkts + inBadTagPkts}
+  6: i64 inNoSciDroppedPkts = 0; // from Flow.noSciPkts
+  7: i64 inUnknownSciPkts = 0; // from Flow.unknownSciPkts
+  8: i64 inOverrunDroppedPkts = 0; // from Flow.overrunPkts
+  9: i64 inDelayedPkts = 0; // from SA.inDelayedPkts
+  10: i64 inLateDroppedPkts = 0; // from SA.inLatePkts
+  11: i64 inNotValidDroppedPkts = 0; // from SA.inNotValidPkts
+  12: i64 inInvalidPkts = 0; // from SA.inInvalidPkts
+  13: i64 inNoSaDroppedPkts = 0; // from SA.inNoSaPkts
+  14: i64 inUnusedSaPkts = 0; // from SA.inUnusedSaPkts
+  // Out Errors
+  30: i64 outTooLongDroppedPkts = 0; // from Flow.outTooLongPkts
+  // In/Out error counters
+  45: i64 noMacsecTagPkts = 0; // from Flow.untaggedPkts
 }
 /*
- Macsec stats are explained in 802.1AE IEEE Std - 2006, chapter 10
- Inline comments below briefly explain counter semantics
- Tag here refers to MACSEC frame SecTag
- ICV - integrity check validation
- PN - packet number
- Controlled port - Port with MACSEC protection (ICV) and optionally encryption
- FBOSS always programs with both protection and encryption
+ Macsec stats behavior is explained in 802.1AE IEEE Std - 2006, chapter 10,
+ figure 10-5. Inline comments below briefly explain counter semantics Tag here
+ refers to MACSEC frame SecTag ICV - integrity check validation PN - packet
+ number Controlled port - Port with MACSEC protection (ICV) and optionally
+ encryption FBOSS always programs with both protection and encryption
  Uncontrolled port - unsecured port
  */
 struct MacsecFlowStats {
