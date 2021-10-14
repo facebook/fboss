@@ -985,7 +985,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     const auto& [direction, macsec] = dirAndMacsec;
     auto pitr = macsec->ports.find(port);
     if (pitr == macsec->ports.end()) {
-      return;
+      continue;
     }
     auto& macsecPort = *pitr;
     if (!portStats.macsecStats_ref()) {
