@@ -10,12 +10,14 @@
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "folly/IPAddress.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
@@ -762,4 +764,95 @@ TEST(Acl, InvalidTrafficCounter) {
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(Acl, GetRequiredAclTableQualifiers) {
+  cfg::SwitchConfig config;
+  config.acls_ref();
+  config.acls_ref()->resize(2);
+
+  auto setAclQualifiers = [](std::string ip, std::string name) {
+    cfg::AclEntry acl;
+    acl.name_ref() = name;
+    acl.srcIp_ref() = ip;
+    acl.dstIp_ref() = ip;
+    acl.proto_ref() = 50;
+    acl.tcpFlagsBitMap_ref() = 123;
+    acl.srcPort_ref() = 1001;
+    acl.dstPort_ref() = 2002;
+    acl.ipFrag_ref() = cfg::IpFragMatch::MATCH_ANY_FRAGMENT;
+    acl.dscp_ref() = 8;
+    acl.ipType_ref() = cfg::IpType::ANY;
+    cfg::Ttl ttl;
+    ttl.value_ref() = 255;
+    ttl.mask_ref() = 0xff;
+    acl.ttl_ref() = ttl;
+    acl.dstMac_ref() = "a:b:c:d:e:f";
+    acl.l4SrcPort_ref() = 4005;
+    acl.l4DstPort_ref() = 4005;
+    acl.lookupClassL2_ref() = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0;
+    acl.lookupClassNeighbor_ref() =
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1;
+    acl.lookupClassRoute_ref() =
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
+    acl.actionType_ref() = cfg::AclActionType::DENY;
+    return acl;
+  };
+  config.acls_ref()[0] = setAclQualifiers("10.0.0.1/32", "acl0");
+  config.acls_ref()[1] = setAclQualifiers("1::1/128", "acl1");
+
+  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->resize(2);
+  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0].matcher_ref() =
+      "acl0";
+  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0].matcher_ref() =
+      "acl1";
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+
+  auto q0 =
+      stateV1->getAcls()->getEntry("acl0")->getRequiredAclTableQualifiers();
+  auto q1 =
+      stateV1->getAcls()->getEntry("acl1")->getRequiredAclTableQualifiers();
+
+  std::set<cfg::AclTableQualifier> qualifiers0{
+      cfg::AclTableQualifier::SRC_IPV4,
+      cfg::AclTableQualifier::DST_IPV4,
+      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::TCP_FLAGS,
+      cfg::AclTableQualifier::IP_FRAG,
+      cfg::AclTableQualifier::DSCP,
+      cfg::AclTableQualifier::IP_TYPE,
+      cfg::AclTableQualifier::TTL,
+      cfg::AclTableQualifier::DST_MAC,
+      cfg::AclTableQualifier::L4_SRC_PORT,
+      cfg::AclTableQualifier::L4_DST_PORT,
+      cfg::AclTableQualifier::SRC_PORT,
+      cfg::AclTableQualifier::OUT_PORT,
+      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+
+  std::set<cfg::AclTableQualifier> qualifiers1{
+      cfg::AclTableQualifier::SRC_IPV6,
+      cfg::AclTableQualifier::DST_IPV6,
+      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::TCP_FLAGS,
+      cfg::AclTableQualifier::IP_FRAG,
+      cfg::AclTableQualifier::DSCP,
+      cfg::AclTableQualifier::IP_TYPE,
+      cfg::AclTableQualifier::TTL,
+      cfg::AclTableQualifier::DST_MAC,
+      cfg::AclTableQualifier::L4_SRC_PORT,
+      cfg::AclTableQualifier::L4_DST_PORT,
+      cfg::AclTableQualifier::SRC_PORT,
+      cfg::AclTableQualifier::OUT_PORT,
+      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+
+  EXPECT_EQ(q0, qualifiers0);
+  EXPECT_EQ(q1, qualifiers1);
 }

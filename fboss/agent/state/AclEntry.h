@@ -375,6 +375,8 @@ class AclEntry
         getPacketLookupResult() || getEtherType();
   }
 
+  std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT::ThriftyBaseT;
