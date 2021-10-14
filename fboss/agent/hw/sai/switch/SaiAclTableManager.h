@@ -161,6 +161,8 @@ class SaiAclTableManager {
 
   void updateStats();
 
+  std::set<cfg::AclTableQualifier> getSupportedQualifierSet() const;
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;
