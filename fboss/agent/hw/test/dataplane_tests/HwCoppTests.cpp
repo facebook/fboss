@@ -507,14 +507,24 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getMinPktsForLineRate(port);
     auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
-    // Create a loop with specified destination packets
+    // Create a loop with specified destination packets.
+    // We want to send atleast 2 traffic streams to ensure we dont run
+    // into throughput limits with single flow and flow cache for TAJO.
     sendTcpPktsOnPort(
         port,
         vlanId,
-        minPktsForLineRate,
+        minPktsForLineRate / 2,
         dstIpAddress,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
+        dstMac);
+    sendTcpPktsOnPort(
+        port,
+        vlanId,
+        minPktsForLineRate / 2,
+        dstIpAddress,
+        utility::kNonSpecialPort1 + 1,
+        utility::kNonSpecialPort2 + 1,
         dstMac);
     XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
                << (int)port << " / VLAN " << (int)vlanId;
