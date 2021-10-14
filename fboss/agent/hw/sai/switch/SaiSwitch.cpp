@@ -1201,11 +1201,7 @@ void SaiSwitch::initStoreAndManagersLocked(
             std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
         managerTable_->aclTableGroupManager().addAclTableGroup(aclTableGroup);
 
-        auto table1 = std::make_shared<AclTable>(
-            0,
-            kAclTable1); // TODO(saranicholas): set appropriate table priority
-        managerTable_->aclTableManager().addAclTable(
-            table1, cfg::AclStage::INGRESS);
+        managerTable_->aclTableManager().addDefaultAclTable();
       }
     }
 

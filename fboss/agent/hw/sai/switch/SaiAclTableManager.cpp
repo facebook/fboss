@@ -1114,4 +1114,26 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
   return qualifiers;
 }
 
+void SaiAclTableManager::addDefaultAclTable() {
+  if (handles_.find(kAclTable1) != handles_.end()) {
+    throw FbossError("default acl table already exists.");
+  }
+  auto table1 = std::make_shared<AclTable>(
+      0,
+      kAclTable1); // TODO(saranicholas): set appropriate table priority
+  addAclTable(table1, cfg::AclStage::INGRESS);
+}
+
+void SaiAclTableManager::removeDefaultAclTable() {
+  if (handles_.find(kAclTable1) == handles_.end()) {
+    return;
+  }
+  // remove from acl table group
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    managerTable_->aclTableGroupManager().removeAclTableGroupMember(
+        SAI_ACL_STAGE_INGRESS, kAclTable1);
+  }
+  handles_.erase(kAclTable1);
+}
+
 } // namespace facebook::fboss
