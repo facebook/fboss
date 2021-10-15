@@ -1063,19 +1063,24 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
         ? *macsecStats.ingressPortStats_ref()
         : *macsecStats.egressPortStats_ref();
-    std::map<mka::MKASci, mka::MacsecFlowStats> flowStats;
+    // Record flow, SA stats into a new map. We will then use this to
+    // updated macsecStats flow stats map. This will take care of
+    // removing any flows that have been deleted since last stat
+    // collection
+    std::map<mka::MKASci, mka::MacsecFlowStats> newFlowStats;
+    std::map<mka::MKASecureAssociationId, mka::MacsecSaStats> newSaStats;
+    auto& flowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *macsecStats.ingressFlowStats_ref()
+        : *macsecStats.egressFlowStats_ref();
+    auto& saStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *macsecStats.rxSecureAssociationStats_ref()
+        : *macsecStats.txSecureAssociationStats_ref();
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       MacsecSecureChannelId secureChannelId = macsecSc.first;
       mka::MKASci sci;
       sci.macAddress_ref() =
           folly::MacAddress::fromNBO((secureChannelId >> 16) << 16).toString();
       sci.port_ref() = secureChannelId & 0xFF;
-      auto& flowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-          ? *macsecStats.ingressFlowStats_ref()
-          : *macsecStats.egressFlowStats_ref();
-      auto& saStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-          ? *macsecStats.rxSecureAssociationStats_ref()
-          : *macsecStats.txSecureAssociationStats_ref();
       for (const auto& macsecSa : macsecSc.second->secureAssocs) {
         macsecSa.second->updateStats<SaiMacsecSATraits>();
         mka::MKASecureAssociationId saId;
@@ -1089,7 +1094,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
                 : std::optional<mka::MacsecSaStats>(prevSaStatsItr->second),
             curSaStats,
             macsecPortStats);
-        saStats[saId] = std::move(curSaStats);
+        newSaStats[saId] = std::move(curSaStats);
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
       auto curFlowStats =
@@ -1101,8 +1106,10 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
               : std::optional<mka::MacsecFlowStats>(prevFlowStatsItr->second),
           curFlowStats,
           macsecPortStats);
-      flowStats[sci] = curFlowStats;
+      newFlowStats[sci] = std::move(curFlowStats);
     }
+    flowStats = std::move(newFlowStats);
+    saStats = std::move(newSaStats);
     // Port stats
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
     fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
