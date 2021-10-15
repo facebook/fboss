@@ -181,6 +181,50 @@ inline folly::StringPiece constexpr kInMacsecDecryptedBytes() {
   return "in_macsec_decrypted_bytes";
 }
 
+inline folly::StringPiece constexpr kInMacsecBadOrNoTagDroppedPkts() {
+  return "in_macsec_no_or_bad_tag_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecNoSciDroppedPkts() {
+  return "in_macsec_no_sci_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecUnknownSciPkts() {
+  return "in_macsec_unknonwn_sci_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecOverrunDroppedPkts() {
+  return "in_macsec_overrun_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecDelayedPkts() {
+  return "in_macsec_delayed_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecLateDroppedPkts() {
+  return "in_macsec_late_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecNotValidDroppedPkts() {
+  return "in_macsec_not_valid_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecInvalidPkts() {
+  return "in_macsec_invalid_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecNoSADroppedPkts() {
+  return "in_macsec_no_sa_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecUnusedSAPkts() {
+  return "in_macsec_unused_sa_pkts";
+}
+
+inline folly::StringPiece constexpr kInMacsecUntaggedPkts() {
+  return "in_macsec_untagged_pkts";
+}
+
 inline folly::StringPiece constexpr kOutPreMacsecDropPkts() {
   return "out_premacsec_drop_pkts";
 }
@@ -195,5 +239,12 @@ inline folly::StringPiece constexpr kOutMacsecDataPkts() {
 
 inline folly::StringPiece constexpr kOutMacsecEncryptedBytes() {
   return "out_macsec_encrypted_bytes";
+}
+inline folly::StringPiece constexpr kOutMacsecUntaggedPkts() {
+  return "out_macsec_untagged_pkts";
+}
+
+inline folly::StringPiece constexpr kOutMacsecTooLongDroppedPkts() {
+  return "out_macsec_too_long_dropped_pkts";
 }
 } // namespace facebook::fboss

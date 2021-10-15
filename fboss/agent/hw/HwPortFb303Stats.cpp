@@ -52,20 +52,35 @@ std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
       kOutPkts()};
 }
 
-std::array<folly::StringPiece, 4> HwPortFb303Stats::kMacsecPortStatKeys(
-    bool ingress) {
-  if (ingress) {
-    return {
-        kInPreMacsecDropPkts(),
-        kInMacsecControlPkts(),
-        kInMacsecDataPkts(),
-        kInMacsecDecryptedBytes()};
-  }
+std::array<folly::StringPiece, 15> HwPortFb303Stats::kInMacsecPortStatKeys() {
+  return {
+      kInPreMacsecDropPkts(),
+      kInMacsecControlPkts(),
+      kInMacsecDataPkts(),
+      kInMacsecDecryptedBytes(),
+      kInMacsecBadOrNoTagDroppedPkts(),
+      kInMacsecNoSciDroppedPkts(),
+      kInMacsecUnknownSciPkts(),
+      kInMacsecOverrunDroppedPkts(),
+      kInMacsecDelayedPkts(),
+      kInMacsecLateDroppedPkts(),
+      kInMacsecNotValidDroppedPkts(),
+      kInMacsecInvalidPkts(),
+      kInMacsecNoSADroppedPkts(),
+      kInMacsecUnusedSAPkts(),
+      kInMacsecUntaggedPkts(),
+  };
+}
+
+std::array<folly::StringPiece, 6> HwPortFb303Stats::kOutMacsecPortStatKeys() {
   return {
       kOutPreMacsecDropPkts(),
       kOutMacsecControlPkts(),
       kOutMacsecDataPkts(),
-      kOutMacsecEncryptedBytes()};
+      kOutMacsecEncryptedBytes(),
+      kOutMacsecTooLongDroppedPkts(),
+      kOutMacsecUntaggedPkts(),
+  };
 }
 
 std::string HwPortFb303Stats::statName(
@@ -118,11 +133,14 @@ void HwPortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
  */
 void HwPortFb303Stats::reinitMacsecStats(
     std::optional<std::string> oldPortName) {
-  for (auto ingress : {true, false}) {
-    for (auto statKey : kMacsecPortStatKeys(ingress)) {
+  auto reinitStats = [this, &oldPortName](const auto& keys) {
+    for (auto statKey : keys) {
       reinitStat(statKey, portName_, oldPortName);
     }
-  }
+  };
+  reinitStats(kInMacsecPortStatKeys());
+  reinitStats(kOutMacsecPortStatKeys());
+
   macsecStatsInited_ = true;
 }
 /*
@@ -280,6 +298,61 @@ void HwPortFb303Stats::updateStats(
           timeRetrieved_,
           ingress ? kInMacsecDecryptedBytes() : kOutMacsecEncryptedBytes(),
           *macsecPortStats.octetsEncrypted_ref());
+      if (ingress) {
+        updateStat(
+            timeRetrieved_,
+            kInMacsecBadOrNoTagDroppedPkts(),
+            *macsecPortStats.inBadOrNoMacsecTagDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecNoSciDroppedPkts(),
+            *macsecPortStats.inNoSciDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecUnknownSciPkts(),
+            *macsecPortStats.inUnknownSciPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecOverrunDroppedPkts(),
+            *macsecPortStats.inOverrunDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecDelayedPkts(),
+            *macsecPortStats.inDelayedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecLateDroppedPkts(),
+            *macsecPortStats.inLateDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecNotValidDroppedPkts(),
+            *macsecPortStats.inNotValidDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecInvalidPkts(),
+            *macsecPortStats.inInvalidPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecNoSADroppedPkts(),
+            *macsecPortStats.inNoSaDroppedPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecUnusedSAPkts(),
+            *macsecPortStats.inUnusedSaPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecUntaggedPkts(),
+            *macsecPortStats.noMacsecTagPkts_ref());
+      } else {
+        updateStat(
+            timeRetrieved_,
+            kOutMacsecUntaggedPkts(),
+            *macsecPortStats.noMacsecTagPkts_ref());
+        updateStat(
+            timeRetrieved_,
+            kOutMacsecTooLongDroppedPkts(),
+            *macsecPortStats.outTooLongDroppedPkts_ref());
+      }
     };
     updateMacsecPortStats(
         *curPortStats.macsecStats_ref()->ingressPortStats_ref(), true);

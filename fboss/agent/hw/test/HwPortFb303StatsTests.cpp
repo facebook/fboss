@@ -29,42 +29,46 @@ HwPortFb303Stats::QueueId2Name kQueue2Name = {
 HwPortStats getInitedStats() {
   MacsecStats macsecStats{
       apache::thrift::FragileConstructor(),
+      // ingress macsec port stats
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
-          1,
-          2,
-          3,
-          4,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0}, // ingress macsec port stats
+          1, // preMacsecDropPkts
+          2, // controlPkts
+          3, // dataPkts
+          4, // octetsEncrypted
+          5, // inBadOrNoMacsecTagDroppedPkts
+          6, // inNoSciDroppedPkts
+          7, // inUnknownSciPkts
+          8, // inOverrunDroppedPkts
+          9, // inDelayedPkts
+          10, // inLateDroppedPkts
+          11, // inNotValidDroppedPkts
+          12, // inInvalidPkts
+          13, // inNoSaDroppedPkts
+          14, // inUnusedSaPkts
+          0, // outTooLongDroppedPkts
+          15 // noMacsecTagPkts
+      },
+      // egress macsec port stats
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
-          1,
-          2,
-          3,
-          4,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0}, // egress macsec port stats
+          1, // preMacsecDropPkts
+          2, // controlPkts
+          3, // dataPkts
+          4, // octetsEncrypted
+          0, // inBadOrNoMacsecTagDroppedPkts
+          0, // inNoSciDroppedPkts
+          0, // inUnknownSciPkts
+          0, // inOverrunDroppedPkts
+          0, // inDelayedPkts
+          0, // inLateDroppedPkts
+          0, // inNotValidDroppedPkts
+          0, // inInvalidPkts
+          0, // inNoSaDroppedPkts
+          0, // inUnusedSaPkts
+          5, // outTooLongDroppedPkts
+          6 // noMacsecTagPkts
+      },
       {}, // ingress flow stats
       {}, // egress flow stats
       {{}}, // rx SA stats
@@ -190,14 +194,19 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     }
     ++curValue;
   }
-  for (auto ingress : {true, false}) {
-    curValue = 1;
-    for (auto counterName : HwPortFb303Stats::kMacsecPortStatKeys(ingress)) {
-      EXPECT_EQ(
-          portStats.getCounterLastIncrement(
-              HwPortFb303Stats::statName(counterName, kPortName)),
-          curValue++);
-    }
+  curValue = 1;
+  for (auto counterName : HwPortFb303Stats::kInMacsecPortStatKeys()) {
+    EXPECT_EQ(
+        portStats.getCounterLastIncrement(
+            HwPortFb303Stats::statName(counterName, kPortName)),
+        curValue++);
+  }
+  curValue = 1;
+  for (auto counterName : HwPortFb303Stats::kOutMacsecPortStatKeys()) {
+    EXPECT_EQ(
+        portStats.getCounterLastIncrement(
+            HwPortFb303Stats::statName(counterName, kPortName)),
+        curValue++);
   }
 }
 } // namespace
