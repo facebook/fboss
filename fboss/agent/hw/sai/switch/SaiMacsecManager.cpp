@@ -979,7 +979,41 @@ void SaiMacsecManager::removeAcls(
     }
   }
 }
-
+namespace {
+void updateMacsecPortStats(
+    const std::optional<mka::MacsecSaStats>& prev,
+    const mka::MacsecSaStats& cur,
+    mka::MacsecPortStats& portStats) {
+  *portStats.octetsEncrypted_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->octetsEncrypted_ref() : 0L, *cur.octetsEncrypted_ref())
+          .incrementFromPrev();
+  *portStats.inDelayedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inDelayedPkts_ref() : 0L, *cur.inDelayedPkts_ref())
+          .incrementFromPrev();
+  *portStats.inLateDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inLatePkts_ref() : 0L, *cur.inLatePkts_ref())
+          .incrementFromPrev();
+  *portStats.inNotValidDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inNotValidPkts_ref() : 0L, *cur.inNotValidPkts_ref())
+          .incrementFromPrev();
+  *portStats.inInvalidPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inInvalidPkts_ref() : 0L, *cur.inInvalidPkts_ref())
+          .incrementFromPrev();
+  *portStats.inNoSaDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inNoSaPkts_ref() : 0L, *cur.inNoSaPkts_ref())
+          .incrementFromPrev();
+  *portStats.inUnusedSaPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->inUnusedSaPkts_ref() : 0L, *cur.inUnusedSaPkts_ref())
+          .incrementFromPrev();
+}
+} // namespace
 void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
   for (const auto& dirAndMacsec : macsecHandles_) {
     const auto& [direction, macsec] = dirAndMacsec;
@@ -992,8 +1026,10 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       portStats.macsecStats_ref() = MacsecStats{};
     }
     auto& macsecStats = *portStats.macsecStats_ref();
+    auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+        ? *macsecStats.ingressPortStats_ref()
+        : *macsecStats.egressPortStats_ref();
     std::map<mka::MKASci, mka::MacsecFlowStats> flowStats;
-    int64_t newOctetsEncrytpted{0};
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       MacsecSecureChannelId secureChannelId = macsecSc.first;
       mka::MKASci sci;
@@ -1008,14 +1044,15 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         mka::MKASecureAssociationId saId;
         saId.sci_ref() = sci;
         saId.assocNum_ref() = macsecSa.first;
-        auto saItr = saStats.find(saId);
-        auto prevSaOctetsEncrypted =
-            saItr == saStats.end() ? 0L : *saItr->second.octetsEncrypted_ref();
-        saStats[saId] = fillSaStats(macsecSa.second->getStats(), direction);
-        newOctetsEncrytpted +=
-            utility::CounterPrevAndCur(
-                prevSaOctetsEncrypted, *saStats[saId].octetsEncrypted_ref())
-                .incrementFromPrev();
+        auto prevSaStatsItr = saStats.find(saId);
+        auto curSaStats = fillSaStats(macsecSa.second->getStats(), direction);
+        updateMacsecPortStats(
+            prevSaStatsItr == saStats.end()
+                ? std::nullopt
+                : std::optional<mka::MacsecSaStats>(prevSaStatsItr->second),
+            curSaStats,
+            macsecPortStats);
+        saStats[saId] = curSaStats;
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
       flowStats[sci] =
@@ -1028,11 +1065,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     portFlowStats = std::move(flowStats);
     // Port stats
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
-    auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *macsecStats.ingressPortStats_ref()
-        : *macsecStats.egressPortStats_ref();
     fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
-    *macsecPortStats.octetsEncrypted_ref() += newOctetsEncrytpted;
   }
 }
 
