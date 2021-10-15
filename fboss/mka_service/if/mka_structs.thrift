@@ -76,6 +76,12 @@ struct MacsecAllScInfo {
   2: map<i32, MacsecPortInfo> linePortInfo;
 }
 
+enum PortAdminStatus {
+  NO_MACSEC = 0,
+  MACSEC_WITH_PLAINTEXT_FALLBACK = 1,
+  MACSEC_NO_FALLBACK = 2,
+}
+
 struct MacsecPortStats {
   1: i64 preMacsecDropPkts;
   2: i64 controlPkts;
