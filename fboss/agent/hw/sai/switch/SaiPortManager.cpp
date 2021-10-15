@@ -1159,6 +1159,10 @@ void SaiPortManager::programMacsec(
                  << txSak.sci_ref()->macAddress_ref().value()
                  << " port=" << txSak.sci_ref()->port_ref().value();
 
+      // We are about to prune MACSEC SAK/SCI, do a round of stat collection
+      // to get SA, SCI counters since last stat collection. After delete,
+      // we won't have access to this SAK/SCI counters
+      updateStats(portId, false);
       macsecManager.deleteMacsec(
           portId, txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
     } else {
@@ -1192,6 +1196,10 @@ void SaiPortManager::programMacsec(
   // Erase whatever could not be found in newRxSaks
   for (const auto& keyAndSak : oldRxSaks) {
     const auto& [key, sak] = keyAndSak;
+    // We are about to prune MACSEC SAK/SCI, do a round of stat collection
+    // to get SA, SCI counters since last stat collection. After delete,
+    // we won't have access to this SAK/SCI counters
+    updateStats(portId, false);
     // Use the SCI from the key. Since for RX we use SCI of peer, which
     // is stored in MKASakKey
     XLOG(INFO) << "Deleting old Rx SAK for MAC="
