@@ -889,7 +889,7 @@ class PortStatusDetailCmd(object):
 
         print(
             "    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
-                "Tx Bias(mA):",
+                "Tx Bias:",
                 channel.sensors.txBias.flags.alarm.low,
                 channel.sensors.txBias.flags.warn.low,
                 channel.sensors.txBias.flags.warn.high,
@@ -900,16 +900,7 @@ class PortStatusDetailCmd(object):
         if channel.sensors.txPwr:
             print(
                 "    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
-                    "Tx Power(dBm):",
-                    self._mw_to_dbm(channel.sensors.txPwr.flags.alarm.low),
-                    self._mw_to_dbm(channel.sensors.txPwr.flags.warn.low),
-                    self._mw_to_dbm(channel.sensors.txPwr.flags.warn.high),
-                    self._mw_to_dbm(channel.sensors.txPwr.flags.alarm.high),
-                )
-            )
-            print(
-                "    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
-                    "Tx Power(mW):",
+                    "Tx Power:",
                     channel.sensors.txPwr.flags.alarm.low,
                     channel.sensors.txPwr.flags.warn.low,
                     channel.sensors.txPwr.flags.warn.high,
@@ -918,16 +909,7 @@ class PortStatusDetailCmd(object):
             )
         print(
             "    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
-                "Rx Power(dBm):",
-                self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.low),
-                self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.low),
-                self._mw_to_dbm(channel.sensors.rxPwr.flags.warn.high),
-                self._mw_to_dbm(channel.sensors.rxPwr.flags.alarm.high),
-            )
-        )
-        print(
-            "    {:<14} {:>10} {:>15} {:>15} {:>10}".format(
-                "Rx Power(mW):",
+                "Rx Power:",
                 channel.sensors.rxPwr.flags.alarm.low,
                 channel.sensors.rxPwr.flags.warn.low,
                 channel.sensors.rxPwr.flags.warn.high,
