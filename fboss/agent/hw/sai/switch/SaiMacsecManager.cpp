@@ -981,6 +981,40 @@ void SaiMacsecManager::removeAcls(
 }
 namespace {
 void updateMacsecPortStats(
+    const std::optional<mka::MacsecFlowStats>& prev,
+    const mka::MacsecFlowStats& cur,
+    mka::MacsecPortStats& portStats) {
+  *portStats.inBadOrNoMacsecTagDroppedPkts_ref() +=
+      (utility::CounterPrevAndCur(
+           prev ? *prev->inNoTagPkts_ref() : 0L, *cur.inNoTagPkts_ref())
+           .incrementFromPrev() +
+       utility::CounterPrevAndCur(
+           prev ? *prev->inBadTagPkts_ref() : 0L, *cur.inBadTagPkts_ref())
+           .incrementFromPrev());
+  *portStats.inNoSciDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->noSciPkts_ref() : 0L, *cur.noSciPkts_ref())
+          .incrementFromPrev();
+  *portStats.inUnknownSciPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->unknownSciPkts_ref() : 0L, *cur.unknownSciPkts_ref())
+          .incrementFromPrev();
+  *portStats.inOverrunDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->overrunPkts_ref() : 0L, *cur.overrunPkts_ref())
+          .incrementFromPrev();
+
+  *portStats.outTooLongDroppedPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->outTooLongPkts_ref() : 0L, *cur.untaggedPkts_ref())
+          .incrementFromPrev();
+  *portStats.noMacsecTagPkts_ref() +=
+      utility::CounterPrevAndCur(
+          prev ? *prev->untaggedPkts_ref() : 0L, *cur.untaggedPkts_ref())
+          .incrementFromPrev();
+}
+
+void updateMacsecPortStats(
     const std::optional<mka::MacsecSaStats>& prev,
     const mka::MacsecSaStats& cur,
     mka::MacsecPortStats& portStats) {
@@ -1036,6 +1070,9 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       sci.macAddress_ref() =
           folly::MacAddress::fromNBO((secureChannelId >> 16) << 16).toString();
       sci.port_ref() = secureChannelId & 0xFF;
+      auto& flowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
+          ? *macsecStats.ingressFlowStats_ref()
+          : *macsecStats.egressFlowStats_ref();
       auto& saStats = direction == SAI_MACSEC_DIRECTION_INGRESS
           ? *macsecStats.rxSecureAssociationStats_ref()
           : *macsecStats.txSecureAssociationStats_ref();
@@ -1052,17 +1089,20 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
                 : std::optional<mka::MacsecSaStats>(prevSaStatsItr->second),
             curSaStats,
             macsecPortStats);
-        saStats[saId] = curSaStats;
+        saStats[saId] = std::move(curSaStats);
       }
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
-      flowStats[sci] =
+      auto curFlowStats =
           fillFlowStats(macsecSc.second->flow->getStats(), direction);
+      auto prevFlowStatsItr = flowStats.find(sci);
+      updateMacsecPortStats(
+          prevFlowStatsItr == flowStats.end()
+              ? std::nullopt
+              : std::optional<mka::MacsecFlowStats>(prevFlowStatsItr->second),
+          curFlowStats,
+          macsecPortStats);
+      flowStats[sci] = curFlowStats;
     }
-    // Flow stats
-    auto& portFlowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *portStats.macsecStats_ref()->ingressFlowStats_ref()
-        : *portStats.macsecStats_ref()->egressFlowStats_ref();
-    portFlowStats = std::move(flowStats);
     // Port stats
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
     fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
