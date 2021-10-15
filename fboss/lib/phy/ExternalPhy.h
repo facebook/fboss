@@ -21,6 +21,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
+namespace facebook::fboss {
+class Port;
+}
+
 namespace facebook::fboss::phy {
 
 /*
@@ -206,9 +210,11 @@ class ExternalPhy {
       const std::vector<LaneID>& lineLanes) = 0;
 
   virtual PhyInfo getPortInfo(
-      const std::vector<LaneID>& /*sysLanes*/,
-      const std::vector<LaneID>& /*lineLanes*/) {
-    throw facebook::fboss::FbossError("Port info not supported");
+      const facebook::fboss::Port* /* port */,
+      const std::vector<LaneID>& /* sysLanes */,
+      const std::vector<LaneID>& /* lineLanes */) {
+    throw facebook::fboss::FbossError(
+        "Port info not supported on this platform");
   }
 
   virtual ExternalPhyPortStats getPortPrbsStats(

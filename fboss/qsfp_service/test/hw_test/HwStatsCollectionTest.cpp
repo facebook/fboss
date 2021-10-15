@@ -124,7 +124,7 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         auto portInfo = getHwQsfpEnsemble()
                             ->getPhyManager()
                             ->getExternalPhy(port)
-                            ->getPortInfo(sysLanes, lineLanes);
+                            ->getPortInfo(nullptr, sysLanes, lineLanes);
 
         // Sanity check the info we received
         auto chipInfo = portInfo.phyChip_ref();
