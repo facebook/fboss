@@ -68,51 +68,6 @@ class SaiMacsecManager {
       const mka::MKASci& sci,
       sai_macsec_direction_t direction);
 
-  SaiMacsecHandle* FOLLY_NULLABLE
-  getMacsecHandle(sai_macsec_direction_t direction);
-  const SaiMacsecHandle* FOLLY_NULLABLE
-  getMacsecHandle(sai_macsec_direction_t direction) const;
-
-  const SaiMacsecFlow* getMacsecFlow(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction) const;
-  SaiMacsecFlow* getMacsecFlow(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction);
-
-  const SaiMacsecPortHandle* FOLLY_NULLABLE
-  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction) const;
-  SaiMacsecPortHandle* FOLLY_NULLABLE
-  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction);
-
-  const SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
-  getMacsecSecureChannelHandle(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction) const;
-  SaiMacsecSecureChannelHandle* FOLLY_NULLABLE getMacsecSecureChannelHandle(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction);
-
-  const SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction,
-      uint8_t assocNum) const;
-  SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
-      PortID linePort,
-      MacsecSecureChannelId secureChannelId,
-      sai_macsec_direction_t direction,
-      uint8_t assocNum);
-
-  // TODO(ccpowers): it may be better to move this out into a utils file
-  std::string getAclName(
-      facebook::fboss::PortID port,
-      sai_macsec_direction_t direction);
-
   void deleteMacsec(
       PortID linePort,
       const mka::MKASak& sak,
@@ -122,19 +77,67 @@ class SaiMacsecManager {
   void updateStats(PortID port, HwPortStats& portStats);
 
  private:
+  const SaiMacsecHandle* FOLLY_NULLABLE
+  getMacsecHandle(sai_macsec_direction_t direction) const;
+
+  const SaiMacsecFlow* getMacsecFlow(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction) const;
+
+  const SaiMacsecPortHandle* FOLLY_NULLABLE
+  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction) const;
+
+  const SaiMacsecSecureChannelHandle* FOLLY_NULLABLE
+  getMacsecSecureChannelHandle(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction) const;
+
+  const SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum) const;
+  std::string getAclName(
+      facebook::fboss::PortID port,
+      sai_macsec_direction_t direction) const;
+
+  SaiMacsecHandle* FOLLY_NULLABLE
+  getMacsecHandle(sai_macsec_direction_t direction);
   SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandleImpl(sai_macsec_direction_t direction) const;
+
+  SaiMacsecFlow* getMacsecFlow(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction);
   SaiMacsecFlow* getMacsecFlowImpl(
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction) const;
+
+  SaiMacsecPortHandle* FOLLY_NULLABLE
+  getMacsecPortHandle(PortID linePort, sai_macsec_direction_t direction);
   SaiMacsecPortHandle* FOLLY_NULLABLE getMacsecPortHandleImpl(
       PortID linePort,
       sai_macsec_direction_t direction) const;
+
+  SaiMacsecSecureChannelHandle* FOLLY_NULLABLE getMacsecSecureChannelHandle(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction);
   SaiMacsecSecureChannelHandle* FOLLY_NULLABLE getMacsecSecureChannelHandleImpl(
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction) const;
+
+  SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssoc(
+      PortID linePort,
+      MacsecSecureChannelId secureChannelId,
+      sai_macsec_direction_t direction,
+      uint8_t assocNum);
+
   SaiMacsecSecureAssoc* FOLLY_NULLABLE getMacsecSecureAssocImpl(
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
@@ -211,7 +214,12 @@ class SaiMacsecManager {
   FRIEND_TEST(MacsecManagerTest, addDuplicateMacsecSecureAssoc);
   FRIEND_TEST(MacsecManagerTest, removeMacsecSecureAssoc);
   FRIEND_TEST(MacsecManagerTest, removeNonexistentMacsecSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, deleteKeysWithOneSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, deleteKeysWithMultipleSecureAssoc);
+  FRIEND_TEST(MacsecManagerTest, deleteKeysWithSingleSecureAssoc);
   FRIEND_TEST(MacsecManagerTest, invalidLinePort);
+  FRIEND_TEST(MacsecManagerTest, installKeys);
+  friend class HwMacsecTest;
 };
 
 } // namespace facebook::fboss

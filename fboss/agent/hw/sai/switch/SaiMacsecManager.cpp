@@ -896,7 +896,7 @@ void SaiMacsecManager::setupMacsec(
 
 std::string SaiMacsecManager::getAclName(
     facebook::fboss::PortID port,
-    sai_macsec_direction_t direction) {
+    sai_macsec_direction_t direction) const {
   return folly::to<std::string>(
       "macsec-",
       direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
