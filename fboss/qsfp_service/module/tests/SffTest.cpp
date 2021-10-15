@@ -279,6 +279,7 @@ TEST(SfpTest, transceiverInfoTest) {
   };
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, sfp->numMediaLanes());
+  tests.verifyVendorName("FACETEST");
 }
 
 } // namespace

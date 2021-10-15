@@ -33,6 +33,18 @@ static Sff8472FieldInfo::Sff8472FieldMap sfpFields = {
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 0, 1}},
     {Sff8472Field::ETHERNET_10G_COMPLIANCE_CODE,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 3, 1}},
+    {Sff8472Field::VENDOR_NAME,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 20, 16}},
+    {Sff8472Field::VENDOR_OUI,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 37, 3}},
+    {Sff8472Field::VENDOR_PART_NUMBER,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 40, 16}},
+    {Sff8472Field::VENDOR_REVISION_NUMBER,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 56, 4}},
+    {Sff8472Field::VENDOR_SERIAL_NUMBER,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 68, 16}},
+    {Sff8472Field::VENDOR_MFG_DATE,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 84, 8}},
 
     // Address A2h fields
     {Sff8472Field::ALARM_WARNING_THRESHOLDS,
@@ -319,6 +331,35 @@ bool Sff8472Module::getMediaLaneSettings(
   firstLane->lane_ref() = 0;
   firstLane->txDisable_ref() = txDisable;
   return true;
+}
+
+std::string Sff8472Module::getSfpString(Sff8472Field field) const {
+  int offset;
+  int length;
+  int dataAddress;
+  uint8_t transceiverI2CAddress;
+
+  getSfpFieldAddress(field, dataAddress, offset, length, transceiverI2CAddress);
+  const uint8_t* data =
+      getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
+
+  while (length > 0 && data[length - 1] == ' ') {
+    --length;
+  }
+
+  std::string value(reinterpret_cast<const char*>(data), length);
+  return validateQsfpString(value) ? value : "UNKNOWN";
+}
+
+Vendor Sff8472Module::getVendorInfo() {
+  Vendor vendor = Vendor();
+  vendor.name_ref() = getSfpString(Sff8472Field::VENDOR_NAME);
+  vendor.oui_ref() = getSfpString(Sff8472Field::VENDOR_OUI);
+  vendor.partNumber_ref() = getSfpString(Sff8472Field::VENDOR_PART_NUMBER);
+  vendor.rev_ref() = getSfpString(Sff8472Field::VENDOR_REVISION_NUMBER);
+  vendor.serialNumber_ref() = getSfpString(Sff8472Field::VENDOR_SERIAL_NUMBER);
+  vendor.dateCode_ref() = getSfpString(Sff8472Field::VENDOR_MFG_DATE);
+  return vendor;
 }
 
 } // namespace fboss

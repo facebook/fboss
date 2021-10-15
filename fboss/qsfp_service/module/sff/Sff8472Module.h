@@ -89,9 +89,9 @@ class Sff8472Module : public QsfpModule {
    */
   bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
 
-  Vendor getVendorInfo() override {
-    return Vendor();
-  }
+  std::string getSfpString(Sff8472Field flag) const;
+
+  Vendor getVendorInfo() override;
 
   Cable getCableInfo() override {
     return Cable();

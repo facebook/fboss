@@ -1437,7 +1437,7 @@ void printSff8472DetailService(
   //   printVerboseInfo(transceiverInfo);
   // }
 
-  // printVendorInfo(transceiverInfo);
+  printVendorInfo(transceiverInfo);
 
   if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
     printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
