@@ -55,11 +55,20 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
           << " before hard reset, power control="
           << apache::thrift::util::enumNameSafe(
                  *idAndTransceiver.second.settings_ref()->powerControl_ref());
-      EXPECT_TRUE(
-          *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
-              PowerControlState::POWER_OVERRIDE ||
-          *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
-              PowerControlState::HIGH_POWER_OVERRIDE);
+      auto transmitterTech = *idAndTransceiver.second.cable_ref()
+                                  .value_or({})
+                                  .transmitterTech_ref();
+      if (transmitterTech == TransmitterTechnology::COPPER) {
+        EXPECT_TRUE(
+            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+            PowerControlState::POWER_SET_BY_HW);
+      } else {
+        EXPECT_TRUE(
+            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+                PowerControlState::POWER_OVERRIDE ||
+            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+                PowerControlState::HIGH_POWER_OVERRIDE);
+      }
     }
   }
 

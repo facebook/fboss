@@ -9,6 +9,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+#include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
 
 namespace {
@@ -73,8 +74,22 @@ TEST_F(HwTest, i2cStressWrite) {
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
       transceiversInfo, std::make_unique<std::vector<int32_t>>(transceivers));
 
+  // Only work with optical transceivers. The offset that this test is
+  // writing is not writable on copper/flatMem modules
+  auto opticalTransceivers =
+      folly::gen::from(transceivers) |
+      folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
+        auto tcvrInfo = transceiversInfo[tcvrId];
+        auto transmitterTech =
+            tcvrInfo.cable_ref().value_or({}).transmitterTech_ref();
+        return transmitterTech == TransmitterTechnology::OPTICAL;
+      }) |
+      folly::gen::as<std::vector>();
+
+  EXPECT_TRUE(!opticalTransceivers.empty());
+
   WriteRequest request;
-  request.ids_ref() = transceivers;
+  request.ids_ref() = opticalTransceivers;
   TransceiverIOParameters params;
   // We can write to byte 123 which is password entry page register in both sff
   // and cmis
@@ -90,7 +105,7 @@ TEST_F(HwTest, i2cStressWrite) {
     std::map<int32_t, WriteResponse> currentResponse;
     wedgeManager->writeTransceiverRegister(
         currentResponse, std::move(writeRequest));
-    for (auto tcvrId : transceivers) {
+    for (auto tcvrId : opticalTransceivers) {
       // Assert that the write operation was successful
       EXPECT_TRUE(currentResponse.find(tcvrId) != currentResponse.end());
       auto curr = currentResponse[tcvrId];
