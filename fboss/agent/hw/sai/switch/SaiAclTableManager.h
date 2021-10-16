@@ -166,6 +166,17 @@ class SaiAclTableManager {
   void addDefaultAclTable();
   void removeDefaultAclTable();
 
+  bool isQualifierSupported(
+      const std::string& aclTableName,
+      cfg::AclTableQualifier qualifier) const;
+
+  bool areQualifiersSupported(
+      const std::string& aclTableName,
+      const std::set<cfg::AclTableQualifier>& qualifiers) const;
+
+  bool areQualifiersSupportedInDefaultAclTable(
+      const std::set<cfg::AclTableQualifier>& qualifiers) const;
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

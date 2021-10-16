@@ -11,7 +11,9 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/CounterUtils.h"
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -1136,4 +1138,143 @@ void SaiAclTableManager::removeDefaultAclTable() {
   handles_.erase(kAclTable1);
 }
 
+bool SaiAclTableManager::isQualifierSupported(
+    const std::string& aclTableName,
+    cfg::AclTableQualifier qualifier) const {
+  auto handle = getAclTableHandle(aclTableName);
+  if (!handle) {
+    throw FbossError("ACL table ", aclTableName, " not found.");
+  }
+  auto attributes = handle->aclTable->attributes();
+
+  auto hasField = [attributes](auto field) {
+    if (!field) {
+      return false;
+    }
+    return field->value();
+  };
+
+  using cfg::AclTableQualifier;
+  switch (qualifier) {
+    case cfg::AclTableQualifier::SRC_IPV6:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldSrcIpV6>>(
+              attributes));
+    case cfg::AclTableQualifier::DST_IPV6:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstIpV6>>(
+              attributes));
+    case cfg::AclTableQualifier::SRC_IPV4:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstIpV4>>(
+              attributes));
+    case cfg::AclTableQualifier::DST_IPV4:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldSrcIpV4>>(
+              attributes));
+    case cfg::AclTableQualifier::L4_SRC_PORT:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldL4SrcPort>>(
+              attributes));
+    case cfg::AclTableQualifier::L4_DST_PORT:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldL4DstPort>>(
+              attributes));
+    case cfg::AclTableQualifier::IP_PROTOCOL:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldIpProtocol>>(
+              attributes));
+    case cfg::AclTableQualifier::TCP_FLAGS:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldTcpFlags>>(
+              attributes));
+    case cfg::AclTableQualifier::SRC_PORT:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldSrcPort>>(
+              attributes));
+    case cfg::AclTableQualifier::OUT_PORT:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldOutPort>>(
+              attributes));
+    case cfg::AclTableQualifier::IP_FRAG:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldIpFrag>>(
+              attributes));
+    case cfg::AclTableQualifier::ICMPV4_TYPE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldIcmpV4Type>>(
+              attributes));
+    case cfg::AclTableQualifier::ICMPV4_CODE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldIcmpV4Code>>(
+              attributes));
+    case cfg::AclTableQualifier::ICMPV6_TYPE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldIcmpV6Type>>(
+              attributes));
+    case cfg::AclTableQualifier::ICMPV6_CODE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldIcmpV6Code>>(
+              attributes));
+    case cfg::AclTableQualifier::DSCP:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDscp>>(
+              attributes));
+    case cfg::AclTableQualifier::DST_MAC:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstMac>>(
+              attributes));
+    case cfg::AclTableQualifier::IP_TYPE:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldIpType>>(
+              attributes));
+    case cfg::AclTableQualifier::TTL:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldTtl>>(
+              attributes));
+    case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
+      return hasField(
+          std::get<std::optional<
+              SaiAclTableTraits::Attributes::FieldFdbDstUserMeta>>(attributes));
+    case cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR:
+      return hasField(
+          std::get<std::optional<
+              SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              attributes));
+    case cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE:
+      return hasField(
+          std::get<std::optional<
+              SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              attributes));
+    case cfg::AclTableQualifier::ETHER_TYPE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldEthertype>>(
+              attributes));
+  }
+  return false;
+}
+
+bool SaiAclTableManager::areQualifiersSupported(
+    const std::string& aclTableName,
+    const std::set<cfg::AclTableQualifier>& qualifiers) const {
+  return std::all_of(
+      std::begin(qualifiers),
+      std::end(qualifiers),
+      [this, aclTableName](auto qualifier) {
+        return isQualifierSupported(aclTableName, qualifier);
+      });
+}
+
+bool SaiAclTableManager::areQualifiersSupportedInDefaultAclTable(
+    const std::set<cfg::AclTableQualifier>& qualifiers) const {
+  return areQualifiersSupported(kAclTable1, qualifiers);
+}
 } // namespace facebook::fboss
