@@ -382,47 +382,47 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
     toAddRoutes.reserve(toAdd.size());
 
-    std::for_each(
-        toAdd.begin(),
-        toAdd.end(),
-        [clientID, adminDistanceFromClientID, &stats, &toAddRoutes](
-            const auto& route) {
-          auto network =
-              facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
-          auto mask =
-              static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-          std::optional<RouteCounterID> counterID;
-          if (route.counterID_ref().has_value()) {
-            counterID = route.counterID_ref().value();
-          }
-          if (network.isV4()) {
-            ++stats.v4RoutesAdded;
-          } else {
-            ++stats.v6RoutesAdded;
-          }
-          toAddRoutes.push_back(
-              {{network, mask},
-               RouteNextHopEntry::from(
-                   route, adminDistanceFromClientID, counterID)});
-        });
-    std::vector<folly::CIDRNetwork> toDelPrefixes;
-    toDelPrefixes.reserve(toDelete.size());
-    std::for_each(
-        toDelete.begin(),
-        toDelete.end(),
-        [&stats, &toDelPrefixes](const auto& prefix) {
-          auto network = facebook::network::toIPAddress(*prefix.ip_ref());
-          auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-
-          if (network.isV4()) {
-            ++stats.v4RoutesDeleted;
-          } else {
-            ++stats.v6RoutesDeleted;
-          }
-          toDelPrefixes.push_back({network, mask});
-        });
-
     try {
+      std::for_each(
+          toAdd.begin(),
+          toAdd.end(),
+          [clientID, adminDistanceFromClientID, &stats, &toAddRoutes](
+              const auto& route) {
+            auto network =
+                facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
+            auto mask =
+                static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+            std::optional<RouteCounterID> counterID;
+            if (route.counterID_ref().has_value()) {
+              counterID = route.counterID_ref().value();
+            }
+            if (network.isV4()) {
+              ++stats.v4RoutesAdded;
+            } else {
+              ++stats.v6RoutesAdded;
+            }
+            toAddRoutes.push_back(
+                {{network, mask},
+                 RouteNextHopEntry::from(
+                     route, adminDistanceFromClientID, counterID)});
+          });
+      std::vector<folly::CIDRNetwork> toDelPrefixes;
+      toDelPrefixes.reserve(toDelete.size());
+      std::for_each(
+          toDelete.begin(),
+          toDelete.end(),
+          [&stats, &toDelPrefixes](const auto& prefix) {
+            auto network = facebook::network::toIPAddress(*prefix.ip_ref());
+            auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+
+            if (network.isV4()) {
+              ++stats.v4RoutesDeleted;
+            } else {
+              ++stats.v6RoutesDeleted;
+            }
+            toDelPrefixes.push_back({network, mask});
+          });
+
       ribTables_.update(
           routerID,
           clientID,
