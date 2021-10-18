@@ -36,9 +36,10 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using AddrT = AddressT;
 
-  cfg::SwitchConfig getConfig() const {
+  virtual cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();
   }
+
   void SetUp() override {
     auto config = getConfig();
     handle_ = createTestHandle(&config);
@@ -262,6 +263,22 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     waitForStateUpdates(this->sw_);
     waitForRibUpdates(sw_);
     waitForStateUpdates(this->sw_);
+  }
+
+  void addRouteResolveNeighborBlockUnblockHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateBlockedNeighbor(this->getSw(), {{}});
+
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
  private:
@@ -724,6 +741,29 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteResolveNeighborBlockUnblock) {
+  this->addRouteResolveNeighborBlockUnblockHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+template <typename AddressT>
+class LookupClassRouteUpdaterNoLookupClassTest
+    : public LookupClassRouteUpdaterTest<AddressT> {
+  cfg::SwitchConfig getConfig() const override {
+    return testConfigA();
+  }
+};
+
+TYPED_TEST_CASE(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    TypeTypesLookupClassRouteUpdater);
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    AddRouteResolveNeighborBlock) {
+  this->addRouteResolveNeighborBlockUnblockHelper(std::nullopt);
 }
 
 } // namespace facebook::fboss
