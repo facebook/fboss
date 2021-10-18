@@ -175,6 +175,15 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       VlanID vlanID,
       const folly::IPAddress& ipAddress) const;
 
+  void processBlockNeighborAdded(
+      const StateDelta& stateDelta,
+      std::vector<std::pair<VlanID, folly::IPAddress>> toBeAddedBlockNeighbors);
+  void processBlockNeighborRemoved(
+      const StateDelta& stateDelta,
+      std::vector<std::pair<VlanID, folly::IPAddress>>
+          toBeRemovedBlockNeighbors);
+  void processBlockNeighborUpdates(const StateDelta& stateDelta);
+
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with
@@ -187,7 +196,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    *   - nexthop IP that would use such a port for egress, would belong to the
    *     interface subnet.
    * Thus, we discover and maintain a list of subnets for ports that have
-   * non-emptry lookupClasses list.
+   * non-empty lookupClasses list.
    *
    * Today, the list of subnets we need to cache is very small. Thus,
    * std::set is good enough. In future, if we need to cache a large
