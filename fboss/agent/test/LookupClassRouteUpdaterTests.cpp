@@ -281,6 +281,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  void resolveNeighborBlockAddRouteUnblockHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateBlockedNeighbor(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
  private:
   void addDelRouteImpl(
       RoutePrefix<AddrT> routePrefix,
@@ -748,6 +762,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteResolveNeighborBlockUnblock) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNeighborBlockAddRouteUnblock) {
+  this->resolveNeighborBlockAddRouteUnblockHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -764,6 +783,12 @@ TYPED_TEST(
     LookupClassRouteUpdaterNoLookupClassTest,
     AddRouteResolveNeighborBlock) {
   this->addRouteResolveNeighborBlockUnblockHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    ResolveNeighborBlockAddRouteUnblock) {
+  this->resolveNeighborBlockAddRouteUnblockHelper(std::nullopt);
 }
 
 } // namespace facebook::fboss
