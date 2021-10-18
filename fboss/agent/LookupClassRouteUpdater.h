@@ -25,6 +25,13 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& stateDelta) override;
 
+  // Method used by unit tests
+  const boost::container::
+      flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
+      getVlan2SubnetCache() const {
+    return vlan2SubnetsCache_;
+  }
+
  private:
   // Helper methods
   void reAddAllRoutes(const StateDelta& stateDelta);
