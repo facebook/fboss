@@ -71,6 +71,10 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     return VlanID(1);
   }
 
+  VlanID kVlan2() const {
+    return VlanID(55);
+  }
+
   PortID kPortID() const {
     return PortID(1);
   }
@@ -103,6 +107,10 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     return MacAddress("01:02:03:04:05:07");
   }
 
+  MacAddress kMacAddressD() const {
+    return MacAddress("01:02:03:04:05:08");
+  }
+
   AddrT kIpAddressA() {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       return IPAddressV4("10.0.0.2");
@@ -124,6 +132,14 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       return IPAddressV4("10.0.0.4");
     } else {
       return IPAddressV6("2401:db00:2110:3001::0004");
+    }
+  }
+
+  AddrT kIpAddressD() {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return IPAddressV4("10.0.55.2");
+    } else {
+      return IPAddressV6("2401:db00:2110:3055::0002");
     }
   }
 
@@ -151,6 +167,15 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     } else {
       return RoutePrefix<AddrT>{
           folly::IPAddressV6{"3803:6080:d038:3067::"}, 64};
+    }
+  }
+
+  RoutePrefix<AddrT> kroutePrefix4() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return RoutePrefix<AddrT>{folly::IPAddressV4{"13.1.4.0"}, 24};
+    } else {
+      return RoutePrefix<AddrT>{
+          folly::IPAddressV6{"4803:6080:d038:3067::"}, 64};
     }
   }
 
@@ -475,6 +500,86 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       EXPECT_EQ(
           subnetCacheBeforeBlocking,
           subnetCacheNeighborAUnBlockedNeighborBUnBlocked);
+    }
+  }
+
+  void modifyBlockListDifferentSubnetHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID1,
+      std::optional<cfg::AclLookupClass> expectedClassID2) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->addRoute(this->kroutePrefix4(), {this->kIpAddressD()});
+
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->resolveNeighbor(this->kIpAddressD(), this->kMacAddressD());
+
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
+    this->verifyClassIDHelper(this->kroutePrefix4(), expectedClassID2);
+
+    auto subnetCacheBeforeBlocking = getSubnetCache();
+
+    // neighborA blocked, neighborD unblocked
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    auto subnetCacheNeighborABlockedNeighborDUnblocked = getSubnetCache();
+
+    // neighborA blocked, neighborD blocked
+    updateBlockedNeighbor(
+        this->getSw(),
+        {{this->kVlan(), this->kIpAddressA()},
+         {this->kVlan2(), this->kIpAddressD()}});
+    auto subnetCacheNeighborABlockedNeighborDBlocked = getSubnetCache();
+
+    // neighborA unblocked, neighborD blocked
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan2(), this->kIpAddressD()}});
+    auto subnetCacheNeighborAUnBlockedNeighborDBlocked = getSubnetCache();
+
+    // neighborA unblocked, neighborD unblocked
+    updateBlockedNeighbor(this->getSw(), {{}});
+    auto subnetCacheNeighborAUnBlockedNeighborDUnBlocked = getSubnetCache();
+
+    bool noLookupClasses = !expectedClassID1.has_value();
+    if (noLookupClasses) {
+      EXPECT_EQ(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborAUnBlockedNeighborDUnBlocked, kVlan()));
+      EXPECT_EQ(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan2()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborAUnBlockedNeighborDUnBlocked, kVlan2()));
+
+      EXPECT_EQ(
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDUnblocked, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDBlocked, kVlan()));
+      // Neighbor D belongs kVlan2(), and thus subnet cache would be updated
+      // when Neighbor D is in the block list.
+      EXPECT_NE(
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDUnblocked, kVlan2()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDBlocked, kVlan2()));
+
+      EXPECT_NE(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDBlocked, kVlan()));
+      EXPECT_NE(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan2()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborDBlocked, kVlan2()));
+    } else {
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborABlockedNeighborDUnblocked);
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborAUnBlockedNeighborDBlocked);
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborAUnBlockedNeighborDUnBlocked);
     }
   }
 
@@ -971,6 +1076,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ModifyBlockListSameSubnet) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, ModifyBlockListDifferentSubnet) {
+  this->modifyBlockListDifferentSubnetHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0, std::nullopt);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -1013,6 +1123,12 @@ TYPED_TEST(
     LookupClassRouteUpdaterNoLookupClassTest,
     ModifyBlockListSameSubnet) {
   this->modifyBlockListSameSubnetHelper(std::nullopt, std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    ModifyBlockListDifferentSubnet) {
+  this->modifyBlockListDifferentSubnetHelper(std::nullopt, std::nullopt);
 }
 
 } // namespace facebook::fboss
