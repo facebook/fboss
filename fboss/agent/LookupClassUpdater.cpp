@@ -688,7 +688,6 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
       ArpEntry,
       NdpEntry>;
   std::shared_ptr<NeighborEntryT> neighborEntry;
-  std::shared_ptr<NeighborEntryT> linkLocalEntry = nullptr;
 
   neighborEntry =
       VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)->getEntryIf(
@@ -700,18 +699,6 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
   // Remove classID for neighbor entry and corresponding MAC
   removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
 
-  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    // Derive link local IP from resolved neighbor's MAC
-    auto linkLocalIpAddress = folly::IPAddressV6(
-        folly::IPAddressV6::LINK_LOCAL, neighborEntry->getMac());
-    linkLocalEntry =
-        VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)->getEntryIf(
-            linkLocalIpAddress);
-    if (linkLocalEntry) {
-      removeClassIDForPortAndMac(switchState, vlan->getID(), linkLocalEntry);
-    }
-  }
-
   std::shared_ptr<MacEntry> macEntry = nullptr;
   if (neighborEntry->isReachable()) {
     macEntry = vlan->getMacTable()->getNodeIf(neighborEntry->getMac());
@@ -722,9 +709,6 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
 
   // Re-Add classID for neighbor entry and corresponding MAC
   updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
-  if (linkLocalEntry) {
-    updateNeighborClassID(switchState, vlan->getID(), linkLocalEntry);
-  }
 
   if (macEntry) {
     updateNeighborClassID(switchState, vlan->getID(), macEntry);
