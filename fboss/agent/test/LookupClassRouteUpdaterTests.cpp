@@ -310,6 +310,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     return lookupClassRouteUpdater->getVlan2SubnetCache();
   }
 
+  folly::F14FastSet<folly::CIDRNetwork> getSubnetCacheForVlan(
+      const boost::container::flat_map<
+          VlanID,
+          folly::F14FastSet<folly::CIDRNetwork>>& vlanSubnetCache,
+      VlanID vlanID) const {
+    folly::F14FastSet<folly::CIDRNetwork> subnetCacheForVlan = {};
+    auto it = vlanSubnetCache.find(vlanID);
+    if (it != vlanSubnetCache.end()) {
+      subnetCacheForVlan = it->second;
+    }
+
+    return subnetCacheForVlan;
+  }
+
   void printSubnetCache(
       const boost::container::flat_map<
           VlanID,
@@ -382,6 +396,71 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       // cached even after clearing block list
       EXPECT_EQ(addedEntries.size(), 0);
       EXPECT_EQ(subnetCacheAfterBlocking, subnetCacheAfterUnblocking);
+    }
+  }
+
+  void modifyBlockListSameSubnetHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID1,
+      std::optional<cfg::AclLookupClass> expectedClassID2) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
+    this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
+
+    auto subnetCacheBeforeBlocking = getSubnetCache();
+
+    // neighborA blocked, neighborB unblocked
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    auto subnetCacheNeighborABlockedNeighborBUnblocked = getSubnetCache();
+
+    // neighborA blocked, neighborB blocked
+    updateBlockedNeighbor(
+        this->getSw(),
+        {{this->kVlan(), this->kIpAddressA()},
+         {this->kVlan(), this->kIpAddressB()}});
+    auto subnetCacheNeighborABlockedNeighborBBlocked = getSubnetCache();
+
+    // neighborA unblocked, neighborB blocked
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressB()}});
+    auto subnetCacheNeighborAUnBlockedNeighborBBlocked = getSubnetCache();
+
+    // neighborA unblocked, neighborB unblocked
+    updateBlockedNeighbor(this->getSw(), {{}});
+    auto subnetCacheNeighborAUnBlockedNeighborBUnBlocked = getSubnetCache();
+
+    bool noLookupClasses = !expectedClassID1.has_value();
+    if (noLookupClasses) {
+      EXPECT_EQ(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborAUnBlockedNeighborBUnBlocked, kVlan()));
+      EXPECT_EQ(
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborBUnblocked, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborBBlocked, kVlan()));
+      EXPECT_NE(
+          getSubnetCacheForVlan(subnetCacheBeforeBlocking, kVlan()),
+          getSubnetCacheForVlan(
+              subnetCacheNeighborABlockedNeighborBBlocked, kVlan()));
+    } else {
+      // Entries are already cached due to non-empty lookupclasses and remain
+      // cached even after modifications to the block list
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborABlockedNeighborBUnblocked);
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborABlockedNeighborBBlocked);
+      EXPECT_EQ(
+          subnetCacheBeforeBlocking,
+          subnetCacheNeighborAUnBlockedNeighborBUnBlocked);
     }
   }
 
@@ -867,6 +946,12 @@ TYPED_TEST(LookupClassRouteUpdaterTest, SetAndClearBlockList) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, ModifyBlockListSameSubnet) {
+  this->modifyBlockListSameSubnetHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -897,6 +982,12 @@ TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, ApplySameBlockListTwice) {
 
 TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, SetAndClearBlockList) {
   this->setAndClearBlockListHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    ModifyBlockListSameSubnet) {
+  this->modifyBlockListSameSubnetHelper(std::nullopt, std::nullopt);
 }
 
 } // namespace facebook::fboss
