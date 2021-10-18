@@ -303,6 +303,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  void blockResolveNeighborAddRouteUnblockHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateBlockedNeighbor(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -936,6 +950,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNeighborBlockAddRouteUnblock) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, BlockResolveNeighborAddRouteUnblock) {
+  this->blockResolveNeighborAddRouteUnblockHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 TYPED_TEST(LookupClassRouteUpdaterTest, ApplySameBlockListTwice) {
   this->applySameBlockListTwiceHelper(
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
@@ -974,6 +993,12 @@ TYPED_TEST(
     LookupClassRouteUpdaterNoLookupClassTest,
     ResolveNeighborBlockAddRouteUnblock) {
   this->resolveNeighborBlockAddRouteUnblockHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    BlockResolveNeighborAddRouteUnblock) {
+  this->blockResolveNeighborAddRouteUnblockHelper(std::nullopt);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, ApplySameBlockListTwice) {
