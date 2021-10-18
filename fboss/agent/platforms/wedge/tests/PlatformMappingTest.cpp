@@ -573,12 +573,12 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   }
 }
 
-TEST_F(PlatformMappingTest, VerifyMinipack2PortXphyPinConfigs) {
+TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
   auto mapping = std::make_unique<Fuji16QPimPlatformMapping>();
   // profile26 has different tx settings per lane
   //  {portID: { laneId1: {txSettings1}, laneId2: {txSettings2} .... }}
   std::unordered_map<PortID, std::unordered_map<int, std::array<int, 6>>>
-      uplinkTxMapForProfile26 = {
+      txMapForProfile26 = {
           {
               PortID(1),
               {
@@ -1413,11 +1413,11 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortXphyPinConfigs) {
           },
       };
 
-  for (auto laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile26) {
+  for (auto laneToTxSettingsToPortMap : txMapForProfile26) {
     const auto& pinCfgs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
-            laneToUplinkTxSettingsToPortMap.first),
+            laneToTxSettingsToPortMap.first),
         phy::Side::LINE);
 
     EXPECT_EQ(pinCfgs.size(), 8);
@@ -1425,11 +1425,22 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortXphyPinConfigs) {
       auto pinId = *pinCfg.id_ref();
       auto laneId = *pinId.lane_ref();
       auto tx = pinCfg.tx_ref();
-      auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
-      auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
+      auto laneToTxSettingsMap = laneToTxSettingsToPortMap.second;
+      auto txSettings = laneToTxSettingsMap[laneId];
 
       EXPECT_TRUE(tx.has_value());
-      verifyTxSettings(*tx, uplinkTxSettings);
+      verifyTxSettings(*tx, txSettings);
+    }
+
+    auto iphyPinCfgs =
+        mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
+            laneToTxSettingsToPortMap.first));
+    EXPECT_EQ(iphyPinCfgs.size(), 8);
+    for (auto pinCfg : iphyPinCfgs) {
+      auto tx = pinCfg.tx_ref();
+      EXPECT_TRUE(tx.has_value());
+      verifyTxSettings(*tx, {0, -16, 132, 0, 0, 0});
     }
   }
 }

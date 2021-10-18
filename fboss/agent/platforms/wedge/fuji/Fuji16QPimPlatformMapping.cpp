@@ -84145,6 +84145,309 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         ]
       }
+    },
+    {
+      "factor": {
+        "ports": [
+          3,
+          17,
+          34,
+          51,
+          68,
+          85,
+          102,
+          119,
+          87,
+          70,
+          121,
+          104,
+          19,
+          1,
+          53,
+          36,
+          21,
+          5,
+          55,
+          38,
+          89,
+          72,
+          125,
+          106,
+          74,
+          91,
+          108,
+          123,
+          7,
+          23,
+          40,
+          57,
+          187,
+          170,
+          153,
+          138,
+          255,
+          238,
+          221,
+          204,
+          240,
+          257,
+          206,
+          223,
+          172,
+          189,
+          136,
+          155,
+          174,
+          191,
+          140,
+          157,
+          242,
+          261,
+          208,
+          225,
+          259,
+          244,
+          227,
+          210,
+          193,
+          176,
+          159,
+          142
+        ],
+        "profiles": [
+          26
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 132,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ],
+        "xphySys": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 4
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 5
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 6
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 7
+            },
+            "tx": {
+              "pre": -16,
+              "pre2": 0,
+              "main": 152,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
     }
   ],
   "platformSupportedProfiles": [
