@@ -159,6 +159,22 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs) const;
 
+  // Methods for blocked neighbor processing
+  bool isSubnetCachedByLookupClasses(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::CIDRNetwork& addressToSearch) const;
+
+  bool isSubnetCachedByBlockedNeighborIP(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::CIDRNetwork& addressToSearch) const;
+
+  std::optional<folly::CIDRNetwork> getInterfaceSubnetForIPIf(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::IPAddress& ipAddress) const;
+
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with

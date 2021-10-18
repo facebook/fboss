@@ -884,6 +884,96 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
   }
 }
 
+// Methods for blocked neighbor processing
+std::optional<folly::CIDRNetwork>
+LookupClassRouteUpdater::getInterfaceSubnetForIPIf(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::IPAddress& ipAddress) const {
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return std::nullopt;
+  }
+
+  auto interface =
+      switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+  if (interface) {
+    for (const auto& address : interface->getAddresses()) {
+      if (ipAddress.inSubnet(address.first, address.second)) {
+        return std::make_pair(address.first, address.second);
+      }
+    }
+  }
+
+  return std::nullopt;
+}
+
+bool LookupClassRouteUpdater::isSubnetCachedByBlockedNeighborIP(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::CIDRNetwork& addressToSearch) const {
+  for (const auto& [blockedVlanID, blockedNeighborIP] :
+       switchState->getSwitchSettings()->getBlockNeighbors()) {
+    if (blockedVlanID != vlanID) {
+      continue;
+    }
+
+    auto address =
+        getInterfaceSubnetForIPIf(switchState, vlanID, blockedNeighborIP);
+    if (address.has_value() && address.value() == addressToSearch) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::CIDRNetwork& addressToSearch) const {
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return false;
+  }
+
+  auto interface =
+      switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+  if (!interface) {
+    return false;
+  }
+
+  bool searchInterfaceAddresses = false;
+  for (const auto& port : *switchState->getPorts()) {
+    if (port->getLookupClassesToDistributeTrafficOn().size() == 0) {
+      continue;
+    }
+
+    // port is member of vlan for addressToSearch i.e. blocked IP
+    auto it = port->getVlans().find(vlanID);
+    if (it == port->getVlans().end()) {
+      continue;
+    }
+
+    /*
+     * There is a port with non-empty lookupClasses && that port is member of
+     * vlan for addressToearch i.e. blocked IP.
+     */
+    searchInterfaceAddresses = true;
+    break;
+  }
+
+  if (searchInterfaceAddresses) {
+    for (const auto& address : interface->getAddresses()) {
+      if (address == addressToSearch) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*
    * If FLAGS_queue_per_host_route_fix is false:
