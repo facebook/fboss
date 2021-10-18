@@ -21,30 +21,30 @@ void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  queue0.id = k2QueueLowPriQueueId;
+  *queue0.id_ref() = k2QueueLowPriQueueId;
   queue0.name_ref() = "queue0.low_pri";
   queue0.streamType_ref() = streamType;
-  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = k2QueueLowPriWeight;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
   queue0.reservedBytes_ref() = 3328;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue1.id = k2QueueHighPriQueueId;
+  *queue1.id_ref() = k2QueueHighPriQueueId;
   queue1.name_ref() = "queue1.high_pri";
   queue1.streamType_ref() = streamType;
-  queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = k2QueueHighPriWeight;
   queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   queue1.reservedBytes_ref() = 9984;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue7;
-  queue7.id = k2QueueNCQueueId;
+  *queue7.id_ref() = k2QueueNCQueueId;
   queue7.name_ref() = "queue7.network_control";
   queue7.streamType_ref() = streamType;
-  queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;

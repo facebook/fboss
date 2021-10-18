@@ -38,7 +38,7 @@ bool comparePortQueueAQMs(
       sortedAqms.begin(),
       sortedAqms.end(),
       [](const auto& lhs, const auto& rhs) {
-        return lhs.behavior < rhs.behavior;
+        return *lhs.behavior_ref() < *rhs.behavior_ref();
       });
   return std::equal(
       aqmMap.begin(),
@@ -160,7 +160,7 @@ PortQueueFields PortQueueFields::fromThrift(
   }
   if (queueThrift.aqms_ref()) {
     for (const auto& aqm : queueThrift.aqms_ref().value()) {
-      queue.aqms.emplace(aqm.behavior, aqm);
+      queue.aqms.emplace(*aqm.behavior_ref(), aqm);
     }
   }
 
@@ -273,10 +273,10 @@ std::string PortQueue::toString() const {
 bool checkSwConfPortQueueMatch(
     const std::shared_ptr<PortQueue>& swQueue,
     const cfg::PortQueue* cfgQueue) {
-  return swQueue->getID() == cfgQueue->id &&
-      swQueue->getStreamType() == cfgQueue->streamType &&
-      swQueue->getScheduling() == cfgQueue->scheduling &&
-      (cfgQueue->scheduling == cfg::QueueScheduling::STRICT_PRIORITY ||
+  return swQueue->getID() == *cfgQueue->id_ref() &&
+      swQueue->getStreamType() == *cfgQueue->streamType_ref() &&
+      swQueue->getScheduling() == *cfgQueue->scheduling_ref() &&
+      (*cfgQueue->scheduling_ref() == cfg::QueueScheduling::STRICT_PRIORITY ||
        swQueue->getWeight() == cfgQueue->weight_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getReservedBytes(),

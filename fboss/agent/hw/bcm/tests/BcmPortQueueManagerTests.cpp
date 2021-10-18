@@ -30,30 +30,30 @@ constexpr auto KProbability = 100;
 std::vector<cfg::PortQueue> getConfigPortQueues(int mmuCellBytes) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
-  queue0.id = 0;
+  *queue0.id_ref() = 0;
   queue0.name_ref() = "queue0";
-  queue0.streamType = cfg::StreamType::UNICAST;
-  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue0.streamType_ref() = cfg::StreamType::UNICAST;
+  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = 1;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
   queue0.reservedBytes_ref() = kQueue0ReservedBytesCells * mmuCellBytes;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue1.id = 1;
+  *queue1.id_ref() = 1;
   queue1.name_ref() = "queue1";
-  queue1.streamType = cfg::StreamType::UNICAST;
-  queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue1.streamType_ref() = cfg::StreamType::UNICAST;
+  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = 9;
   queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   queue1.reservedBytes_ref() = kQueue1ReservedBytesCells * mmuCellBytes;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue7;
-  queue7.id = 7;
+  *queue7.id_ref() = 7;
   queue7.name_ref() = "queue7";
-  queue7.streamType = cfg::StreamType::UNICAST;
-  queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.streamType_ref() = cfg::StreamType::UNICAST;
+  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
   return portQueues;
@@ -63,10 +63,10 @@ std::vector<cfg::PortQueue> get7ConfigPortQueues(int mmuCellBytes) {
   std::vector<cfg::PortQueue> portQueues;
   for (auto i = 0; i < 8; i++) {
     cfg::PortQueue queue0;
-    queue0.id = i;
+    *queue0.id_ref() = i;
     queue0.name_ref() = folly::to<std::string>("queue", i);
-    queue0.streamType = cfg::StreamType::UNICAST;
-    queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    *queue0.streamType_ref() = cfg::StreamType::UNICAST;
+    *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue0.weight_ref() = 1;
     queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
     queue0.reservedBytes_ref() = kQueue0ReservedBytesCells * mmuCellBytes;
@@ -78,22 +78,22 @@ std::vector<cfg::PortQueue> get7ConfigPortQueues(int mmuCellBytes) {
 cfg::ActiveQueueManagement getEarlyDropAqmConfig(int mmuCellBytes) {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
-  earlyDropLQCD.minimumLength = mmuCellBytes;
-  earlyDropLQCD.maximumLength = 2 * mmuCellBytes;
+  *earlyDropLQCD.minimumLength_ref() = mmuCellBytes;
+  *earlyDropLQCD.maximumLength_ref() = 2 * mmuCellBytes;
   earlyDropLQCD.probability_ref() = KProbability / 2;
-  earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
-  earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
+  earlyDropAQM.detection_ref()->linear_ref() = earlyDropLQCD;
+  *earlyDropAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
 
 cfg::ActiveQueueManagement getECNAqmConfig(int mmuCellBytes) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength = 3 * mmuCellBytes;
-  ecnLQCD.maximumLength = 3 * mmuCellBytes;
+  *ecnLQCD.minimumLength_ref() = 3 * mmuCellBytes;
+  *ecnLQCD.maximumLength_ref() = 3 * mmuCellBytes;
   ecnLQCD.probability_ref() = KProbability;
-  ecnAQM.detection.linear_ref() = ecnLQCD;
-  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
+  *ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
@@ -112,7 +112,7 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
     // we always program the first port in config
     for (const auto& queue :
          programmedCfg_.portQueueConfigs_ref()["queue_config"]) {
-      if (queue.id == queueID) {
+      if (*queue.id_ref() == queueID) {
         cfgQueue = queue;
         break;
       }

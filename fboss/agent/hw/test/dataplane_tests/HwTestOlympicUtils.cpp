@@ -76,10 +76,10 @@ void addOlympicQueueConfig(
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  queue0.id = kOlympicSilverQueueId;
+  *queue0.id_ref() = kOlympicSilverQueueId;
   queue0.name_ref() = "queue0.silver";
   queue0.streamType_ref() = streamType;
-  queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kOlympicSilverWeight;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
   if (!asic->mmuQgroupsEnabled()) {
@@ -88,10 +88,10 @@ void addOlympicQueueConfig(
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue1.id = kOlympicGoldQueueId;
+  *queue1.id_ref() = kOlympicGoldQueueId;
   queue1.name_ref() = "queue1.gold";
   queue1.streamType_ref() = streamType;
-  queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kOlympicGoldWeight;
   queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   if (!asic->mmuQgroupsEnabled()) {
@@ -100,10 +100,10 @@ void addOlympicQueueConfig(
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
-  queue2.id = kOlympicEcn1QueueId;
+  *queue2.id_ref() = kOlympicEcn1QueueId;
   queue2.name_ref() = "queue2.ecn1";
   queue2.streamType_ref() = streamType;
-  queue2.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue2.weight_ref() = kOlympicEcn1Weight;
   queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
   queue2.aqms_ref() = {};
@@ -114,18 +114,18 @@ void addOlympicQueueConfig(
   portQueues.push_back(queue2);
 
   cfg::PortQueue queue4;
-  queue4.id = kOlympicBronzeQueueId;
+  *queue4.id_ref() = kOlympicBronzeQueueId;
   queue4.name_ref() = "queue4.bronze";
   queue4.streamType_ref() = streamType;
-  queue4.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *queue4.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue4.weight_ref() = kOlympicBronzeWeight;
   portQueues.push_back(queue4);
 
   cfg::PortQueue queue6;
-  queue6.id = kOlympicICPQueueId;
+  *queue6.id_ref() = kOlympicICPQueueId;
   queue6.name_ref() = "queue6.platinum";
   queue6.streamType_ref() = streamType;
-  queue6.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue6.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
   if (!asic->mmuQgroupsEnabled()) {
     queue6.reservedBytes_ref() = 9984;
   }
@@ -133,10 +133,10 @@ void addOlympicQueueConfig(
   portQueues.push_back(queue6);
 
   cfg::PortQueue queue7;
-  queue7.id = kOlympicNCQueueId;
+  *queue7.id_ref() = kOlympicNCQueueId;
   queue7.name_ref() = "queue7.network_control";
   queue7.streamType_ref() = streamType;
-  queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;

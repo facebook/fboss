@@ -42,26 +42,26 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 std::vector<cfg::PortQueue> getConfigCPUQueues() {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
-  high.id = 9;
+  *high.id_ref() = 9;
   high.name_ref() = "cpuQueue-high";
-  high.streamType = cfg::StreamType::MULTICAST;
-  high.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *high.streamType_ref() = cfg::StreamType::MULTICAST;
+  *high.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   high.weight_ref() = 4;
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
-  mid.id = 2;
+  *mid.id_ref() = 2;
   mid.name_ref() = "cpuQueue-mid";
-  mid.streamType = cfg::StreamType::MULTICAST;
-  mid.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *mid.streamType_ref() = cfg::StreamType::MULTICAST;
+  *mid.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   mid.weight_ref() = 2;
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
-  defaultQ.id = 1;
+  *defaultQ.id_ref() = 1;
   defaultQ.name_ref() = "cpuQueue-default";
-  defaultQ.streamType = cfg::StreamType::MULTICAST;
-  defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *defaultQ.streamType_ref() = cfg::StreamType::MULTICAST;
+  *defaultQ.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   defaultQ.weight_ref() = 1;
   defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
   defaultQ.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 200);
@@ -70,10 +70,10 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
-  low.id = 0;
+  *low.id_ref() = 0;
   low.name_ref() = "cpuQueue-low";
-  low.streamType = cfg::StreamType::MULTICAST;
-  low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *low.streamType_ref() = cfg::StreamType::MULTICAST;
+  *low.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   low.weight_ref() = 1;
   low.portQueueRate_ref() = cfg::PortQueueRate();
   low.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 100);
@@ -330,7 +330,7 @@ TEST(ControlPlane, checkSwConfPortQueueMatch) {
   auto cfgCpuQueues = getConfigCPUQueues();
   auto swCpuQueuesMap = getCPUQueuesMap();
   for (const auto& cfgQueue : cfgCpuQueues) {
-    auto swQueueItr = swCpuQueuesMap.find(cfgQueue.id);
+    auto swQueueItr = swCpuQueuesMap.find(*cfgQueue.id_ref());
     EXPECT_NE(swQueueItr, swCpuQueuesMap.end());
     EXPECT_TRUE(checkSwConfPortQueueMatch(swQueueItr->second, &cfgQueue));
   }
@@ -351,6 +351,6 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
   const auto reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
   EXPECT_EQ(reasonToQueue1.size(), 1);
   const auto entry1 = reasonToQueue1.at(0);
-  EXPECT_EQ(entry1.rxReason, cfg::PacketRxReason::ARP);
-  EXPECT_EQ(entry1.queueId, 9);
+  EXPECT_EQ(*entry1.rxReason_ref(), cfg::PacketRxReason::ARP);
+  EXPECT_EQ(*entry1.queueId_ref(), 9);
 }

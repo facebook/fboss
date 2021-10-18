@@ -212,14 +212,14 @@ void getPortInfoHelper(
       std::vector<ActiveQueueManagement> aqms;
       for (const auto& aqm : queue->getAqms()) {
         ActiveQueueManagement aqmThrift;
-        switch (aqm.second.detection.getType()) {
+        switch (aqm.second.detection_ref()->getType()) {
           case facebook::fboss::cfg::QueueCongestionDetection::Type::linear:
             aqmThrift.detection_ref()->linear_ref() =
                 LinearQueueCongestionDetection();
             *aqmThrift.detection_ref()->linear_ref()->minimumLength_ref() =
-                aqm.second.detection.get_linear().minimumLength;
+                *aqm.second.detection_ref()->get_linear().minimumLength_ref();
             *aqmThrift.detection_ref()->linear_ref()->maximumLength_ref() =
-                aqm.second.detection.get_linear().maximumLength;
+                *aqm.second.detection_ref()->get_linear().maximumLength_ref();
             break;
           case facebook::fboss::cfg::QueueCongestionDetection::Type::__EMPTY__:
             XLOG(WARNING) << "Invalid queue congestion detection config";
@@ -782,8 +782,8 @@ static void populateInterfaceDetail(
   interfaceDetail.address_ref()->reserve(intf->getAddresses().size());
   for (const auto& addrAndMask : intf->getAddresses()) {
     IpPrefix temp;
-    temp.ip = toBinaryAddress(addrAndMask.first);
-    temp.prefixLength = addrAndMask.second;
+    *temp.ip_ref() = toBinaryAddress(addrAndMask.first);
+    *temp.prefixLength_ref() = addrAndMask.second;
     interfaceDetail.address_ref()->push_back(temp);
   }
 }
@@ -1450,13 +1450,13 @@ void ThriftHandler::getIpRoute(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
-      route.dest.ip = toBinaryAddress(IPAddressV4("0.0.0.0"));
-      route.dest.prefixLength = 0;
+      *route.dest_ref()->ip_ref() = toBinaryAddress(IPAddressV4("0.0.0.0"));
+      *route.dest_ref()->prefixLength_ref() = 0;
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    route.dest.ip = toBinaryAddress(match->prefix().network);
-    route.dest.prefixLength = match->prefix().mask;
+    *route.dest_ref()->ip_ref() = toBinaryAddress(match->prefix().network);
+    *route.dest_ref()->prefixLength_ref() = match->prefix().mask;
     *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
@@ -1465,13 +1465,13 @@ void ThriftHandler::getIpRoute(
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
-      route.dest.ip = toBinaryAddress(IPAddressV6("::0"));
-      route.dest.prefixLength = 0;
+      *route.dest_ref()->ip_ref() = toBinaryAddress(IPAddressV6("::0"));
+      *route.dest_ref()->prefixLength_ref() = 0;
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    route.dest.ip = toBinaryAddress(match->prefix().network);
-    route.dest.prefixLength = match->prefix().mask;
+    *route.dest_ref()->ip_ref() = toBinaryAddress(match->prefix().network);
+    *route.dest_ref()->prefixLength_ref() = match->prefix().mask;
     *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
@@ -1632,8 +1632,8 @@ void ThriftHandler::startLoggingRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  folly::IPAddress addr = toIPAddress(info->prefix_ref()->ip);
-  uint8_t mask = static_cast<uint8_t>(info->prefix_ref()->prefixLength);
+  folly::IPAddress addr = toIPAddress(*info->prefix_ref()->ip_ref());
+  uint8_t mask = static_cast<uint8_t>(*info->prefix_ref()->prefixLength_ref());
   RouteUpdateLoggingInstance loggingInstance{
       RoutePrefix<folly::IPAddress>{addr, mask},
       *info->identifier_ref(),
@@ -1656,8 +1656,8 @@ void ThriftHandler::stopLoggingRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  folly::IPAddress addr = toIPAddress(prefix->ip);
-  uint8_t mask = static_cast<uint8_t>(prefix->prefixLength);
+  folly::IPAddress addr = toIPAddress(*prefix->ip_ref());
+  uint8_t mask = static_cast<uint8_t>(*prefix->prefixLength_ref());
   routeUpdateLogger->stopLoggingForPrefix(addr, mask, *identifier);
 }
 
@@ -1694,8 +1694,8 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
     RouteUpdateLoggingInfo info;
     IpPrefix prefix;
-    prefix.ip = toBinaryAddress(tracked.prefix.network);
-    prefix.prefixLength = tracked.prefix.mask;
+    *prefix.ip_ref() = toBinaryAddress(tracked.prefix.network);
+    *prefix.prefixLength_ref() = tracked.prefix.mask;
     *info.prefix_ref() = prefix;
     *info.identifier_ref() = tracked.identifier;
     *info.exact_ref() = tracked.exact;
@@ -1986,7 +1986,7 @@ void ThriftHandler::addMplsRoutesImpl(
   auto labelFib =
       (*state)->getLabelForwardingInformationBase().get()->modify(state);
   for (const auto& mplsRoute : mplsRoutes) {
-    auto topLabel = mplsRoute.topLabel;
+    auto topLabel = *mplsRoute.topLabel_ref();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
@@ -2122,7 +2122,7 @@ void ThriftHandler::getMplsRouteTableByClient(
       continue;
     }
     MplsRoute mplsRoute;
-    mplsRoute.topLabel = entry->getID();
+    *mplsRoute.topLabel_ref() = entry->getID();
     mplsRoute.adminDistance_ref() = labelNextHopEntry->getAdminDistance();
     *mplsRoute.nextHops_ref() =
         util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());

@@ -25,22 +25,22 @@ using namespace facebook::fboss;
 cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
-  earlyDropLQCD.minimumLength = 208;
-  earlyDropLQCD.maximumLength = 416;
+  *earlyDropLQCD.minimumLength_ref() = 208;
+  *earlyDropLQCD.maximumLength_ref() = 416;
   earlyDropLQCD.probability_ref() = 50;
-  earlyDropAQM.detection.linear_ref() = earlyDropLQCD;
-  earlyDropAQM.behavior = cfg::QueueCongestionBehavior::EARLY_DROP;
+  earlyDropAQM.detection_ref()->linear_ref() = earlyDropLQCD;
+  *earlyDropAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
 
 cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength = 624;
-  ecnLQCD.maximumLength = 624;
+  *ecnLQCD.minimumLength_ref() = 624;
+  *ecnLQCD.maximumLength_ref() = 624;
   ecnLQCD.probability_ref() = 100;
-  ecnAQM.detection.linear_ref() = ecnLQCD;
-  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
+  *ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 } // unnamed namespace
@@ -64,19 +64,19 @@ TEST(CosQueueBcmConvertors, cfgAqmToFromBcm) {
       getEarlyDropAqmConfig(), getECNAqmConfig()};
 
   facebook::fboss::cfg::LinearQueueCongestionDetection detection;
-  detection.minimumLength = detection.maximumLength = 100000;
+  *detection.minimumLength_ref() = *detection.maximumLength_ref() = 100000;
   for (const auto& aqm : aqms) {
     // w/ threshold
     auto defaultAqm = aqm;
-    defaultAqm.detection.linear_ref() = detection;
+    defaultAqm.detection_ref()->linear_ref() = detection;
     bcm_cosq_gport_discard_t discard =
-        cfgAqmToBcmAqm(aqm.behavior, aqm.detection, defaultAqm);
+        cfgAqmToBcmAqm(*aqm.behavior_ref(), *aqm.detection_ref(), defaultAqm);
     auto cfgAqmOpt = bcmAqmToCfgAqm(discard, defaultAqm);
     EXPECT_TRUE(cfgAqmOpt.has_value());
     EXPECT_EQ(aqm, cfgAqmOpt.value());
 
     // w/o threshold
-    discard = cfgAqmToBcmAqm(aqm.behavior, std::nullopt, defaultAqm);
+    discard = cfgAqmToBcmAqm(*aqm.behavior_ref(), std::nullopt, defaultAqm);
     cfgAqmOpt = bcmAqmToCfgAqm(discard, defaultAqm);
     EXPECT_FALSE(cfgAqmOpt.has_value());
   }

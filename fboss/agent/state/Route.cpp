@@ -75,8 +75,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   // Add the forwarding info
   for (const auto& nh : nhopSet) {
     IfAndIP ifAndIp;
-    ifAndIp.interfaceID = nh.intf();
-    ifAndIp.ip = toBinaryAddress(nh.addr());
+    *ifAndIp.interfaceID_ref() = nh.intf();
+    *ifAndIp.ip_ref() = toBinaryAddress(nh.addr());
     rd.fwdInfo_ref()->push_back(ifAndIp);
     rd.nextHops_ref()->push_back(nh.toThrift());
   }

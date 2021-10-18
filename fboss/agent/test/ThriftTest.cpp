@@ -228,8 +228,8 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   folly::split("/", prefixStr, vec);
   EXPECT_EQ(2, vec.size());
   auto nr = std::make_unique<UnicastRoute>();
-  nr->dest.ip = toBinaryAddress(IPAddress(vec.at(0)));
-  nr->dest.prefixLength = folly::to<uint8_t>(vec.at(1));
+  *nr->dest_ref()->ip_ref() = toBinaryAddress(IPAddress(vec.at(0)));
+  *nr->dest_ref()->prefixLength_ref() = folly::to<uint8_t>(vec.at(1));
   nr->nextHopAddrs_ref()->push_back(toBinaryAddress(IPAddress(nxtHop)));
   nr->adminDistance_ref() = distance;
   if (counterID.has_value()) {

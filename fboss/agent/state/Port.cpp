@@ -40,7 +40,7 @@ PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
 
 // static
 PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
-  PortFields port(PortID(portThrift.portId), portThrift.portName);
+  PortFields port(PortID(*portThrift.portId_ref()), *portThrift.portName_ref());
   port.description = *portThrift.portDescription_ref();
 
   cfg::PortState portState;
@@ -164,8 +164,8 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
 state::PortFields PortFields::toThrift() const {
   state::PortFields port;
 
-  port.portId = id;
-  port.portName = name;
+  *port.portId_ref() = id;
+  *port.portName_ref() = name;
   *port.portDescription_ref() = description;
 
   // TODO: store admin state as enum, not string?

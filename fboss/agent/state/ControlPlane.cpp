@@ -37,12 +37,12 @@ folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   // migration is complete
   controlPlane[kRxReasonToQueue] = folly::dynamic::object;
   for (const auto& entry : rxReasonToQueue) {
-    auto reason = apache::thrift::util::enumName(entry.rxReason);
+    auto reason = apache::thrift::util::enumName(*entry.rxReason_ref());
     CHECK(reason != nullptr);
-    controlPlane[rxReasonToQueueOrderedList].push_back(
-        folly::dynamic::object(kRxReason, reason)(kQueueId, entry.queueId));
+    controlPlane[rxReasonToQueueOrderedList].push_back(folly::dynamic::object(
+        kRxReason, reason)(kQueueId, *entry.queueId_ref()));
 
-    controlPlane[kRxReasonToQueue][reason] = entry.queueId;
+    controlPlane[kRxReasonToQueue][reason] = *entry.queueId_ref();
   }
 
   if (qosPolicy) {
@@ -115,8 +115,8 @@ cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
     cfg::PacketRxReason reason,
     uint16_t queueId) {
   cfg::PacketRxReasonToQueue reasonToQueue;
-  reasonToQueue.rxReason = reason;
-  reasonToQueue.queueId = queueId;
+  *reasonToQueue.rxReason_ref() = reason;
+  *reasonToQueue.queueId_ref() = queueId;
   return reasonToQueue;
 }
 

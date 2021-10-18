@@ -55,8 +55,8 @@ inline thrift::BinaryAddress toBinaryAddress(const folly::IPAddress& addr) {
 
 template <typename T>
 inline folly::IPAddress toIPAddress(const T& input) {
-  return input.type != decltype(input.type)::VUNSPEC
-      ? folly::IPAddress(input.addr)
+  return *input.type_ref() != decltype(input.type_ref())::value_type::VUNSPEC
+      ? folly::IPAddress(*input.addr_ref())
       : folly::IPAddress();
 }
 

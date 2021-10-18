@@ -49,9 +49,9 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
   std::vector<ClientAndNextHops> list;
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
-    destPair.clientId = static_cast<int>(srcPair.first);
+    *destPair.clientId_ref() = static_cast<int>(srcPair.first);
     for (const auto& nh : srcPair.second.getNextHopSet()) {
-      destPair.nextHops.push_back(nh.toThrift());
+      destPair.nextHops_ref()->push_back(nh.toThrift());
     }
     list.push_back(destPair);
   }

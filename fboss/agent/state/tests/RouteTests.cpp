@@ -348,7 +348,7 @@ TEST(Route, nextHopTest) {
 TEST(Route, nexthopFromThriftAndDynamic) {
   IPAddressV6 ip{"fe80::1"};
   NextHopThrift nexthop;
-  nexthop.address_ref()->addr.append(
+  nexthop.address_ref()->addr_ref()->append(
       reinterpret_cast<const char*>(ip.bytes()),
       folly::IPAddressV6::byteCount());
   nexthop.address_ref()->ifName_ref() = "fboss100";

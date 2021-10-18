@@ -35,61 +35,61 @@ std::string kV6Str{"000a:0000:0000:0000:0000:0000:0000:0000"};
 
 TEST(AddressUtilTests, ToBinaryAddressV4) {
   auto thriftBinary = toBinaryAddress(kV4Ip);
-  EXPECT_EQ(kV4Binary, thriftBinary.addr);
+  EXPECT_EQ(kV4Binary, *thriftBinary.addr_ref());
   EXPECT_FALSE(thriftBinary.port_ref());
   EXPECT_FALSE(thriftBinary.ifName_ref());
 }
 
 TEST(AddressUtilTests, ToBinaryAddressV6) {
   auto thriftBinary = toBinaryAddress(kV6Ip);
-  EXPECT_EQ(kV6Binary, thriftBinary.addr);
+  EXPECT_EQ(kV6Binary, *thriftBinary.addr_ref());
   EXPECT_FALSE(thriftBinary.port_ref());
   EXPECT_FALSE(thriftBinary.ifName_ref());
 }
 
 TEST(AddressUtilTests, fromBinaryAddressV4) {
   BinaryAddress thriftBinary;
-  thriftBinary.addr = kV4Binary;
+  *thriftBinary.addr_ref() = kV4Binary;
   EXPECT_EQ(kV4Ip, toIPAddress(thriftBinary));
 }
 
 TEST(AddressUtilTests, fromBinaryAddressV6) {
   BinaryAddress thriftBinary;
-  thriftBinary.addr = kV6Binary;
+  *thriftBinary.addr_ref() = kV6Binary;
   EXPECT_EQ(kV6Ip, toIPAddress(thriftBinary));
 }
 
 TEST(AddressUtilTests, fromBinaryAddressInvalidBinary) {
   BinaryAddress thriftBinary;
-  thriftBinary.addr = {0};
+  *thriftBinary.addr_ref() = {0};
   EXPECT_THROW(toIPAddress(thriftBinary), folly::IPAddressFormatException);
 }
 
 TEST(AddressUtilTests, ToThriftAddressV4) {
   auto thriftAddr = toAddress(kV4Ip);
-  EXPECT_EQ(kV4Str, thriftAddr.addr);
-  EXPECT_EQ(AddressType::V4, thriftAddr.type);
+  EXPECT_EQ(kV4Str, *thriftAddr.addr_ref());
+  EXPECT_EQ(AddressType::V4, *thriftAddr.type_ref());
   EXPECT_FALSE(thriftAddr.port_ref());
 }
 
 TEST(AddressUtilTests, ToThriftAddressV6) {
   auto thriftAddr = toAddress(kV6Ip);
-  EXPECT_EQ(kV6Str, thriftAddr.addr);
-  EXPECT_EQ(AddressType::V6, thriftAddr.type);
+  EXPECT_EQ(kV6Str, *thriftAddr.addr_ref());
+  EXPECT_EQ(AddressType::V6, *thriftAddr.type_ref());
   EXPECT_FALSE(thriftAddr.port_ref());
 }
 
 TEST(AddressUtilTests, fromThriftAddressV4) {
   thrift::Address thriftAddr;
-  thriftAddr.addr = kV4Str;
-  thriftAddr.type = AddressType::V4;
+  *thriftAddr.addr_ref() = kV4Str;
+  *thriftAddr.type_ref() = AddressType::V4;
   EXPECT_EQ(kV4Ip, toIPAddress(thriftAddr));
 }
 
 TEST(AddressUtilTests, fromThriftAddressV6) {
   thrift::Address thriftAddr;
-  thriftAddr.addr = kV6Str;
-  thriftAddr.type = AddressType::V6;
+  *thriftAddr.addr_ref() = kV6Str;
+  *thriftAddr.type_ref() = AddressType::V6;
   EXPECT_EQ(kV6Ip, toIPAddress(thriftAddr));
 }
 

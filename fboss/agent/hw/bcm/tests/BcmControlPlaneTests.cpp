@@ -28,26 +28,26 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(
     const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
-  high.id = utility::getCoppHighPriQueueId(hwAsic);
+  *high.id_ref() = utility::getCoppHighPriQueueId(hwAsic);
   high.name_ref() = "cpuQueue-high";
-  high.streamType = cfg::StreamType::MULTICAST;
-  high.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *high.streamType_ref() = cfg::StreamType::MULTICAST;
+  *high.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   high.weight_ref() = 4;
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
-  mid.id = utility::kCoppMidPriQueueId;
+  *mid.id_ref() = utility::kCoppMidPriQueueId;
   mid.name_ref() = "cpuQueue-mid";
-  mid.streamType = cfg::StreamType::MULTICAST;
-  mid.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *mid.streamType_ref() = cfg::StreamType::MULTICAST;
+  *mid.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   mid.weight_ref() = 2;
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
-  defaultQ.id = utility::kCoppDefaultPriQueueId;
+  *defaultQ.id_ref() = utility::kCoppDefaultPriQueueId;
   defaultQ.name_ref() = "cpuQueue-default";
-  defaultQ.streamType = cfg::StreamType::MULTICAST;
-  defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *defaultQ.streamType_ref() = cfg::StreamType::MULTICAST;
+  *defaultQ.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   defaultQ.weight_ref() = 1;
   defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
   defaultQ.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 200);
@@ -56,10 +56,10 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
-  low.id = utility::kCoppLowPriQueueId;
+  *low.id_ref() = utility::kCoppLowPriQueueId;
   low.name_ref() = "cpuQueue-low";
-  low.streamType = cfg::StreamType::MULTICAST;
-  low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  *low.streamType_ref() = cfg::StreamType::MULTICAST;
+  *low.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   low.weight_ref() = kLowCpuQueueWeight;
   low.portQueueRate_ref() = cfg::PortQueueRate();
   low.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 100);
@@ -87,7 +87,7 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
   std::optional<cfg::PortQueue> getCfgQueue(int queueID) override {
     std::optional<cfg::PortQueue> cfgQueue{std::nullopt};
     for (const auto& queue : *programmedCfg_.cpuQueues_ref()) {
-      if (queue.id == queueID) {
+      if (*queue.id_ref() == queueID) {
         cfgQueue = queue;
         break;
       }
