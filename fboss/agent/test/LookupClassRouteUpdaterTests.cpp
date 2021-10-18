@@ -295,6 +295,47 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  const boost::container::
+      flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
+      getSubnetCache() const {
+    auto lookupClassRouteUpdater = this->sw_->getLookupClassRouteUpdater();
+    return lookupClassRouteUpdater->getVlan2SubnetCache();
+  }
+
+  void printSubnetCache(
+      const boost::container::flat_map<
+          VlanID,
+          folly::F14FastSet<folly::CIDRNetwork>>& vlan2SubnetCache,
+      const std::string& str) const {
+    for (const auto& [vlanID, cidrSet] : vlan2SubnetCache) {
+      for (const auto& [prefix, mask] : cidrSet) {
+        XLOG(DBG2) << str << " vlanID: " << vlanID
+                   << " prefix: " << prefix.str()
+                   << " mask: " << static_cast<int>(mask);
+      }
+    }
+  }
+
+  void applySameBlockListTwiceHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    auto subnetCacheAfterBlocking1 = getSubnetCache();
+
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    auto subnetCacheAfterBlocking2 = getSubnetCache();
+
+    printSubnetCache(subnetCacheAfterBlocking1, "subnetCacheAfterBlocking1");
+    printSubnetCache(subnetCacheAfterBlocking2, "subnetCacheAfterBlocking2");
+
+    EXPECT_EQ(subnetCacheAfterBlocking1, subnetCacheAfterBlocking2);
+  }
+
  private:
   void addDelRouteImpl(
       RoutePrefix<AddrT> routePrefix,
@@ -767,6 +808,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNeighborBlockAddRouteUnblock) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, ApplySameBlockListTwice) {
+  this->applySameBlockListTwiceHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -789,6 +835,10 @@ TYPED_TEST(
     LookupClassRouteUpdaterNoLookupClassTest,
     ResolveNeighborBlockAddRouteUnblock) {
   this->resolveNeighborBlockAddRouteUnblockHelper(std::nullopt);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, ApplySameBlockListTwice) {
+  this->applySameBlockListTwiceHelper(std::nullopt);
 }
 
 } // namespace facebook::fboss
