@@ -168,7 +168,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   }
   auto portStatsBefore =
       ensemble_->getLatestPortStats(ensemble_->masterLogicalPortIds());
-  auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  auto vlanId = utility::firstVlanID(getProgrammedState());
   auto intfMac =
       utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
 
