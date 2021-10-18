@@ -87,6 +87,14 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     return InterfaceID(1);
   }
 
+  folly::CIDRNetwork kInterfaceAddress() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return std::make_pair(folly::IPAddress("10.0.0.1"), 24);
+    } else {
+      return std::make_pair(folly::IPAddress("2401:db00:2110:3001::1"), 64);
+    }
+  }
+
   MacAddress kMacAddressA() const {
     return MacAddress("01:02:03:04:05:06");
   }
@@ -334,6 +342,47 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     printSubnetCache(subnetCacheAfterBlocking2, "subnetCacheAfterBlocking2");
 
     EXPECT_EQ(subnetCacheAfterBlocking1, subnetCacheAfterBlocking2);
+  }
+
+  void setAndClearBlockListHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+
+    updateBlockedNeighbor(
+        this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
+    auto subnetCacheAfterBlocking = getSubnetCache();
+
+    updateBlockedNeighbor(this->getSw(), {{}});
+    auto subnetCacheAfterUnblocking = getSubnetCache();
+
+    printSubnetCache(subnetCacheAfterBlocking, "subnetCacheAfterBlocking");
+    printSubnetCache(subnetCacheAfterUnblocking, "subnetCacheAfterUnblocking");
+
+    auto subnetCacheAfterBlockingForVlan =
+        subnetCacheAfterBlocking.find(kVlan())->second;
+    auto subnetCacheAfterUnblockingForVlan =
+        subnetCacheAfterUnblocking.find(kVlan())->second;
+
+    std::vector<folly::CIDRNetwork> addedEntries;
+    std::set_difference(
+        subnetCacheAfterBlockingForVlan.begin(),
+        subnetCacheAfterBlockingForVlan.end(),
+        subnetCacheAfterUnblockingForVlan.begin(),
+        subnetCacheAfterUnblockingForVlan.end(),
+        std::inserter(addedEntries, addedEntries.end()));
+
+    bool noLookupClasses = !expectedClassID.has_value();
+    if (noLookupClasses) {
+      EXPECT_EQ(addedEntries.size(), 1);
+      EXPECT_EQ(addedEntries.front(), kInterfaceAddress());
+    } else {
+      // Entries are already cached due to non-empty lookupclasses and remain
+      // cached even after clearing block list
+      EXPECT_EQ(addedEntries.size(), 0);
+      EXPECT_EQ(subnetCacheAfterBlocking, subnetCacheAfterUnblocking);
+    }
   }
 
  private:
@@ -813,6 +862,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ApplySameBlockListTwice) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, SetAndClearBlockList) {
+  this->setAndClearBlockListHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -839,6 +893,10 @@ TYPED_TEST(
 
 TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, ApplySameBlockListTwice) {
   this->applySameBlockListTwiceHelper(std::nullopt);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, SetAndClearBlockList) {
+  this->setAndClearBlockListHelper(std::nullopt);
 }
 
 } // namespace facebook::fboss
