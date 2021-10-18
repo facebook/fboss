@@ -640,7 +640,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, CompeteClassIdUpdatesWithApplyConfig) {
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, BlockNeighborAddRouteResolveToBlocked) {
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->kIpAddressA()});
+  updateBlockedNeighbor(this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
   this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
   this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
 
@@ -654,7 +654,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteResolveNextHopThenBlock) {
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->kIpAddressA()});
+  updateBlockedNeighbor(this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 }
@@ -674,7 +674,7 @@ TYPED_TEST(
    * reachable nexthop. Thus, if that nexthop is blocked, traffic to that route
    * stops.
    */
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->kIpAddressA()});
+  updateBlockedNeighbor(this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 }
@@ -687,14 +687,14 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
   this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
 
   // route1's nexthop unblocked, route2's nexthop unblocked
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {});
+  updateBlockedNeighbor(this->getSw(), {{}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 
   // route1's nexthop blocked, route2's nexthop unblocked
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->kIpAddressA()});
+  updateBlockedNeighbor(this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
   this->verifyClassIDHelper(
@@ -702,21 +702,24 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
 
   // route1's nexthop blocked, route2's nexthop blocked
   updateBlockedNeighbor(
-      this->getSw(), this->kVlan(), {this->kIpAddressA(), this->kIpAddressB()});
+      this->getSw(),
+      {{this->kVlan(), this->kIpAddressA()},
+       {this->kVlan(), this->kIpAddressB()}});
+
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
 
   // route1's nexthop unblocked, route2's nexthop blocked
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {this->kIpAddressB()});
+  updateBlockedNeighbor(this->getSw(), {{this->kVlan(), this->kIpAddressB()}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
 
   // route1's nexthop unblocked, route2's nexthop unblocked
-  updateBlockedNeighbor(this->getSw(), this->kVlan(), {});
+  updateBlockedNeighbor(this->getSw(), {{}});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(

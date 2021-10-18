@@ -617,19 +617,13 @@ void programRoutes(
 
 void updateBlockedNeighbor(
     SwSwitch* sw,
-    VlanID vlanID,
-    const std::vector<folly::IPAddress>& ipAddresses) {
+    const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
   sw->updateStateBlocking(
       "Update blocked neighbors ",
       [=](const std::shared_ptr<SwitchState>& state) {
         std::shared_ptr<SwitchState> newState{state};
 
         auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
-
-        std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
-        for (const auto& ipAddress : ipAddresses) {
-          blockNeighbors.push_back(std::make_pair(vlanID, ipAddress));
-        }
         newSwitchSettings->setBlockNeighbors(blockNeighbors);
         return newState;
       });

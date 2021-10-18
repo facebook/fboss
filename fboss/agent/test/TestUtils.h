@@ -128,8 +128,7 @@ void waitForRibUpdates(SwSwitch* sw);
  */
 void updateBlockedNeighbor(
     SwSwitch* sw,
-    VlanID vlanID,
-    const std::vector<folly::IPAddress>& ipAddresses);
+    const std::vector<std::pair<VlanID, folly::IPAddress>>& ipAddresses);
 
 /**
  * check the field value
