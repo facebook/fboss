@@ -758,10 +758,10 @@ int doBatchOps(
     }
 
     // Print high resolution current time with command
-    std::chrono::milliseconds ms =
-      duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch());
+    std::chrono::microseconds ms =
+      duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch());
     std::time_t t = duration_cast<seconds>(ms).count();
-    int fractional_seconds = ms.count() % 1000;
+    int fractional_seconds = ms.count() % 1000000;
     auto tm = std::tm{};
     localtime_r(&t, &tm);
 
