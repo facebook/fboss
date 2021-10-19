@@ -13,6 +13,7 @@
 
 #include "fboss/agent/MKAServicePorts.h"
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
+#include "fboss/agent/types.h"
 
 DECLARE_double(mka_reconnect_timer);
 
@@ -42,6 +43,7 @@ class MKAServiceManager : public BidirectionalPacketAcceptor {
   }
 
  private:
+  std::string getPortName(PortID portId) const;
   std::shared_ptr<BidirectionalPacketStream> stream_;
   SwSwitch* swSwitch_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> serverThread_;

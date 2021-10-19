@@ -63,24 +63,31 @@ uint16_t MKAServiceManager::getServerPort() const {
   return (serverThread_ ? serverThread_->getPort() : 0);
 }
 
+std::string MKAServiceManager::getPortName(PortID portId) const {
+  return swSwitch_->getState()->getPorts()->getPort(portId)->getName();
+}
+
 void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
   if (!packet) {
     return;
   }
   PortID port = packet->getSrcPort();
-  auto portStr = folly::to<std::string>(port);
+  auto l2Port = getPortName(port);
   PortStats* stats = swSwitch_->portStats(port);
 
-  if (!stream_->isPortRegistered(portStr)) {
-    CHECK_STATS(stats, stats->MkPduPortNotRegistered());
-    XLOG(DBG3) << "Port '" << portStr << "' not registered by mka service";
-    return;
+  if (!stream_->isPortRegistered(l2Port)) {
+    l2Port = folly::to<std::string>(packet->getSrcPort());
+    if (!stream_->isPortRegistered(l2Port)) {
+      CHECK_STATS(stats, stats->MkPduPortNotRegistered());
+      XLOG(DBG3) << "Port '" << l2Port << "' not registered by mka service";
+      return;
+    }
   }
   folly::IOBuf* buf = packet->buf();
   TPacket pktToSend;
   pktToSend.buf_ref() = buf->moveToFbString().toStdString();
   pktToSend.timestamp_ref() = time(nullptr);
-  pktToSend.l2Port_ref() = std::move(portStr);
+  pktToSend.l2Port_ref() = std::move(l2Port);
   size_t len = pktToSend.buf_ref()->size();
   if (len != stream_->send(std::move(pktToSend))) {
     CHECK_STATS(stats, stats->MKAServiceSendFailue());
@@ -99,7 +106,14 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
   PortID port;
   VlanID vlan;
   try {
-    port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
+    try {
+      port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
+    } catch (const std::exception& e) {
+      port = swSwitch_->getState()
+                 ->getPorts()
+                 ->getPort(*packet.l2Port_ref())
+                 ->getID();
+    }
     vlan = swSwitch_->getState()
                ->getPorts()
                ->getPort(port)
