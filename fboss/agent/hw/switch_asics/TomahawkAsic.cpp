@@ -48,6 +48,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

@@ -17,6 +17,7 @@ class FakeAsic : public HwAsic {
       case Feature::RESOURCE_USAGE_STATS:
       case Feature::PKTIO:
       case Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+      case Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
       case Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
       case Feature::OBM_COUNTERS:
       case Feature::PTP_TC:

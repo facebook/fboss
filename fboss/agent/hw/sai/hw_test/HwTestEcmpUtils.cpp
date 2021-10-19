@@ -66,7 +66,7 @@ uint64_t getEcmpMemberWeight(
     const std::multiset<uint64_t>& pathsInHw,
     uint64_t pathInHw) {
   auto asic = hw->getPlatform()->getAsic();
-  if (asic->isSupported(HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+  if (asic->isSupported(HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER)) {
     return SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
         static_cast<NextHopGroupMemberSaiId>(pathInHw),
         SaiNextHopGroupMemberTraits::Attributes::Weight{});

@@ -53,6 +53,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

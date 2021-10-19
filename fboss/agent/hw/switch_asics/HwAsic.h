@@ -83,6 +83,7 @@ class HwAsic {
     ROUTE_FLEX_COUNTERS,
     BRIDGE_PORT_8021Q,
     FEC_DIAG_COUNTERS,
+    SAI_WEIGHTED_NEXTHOPGROUP_MEMBER
   };
 
   enum class AsicType {
