@@ -74,9 +74,9 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     };
     // TODO - figure these out from config
     if (isDUT()) {
-      makeIps({"1::1", "2::1", "1.0.0.1", "2.0.0.1"});
+      makeIps({"1::1", "2::1", "1.0.0.2", "2.0.0.2"});
     } else {
-      makeIps({"1::0", "2::0", "1.0.0.0", "2.0.0.0"});
+      makeIps({"1::0", "2::0", "1.0.0.1", "2.0.0.1"});
     }
     return nbrs;
   }

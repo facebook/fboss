@@ -410,8 +410,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
       config.interfaces_ref()[i].ipAddresses_ref()->resize(2);
       auto ipDecimal = folly::sformat("{}", i + 1);
       config.interfaces_ref()[i].ipAddresses_ref()[0] = FLAGS_nodeZ
-          ? folly::sformat("{}.0.0.1/24", ipDecimal)
-          : folly::sformat("{}.0.0.0/24", ipDecimal);
+          ? folly::sformat("{}.0.0.2/24", ipDecimal)
+          : folly::sformat("{}.0.0.1/24", ipDecimal);
       config.interfaces_ref()[i].ipAddresses_ref()[1] = FLAGS_nodeZ
           ? folly::sformat("{}::1/64", ipDecimal)
           : folly::sformat("{}::0/64", ipDecimal);
