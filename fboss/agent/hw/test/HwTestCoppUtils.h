@@ -56,7 +56,11 @@ constexpr uint16_t kBgpPort = 179;
 constexpr uint16_t kNonSpecialPort1 = 60000;
 constexpr uint16_t kNonSpecialPort2 = 60001;
 
-void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic);
+// For benchmark tests, we don't want to set queue rate for low priority queues.
+void addCpuQueueConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    bool setQueueRate = true);
 
 folly::CIDRNetwork kIPv6LinkLocalMcastNetwork();
 

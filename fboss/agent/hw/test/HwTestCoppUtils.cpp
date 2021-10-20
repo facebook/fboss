@@ -133,7 +133,10 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   return portQueueRate;
 }
 
-void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
+void addCpuQueueConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    bool setQueueRate) {
   std::vector<cfg::PortQueue> cpuQueues;
 
   cfg::PortQueue queue0;
@@ -142,7 +145,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue0.streamType_ref() = getCpuDefaultStreamType(hwAsic);
   queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kCoppLowPriWeight;
-  queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
+  if (setQueueRate) {
+    queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
+  }
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
   }
@@ -155,7 +160,10 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue1.streamType_ref() = getCpuDefaultStreamType(hwAsic);
   queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kCoppDefaultPriWeight;
-  queue1.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+  if (setQueueRate) {
+    queue1.portQueueRate_ref() =
+        setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+  }
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
   }
