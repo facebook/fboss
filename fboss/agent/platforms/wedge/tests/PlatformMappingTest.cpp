@@ -1456,6 +1456,19 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
       verifyTxSettings(*tx, txSettings);
     }
 
+    const auto& xphySysPinCfgs = mapping->getPortXphySidePinConfigs(
+        PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
+            laneToTxSettingsToPortMap.first),
+        phy::Side::SYSTEM);
+
+    EXPECT_EQ(xphySysPinCfgs.size(), 8);
+    for (auto pinCfg : xphySysPinCfgs) {
+      auto tx = pinCfg.tx_ref();
+      EXPECT_TRUE(tx.has_value());
+      verifyTxSettings(*tx, {0, -16, 152, 0, 0, 0});
+    }
+
     auto iphyPinCfgs =
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
