@@ -220,6 +220,7 @@ struct MKASak {
   5: string keyIdHex;
   6: mka_structs.MKAConfidentialityOffset confidentOffset = mka_structs.MKAConfidentialityOffset.CONFIDENTIALITY_NO_OFFSET;
   7: bool primary = false;
+  8: bool dropUnencrypted = true;
 }
 
 struct MKAActiveSakSession {
