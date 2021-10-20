@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/fuji/Fuji16QPimPlatformMapping.h"
@@ -71,6 +72,29 @@ TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
   setExpectation(144, 32, 0, 48, expectedProfiles);
 
   auto mapping = std::make_unique<Wedge400PlatformMapping>();
+  verify(mapping.get());
+}
+
+TEST_F(PlatformMappingTest, VerifyWedge400CPlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+      cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL};
+
+  // Wedge400 has 16 uplinks + 4 * 32 downlink ports = 144
+  // 12 IFG + 48 transceivers
+  setExpectation(144, 12, 0, 48, expectedProfiles);
+
+  auto mapping = std::make_unique<Wedge400CPlatformMapping>();
   verify(mapping.get());
 }
 
