@@ -2447,7 +2447,7 @@ void BcmSwitch::linkscanCallback(
     bool up = info->linkstatus == BCM_PORT_LINK_STATUS_UP;
     phy::LinkFaultStatus linkFault;
     linkFault.localFault_ref() = info->fault & BCM_PORT_FAULT_LOCAL;
-    linkFault.localFault_ref() = info->fault & BCM_PORT_FAULT_REMOTE;
+    linkFault.remoteFault_ref() = info->fault & BCM_PORT_FAULT_REMOTE;
 
     hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
         [hw, bcmPort, up, linkFault]() {
