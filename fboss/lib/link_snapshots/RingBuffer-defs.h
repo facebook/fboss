@@ -46,12 +46,24 @@ typename RingBuffer<T, length>::iterator RingBuffer<T, length>::end() {
 }
 
 template <typename T, size_t length>
-size_t RingBuffer<T, length>::size() {
+typename RingBuffer<T, length>::const_iterator RingBuffer<T, length>::begin()
+    const {
+  return buf.begin();
+}
+
+template <typename T, size_t length>
+typename RingBuffer<T, length>::const_iterator RingBuffer<T, length>::end()
+    const {
+  return buf.end();
+}
+
+template <typename T, size_t length>
+size_t RingBuffer<T, length>::size() const {
   return buf.size();
 }
 
 template <typename T, size_t length>
-size_t RingBuffer<T, length>::maxSize() {
+size_t RingBuffer<T, length>::maxSize() const {
   return length;
 }
 

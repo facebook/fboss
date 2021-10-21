@@ -37,7 +37,7 @@ class SnapshotManager {
   explicit SnapshotManager(std::set<std::string> portNames);
   void addSnapshot(LinkSnapshot val);
   void publishAllSnapshots();
-  RingBuffer<SnapshotWrapper, length>& getSnapshots();
+  const RingBuffer<SnapshotWrapper, length>& getSnapshots() const;
   void publishFutureSnapshots(int numToPublish);
 
  private:

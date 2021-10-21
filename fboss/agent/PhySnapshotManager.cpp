@@ -5,39 +5,66 @@
 
 namespace facebook::fboss {
 
-void PhySnapshotManager::updateIPhyInfo(
-    const std::map<PortID, phy::PhyInfo>& phyInfo) {
+void PhySnapshotManager::updatePhyInfoLocked(
+    const SnapshotMapWLockedPtr& lockedSnapshotMap,
+    PortID portID,
+    const phy::PhyInfo& phyInfo) {
+  phy::LinkSnapshot snapshot;
+  snapshot.phyInfo_ref() = phyInfo;
+
+  CHECK(!phyInfo.get_name().empty());
+  auto result = lockedSnapshotMap->try_emplace(
+      portID, std::set<std::string>({phyInfo.get_name()}));
+  auto iter = result.first;
+  auto& value = iter->second;
+  value.addSnapshot(snapshot);
+}
+
+void PhySnapshotManager::updatePhyInfo(
+    PortID portID,
+    const phy::PhyInfo& phyInfo) {
   auto lockedSnapshotMap = snapshots_.wlock();
-  for (auto info : phyInfo) {
-    phy::LinkSnapshot snapshot;
-    snapshot.phyInfo_ref() = info.second;
-    if (auto it = lockedSnapshotMap->find(info.first);
-        it != lockedSnapshotMap->end()) {
-      it->second.addSnapshot(snapshot);
-    } else {
-      IPhySnapshotCache cache{{*info.second.name_ref()}};
-      cache.addSnapshot(snapshot);
-      lockedSnapshotMap->emplace(info.first, cache);
-    }
+  updatePhyInfoLocked(lockedSnapshotMap, portID, phyInfo);
+}
+
+void PhySnapshotManager::updatePhyInfos(
+    const std::map<PortID, phy::PhyInfo>& phyInfos) {
+  auto lockedSnapshotMap = snapshots_.wlock();
+  for (const auto& [portID, phyInfo] : phyInfos) {
+    updatePhyInfoLocked(lockedSnapshotMap, portID, phyInfo);
   }
 }
 
-std::map<PortID, const phy::PhyInfo> PhySnapshotManager::getIPhyInfo(
-    const std::vector<PortID>& portIDs) {
+std::optional<phy::PhyInfo> PhySnapshotManager::getPhyInfoLocked(
+    const SnapshotMapRLockedPtr& lockedSnapshotMap,
+    PortID portID) const {
+  std::optional<phy::PhyInfo> phyInfo;
+
+  if (auto it = lockedSnapshotMap->find(portID);
+      it != lockedSnapshotMap->end()) {
+    auto& snapshots = it->second.getSnapshots();
+    if (!snapshots.empty()) {
+      phyInfo = snapshots.last().snapshot_.get_phyInfo();
+    }
+  }
+
+  return phyInfo;
+}
+
+std::optional<phy::PhyInfo> PhySnapshotManager::getPhyInfo(
+    PortID portID) const {
+  const auto& lockedSnapshotMap = snapshots_.rlock();
+  return getPhyInfoLocked(lockedSnapshotMap, portID);
+}
+
+std::map<PortID, const phy::PhyInfo> PhySnapshotManager::getPhyInfos(
+    const std::vector<PortID>& portIDs) const {
   std::map<PortID, const phy::PhyInfo> infoMap;
   auto lockedSnapshotMap = snapshots_.rlock();
   for (auto portID : portIDs) {
-    try {
-      if (auto it = lockedSnapshotMap->find(portID);
-          it != lockedSnapshotMap->end()) {
-        auto snapshot = it->second;
-        phy::PhyInfo info =
-            snapshot.getSnapshots().last().snapshot_.get_phyInfo();
-        infoMap.insert(std::pair<PortID, const phy::PhyInfo>(portID, info));
-      }
-    } catch (std::exception& e) {
-      XLOG(ERR) << "Fetching snapshot for " << portID << " failed with "
-                << e.what();
+    auto snapshot = getPhyInfoLocked(lockedSnapshotMap, portID);
+    if (snapshot) {
+      infoMap.emplace(portID, *snapshot);
     }
   }
   return infoMap;

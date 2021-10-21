@@ -17,14 +17,17 @@ template <typename T, size_t length>
 class RingBuffer {
  public:
   using iterator = typename std::list<T>::iterator;
+  using const_iterator = typename std::list<T>::const_iterator;
 
   void write(T val);
   const T last() const;
   bool empty() const;
   iterator begin();
   iterator end();
-  size_t size();
-  size_t maxSize();
+  const_iterator begin() const;
+  const_iterator end() const;
+  size_t size() const;
+  size_t maxSize() const;
 
  private:
   std::list<T> buf;

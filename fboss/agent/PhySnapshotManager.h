@@ -10,17 +10,31 @@ namespace facebook::fboss {
 
 class PhySnapshotManager {
   static constexpr auto kNumCachedSnapshots = 20;
-  using IPhySnapshotCache = SnapshotManager<kNumCachedSnapshots>;
+  using PhySnapshotCache = SnapshotManager<kNumCachedSnapshots>;
+  using SnapshotMapRLockedPtr =
+      folly::Synchronized<std::map<PortID, PhySnapshotCache>>::ConstRLockedPtr;
+  using SnapshotMapWLockedPtr =
+      folly::Synchronized<std::map<PortID, PhySnapshotCache>>::WLockedPtr;
 
  public:
-  void updateIPhyInfo(const std::map<PortID, phy::PhyInfo>& phyInfo);
-  std::map<PortID, const phy::PhyInfo> getIPhyInfo(
-      const std::vector<PortID>& portIDs);
-  void publishSnapshots(PortID port);
+  void updatePhyInfo(PortID portID, const phy::PhyInfo& phyInfo);
+  void updatePhyInfos(const std::map<PortID, phy::PhyInfo>& phyInfo);
+  std::optional<phy::PhyInfo> getPhyInfo(PortID portID) const;
+  std::map<PortID, const phy::PhyInfo> getPhyInfos(
+      const std::vector<PortID>& portIDs) const;
+  void publishSnapshots(PortID portID);
 
  private:
-  // Map of portID to last few Internal phy diagnostic snapshots
-  folly::Synchronized<std::map<PortID, IPhySnapshotCache>> snapshots_;
+  void updatePhyInfoLocked(
+      const SnapshotMapWLockedPtr& lockedSnapshotMap,
+      PortID portID,
+      const phy::PhyInfo& phyInfo);
+  std::optional<phy::PhyInfo> getPhyInfoLocked(
+      const SnapshotMapRLockedPtr& lockedSnapshotMap,
+      PortID portID) const;
+
+  // Map of portID to last few phy diagnostic snapshots
+  folly::Synchronized<std::map<PortID, PhySnapshotCache>> snapshots_;
 };
 
 } // namespace facebook::fboss

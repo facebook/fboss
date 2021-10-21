@@ -422,7 +422,7 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
-  phySnapshotManager_->updateIPhyInfo(getHw()->updateIPhyInfo());
+  phySnapshotManager_->updatePhyInfos(getHw()->updateIPhyInfo());
 }
 
 void SwSwitch::registerNeighborListener(
@@ -1023,7 +1023,7 @@ void SwSwitch::dumpBadStateUpdate(
 
 std::map<PortID, const phy::PhyInfo> SwSwitch::getIPhyInfo(
     std::vector<PortID>& portIDs) {
-  return phySnapshotManager_->getIPhyInfo(portIDs);
+  return phySnapshotManager_->getPhyInfos(portIDs);
 }
 
 PortStats* SwSwitch::portStats(PortID portID) {

@@ -33,7 +33,8 @@ void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
 }
 
 template <size_t length>
-RingBuffer<SnapshotWrapper, length>& SnapshotManager<length>::getSnapshots() {
+const RingBuffer<SnapshotWrapper, length>&
+SnapshotManager<length>::getSnapshots() const {
   return buf_;
 }
 
