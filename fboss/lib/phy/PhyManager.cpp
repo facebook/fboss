@@ -3,6 +3,7 @@
 #include "fboss/lib/phy/PhyManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -36,7 +37,8 @@ namespace facebook::fboss {
 
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
-      portToCacheInfo_(setupPortToCacheInfo(platformMapping)) {}
+      portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
+      xphySnapshotManager_(new PhySnapshotManager()) {}
 
 PhyManager::~PhyManager() {}
 
@@ -580,4 +582,17 @@ std::set<GlobalXphyID> PhyManager::getXphysSupportingFeature(
   }
   return phys;
 }
+
+void PhyManager::publishXphyInfoSnapshots(PortID port) const {
+  xphySnapshotManager_->publishSnapshots(port);
+}
+
+void PhyManager::updateXphyInfo(PortID port, const phy::PhyInfo& phyInfo) {
+  xphySnapshotManager_->updatePhyInfo(port, phyInfo);
+}
+
+std::optional<phy::PhyInfo> PhyManager::getXphyInfo(PortID port) const {
+  return xphySnapshotManager_->getPhyInfo(port);
+}
+
 } // namespace facebook::fboss

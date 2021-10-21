@@ -24,6 +24,7 @@ class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
 class TransceiverInfo;
+class PhySnapshotManager;
 
 class PhyManager {
  public:
@@ -157,6 +158,10 @@ class PhyManager {
   // NOTE: The following two functions are only used in testing.
   bool isXphyStatsCollectionDone(PortID portID) const;
   bool isPrbsStatsCollectionDone(PortID portID) const;
+
+  void publishXphyInfoSnapshots(PortID portID) const;
+  void updateXphyInfo(PortID portID, const phy::PhyInfo& phyInfo);
+  std::optional<phy::PhyInfo> getXphyInfo(PortID portID) const;
 
  protected:
   struct PortCacheInfo {
@@ -294,6 +299,8 @@ class PhyManager {
   // Thus, we need to make the whole PortCacheInfo as synchronized to protect
   // multi-threading accessing the cache info.
   const PortToCacheInfo portToCacheInfo_;
+
+  std::unique_ptr<PhySnapshotManager> xphySnapshotManager_;
 };
 
 } // namespace fboss

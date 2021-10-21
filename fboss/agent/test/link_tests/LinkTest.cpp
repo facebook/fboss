@@ -30,6 +30,22 @@ void LinkTest::SetUp() {
 
 void LinkTest::setupFlags() const {
   FLAGS_enable_macsec = true;
+  // Collect stats faster instead of defaulting to 200s. So our stat
+  // tests can finish faster.
+  switch (sw()->getPlatform()->getMode()) {
+    case PlatformMode::MINIPACK:
+    case PlatformMode::FUJI:
+      // Xphy stats takes 3s here. 8 PIMS can go in parallel but the 16
+      // ports on the same PIM go in serial. So the fastest we can go is
+      // 3x16=48s. 60s to be safe.
+      // See: getSleepSeconds() in HwStatsCollectionTest.cpp
+      FLAGS_gearbox_stat_interval = 60;
+      break;
+
+    default:
+      FLAGS_gearbox_stat_interval = 5;
+      break;
+  }
   AgentTest::setupFlags();
 }
 
@@ -185,6 +201,11 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
     connectedPairs.insert(connectedPair);
   }
   return connectedPairs;
+}
+
+int32_t LinkTest::getMaxStatDelay() const {
+  int32_t maxSplay = FLAGS_gearbox_stat_interval / 2;
+  return FLAGS_gearbox_stat_interval + maxSplay;
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

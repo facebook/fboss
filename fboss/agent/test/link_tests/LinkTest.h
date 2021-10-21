@@ -58,6 +58,7 @@ class LinkTest : public AgentTest {
   }
   PortID getPortID(const std::string& portName) const;
   std::string getPortName(PortID port) const;
+  int32_t getMaxStatDelay() const;
 
  private:
   void programDefaultRoute(

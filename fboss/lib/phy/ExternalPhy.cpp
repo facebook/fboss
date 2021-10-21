@@ -33,6 +33,37 @@ folly::dynamic thriftOptToDynamic(const std::optional<T>& opt) {
 
 namespace facebook::fboss::phy {
 
+ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
+  ExternalPhyPortStats phyStats;
+
+  auto fillSideStatsFromInfo = [](ExternalPhyPortSideStats& sideStats,
+                                  const PhySideInfo& sideInfo) {
+    if (auto pcsInfo = sideInfo.pcs_ref()) {
+      if (auto fecInfo = pcsInfo->rsFec_ref()) {
+        sideStats.fecCorrectableErrors = fecInfo->get_correctedCodewords();
+        sideStats.fecUncorrectableErrors = fecInfo->get_uncorrectedCodewords();
+      }
+    }
+
+    for (auto const& [lane, laneInfo] : sideInfo.get_pmd().get_lanes()) {
+      ExternalPhyLaneStats laneStats;
+      laneStats.signalDetect = laneInfo.get_signalDetectLive();
+      laneStats.cdrLock = laneInfo.get_cdrLockLive();
+      if (auto snrInfo = laneInfo.snr_ref()) {
+        laneStats.signalToNoiseRatio = *snrInfo;
+      }
+      sideStats.lanes[lane] = laneStats;
+    }
+  };
+
+  if (auto sysSideInfo = phyInfo.system_ref()) {
+    fillSideStatsFromInfo(phyStats.system, *sysSideInfo);
+  }
+  fillSideStatsFromInfo(phyStats.line, phyInfo.get_line());
+
+  return phyStats;
+}
+
 bool LaneConfig::operator==(const LaneConfig& rhs) const {
   return (polaritySwap == rhs.polaritySwap) && (tx == rhs.tx);
 }

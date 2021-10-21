@@ -54,6 +54,8 @@ struct ExternalPhyPortSideStats {
 struct ExternalPhyPortStats {
   ExternalPhyPortSideStats system;
   ExternalPhyPortSideStats line;
+
+  static ExternalPhyPortStats fromPhyInfo(const PhyInfo& phyInfo);
 };
 
 struct ExternalPhyLaneDiagInfo {

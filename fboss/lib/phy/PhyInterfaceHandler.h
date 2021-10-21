@@ -6,6 +6,8 @@
 
 namespace facebook::fboss {
 
+class Port;
+
 class PhyInterfaceHandler {
  public:
   virtual ~PhyInterfaceHandler() {}
@@ -90,6 +92,40 @@ class PhyInterfaceHandler {
       int32_t /* portId */,
       cfg::PortProfileID /* portProfileId */,
       phy::PhyPortConfig /* config */) = 0;
+
+  /*
+   * getPortInfo
+   * A virtual function for the ExternalPhy obejcts. The inheriting class
+   * need to implement this function. If the Phy code is in same process
+   * then that should called PhyManager function otherwise it should  be
+   * a thrift call to port service process
+   *
+   * Note: PhyPortConfig needs to be removed once all Phy code is moved to
+   * qsfp_service as based on portId, profileID the qsfp_service can construct
+   * the phyPortConfig
+   */
+  virtual phy::PhyInfo getPortInfo(
+      int /* phyPortIdentifier */,
+      const Port* /* port */,
+      phy::PhyPortConfig /* config */) {
+    throw facebook::fboss::FbossError(
+        "Port info not supported on this platform");
+  }
+
+  virtual void publishXphyInfoSnapshots(PortID /* portID */) const {
+    throw facebook::fboss::FbossError(
+        "Port info not supported on this platform");
+  }
+  virtual void updateXphyInfo(
+      PortID /* portID */,
+      const phy::PhyInfo& /* phyInfo */) {
+    throw facebook::fboss::FbossError(
+        "Port info not supported on this platform");
+  }
+  virtual std::optional<phy::PhyInfo> getXphyInfo(PortID /* portID */) const {
+    throw facebook::fboss::FbossError(
+        "Port info not supported on this platform");
+  }
 
   /*
    * initializeSlotPhys
