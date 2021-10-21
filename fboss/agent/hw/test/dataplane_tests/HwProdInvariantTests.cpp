@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
 
@@ -227,6 +228,8 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
 
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
+    FLAGS_qgroup_guarantee_enable = true;
+
     HwLinkStateDependentTest::SetUp();
     prodInvariants_ = std::make_unique<HwProdRtswInvariantHelper>(
         getHwSwitchEnsemble(), initialConfig());

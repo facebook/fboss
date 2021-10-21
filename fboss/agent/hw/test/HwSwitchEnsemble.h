@@ -26,6 +26,7 @@
 #include <thread>
 
 DECLARE_bool(mmu_lossless_mode);
+DECLARE_bool(qgroup_guarantee_enable);
 
 namespace folly {
 class FunctionScheduler;

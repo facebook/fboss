@@ -28,10 +28,6 @@
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 
 DECLARE_bool(setup_thrift);
-DEFINE_bool(
-    qgroup_guarantee_enable,
-    false,
-    "Enable setting of unicast and multicast queue guaranteed buffer sizes");
 
 using apache::thrift::can_throw;
 

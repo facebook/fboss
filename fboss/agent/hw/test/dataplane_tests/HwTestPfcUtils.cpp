@@ -28,14 +28,9 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
   auto mode = hwSwitch->getPlatform()->getMode();
   switch (mode) {
     case PlatformMode::WEDGE400:
-      return 117436;
-    // TODO: This check will go away once BCM pending CSP
-    // is resolved CS00012200060
-    // and we can claim back all cells independent of
-    // platform where we run it
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
-      return 115196;
+      return 117436;
     default:
       //  this is for fake bcm
       return 115196;
