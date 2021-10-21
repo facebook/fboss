@@ -104,6 +104,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
       return false;
   }
   return false;

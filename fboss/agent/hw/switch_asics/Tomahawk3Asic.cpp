@@ -84,6 +84,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
       return false;
   }
   return false;
