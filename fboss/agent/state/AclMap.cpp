@@ -32,6 +32,16 @@ AclMap* AclMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
+  std::set<cfg::AclTableQualifier> qualifiers{};
+  for (const auto& entry : *this) {
+    for (auto qualifier : entry->getRequiredAclTableQualifiers()) {
+      qualifiers.insert(qualifier);
+    }
+  }
+  return qualifiers;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(AclMap, AclMapTraits);
 FBOSS_INSTANTIATE_NODE_MAP(PrioAclMap, PrioAclMapTraits);
 

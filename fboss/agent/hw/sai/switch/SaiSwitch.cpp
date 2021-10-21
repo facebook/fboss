@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
@@ -666,6 +667,28 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       }
     }
   } else {
+    std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
+    std::set<cfg::AclTableQualifier> newRequiredQualifiers{};
+    if (delta.getAclsDelta().getOld()) {
+      oldRequiredQualifiers =
+          delta.getAclsDelta().getOld()->requiredQualifiers();
+    }
+    if (delta.getAclsDelta().getNew()) {
+      newRequiredQualifiers =
+          delta.getAclsDelta().getNew()->requiredQualifiers();
+    }
+    if (oldRequiredQualifiers != newRequiredQualifiers &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_ACL_TABLE_UPDATE) &&
+        !managerTable_->aclTableManager()
+             .areQualifiersSupportedInDefaultAclTable(newRequiredQualifiers)) {
+      // qualifiers changed and default acl table doesn't support all of them,
+      // remove default acl table and add a new one. table removal should
+      // clear acl entries too
+      managerTable_->aclTableManager().removeDefaultAclTable();
+      managerTable_->aclTableManager().addDefaultAclTable();
+    }
+
     processDelta(
         delta.getAclsDelta(),
         managerTable_->aclTableManager(),

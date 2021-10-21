@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
@@ -108,6 +109,8 @@ class PrioAclMap : public NodeMapT<PrioAclMap, PrioAclMapTraits> {
       addNode(aclEntry);
     }
   }
+
+  std::set<cfg::AclTableQualifier> requiredQualifiers() const;
 
  private:
   // Inherit the constructors required for clone()
