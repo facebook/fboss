@@ -24,6 +24,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/gen/Base.h>
+#include <sstream>
 
 namespace facebook::fboss::utility {
 namespace {
@@ -157,6 +158,78 @@ void pumpTraffic(
       }
     }
   }
+}
+
+/*
+ * Generate traffic with random source ip, destination ip, source port and
+ * destination port. every run will pump same random traffic as random number
+ * generator is seeded with constant value. in an attempt to unify hash
+ * configurations across switches in network, full hash is considered to be
+ * present on all switches. this causes polarization in tests and vendor
+ * recommends not to use traffic where source and destination fields (ip and
+ * port) are only incremented by 1 but to use somewhat random traffic. however
+ * random traffic should be deterministic. this function attempts to provide the
+ * deterministic random traffic for experimentation and use in the load balancer
+ * tests.
+ */
+void pumpDeterministicRandomTraffic(
+    bool isV6,
+    HwSwitch* hw,
+    folly::MacAddress intfMac,
+    VlanID vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit) {
+  static uint32_t count = 0;
+  uint32_t counter = 1;
+
+  RandomNumberGenerator srcV4(0, 0, 0xFF);
+  RandomNumberGenerator srcV6(0, 0, 0xFFFF);
+  RandomNumberGenerator dstV4(1, 0, 0xFF);
+  RandomNumberGenerator dstV6(1, 0, 0xFFFF);
+  RandomNumberGenerator srcPort(2, 10001, 10100);
+  RandomNumberGenerator dstPort(2, 20001, 20100);
+
+  auto intToHex = [](auto i) {
+    std::stringstream stream;
+    stream << std::hex << i;
+    return stream.str();
+  };
+
+  auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
+  for (auto i = 0; i < 1000; ++i) {
+    auto srcIp = isV6
+        ? folly::IPAddress(folly::sformat("1001::{}", intToHex(srcV6())))
+        : folly::IPAddress(folly::sformat("100.0.0.{}", srcV4()));
+    for (auto j = 0; j < 100; ++j) {
+      auto dstIp = isV6
+          ? folly::IPAddress(folly::sformat("2001::{}", intToHex(dstV6())))
+          : folly::IPAddress(folly::sformat("200.0.0.{}", dstV4()));
+
+      auto pkt = makeUDPTxPacket(
+          hw,
+          vlan,
+          srcMac,
+          intfMac,
+          srcIp,
+          dstIp,
+          srcPort(),
+          dstPort(),
+          0,
+          hopLimit);
+      if (frontPanelPortToLoopTraffic) {
+        hw->sendPacketOutOfPortSync(
+            std::move(pkt), frontPanelPortToLoopTraffic.value());
+      } else {
+        hw->sendPacketSwitchedSync(std::move(pkt));
+      }
+      count++;
+      if (count % 1000 == 0) {
+        XLOG(INFO) << counter << " . sent " << count << " packets";
+        counter++;
+      }
+    }
+  }
+  XLOG(INFO) << "Sent total of " << count << " packets";
 }
 
 void pumpMplsTraffic(

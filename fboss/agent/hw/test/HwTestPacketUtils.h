@@ -12,6 +12,8 @@
 
 #include <memory>
 #include <optional>
+#include <random>
+#include <type_traits>
 #include <vector>
 
 #include <folly/IPAddressV4.h>
@@ -234,4 +236,16 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities);
+
+struct RandomNumberGenerator {
+  RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)
+      : generator(seed), distibution(begin, end) {}
+  auto operator()() {
+    return distibution(generator);
+  }
+
+  std::mt19937_64 generator;
+  std::uniform_int_distribution<> distibution;
+};
+
 } // namespace facebook::fboss::utility

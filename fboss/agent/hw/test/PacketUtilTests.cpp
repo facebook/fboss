@@ -420,3 +420,18 @@ TEST(PacketUtilTest, GetEthFrameV6MPLS) {
 
   EXPECT_EQ(ethFrame1, ethFrame0);
 }
+
+TEST(PacketUtilTest, GetRandomNumber) {
+  utility::RandomNumberGenerator r0(0, 0, 0xFF);
+  utility::RandomNumberGenerator r1(0, 0, 0xFF);
+
+  EXPECT_EQ(r0(), r1());
+  EXPECT_EQ(r0(), r1());
+  EXPECT_EQ(r0(), r1());
+  EXPECT_EQ(r0(), r1());
+  EXPECT_EQ(r0(), r1());
+
+  utility::RandomNumberGenerator r2(0, 0, 0xFFFF);
+  EXPECT_EQ(r2(), 0x28e8);
+  EXPECT_EQ(r2(), 0xfdfd);
+}
