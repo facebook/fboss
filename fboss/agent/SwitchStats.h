@@ -223,7 +223,7 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void stateUpdate(std::chrono::microseconds us) {
-    updateState_.addValue(us.count());
+    updateState_->addValue(us.count());
   }
 
   void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
@@ -231,47 +231,48 @@ class SwitchStats : public boost::noncopyable {
     if (routes == 0) {
       routes = 1;
     }
+    // TODO: add support for addRepeatedValue() in FSDB client-side library
     routeUpdate_.addRepeatedValue(us.count() / routes, routes);
   }
 
   void bgHeartbeatDelay(int delay) {
-    bgHeartbeatDelay_.addValue(delay);
+    bgHeartbeatDelay_->addValue(delay);
   }
 
   void updHeartbeatDelay(int delay) {
-    updHeartbeatDelay_.addValue(delay);
+    updHeartbeatDelay_->addValue(delay);
   }
 
   void packetTxHeartbeatDelay(int value) {
-    packetTxHeartbeatDelay_.addValue(value);
+    packetTxHeartbeatDelay_->addValue(value);
   }
 
   void lacpHeartbeatDelay(int value) {
-    lacpHeartbeatDelay_.addValue(value);
+    lacpHeartbeatDelay_->addValue(value);
   }
 
   void neighborCacheHeartbeatDelay(int value) {
-    neighborCacheHeartbeatDelay_.addValue(value);
+    neighborCacheHeartbeatDelay_->addValue(value);
   }
 
   void bgEventBacklog(int value) {
-    bgEventBacklog_.addValue(value);
+    bgEventBacklog_->addValue(value);
   }
 
   void updEventBacklog(int value) {
-    updEventBacklog_.addValue(value);
+    updEventBacklog_->addValue(value);
   }
 
   void lacpEventBacklog(int value) {
-    lacpEventBacklog_.addValue(value);
+    lacpEventBacklog_->addValue(value);
   }
 
   void packetTxEventBacklog(int value) {
-    packetTxEventBacklog_.addValue(value);
+    packetTxEventBacklog_->addValue(value);
   }
 
   void neighborCacheEventBacklog(int value) {
-    neighborCacheEventBacklog_.addValue(value);
+    neighborCacheEventBacklog_->addValue(value);
   }
 
   void linkStateChange() {
@@ -349,6 +350,7 @@ class SwitchStats : public boost::noncopyable {
   typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
 
   using TLTimeseriesPtr = std::unique_ptr<TLTimeseries>;
+  using TLHistogramPtr = std::unique_ptr<TLHistogram>;
 
   explicit SwitchStats(ThreadLocalStatsMap* map);
 
@@ -448,7 +450,7 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Histogram for time used for SwSwitch::updateState() (in ms)
    */
-  TLHistogram updateState_;
+  TLHistogramPtr updateState_;
 
   /**
    * Histogram for time used for route update (in microsecond)
@@ -458,44 +460,44 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Background thread heartbeat delay (ms)
    */
-  TLHistogram bgHeartbeatDelay_;
+  TLHistogramPtr bgHeartbeatDelay_;
 
   /**
    * Update thread heartbeat delay (ms)
    */
-  TLHistogram updHeartbeatDelay_;
+  TLHistogramPtr updHeartbeatDelay_;
   /**
    * Fboss packet Tx thread heartbeat delay (ms)
    */
-  TLHistogram packetTxHeartbeatDelay_;
+  TLHistogramPtr packetTxHeartbeatDelay_;
   /**
    * LACP thread heartbeat delay in milliseconds
    */
-  TLHistogram lacpHeartbeatDelay_;
+  TLHistogramPtr lacpHeartbeatDelay_;
   /**
    * Arp Cache thread heartbeat delay in milliseconds
    */
-  TLHistogram neighborCacheHeartbeatDelay_;
+  TLHistogramPtr neighborCacheHeartbeatDelay_;
 
   /**
    * Number of events queued in background thread
    */
-  TLHistogram bgEventBacklog_;
+  TLHistogramPtr bgEventBacklog_;
 
   /**
    * Number of events queued in update thread
    */
-  TLHistogram updEventBacklog_;
+  TLHistogramPtr updEventBacklog_;
   /**
    * Number of events queued in fboss packet TX thread
    */
-  TLHistogram packetTxEventBacklog_;
+  TLHistogramPtr packetTxEventBacklog_;
 
-  TLHistogram lacpEventBacklog_;
+  TLHistogramPtr lacpEventBacklog_;
   /**
    * Number of events queued in fboss Arp Cache thread
    */
-  TLHistogram neighborCacheEventBacklog_;
+  TLHistogramPtr neighborCacheEventBacklog_;
 
   /**
    * Link state up/down change count
@@ -559,6 +561,21 @@ class SwitchStats : public boost::noncopyable {
       std::string&& key,
       fb303::ExportType exportType1,
       fb303::ExportType exportType2);
+  static std::unique_ptr<TLHistogram> makeTLTHistogram(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      int64_t bucketWidth,
+      int64_t min,
+      int64_t max);
+  static std::unique_ptr<TLHistogram> makeTLTHistogram(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      int64_t bucketWidth,
+      int64_t min,
+      int64_t max,
+      fb303::ExportType exportType,
+      int percentile1,
+      int percentile2);
 };
 
 } // namespace facebook::fboss

@@ -125,9 +125,14 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           kCounterPrefix + "ip.dst_lookup_failure",
           SUM,
           RATE)),
-      updateState_(map, kCounterPrefix + "state_update.us", 50000, 0, 1000000),
+      updateState_(makeTLTHistogram(
+          map,
+          kCounterPrefix + "state_update.us",
+          50000,
+          0,
+          1000000)),
       routeUpdate_(map, kCounterPrefix + "route_update.us", 50, 0, 500),
-      bgHeartbeatDelay_(
+      bgHeartbeatDelay_(makeTLTHistogram(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",
           100,
@@ -135,8 +140,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           20000,
           AVG,
           50,
-          100),
-      updHeartbeatDelay_(
+          100)),
+      updHeartbeatDelay_(makeTLTHistogram(
           map,
           kCounterPrefix + "upd_heartbeat_delay.ms",
           100,
@@ -144,8 +149,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           20000,
           AVG,
           50,
-          100),
-      packetTxHeartbeatDelay_(
+          100)),
+      packetTxHeartbeatDelay_(makeTLTHistogram(
           map,
           kCounterPrefix + "packetTx_heartbeat_delay.ms",
           100,
@@ -153,8 +158,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           20000,
           AVG,
           50,
-          100),
-      lacpHeartbeatDelay_(
+          100)),
+      lacpHeartbeatDelay_(makeTLTHistogram(
           map,
           kCounterPrefix + "lacp_heartbeat_delay.ms",
           100,
@@ -162,8 +167,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           20000,
           AVG,
           50,
-          100),
-      neighborCacheHeartbeatDelay_(
+          100)),
+      neighborCacheHeartbeatDelay_(makeTLTHistogram(
           map,
           kCounterPrefix + "neighbor_cache_heartbeat_delay.ms",
           100,
@@ -171,8 +176,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           20000,
           AVG,
           50,
-          100),
-      bgEventBacklog_(
+          100)),
+      bgEventBacklog_(makeTLTHistogram(
           map,
           kCounterPrefix + "bg_event_backlog",
           1,
@@ -180,8 +185,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG,
           50,
-          100),
-      updEventBacklog_(
+          100)),
+      updEventBacklog_(makeTLTHistogram(
           map,
           kCounterPrefix + "upd_event_backlog",
           1,
@@ -189,8 +194,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG,
           50,
-          100),
-      packetTxEventBacklog_(
+          100)),
+      packetTxEventBacklog_(makeTLTHistogram(
           map,
           kCounterPrefix + "packetTx_event_backlog",
           1,
@@ -198,8 +203,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG,
           50,
-          100),
-      lacpEventBacklog_(
+          100)),
+      lacpEventBacklog_(makeTLTHistogram(
           map,
           kCounterPrefix + "lacp_event_backlog",
           1,
@@ -207,8 +212,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG,
           50,
-          100),
-      neighborCacheEventBacklog_(
+          100)),
+      neighborCacheEventBacklog_(makeTLTHistogram(
           map,
           kCounterPrefix + "neighborCache_event_backlog",
           1,
@@ -216,7 +221,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG,
           50,
-          100),
+          100)),
       linkStateChange_(
           makeTLTimeseries(map, kCounterPrefix + "link_state.flap", SUM)),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
