@@ -21,4 +21,4 @@ struct AgentConfig {
   // configuration (e.g broadcom config), as well as low-level port
   // tuning params.
   3: platform_config.PlatformConfig platform;
-} (thriftpath.root)
+}
