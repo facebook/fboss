@@ -79,7 +79,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return qsfpCache_.get();
   }
 
-  PhyInterfaceHandler* getPhyInterfaceHandler() {
+  PhyInterfaceHandler* getPhyInterfaceHandler() override {
     return phyInterfaceHandler_.get();
   }
 

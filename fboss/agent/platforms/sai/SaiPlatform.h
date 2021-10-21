@@ -118,7 +118,7 @@ class SaiPlatform : public Platform, public StateObserver {
   const std::set<sai_api_t>& getDefaultSwitchAsicSupportedApis() const;
   const std::set<sai_api_t>& getDefaultPhyAsicSupportedApis() const;
   virtual const std::set<sai_api_t>& getSupportedApiList() const;
-  PhyInterfaceHandler* getPhyInterfaceHandler() {
+  PhyInterfaceHandler* getPhyInterfaceHandler() override {
     return phyInterfaceHandler_.get();
   }
 

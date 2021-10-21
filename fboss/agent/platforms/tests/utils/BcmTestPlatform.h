@@ -95,6 +95,8 @@ class BcmTestPlatform : public BcmPlatform {
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       PlatformPortProfileConfigMatcher profileMatcher) const override;
 
+  PhyInterfaceHandler* getPhyInterfaceHandler() override;
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<PortID> logicalPortIds_;

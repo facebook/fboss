@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 
 #include <folly/Memory.h>
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
@@ -97,6 +98,10 @@ PlatformPort* MockPlatform::getPlatformPort(PortID id) const {
     return port->second.get();
   }
   throw FbossError("Can't find MockPlatform PlatformPort for ", id);
+}
+
+PhyInterfaceHandler* MockPlatform::getPhyInterfaceHandler() {
+  throw FbossError("Mock platforms don't have phy interfaces.");
 }
 
 } // namespace facebook::fboss

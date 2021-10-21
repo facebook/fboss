@@ -72,4 +72,8 @@ PlatformPort* SimPlatform::getPlatformPort(PortID id) const {
   throw FbossError("Can't find SimPlatform PlatformPort for ", id);
 }
 
+PhyInterfaceHandler* SimPlatform::getPhyInterfaceHandler() {
+  throw FbossError("Sim platforms don't have phy interfaces.");
+}
+
 } // namespace facebook::fboss

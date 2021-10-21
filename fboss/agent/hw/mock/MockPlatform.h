@@ -23,6 +23,7 @@ namespace facebook::fboss {
 class MockHwSwitch;
 class HwTestHandle;
 class MockPlatformPort;
+class PhyInterfaceHandler;
 
 /*
  * MockPlatform is a mockable interface to a Platform. Non-critical
@@ -45,6 +46,7 @@ class MockPlatform : public Platform {
   static const folly::MacAddress& getMockLocalMac();
   static const folly::IPAddressV6& getMockLinkLocalIp6();
   PlatformPort* getPlatformPort(PortID id) const override;
+  PhyInterfaceHandler* getPhyInterfaceHandler() override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
