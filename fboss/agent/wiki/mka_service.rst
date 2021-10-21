@@ -62,8 +62,7 @@ a) Its presence in the MI field of a received MKPDU
 b) Its use in the Live Peer List or Potential Peer List of a received MKPDU in combination with an MN
 that is greater than that last transmitted by the participant.
 
-.. image:: mkaPDU.png
-	:width: 300
+.. fb:px:: 1RvBG
 
 **STEP 3: Key Server Election**: The MKA participant can assume either the role a Key server or a 
 normal participant. When more than two participants are available in a LAN, the key server is determined 
@@ -81,16 +80,13 @@ as it receives any, the participants with highest Key Server priority will be el
 
 The key server will only distribute SAK when the principal actor MI is present in the Live Peer list.
 
-.. image:: mkaPDUSakUse.png
-  :width: 300
-
+.. fb:px:: 1RzDC
 
 **STEP 5: SAK Expiry**
 
 When any one entity is unreachable, new SAK is negotiated and uses. The timeout for an entity is 
 
-.. image:: mkaTimers.png
-  :width: 300
+.. fb:px:: 1RzDW
 
 
 **STEP 6: SAK Rotation**
@@ -103,8 +99,7 @@ old SAK is removed.
 Example of MKA Establishment in a LAN with 3 peer switches.
 
 
-.. image:: mkaMessages.png
-  :width: 300
+.. fb:px:: 1RzFf
 
 
 MKAService Design
