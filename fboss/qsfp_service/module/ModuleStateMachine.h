@@ -774,4 +774,4 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      attributes_ << moduleBringupDone << qsfpModuleObjPtr),
     modulePortStateMachine)
 }
-} // namespace facebook::fboss
+}

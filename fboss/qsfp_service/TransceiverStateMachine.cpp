@@ -44,4 +44,54 @@ std::string getTransceiverStateMachineEventName(
   }
   throw FbossError("Unsupported TransceiverStateMachineEvent");
 }
+
+template <class State>
+std::string stateToName(State& /* state */) {
+  if constexpr (std::
+                    is_same_v<State, decltype(TRANSCEIVER_STATE_NOT_PRESENT)>) {
+    return "NOT_PRESENT";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_PRESENT)>) {
+    return "PRESENT";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_DISCOVERED)>) {
+    return "DISCOVERED";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_IPHY_PORTS_PROGRAMMED)>) {
+    return "IPHY_PORTS_PROGRAMMED";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_XPHY_PORTS_PROGRAMMED)>) {
+    return "XPHY_PORTS_PROGRAMMED";
+  } else if constexpr (
+      std::is_same_v<
+          State,
+          decltype(TRANSCEIVER_STATE_TRANSCEIVER_PROGRAMMED)>) {
+    return "TRANSCEIVER_PROGRAMMED";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_ACTIVE)>) {
+    return "ACTIVE";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_INACTIVE)>) {
+    return "INACTIVE";
+  } else if constexpr (std::is_same_v<
+                           State,
+                           decltype(TRANSCEIVER_STATE_UPGRADING)>) {
+    return "UPGRADING";
+  }
+
+  throw FbossError("Unsupported ModuleStateMachineState");
+}
+
+template std::string stateToName<decltype(TRANSCEIVER_STATE_NOT_PRESENT)>(
+    decltype(TRANSCEIVER_STATE_NOT_PRESENT)& state);
+template std::string stateToName<decltype(TRANSCEIVER_STATE_PRESENT)>(
+    decltype(TRANSCEIVER_STATE_PRESENT)& state);
+template std::string stateToName<decltype(TRANSCEIVER_STATE_DISCOVERED)>(
+    decltype(TRANSCEIVER_STATE_DISCOVERED)& state);
 } // namespace facebook::fboss

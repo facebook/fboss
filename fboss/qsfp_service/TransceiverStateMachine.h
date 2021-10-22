@@ -62,11 +62,34 @@ BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_UPGRADING)
 
 // Transceiver State Machine Events
 BOOST_MSM_EUML_EVENT(TRANSCEIVER_EVENT_OPTICS_DETECTED)
+BOOST_MSM_EUML_EVENT(TRANSCEIVER_EVENT_OPTICS_EEPROM_READ)
+
+// Module State Machine Actions
+template <class State>
+std::string stateToName(State& state);
+
+BOOST_MSM_EUML_ACTION(logStateChanged){
+    template <class Event, class Fsm, class Source, class Target>
+    void
+    operator()(
+        const Event& /* event */,
+        Fsm& /* fsm */,
+        Source& source,
+        Target& target) const {
+        XLOG(DBG2) << "State changed from " << stateToName(source) << " to "
+                   << stateToName(target);
+} // namespace facebook::fboss
+}
+;
 
 // Transceiver State Machine State transition table
 BOOST_MSM_EUML_TRANSITION_TABLE(
-    (TRANSCEIVER_STATE_NOT_PRESENT + TRANSCEIVER_EVENT_OPTICS_DETECTED ==
-     TRANSCEIVER_STATE_PRESENT),
+    (TRANSCEIVER_STATE_NOT_PRESENT +
+             TRANSCEIVER_EVENT_OPTICS_DETECTED / logStateChanged ==
+         TRANSCEIVER_STATE_PRESENT,
+     TRANSCEIVER_STATE_PRESENT +
+             TRANSCEIVER_EVENT_OPTICS_EEPROM_READ / logStateChanged ==
+         TRANSCEIVER_STATE_DISCOVERED),
     TransceiverTransitionTable)
 
 // Define a Transceiver State Machine
