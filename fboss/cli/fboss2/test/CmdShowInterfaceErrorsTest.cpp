@@ -4,6 +4,8 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
+#include <string>
+#include <vector>
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -91,7 +93,7 @@ std::map<int32_t, PortInfoThrift> createInterfaceErrorsEntries() {
 class CmdShowInterfaceErrorsTestFixture : public CmdHandlerTestBase {
  public:
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
-  CmdShowInterfaceErrorsTraits::ObjectArgType queriedEntries;
+  std::vector<std::string> queriedEntries;
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     portEntries = createInterfaceErrorsEntries();

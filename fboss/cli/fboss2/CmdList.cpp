@@ -71,17 +71,17 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowInterface>,
        {
            {"counters",
-            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Counters",
             commandHandler<CmdShowInterfaceCounters>},
 
            {"errors",
-            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Error Counters",
             commandHandler<CmdShowInterfaceErrors>},
 
            {"flaps",
-            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Flap Counters",
             commandHandler<CmdShowInterfaceFlaps>},
        }},

@@ -25,8 +25,8 @@ using utils::Table;
 struct CmdShowInterfaceErrorsTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = std::vector<std::string>;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceErrorsModel;
 };
 
@@ -38,7 +38,7 @@ class CmdShowInterfaceErrors
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedIfs) {
+      const std::vector<std::string>& queriedIfs) {
     RetType countersEntries;
 
     auto client =
@@ -52,7 +52,7 @@ class CmdShowInterfaceErrors
 
   RetType createModel(
       std::map<int32_t, facebook::fboss::PortInfoThrift> portCounters,
-      const ObjectArgType& queriedIfs) {
+      const std::vector<std::string>& queriedIfs) {
     RetType ret;
 
     std::unordered_set<std::string> queriedSet(

@@ -73,7 +73,7 @@ std::map<int32_t, PortInfoThrift> createInterfaceCountersEntries() {
 class CmdShowInterfaceCountersTestFixture : public CmdHandlerTestBase {
  public:
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
-  CmdShowInterfaceCountersTraits::ObjectArgType queriedEntries;
+  std::vector<std::string> queriedEntries;
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     portEntries = createInterfaceCountersEntries();

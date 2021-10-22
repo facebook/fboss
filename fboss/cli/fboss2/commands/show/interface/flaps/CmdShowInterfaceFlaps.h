@@ -25,8 +25,8 @@ using utils::Table;
 struct CmdShowInterfaceFlapsTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = std::vector<std::string>;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceFlapsModel;
 };
 
@@ -38,7 +38,7 @@ class CmdShowInterfaceFlaps
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedIfs) {
+      const std::vector<std::string>& queriedIfs) {
     /* Interface flap stats are stored as a FB303 counter.  Will call
        getRegexCounters so we can filter out just the interface counters and
        ignore the multitude of other counters we don't need.
@@ -69,7 +69,7 @@ class CmdShowInterfaceFlaps
   RetType createModel(
       std::vector<std::string>& ifNames,
       std::map<std::string, std::int64_t> wedgeCounters,
-      const ObjectArgType& queriedIfs) {
+      const std::vector<std::string>& queriedIfs) {
     RetType ret;
 
     std::unordered_set<std::string> queriedSet(

@@ -99,15 +99,14 @@ class CmdHandler {
   }
 
   RetType queryClientHelper(const HostInfo& hostInfo) {
-    RetType result;
-    if constexpr (
-        ObjectArgTypeId == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE) {
-      result = impl().queryClient(hostInfo);
-    } else {
-      result = impl().queryClient(hostInfo, CmdArgsLists::getInstance()->at(0));
-    }
-
-    return result;
+    using ArgTypes = resolve_arg_types<CmdTypeT>;
+    auto tupleArgs = CmdArgsLists::getInstance()
+                         ->getTypedArgs<
+                             typename ArgTypes::unfiltered_type,
+                             typename ArgTypes::filtered_type>();
+    return std::apply(
+        [&](auto const&... t) { return impl().queryClient(hostInfo, t...); },
+        tupleArgs);
   }
 
   std::tuple<std::string, RetType, std::string> asyncHandler(

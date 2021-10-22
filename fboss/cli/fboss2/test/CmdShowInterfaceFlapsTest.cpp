@@ -47,7 +47,7 @@ class CmdShowInterfaceFlapsTestFixture : public CmdHandlerTestBase {
  public:
   std::map<std::string, std::int64_t> queriedData;
   std::vector<std::string> ifNames;
-  CmdShowInterfaceFlapsTraits::ObjectArgType queriedPorts;
+  std::vector<std::string> queriedPorts;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
