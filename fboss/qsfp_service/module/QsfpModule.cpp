@@ -118,7 +118,7 @@ QsfpModule::QsfpModule(
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
+  stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
 }
 
 /*
@@ -503,11 +503,11 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    stateUpdate(ModuleStateMachineEvent::OPTICS_DETECTED);
+    stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    stateUpdate(ModuleStateMachineEvent::OPTICS_REMOVED);
+    stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
   }
 
   if (dirty_) {
@@ -518,7 +518,7 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    stateUpdate(ModuleStateMachineEvent::EEPROM_READ);
+    stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
   }
 
   if (customizeWanted) {
@@ -824,7 +824,7 @@ void QsfpModule::genMsmModPortsDownEvent() {
   // Check port down for N-1 ports only because current PSM port
   // state is in transition to  Down state
   if (downports >= portStateMachines_.size() - 1) {
-    stateUpdate(ModuleStateMachineEvent::ALL_PORTS_DOWN);
+    stateUpdate(TransceiverStateMachineEvent::ALL_PORTS_DOWN);
   }
 }
 
@@ -845,7 +845,7 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
       [&]() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         // Trigger the timeout event to MSM
-        stateUpdate(ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT);
+        stateUpdate(TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT);
       },
       // Name of the scheduled function/thread for identifying later
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
@@ -890,10 +890,10 @@ void QsfpModule::scheduleBringupRemediateFunction() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         if (moduleStateMachine_.get_attribute(moduleBringupDone)) {
           // Do the remediate function second time onwards
-          stateUpdate(ModuleStateMachineEvent::REMEDIATE_DONE);
+          stateUpdate(TransceiverStateMachineEvent::REMEDIATE_DONE);
         } else {
           // Bring up to be attempted for first time only
-          stateUpdate(ModuleStateMachineEvent::BRINGUP_DONE);
+          stateUpdate(TransceiverStateMachineEvent::BRINGUP_DONE);
         }
       },
       // Name of the scheduled function/thread for identifying later
@@ -954,7 +954,7 @@ void QsfpModule::checkAgentModulePortSyncup() {
   }
 }
 
-void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
+void QsfpModule::stateUpdate(TransceiverStateMachineEvent event) {
   // Use this function to gate whether we should use the old state machine or
   // the new design with the StateUpdate list
   if (FLAGS_use_new_state_machine) {
@@ -965,43 +965,43 @@ void QsfpModule::stateUpdate(ModuleStateMachineEvent event) {
   } else {
     // Fall back to use the legacy logic
     switch (event) {
-      case ModuleStateMachineEvent::OPTICS_DETECTED:
+      case TransceiverStateMachineEvent::OPTICS_DETECTED:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
         return;
-      case ModuleStateMachineEvent::OPTICS_REMOVED:
+      case TransceiverStateMachineEvent::OPTICS_REMOVED:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
         return;
-      case ModuleStateMachineEvent::OPTICS_RESET:
+      case TransceiverStateMachineEvent::OPTICS_RESET:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_RESET);
         return;
-      case ModuleStateMachineEvent::EEPROM_READ:
+      case TransceiverStateMachineEvent::EEPROM_READ:
         moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
         return;
-      case ModuleStateMachineEvent::ALL_PORTS_DOWN:
+      case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
         moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
         return;
-      case ModuleStateMachineEvent::PORT_UP:
+      case TransceiverStateMachineEvent::PORT_UP:
         moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
         return;
-      case ModuleStateMachineEvent::TRIGGER_UPGRADE:
+      case TransceiverStateMachineEvent::TRIGGER_UPGRADE:
         moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
         return;
-      case ModuleStateMachineEvent::FORCED_UPGRADE:
+      case TransceiverStateMachineEvent::FORCED_UPGRADE:
         moduleStateMachine_.process_event(MODULE_EVENT_FORCED_UPGRADE);
         return;
-      case ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT:
+      case TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT:
         moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
         return;
-      case ModuleStateMachineEvent::BRINGUP_DONE:
+      case TransceiverStateMachineEvent::BRINGUP_DONE:
         moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
         return;
-      case ModuleStateMachineEvent::REMEDIATE_DONE:
+      case TransceiverStateMachineEvent::REMEDIATE_DONE:
         moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
         return;
     }
     throw FbossError(
-        "Unsupported ModuleStateMachineEvent: ",
-        getModuleStateMachineEventName(event));
+        "Unsupported TransceiverStateMachineEvent: ",
+        getTransceiverStateMachineEventName(event));
   }
 }
 

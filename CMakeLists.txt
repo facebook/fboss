@@ -420,9 +420,10 @@ if (NOT SAI_ONLY)
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   )
 
-  add_library(module_state_machine STATIC
-    fboss/qsfp_service/module/ModuleStateMachine.cpp
-    fboss/qsfp_service/module/ModuleStateMachineUpdate.cpp
+  add_library(transceiver_manager STATIC
+      fboss/qsfp_service/TransceiverManager.cpp
+      fboss/qsfp_service/TransceiverStateMachine.cpp
+      fboss/qsfp_service/TransceiverStateMachineUpdate.cpp
   )
 
   add_library(qsfp_module STATIC
@@ -442,7 +443,6 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/oss/QsfpServer.cpp
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp
-      fboss/qsfp_service/TransceiverManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
@@ -848,9 +848,11 @@ if (NOT SAI_ONLY)
     "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
   )
 
-  target_link_libraries(module_state_machine
+  target_link_libraries(transceiver_manager
     fboss_error
     fboss_types
+    qsfp_config
+    phy_management_base
   )
 
   target_link_libraries(qsfp_module
@@ -866,7 +868,7 @@ if (NOT SAI_ONLY)
       fboss_agent
       qsfp_config
       phy_management_base
-      module_state_machine
+      transceiver_manager
   )
 
   add_executable(cp2112_util
@@ -881,7 +883,6 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
       fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
-      fboss/qsfp_service/TransceiverManager.cpp
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/qsfp_util_main.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
@@ -901,7 +902,7 @@ if (NOT SAI_ONLY)
       qsfp_module
       ${YAML-CPP}
       phy_management_base
-      module_state_machine
+      transceiver_manager
   )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp

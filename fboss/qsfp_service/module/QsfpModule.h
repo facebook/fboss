@@ -12,6 +12,7 @@
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
+#include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
@@ -227,7 +228,7 @@ class QsfpModule : public Transceiver {
     return snapshots_.copy();
   }
 
-  void stateUpdate(ModuleStateMachineEvent event);
+  void stateUpdate(TransceiverStateMachineEvent event);
 
   int getLegacyModuleStateMachineCurrentState() const;
 

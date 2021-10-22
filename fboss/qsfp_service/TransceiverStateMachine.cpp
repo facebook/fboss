@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/qsfp_service/module/ModuleStateMachine.h"
+#include "fboss/qsfp_service/TransceiverStateMachine.h"
 
 #include "fboss/agent/FbossError.h"
 
@@ -16,31 +16,32 @@ DEFINE_bool(use_new_state_machine, false, "Use the new state machine logic");
 
 namespace facebook::fboss {
 
-std::string getModuleStateMachineEventName(ModuleStateMachineEvent event) {
+std::string getTransceiverStateMachineEventName(
+    TransceiverStateMachineEvent event) {
   switch (event) {
-    case ModuleStateMachineEvent::OPTICS_DETECTED:
+    case TransceiverStateMachineEvent::OPTICS_DETECTED:
       return "OPTICS_DETECTED";
-    case ModuleStateMachineEvent::OPTICS_REMOVED:
+    case TransceiverStateMachineEvent::OPTICS_REMOVED:
       return "OPTICS_REMOVED";
-    case ModuleStateMachineEvent::OPTICS_RESET:
+    case TransceiverStateMachineEvent::OPTICS_RESET:
       return "OPTICS_RESET";
-    case ModuleStateMachineEvent::EEPROM_READ:
+    case TransceiverStateMachineEvent::EEPROM_READ:
       return "EEPROM_READ";
-    case ModuleStateMachineEvent::ALL_PORTS_DOWN:
+    case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
       return "ALL_PORTS_DOWN";
-    case ModuleStateMachineEvent::PORT_UP:
+    case TransceiverStateMachineEvent::PORT_UP:
       return "PORT_UP";
-    case ModuleStateMachineEvent::TRIGGER_UPGRADE:
+    case TransceiverStateMachineEvent::TRIGGER_UPGRADE:
       return "TRIGGER_UPGRADE";
-    case ModuleStateMachineEvent::FORCED_UPGRADE:
+    case TransceiverStateMachineEvent::FORCED_UPGRADE:
       return "FORCED_UPGRADE";
-    case ModuleStateMachineEvent::AGENT_SYNC_TIMEOUT:
+    case TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT:
       return "AGENT_SYNC_TIMEOUT";
-    case ModuleStateMachineEvent::BRINGUP_DONE:
+    case TransceiverStateMachineEvent::BRINGUP_DONE:
       return "BRINGUP_DONE";
-    case ModuleStateMachineEvent::REMEDIATE_DONE:
+    case TransceiverStateMachineEvent::REMEDIATE_DONE:
       return "REMEDIATE_DONE";
   }
-  throw FbossError("Unsupported ModuleStateMachineEvent");
+  throw FbossError("Unsupported TransceiverStateMachineEvent");
 }
 } // namespace facebook::fboss

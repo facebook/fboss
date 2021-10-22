@@ -18,7 +18,7 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
-#include "fboss/qsfp_service/module/ModuleStateMachineUpdate.h"
+#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/IntrusiveList.h>
@@ -188,8 +188,8 @@ class TransceiverManager {
 
   using TransceiverToStateMachine = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<folly::Synchronized<
-          msm::back::state_machine<NewModuleStateMachine>>>>;
+      std::unique_ptr<
+          folly::Synchronized<state_machine<TransceiverStateMachine>>>>;
   virtual TransceiverToStateMachine setupTransceiverToStateMachine();
 
   void startThreads();
@@ -197,8 +197,8 @@ class TransceiverManager {
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
   using StateUpdateList = folly::IntrusiveList<
-      ModuleStateMachineUpdate,
-      &ModuleStateMachineUpdate::listHook_>;
+      TransceiverStateMachineUpdate,
+      &TransceiverStateMachineUpdate::listHook_>;
   /*
    * A list of pending state updates to be applied.
    */
@@ -218,7 +218,7 @@ class TransceiverManager {
    * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
    * and no other functions will erase any items from this map.
    */
-  const TransceiverToStateMachine moduleStateMachines_;
+  const TransceiverToStateMachine stateMachines_;
 };
 } // namespace fboss
 } // namespace facebook

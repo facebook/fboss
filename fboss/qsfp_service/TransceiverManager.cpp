@@ -14,7 +14,7 @@ TransceiverManager::TransceiverManager(
     std::unique_ptr<PlatformMapping> platformMapping)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(std::move(platformMapping)),
-      moduleStateMachines_(setupTransceiverToStateMachine()) {
+      stateMachines_(setupTransceiverToStateMachine()) {
   // Now we might need to start threads
   startThreads();
 }
@@ -72,9 +72,9 @@ TransceiverManager::setupTransceiverToStateMachine() {
       if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
-      // Init state should be "NEW_MODULE_STATE_NOT_PRESENT"
-      auto stateMachine = std::make_unique<folly::Synchronized<
-          msm::back::state_machine<NewModuleStateMachine>>>();
+      // Init state should be "TRANSCEIVER_STATE_NOT_PRESENT"
+      auto stateMachine = std::make_unique<
+          folly::Synchronized<state_machine<TransceiverStateMachine>>>();
       stateMachineMap.emplace(
           TransceiverID(*chip.second.physicalID_ref()),
           std::move(stateMachine));

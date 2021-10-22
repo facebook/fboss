@@ -8,21 +8,21 @@
  *
  */
 
-#include "fboss/qsfp_service/module/ModuleStateMachineUpdate.h"
+#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
-void ModuleStateMachineUpdate::applyUpdate(
-    msm::back::state_machine<NewModuleStateMachine>* curState) {
-  switch (moduleEvent_) {
-    case ModuleStateMachineEvent::OPTICS_DETECTED:
-      curState->process_event(NEW_MODULE_EVENT_OPTICS_DETECTED);
+void TransceiverStateMachineUpdate::applyUpdate(
+    state_machine<TransceiverStateMachine>* curState) {
+  switch (transceiverEvent_) {
+    case TransceiverStateMachineEvent::OPTICS_DETECTED:
+      curState->process_event(TRANSCEIVER_EVENT_OPTICS_DETECTED);
       break;
     default:
       throw FbossError(
-          "Unsupported ModuleStateMachineEvent: ",
-          getModuleStateMachineEventName(moduleEvent_));
+          "Unsupported TransceiverStateMachineEvent: ",
+          getTransceiverStateMachineEventName(transceiverEvent_));
   }
 }
 

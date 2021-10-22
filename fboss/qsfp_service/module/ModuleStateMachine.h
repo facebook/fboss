@@ -12,6 +12,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/qsfp_service/TransceiverStateMachine.h"
 
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
@@ -20,8 +21,6 @@
 #include <iostream>
 #include <vector>
 
-DECLARE_bool(use_new_state_machine);
-
 namespace facebook {
 namespace fboss {
 
@@ -29,57 +28,6 @@ namespace msm = boost::msm;
 using namespace boost::msm::front::euml;
 
 class QsfpModule;
-
-enum class ModuleStateMachineEvent {
-  OPTICS_DETECTED,
-  OPTICS_REMOVED,
-  // NOTE: Such event is never invoked in our code yet
-  OPTICS_RESET,
-  EEPROM_READ,
-  ALL_PORTS_DOWN,
-  PORT_UP,
-  // NOTE: Such event is never invoked in our code yet
-  TRIGGER_UPGRADE,
-  // NOTE: Such event is never invoked in our code yet
-  FORCED_UPGRADE,
-  AGENT_SYNC_TIMEOUT,
-  BRINGUP_DONE,
-  REMEDIATE_DONE,
-};
-
-std::string getModuleStateMachineEventName(ModuleStateMachineEvent event);
-
-/**************************** New Module State Machine ***********************/
-// TODO(joseph5wu) The following new module state machine is planned to replace
-// the current `moduleStateMachine` and `modulePortStateMachine`. Because the
-// change is quite massive and right now they have been heavily used in
-// QsfpModule, it might be safer to start the new change on a new state machine
-// rather than tamper the current one.
-
-// Module State Machine States
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_NOT_PRESENT)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_PRESENT)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_DISCOVERED)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_IPHY_PORTS_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_XPHY_PORTS_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_TRANSCEIVER_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_ACTIVE)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_INACTIVE)
-BOOST_MSM_EUML_STATE((), NEW_MODULE_STATE_UPGRADING)
-
-// Module State Machine Events
-BOOST_MSM_EUML_EVENT(NEW_MODULE_EVENT_OPTICS_DETECTED)
-
-// Module State Machine State transition table
-BOOST_MSM_EUML_TRANSITION_TABLE(
-    (NEW_MODULE_STATE_NOT_PRESENT + NEW_MODULE_EVENT_OPTICS_DETECTED ==
-     NEW_MODULE_STATE_PRESENT),
-    NewModuleTransitionTable)
-
-// Define a Module State Machine
-BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
-    (NewModuleTransitionTable, init_ << NEW_MODULE_STATE_NOT_PRESENT),
-    NewModuleStateMachine)
 
 /**************************** Module State Machine ***************************/
 
@@ -735,7 +683,7 @@ BOOST_MSM_EUML_ACTION(
                << "Transitioning to MODULE_PORT_STATE_UP";
 // This transition generates Module Port Up event to Module State Machine
 fsm.get_attribute(qsfpModuleObjPtr)
-    ->stateUpdate(ModuleStateMachineEvent::PORT_UP);
+    ->stateUpdate(TransceiverStateMachineEvent::PORT_UP);
 }
 
 template <class Event, class Fsm>
@@ -750,7 +698,7 @@ void operator()(
              << "Transitioning to MODULE_PORT_STATE_UP";
   // This transition generates Module Port Up event to Module State Machine
   fsm.get_attribute(qsfpModuleObjPtr)
-      ->stateUpdate(ModuleStateMachineEvent::PORT_UP);
+      ->stateUpdate(TransceiverStateMachineEvent::PORT_UP);
 }
 }
 ;
