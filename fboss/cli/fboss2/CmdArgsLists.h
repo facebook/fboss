@@ -11,7 +11,9 @@
 #pragma once
 
 #include <memory>
+#include <variant>
 #include <vector>
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -29,6 +31,13 @@ class CmdArgsLists {
           "There is a nested command deeper than max depth, need to increase the depth");
     }
     return data_[i];
+  }
+
+  template <typename UnfilteredTypes, typename Types>
+  Types getTypedArgs() {
+    const auto& unfiltered =
+        utils::arrayToTuple<std::tuple_size_v<UnfilteredTypes>>(data_);
+    return utils::filterTupleMonostates<UnfilteredTypes>(unfiltered);
   }
 
  private:

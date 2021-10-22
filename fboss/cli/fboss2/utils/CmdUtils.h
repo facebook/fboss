@@ -11,6 +11,7 @@
 
 #include <folly/IPAddress.h>
 #include <string>
+#include <variant>
 
 namespace facebook::fboss::utils {
 
@@ -30,5 +31,47 @@ const std::string getPrettyElapsedTime(const int64_t& start_time);
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const std::string& cmdName);
+
+template <typename T, size_t N, size_t... Indices>
+auto arrayToTupleImpl(
+    const std::array<T, N>& v,
+    std::index_sequence<Indices...>) {
+  return std::make_tuple(v[Indices]...);
+}
+
+// convert the first N elements of an array to a tuple
+template <size_t N, size_t M, typename T>
+auto arrayToTuple(const std::array<T, M>& v) {
+  static_assert(N <= M);
+  return arrayToTupleImpl(v, std::make_index_sequence<N>());
+}
+
+// returns tuple(value) if TargetT == std::monostate, otherwise empty tuple()
+template <typename TargetT, typename T>
+auto tupleValueIfNotMonostate(const T& value) {
+  if constexpr (std::is_same_v<TargetT, std::monostate>) {
+    return std::make_tuple();
+  } else {
+    return std::make_tuple(value);
+  }
+}
+
+template <typename UnfilteredTypes, typename Tuple, std::size_t... Indices>
+auto filterTupleMonostatesImpl(Tuple tup, std::index_sequence<Indices...>) {
+  return std::tuple_cat(
+      tupleValueIfNotMonostate<std::tuple_element_t<Indices, UnfilteredTypes>>(
+          std::get<Indices>(tup))...);
+}
+
+// Filter out all std::monostates from a tuple. the passed UnfilteredTypes
+// will indicate which indices need to be removed
+template <typename UnfilteredTypes, typename Tuple, std::size_t... Indices>
+auto filterTupleMonostates(Tuple tup) {
+  static_assert(
+      std::tuple_size_v<UnfilteredTypes> == std::tuple_size_v<Tuple>,
+      "Passed tuple must be the same size as passed type");
+  return filterTupleMonostatesImpl<UnfilteredTypes>(
+      tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
+}
 
 } // namespace facebook::fboss::utils
