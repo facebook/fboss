@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
@@ -38,7 +39,10 @@ std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
 
 namespace facebook::fboss {
 
-void CmdSubcommands::addCommandBranch(CLI::App& app, const Command& cmd) {
+void CmdSubcommands::addCommandBranch(
+    CLI::App& app,
+    const Command& cmd,
+    int depth) {
   // Command should not already exists since we only traverse the tree once
   if (utils::getSubcommandIf(app, cmd.name)) {
     // TODO explore moving this check to a compile time check
@@ -48,16 +52,17 @@ void CmdSubcommands::addCommandBranch(CLI::App& app, const Command& cmd) {
   if (auto& handler = cmd.handler) {
     subCmd->callback(*handler);
 
+    auto& args = CmdArgsLists::getInstance()->refAt(depth);
     if (cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
-      subCmd->add_option("ipv6Addrs", ipv6Addrs_, "IPv6 addr(s)");
+      subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      subCmd->add_option("ports", ports_, "Port(s)");
+      subCmd->add_option("ports", args, "Port(s)");
     }
-  }
 
-  for (const auto& child : cmd.subcommands) {
-    addCommandBranch(*subCmd, child);
+    for (const auto& child : cmd.subcommands) {
+      addCommandBranch(*subCmd, child, depth + 1);
+    }
   }
 }
 

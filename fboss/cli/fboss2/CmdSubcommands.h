@@ -28,20 +28,9 @@ class CmdSubcommands {
 
   void init(CLI::App& app);
 
-  std::vector<std::string> getIpv6Addrs() {
-    return ipv6Addrs_;
-  }
-
-  std::vector<std::string> getPorts() {
-    return ports_;
-  }
-
  private:
-  void addCommandBranch(CLI::App& app, const Command& cmd);
+  void addCommandBranch(CLI::App& app, const Command& cmd, int debth = 0);
   void initCommandTree(CLI::App& app, const CommandTree& cmdTree);
-
-  std::vector<std::string> ipv6Addrs_;
-  std::vector<std::string> ports_;
 };
 
 } // namespace facebook::fboss

@@ -13,6 +13,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
+#include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -45,17 +46,10 @@ class CmdHandler {
   RetType queryClientHelper(const HostInfo& hostInfo) {
     RetType result;
     if constexpr (
-        ObjectArgTypeId ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
-      result = impl().queryClient(
-          hostInfo, CmdSubcommands::getInstance()->getIpv6Addrs());
-    } else if constexpr (
-        ObjectArgTypeId ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      result = impl().queryClient(
-          hostInfo, CmdSubcommands::getInstance()->getPorts());
-    } else {
+        ObjectArgTypeId == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE) {
       result = impl().queryClient(hostInfo);
+    } else {
+      result = impl().queryClient(hostInfo, CmdArgsLists::getInstance()->at(0));
     }
 
     return result;
