@@ -41,6 +41,28 @@ enum class TransceiverStateMachineEvent {
 std::string getTransceiverStateMachineEventName(
     TransceiverStateMachineEvent event);
 
+enum class TransceiverStateMachineState {
+  NOT_PRESENT,
+  PRESENT,
+  DISCOVERED,
+  IPHY_PORTS_PROGRAMMED,
+  XPHY_PORTS_PROGRAMMED,
+  TRANSCEIVER_PROGRAMMED,
+  ACTIVE,
+  INACTIVE,
+  UPGRADING,
+};
+
+std::string getTransceiverStateMachineStateName(
+    TransceiverStateMachineState state);
+
+/*
+ * Convert current_state() return int value to TransceiverStateMachineState
+ * enum. Every state is an int value assigned in the order the states have been
+ * accessed in BOOST_MSM_EUML_TRANSITION_TABLE.
+ */
+TransceiverStateMachineState getStateByOrder(int currentStateOrder);
+
 /**************************** Transceiver State Machine ***********************/
 // TODO(joseph5wu) The following transceiver state machine is planned to replace
 // the current `moduleStateMachine` and `modulePortStateMachine` in
@@ -66,7 +88,7 @@ BOOST_MSM_EUML_EVENT(TRANSCEIVER_EVENT_OPTICS_EEPROM_READ)
 
 // Module State Machine Actions
 template <class State>
-std::string stateToName(State& state);
+TransceiverStateMachineState stateToStateEnum(State& state);
 
 BOOST_MSM_EUML_ACTION(logStateChanged){
     template <class Event, class Fsm, class Source, class Target>
@@ -76,8 +98,11 @@ BOOST_MSM_EUML_ACTION(logStateChanged){
         Fsm& /* fsm */,
         Source& source,
         Target& target) const {
-        XLOG(DBG2) << "State changed from " << stateToName(source) << " to "
-                   << stateToName(target);
+        XLOG(DBG2)
+        << "State changed from "
+        << getTransceiverStateMachineStateName(stateToStateEnum(source))
+        << " to "
+        << getTransceiverStateMachineStateName(stateToStateEnum(target));
 } // namespace facebook::fboss
 }
 ;

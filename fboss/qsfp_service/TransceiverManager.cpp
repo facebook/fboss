@@ -191,5 +191,16 @@ void TransceiverManager::handlePendingUpdates() {
   }
 }
 
+TransceiverStateMachineState TransceiverManager::getCurrentState(
+    TransceiverID id) const {
+  auto stateMachineItr = stateMachines_.find(id);
+  if (stateMachineItr == stateMachines_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+
+  const auto& lockedStateMachine = stateMachineItr->second->rlock();
+  return getStateByOrder(*lockedStateMachine->current_state());
+}
+
 } // namespace fboss
 } // namespace facebook

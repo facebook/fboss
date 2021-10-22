@@ -160,6 +160,8 @@ class TransceiverManager {
 
   void updateState(TransceiverID id, TransceiverStateMachineEvent event);
 
+  TransceiverStateMachineState getCurrentState(TransceiverID id) const;
+
  protected:
   virtual void loadConfig() = 0;
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
