@@ -77,6 +77,10 @@ struct BaseCommandTraits {
 
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
+  static_assert(
+      std::is_base_of_v<BaseCommandTraits, CmdTypeTraits>,
+      "CmdTypeTraits needs to subclass BaseCommandTraits");
+
  public:
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       CmdTypeTraits::ObjectArgTypeId;

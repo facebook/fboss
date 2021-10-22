@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowNdpTraits {
+struct CmdShowNdpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
   using ObjectArgType = std::vector<std::string>;

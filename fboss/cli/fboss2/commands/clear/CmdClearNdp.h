@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-struct CmdClearNdpTraits {
+struct CmdClearNdpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
