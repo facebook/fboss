@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -22,6 +23,7 @@ namespace facebook::fboss {
 using utils::Table;
 
 struct CmdShowInterfaceErrorsTraits : public BaseCommandTraits {
+  using ParentCmd = CmdShowInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
