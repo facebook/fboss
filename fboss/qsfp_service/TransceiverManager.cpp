@@ -5,6 +5,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 
 namespace facebook {
 namespace fboss {
@@ -108,5 +109,87 @@ void TransceiverManager::threadLoop(
   initThread(name);
   eventBase->loopForever();
 }
+
+void TransceiverManager::updateState(
+    TransceiverID id,
+    TransceiverStateMachineEvent event) {
+  {
+    std::unique_lock guard(pendingUpdatesLock_);
+    auto stateMachineUpdate =
+        std::make_unique<TransceiverStateMachineUpdate>(id, event);
+    pendingUpdates_.push_back(*stateMachineUpdate.release());
+  }
+
+  // Signal the update thread that updates are pending.
+  // We call runInEventBaseThread() with a static function pointer since this
+  // is more efficient than having to allocate a new bound function object.
+  updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
+}
+
+void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
+  return mgr->handlePendingUpdates();
+}
+void TransceiverManager::handlePendingUpdates() {
+  // Get the list of updates to run.
+  // We might pull multiple updates off the list at once if several updates were
+  // scheduled before we had a chance to process them.
+  // In some case we might also end up finding 0 updates to process if a
+  // previous handlePendingUpdates() call processed multiple updates.
+  StateUpdateList updates;
+  {
+    std::unique_lock guard(pendingUpdatesLock_);
+    // So far we don't have to support non coalescing updates like wedge_agent
+    // we can just dump all existing updates in pendingUpdates_ to this temp
+    // StateUpdateList `updates`
+    updates.splice(
+        updates.begin(),
+        pendingUpdates_,
+        pendingUpdates_.begin(),
+        pendingUpdates_.end());
+  }
+
+  // handlePendingUpdates() is invoked once for each update, but a previous
+  // call might have already processed everything.  If we don't have anything
+  // to do just return early.
+  if (updates.empty()) {
+    return;
+  }
+
+  auto iter = updates.begin();
+  while (iter != updates.end()) {
+    TransceiverStateMachineUpdate* update = &(*iter);
+    ++iter;
+
+    auto stateMachineItr = stateMachines_.find(update->getTransceiverID());
+    if (stateMachineItr == stateMachines_.end()) {
+      XLOG(WARN) << "Unrecognize Transceiver:" << update->getTransceiverID()
+                 << ", can't find StateMachine for it. Skip updating.";
+      delete update;
+      continue;
+    }
+
+    XLOG(INFO) << "Preparing ModuleStateMachine update for "
+               << update->getName();
+    // Hold the module state machine lock
+    const auto& lockedStateMachine = stateMachineItr->second->wlock();
+    try {
+      update->applyUpdate(*lockedStateMachine);
+    } catch (const std::exception& ex) {
+      // Call the update's onError() function, and then immediately delete
+      // it (therefore removing it from the intrusive list).  This way we won't
+      // call it's onSuccess() function later.
+      update->onError(ex);
+      delete update;
+    }
+  }
+
+  // Notify all of the updates of success and delete them.
+  while (!updates.empty()) {
+    std::unique_ptr<TransceiverStateMachineUpdate> update(&updates.front());
+    updates.pop_front();
+    update->onSuccess();
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

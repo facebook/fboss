@@ -682,8 +682,7 @@ BOOST_MSM_EUML_ACTION(
                << ": onModulePortAgentUp: "
                << "Transitioning to MODULE_PORT_STATE_UP";
 // This transition generates Module Port Up event to Module State Machine
-fsm.get_attribute(qsfpModuleObjPtr)
-    ->stateUpdate(TransceiverStateMachineEvent::PORT_UP);
+fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortsUpEvent();
 }
 
 template <class Event, class Fsm>
@@ -697,8 +696,7 @@ void operator()(
              << ": onModulePortAgentUp: "
              << "Transitioning to MODULE_PORT_STATE_UP";
   // This transition generates Module Port Up event to Module State Machine
-  fsm.get_attribute(qsfpModuleObjPtr)
-      ->stateUpdate(TransceiverStateMachineEvent::PORT_UP);
+  fsm.get_attribute(qsfpModuleObjPtr)->genMsmModPortsUpEvent();
 }
 }
 ;

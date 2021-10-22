@@ -146,6 +146,11 @@ class QsfpModule : public Transceiver {
    */
   void genMsmModPortsDownEvent();
   /*
+   * This is the helper function to generate the event "Module Port Up" to
+   * the Module State Machine
+   */
+  void genMsmModPortsUpEvent();
+  /*
    * In the Discovered state we spawn a timeout to check for Agent port state
    * syncup to qsfp_service
    */
@@ -560,6 +565,8 @@ class QsfpModule : public Transceiver {
    * for ODS to report.
    */
   void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
+
+  void stateUpdateLocked(TransceiverStateMachineEvent event);
 
   // Module State Machine for this QsfpModule object
   msm::back::state_machine<moduleStateMachine> moduleStateMachine_;

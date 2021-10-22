@@ -118,7 +118,7 @@ QsfpModule::QsfpModule(
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
+  stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_REMOVED);
 }
 
 /*
@@ -503,11 +503,11 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
+    stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_DETECTED);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
+    stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_REMOVED);
   }
 
   if (dirty_) {
@@ -518,7 +518,7 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+    stateUpdateLocked(TransceiverStateMachineEvent::EEPROM_READ);
   }
 
   if (customizeWanted) {
@@ -824,8 +824,12 @@ void QsfpModule::genMsmModPortsDownEvent() {
   // Check port down for N-1 ports only because current PSM port
   // state is in transition to  Down state
   if (downports >= portStateMachines_.size() - 1) {
-    stateUpdate(TransceiverStateMachineEvent::ALL_PORTS_DOWN);
+    stateUpdateLocked(TransceiverStateMachineEvent::ALL_PORTS_DOWN);
   }
+}
+
+void QsfpModule::genMsmModPortsUpEvent() {
+  stateUpdateLocked(TransceiverStateMachineEvent::PORT_UP);
 }
 
 /*
@@ -843,7 +847,6 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
   // Schedule a function to do bring up / remediate after some time
   msmFunctionScheduler_.addFunctionOnce(
       [&]() {
-        lock_guard<std::mutex> g(qsfpModuleMutex_);
         // Trigger the timeout event to MSM
         stateUpdate(TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT);
       },
@@ -890,10 +893,10 @@ void QsfpModule::scheduleBringupRemediateFunction() {
         lock_guard<std::mutex> g(qsfpModuleMutex_);
         if (moduleStateMachine_.get_attribute(moduleBringupDone)) {
           // Do the remediate function second time onwards
-          stateUpdate(TransceiverStateMachineEvent::REMEDIATE_DONE);
+          stateUpdateLocked(TransceiverStateMachineEvent::REMEDIATE_DONE);
         } else {
           // Bring up to be attempted for first time only
-          stateUpdate(TransceiverStateMachineEvent::BRINGUP_DONE);
+          stateUpdateLocked(TransceiverStateMachineEvent::BRINGUP_DONE);
         }
       },
       // Name of the scheduled function/thread for identifying later
@@ -955,13 +958,15 @@ void QsfpModule::checkAgentModulePortSyncup() {
 }
 
 void QsfpModule::stateUpdate(TransceiverStateMachineEvent event) {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  stateUpdateLocked(event);
+}
+
+void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   // Use this function to gate whether we should use the old state machine or
   // the new design with the StateUpdate list
   if (FLAGS_use_new_state_machine) {
-    // TODO(joseph5wu) This will create a StateUpdate object in the pending list
-    // of TransceiverManager and then have a separate thread to handle all the
-    // pending updates, which is similar to wedge_agent SwitchState update.
-    throw FbossError("Unsupported implementation of new state machine");
+    transceiverManager_->updateState(getID(), event);
   } else {
     // Fall back to use the legacy logic
     switch (event) {

@@ -25,14 +25,23 @@ class TransceiverStateMachineUpdate {
  public:
   explicit TransceiverStateMachineUpdate(
       TransceiverID id,
-      TransceiverStateMachineEvent transceiverEvent)
-      : id_(id), transceiverEvent_(transceiverEvent) {}
+      TransceiverStateMachineEvent transceiverEvent);
 
   TransceiverID getTransceiverID() const {
     return id_;
   }
+  TransceiverStateMachineEvent getEvent() const {
+    return transceiverEvent_;
+  }
+  std::string getName() const {
+    return name_;
+  }
 
-  void applyUpdate(state_machine<TransceiverStateMachine>* curState);
+  void applyUpdate(state_machine<TransceiverStateMachine>& curState);
+
+  void onError(const std::exception& ex) noexcept;
+
+  void onSuccess();
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -42,6 +51,7 @@ class TransceiverStateMachineUpdate {
 
   const TransceiverID id_;
   const TransceiverStateMachineEvent transceiverEvent_;
+  const std::string name_;
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;

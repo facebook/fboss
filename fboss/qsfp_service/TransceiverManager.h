@@ -158,6 +158,8 @@ class TransceiverManager {
   // returns empty string when there is no name found
   const std::string getPortName(TransceiverID tcvrId) const;
 
+  void updateState(TransceiverID id, TransceiverStateMachineEvent event);
+
  protected:
   virtual void loadConfig() = 0;
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
@@ -195,6 +197,9 @@ class TransceiverManager {
   void startThreads();
   void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  static void handlePendingUpdatesHelper(TransceiverManager* mgr);
+  void handlePendingUpdates();
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,
