@@ -72,6 +72,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
+  fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
