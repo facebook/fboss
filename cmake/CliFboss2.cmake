@@ -78,8 +78,8 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
-  fboss/cli/fboss2/commands/show/CmdShowPortQueue.h
-  fboss/cli/fboss2/commands/show/CmdShowInterface.h
+  fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
