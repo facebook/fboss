@@ -59,10 +59,9 @@ void CmdSubcommands::addCommandBranch(
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
       subCmd->add_option("ports", args, "Port(s)");
     }
-
-    for (const auto& child : cmd.subcommands) {
-      addCommandBranch(*subCmd, child, depth + 1);
-    }
+  }
+  for (const auto& child : cmd.subcommands) {
+    addCommandBranch(*subCmd, child, depth + 1);
   }
 }
 
