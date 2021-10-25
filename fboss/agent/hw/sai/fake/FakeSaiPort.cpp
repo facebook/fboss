@@ -353,6 +353,20 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PTP_MODE:
       port.ptpMode = static_cast<sai_port_ptp_mode_t>(attr->value.s32);
       break;
+    case SAI_PORT_ATTR_EYE_VALUES: {
+      port.portEyeValues.count =
+          static_cast<sai_port_eye_values_list_t>(attr->value.porteyevalues)
+              .count;
+      auto& portEyeValList = port.portEyeValues.list;
+      auto portEyeValVector = std::vector<sai_port_lane_eye_values_t>();
+      portEyeValVector.resize(port.portEyeValues.count);
+      portEyeValList = portEyeValVector.data();
+      for (int j = 0; j < port.portEyeValues.count; j++) {
+        portEyeValList[j] =
+            static_cast<sai_port_eye_values_list_t>(attr->value.porteyevalues)
+                .list[j];
+      }
+    } break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -516,6 +530,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PTP_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.ptpMode);
+        break;
+      case SAI_PORT_ATTR_EYE_VALUES:
+        attr[i].value.porteyevalues.count = port.portEyeValues.count;
+        for (int j = 0; j < port.portEyeValues.count; j++) {
+          attr[i].value.porteyevalues.list[j] = port.portEyeValues.list[j];
+        }
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
