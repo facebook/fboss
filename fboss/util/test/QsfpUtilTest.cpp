@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/util/test/QsfpUtilTest.h"
-#include "fboss/util/wedge_qsfp_util.h"
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
-#include "common/init/Init.h"
 #include <fstream>
+#include "common/init/Init.h"
+#include "fboss/util/wedge_qsfp_util.h"
 
 using namespace facebook::fboss;
 
@@ -31,7 +31,6 @@ void QsfpUtilTest::SetUp() {
 void QsfpUtilTest::TearDown() {}
 
 TEST_F(QsfpUtilTest, VerifyCheckSum) {
-
   CdbCommandBlock cdb;
   std::vector<uint8_t> lplMem;
 
@@ -62,7 +61,7 @@ TEST_F(QsfpUtilTest, portRegexTest1) {
   std::string portListStr("1,2,3-9,12-17,29");
   // Expected result
   std::vector<unsigned int> resultPortList{
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 29};
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 29};
   // Call the function
   std::vector<unsigned int> portListVec = portRangeStrToPortList(portListStr);
   // Verify the result
@@ -94,18 +93,18 @@ TEST_F(QsfpUtilTest, portRegexTest3) {
 TEST_F(QsfpUtilTest, portBucketize1) {
   // Input value
   std::vector<unsigned int> modlist{
-    1, 3, 5, 8, 12, 15, 21, 33, 38, 46, 55, 59, 60, 83, 88, 122, 124, 128};
+      1, 3, 5, 8, 12, 15, 21, 33, 38, 46, 55, 59, 60, 83, 88, 122, 124, 128};
   // Expected result
-  std::vector<std::vector<unsigned int>> resultBucket {
-    {1, 3, 5, 8},
-    {12, 15},
-    {21},
-    {33, 38},
-    {46},
-    {55},
-    {59, 60},
-    {83, 88},
-    {122, 124, 128},
+  std::vector<std::vector<unsigned int>> resultBucket{
+      {1, 3, 5, 8},
+      {12, 15},
+      {21},
+      {33, 38},
+      {46},
+      {55},
+      {59, 60},
+      {83, 88},
+      {122, 124, 128},
   };
   std::vector<std::vector<unsigned int>> bucket;
 
@@ -124,7 +123,8 @@ TEST_F(QsfpUtilTest, portBucketize1) {
 TEST_F(QsfpUtilTest, CheckProcessName) {
   // Get command line of this test process
   int currPid = getpid();
-  std::string commandPath = folly::to<std::string>("/proc/", currPid, "/cmdline");
+  std::string commandPath =
+      folly::to<std::string>("/proc/", currPid, "/cmdline");
   std::ifstream commandFile(commandPath.c_str());
   std::string commandLine;
   getline(commandFile, commandLine);

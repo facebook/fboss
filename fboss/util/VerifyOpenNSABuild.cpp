@@ -24,34 +24,37 @@
  * copy and extract opennsa tarball to verify in opennsa-verify
  *
  * cd opennsa-verify
- * g++ VerifyOpenNSABuild.cpp -I $PWD/opennsa/include -I $PWD/opennsa/src/sdk/gpl-modules -L $PWD/lib/x86-64 -l opennsa -l pthread -lrt
- * ldd a.out # should show dependency on libopennsa.so
+ * g++ VerifyOpenNSABuild.cpp -I $PWD/opennsa/include -I
+ * $PWD/opennsa/src/sdk/gpl-modules -L $PWD/lib/x86-64 -l opennsa -l pthread
+ * -lrt ldd a.out # should show dependency on libopennsa.so
  * ./a.out
  *
  * rm -rf a.out $PWD/lib/x86-64/libopennsa.so
- * g++ VerifyOpenNSABuild.cpp -I $PWD/opennsa/include -I $PWD/opennsa/src/sdk/gpl-modules -L $PWD/lib/x86-64 -l opennsa -l pthread -lrt
- * ldd a.out # should not show dependency on libopennsa.so, statically linked with libopennsa.a
+ * g++ VerifyOpenNSABuild.cpp -I $PWD/opennsa/include -I
+ * $PWD/opennsa/src/sdk/gpl-modules -L $PWD/lib/x86-64 -l opennsa -l pthread
+ * -lrt ldd a.out # should not show dependency on libopennsa.so, statically
+ * linked with libopennsa.a
  * ./a.out
  *
- * If static linking fails (say recompile with -fPIC error), try passing -static to g++.
- * While that may succeed, it is still a bug in libopennsa.a that needs to be investigated.
+ * If static linking fails (say recompile with -fPIC error), try passing -static
+ * to g++. While that may succeed, it is still a bug in libopennsa.a that needs
+ * to be investigated.
  */
 extern "C" {
 
-#include <bcm/stat.h>
 #include <bcm/error.h>
+#include <bcm/stat.h>
 #include <include/ibde.h>
-
 }
 
-const char *_build_release = "unknown";
-const char *_build_user = "unknown";
-const char *_build_host = "unknown";
-const char *_build_date = "no date";
-const char *_build_datestamp = "no datestamp";
-const char *_build_tree = "unknown";
-const char *_build_arch = "unknown";
-const char *_build_os = "unknown";
+const char* _build_release = "unknown";
+const char* _build_user = "unknown";
+const char* _build_host = "unknown";
+const char* _build_date = "no date";
+const char* _build_datestamp = "no datestamp";
+const char* _build_tree = "unknown";
+const char* _build_arch = "unknown";
+const char* _build_os = "unknown";
 
 /*
  * bde_create() must be defined as a symbol when linking against BRCM libs.
@@ -74,4 +77,5 @@ ibde_t* bde;
 int main() {
   bcm_stat_sync(0);
   return 0;
-}'
+}
+'

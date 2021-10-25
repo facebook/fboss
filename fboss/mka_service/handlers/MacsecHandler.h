@@ -51,7 +51,8 @@ class MacsecHandler {
   /*
    * Get the Phy port link information from Macsec handler
    */
-  virtual PortOperState macsecGetPhyLinkInfo(const std::string& /* portName */) {
+  virtual PortOperState macsecGetPhyLinkInfo(
+      const std::string& /* portName */) {
     return PortOperState::DOWN;
   }
 
@@ -65,8 +66,8 @@ class MacsecHandler {
   /*
    * Get the list of all SC SA on a phy
    */
-  virtual MacsecAllScInfo
-  macsecGetAllScInfo(const std::string& /* portName */) {
+  virtual MacsecAllScInfo macsecGetAllScInfo(
+      const std::string& /* portName */) {
     return MacsecAllScInfo{};
   }
 
@@ -84,9 +85,9 @@ class MacsecHandler {
    * Get the macsec Flow stats
    */
   virtual MacsecFlowStats macsecGetFlowStats(
-    const std::string& /* portName */,
-    bool /* directionIngress */,
-    bool /* readFromHw */) {
+      const std::string& /* portName */,
+      bool /* directionIngress */,
+      bool /* readFromHw */) {
     return MacsecFlowStats{};
   }
 
@@ -95,8 +96,8 @@ class MacsecHandler {
    */
   virtual MacsecSaStats macsecGetSaStats(
       const std::string& /* portName */,
-    bool /* directionIngress */,
-    bool /* readFromHw */) {
+      bool /* directionIngress */,
+      bool /* readFromHw */) {
     return MacsecSaStats{};
   }
 

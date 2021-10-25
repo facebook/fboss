@@ -18,7 +18,7 @@ static llvm::cl::extrahelp commonHelp(
 static llvm::cl::OptionCategory headerToThriftCategory(
     "HeaderToThrift options");
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   clang::tooling::CommonOptionsParser optionsParser(
       argc, const_cast<const char**>(argv), headerToThriftCategory);
   clang::tooling::ClangTool tool(

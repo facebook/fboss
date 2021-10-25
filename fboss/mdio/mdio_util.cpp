@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     doWrite = true;
   }
 
-  auto checkParameter = [](int value, int low, int high, const char *what) {
+  auto checkParameter = [](int value, int low, int high, const char* what) {
     if (value < low || value > high) {
       fprintf(stderr, "Invalid %s %#x\n", what, value);
       exit(2);
@@ -86,9 +86,11 @@ int main(int argc, char* argv[]) {
       printf("%#x\n", mdio_read(phyAddr, devAddr, regAddr));
     }
   } catch (const std::exception& ex) {
-    fprintf(stderr, "error: failed to %s MDIO device: %s\n",
-            (doWrite) ? "write" : "read",
-            ex.what());
+    fprintf(
+        stderr,
+        "error: failed to %s MDIO device: %s\n",
+        (doWrite) ? "write" : "read",
+        ex.what());
     return 1;
   }
 

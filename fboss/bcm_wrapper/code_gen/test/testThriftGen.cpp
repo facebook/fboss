@@ -28,6 +28,7 @@ class ThriftGenTest : public ::testing::Test {
         "lol.h");
     return hp_.getThrift();
   }
+
  private:
   facebook::fboss::HeaderParser hp_;
   clang::ast_matchers::MatchFinder mf_;

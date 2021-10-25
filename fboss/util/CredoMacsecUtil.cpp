@@ -331,19 +331,26 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   printf("  DataPackets: %ld\n", *portStats.dataPkts_ref());
   if (FLAGS_ingress) {
     printf("  DecryptedOctets: %ld\n", *portStats.octetsEncrypted_ref());
-    printf("  inBadOrNoMacsecTagDroppedPkts: %ld\n", *portStats.inBadOrNoMacsecTagDroppedPkts_ref());
+    printf(
+        "  inBadOrNoMacsecTagDroppedPkts: %ld\n",
+        *portStats.inBadOrNoMacsecTagDroppedPkts_ref());
     printf("  inNoSciDroppedPkts: %ld\n", *portStats.inNoSciDroppedPkts_ref());
     printf("  inUnknownSciPkts: %ld\n", *portStats.inUnknownSciPkts_ref());
-    printf("  inOverrunDroppedPkts: %ld\n", *portStats.inOverrunDroppedPkts_ref());
+    printf(
+        "  inOverrunDroppedPkts: %ld\n", *portStats.inOverrunDroppedPkts_ref());
     printf("  inDelayedPkts: %ld\n", *portStats.inDelayedPkts_ref());
     printf("  inLateDroppedPkts: %ld\n", *portStats.inLateDroppedPkts_ref());
-    printf("  inNotValidDroppedPkts: %ld\n", *portStats.inNotValidDroppedPkts_ref());
+    printf(
+        "  inNotValidDroppedPkts: %ld\n",
+        *portStats.inNotValidDroppedPkts_ref());
     printf("  inInvalidPkts: %ld\n", *portStats.inInvalidPkts_ref());
     printf("  inNoSaDroppedPkts: %ld\n", *portStats.inNoSaDroppedPkts_ref());
     printf("  inUnusedSaPkts: %ld\n", *portStats.inUnusedSaPkts_ref());
   } else {
     printf("  EncryptedOctets: %ld\n", *portStats.octetsEncrypted_ref());
-    printf("  outTooLongDroppedPkts: %ld\n", *portStats.outTooLongDroppedPkts_ref());
+    printf(
+        "  outTooLongDroppedPkts: %ld\n",
+        *portStats.outTooLongDroppedPkts_ref());
   }
 }
 
@@ -415,7 +422,8 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   MacsecSaStats saStats;
-  fbMacsecHandler->sync_macsecGetSaStats(saStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
+  fbMacsecHandler->sync_macsecGetSaStats(
+      saStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
 
   printf("Printing stats for %s\n", FLAGS_port.c_str());
   printf("Direction: %s\n", FLAGS_ingress ? "ingress" : "egress");

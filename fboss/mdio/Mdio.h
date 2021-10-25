@@ -190,7 +190,6 @@ class MdioController {
     return eventBase_.get();
   }
 
-
  public:
   class FullyLockedMdio {
    public:

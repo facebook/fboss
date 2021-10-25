@@ -13,50 +13,69 @@ using namespace facebook::fboss;
 using folly::ByteRange;
 using folly::MutableByteRange;
 using folly::StringPiece;
-using std::chrono::milliseconds;
 using std::map;
 using std::vector;
+using std::chrono::milliseconds;
 
-DEFINE_bool(list_commands, false,
-            "Print the list of commands");
-DEFINE_bool(reset, false,
-            "Reset the CP2112 device upon starting");
-DEFINE_bool(init_smbus_config, true,
-            "Initialize the CP2112 SMBus configuration settings before "
-            "performing any other operations");
-DEFINE_int32(timeout_ms, -1,
-            "The default I2C timeout, in milliseconds");
+DEFINE_bool(list_commands, false, "Print the list of commands");
+DEFINE_bool(reset, false, "Reset the CP2112 device upon starting");
+DEFINE_bool(
+    init_smbus_config,
+    true,
+    "Initialize the CP2112 SMBus configuration settings before "
+    "performing any other operations");
+DEFINE_int32(timeout_ms, -1, "The default I2C timeout, in milliseconds");
 
 // Flags for the set_gpio_config command.
-DEFINE_int32(gpio_direction, -1,
-             "The GPIO direction bitmap for the set_gpio_config command");
-DEFINE_int32(gpio_push_pull, -1,
-             "The GPIO push-pull bitmap for the set_gpio_config command");
-DEFINE_int32(gpio_special, -1,
-             "The GPIO special bitmap for the set_gpio_config command");
-DEFINE_int32(gpio_clock_divider, -1,
-             "The GPIO clock divider for the set_gpio_config command");
+DEFINE_int32(
+    gpio_direction,
+    -1,
+    "The GPIO direction bitmap for the set_gpio_config command");
+DEFINE_int32(
+    gpio_push_pull,
+    -1,
+    "The GPIO push-pull bitmap for the set_gpio_config command");
+DEFINE_int32(
+    gpio_special,
+    -1,
+    "The GPIO special bitmap for the set_gpio_config command");
+DEFINE_int32(
+    gpio_clock_divider,
+    -1,
+    "The GPIO clock divider for the set_gpio_config command");
 
 // Flags for the set_smbus_config command.
-DEFINE_int32(smbus_speed, -1,
-             "The SMBus speed for the set_smbus_config command");
-DEFINE_int32(smbus_address, -1,
-             "The SMBus address for the set_smbus_config command");
-DEFINE_int32(smbus_write_timeout_ms, -1,
-             "The SMBus write timeout for the set_smbus_config command");
-DEFINE_int32(smbus_read_timeout_ms, -1,
-             "The SMBus read timeout for the set_smbus_config command");
-DEFINE_int32(scl_low_timeout, -1,
-             "Whether to enable the SCL low timeout for the "
-             "set_smbus_config command");
-DEFINE_int32(smbus_retry_limit, -1,
-             "The SMBus retry limit for the set_smbus_config command");
+DEFINE_int32(
+    smbus_speed,
+    -1,
+    "The SMBus speed for the set_smbus_config command");
+DEFINE_int32(
+    smbus_address,
+    -1,
+    "The SMBus address for the set_smbus_config command");
+DEFINE_int32(
+    smbus_write_timeout_ms,
+    -1,
+    "The SMBus write timeout for the set_smbus_config command");
+DEFINE_int32(
+    smbus_read_timeout_ms,
+    -1,
+    "The SMBus read timeout for the set_smbus_config command");
+DEFINE_int32(
+    scl_low_timeout,
+    -1,
+    "Whether to enable the SCL low timeout for the "
+    "set_smbus_config command");
+DEFINE_int32(
+    smbus_retry_limit,
+    -1,
+    "The SMBus retry limit for the set_smbus_config command");
 
 class ArgError : public std::exception {
  public:
-  template<typename... Args>
+  template <typename... Args>
   explicit ArgError(const Args&... args)
-    : what_(folly::to<std::string>(args...)) {}
+      : what_(folly::to<std::string>(args...)) {}
 
   const char* what() const noexcept override {
     return what_.c_str();
@@ -162,11 +181,12 @@ int cmdGetGpioConfig(CP2112* dev, const vector<StringPiece>& args) {
   return 0;
 }
 
-template<typename INTTYPE, typename INTTYPE2>
-void updateConfig(INTTYPE* value,
-                  StringPiece flagName,
-                  int32_t flagValue,
-                  INTTYPE2 max) {
+template <typename INTTYPE, typename INTTYPE2>
+void updateConfig(
+    INTTYPE* value,
+    StringPiece flagName,
+    int32_t flagValue,
+    INTTYPE2 max) {
   if (flagValue < 0) {
     return;
   }
@@ -177,16 +197,13 @@ void updateConfig(INTTYPE* value,
   *value = flagValue;
 }
 
-template<typename INTTYPE>
-void updateConfig(INTTYPE* value,
-                  StringPiece flagName,
-                  int32_t flagValue) {
-  updateConfig(value, flagName, flagValue,
-               std::numeric_limits<INTTYPE>::max());
+template <typename INTTYPE>
+void updateConfig(INTTYPE* value, StringPiece flagName, int32_t flagValue) {
+  updateConfig(value, flagName, flagValue, std::numeric_limits<INTTYPE>::max());
 }
 
 #define UPDATE_CONFIG(value, flag, ...) \
-  updateConfig(&(value), #flag, FLAGS_ ## flag, ##__VA_ARGS__);
+  updateConfig(&(value), #flag, FLAGS_##flag, ##__VA_ARGS__);
 
 int cmdSetGpioConfig(CP2112* dev, const vector<StringPiece>& args) {
   if (!args.empty()) {
@@ -213,8 +230,8 @@ int cmdEnableRxTxLeds(CP2112* dev, const vector<StringPiece>& args) {
 
   auto config = dev->getGpioConfig();
   config.direction |= 0x03; // GPIO 0 and 1 set to output
-  config.pushPull |= 0x03;  // Push-pull for GPIO 0 and 1
-  config.special |= 0x06;   // Enable TX/RX toggle for GPIOs 0 and 1
+  config.pushPull |= 0x03; // Push-pull for GPIO 0 and 1
+  config.special |= 0x06; // Enable TX/RX toggle for GPIOs 0 and 1
   dev->setGpioConfig(config);
   return 0;
 }
@@ -292,8 +309,10 @@ int cmdRead(CP2112* dev, const vector<StringPiece>& args) {
 
   uint8_t address = parseInt(args[0], "address", 0, 0xff);
   if (address & 0x1) {
-    fprintf(stderr, "error: bad address %s: least significant bit must be 0\n",
-            args[0].str().c_str());
+    fprintf(
+        stderr,
+        "error: bad address %s: least significant bit must be 0\n",
+        args[0].str().c_str());
     return 1;
   }
 
@@ -313,8 +332,7 @@ int cmdRead(CP2112* dev, const vector<StringPiece>& args) {
   return 0;
 }
 
-int addrReadImpl(CP2112* dev, const vector<StringPiece>& args,
-                 bool unsafe) {
+int addrReadImpl(CP2112* dev, const vector<StringPiece>& args, bool unsafe) {
   if (args.size() != 3) {
     fprintf(stderr, "error: incorrect number of arguments\n");
     fprintf(stderr, "usage: cp2112_util read DEV_ADDRESS ADDRESS LENGTH\n");
@@ -323,8 +341,10 @@ int addrReadImpl(CP2112* dev, const vector<StringPiece>& args,
 
   uint8_t address = parseInt(args[0], "address", 0, 0xff);
   if (address & 0x1) {
-    fprintf(stderr, "error: bad address %s: least significant bit must be 0\n",
-            args[0].str().c_str());
+    fprintf(
+        stderr,
+        "error: bad address %s: least significant bit must be 0\n",
+        args[0].str().c_str());
     return 1;
   }
 
@@ -333,8 +353,10 @@ int addrReadImpl(CP2112* dev, const vector<StringPiece>& args,
   // a 24c08 EEPROM which uses a 1 byte target address.)
   uint8_t targetAddr = parseInt(args[1], "address", 0, 0xff);
   if (address & 0x1) {
-    fprintf(stderr, "error: bad address %s: least significant bit must be 0\n",
-            args[0].str().c_str());
+    fprintf(
+        stderr,
+        "error: bad address %s: least significant bit must be 0\n",
+        args[0].str().c_str());
     return 1;
   }
 
@@ -360,8 +382,11 @@ int addrReadImpl(CP2112* dev, const vector<StringPiece>& args,
     return 2;
   }
 
-  printf("Read %d bytes at device 0x%02x address 0x%02x:\n",
-         length, address, targetAddr);
+  printf(
+      "Read %d bytes at device 0x%02x address 0x%02x:\n",
+      length,
+      address,
+      targetAddr);
   hexdump(buf, length);
   return 0;
 }
@@ -383,14 +408,16 @@ int cmdWrite(CP2112* dev, const vector<StringPiece>& args) {
 
   uint8_t address = parseInt(args[0], "address", 0, 0xff);
   if (address & 0x1) {
-    fprintf(stderr, "error: bad address %s: least significant bit must be 0\n",
-            args[0].str().c_str());
+    fprintf(
+        stderr,
+        "error: bad address %s: least significant bit must be 0\n",
+        args[0].str().c_str());
     return 1;
   }
 
   auto length = args.size() - 1;
   uint8_t buf[length];
-  for (size_t n = 1; n < args.size(); ++ n) {
+  for (size_t n = 1; n < args.size(); ++n) {
     buf[n - 1] = parseInt(args[n], "byte", 0, 0xff);
   }
 
@@ -465,14 +492,17 @@ int cmdReset(CP2112* dev, const vector<StringPiece>& args) {
 }
 
 void printXferStatus(const CP2112::TransferStatus& status) {
-  printf("Status 0:        %d (%s)\n",
-         status.status0, CP2112::getStatus0Msg(status.status0).c_str());
+  printf(
+      "Status 0:        %d (%s)\n",
+      status.status0,
+      CP2112::getStatus0Msg(status.status0).c_str());
   if (status.status0 == 0) {
     return;
   }
-  printf("Status 1:        %d (%s)\n",
-         status.status1,
-         CP2112::getStatus1Msg(status.status0, status.status1).c_str());
+  printf(
+      "Status 1:        %d (%s)\n",
+      status.status1,
+      CP2112::getStatus1Msg(status.status0, status.status1).c_str());
   printf("Num Retries:     %d\n", status.numRetries);
   printf("Bytes Read:      %d\n", status.bytesRead);
 }
@@ -506,22 +536,22 @@ struct CommandInfo {
 };
 
 std::map<std::string, CommandInfo> kCommands = {
-  {"addr_read", {cmdAddrRead, " DEV_ADDRESS ADDRESS LENGTH"}},
-  {"addr_read_unsafe", {cmdAddrReadUnsafe, " DEV_ADDRESS ADDRESS LENGTH"}},
-  {"cancel_xfer", {cmdCancelXfer, ""}},
-  {"detect", {cmdDetect, ""}},
-  {"get_gpio", {cmdGetGpio, ""}},
-  {"set_gpio", {cmdSetGpio, "VALUES MASK"}},
-  {"get_gpio_config", {cmdGetGpioConfig, ""}},
-  {"set_gpio_config", {cmdSetGpioConfig, ""}},
-  {"get_smbus_config", {cmdGetSMBusConfig, ""}},
-  {"set_smbus_config", {cmdSetSMBusConfig, ""}},
-  {"read", {cmdRead, " ADDRESS LENGTH"}},
-  {"reset", {cmdReset, ""}},
-  {"tx_rx_leds", {cmdEnableRxTxLeds, ""}},
-  {"version", {cmdVersion, ""}},
-  {"write", {cmdWrite, " ADDRESS BYTE1 [BYTE2 ...]"}},
-  {"xfer_status", {cmdXferStatus, ""}},
+    {"addr_read", {cmdAddrRead, " DEV_ADDRESS ADDRESS LENGTH"}},
+    {"addr_read_unsafe", {cmdAddrReadUnsafe, " DEV_ADDRESS ADDRESS LENGTH"}},
+    {"cancel_xfer", {cmdCancelXfer, ""}},
+    {"detect", {cmdDetect, ""}},
+    {"get_gpio", {cmdGetGpio, ""}},
+    {"set_gpio", {cmdSetGpio, "VALUES MASK"}},
+    {"get_gpio_config", {cmdGetGpioConfig, ""}},
+    {"set_gpio_config", {cmdSetGpioConfig, ""}},
+    {"get_smbus_config", {cmdGetSMBusConfig, ""}},
+    {"set_smbus_config", {cmdSetSMBusConfig, ""}},
+    {"read", {cmdRead, " ADDRESS LENGTH"}},
+    {"reset", {cmdReset, ""}},
+    {"tx_rx_leds", {cmdEnableRxTxLeds, ""}},
+    {"version", {cmdVersion, ""}},
+    {"write", {cmdWrite, " ADDRESS BYTE1 [BYTE2 ...]"}},
+    {"xfer_status", {cmdXferStatus, ""}},
 };
 
 void printCommandList(FILE* f) {

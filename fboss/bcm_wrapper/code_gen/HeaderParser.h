@@ -10,17 +10,18 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
-#include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Tooling.h>
 
 #include "ThriftIDL.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 /*
  * This class implements the visitor function that we run on matching nodes in
  * the clang AST. It also owns the matchers we use to determine whether to run
@@ -44,6 +45,7 @@ class HeaderParser : public clang::ast_matchers::MatchFinder::MatchCallback {
   static const clang::ast_matchers::DeclarationMatcher& functionDeclMatcher();
   // return the the thrift code we have generated while processing the header
   std::string getThrift() const;
+
  private:
   // These will store the generated Thrift IDL objects we parse as we go.
   // We need to store because functions will result in methods (the function
@@ -51,4 +53,5 @@ class HeaderParser : public clang::ast_matchers::MatchFinder::MatchCallback {
   // at the end rather than as we go.
   std::unique_ptr<ThriftFile> file_;
 };
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

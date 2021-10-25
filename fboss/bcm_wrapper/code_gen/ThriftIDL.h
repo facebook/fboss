@@ -9,12 +9,13 @@
  */
 #pragma once
 
-#include <string>
 #include <boost/variant.hpp>
 #include <clang/Tooling/Tooling.h>
 #include <optional>
+#include <string>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 /*
  * Abstract base class for all the various Thrift IDL objects we support.
@@ -93,6 +94,7 @@ class ThriftField : public ThriftIDLObject {
       int index,
       const clang::QualType& qualifiedType);
   std::string getThrift() const override;
+
  private:
   int index_;
   ThriftType type_;
@@ -109,6 +111,7 @@ class ThriftStruct : public ThriftIDLObject {
   explicit ThriftStruct(const clang::FunctionDecl& function);
   std::string getThrift() const override;
   bool hasFields() const;
+
  private:
   std::vector<std::unique_ptr<ThriftField>> fields_;
 };
@@ -120,6 +123,7 @@ class ThriftEnumerator : public ThriftIDLObject {
  public:
   explicit ThriftEnumerator(const clang::EnumConstantDecl& enumConstant);
   std::string getThrift() const override;
+
  private:
   int value_;
 };
@@ -131,6 +135,7 @@ class ThriftEnum : public ThriftIDLObject {
  public:
   explicit ThriftEnum(const clang::EnumDecl& en);
   std::string getThrift() const override;
+
  private:
   std::vector<std::unique_ptr<ThriftEnumerator>> enumerators_;
 };
@@ -145,6 +150,7 @@ class ThriftMethod : public ThriftIDLObject {
   std::string getThrift() const override;
   static std::string methodName(const std::string& functionName);
   std::string resultTypeName;
+
  private:
   std::vector<std::unique_ptr<ThriftField>> parameters_;
 };
@@ -158,6 +164,7 @@ class ThriftService : public ThriftIDLObject {
  public:
   std::string getThrift() const override;
   void addMethod(std::unique_ptr<ThriftMethod> method);
+
  private:
   std::vector<std::unique_ptr<ThriftMethod>> methods_;
 };
@@ -174,6 +181,7 @@ class ThriftFile : public ThriftIDLObject {
   // Adding a method also adds the struct representing the return value
   void addMethod(std::unique_ptr<ThriftMethod> method);
   void addStruct(std::unique_ptr<ThriftStruct> st);
+
  private:
   std::vector<std::unique_ptr<ThriftEnum>> enums_;
   // While thrift supports multiple services in a file, for now we generate
@@ -182,4 +190,5 @@ class ThriftFile : public ThriftIDLObject {
   std::vector<std::unique_ptr<ThriftStruct>> structs_;
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

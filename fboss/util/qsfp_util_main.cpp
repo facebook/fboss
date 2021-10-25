@@ -1,17 +1,17 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/util/wedge_qsfp_util.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+#include "fboss/util/wedge_qsfp_util.h"
 #include "folly/gen/Base.h"
 
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
+#include <sysexits.h>
 #include <iostream>
 #include <iterator>
-#include <sysexits.h>
 
 using namespace facebook::fboss;
 using std::make_pair;
@@ -19,40 +19,41 @@ using std::chrono::seconds;
 using std::chrono::steady_clock;
 
 std::vector<FlagCommand> kCommands = {
-  {"pause_remediation", {}},
-  {"get_remediation_until_time", {}},
-  {"read_reg", {"offset", "length", "page", "i2c_address"}},
-  {"write_reg", {"offset", "length", "page", "i2c_address"}},
-  {"clear_low_power", {}},
-  {"set_low_power", {}},
-  {"tx_enable", {}},
-  {"tx_disable", {}},
-  {"set_40g", {}},
-  {"set_100g", {}},
-  {"app_sel", {}},
-  {"cdr_enable", {}},
-  {"cdr_disable", {}},
-  {"qsfp_hard_reset", {}},
-  {"electrical_loopback", {}},
-  {"optical_loopback", {}},
-  {"clear_loopback", {}},
-  {"update_module_firmware", {"firmware_filename"}},
-  {"cdb_command", {}},
-  {"get_module_fw_info", {}},
-  {"update_bulk_module_fw", {
-    "port_range", "firmware_filename", "module_type", "fw_version"}},
-  {"batch_ops", {"batchfile"}},
+    {"pause_remediation", {}},
+    {"get_remediation_until_time", {}},
+    {"read_reg", {"offset", "length", "page", "i2c_address"}},
+    {"write_reg", {"offset", "length", "page", "i2c_address"}},
+    {"clear_low_power", {}},
+    {"set_low_power", {}},
+    {"tx_enable", {}},
+    {"tx_disable", {}},
+    {"set_40g", {}},
+    {"set_100g", {}},
+    {"app_sel", {}},
+    {"cdr_enable", {}},
+    {"cdr_disable", {}},
+    {"qsfp_hard_reset", {}},
+    {"electrical_loopback", {}},
+    {"optical_loopback", {}},
+    {"clear_loopback", {}},
+    {"update_module_firmware", {"firmware_filename"}},
+    {"cdb_command", {}},
+    {"get_module_fw_info", {}},
+    {"update_bulk_module_fw",
+     {"port_range", "firmware_filename", "module_type", "fw_version"}},
+    {"batch_ops", {"batchfile"}},
 };
 
 void listCommands() {
-    std::cerr << "Commands in this tool are flags so you can combine them "
-    "and for example set_40g and tx_enable on all ports specified.\n\n"
-    "Valid commands and their flags:\n";
+  std::cerr
+      << "Commands in this tool are flags so you can combine them "
+         "and for example set_40g and tx_enable on all ports specified.\n\n"
+         "Valid commands and their flags:\n";
 
-    std::cerr << "Command:\n    <None>: Print port details. Prints port "
-    "summary for all ports if no port specified.\nFlags:\n\n";
+  std::cerr << "Command:\n    <None>: Print port details. Prints port "
+               "summary for all ports if no port specified.\nFlags:\n\n";
 
-    std::copy(
+  std::copy(
       std::begin(kCommands),
       std::end(kCommands),
       std::ostream_iterator<FlagCommand>(std::cerr, "\n"));
@@ -88,7 +89,8 @@ int main(int argc, char* argv[]) {
       client->sync_pauseRemediation(FLAGS_pause_remediation);
       return EX_OK;
     } catch (const std::exception& ex) {
-      fprintf(stderr, "error pausing remediation of qsfp_service: %s\n", ex.what());
+      fprintf(
+          stderr, "error pausing remediation of qsfp_service: %s\n", ex.what());
       return EX_SOFTWARE;
     }
   }
@@ -98,7 +100,10 @@ int main(int argc, char* argv[]) {
       doGetRemediationUntilTime(evb);
       return EX_OK;
     } catch (const std::exception& ex) {
-      fprintf(stderr, "error getting remediationUntil time from qsfp_service: %s\n", ex.what());
+      fprintf(
+          stderr,
+          "error getting remediationUntil time from qsfp_service: %s\n",
+          ex.what());
       return EX_SOFTWARE;
     }
   }
@@ -108,7 +113,8 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<WedgeManager> wedgeManager = nullptr;
   if (argc == 1) {
     wedgeManager = createWedgeManager();
-    folly::gen::range(0, wedgeManager->getNumQsfpModules()) | folly::gen::appendTo(ports);
+    folly::gen::range(0, wedgeManager->getNumQsfpModules()) |
+        folly::gen::appendTo(ports);
   } else {
     for (int n = 1; n < argc; ++n) {
       unsigned int portNum;
@@ -126,8 +132,11 @@ int main(int argc, char* argv[]) {
         }
         ports.push_back(portNum);
       } catch (const std::exception& ex) {
-        fprintf(stderr, "error: invalid port name/number \"%s\": %s\n",
-                argv[n], ex.what());
+        fprintf(
+            stderr,
+            "error: invalid port name/number \"%s\": %s\n",
+            argv[n],
+            ex.what());
         good = false;
       }
     }
@@ -137,27 +146,26 @@ int main(int argc, char* argv[]) {
   }
   auto busAndError = getTransceiverAPI();
   if (busAndError.second) {
-      return busAndError.second;
+    return busAndError.second;
   }
   auto bus = std::move(busAndError.first);
 
-  bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
-                     FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
-                     FLAGS_cdr_enable || FLAGS_cdr_disable ||
-                     FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
-                     FLAGS_electrical_loopback || FLAGS_optical_loopback ||
-                     FLAGS_clear_loopback || FLAGS_read_reg ||
-                     FLAGS_write_reg || FLAGS_update_module_firmware ||
-                     FLAGS_get_module_fw_info || FLAGS_app_sel ||
-                     FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
-                     FLAGS_vdm_info);
+  bool printInfo =
+      !(FLAGS_clear_low_power || FLAGS_tx_disable || FLAGS_tx_enable ||
+        FLAGS_set_100g || FLAGS_set_40g || FLAGS_cdr_enable ||
+        FLAGS_cdr_disable || FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
+        FLAGS_electrical_loopback || FLAGS_optical_loopback ||
+        FLAGS_clear_loopback || FLAGS_read_reg || FLAGS_write_reg ||
+        FLAGS_update_module_firmware || FLAGS_get_module_fw_info ||
+        FLAGS_app_sel || FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
+        FLAGS_vdm_info);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
       tryOpenBus(bus.get());
     } catch (const std::exception& ex) {
-        fprintf(stderr, "error: unable to open device: %s\n", ex.what());
-        return EX_IOERR;
+      fprintf(stderr, "error: unable to open device: %s\n", ex.what());
+      return EX_IOERR;
     }
   } else {
     try {
@@ -180,7 +188,8 @@ int main(int argc, char* argv[]) {
             fprintf(
                 stderr, "qsfp_service didn't return data for Port %d\n", i + 1);
           } else {
-            printPortDetailService(iter->second, iter->first + 1, FLAGS_verbose);
+            printPortDetailService(
+                iter->second, iter->first + 1, FLAGS_verbose);
           }
         }
       }
@@ -201,7 +210,7 @@ int main(int argc, char* argv[]) {
         bus.get(), ports, FLAGS_offset, FLAGS_page, FLAGS_data, evb);
   }
 
-  if  (FLAGS_batch_ops) {
+  if (FLAGS_batch_ops) {
     return doBatchOps(bus.get(), ports, FLAGS_batchfile, evb);
   }
 
@@ -214,12 +223,16 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
     if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, true)) {
-      printf("QSFP %d: disabled TX on %s channels\n", portNum,
-        (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
+      printf(
+          "QSFP %d: disabled TX on %s channels\n",
+          portNum,
+          (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
     }
     if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, false)) {
-      printf("QSFP %d: enabled TX on %s channels\n", portNum,
-        (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
+      printf(
+          "QSFP %d: enabled TX on %s channels\n",
+          portNum,
+          (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
     }
 
     if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0x0)) {
@@ -245,9 +258,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_electrical_loopback) {
-      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+      if (getModuleType(bus.get(), portNum) !=
+          TransceiverManagementInterface::CMIS) {
         if (doMiniphotonLoopback(bus.get(), portNum, electricalLoopback)) {
-          printf("QSFP %d: done setting module to electrical loopback.\n", portNum);
+          printf(
+              "QSFP %d: done setting module to electrical loopback.\n",
+              portNum);
         }
       } else {
         cmisHostInputLoopback(bus.get(), portNum, electricalLoopback);
@@ -255,9 +271,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_optical_loopback) {
-      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+      if (getModuleType(bus.get(), portNum) !=
+          TransceiverManagementInterface::CMIS) {
         if (doMiniphotonLoopback(bus.get(), portNum, opticalLoopback)) {
-          printf("QSFP %d: done setting module to optical loopback.\n", portNum);
+          printf(
+              "QSFP %d: done setting module to optical loopback.\n", portNum);
         }
       } else {
         cmisMediaInputLoopback(bus.get(), portNum, opticalLoopback);
@@ -265,7 +283,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_clear_loopback) {
-      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+      if (getModuleType(bus.get(), portNum) !=
+          TransceiverManagementInterface::CMIS) {
         if (doMiniphotonLoopback(bus.get(), portNum, noLoopback)) {
           printf("QSFP %d: done clear module to loopback.\n", portNum);
         }
@@ -298,16 +317,18 @@ int main(int argc, char* argv[]) {
     if (FLAGS_update_module_firmware) {
       printf("This action may bring down the port and interrupt the traffic\n");
       if (FLAGS_firmware_filename.empty()) {
-        fprintf(stderr,
-               "QSFP %d: Fail to upgrade firmware. Specify firmware using --firmware_filename\n",
-               portNum);
+        fprintf(
+            stderr,
+            "QSFP %d: Fail to upgrade firmware. Specify firmware using --firmware_filename\n",
+            portNum);
       } else {
-          cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
+        cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
       }
     }
 
     if (FLAGS_cdb_command) {
-      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+      if (getModuleType(bus.get(), portNum) !=
+          TransceiverManagementInterface::CMIS) {
         printf("This command is applicable to CMIS module only\n");
       } else {
         doCdbCommand(bus.get(), portNum);
@@ -317,7 +338,9 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_get_module_fw_info) {
     if (ports.size() < 1) {
-      fprintf(stderr, "Pl specify 1 module or 2 modules for the range: <ModuleA> <moduleB>\n");
+      fprintf(
+          stderr,
+          "Pl specify 1 module or 2 modules for the range: <ModuleA> <moduleB>\n");
     } else if (ports.size() == 1) {
       get_module_fw_info(bus.get(), ports[0], ports[0]);
     } else {
@@ -331,19 +354,25 @@ int main(int argc, char* argv[]) {
       return EX_USAGE;
     }
     if (FLAGS_firmware_filename.empty()) {
-      fprintf(stderr, "Pl specify firmware filename using --firmware_filename\n");
+      fprintf(
+          stderr, "Pl specify firmware filename using --firmware_filename\n");
       return EX_USAGE;
     }
     if (FLAGS_module_type.empty()) {
-      fprintf(stderr, "Pl specify module type using --module_type (ie: finisar-200g)\n");
+      fprintf(
+          stderr,
+          "Pl specify module type using --module_type (ie: finisar-200g)\n");
       return EX_USAGE;
     }
     if (FLAGS_fw_version.empty()) {
-      fprintf(stderr, "Pl specify firmware version using --fw_version (ie: 7.8 or ca.f8)\n");
+      fprintf(
+          stderr,
+          "Pl specify firmware version using --fw_version (ie: 7.8 or ca.f8)\n");
       return EX_USAGE;
     }
 
-    cliModulefirmwareUpgrade(bus.get(), FLAGS_port_range, FLAGS_firmware_filename);
+    cliModulefirmwareUpgrade(
+        bus.get(), FLAGS_port_range, FLAGS_firmware_filename);
   }
 
   return retcode;

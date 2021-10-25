@@ -11,7 +11,8 @@
 
 #include <stdexcept>
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 const clang::ast_matchers::DeclarationMatcher&
 HeaderParser::recordDeclMatcher() {
@@ -79,4 +80,5 @@ std::string HeaderParser::getThrift() const {
   return file_->getThrift();
 };
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

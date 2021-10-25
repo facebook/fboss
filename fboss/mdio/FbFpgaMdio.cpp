@@ -73,7 +73,8 @@ void FbFpgaMdio::clearStatus() {
   status.err = 1;
   writeReg(status);
   status = readReg<MdioStatus>();
-  XCHECK(!status.done && !status.err) << "Failed to clear mdio status reg for fpgaDevice " << io_->getName();
+  XCHECK(!status.done && !status.err)
+      << "Failed to clear mdio status reg for fpgaDevice " << io_->getName();
 }
 
 void FbFpgaMdio::waitUntilDone(uint32_t millis, MdioCommand command) {

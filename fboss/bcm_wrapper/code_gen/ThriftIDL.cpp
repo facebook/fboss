@@ -108,7 +108,8 @@ void normalizeStructName(std::string& s) {
 }
 } // namespace
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
 ThriftType::ThriftType(const clang::QualType& qt) {
   if (qt->isStructureType()) {
@@ -126,8 +127,7 @@ ThriftType::ThriftType(const clang::QualType& qt) {
     std::string t = qt.getAsString();
     if (t == "bool") {
       type = ThriftType::Primitive::Bool;
-    }
-    else if (t == "int") {
+    } else if (t == "int") {
       type = ThriftType::Primitive::Int32;
     }
   } else if (qt->isVoidType()) {
@@ -354,4 +354,5 @@ std::string ThriftFile::getThrift() const {
   return ss.str();
 }
 
-}} // facebook::fboss
+} // namespace fboss
+} // namespace facebook

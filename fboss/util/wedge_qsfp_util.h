@@ -56,11 +56,7 @@ DECLARE_bool(batch_ops);
 DECLARE_string(batchfile);
 DECLARE_uint32(i2c_address);
 
-enum LoopbackMode {
-  noLoopback,
-  electricalLoopback,
-  opticalLoopback
-};
+enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
 namespace facebook::fboss {
 
@@ -71,12 +67,10 @@ struct FlagCommand {
 
 std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd);
 
-std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(folly::EventBase& evb);
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
+    folly::EventBase& evb);
 
-bool overrideLowPower(
-    TransceiverI2CApi* bus,
-    unsigned int port,
-    bool lowPower);
+bool overrideLowPower(TransceiverI2CApi* bus, unsigned int port, bool lowPower);
 
 bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 
@@ -85,7 +79,8 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 
 TransceiverManagementInterface getModuleType(
-  TransceiverI2CApi* bus, unsigned int port);
+    TransceiverI2CApi* bus,
+    unsigned int port);
 
 bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable);
 
@@ -114,12 +109,16 @@ int doBatchOps(
     folly::EventBase& evb);
 
 std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
-    const std::vector<int32_t>& ports, folly::EventBase& evb);
+    const std::vector<int32_t>& ports,
+    folly::EventBase& evb);
 
 std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
-    const std::vector<int32_t>& ports, folly::EventBase& evb);
+    const std::vector<int32_t>& ports,
+    folly::EventBase& evb);
 
-DOMDataUnion fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port);
+DOMDataUnion fetchDataFromLocalI2CBus(
+    TransceiverI2CApi* bus,
+    unsigned int port);
 
 folly::StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len);
 
@@ -132,15 +131,16 @@ std::string getLocalTime(std::time_t t);
 
 void doGetRemediationUntilTime(folly::EventBase& evb);
 
-void printChannelMonitor(unsigned int index,
-                         const uint8_t* buf,
-                         unsigned int rxMSB,
-                         unsigned int rxLSB,
-                         unsigned int txBiasMSB,
-                         unsigned int txBiasLSB,
-                         unsigned int txPowerMSB,
-                         unsigned int txPowerLSB,
-                         std::optional<double> rxSNR);
+void printChannelMonitor(
+    unsigned int index,
+    const uint8_t* buf,
+    unsigned int rxMSB,
+    unsigned int rxLSB,
+    unsigned int txBiasMSB,
+    unsigned int txBiasLSB,
+    unsigned int txPowerMSB,
+    unsigned int txPowerLSB,
+    std::optional<double> rxSNR);
 
 void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port);
 void printSffDetailService(
@@ -161,21 +161,37 @@ void printPortDetailService(
 
 void tryOpenBus(TransceiverI2CApi* bus);
 
-bool doQsfpHardReset(
-  TransceiverI2CApi *bus,
-  unsigned int port);
+bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port);
 
-bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
+bool doMiniphotonLoopback(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    LoopbackMode mode);
 
-void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
-void cmisMediaInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode);
+void cmisHostInputLoopback(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    LoopbackMode mode);
+void cmisMediaInputLoopback(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    LoopbackMode mode);
 
-bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, unsigned int port, std::string firmwareFilename);
-bool cliModulefirmwareUpgrade(TransceiverI2CApi* bus, std::string portRangeStr, std::string firmwareFilename);
+bool cliModulefirmwareUpgrade(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    std::string firmwareFilename);
+bool cliModulefirmwareUpgrade(
+    TransceiverI2CApi* bus,
+    std::string portRangeStr,
+    std::string firmwareFilename);
 
-void get_module_fw_info(TransceiverI2CApi* bus, unsigned int moduleA, unsigned int moduleB);
+void get_module_fw_info(
+    TransceiverI2CApi* bus,
+    unsigned int moduleA,
+    unsigned int moduleB);
 
-void doCdbCommand(TransceiverI2CApi* bus,  unsigned int  module);
+void doCdbCommand(TransceiverI2CApi* bus, unsigned int module);
 
 bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port);
 
@@ -191,12 +207,11 @@ getTransceiverAPI();
  * function.
  */
 std::pair<std::unique_ptr<facebook::fboss::TransceiverPlatformApi>, int>
-  getTransceiverPlatformAPI(facebook::fboss::TransceiverI2CApi *i2cBus);
+getTransceiverPlatformAPI(facebook::fboss::TransceiverI2CApi* i2cBus);
 
 bool isTrident2();
 
-std::vector<unsigned int> portRangeStrToPortList(
-    std::string portQualifier);
+std::vector<unsigned int> portRangeStrToPortList(std::string portQualifier);
 
 int getModulesPerController();
 
