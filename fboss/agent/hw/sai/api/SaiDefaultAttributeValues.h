@@ -97,6 +97,12 @@ struct SaiAclEntryActionSaiObjectDefault {
   }
 };
 
+struct SaiPortEyeValuesDefault {
+  sai_port_eye_values_list_t operator()() const {
+    return sai_port_eye_values_list_t{0, nullptr};
+  }
+};
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;

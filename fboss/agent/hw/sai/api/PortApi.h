@@ -174,6 +174,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PTP_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+    using PortEyeValues = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_EYE_VALUES,
+        sai_port_eye_values_list_t,
+        SaiPortEyeValuesDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -265,6 +270,7 @@ SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
 SAI_ATTRIBUTE_NAME(Port, PtpMode)
+SAI_ATTRIBUTE_NAME(Port, PortEyeValues)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
