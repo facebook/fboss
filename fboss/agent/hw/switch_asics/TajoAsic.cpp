@@ -89,6 +89,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
+    case HwAsic::Feature::PORT_EYE_VALUES:
       return false;
   }
   return false;

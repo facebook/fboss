@@ -174,6 +174,7 @@ DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
+DEFINE_extract(sai_port_eye_values_list_t, porteyevalues);
 
 // TODO:
 DEFINE_extract(sai_vlan_list_t, vlanlist);

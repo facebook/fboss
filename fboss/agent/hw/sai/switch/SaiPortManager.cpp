@@ -1209,4 +1209,19 @@ void SaiPortManager::programMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }
 }
+
+sai_port_eye_values_list_t SaiPortManager::getPortEyeValues(
+    PortSaiId saiPortId) const {
+  // Eye value is supported by only few Phy devices
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PORT_EYE_VALUES)) {
+    return sai_port_eye_values_list_t{};
+  }
+
+  sai_port_eye_values_list_t portEyeVal =
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
+
+  return portEyeVal;
+}
+
 } // namespace facebook::fboss

@@ -169,6 +169,8 @@ class SaiPortManager {
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
 
+  sai_port_eye_values_list_t getPortEyeValues(PortSaiId saiPortId) const;
+
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void addRemovedHandle(PortID portID);
