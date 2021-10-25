@@ -31,11 +31,11 @@ class PacketRecvAcceptor : public facebook::fboss::BidirectionalPacketAcceptor {
     packets_.emplace_back(std::move(packet));
     if (++n_ == exp_) {
       baton_->post();
-      n_ = 0;
     }
   }
   void setExpectedPackets(size_t n) {
     exp_ = n;
+    n_ = 0;
   }
   std::vector<TPacket> packets_;
   std::shared_ptr<folly::Baton<>> baton_;
@@ -67,12 +67,12 @@ class PacketAcceptor
     rxIOBufs_.emplace_back(std::move(data));
     if (++n_ == exp_) {
       baton_->post();
-      n_ = 0;
     }
   }
 
   void setExpectedPackets(size_t n) {
     exp_ = n;
+    n_ = 0;
   }
   std::vector<std::unique_ptr<folly::IOBuf>> rxIOBufs_;
   std::shared_ptr<folly::Baton<>> baton_;
