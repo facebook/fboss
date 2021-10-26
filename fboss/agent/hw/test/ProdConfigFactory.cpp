@@ -96,6 +96,7 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
     case PM::CLOUDRIPPER:
     case PM::GALAXY_LC:
     case PM::GALAXY_FC:
+    case PM::DARWIN:
       return 4;
     default:
       throw FbossError(
