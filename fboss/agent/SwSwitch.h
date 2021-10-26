@@ -826,6 +826,9 @@ class SwSwitch : public HwSwitch::Callback {
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
 
+  void connectToFsdb();
+  void disconnectFromFsdb();
+
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 

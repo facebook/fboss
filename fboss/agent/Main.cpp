@@ -251,9 +251,6 @@ void AgentInitializer::createSwitch(
     XLOG(INFO) << "Could not open /dev/null ";
   }
 
-  // Connect to FSDB before instantiating HwSwitch or SwSwitch
-  connectToFsdb();
-
   // Now that we have parsed the command line flags, create the Platform
   // object
   unique_ptr<Platform> platform =
@@ -351,7 +348,6 @@ void AgentInitializer::stopServices() {
   XLOG(INFO) << "Stopped thrift server listening";
   initializer_->stopFunctionScheduler();
   XLOG(INFO) << "Stopped stats FunctionScheduler";
-  disconnectFromFsdb();
   fbossFinalize();
 }
 
