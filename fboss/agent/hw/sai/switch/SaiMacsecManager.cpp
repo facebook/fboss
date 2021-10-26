@@ -263,6 +263,13 @@ SaiMacsecManager::~SaiMacsecManager() {
               std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
           managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
         }
+
+        auto table = std::make_shared<AclTable>(0, aclName);
+        managerTable_->aclTableManager().removeAclTable(
+            table,
+            direction == SAI_MACSEC_DIRECTION_INGRESS
+                ? cfg::AclStage::INGRESS_MACSEC
+                : cfg::AclStage::EGRESS_MACSEC);
       }
 
       removeAcls(portId, direction);

@@ -46,7 +46,9 @@ SaiAclTableManager::SaiAclTableManager(
       neighborDstUserMetaDataRangeMin_(getNeighborDstUserMetaDataRange().min),
       neighborDstUserMetaDataRangeMax_(getNeighborDstUserMetaDataRange().max),
       neighborDstUserMetaDataMask_(
-          getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
+          getMetaDataMask(neighborDstUserMetaDataRangeMax_)),
+      hasTableGroups_(
+          platform->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {}
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     const std::shared_ptr<AclTable>& addedAclTable) {

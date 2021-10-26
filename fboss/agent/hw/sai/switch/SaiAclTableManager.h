@@ -244,6 +244,25 @@ class SaiAclTableManager {
   const sai_uint32_t neighborDstUserMetaDataRangeMin_;
   const sai_uint32_t neighborDstUserMetaDataRangeMax_;
   const sai_uint32_t neighborDstUserMetaDataMask_;
+
+  // Stored for later use during destruction
+  //
+  // We're a part of SaiPlatform (SaiSwitch->SaiManagerTable). Each platform,
+  // such as SaiElbert8DDPhyPlatform, derives from SaiPlatform and implement
+  // getAsic().
+  //
+  // During destruction, the derived platform gets destroyed first and the
+  // vtable now points at SaiPlatform. Then we gets destroyed as a part of
+  // SaiPlatform. If we or our peers such as SaiMacsecManager tries to call
+  // removeAclTable() and we call
+  // platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP) to
+  // decide how to clean up the table, getAsic() points at pure virtual
+  // implementation at SaiPlatform and we crash.
+  //
+  // See
+  // https://stackoverflow.com/questions/10707286/how-to-resolve-pure-virtual-method-called
+  // https://www.artima.com/articles/pure-virtual-function-called-an-explanation
+  bool hasTableGroups_;
 };
 
 } // namespace facebook::fboss

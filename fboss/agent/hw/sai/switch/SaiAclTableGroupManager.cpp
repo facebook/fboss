@@ -113,6 +113,8 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
     sai_acl_stage_t aclStage,
     AclTableSaiId aclTableSaiId,
     const std::string& aclTableName) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP));
+
   // If we attempt to add member to a group that does not exist, fail.
   auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
   if (!aclTableGroupHandle) {
@@ -169,7 +171,6 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
 void SaiAclTableGroupManager::removeAclTableGroupMember(
     sai_acl_stage_t aclStage,
     const std::string& aclTableName) {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP));
   // If we attempt to remove member from a group that does not exist, fail.
   auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
   if (!aclTableGroupHandle) {

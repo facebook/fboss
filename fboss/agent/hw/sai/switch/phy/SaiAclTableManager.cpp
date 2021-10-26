@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
@@ -39,7 +40,9 @@ SaiAclTableManager::SaiAclTableManager(
       routeDstUserMetaDataMask_(0),
       neighborDstUserMetaDataRangeMin_(0),
       neighborDstUserMetaDataRangeMax_(0),
-      neighborDstUserMetaDataMask_(0) {}
+      neighborDstUserMetaDataMask_(0),
+      hasTableGroups_(
+          platform->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {}
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     const std::shared_ptr<AclTable>& /*addedAclTable*/) {

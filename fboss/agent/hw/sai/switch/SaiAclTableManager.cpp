@@ -138,7 +138,7 @@ void SaiAclTableManager::removeAclTable(
   auto aclTableName = removedAclTable->getID();
 
   // remove from acl table group
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+  if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
         SAI_ACL_STAGE_INGRESS, aclTableName);
   }
