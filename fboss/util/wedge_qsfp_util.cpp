@@ -295,6 +295,8 @@ struct ModulePartInfo_s modulePartInfo[] = {
   {{'F','T','C','D','4','3','2','3','E','2','P','C','L',0x20,0x20,0x20}, 64},
   // Innolight 200G module info
   {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48},
+  // Innolight 200G module info
+  {{'T','-','F','X','4','F','N','T','-','H','F','P',0x20,0x20,0x20,0x20}, 48},
   // Innolight 400G module info
   {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48}
 };
@@ -2549,7 +2551,7 @@ std::vector<unsigned int> getUpgradeModList(
     std::vector<unsigned int> portlist,
     std::string moduleType,
     std::string fwVer) {
-  std::string partNoStr;
+  std::vector<std::string> partNoList;
   std::vector<unsigned int> modlist;
 
   // Check if we have the mapping for this user specified module type to part
@@ -2560,7 +2562,7 @@ std::vector<unsigned int> getUpgradeModList(
     return modlist;
   }
 
-  partNoStr = CmisFirmwareUpgrader::partNoMap[moduleType];
+  partNoList = CmisFirmwareUpgrader::partNoMap[moduleType];
 
   for (unsigned int module : portlist) {
     std::array<uint8_t, 16> partNo;
@@ -2588,7 +2590,8 @@ std::vector<unsigned int> getUpgradeModList(
     for (int i = 0; i < 16; i++) {
       tempPartNo += partNo[i];
     }
-    if (tempPartNo != partNoStr) {
+    if (std::find(
+        partNoList.begin(), partNoList.end(), tempPartNo) == partNoList.end()) {
       continue;
     }
 
