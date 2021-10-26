@@ -693,12 +693,15 @@ class IPAddressRadixTreeIteratorImpl
     return tmp;
   }
 
-  bool operator==(const DESIREDITERTYPE& r) const {
-    return iterator4_ == r.iterator4() && iterator6_ == r.iterator6();
+  friend bool operator==(
+      DESIREDITERTYPE const& lhs,
+      DESIREDITERTYPE const& rhs) {
+    return equal(lhs, rhs);
   }
-
-  bool operator!=(const DESIREDITERTYPE& r) const {
-    return !(*this == r);
+  friend bool operator!=(
+      DESIREDITERTYPE const& lhs,
+      DESIREDITERTYPE const& rhs) {
+    return !(lhs == rhs);
   }
 
   const Iterator4& iterator4() const {
@@ -814,6 +817,12 @@ class IPAddressRadixTreeIteratorImpl
   friend class V6TreeInCompositeTreeTraits;
   template <typename IPADDRTYPE, typename U, typename TreeTraits>
   friend class RadixTree;
+
+ private:
+  static bool equal(DESIREDITERTYPE const& lhs, DESIREDITERTYPE const& rhs) {
+    return lhs.iterator4() == rhs.iterator4() &&
+        lhs.iterator6() == rhs.iterator6();
+  }
 };
 
 // Template specialization of RadixTreeIterator for IPAddress
