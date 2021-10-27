@@ -20,18 +20,18 @@
 #include <gtest/gtest.h>
 
 using namespace std::chrono_literals;
+using namespace facebook::fboss;
 
 namespace facebook::fboss::utility {
 
 bool verifyQueueMappings(
     const HwPortStats& portStatsBefore,
     const std::map<int, std::vector<uint8_t>>& q2dscps,
-    HwSwitchEnsemble* ensemble,
-    facebook::fboss::PortID egressPort) {
+    std::function<HwPortStats(void)> getHwPortStats) {
   auto retries = 10;
   bool statsMatch;
   do {
-    auto portStatsAfter = ensemble->getLatestPortStats(egressPort);
+    auto portStatsAfter = getHwPortStats();
     statsMatch = true;
     for (const auto& _q2dscps : q2dscps) {
       auto queuePacketsBefore =
@@ -55,5 +55,19 @@ bool verifyQueueMappings(
     XLOG(INFO) << " Retrying ...";
   } while (--retries && !statsMatch);
   return statsMatch;
+}
+
+bool verifyQueueMappings(
+    const HwPortStats& portStatsBefore,
+    const std::map<int, std::vector<uint8_t>>& q2dscps,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::PortID egressPort) {
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats = [ensemble, egressPort]() -> HwPortStats {
+    std::vector<facebook::fboss::PortID> portIds = {egressPort};
+    return ensemble->getLatestPortStats(portIds)[egressPort];
+  };
+
+  return verifyQueueMappings(portStatsBefore, q2dscps, getPortStats);
 }
 } // namespace facebook::fboss::utility
