@@ -23,6 +23,7 @@ class DerivedPacketStreamService : public PacketStreamService {
       const std::string& serviceName,
       std::shared_ptr<folly::Baton<>> baton)
       : PacketStreamService(serviceName), baton_(baton) {}
+
   void clientConnected(const std::string& clientId) override {
     EXPECT_EQ(clientId, g_client);
   }
@@ -55,19 +56,41 @@ class DerivedPacketStreamClient : public PacketStreamClient {
       : PacketStreamClient(clientId, evb), baton_(baton) {}
 
   void recvPacket(TPacket&& packet) override {
-    EXPECT_FALSE(g_ports.find(*packet.l2Port_ref()) == g_ports.end());
-    EXPECT_EQ(g_pktCnt, *packet.buf_ref());
-    pktCnt_[*packet.l2Port_ref()]++;
+    {
+      std::lock_guard<std::mutex> gd(mutex_);
+      EXPECT_FALSE(g_ports.find(*packet.l2Port_ref()) == g_ports.end());
+      EXPECT_EQ(g_pktCnt, *packet.buf_ref());
+      pktCnt_[*packet.l2Port_ref()]++;
+    }
     if (baton_) {
       baton_->post();
     }
   }
+
   size_t getPckCnt(const std::string& port) {
+    std::lock_guard<std::mutex> gd(mutex_);
     return pktCnt_[port].load();
   }
 
+  size_t validatePctCnt(size_t value) {
+    std::lock_guard<std::mutex> gd(mutex_);
+    auto count = 0;
+    for (auto& val : pktCnt_) {
+      EXPECT_EQ(val.second.load(std::memory_order_relaxed), value);
+      count++;
+    }
+    return count;
+  }
+
+  void setBaton(std::shared_ptr<folly::Baton<>> baton) {
+    std::lock_guard<std::mutex> gd(mutex_);
+    baton_ = baton;
+  }
+
+ private:
   std::unordered_map<std::string, std::atomic<size_t>> pktCnt_;
   std::shared_ptr<folly::Baton<>> baton_;
+  std::mutex mutex_;
 };
 
 class PacketStreamTest : public Test {
@@ -223,19 +246,19 @@ TEST_F(PacketStreamTest, PacketSendMultiPort) {
   for (auto& port : g_ports) {
     EXPECT_NO_THROW(streamClient->registerPortToServer(port));
   }
-  streamClient->baton_ = nullptr;
+  streamClient->setBaton(nullptr);
   for (auto& port : g_ports) {
     sendPkt(port);
   }
   baton->reset();
   EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));
-  size_t count = 0;
-  for (auto& val : streamClient->pktCnt_) {
-    EXPECT_EQ(val.second.load(std::memory_order_relaxed), 1);
-    count++;
-  }
+  size_t count = streamClient->validatePctCnt(1);
   EXPECT_EQ(count, g_ports.size());
-  clientReset(std::move(streamClient));
+  streamClient->cancel();
+  // streamClient.reset();
+  baton_->reset();
+  baton_->try_wait_for(std::chrono::milliseconds(500));
+  // clientReset(std::move(streamClient));
 }
 
 TEST_F(PacketStreamTest, PacketSendMultiPortPauseSend) {
@@ -247,7 +270,7 @@ TEST_F(PacketStreamTest, PacketSendMultiPortPauseSend) {
   for (auto& port : g_ports) {
     EXPECT_NO_THROW(streamClient->registerPortToServer(port));
   }
-  streamClient->baton_ = nullptr;
+  streamClient->setBaton(nullptr);
   for (auto& port : g_ports) {
     for (auto i = 0; i < 100; i++) {
       baton->reset();
@@ -257,11 +280,7 @@ TEST_F(PacketStreamTest, PacketSendMultiPortPauseSend) {
   }
   baton->reset();
   EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));
-  size_t count = 0;
-  for (auto& val : streamClient->pktCnt_) {
-    EXPECT_EQ(val.second.load(std::memory_order_relaxed), 100);
-    count++;
-  }
+  size_t count = streamClient->validatePctCnt(100);
   EXPECT_EQ(count, g_ports.size());
   clientReset(std::move(streamClient));
 }
@@ -275,7 +294,7 @@ TEST_F(PacketStreamTest, PacketSendMultiPortclearPortFromServer) {
   for (auto& port : g_ports) {
     EXPECT_NO_THROW(streamClient->registerPortToServer(port));
   }
-  streamClient->baton_ = nullptr;
+  streamClient->setBaton(nullptr);
   for (auto& port : g_ports) {
     for (auto i = 0; i < 100; i++) {
       baton->reset();
@@ -293,10 +312,7 @@ TEST_F(PacketStreamTest, PacketSendMultiPortclearPortFromServer) {
     *pkt.buf_ref() = g_pktCnt;
     EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   }
-  for (auto& val : streamClient->pktCnt_) {
-    EXPECT_EQ(val.second.load(std::memory_order_relaxed), 100);
-    count++;
-  }
+  count = streamClient->validatePctCnt(100);
   EXPECT_EQ(count, g_ports.size());
   clientReset(std::move(streamClient));
 }

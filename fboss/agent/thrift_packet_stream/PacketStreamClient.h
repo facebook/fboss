@@ -6,8 +6,8 @@
 #if FOLLY_HAS_COROUTINES
 #include <folly/experimental/coro/BlockingWait.h>
 #endif
+#include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-
 #include <unordered_map>
 
 namespace facebook {
@@ -34,11 +34,14 @@ class PacketStreamClient {
     INIT = 0,
     CONNECTING = 1,
     CONNECTED = 2,
+    DISCONNECTED = 3,
   };
   void createClient(const std::string& ip, uint16_t port);
+
 #if FOLLY_HAS_COROUTINES
+  bool isConnectCancelled();
   folly::coro::Task<void> connect();
-  std::unique_ptr<folly::CancellationSource> cancelSource_;
+  folly::Synchronized<std::unique_ptr<folly::CancellationSource>> cancelSource_;
 #endif
   std::string clientId_;
   std::unique_ptr<PacketStreamAsyncClient> client_;

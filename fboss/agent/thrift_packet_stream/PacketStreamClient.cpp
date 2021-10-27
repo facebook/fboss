@@ -3,6 +3,7 @@
 #include <folly/io/async/AsyncSocket.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
+#include "folly/CancellationToken.h"
 
 namespace facebook {
 namespace fboss {
@@ -20,24 +21,12 @@ PacketStreamClient::PacketStreamClient(
 }
 
 PacketStreamClient::~PacketStreamClient() {
-  try {
-    XLOG(INFO) << "Destroying PacketStreamClient";
-#if FOLLY_HAS_COROUTINES
-    if (cancelSource_) {
-      cancelSource_->requestCancellation();
-    }
-    if (isConnectedToServer()) {
-      folly::coro::blockingWait(client_->co_disconnect(clientId_));
-    }
-#endif
-  } catch (const std::exception& ex) {
-    XLOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
-  }
-  if (evb_) {
-    evb_->terminateLoopSoon();
-  }
-  clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this]() { client_.reset(); });
+  XLOG(INFO) << "Destroying PacketStreamClient";
+  cancel();
+}
+
+bool PacketStreamClient::isConnectedToServer() {
+  return (state_.load() == State::CONNECTED && client_);
 }
 
 void PacketStreamClient::createClient(const std::string& ip, uint16_t port) {
@@ -53,20 +42,22 @@ void PacketStreamClient::createClient(const std::string& ip, uint16_t port) {
 
 void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 #if FOLLY_HAS_COROUTINES
-  if (State::INIT != state_.load()) {
+  auto state = state_.load();
+  if (State::DISCONNECTED == state) {
+    throw std::runtime_error("Client resumed after cancel called");
+  }
+  if (State::INIT != state) {
     XLOG(INFO) << "Client is already in process of connecting to server";
     return;
   }
-  if (!evb_) {
-    throw std::runtime_error("Client resumed after cancel called");
-  }
-  state_.store(State::CONNECTING);
+
   cancelSource_ = std::make_unique<folly::CancellationSource>();
+  state_.store(State::CONNECTING);
+
   evb_->runInEventBaseThread([this, ip, port] {
     try {
       createClient(ip, port);
-      if (cancelSource_->isCancellationRequested()) {
-        state_.store(State::INIT);
+      if (isConnectCancelled()) {
         return;
       }
       folly::coro::blockingWait(connect());
@@ -83,48 +74,33 @@ void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<void> PacketStreamClient::connect() {
   auto result = co_await client_->co_connect(clientId_);
-  if (cancelSource_->isCancellationRequested()) {
-    state_.store(State::INIT);
+  if (isConnectCancelled()) {
     XLOG(ERR) << "Cancellation Requested;";
     co_return;
   }
   state_.store(State::CONNECTED);
   XLOG(INFO) << clientId_ << " connected successfully";
-  co_await folly::coro::co_withCancellation(
-      cancelSource_->getToken(),
-      folly::coro::co_invoke(
-          [gen = std::move(result).toAsyncGenerator(),
-           this]() mutable -> folly::coro::Task<void> {
-            try {
-              while (auto packet = co_await gen.next()) {
-                recvPacket(std::move(*packet));
-              }
-            } catch (const std::exception& ex) {
-              XLOG(ERR) << clientId_
-                        << " Server error: " << folly::exceptionStr(ex);
-              state_.store(State::INIT);
-            }
-            co_return;
-          }));
-  XLOG(INFO) << "Client Cancellation Completed";
-}
-#endif
+  auto getToken = [this]() {
+    return cancelSource_.withWLock(
+        [](auto& cancelSource) { return cancelSource->getToken(); });
+  };
 
-void PacketStreamClient::cancel() {
-  XLOG(INFO) << "Cancel PacketStreamClient";
-
-#if FOLLY_HAS_COROUTINES
-  if (cancelSource_) {
-    cancelSource_->requestCancellation();
+  auto gen = std::move(result).toAsyncGenerator();
+  try {
+    while (auto packet = co_await folly::coro::co_withCancellation(
+               getToken(), gen.next())) {
+      recvPacket(std::move(*packet));
+    }
+  } catch (const folly::OperationCancelled&) {
+    XLOG(WARNING) << "Packet Stream Operation cancelled";
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << clientId_ << " Server error: " << folly::exceptionStr(ex);
+    state_.store(State::INIT);
   }
+  XLOG(INFO) << "Client Cancellation Completed";
+  co_return;
+}
 #endif
-  evb_ = nullptr;
-  state_.store(State::INIT);
-}
-
-bool PacketStreamClient::isConnectedToServer() {
-  return (state_.load() == State::CONNECTED);
-}
 
 void PacketStreamClient::registerPortToServer(const std::string& port) {
 #if FOLLY_HAS_COROUTINES
@@ -149,6 +125,56 @@ void PacketStreamClient::clearPortFromServer(const std::string& l2port) {
   throw std::runtime_error("Coroutine support needed");
 #endif
 }
+
+void PacketStreamClient::cancel() {
+#if FOLLY_HAS_COROUTINES
+  XLOG(INFO) << "Cancel PacketStreamClient";
+  cancelSource_.withWLock([](auto& cancelSource) {
+    if (cancelSource) {
+      XLOG(INFO) << "Request PacketStreamClient Cancellation";
+      cancelSource->requestCancellation();
+    }
+  });
+
+  // already disconnected;
+  if (state_.load() == State::DISCONNECTED) {
+    XLOG(WARNING) << clientId_ << " already disconnected";
+    return;
+  }
+
+  evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() {
+    try {
+      if (isConnectedToServer()) {
+        folly::coro::blockingWait(client_->co_disconnect(clientId_));
+      }
+    } catch (const std::exception& ex) {
+      XLOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
+    }
+  });
+
+  clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [this]() { client_.reset(); });
+  // terminate event base getting ready for clean-up
+  clientEvbThread_->getEventBase()->terminateLoopSoon();
+  evb_->terminateLoopSoon();
+#endif
+  state_.store(State::DISCONNECTED);
+}
+
+#if FOLLY_HAS_COROUTINES
+bool PacketStreamClient::isConnectCancelled() {
+  return cancelSource_.withRLock([this](auto& cancelSource) -> bool {
+    if (!cancelSource) {
+      return true;
+    }
+    if (cancelSource->isCancellationRequested()) {
+      state_.store(State::INIT);
+      return true;
+    }
+    return false;
+  });
+}
+#endif
 
 } // namespace fboss
 } // namespace facebook

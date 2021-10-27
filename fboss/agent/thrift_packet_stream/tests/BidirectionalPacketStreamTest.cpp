@@ -226,9 +226,9 @@ class BidirectionalPacketStreamTest : public Test {
     // Now stop the fboss Server.
     fbossAgent_.reset();
     fbossAgentStream_->stopClient();
-    fbossClientThread_->getEventBase()->terminateLoopSoon();
-    fbossClientThread_.reset();
     fbossAgentStream_.reset();
+    fbossClientThread_.reset();
+
     fbossClientThread_ = std::make_unique<folly::ScopedEventBaseThread>();
 
     // Lets try to connect the mkaServer. This should fail because the fboss
@@ -273,9 +273,8 @@ class BidirectionalPacketStreamTest : public Test {
     // Now stop the fboss Server.
     mkaServer_.reset();
     mkaServerStream_->stopClient();
-    mkaClientThread_->getEventBase()->terminateLoopSoon();
-    mkaClientThread_.reset();
     mkaServerStream_.reset();
+    mkaClientThread_.reset();
     mkaClientThread_ = std::make_unique<folly::ScopedEventBaseThread>();
 
     // Lets try to connect the mkaServer. This should fail because the fboss
@@ -336,8 +335,6 @@ class BidirectionalPacketStreamTest : public Test {
     baton_->reset();
     EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(500)));
 
-    mkaClientThread_->getEventBase()->terminateLoopSoon();
-    fbossClientThread_->getEventBase()->terminateLoopSoon();
     evb_.terminateLoopSoon();
     timeThread_->join();
     timeThread_.reset();
@@ -402,7 +399,6 @@ TEST_F(BidirectionalPacketStreamTest, MKAServerDisconnectReconnectTest) {
   // Now stop the fboss Server.
   fbossAgent_.reset();
   fbossAgentStream_.reset();
-  fbossClientThread_->getEventBase()->terminateLoopSoon();
   fbossClientThread_ = std::make_unique<folly::ScopedEventBaseThread>();
 
   baton_->reset();
