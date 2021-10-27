@@ -391,6 +391,8 @@ class SaiSwitch : public HwSwitch {
   std::optional<L2Entry> getL2Entry(
       const FdbEventNotificationData& fdbEvent) const;
 
+  bool isAllowedHostifTrapId(HostifTrapSaiId hostifTrapSaiId);
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

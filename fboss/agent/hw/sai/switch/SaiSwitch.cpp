@@ -105,6 +105,9 @@ const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
         {SAI_FDB_EVENT_AGED,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
 };
+
+static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
+    facebook::fboss::cfg::PacketRxReason::TTL_1};
 } // namespace
 
 namespace facebook::fboss {
@@ -1250,6 +1253,14 @@ void SaiSwitch::initLinkScanLocked(
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   switchApi.registerPortStateChangeCallback(
       switchId_, __glinkStateChangedNotification);
+}
+
+bool SaiSwitch::isAllowedHostifTrapId(HostifTrapSaiId hostifTrapSaiId) {
+  auto rxReason =
+      managerTable_->hostifManager().getHostifPacketRxReason(hostifTrapSaiId);
+  return (
+      rxReason.has_value() &&
+      (kAllowedRxReasons.find(rxReason.value()) != kAllowedRxReasons.end()));
 }
 
 void SaiSwitch::packetRxCallback(
