@@ -5,15 +5,15 @@
 
 namespace facebook::fboss::platform {
 class WeutilInterface {
-
-public:
+ public:
   WeutilInterface() {}
   virtual void printInfo() = 0;
   virtual ~WeutilInterface() = default;
-protected:
-  //wetuil output fields and default value for all FBOSS switches w/wo OpenBMC
+
+ protected:
+  // wetuil output fields and default value for all FBOSS switches w/wo OpenBMC
   const std::vector<std::pair<std::string, std::string>> weFields_{
-      {"Wedge EEPROM","CHASSIS"},
+      {"Wedge EEPROM", "CHASSIS"},
       {"Version", "0"},
       {"Product Name", ""},
       {"Product Part Number", ""},
@@ -36,7 +36,7 @@ protected:
       {"Extended MAC Address Size", ""},
       {"Location on Fabric", ""},
       {"CRC8", "0x0"},
-    };
+  };
 };
 
 } // namespace facebook::fboss::platform

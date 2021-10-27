@@ -2590,8 +2590,8 @@ std::vector<unsigned int> getUpgradeModList(
     for (int i = 0; i < 16; i++) {
       tempPartNo += partNo[i];
     }
-    if (std::find(
-        partNoList.begin(), partNoList.end(), tempPartNo) == partNoList.end()) {
+    if (std::find(partNoList.begin(), partNoList.end(), tempPartNo) ==
+        partNoList.end()) {
       continue;
     }
 

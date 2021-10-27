@@ -3,14 +3,14 @@
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include <ratio>
-#include <iostream>
 #include <string.h>
-#include <memory>
 #include <sysexits.h>
+#include <iostream>
+#include <memory>
+#include <ratio>
 #include "../helpers/utils.h"
-#include "fboss/platform/weutil/WeutilInterface.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
+#include "fboss/platform/weutil/WeutilInterface.h"
 
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
@@ -22,14 +22,13 @@ void show_info(void) {
 
   if (!out) {
     std::cout << res;
-  }
-  else {
+  } else {
     LOG(ERROR) << "Error: can not find /etc/fbwhoami";
   }
 }
 
-std::unique_ptr<WeutilInterface> get_plat_weutil (void) {
-  //ToDo: use class PlatformProductInfo to get platform information
+std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
+  // ToDo: use class PlatformProductInfo to get platform information
   // and pickup the right weutil class accordingly
   return std::make_unique<WeutilDarwin>();
 }
@@ -40,13 +39,12 @@ std::unique_ptr<WeutilInterface> get_plat_weutil (void) {
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
-    "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
+      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   std::unique_ptr<WeutilInterface> weutilInstance = get_plat_weutil();
   if (weutilInstance) {
     weutilInstance->printInfo();
-  }
-  else {
+  } else {
     show_info();
   }
 
