@@ -55,9 +55,6 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   }
   void dumpHwCounters() const override;
 
-  std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) override;
-
   std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
       const std::vector<AggregatePortID>& aggregatePorts) override;
 

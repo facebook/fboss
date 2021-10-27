@@ -98,16 +98,10 @@ void BcmSwitchEnsemble::dumpHwCounters() const {
 
 std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  auto rv = bcm_stat_sync(getHwSwitch()->getUnit());
+  // sync the stats
+  auto rv = bcm_stat_sync(getSwitchId());
   bcmCheckError(rv, "Unable to sync stats ");
-  updateHwSwitchStats(getHwSwitch());
-  std::map<PortID, HwPortStats> mapPortStats;
-  for (const auto& port : ports) {
-    auto stats =
-        getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
-    mapPortStats[port] = (stats) ? *stats : HwPortStats{};
-  }
-  return mapPortStats;
+  return HwSwitchEnsemble::getLatestPortStats(ports);
 }
 
 std::map<AggregatePortID, HwTrunkStats>

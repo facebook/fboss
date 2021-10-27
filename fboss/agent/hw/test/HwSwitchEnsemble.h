@@ -175,7 +175,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * Get latest port stats for given ports
    */
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) = 0;
+      const std::vector<PortID>& ports);
   HwPortStats getLatestPortStats(PortID port);
   /*
    * Get latest stats for given aggregate ports

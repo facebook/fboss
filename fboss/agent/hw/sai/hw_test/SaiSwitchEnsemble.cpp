@@ -102,20 +102,6 @@ void SaiSwitchEnsemble::dumpHwCounters() const {
   // TODO once hw shell access is supported
 }
 
-std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
-    const std::vector<PortID>& ports) {
-  SwitchStats dummy{};
-  getHwSwitch()->updateStats(&dummy);
-  auto allPortStats =
-      getHwSwitch()->managerTable()->portManager().getPortStats();
-  boost::container::flat_set<PortID> portIds(ports.begin(), ports.end());
-  return folly::gen::from(allPortStats) |
-      folly::gen::filter([&portIds](const auto& portIdAndStat) {
-           return portIds.find(portIdAndStat.first) != portIds.end();
-         }) |
-      folly::gen::as<std::map<PortID, HwPortStats>>();
-}
-
 std::map<AggregatePortID, HwTrunkStats>
 SaiSwitchEnsemble::getLatestAggregatePortStats(
     const std::vector<AggregatePortID>& aggregatePorts) {
