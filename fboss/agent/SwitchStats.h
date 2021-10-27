@@ -338,11 +338,6 @@ class SwitchStats : public boost::noncopyable {
     pfcDeadlockRecoveryCount_->addValue(1);
   }
 
- private:
-  // Forbidden copy constructor and assignment operator
-  SwitchStats(SwitchStats const&) = delete;
-  SwitchStats& operator=(SwitchStats const&) = delete;
-
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
   typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
@@ -351,6 +346,38 @@ class SwitchStats : public boost::noncopyable {
 
   using TLTimeseriesPtr = std::unique_ptr<TLTimeseries>;
   using TLHistogramPtr = std::unique_ptr<TLHistogram>;
+
+  // TODO: use template parameter pack once FSDB is open sourced instead of
+  // method overloading
+  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      fb303::ExportType exportType);
+  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      fb303::ExportType exportType1,
+      fb303::ExportType exportType2);
+  static std::unique_ptr<TLHistogram> makeTLTHistogram(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      int64_t bucketWidth,
+      int64_t min,
+      int64_t max);
+  static std::unique_ptr<TLHistogram> makeTLTHistogram(
+      ThreadLocalStatsMap* map,
+      std::string&& key,
+      int64_t bucketWidth,
+      int64_t min,
+      int64_t max,
+      fb303::ExportType exportType,
+      int percentile1,
+      int percentile2);
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  SwitchStats(SwitchStats const&) = delete;
+  SwitchStats& operator=(SwitchStats const&) = delete;
 
   explicit SwitchStats(ThreadLocalStatsMap* map);
 
@@ -549,33 +576,6 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseriesPtr pfcDeadlockDetectionCount_;
   // Number of timers pfc deadlock recovery hit
   TLTimeseriesPtr pfcDeadlockRecoveryCount_;
-
-  // TODO: use template parameter pack once FSDB is open sourced instead of
-  // method overloading
-  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      fb303::ExportType exportType);
-  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      fb303::ExportType exportType1,
-      fb303::ExportType exportType2);
-  static std::unique_ptr<TLHistogram> makeTLTHistogram(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      int64_t bucketWidth,
-      int64_t min,
-      int64_t max);
-  static std::unique_ptr<TLHistogram> makeTLTHistogram(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      int64_t bucketWidth,
-      int64_t min,
-      int64_t max,
-      fb303::ExportType exportType,
-      int percentile1,
-      int percentile2);
 };
 
 } // namespace facebook::fboss
