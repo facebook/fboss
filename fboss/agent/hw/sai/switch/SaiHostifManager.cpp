@@ -472,6 +472,16 @@ SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
   return getHostifTrapHandleImpl(rxReason);
 }
 
+std::optional<cfg::PacketRxReason> SaiHostifManager::getHostifPacketRxReason(
+    HostifTrapSaiId hostifTrapSaiId) {
+  for (auto& handle : handles_) {
+    if (handle.second->trap->adapterKey() == hostifTrapSaiId) {
+      return handle.first;
+    }
+  }
+  return std::nullopt;
+}
+
 void SaiHostifManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(INFO) << "Set cpu qos map";
