@@ -462,4 +462,27 @@ TEST_F(PacketStreamTest, ServerSendClientDisconnected) {
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   clientReset(std::move(streamClient));
 }
+
+TEST_F(PacketStreamTest, WaitForDisconnectedServer) {
+  auto baton = std::make_shared<folly::Baton<>>();
+  std::unique_ptr<DerivedPacketStreamClient> streamClient =
+      std::make_unique<DerivedPacketStreamClient>(
+          g_client, clientThread_.getEventBase(), baton);
+  auto port = server_->getPort();
+  // disconnect server
+  handler_.reset();
+  server_.reset();
+  // connect client
+  streamClient->connectToServer("::1", port);
+  auto retry = 50;
+  EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));
+  while (!streamClient->isConnectedToServer() && retry > 0) {
+    streamClient->connectToServer("::1", port);
+    baton->reset();
+    EXPECT_FALSE(baton->try_wait_for(std::chrono::milliseconds(50)));
+    retry--;
+  }
+  baton->reset();
+  EXPECT_FALSE(streamClient->isConnectedToServer());
+}
 #endif

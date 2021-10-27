@@ -10,6 +10,7 @@
 #include <folly/portability/GMock.h>
 #include <folly/portability/GTest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
+#include "folly/synchronization/Baton.h"
 
 using namespace testing;
 using namespace facebook::fboss;
@@ -642,4 +643,22 @@ TEST_F(BidirectionalPacketStreamTest, MKADisconnect) {
   EXPECT_EQ(-1, fbossAgentStream_->send(std::move(packet)));
   EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(50)));
 }
+
+TEST_F(BidirectionalPacketStreamTest, WaitForDisconnectedServer) {
+  auto port = fbossAgent_->getPort();
+  fbossAgent_.reset();
+  auto timeout = 50;
+  mkaServerStream_ = std::make_shared<BidirectionalPacketStream>(
+      "mka_server", mkaClientThread_->getEventBase(), &evb_, timeout);
+  auto baton = folly::Baton<>();
+  LOG(INFO) << "Starting the test";
+  auto retry = 50;
+  mkaServerStream_->connectClient(port);
+  while (!mkaServerStream_->isConnectedToServer() && --retry >= 0) {
+    EXPECT_FALSE(baton.try_wait_for(std::chrono::milliseconds(50)));
+    baton.reset();
+  }
+  EXPECT_FALSE(mkaServerStream_->isConnectedToServer());
+}
+
 #endif
