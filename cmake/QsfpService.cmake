@@ -7,8 +7,6 @@ add_library(qsfp_lib
   fboss/qsfp_service/oss/StatsPublisher.cpp
   fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
   fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
-  fboss/qsfp_service/lib/QsfpClient.cpp
-  fboss/qsfp_service/lib/oss/QsfpClient.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 
@@ -21,6 +19,7 @@ target_link_libraries(qsfp_lib
     Folly::folly
     fb303::fb303
     FBThrift::thriftcpp2
+    qsfp_service_client
 )
 
 add_library(qsfp_config

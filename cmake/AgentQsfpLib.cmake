@@ -10,6 +10,7 @@ add_library(qsfp_service_client
 
 target_link_libraries(qsfp_service_client
     qsfp_cpp2
+    thrift_service_client
 )
 
 add_library(qsfp_cache

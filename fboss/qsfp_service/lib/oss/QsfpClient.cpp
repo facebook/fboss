@@ -4,9 +4,6 @@
 
 #include <folly/io/async/AsyncSocket.h>
 
-DEFINE_string(qsfp_service_host, "::1", "Host running qsfp service");
-DEFINE_int32(qsfp_service_port, 5910, "Port running qsfp service");
-
 namespace facebook::fboss {
 
 static constexpr int kQsfpSendTimeoutMs = 5000;

@@ -18,6 +18,7 @@
 #include <folly/io/async/EventBase.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 namespace facebook {
@@ -29,6 +30,7 @@ namespace fboss {
 // To avoid being unable to configure ports, use raw thrift until they remove
 // these dependencies from their critical path
 // TODO(ninasc): t13719924
+// TODO(joseph5wu): T103506336 Replace QsfpClient by ThriftServiceClient
 class QsfpClient {
  public:
   QsfpClient() {}

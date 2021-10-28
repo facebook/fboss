@@ -795,13 +795,6 @@ if (NOT SAI_ONLY)
       fboss/lib/ExponentialBackoff.h
       fboss/lib/LogThriftCall.cpp
       fboss/lib/AlertLogger.cpp
-
-      fboss/qsfp_service/oss/StatsPublisher.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
-      fboss/qsfp_service/lib/QsfpClient.cpp
-      fboss/qsfp_service/lib/oss/QsfpClient.cpp
-      fboss/qsfp_service/lib/QsfpCache.cpp
-
   )
 
   target_link_libraries(
@@ -842,6 +835,7 @@ if (NOT SAI_ONLY)
       wedge_led_utils
       bidirectional_packet_stream
       snapshot_manager
+      qsfp_lib
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS
