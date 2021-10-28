@@ -194,7 +194,7 @@ class TransceiverManager {
       TransceiverID,
       std::unique_ptr<
           folly::Synchronized<state_machine<TransceiverStateMachine>>>>;
-  virtual TransceiverToStateMachine setupTransceiverToStateMachine();
+  TransceiverToStateMachine setupTransceiverToStateMachine();
 
   void startThreads();
   void stopThreads();

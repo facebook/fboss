@@ -23,7 +23,7 @@ class MultiPimPlatformPimContainer;
 
 class HwTest : public ::testing::Test {
  public:
-  HwTest() = default;
+  explicit HwTest(bool useNewStateMachine = false);
   ~HwTest() override = default;
 
   HwQsfpEnsemble* getHwQsfpEnsemble() {
@@ -59,5 +59,6 @@ class HwTest : public ::testing::Test {
   HwTest& operator=(HwTest const&) = delete;
 
   std::unique_ptr<HwQsfpEnsemble> ensemble_;
+  const bool useNewStateMachine_{false};
 };
 } // namespace facebook::fboss

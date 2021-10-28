@@ -34,7 +34,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400:
     case PlatformMode::DARWIN:
-      throw FbossError(" No xphys to check FW version on");
+      throw FbossError("No xphys to check FW version on");
     case PlatformMode::ELBERT:
       desiredFw.version_ref() = 1;
       desiredFw.versionStr_ref() = "1.91";

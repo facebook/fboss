@@ -136,8 +136,6 @@ class HwPortProfileTest : public HwTest {
 
  protected:
   void runTest() {
-    auto platformMode =
-        getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
     const auto& ports =
         utility::findAvailablePorts(getHwQsfpEnsemble(), Profile, true);
     EXPECT_TRUE(!(ports.xphyPorts.empty() && ports.iphyPorts.empty()));

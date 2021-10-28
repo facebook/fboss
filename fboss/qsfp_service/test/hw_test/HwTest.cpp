@@ -26,10 +26,22 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
+HwTest::HwTest(bool useNewStateMachine)
+    : useNewStateMachine_(useNewStateMachine) {}
+
 void HwTest::SetUp() {
   // Set initializing pim xphys to 1 so we always initialize xphy chips
   gflags::SetCommandLineOptionWithMode(
       "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
+
+  // Only enable using new state machine on demand since the whole migration
+  // is still on-going. Switching the whole qsfp_service logic to use unfinished
+  // new state machine logic will break a lot of existing Transceiver tests.
+  // Eventually we'll get rid of this check and use new state machine only.
+  if (useNewStateMachine_) {
+    gflags::SetCommandLineOptionWithMode(
+        "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
+  }
 
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();

@@ -207,7 +207,12 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   }
 
   const auto& lockedStateMachine = stateMachineItr->second->rlock();
-  return getStateByOrder(*lockedStateMachine->current_state());
+  auto curStateOrder = *lockedStateMachine->current_state();
+  auto curState = getStateByOrder(curStateOrder);
+  XLOG(DBG4) << "Current transceiver:" << static_cast<int32_t>(id)
+             << ", state order:" << curStateOrder
+             << ", state:" << getTransceiverStateMachineStateName(curState);
+  return curState;
 }
 
 } // namespace fboss
