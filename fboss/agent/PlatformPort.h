@@ -18,8 +18,6 @@
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-DECLARE_int32(gearbox_stat_interval);
-
 namespace facebook::fboss {
 
 class Platform;

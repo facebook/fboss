@@ -14,6 +14,7 @@ target_link_libraries(product_info
 )
 
 add_library(platform_mapping
+  fboss/agent/platforms/common/ExternalPhyPort.cpp
   fboss/agent/platforms/common/MultiPimPlatformMapping.cpp
   fboss/agent/platforms/common/PlatformMapping.cpp
 )
@@ -22,6 +23,7 @@ target_link_libraries(platform_mapping
   error
   fboss_config_utils
   platform_config_cpp2
+  state
   ${RE2}
 )
 

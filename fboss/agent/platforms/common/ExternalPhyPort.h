@@ -18,6 +18,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 
+DECLARE_int32(gearbox_stat_interval);
+
 namespace facebook::fboss {
 
 template <typename PlatformT, typename PortStatsT, typename PortT>

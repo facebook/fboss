@@ -8,6 +8,8 @@
 
 #include <boost/container/flat_set.hpp>
 
+DECLARE_int32(gearbox_stat_interval);
+
 namespace facebook::fboss {
 
 class LinkTest : public AgentTest {

@@ -16,13 +16,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
-// FIXME: Only used in external phy platforms. To be moved to its own
-// ExternalPhyPort.cpp.
-DEFINE_int32(
-    gearbox_stat_interval,
-    200,
-    "Interval to collect gearbox statistics (seconds)");
-
 namespace facebook::fboss {
 
 PlatformPort::PlatformPort(PortID id, Platform* platform)
