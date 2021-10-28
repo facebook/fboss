@@ -9,6 +9,7 @@
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/Sff8472Module.h"
@@ -440,20 +441,24 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   // transceiver mapping and type here.
   updateTransceiverMap();
 
-  std::vector<folly::Future<folly::Unit>> futs;
-  XLOG(INFO) << "Start refreshing all transceivers...";
+  // Use block to set the scope of the rlock of transceivers_
+  {
+    std::vector<folly::Future<folly::Unit>> futs;
+    XLOG(INFO) << "Start refreshing all transceivers...";
 
-  auto lockedTransceivers = transceivers_.rlock();
+    auto lockedTransceivers = transceivers_.rlock();
+    for (const auto& transceiver : *lockedTransceivers) {
+      XLOG(DBG3) << "Fired to refresh transceiver "
+                 << transceiver.second->getID();
+      transceiverIds.push_back(TransceiverID(transceiver.second->getID()));
+      futs.push_back(transceiver.second->futureRefresh());
+    }
 
-  for (const auto& transceiver : *lockedTransceivers) {
-    XLOG(DBG3) << "Fired to refresh transceiver "
-               << transceiver.second->getID();
-    transceiverIds.push_back(TransceiverID(transceiver.second->getID()));
-    futs.push_back(transceiver.second->futureRefresh());
+    folly::collectAll(futs.begin(), futs.end()).wait();
+    XLOG(INFO) << "Finished refreshing all transceivers";
   }
 
-  folly::collectAll(futs.begin(), futs.end()).wait();
-  XLOG(INFO) << "Finished refreshing all transceivers";
+  triggerProgrammingEvents();
   return transceiverIds;
 }
 

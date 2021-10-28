@@ -36,6 +36,10 @@ enum class TransceiverStateMachineEvent {
   AGENT_SYNC_TIMEOUT,
   BRINGUP_DONE,
   REMEDIATE_DONE,
+  // The following events are only used in the new state machine
+  PROGRAM_IPHY,
+  PROGRAM_XPHY,
+  PROGRAM_TRANSCEIVER,
 };
 
 std::string getTransceiverStateMachineEventName(
@@ -71,6 +75,12 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder);
 // QsfpModule, it might be safer to start the new change on a new state machine
 // rather than tamper the current one.
 
+// Module state machine attribute to tell whether the iphy port/ xphy port/
+// transceiver programmed is already done
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isIphyProgrammed)
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isXphyProgrammed)
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isTransceiverProgrammed)
+
 // Transceiver State Machine States
 BOOST_MSM_EUML_STATE((), NOT_PRESENT)
 BOOST_MSM_EUML_STATE((), PRESENT)
@@ -85,6 +95,9 @@ BOOST_MSM_EUML_STATE((), UPGRADING)
 // Transceiver State Machine Events
 BOOST_MSM_EUML_EVENT(DETECT_TRANSCEIVER)
 BOOST_MSM_EUML_EVENT(READ_EEPROM)
+BOOST_MSM_EUML_EVENT(PROGRAM_IPHY)
+BOOST_MSM_EUML_EVENT(PROGRAM_XPHY)
+BOOST_MSM_EUML_EVENT(PROGRAM_TRANSCEIVER)
 
 // Module State Machine Actions
 template <class State>
@@ -120,7 +133,12 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
 
 // Define a Transceiver State Machine
 BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
-    (TransceiverTransitionTable, init_ << NOT_PRESENT),
+    (TransceiverTransitionTable,
+     init_ << NOT_PRESENT,
+     no_action,
+     no_action,
+     attributes_ << isIphyProgrammed << isXphyProgrammed
+                 << isTransceiverProgrammed),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

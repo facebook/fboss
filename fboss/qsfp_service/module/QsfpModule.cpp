@@ -1003,6 +1003,12 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::REMEDIATE_DONE:
         moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
         return;
+      case TransceiverStateMachineEvent::PROGRAM_IPHY:
+      case TransceiverStateMachineEvent::PROGRAM_XPHY:
+      case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
+        throw FbossError(
+            "Only new state machine can support TransceiverStateMachineEvent: ",
+            getTransceiverStateMachineEventName(event));
     }
     throw FbossError(
         "Unsupported TransceiverStateMachineEvent: ",

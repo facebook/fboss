@@ -87,8 +87,9 @@ TransceiverManager::setupTransceiverToStateMachine() {
 
 void TransceiverManager::startThreads() {
   if (FLAGS_use_new_state_machine) {
+    updateEventBase_ = std::make_unique<folly::EventBase>();
     updateThread_.reset(new std::thread([=] {
-      this->threadLoop("qsfpModuleStateUpdateThread", &updateEventBase_);
+      this->threadLoop("qsfpModuleStateUpdateThread", updateEventBase_.get());
       XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
     }));
   }
@@ -98,8 +99,8 @@ void TransceiverManager::stopThreads() {
   // directly here.  This ensures that any events already scheduled via
   // runInEventBaseThread() will have a chance to run.
   if (updateThread_) {
-    updateEventBase_.runInEventBaseThread(
-        [this] { updateEventBase_.terminateLoopSoon(); });
+    updateEventBase_->runInEventBaseThread(
+        [this] { updateEventBase_->terminateLoopSoon(); });
     updateThread_->join();
     XLOG(DBG2) << "Terminated qsfpModuleStateUpdateThread";
   }
@@ -131,7 +132,7 @@ void TransceiverManager::updateState(
   // Signal the update thread that updates are pending.
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
-  updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
+  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
 }
 
 void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
@@ -213,6 +214,33 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
              << ", state order:" << curStateOrder
              << ", state:" << getTransceiverStateMachineStateName(curState);
   return curState;
+}
+
+void TransceiverManager::triggerProgrammingEvents() {
+  if (!FLAGS_use_new_state_machine) {
+    return;
+  }
+  for (auto& stateMachine : stateMachines_) {
+    bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false};
+    {
+      const auto& lockedStateMachine = stateMachine.second->rlock();
+      needProgramIphy = !lockedStateMachine->get_attribute(isIphyProgrammed);
+      needProgramXphy = !lockedStateMachine->get_attribute(isXphyProgrammed);
+      needProgramTcvr =
+          !lockedStateMachine->get_attribute(isTransceiverProgrammed);
+    }
+    if (needProgramIphy) {
+      updateState(
+          stateMachine.first, TransceiverStateMachineEvent::PROGRAM_IPHY);
+    } else if (needProgramXphy) {
+      updateState(
+          stateMachine.first, TransceiverStateMachineEvent::PROGRAM_XPHY);
+    } else if (needProgramTcvr) {
+      updateState(
+          stateMachine.first,
+          TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+    }
+  }
 }
 
 } // namespace fboss

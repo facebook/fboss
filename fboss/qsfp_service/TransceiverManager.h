@@ -164,6 +164,11 @@ class TransceiverManager {
 
  protected:
   virtual void loadConfig() = 0;
+
+  // Check whether iphy/xphy/transceiver programmed is done. If not, then
+  // trigger the corresponding program event to program the component.
+  void triggerProgrammingEvents();
+
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
       transceivers_;
   /* This variable stores the TransceiverPlatformApi object for controlling
@@ -216,7 +221,7 @@ class TransceiverManager {
    * A thread for processing ModuleStateMachine updates.
    */
   std::unique_ptr<std::thread> updateThread_;
-  folly::EventBase updateEventBase_;
+  std::unique_ptr<folly::EventBase> updateEventBase_;
   // TODO(joseph5wu) Will add heartbeat watchdog later
 
   // A global flag to indicate whether the service is exiting.

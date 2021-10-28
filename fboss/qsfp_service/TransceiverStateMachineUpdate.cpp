@@ -34,6 +34,15 @@ void TransceiverStateMachineUpdate::applyUpdate(
     case TransceiverStateMachineEvent::READ_EEPROM:
       curState.process_event(READ_EEPROM);
       return;
+    case TransceiverStateMachineEvent::PROGRAM_IPHY:
+      // TODO(joseph5wu) Will call wedge_agent programInternalPhyPorts()
+      return;
+    case TransceiverStateMachineEvent::PROGRAM_XPHY:
+      // TODO(joseph5wu) Will call PhyManager programOnePort()
+      return;
+    case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
+      // TODO(joseph5wu) Will call Transceiver customizeTransceiver()
+      return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
   }

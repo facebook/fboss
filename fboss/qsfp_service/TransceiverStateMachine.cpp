@@ -41,6 +41,12 @@ std::string getTransceiverStateMachineEventName(
       return "BRINGUP_DONE";
     case TransceiverStateMachineEvent::REMEDIATE_DONE:
       return "REMEDIATE_DONE";
+    case TransceiverStateMachineEvent::PROGRAM_IPHY:
+      return "PROGRAM_IPHY";
+    case TransceiverStateMachineEvent::PROGRAM_XPHY:
+      return "PROGRAM_XPHY";
+    case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
+      return "PROGRAM_TRANSCEIVER";
   }
   throw FbossError("Unsupported TransceiverStateMachineEvent");
 }
