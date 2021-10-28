@@ -7,16 +7,19 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/qsfp_service/test/hw_test/HwTest.h"
+
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 namespace facebook::fboss {
 
 class HwStateMachineTest : public HwTest {
  public:
-  HwStateMachineTest() : HwTest(true) {}
+  HwStateMachineTest(bool setupOverrideTcvrToPortAndProfile = false)
+      : HwTest(true, setupOverrideTcvrToPortAndProfile) {}
 
   void SetUp() override {
     HwTest::SetUp();
@@ -36,18 +39,18 @@ class HwStateMachineTest : public HwTest {
           tcvrIt != presentTcvrs.end() && *tcvrIt->second.present_ref()) {
         presentTransceivers_.push_back(TransceiverID(id));
       } else {
-        unpresentTransceivers_.push_back(TransceiverID(id));
+        absentTransceivers_.push_back(TransceiverID(id));
       }
     }
     XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
-               << ", unpresent:" << unpresentTransceivers_.size() << "]";
+               << ", absent:" << absentTransceivers_.size() << "]";
   }
 
-  const std::vector<TransceiverID> getPresentTransceivers() const {
+  const std::vector<TransceiverID>& getPresentTransceivers() const {
     return presentTransceivers_;
   }
-  const std::vector<TransceiverID> getUnpresentTransceivers() const {
-    return unpresentTransceivers_;
+  const std::vector<TransceiverID>& getAbsentTransceivers() const {
+    return absentTransceivers_;
   }
 
  private:
@@ -56,7 +59,7 @@ class HwStateMachineTest : public HwTest {
   HwStateMachineTest& operator=(HwStateMachineTest const&) = delete;
 
   std::vector<TransceiverID> presentTransceivers_;
-  std::vector<TransceiverID> unpresentTransceivers_;
+  std::vector<TransceiverID> absentTransceivers_;
 };
 
 TEST_F(HwStateMachineTest, CheckOpticsDetection) {
@@ -72,13 +75,61 @@ TEST_F(HwStateMachineTest, CheckOpticsDetection) {
           << " Actual: " << getTransceiverStateMachineStateName(curState)
           << ", Expected: DISCOVERED";
     }
-    for (auto id : getUnpresentTransceivers()) {
+    for (auto id : getAbsentTransceivers()) {
       auto curState = wedgeMgr->getCurrentState(id);
       EXPECT_EQ(curState, TransceiverStateMachineState::NOT_PRESENT)
           << "Transceiver:" << id
           << " Actual: " << getTransceiverStateMachineStateName(curState)
           << ", Expected: NOT_PRESENT";
     }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+class HwStateMachineTestWithOverrideTcvrToPortAndProfile
+    : public HwStateMachineTest {
+ public:
+  HwStateMachineTestWithOverrideTcvrToPortAndProfile()
+      : HwStateMachineTest(true) {}
+};
+
+TEST_F(
+    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
+    CheckIphyPortsProgrammed) {
+  auto verify = [this]() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    // Right now we should expect present or absent transceiver should be
+    // IPHY_PORTS_PROGRAMMED now.
+    auto checkTransceiverIphyPortProgrammed =
+        [wedgeMgr](const std::vector<TransceiverID>& tcvrs) {
+          for (auto id : tcvrs) {
+            const auto& portAndProfile =
+                wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
+            if (portAndProfile.empty()) {
+              continue;
+            }
+            auto curState = wedgeMgr->getCurrentState(id);
+            EXPECT_EQ(
+                curState, TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED)
+                << "Transceiver:" << id
+                << " Actual: " << getTransceiverStateMachineStateName(curState)
+                << ", Expected: IPHY_PORTS_PROGRAMMED";
+
+            // Check programmed iphy port and profile
+            const auto programmedIphyPortAndProfile =
+                wedgeMgr->getProgrammedIphyPortAndProfile(id);
+            EXPECT_EQ(
+                programmedIphyPortAndProfile.size(), portAndProfile.size());
+            for (auto [portID, profileID] : programmedIphyPortAndProfile) {
+              auto expectedPortAndProfileIt = portAndProfile.find(portID);
+              EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
+              EXPECT_EQ(profileID, expectedPortAndProfileIt->second);
+            }
+          }
+        };
+
+    checkTransceiverIphyPortProgrammed(getPresentTransceivers());
+    checkTransceiverIphyPortProgrammed(getAbsentTransceivers());
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

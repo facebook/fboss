@@ -164,12 +164,28 @@ class TransceiverManager {
 
   void programInternalPhyPorts(TransceiverID id);
 
+  std::unordered_map<PortID, cfg::PortProfileID>
+  getProgrammedIphyPortAndProfile(TransceiverID id) const;
+
+  std::unordered_map<PortID, cfg::PortProfileID>
+  getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
+
  protected:
   virtual void loadConfig() = 0;
 
   // Check whether iphy/xphy/transceiver programmed is done. If not, then
   // trigger the corresponding program event to program the component.
   void triggerProgrammingEvents();
+
+  // An override of programmed iphy ports.
+  // Due to hw_test won't be able to get wedge_agent running, this override
+  // map will mimic the return of programmed iphy ports based on transceiver.
+  // NOTE: Only use in test
+  using OverrideTcvrToPortAndProfile = std::unordered_map<
+      TransceiverID,
+      std::unordered_map<PortID, cfg::PortProfileID>>;
+  virtual void setOverrideTcvrToPortAndProfileForTest() = 0;
+  OverrideTcvrToPortAndProfile overrideTcvrToPortAndProfileForTest_;
 
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
       transceivers_;

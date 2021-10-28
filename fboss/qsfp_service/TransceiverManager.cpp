@@ -111,10 +111,10 @@ TransceiverManager::setupTransceiverToPortAndProfile() {
 
 void TransceiverManager::startThreads() {
   if (FLAGS_use_new_state_machine) {
+    XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
     updateEventBase_ = std::make_unique<folly::EventBase>();
     updateThread_.reset(new std::thread([=] {
       this->threadLoop("qsfpModuleStateUpdateThread", updateEventBase_.get());
-      XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
     }));
   }
 }
@@ -284,11 +284,20 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
   }
   CHECK(itTcvr.has_value());
 
-  // Then call wedge_agent programInternalPhyPorts
   std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
-  auto wedgeAgentClient = utils::createWedgeAgentClient();
-  wedgeAgentClient->sync_programInternalPhyPorts(
-      programmedIphyPorts, *itTcvr, false);
+  if (auto overridePortAndProfileIt =
+          overrideTcvrToPortAndProfileForTest_.find(id);
+      overridePortAndProfileIt != overrideTcvrToPortAndProfileForTest_.end()) {
+    // NOTE: This is only used for testing.
+    for (const auto& [portID, profileID] : overridePortAndProfileIt->second) {
+      programmedIphyPorts.emplace(portID, profileID);
+    }
+  } else {
+    // Then call wedge_agent programInternalPhyPorts
+    auto wedgeAgentClient = utils::createWedgeAgentClient();
+    wedgeAgentClient->sync_programInternalPhyPorts(
+        programmedIphyPorts, *itTcvr, false);
+  }
 
   std::string logStr = folly::to<std::string>(
       "programInternalPhyPorts() for Transceiver:", id, " return [");
@@ -309,5 +318,23 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
   }
 }
 
+std::unordered_map<PortID, cfg::PortProfileID>
+TransceiverManager::getProgrammedIphyPortAndProfile(TransceiverID id) const {
+  if (auto portAndProfileIt = tcvrToPortAndProfile_.find(id);
+      portAndProfileIt != tcvrToPortAndProfile_.end()) {
+    return *(portAndProfileIt->second->rlock());
+  }
+  return {};
+}
+
+std::unordered_map<PortID, cfg::PortProfileID>
+TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
+    TransceiverID id) const {
+  if (auto portAndProfileIt = overrideTcvrToPortAndProfileForTest_.find(id);
+      portAndProfileIt != overrideTcvrToPortAndProfileForTest_.end()) {
+    return portAndProfileIt->second;
+  }
+  return {};
+}
 } // namespace fboss
 } // namespace facebook

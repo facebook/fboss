@@ -38,6 +38,11 @@ DEFINE_bool(
     false,
     "Initialize pim xphys after creating xphy map");
 
+DEFINE_bool(
+    override_program_iphy_ports_for_test,
+    false,
+    "Override wedge_agent programInternalPhyPorts(). For test only");
+
 namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
@@ -193,6 +198,10 @@ void WedgeManager::initTransceiverMap() {
   // Also try to load the config file here so that we have transceiver to port
   // mapping and port name recognization.
   loadConfig();
+
+  // Set overrideTcvrToPortAndProfileForTest_ if
+  // FLAGS_override_program_iphy_ports_for_test true.
+  setOverrideTcvrToPortAndProfileForTest();
 
   refreshTransceivers();
 }
@@ -958,6 +967,35 @@ std::vector<PortID> WedgeManager::getMacsecCapablePorts() const {
   }
   return phyManager_->getPortsSupportingFeature(
       phy::ExternalPhy::Feature::MACSEC);
+}
+
+void WedgeManager::setOverrideTcvrToPortAndProfileForTest() {
+  if (FLAGS_override_program_iphy_ports_for_test) {
+    const auto& chips = platformMapping_->getChips();
+    for (auto chip : chips) {
+      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+        continue;
+      }
+      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
+      overrideTcvrToPortAndProfileForTest_[tcvrID] = {};
+    }
+    // Use Agent config to get the iphy port and profile
+    const auto& swConfig = agentConfig_->thrift.sw_ref();
+    const auto& platformPorts = platformMapping_->getPlatformPorts();
+    for (const auto& port : *swConfig->ports_ref()) {
+      // Only need ENABLED ports
+      if (*port.state_ref() != cfg::PortState::ENABLED) {
+        continue;
+      }
+      // If the SW port has transceiver id, add it to
+      // overrideTcvrToPortAndProfile
+      if (auto tcvrID = utility::getTransceiverId(
+              platformPorts.find(*port.logicalID_ref())->second, chips)) {
+        overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
+            *port.logicalID_ref(), *port.profileID_ref());
+      }
+    }
+  }
 }
 } // namespace fboss
 } // namespace facebook

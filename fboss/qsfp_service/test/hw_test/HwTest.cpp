@@ -26,8 +26,9 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
-HwTest::HwTest(bool useNewStateMachine)
-    : useNewStateMachine_(useNewStateMachine) {}
+HwTest::HwTest(bool useNewStateMachine, bool setupOverrideTcvrToPortAndProfile)
+    : useNewStateMachine_(useNewStateMachine),
+      setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
 
 void HwTest::SetUp() {
   // Set initializing pim xphys to 1 so we always initialize xphy chips
@@ -41,6 +42,13 @@ void HwTest::SetUp() {
   if (useNewStateMachine_) {
     gflags::SetCommandLineOptionWithMode(
         "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
+  }
+  // This is used to set up the override TransceiveToPortAndProfile so that we
+  // don't have to rely on wedge_agent::programInternalPhyPorts() in our
+  // qsfp_hw_test
+  if (setupOverrideTcvrToPortAndProfile_) {
+    gflags::SetCommandLineOptionWithMode(
+        "override_program_iphy_ports_for_test", "1", gflags::SET_FLAGS_DEFAULT);
   }
 
   ensemble_ = std::make_unique<HwQsfpEnsemble>();

@@ -15,6 +15,7 @@
 
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(init_pim_xphys);
+DECLARE_bool(override_program_iphy_ports_for_test);
 
 namespace facebook::fboss {
 
@@ -189,6 +190,8 @@ class WedgeManager : public TransceiverManager {
   WedgeManager& operator=(WedgeManager const&) = delete;
 
   void loadConfig() override;
+
+  void setOverrideTcvrToPortAndProfileForTest() override;
 
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
