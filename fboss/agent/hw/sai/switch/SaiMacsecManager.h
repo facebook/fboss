@@ -179,7 +179,7 @@ class SaiMacsecManager {
       sai_macsec_direction_t direction,
       uint8_t assocNum);
 
-  void removeAcls(PortID linePort, sai_macsec_direction_t direction);
+  void removeScAcls(PortID linePort, sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 

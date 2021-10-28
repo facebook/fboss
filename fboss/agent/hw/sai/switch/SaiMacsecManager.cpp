@@ -269,34 +269,45 @@ SaiMacsecManager::~SaiMacsecManager() {
     auto direction = macsec.first;
     for (const auto& port : macsec.second->ports) {
       auto portId = port.first;
-      auto portHandle = managerTable_->portManager().getPortHandle(portId);
-      portHandle->port->setOptionalAttribute(
-          SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
-      portHandle->port->setOptionalAttribute(
-          SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
 
-      std::string aclName = getAclName(portId, direction);
+      // Remove the ACL related to SC
+      removeScAcls(portId, direction);
+
+      // Delete the default control packet rules in ACL table
+      std::string aclTableName = getAclName(portId, direction);
       auto aclTable =
-          managerTable_->aclTableManager().getAclTableHandle(aclName);
+          managerTable_->aclTableManager().getAclTableHandle(aclTableName);
       if (aclTable) {
+        // Delete the control packet rules which are created by default for the
+        // ACL table LLDP rule
         auto aclEntryHandle =
             managerTable_->aclTableManager().getAclEntryHandle(
-                aclTable, kMacsecAclPriority);
+                aclTable, kMacsecLldpAclPriority);
         if (aclEntryHandle) {
           auto aclEntry =
-              std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
-          managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+              std::make_shared<AclEntry>(kMacsecLldpAclPriority, aclTableName);
+          managerTable_->aclTableManager().removeAclEntry(
+              aclEntry, aclTableName);
         }
 
-        auto table = std::make_shared<AclTable>(0, aclName);
+        // MKA rule
+        aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+            aclTable, kMacsecMkaAclPriority);
+        if (aclEntryHandle) {
+          auto aclEntry =
+              std::make_shared<AclEntry>(kMacsecMkaAclPriority, aclTableName);
+          managerTable_->aclTableManager().removeAclEntry(
+              aclEntry, aclTableName);
+        }
+
+        // Delete the table
+        auto table = std::make_shared<AclTable>(0, aclTableName);
         managerTable_->aclTableManager().removeAclTable(
             table,
             direction == SAI_MACSEC_DIRECTION_INGRESS
                 ? cfg::AclStage::INGRESS_MACSEC
                 : cfg::AclStage::EGRESS_MACSEC);
       }
-
-      removeAcls(portId, direction);
     }
   }
 }
@@ -593,7 +604,7 @@ void SaiMacsecManager::removeMacsecSecureChannel(
   // So first we need to remove ACL entry, then Flow and then SC
 
   // Remove the ACL entry for this SC
-  removeAcls(linePort, direction);
+  removeScAcls(linePort, direction);
   // Remove the SC
   portHandle->secureChannels[secureChannelId]->secureChannel.reset();
   // No object refers to Flow so it is safe to remove it now
@@ -1020,7 +1031,7 @@ void SaiMacsecManager::deleteMacsec(
   }
 }
 
-void SaiMacsecManager::removeAcls(
+void SaiMacsecManager::removeScAcls(
     PortID linePort,
     sai_macsec_direction_t direction) {
   // unbind acl tables from the port, and delete acl entries
@@ -1033,7 +1044,7 @@ void SaiMacsecManager::removeAcls(
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
   }
-  XLOG(INFO) << "removeAcls: Unbound ACL table from line port " << linePort;
+  XLOG(DBG2) << "removeScAcls: Unbound ACL table from line port " << linePort;
 
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
@@ -1043,16 +1054,21 @@ void SaiMacsecManager::removeAcls(
     if (aclEntryHandle) {
       auto aclEntry = std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
-      XLOG(INFO) << "removeAcls: Removed ACL entry from ACL table " << aclName;
+      XLOG(DBG2) << "removeScAcls: Removed ACL entry from ACL table "
+                 << aclName;
 
       // Remove the entry for default Rx packet rule also
       if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-        aclEntry =
-            std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclName);
-        managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
-        XLOG(INFO)
-            << "removeAcls: Removed default packet ACL entry from ACL table "
-            << aclName;
+        aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+            aclTable, kMacsecDefaultAclPriority);
+        if (aclEntryHandle) {
+          aclEntry =
+              std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclName);
+          managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+          XLOG(DBG2)
+              << "removeScAcls: Removed default packet ACL entry from ACL table "
+              << aclName;
+        }
       }
     }
   }
