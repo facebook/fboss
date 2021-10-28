@@ -503,7 +503,7 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_DETECTED);
+    stateUpdateLocked(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
@@ -518,7 +518,7 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    stateUpdateLocked(TransceiverStateMachineEvent::EEPROM_READ);
+    stateUpdateLocked(TransceiverStateMachineEvent::READ_EEPROM);
   }
 
   if (customizeWanted) {
@@ -970,7 +970,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   } else {
     // Fall back to use the legacy logic
     switch (event) {
-      case TransceiverStateMachineEvent::OPTICS_DETECTED:
+      case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
         return;
       case TransceiverStateMachineEvent::OPTICS_REMOVED:
@@ -979,7 +979,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::OPTICS_RESET:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_RESET);
         return;
-      case TransceiverStateMachineEvent::EEPROM_READ:
+      case TransceiverStateMachineEvent::READ_EEPROM:
         moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
         return;
       case TransceiverStateMachineEvent::ALL_PORTS_DOWN:

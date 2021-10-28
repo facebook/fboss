@@ -19,14 +19,14 @@ namespace facebook::fboss {
 std::string getTransceiverStateMachineEventName(
     TransceiverStateMachineEvent event) {
   switch (event) {
-    case TransceiverStateMachineEvent::OPTICS_DETECTED:
-      return "OPTICS_DETECTED";
+    case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
+      return "DETECT_TRANSCEIVER";
     case TransceiverStateMachineEvent::OPTICS_REMOVED:
       return "OPTICS_REMOVED";
     case TransceiverStateMachineEvent::OPTICS_RESET:
       return "OPTICS_RESET";
-    case TransceiverStateMachineEvent::EEPROM_READ:
-      return "EEPROM_READ";
+    case TransceiverStateMachineEvent::READ_EEPROM:
+      return "READ_EEPROM";
     case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
       return "ALL_PORTS_DOWN";
     case TransceiverStateMachineEvent::PORT_UP:
@@ -84,54 +84,34 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
 
 template <class State>
 TransceiverStateMachineState stateToStateEnum(State& /* state */) {
-  if constexpr (std::
-                    is_same_v<State, decltype(TRANSCEIVER_STATE_NOT_PRESENT)>) {
+  if constexpr (std::is_same_v<State, decltype(NOT_PRESENT)>) {
     return TransceiverStateMachineState::NOT_PRESENT;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_PRESENT)>) {
+  } else if constexpr (std::is_same_v<State, decltype(PRESENT)>) {
     return TransceiverStateMachineState::PRESENT;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_DISCOVERED)>) {
+  } else if constexpr (std::is_same_v<State, decltype(DISCOVERED)>) {
     return TransceiverStateMachineState::DISCOVERED;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_IPHY_PORTS_PROGRAMMED)>) {
+  } else if constexpr (std::is_same_v<State, decltype(IPHY_PORTS_PROGRAMMED)>) {
     return TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_XPHY_PORTS_PROGRAMMED)>) {
+  } else if constexpr (std::is_same_v<State, decltype(XPHY_PORTS_PROGRAMMED)>) {
     return TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
-  } else if constexpr (
-      std::is_same_v<
-          State,
-          decltype(TRANSCEIVER_STATE_TRANSCEIVER_PROGRAMMED)>) {
+  } else if constexpr (std::
+                           is_same_v<State, decltype(TRANSCEIVER_PROGRAMMED)>) {
     return TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_ACTIVE)>) {
+  } else if constexpr (std::is_same_v<State, decltype(ACTIVE)>) {
     return TransceiverStateMachineState::ACTIVE;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_INACTIVE)>) {
+  } else if constexpr (std::is_same_v<State, decltype(INACTIVE)>) {
     return TransceiverStateMachineState::INACTIVE;
-  } else if constexpr (std::is_same_v<
-                           State,
-                           decltype(TRANSCEIVER_STATE_UPGRADING)>) {
+  } else if constexpr (std::is_same_v<State, decltype(UPGRADING)>) {
     return TransceiverStateMachineState::UPGRADING;
   }
 
   throw FbossError("Unsupported TransceiverStateMachineState");
 }
 
-template TransceiverStateMachineState
-stateToStateEnum<decltype(TRANSCEIVER_STATE_NOT_PRESENT)>(
-    decltype(TRANSCEIVER_STATE_NOT_PRESENT)& state);
-template TransceiverStateMachineState
-stateToStateEnum<decltype(TRANSCEIVER_STATE_PRESENT)>(
-    decltype(TRANSCEIVER_STATE_PRESENT)& state);
-template TransceiverStateMachineState
-stateToStateEnum<decltype(TRANSCEIVER_STATE_DISCOVERED)>(
-    decltype(TRANSCEIVER_STATE_DISCOVERED)& state);
+template TransceiverStateMachineState stateToStateEnum<decltype(NOT_PRESENT)>(
+    decltype(NOT_PRESENT)& state);
+template TransceiverStateMachineState stateToStateEnum<decltype(PRESENT)>(
+    decltype(PRESENT)& state);
+template TransceiverStateMachineState stateToStateEnum<decltype(DISCOVERED)>(
+    decltype(DISCOVERED)& state);
 } // namespace facebook::fboss

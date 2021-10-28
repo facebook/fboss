@@ -22,11 +22,11 @@ using namespace boost::msm::front::euml;
 using namespace boost::msm::back;
 
 enum class TransceiverStateMachineEvent {
-  OPTICS_DETECTED,
+  DETECT_TRANSCEIVER,
   OPTICS_REMOVED,
   // NOTE: Such event is never invoked in our code yet
   OPTICS_RESET,
-  EEPROM_READ,
+  READ_EEPROM,
   ALL_PORTS_DOWN,
   PORT_UP,
   // NOTE: Such event is never invoked in our code yet
@@ -72,19 +72,19 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder);
 // rather than tamper the current one.
 
 // Transceiver State Machine States
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_NOT_PRESENT)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_PRESENT)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_DISCOVERED)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_IPHY_PORTS_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_XPHY_PORTS_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_TRANSCEIVER_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_ACTIVE)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_INACTIVE)
-BOOST_MSM_EUML_STATE((), TRANSCEIVER_STATE_UPGRADING)
+BOOST_MSM_EUML_STATE((), NOT_PRESENT)
+BOOST_MSM_EUML_STATE((), PRESENT)
+BOOST_MSM_EUML_STATE((), DISCOVERED)
+BOOST_MSM_EUML_STATE((), IPHY_PORTS_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), XPHY_PORTS_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), TRANSCEIVER_PROGRAMMED)
+BOOST_MSM_EUML_STATE((), ACTIVE)
+BOOST_MSM_EUML_STATE((), INACTIVE)
+BOOST_MSM_EUML_STATE((), UPGRADING)
 
 // Transceiver State Machine Events
-BOOST_MSM_EUML_EVENT(TRANSCEIVER_EVENT_OPTICS_DETECTED)
-BOOST_MSM_EUML_EVENT(TRANSCEIVER_EVENT_OPTICS_EEPROM_READ)
+BOOST_MSM_EUML_EVENT(DETECT_TRANSCEIVER)
+BOOST_MSM_EUML_EVENT(READ_EEPROM)
 
 // Module State Machine Actions
 template <class State>
@@ -108,18 +108,19 @@ BOOST_MSM_EUML_ACTION(logStateChanged){
 ;
 
 // Transceiver State Machine State transition table
-BOOST_MSM_EUML_TRANSITION_TABLE(
-    (TRANSCEIVER_STATE_NOT_PRESENT +
-             TRANSCEIVER_EVENT_OPTICS_DETECTED / logStateChanged ==
-         TRANSCEIVER_STATE_PRESENT,
-     TRANSCEIVER_STATE_PRESENT +
-             TRANSCEIVER_EVENT_OPTICS_EEPROM_READ / logStateChanged ==
-         TRANSCEIVER_STATE_DISCOVERED),
-    TransceiverTransitionTable)
+// clang-format off
+BOOST_MSM_EUML_TRANSITION_TABLE((
+//  Start       + Event [Guard]       / Action          == Next
+//  +------------------------------------------------------------------------------+
+    NOT_PRESENT + DETECT_TRANSCEIVER  / logStateChanged == PRESENT,
+    PRESENT     + READ_EEPROM         / logStateChanged == DISCOVERED
+//  +------------------------------------------------------------------------------+
+    ), TransceiverTransitionTable)
+// clang-format on
 
 // Define a Transceiver State Machine
 BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
-    (TransceiverTransitionTable, init_ << TRANSCEIVER_STATE_NOT_PRESENT),
+    (TransceiverTransitionTable, init_ << NOT_PRESENT),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

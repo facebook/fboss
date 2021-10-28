@@ -155,12 +155,12 @@ TEST(CmisTest, testStateToInactive) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
   int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 1);
 
   // MSM: Present -> Discovered
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 2);
@@ -185,9 +185,9 @@ TEST(CmisTest, testStateTimeoutWaitInactive) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (On Agent timeout)
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
 
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
 
   // Wait for 2 minutes for Agent sync timeout to happen and module SM
@@ -210,8 +210,8 @@ TEST(CmisTest, testPsmStates) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
 
   qsfpMod->portStateMachines_[0].process_event(
@@ -263,8 +263,8 @@ TEST(CmisTest, testPsmRemediation) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
 
   EXPECT_EQ(qsfpMod->portStateMachines_.size(), 2);
@@ -299,8 +299,8 @@ TEST(CmisTest, testMsmFwUpgrading) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
 
   qsfpMod->portStateMachines_[0].process_event(
@@ -343,8 +343,8 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
   qsfpMod->setLegacyModuleStateMachineModulePointer(qsfpMod.get());
 
   // MSM: Not_Present -> Present -> Discovered -> Inactive (all port down)
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
 
   qsfpMod->portStateMachines_[0].process_event(
@@ -377,8 +377,8 @@ TEST(CmisTest, testOpticsRemoval) {
 
   // Bring up to discovered state and check optics removed event - new state
   // should be first one and PSM should get removed
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
   qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
   int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
@@ -386,8 +386,8 @@ TEST(CmisTest, testOpticsRemoval) {
   EXPECT_EQ(qsfpMod->portStateMachines_.size(), 0);
 
   // Bring up to Active state and check optics removed event
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
   qsfpMod->portStateMachines_[0].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
@@ -398,8 +398,8 @@ TEST(CmisTest, testOpticsRemoval) {
   EXPECT_EQ(CurrState, 0);
 
   // Bring up to Upgrading state and check optics removed event
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_DETECTED);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::EEPROM_READ);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
   qsfpMod->portStateMachines_[0].process_event(
       MODULE_PORT_EVENT_AGENT_PORT_DOWN);

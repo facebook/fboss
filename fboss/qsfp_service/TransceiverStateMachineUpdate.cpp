@@ -28,11 +28,11 @@ TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
 void TransceiverStateMachineUpdate::applyUpdate(
     state_machine<TransceiverStateMachine>& curState) {
   switch (transceiverEvent_) {
-    case TransceiverStateMachineEvent::OPTICS_DETECTED:
-      curState.process_event(TRANSCEIVER_EVENT_OPTICS_DETECTED);
+    case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
+      curState.process_event(DETECT_TRANSCEIVER);
       return;
-    case TransceiverStateMachineEvent::EEPROM_READ:
-      curState.process_event(TRANSCEIVER_EVENT_OPTICS_EEPROM_READ);
+    case TransceiverStateMachineEvent::READ_EEPROM:
+      curState.process_event(READ_EEPROM);
       return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
