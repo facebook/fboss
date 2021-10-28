@@ -43,9 +43,12 @@ static std::array<uint8_t, 12> kDefaultSaltValue{
     0x6d};
 const MacsecShortSecureChannelId kDefaultSsciValue =
     MacsecShortSecureChannelId(0x01000000);
-constexpr int kMacsecAclPriority = 1;
+
+// ACL priority values for MacSec (lower number has higher priority)
+constexpr int kMacsecDefaultAclPriority = 4;
+constexpr int kMacsecAclPriority = 3;
 constexpr int kMacsecLldpAclPriority = 2;
-constexpr int kMacsecMkaAclPriority = 3;
+constexpr int kMacsecMkaAclPriority = 1;
 
 const std::shared_ptr<AclEntry> createMacsecAclEntry(
     int priority,
@@ -90,6 +93,27 @@ const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
   macsecFlowAction.flowId_ref() = 0;
   macsecAction.setMacsecFlow(macsecFlowAction);
   entry->setActionType(cfg::AclActionType::PERMIT);
+  entry->setAclAction(macsecAction);
+
+  return entry;
+}
+
+const std::shared_ptr<AclEntry> createMacsecRxDefaultAclEntry(
+    int priority,
+    std::string entryName,
+    cfg::MacsecFlowPacketAction action) {
+  auto entry = std::make_shared<AclEntry>(priority, entryName);
+
+  auto macsecAction = MatchAction();
+  auto macsecFlowAction = cfg::MacsecFlowAction();
+  macsecFlowAction.action_ref() = action;
+  macsecFlowAction.flowId_ref() = 0;
+  macsecAction.setMacsecFlow(macsecFlowAction);
+  if (action == cfg::MacsecFlowPacketAction::DROP) {
+    entry->setActionType(cfg::AclActionType::DENY);
+  } else {
+    entry->setActionType(cfg::AclActionType::PERMIT);
+  }
   entry->setAclAction(macsecAction);
 
   return entry;
@@ -878,17 +902,54 @@ void SaiMacsecManager::setupMacsec(
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
       aclTable, kMacsecAclPriority);
   if (!aclEntryHandle) {
-    auto aclEntry = createMacsecAclEntry(
-        kMacsecAclPriority,
-        aclName,
-        flowId,
-        std::nullopt /* dstMac */,
-        std::nullopt /* etherType */);
-    auto aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
-    XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
-               << direction << " ACL entry " << aclEntryId;
+    if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+      // For the ingress direction create one ACL rule to match MACSEC packets
+      // (ether-type = 0x88E5) with Action as MacSec Flow. Create another lower
+      // priority ACL rule to match rest of the packets with Action as Drop (if
+      // dropUnencrypted is true) otherwise Forward
+      cfg::EtherType ethTypeMacsec{cfg::EtherType::MACSEC};
+      auto aclEntry = createMacsecAclEntry(
+          kMacsecAclPriority,
+          aclName,
+          flowId,
+          std::nullopt /* dstMac */,
+          ethTypeMacsec);
+
+      auto aclEntryId =
+          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
+                 << direction << " ACL entry " << aclEntryId;
+
+      // Create the default lower priority ACL rule for rest of the data packets
+      cfg::MacsecFlowPacketAction action = sak.dropUnencrypted_ref().value()
+          ? cfg::MacsecFlowPacketAction::DROP
+          : cfg::MacsecFlowPacketAction::FORWARD;
+      aclEntry = createMacsecRxDefaultAclEntry(
+          kMacsecDefaultAclPriority, aclName, action);
+
+      aclEntryId =
+          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      XLOG(DBG2) << "For SCI: " << sciKeyString
+                 << ", created macsec default Rx packet rule "
+                 << (sak.dropUnencrypted_ref().value() ? "Drop" : "Forward")
+                 << " ACL entry " << aclEntryId;
+    } else {
+      // For egress direction create the ACL rule to match all data packets with
+      // Action as MacSec Flow
+      auto aclEntry = createMacsecAclEntry(
+          kMacsecAclPriority,
+          aclName,
+          flowId,
+          std::nullopt /* dstMac */,
+          std::nullopt /* etherType */);
+
+      auto aclEntryId =
+          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
+                 << direction << " ACL entry " << aclEntryId;
+    }
   }
+
   // Step7: Bind ACL table to the line port
   if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
     portHandle->port->setOptionalAttribute(
@@ -983,9 +1044,20 @@ void SaiMacsecManager::removeAcls(
       auto aclEntry = std::make_shared<AclEntry>(kMacsecAclPriority, aclName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
       XLOG(INFO) << "removeAcls: Removed ACL entry from ACL table " << aclName;
+
+      // Remove the entry for default Rx packet rule also
+      if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+        aclEntry =
+            std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclName);
+        managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+        XLOG(INFO)
+            << "removeAcls: Removed default packet ACL entry from ACL table "
+            << aclName;
+      }
     }
   }
 }
+
 namespace {
 void updateMacsecPortStats(
     const std::optional<mka::MacsecFlowStats>& prev,
