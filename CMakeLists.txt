@@ -847,6 +847,7 @@ if (NOT SAI_ONLY)
     fboss_types
     qsfp_config
     phy_management_base
+    thrift_service_client
   )
 
   target_link_libraries(qsfp_module

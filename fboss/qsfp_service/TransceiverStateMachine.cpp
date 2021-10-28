@@ -83,9 +83,12 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
     return TransceiverStateMachineState::PRESENT;
   } else if (currentStateOrder == 2) {
     return TransceiverStateMachineState::DISCOVERED;
+  } else if (currentStateOrder == 3) {
+    return TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
   }
   // TODO(joseph5wu) Need to support other states
-  throw FbossError("Unsupported TransceiverStateMachineState order");
+  throw FbossError(
+      "Unsupported TransceiverStateMachineState order: ", currentStateOrder);
 }
 
 template <class State>
@@ -120,4 +123,6 @@ template TransceiverStateMachineState stateToStateEnum<decltype(PRESENT)>(
     decltype(PRESENT)& state);
 template TransceiverStateMachineState stateToStateEnum<decltype(DISCOVERED)>(
     decltype(DISCOVERED)& state);
+template TransceiverStateMachineState stateToStateEnum<
+    decltype(IPHY_PORTS_PROGRAMMED)>(decltype(IPHY_PORTS_PROGRAMMED)& state);
 } // namespace facebook::fboss

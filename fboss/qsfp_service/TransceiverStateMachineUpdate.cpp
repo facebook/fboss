@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 
 #include <fmt/format.h>
 
@@ -35,7 +36,7 @@ void TransceiverStateMachineUpdate::applyUpdate(
       curState.process_event(READ_EEPROM);
       return;
     case TransceiverStateMachineEvent::PROGRAM_IPHY:
-      // TODO(joseph5wu) Will call wedge_agent programInternalPhyPorts()
+      curState.process_event(PROGRAM_IPHY);
       return;
     case TransceiverStateMachineEvent::PROGRAM_XPHY:
       // TODO(joseph5wu) Will call PhyManager programOnePort()

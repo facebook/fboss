@@ -4,7 +4,9 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 
 namespace facebook {
@@ -15,7 +17,8 @@ TransceiverManager::TransceiverManager(
     std::unique_ptr<PlatformMapping> platformMapping)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(std::move(platformMapping)),
-      stateMachines_(setupTransceiverToStateMachine()) {
+      stateMachines_(setupTransceiverToStateMachine()),
+      tcvrToPortAndProfile_(setupTransceiverToPortAndProfile()) {
   // Now we might need to start threads
   startThreads();
 }
@@ -74,15 +77,36 @@ TransceiverManager::setupTransceiverToStateMachine() {
       if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
+      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
       // Init state should be "TRANSCEIVER_STATE_NOT_PRESENT"
       auto stateMachine = std::make_unique<
           folly::Synchronized<state_machine<TransceiverStateMachine>>>();
-      stateMachineMap.emplace(
-          TransceiverID(*chip.second.physicalID_ref()),
-          std::move(stateMachine));
+      {
+        auto lockedStateMachine = stateMachine->wlock();
+        lockedStateMachine->get_attribute(transceiverMgrPtr) = this;
+        lockedStateMachine->get_attribute(transceiverID) = tcvrID;
+      }
+      stateMachineMap.emplace(tcvrID, std::move(stateMachine));
     }
   }
   return stateMachineMap;
+}
+
+TransceiverManager::TransceiverToPortAndProfile
+TransceiverManager::setupTransceiverToPortAndProfile() {
+  TransceiverToPortAndProfile tcvrToPortAndProfile;
+  if (FLAGS_use_new_state_machine) {
+    for (auto chip : platformMapping_->getChips()) {
+      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+        continue;
+      }
+      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
+      auto portAndProfile = std::make_unique<folly::Synchronized<
+          std::unordered_map<PortID, cfg::PortProfileID>>>();
+      tcvrToPortAndProfile.emplace(tcvrID, std::move(portAndProfile));
+    }
+  }
+  return tcvrToPortAndProfile;
 }
 
 void TransceiverManager::startThreads() {
@@ -239,6 +263,48 @@ void TransceiverManager::triggerProgrammingEvents() {
       updateState(
           stateMachine.first,
           TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+    }
+  }
+}
+
+void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
+  // First get current transceiverInfo
+  std::optional<TransceiverInfo> itTcvr;
+  {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(id);
+        it != lockedTransceivers->end()) {
+      itTcvr = it->second->getTransceiverInfo();
+    } else {
+      TransceiverInfo absentTcvr;
+      absentTcvr.present_ref() = false;
+      absentTcvr.port_ref() = id;
+      itTcvr = absentTcvr;
+    }
+  }
+  CHECK(itTcvr.has_value());
+
+  // Then call wedge_agent programInternalPhyPorts
+  std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
+  auto wedgeAgentClient = utils::createWedgeAgentClient();
+  wedgeAgentClient->sync_programInternalPhyPorts(
+      programmedIphyPorts, *itTcvr, false);
+
+  std::string logStr = folly::to<std::string>(
+      "programInternalPhyPorts() for Transceiver:", id, " return [");
+  for (const auto& [portID, profileID] : programmedIphyPorts) {
+    logStr = folly::to<std::string>(
+        logStr, id, " : ", apache::thrift::util::enumNameSafe(profileID), ", ");
+  }
+  XLOG(DBG2) << logStr << "]";
+
+  // Now update the programmed SW port to profile mapping
+  if (auto portAndProfileIt = tcvrToPortAndProfile_.find(id);
+      portAndProfileIt != tcvrToPortAndProfile_.end()) {
+    auto portAndProfileWithLock = portAndProfileIt->second->wlock();
+    portAndProfileWithLock->clear();
+    for (auto [portID, profileID] : programmedIphyPorts) {
+      portAndProfileWithLock->emplace(PortID(portID), profileID);
     }
   }
 }

@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/agent/types.h"
+
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
 #include <boost/msm/front/euml/state_grammar.hpp>
@@ -20,6 +22,8 @@ namespace facebook::fboss {
 
 using namespace boost::msm::front::euml;
 using namespace boost::msm::back;
+
+class TransceiverManager;
 
 enum class TransceiverStateMachineEvent {
   DETECT_TRANSCEIVER,
@@ -81,6 +85,14 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isIphyProgrammed)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isXphyProgrammed)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isTransceiverProgrammed)
 
+// Module State Machine needs to trigger iphy/xphy/transceiver programming.
+// Instead of adding a lot of complicated logic here, we can use
+// TransceiverManager to provide a bunch public functions there.
+// Besides, we might also need to call TransceiverManager::updateState() to
+// update the state accordingly in the state machine.
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(class TransceiverManager*, transceiverMgrPtr)
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(TransceiverID, transceiverID)
+
 // Transceiver State Machine States
 BOOST_MSM_EUML_STATE((), NOT_PRESENT)
 BOOST_MSM_EUML_STATE((), PRESENT)
@@ -103,31 +115,58 @@ BOOST_MSM_EUML_EVENT(PROGRAM_TRANSCEIVER)
 template <class State>
 TransceiverStateMachineState stateToStateEnum(State& state);
 
+// clang-format couldn't handle the marco in a pretty way. So manually turn off
+// the auto formating
+// clang-format off
 BOOST_MSM_EUML_ACTION(logStateChanged){
-    template <class Event, class Fsm, class Source, class Target>
-    void
-    operator()(
-        const Event& /* event */,
-        Fsm& /* fsm */,
-        Source& source,
-        Target& target) const {
-        XLOG(DBG2)
-        << "State changed from "
-        << getTransceiverStateMachineStateName(stateToStateEnum(source))
-        << " to "
-        << getTransceiverStateMachineStateName(stateToStateEnum(target));
-} // namespace facebook::fboss
+template <class Event, class Fsm, class Source, class Target>
+void operator()(
+    const Event& /* event */,
+    Fsm& /* fsm */,
+    Source& source,
+    Target& target) const {
+  XLOG(DBG2) << "State changed from "
+             << getTransceiverStateMachineStateName(stateToStateEnum(source))
+             << " to "
+             << getTransceiverStateMachineStateName(stateToStateEnum(target));
 }
-;
+};
+
+BOOST_MSM_EUML_ACTION(programIphyPorts) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  try {
+    fsm.get_attribute(transceiverMgrPtr)->programInternalPhyPorts(tcvrID);
+    fsm.get_attribute(isIphyProgrammed) = true;
+    return true;
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "[Transceiver:" << tcvrID
+               << "] programInternalPhyPorts failed:"
+               << folly::exceptionStr(ex);
+    return false;
+  }
+}
+};
+// clang-format on
 
 // Transceiver State Machine State transition table
 // clang-format off
 BOOST_MSM_EUML_TRANSITION_TABLE((
-//  Start       + Event [Guard]       / Action          == Next
-//  +------------------------------------------------------------------------------+
-    NOT_PRESENT + DETECT_TRANSCEIVER  / logStateChanged == PRESENT,
-    PRESENT     + READ_EEPROM         / logStateChanged == DISCOVERED
-//  +------------------------------------------------------------------------------+
+//  Start       + Event        [Guard]            / Action          == Next
+// +----------------------------------------------------------------------------------------+
+    NOT_PRESENT + DETECT_TRANSCEIVER              / logStateChanged == PRESENT,
+    PRESENT     + READ_EEPROM                     / logStateChanged == DISCOVERED,
+    // For non-present transceiver, we still want to call port program in case optic is actually
+    // inserted but just can't read the present state
+    NOT_PRESENT + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    DISCOVERED  + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED
+//  +---------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on
 
@@ -138,7 +177,8 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      no_action,
      no_action,
      attributes_ << isIphyProgrammed << isXphyProgrammed
-                 << isTransceiverProgrammed),
+                 << isTransceiverProgrammed << transceiverMgrPtr
+                 << transceiverID),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

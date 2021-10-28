@@ -162,6 +162,8 @@ class TransceiverManager {
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
+  void programInternalPhyPorts(TransceiverID id);
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -201,6 +203,12 @@ class TransceiverManager {
           folly::Synchronized<state_machine<TransceiverStateMachine>>>>;
   TransceiverToStateMachine setupTransceiverToStateMachine();
 
+  using TransceiverToPortAndProfile = std::unordered_map<
+      TransceiverID,
+      std::unique_ptr<
+          folly::Synchronized<std::unordered_map<PortID, cfg::PortProfileID>>>>;
+  TransceiverToPortAndProfile setupTransceiverToPortAndProfile();
+
   void startThreads();
   void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
@@ -229,12 +237,18 @@ class TransceiverManager {
   bool isExiting_{false};
 
   /*
-   * A map to maintain all transceivers(present and not present) state machines.
+   * A map to maintain all transceivers(present and absent) state machines.
    * As each platform has its own fixed supported module num
    * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
    * and no other functions will erase any items from this map.
    */
   const TransceiverToStateMachine stateMachines_;
+
+  /*
+   * A map to maintain all transceivers(present and absent) programmed SW port
+   * to profile mapping.
+   */
+  const TransceiverToPortAndProfile tcvrToPortAndProfile_;
 };
 } // namespace fboss
 } // namespace facebook
