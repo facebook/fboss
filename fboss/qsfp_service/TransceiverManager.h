@@ -219,6 +219,10 @@ class TransceiverManager {
   folly::EventBase updateEventBase_;
   // TODO(joseph5wu) Will add heartbeat watchdog later
 
+  // A global flag to indicate whether the service is exiting.
+  // If it is, we should not accept any state update
+  bool isExiting_{false};
+
   /*
    * A map to maintain all transceivers(present and not present) state machines.
    * As each platform has its own fixed supported module num

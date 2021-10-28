@@ -22,6 +22,7 @@ TransceiverManager::TransceiverManager(
 
 TransceiverManager::~TransceiverManager() {
   // Stop all the threads before shutdown
+  isExiting_ = true;
   stopThreads();
 }
 
@@ -88,6 +89,7 @@ void TransceiverManager::startThreads() {
   if (FLAGS_use_new_state_machine) {
     updateThread_.reset(new std::thread([=] {
       this->threadLoop("qsfpModuleStateUpdateThread", &updateEventBase_);
+      XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
     }));
   }
 }
@@ -99,6 +101,7 @@ void TransceiverManager::stopThreads() {
     updateEventBase_.runInEventBaseThread(
         [this] { updateEventBase_.terminateLoopSoon(); });
     updateThread_->join();
+    XLOG(DBG2) << "Terminated qsfpModuleStateUpdateThread";
   }
   // TODO(joseph5wu) Might need to consider how to handle pending updates just
   // as wedge_agent
@@ -113,10 +116,15 @@ void TransceiverManager::threadLoop(
 void TransceiverManager::updateState(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
+  auto stateMachineUpdate =
+      std::make_unique<TransceiverStateMachineUpdate>(id, event);
+  if (isExiting_) {
+    XLOG(WARN) << "Skipped queueing update:" << stateMachineUpdate->getName()
+               << ", since exit already started";
+    return;
+  }
   {
     std::unique_lock guard(pendingUpdatesLock_);
-    auto stateMachineUpdate =
-        std::make_unique<TransceiverStateMachineUpdate>(id, event);
     pendingUpdates_.push_back(*stateMachineUpdate.release());
   }
 
