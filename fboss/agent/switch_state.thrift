@@ -144,4 +144,5 @@ struct AclEntryFields {
 }
 
 struct SwitchState {
+  1: map<i16, PortFields> portMap;
 }
