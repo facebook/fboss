@@ -31,10 +31,6 @@ HwAsic* SaiBcmDarwinPlatform::getAsic() const {
   return asic_.get();
 }
 
-void SaiBcmDarwinPlatform::initLEDs() {
-  // TODO(sampham): initialize LED through FPGA
-}
-
 SaiBcmDarwinPlatform::~SaiBcmDarwinPlatform() {}
 
 } // namespace facebook::fboss

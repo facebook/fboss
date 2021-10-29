@@ -19,6 +19,9 @@ class SaiBcmDarwinPlatformPort : public SaiBcmPlatformPort {
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+
+ private:
+  uint32_t currentLedState_{0};
 };
 
 } // namespace facebook::fboss

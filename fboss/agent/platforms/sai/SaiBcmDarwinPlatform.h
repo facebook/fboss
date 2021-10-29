@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+
 namespace facebook::fboss {
 
 class Tomahawk3Asic;

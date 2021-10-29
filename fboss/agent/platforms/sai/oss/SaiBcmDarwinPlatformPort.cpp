@@ -13,12 +13,8 @@ namespace facebook::fboss {
 
 void SaiBcmDarwinPlatformPort::linkStatusChanged(
     bool /*up*/,
-    bool /*adminUp*/) {
-  // TODO: set led color based on port state
-}
+    bool /*adminUp*/) {}
 
-void SaiBcmDarwinPlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO: set led color based on eternal state
-}
+void SaiBcmDarwinPlatformPort::externalState(PortLedExternalState /*lfs*/) {}
 
 } // namespace facebook::fboss
