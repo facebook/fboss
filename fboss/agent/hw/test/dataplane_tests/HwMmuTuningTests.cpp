@@ -49,6 +49,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     // buffered in MMU. The higher pri queue should then endup using more of MMU
     // than lower pri queue.
     sendUdpPkts(lowPriDscp, highPriDscp);
+
     auto portStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
     auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes__ref();
@@ -98,6 +99,17 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
         getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
       }
     }
+
+    // Block until packets sent and stats updated
+    auto countIncremented = [&](const auto& newStats) {
+      auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+      auto outDiscard = *portStatsIter->second.outDiscards__ref();
+      XLOG(DBG0) << "Out discard : " << outDiscard;
+      return outDiscard > 0;
+    };
+
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
   }
   MacAddress dstMac() const {
     auto vlanId = utility::firstVlanID(initialConfig());

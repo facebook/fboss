@@ -31,6 +31,9 @@ class Tomahawk3Asic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override {
     return 64 * 1024 * 1024;
   }
+  uint32_t getMMUCellSize() const {
+    return 254;
+  }
   uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
       const override {
     return cpu ? 1778 : 0;
