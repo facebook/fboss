@@ -9,10 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -21,19 +18,10 @@ class SwitchState;
 class Port;
 typedef NodeMapTraits<PortID, Port> PortMapTraits;
 
-struct PortMapThriftTraits
-    : public ThriftyNodeMapTraits<int16_t, state::PortFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "portId";
-    return _key;
-  }
-};
-
 /*
  * A container for the set of ports.
  */
-class PortMap
-    : public ThriftyNodeMapT<PortMap, PortMapTraits, PortMapThriftTraits> {
+class PortMap : public NodeMapT<PortMap, PortMapTraits> {
  public:
   PortMap();
   ~PortMap() override;
@@ -67,7 +55,7 @@ class PortMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using NodeMapT::NodeMapT;
   friend class CloneAllocator;
 };
 

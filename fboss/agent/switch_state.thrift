@@ -143,6 +143,4 @@ struct AclEntryFields {
   25: optional MatchAction aclAction;
 }
 
-struct SwitchState {
-  1: map<i16, PortFields> portMap;
-}
+struct SwitchState {}

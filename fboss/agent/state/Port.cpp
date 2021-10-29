@@ -205,13 +205,14 @@ state::PortFields PortFields::toThrift() const {
   *port.sFlowEgressRate_ref() = sFlowEgressRate;
 
   for (const auto& queue : queues) {
-    port.queues_ref()->push_back(queue->toThrift());
+    // TODO: Use PortQueue::toThrift() when available
+    port.queues_ref()->push_back(queue->getFields()->toThrift());
   }
 
   if (pgConfigs) {
     std::vector<state::PortPgFields> tmpPgConfigs;
     for (const auto& pgConfig : *pgConfigs) {
-      tmpPgConfigs.emplace_back(pgConfig->toThrift());
+      tmpPgConfigs.emplace_back(pgConfig->getFields()->toThrift());
     }
     port.pgConfigs_ref() = tmpPgConfigs;
   }
@@ -248,27 +249,6 @@ state::PortFields PortFields::toThrift() const {
   }
 
   return port;
-}
-
-bool PortFields::operator==(const PortFields& other) const {
-  return id == other.id && name == other.name &&
-      description == other.description && adminState == other.adminState &&
-      operState == other.operState && asicPrbs == other.asicPrbs &&
-      gbSystemPrbs == other.gbSystemPrbs && gbLinePrbs == other.gbLinePrbs &&
-      ingressVlan == other.ingressVlan && speed == other.speed &&
-      pause == other.pause && pfc == other.pfc &&
-      pfcPriorities == other.pfcPriorities && vlans == other.vlans &&
-      sFlowIngressRate == other.sFlowIngressRate &&
-      sFlowEgressRate == other.sFlowEgressRate &&
-      sampleDest == other.sampleDest && loopbackMode == other.loopbackMode &&
-      ingressMirror == other.ingressMirror &&
-      egressMirror == other.egressMirror && qosPolicy == other.qosPolicy &&
-      expectedLLDPValues == other.expectedLLDPValues &&
-      lookupClassesToDistrubuteTrafficOn ==
-      other.lookupClassesToDistrubuteTrafficOn &&
-      profileID == other.profileID && maxFrameSize == other.maxFrameSize &&
-      ThriftyUtils::listEq(queues, other.queues) &&
-      ThriftyUtils::listEq(pgConfigs, other.pgConfigs);
 }
 
 Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}

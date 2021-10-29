@@ -87,19 +87,6 @@ SwitchStateFields::SwitchStateFields()
       switchSettings(make_shared<SwitchSettings>()),
       transceivers(make_shared<TransceiverMap>()) {}
 
-state::SwitchState SwitchStateFields::toThrift() const {
-  auto state = state::SwitchState();
-  state.portMap_ref() = ports->toThrift();
-  return state;
-}
-
-SwitchStateFields SwitchStateFields::fromThrift(
-    const state::SwitchState& state) {
-  auto fields = SwitchStateFields();
-  fields.ports = PortMap::fromThrift(state.get_portMap());
-  return fields;
-}
-
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
   switchState[kInterfaces] = interfaces->toFollyDynamic();

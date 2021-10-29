@@ -33,8 +33,6 @@ struct PortQueueFields : public ThriftyFields {
   state::PortQueueFields toThrift() const;
   static PortQueueFields fromThrift(state::PortQueueFields const&);
 
-  bool operator==(const PortQueueFields& queue) const;
-
   uint8_t id{0};
   cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
@@ -65,6 +63,24 @@ class PortQueue
     writableFields()->id = id;
   }
 
+  bool operator==(const PortQueue& queue) const {
+    // TODO(joseph5wu) Add sharedBytes
+    return getFields()->id == queue.getID() &&
+        getFields()->streamType == queue.getStreamType() &&
+        getFields()->weight == queue.getWeight() &&
+        getFields()->reservedBytes == queue.getReservedBytes() &&
+        getFields()->scalingFactor == queue.getScalingFactor() &&
+        getFields()->scheduling == queue.getScheduling() &&
+        getFields()->aqms == queue.getAqms() &&
+        getFields()->name == queue.getName() &&
+        getFields()->portQueueRate == queue.getPortQueueRate() &&
+        getFields()->bandwidthBurstMinKbits ==
+        queue.getBandwidthBurstMinKbits() &&
+        getFields()->bandwidthBurstMaxKbits ==
+        queue.getBandwidthBurstMaxKbits() &&
+        getFields()->trafficClass == queue.getTrafficClass() &&
+        getFields()->pfcPriorities == queue.getPfcPrioritySet();
+  }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
   }
