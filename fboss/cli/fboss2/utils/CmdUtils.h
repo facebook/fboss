@@ -17,6 +17,7 @@ namespace facebook::fboss::utils {
 
 enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_NONE = 0,
+  OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
   OBJECT_ARG_TYPE_ID_PORT_LIST,
 };
@@ -27,6 +28,7 @@ std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
+const std::string formatBandwidth(const unsigned long& bandwidth);
 
 void setLogLevel(std::string logLevelStr);
 

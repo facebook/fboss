@@ -56,12 +56,16 @@ void CmdSubcommands::addCommandBranch(
     if (cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
     } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST) {
+      subCmd->add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
+    } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
       subCmd->add_option("ports", args, "Port(s)");
     }
+    depth++;
   }
   for (const auto& child : cmd.subcommands) {
-    addCommandBranch(*subCmd, child, depth + 1);
+    addCommandBranch(*subCmd, child, depth);
   }
 }
 

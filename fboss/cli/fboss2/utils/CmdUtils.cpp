@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
 #include <folly/logging/LoggerDB.h>
@@ -122,6 +123,25 @@ const std::string getPrettyElapsedTime(const int64_t& start_time) {
   pretty_output += std::to_string(leftover) + "s";
 
   return pretty_output;
+}
+
+// Converts a readable representation of a link-bandwidth value
+//
+// bw_bytes_ps: must be positive number in bytes per second
+const std::string formatBandwidth(const unsigned long& bw_bytes_ps) {
+  if (!bw_bytes_ps) {
+    return "Not set";
+  }
+  const std::string suffixes[] = {"", "K", "M"};
+  // Represent the bandwidth in bits per second
+  auto bw_bits_ps = bw_bytes_ps * 8;
+  for (const auto& suffix : suffixes) {
+    if (bw_bits_ps < 1000) {
+      return folly::to<std::string>(ceil(bw_bits_ps)) + suffix + "bps";
+    }
+    bw_bits_ps /= 1000;
+  }
+  return folly::to<std::string>(ceil(bw_bits_ps)) + "Gbps";
 }
 
 } // namespace facebook::fboss::utils
