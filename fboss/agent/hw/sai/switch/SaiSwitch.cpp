@@ -680,7 +680,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       newRequiredQualifiers =
           delta.getAclsDelta().getNew()->requiredQualifiers();
     }
-    if (oldRequiredQualifiers != newRequiredQualifiers &&
+    if (!oldRequiredQualifiers.empty() &&
+        oldRequiredQualifiers != newRequiredQualifiers &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_ACL_TABLE_UPDATE) &&
         !managerTable_->aclTableManager()
@@ -688,8 +689,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       // qualifiers changed and default acl table doesn't support all of them,
       // remove default acl table and add a new one. table removal should
       // clear acl entries too
+      managerTable_->switchManager().resetIngressAcl();
       managerTable_->aclTableManager().removeDefaultAclTable();
       managerTable_->aclTableManager().addDefaultAclTable();
+      managerTable_->switchManager().setIngressAcl();
     }
 
     processDelta(
