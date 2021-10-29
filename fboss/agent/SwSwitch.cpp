@@ -993,6 +993,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   stats()->stateUpdate(duration);
+  publishToFsdb(newAppliedState);
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return newAppliedState;
 }

@@ -38,4 +38,6 @@ void SwSwitch::logSwitchRunStateChange(
   XLOG(DBG2) << logMsg;
 }
 
+void SwSwitch::publishToFsdb(
+    const std::shared_ptr<SwitchState>& /* state */) const {}
 } // namespace facebook::fboss

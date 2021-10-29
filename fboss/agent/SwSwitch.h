@@ -789,6 +789,8 @@ class SwSwitch : public HwSwitch::Callback {
       const std::shared_ptr<SwitchState>& newState,
       bool isTransaction);
 
+  void publishToFsdb(const std::shared_ptr<SwitchState>& state) const;
+
   void startThreads();
   void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
