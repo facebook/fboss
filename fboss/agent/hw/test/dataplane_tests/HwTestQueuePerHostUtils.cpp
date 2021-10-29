@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
 
@@ -251,27 +253,29 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
 }
 
 void verifyQueuePerHostMapping(
-    const HwSwitch* hwSwitch,
-    HwSwitchEnsemble* ensemble,
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    const std::vector<PortID>& portIds,
     VlanID vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
     const folly::IPAddress& dstIp,
     bool useFrontPanel,
-    bool blockNeighbor) {
+    bool blockNeighbor,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getHwPortStatsFn) {
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
   auto statBefore = utility::getAclInOutPackets(
-      hwSwitch, ensemble->getProgrammedState(), ttlAclName, ttlCounterName);
+      hwSwitch, swState, ttlAclName, ttlCounterName);
 
   std::map<int, int64_t> beforeQueueOutPkts;
   for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
+    auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
     beforeQueueOutPkts[queueId] =
-        ensemble->getLatestPortStats(ensemble->masterLogicalPortIds()[0])
-            .get_queueOutPackets_()
-            .at(queueId);
+        hwPortStatsMap[portIds[0]].get_queueOutPackets_().at(queueId);
   }
 
   auto txPacket = utility::createUdpPkt(
@@ -296,21 +300,30 @@ void verifyQueuePerHostMapping(
       128 /* ttl >= 128 */);
 
   if (useFrontPanel) {
-    ensemble->ensureSendPacketOutOfPort(
-        std::move(txPacket), PortID(ensemble->masterLogicalPortIds()[1]));
-    ensemble->ensureSendPacketOutOfPort(
-        std::move(txPacket2), PortID(ensemble->masterLogicalPortIds()[1]));
+    utility::ensureSendPacketOutOfPort(
+        hwSwitch,
+        std::move(txPacket),
+        PortID(portIds[1]),
+        portIds,
+        getHwPortStatsFn);
+    utility::ensureSendPacketOutOfPort(
+        hwSwitch,
+        std::move(txPacket2),
+        PortID(portIds[1]),
+        portIds,
+        getHwPortStatsFn);
   } else {
-    ensemble->ensureSendPacketSwitched(std::move(txPacket));
-    ensemble->ensureSendPacketSwitched(std::move(txPacket2));
+    utility::ensureSendPacketSwitched(
+        hwSwitch, std::move(txPacket), portIds, getHwPortStatsFn);
+    utility::ensureSendPacketSwitched(
+        hwSwitch, std::move(txPacket2), portIds, getHwPortStatsFn);
   }
 
   std::map<int, int64_t> afterQueueOutPkts;
   for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
+    auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
     afterQueueOutPkts[queueId] =
-        ensemble->getLatestPortStats(ensemble->masterLogicalPortIds()[0])
-            .get_queueOutPackets_()
-            .at(queueId);
+        hwPortStatsMap[portIds[0]].get_queueOutPackets_().at(queueId);
   }
 
   /*
@@ -352,7 +365,7 @@ void verifyQueuePerHostMapping(
   }
 
   auto statAfter = utility::getAclInOutPackets(
-      hwSwitch, ensemble->getProgrammedState(), ttlAclName, ttlCounterName);
+      hwSwitch, swState, ttlAclName, ttlCounterName);
 
   if (blockNeighbor) {
     // if the neighbor is blocked, all pkts are dropped
@@ -363,6 +376,36 @@ void verifyQueuePerHostMapping(
      */
     EXPECT_EQ(statAfter - statBefore, 1);
   }
+}
+
+void verifyQueuePerHostMapping(
+    const HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
+    VlanID vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor) {
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return ensemble->getLatestPortStats(portIds);
+  };
+
+  verifyQueuePerHostMapping(
+      const_cast<HwSwitch*>(hwSwitch),
+      ensemble->getProgrammedState(),
+      ensemble->masterLogicalPortIds(),
+      vlanId,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      useFrontPanel,
+      blockNeighbor,
+      getPortStats);
 }
 
 } // namespace facebook::fboss::utility

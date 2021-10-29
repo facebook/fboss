@@ -22,6 +22,7 @@
 namespace facebook::fboss {
 class HwSwitch;
 class HwSwitchEnsemble;
+class SwitchState;
 } // namespace facebook::fboss
 
 namespace folly {
@@ -53,6 +54,18 @@ std::string getTtlAclTableName();
 
 std::string getQueuePerHostTtlAclName();
 std::string getQueuePerHostTtlCounterName();
+
+void verifyQueuePerHostMapping(
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    const std::vector<PortID>& portIds,
+    VlanID vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor);
 
 void verifyQueuePerHostMapping(
     const HwSwitch* hwSwitch,

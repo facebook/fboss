@@ -236,8 +236,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void addOrUpdateCounter(const PortID& port, const bool deadlock);
   void clearPfcWatchdogCounter(const PortID& port, const bool deadlock);
   int readPfcWatchdogCounter(const PortID& port, const bool deadlock);
-  bool waitForAnyPorAndQueutOutBytesIncrement(
-      const std::map<PortID, HwPortStats>& originalPortStats);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;

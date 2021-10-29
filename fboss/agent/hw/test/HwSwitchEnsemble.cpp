@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
 
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -241,36 +242,49 @@ void HwSwitchEnsemble::createEqualDistributedUplinkDownlinks(
 }
 
 bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
-  auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
-  bool result = getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
-  return result && waitForAnyPorAndQueutOutBytesIncrement(originalPortStats);
+  // lambda that returns HwPortStats for the given port(s)
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+
+  return utility::ensureSendPacketSwitched(
+      getHwSwitch(), std::move(pkt), masterLogicalPortIds(), getPortStats);
 }
 
 bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queue) {
-  auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
-  bool result =
-      getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), portID, queue);
-  return result && waitForAnyPorAndQueutOutBytesIncrement(originalPortStats);
+  // lambda that returns HwPortStats for the given port(s)
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+  return utility::ensureSendPacketOutOfPort(
+      getHwSwitch(),
+      std::move(pkt),
+      portID,
+      masterLogicalPortIds(),
+      getPortStats,
+      queue);
 }
 
 bool HwSwitchEnsemble::waitPortStatsCondition(
     std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
-  auto newPortStats = getLatestPortStats(masterLogicalPortIds());
-  while (retries--) {
-    // TODO(borisb): exponential backoff!
-    if (conditionFn(newPortStats)) {
-      return true;
-    }
-    std::this_thread::sleep_for(msBetweenRetry);
-    newPortStats = getLatestPortStats(masterLogicalPortIds());
-  }
-  XLOG(DBG3) << "Awaited port stats condition was never satisfied";
-  return false;
+  // lambda that returns HwPortStats for the given port(s)
+  auto getPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+  return utility::waitPortStatsCondition(
+      conditionFn,
+      masterLogicalPortIds(),
+      retries,
+      msBetweenRetry,
+      getPortStatsFn);
 }
 
 HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
@@ -299,40 +313,6 @@ HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
     AggregatePortID aggregatePort) {
   return getLatestAggregatePortStats(
       std::vector<AggregatePortID>{aggregatePort})[aggregatePort];
-}
-
-bool HwSwitchEnsemble::waitForAnyPorAndQueutOutBytesIncrement(
-    const std::map<PortID, HwPortStats>& originalPortStats) {
-  auto queueStatsSupported =
-      platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
-  auto conditionFn = [&originalPortStats,
-                      queueStatsSupported](const auto& newPortStats) {
-    for (const auto& [portId, portStat] : originalPortStats) {
-      auto newPortStatItr = newPortStats.find(portId);
-      if (newPortStatItr != newPortStats.end()) {
-        if (*newPortStatItr->second.outBytes__ref() >
-            portStat.outBytes__ref()) {
-          // Wait for queue stat increment if queues are supported
-          // on this platform
-          if (!queueStatsSupported ||
-              std::any_of(
-                  portStat.queueOutBytes__ref()->begin(),
-                  portStat.queueOutBytes__ref()->end(),
-                  [newPortStatItr](auto queueAndBytes) {
-                    auto [qid, oldQbytes] = queueAndBytes;
-                    const auto newQueueStats =
-                        newPortStatItr->second.queueOutBytes__ref();
-                    return newQueueStats->find(qid)->second > oldQbytes;
-                  })) {
-            return true;
-          }
-        }
-      }
-    }
-    XLOG(DBG3) << "No port stats increased yet";
-    return false;
-  };
-  return waitPortStatsCondition(conditionFn);
 }
 
 void HwSwitchEnsemble::setupEnsemble(
