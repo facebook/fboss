@@ -76,12 +76,14 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::TTL_1:
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_TTL_ERROR, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::MPLS_TTL_1:
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_MPLS_TTL_ERROR, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
     case cfg::PacketRxReason::L3_DEST_MISS:
     case cfg::PacketRxReason::UNMATCHED:
-    case cfg::PacketRxReason::MPLS_TTL_1:
-    case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
       break;
   }
   throw FbossError("invalid packet reason: ", reason);
@@ -112,6 +114,8 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
       return cfg::PacketRxReason::L3_MTU_ERROR;
     case SAI_HOSTIF_TRAP_TYPE_TTL_ERROR:
       return cfg::PacketRxReason::TTL_1;
+    case SAI_HOSTIF_TRAP_TYPE_MPLS_TTL_ERROR:
+      return cfg::PacketRxReason::MPLS_TTL_1;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }
