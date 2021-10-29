@@ -751,6 +751,8 @@ enum PacketRxReason {
   BGPV6 = 12, // V6 BGP
   LACP = 13, // LACP, Slow Protocol
   L3_MTU_ERROR = 14, // Packet size exceeds L3 MTU
+  MPLS_TTL_1 = 15, // SAI only for MPLS packet with TTL is 1
+  MPLS_UNKNOWN_LABEL = 16, // SAI only for MPLS packet with unprogrammed label
 }
 
 enum PortLoopbackMode {

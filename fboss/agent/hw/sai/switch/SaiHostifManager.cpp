@@ -80,6 +80,8 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::L3_SLOW_PATH:
     case cfg::PacketRxReason::L3_DEST_MISS:
     case cfg::PacketRxReason::UNMATCHED:
+    case cfg::PacketRxReason::MPLS_TTL_1:
+    case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
       break;
   }
   throw FbossError("invalid packet reason: ", reason);
