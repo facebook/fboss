@@ -85,7 +85,8 @@ class HwAsic {
     FEC_DIAG_COUNTERS,
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
     SAI_ACL_TABLE_UPDATE,
-    PORT_EYE_VALUES
+    PORT_EYE_VALUES,
+    SAI_MPLS_TTL_1_TRAP,
   };
 
   enum class AsicType {

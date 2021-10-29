@@ -86,6 +86,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
+    case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
       return false;
   }
   return false;
