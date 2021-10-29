@@ -16,6 +16,7 @@
 #include <folly/Memory.h>
 #include <folly/dynamic.h>
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AclTableGroupMap.h"
@@ -51,7 +52,7 @@ class QcmCfg;
 class BufferPoolCfg;
 class BufferPoolCfgMap;
 
-struct SwitchStateFields {
+struct SwitchStateFields : public ThriftyFields {
   SwitchStateFields();
 
   template <typename Fn>
@@ -72,6 +73,15 @@ struct SwitchStateFields {
     fn(switchSettings.get());
     fn(transceivers.get());
   }
+
+  state::SwitchState toThrift() const {
+    return state::SwitchState();
+  }
+
+  static SwitchStateFields fromThrift(const state::SwitchState state) {
+    return SwitchStateFields();
+  }
+
   /*
    * Serialize to folly::dynamic
    */
@@ -166,6 +176,16 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
    */
   SwitchState();
   ~SwitchState() override;
+
+  state::SwitchState toThrift() const {
+    return this->getFields()->toThrift();
+  }
+
+  static std::shared_ptr<SwitchState> fromThrift(
+      const state::SwitchState& obj) {
+    auto fields = SwitchStateFields::fromThrift(obj);
+    return std::make_shared<SwitchState>(fields);
+  }
 
   static std::shared_ptr<SwitchState> fromFollyDynamic(
       const folly::dynamic& json) {

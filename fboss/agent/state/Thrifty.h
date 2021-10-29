@@ -5,6 +5,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <type_traits>
 
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -48,6 +49,18 @@ class ThriftyUtils {
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
 };
 
+class ThriftyFields {
+ public:
+  //  migrateTo does not modify dyn so we don't have to change the call sites of
+  //  fromFollyDynamic, migrateFrom does not have this limitation
+  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
+    return dyn;
+  }
+  static void migrateFromThrifty(folly::dynamic& dyn) {
+    dyn[ThriftyUtils::kThriftySchemaUpToDate] = true;
+  }
+};
+
 //
 // Special version of NodeBaseT that features methods to convert
 // object to/from JSON using Thrift serializers. For this to work
@@ -55,10 +68,20 @@ class ThriftyUtils {
 //
 // TODO: in future, FieldsT and ThrifT should be one type
 //
-template <typename ThriftT, typename NodeT, typename FieldsT>
+template <
+    typename ThriftT,
+    typename NodeT,
+    typename FieldsT,
+    typename =
+        std::enable_if_t<std::is_base_of_v<ThriftyFields, FieldsT>, void>>
 class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
  public:
   using NodeBaseT<NodeT, FieldsT>::NodeBaseT;
+
+  static std::shared_ptr<NodeT> fromThrift(const ThriftT& obj) {
+    auto fields = FieldsT::fromThrift(obj);
+    return std::make_shared<NodeT>(fields);
+  }
 
   static std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
     if (dyn.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false).asBool()) {
@@ -74,12 +97,15 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
         folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
     auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
         folly::io::Cursor{&inBuf});
-    auto fields = FieldsT::fromThrift(obj);
-    return std::make_shared<NodeT>(fields);
+    return ThriftyBaseT::fromThrift(obj);
+  }
+
+  ThriftT toThrift() const {
+    return this->getFields()->toThrift();
   }
 
   std::string str() const {
-    auto obj = this->getFields()->toThrift();
+    auto obj = this->toThrift();
     std::string jsonStr;
     apache::thrift::SimpleJSONSerializer::serialize(obj, &jsonStr);
     return jsonStr;
@@ -89,18 +115,6 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
     auto dyn = folly::parseJson(this->str());
     FieldsT::migrateFromThrifty(dyn);
     return dyn;
-  }
-};
-
-class ThriftyFields {
- public:
-  //  migrateTo does not modify dyn so we don't have to change the call sites of
-  //  fromFollyDynamic, migrateFrom does not have this limitation
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
-    return dyn;
-  }
-  static void migrateFromThrifty(folly::dynamic& dyn) {
-    dyn[ThriftyUtils::kThriftySchemaUpToDate] = true;
   }
 };
 } // namespace facebook::fboss

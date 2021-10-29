@@ -142,3 +142,6 @@ struct AclEntryFields {
   24: switch_config.AclActionType actionType = switch_config.AclActionType.PERMIT;
   25: optional MatchAction aclAction;
 }
+
+struct SwitchState {
+}
