@@ -7,13 +7,12 @@ import enum
 import re
 import typing as t
 from datetime import datetime, timedelta
-from getpass import getuser
 
 import MySQLdb
-import paramiko
 from libfb.py.employee import get_current_unix_user_fbid
 from neteng.fboss.phy.phy.types import PhyInfo, LinkSnapshot
 from neteng.fboss.transceiver.types import TransceiverInfo
+from remcmd.simple.remremcmd import simple_run
 from rfe.client_py3 import get_client as get_rfe_client
 from rfe.RockfortExpress.types import QueryCommon
 from thrift.py3 import deserialize, Protocol
@@ -42,6 +41,7 @@ SNAPSHOT_REGEX = (
 DEFAULT_TIME_RANGE = timedelta(hours=1)
 FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS = 45
 FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' /var/facebook/logs/fboss/archive/network_events.log-*.gz /var/facebook/logs/network_events.log | grep {} | grep -v sshd"
+BYTES_STDOUT_LIMIT = 10000000
 
 
 class Backend(enum.Enum):
@@ -148,7 +148,6 @@ class SnapshotClient:
 
     # TODO(ccpowers): We can remove this once Scuba resolves their issue
     # with OOM errors (T102995533 and T102701121)
-    # Most of this code is copied from tech_support.py
     async def fetch_snapshots_in_timespan_via_ssh(
         self,
         hostname: str,
@@ -156,32 +155,30 @@ class SnapshotClient:
         time_start: datetime,
         time_end: datetime,
     ) -> SnapshotCollection:
-        keyfile = f"/var/facebook/credentials/{getuser()}/ssh/id_rsa-cert.pub"
-        ssh_conn = paramiko.SSHClient()
-        ssh_conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_conn.connect(
-            hostname=hostname,
-            username="netops",
-            password=None,
-            key_filename=keyfile,
-        )
         cmd = FETCH_SNAPSHOT_LOG_COMMAND.format(port_name)
-        print("Running cmd:", cmd)
-        stdin, stdout, stderr = ssh_conn.exec_command(
-            cmd,
-            timeout=FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS,
-        )
 
-        stdin.flush()
-        output = stdout.read()
-        stderr.read()
-        exit_status = stdout.channel.recv_exit_status()
-        if exit_status != 0:
+        job_result = await simple_run(
+            "ngt_link_triage",
+            hosts=[hostname],
+            shell_cmd=cmd,
+            timeout=FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS,
+            raise_ex=False,
+            run_as="netops",
+            stdout_max_bytes=BYTES_STDOUT_LIMIT,
+        )
+        print("Running cmd:", cmd)
+        if not job_result.results:
             raise Exception(
-                f"Fetch snapshot command exited with error code {exit_status}. Stderr: {stderr.read()}"
+                f"No job results to compile snapshot,  Status: {job_result.status} Fails: {job_result.tasks_failed} Unknown: {job_result.tasks_unknown}"
             )
-        output = output.decode("utf-8", "replace").strip()
-        collection = await self.process_snapshot_lines(output.split("\n"))
+        output = job_result.results[0]
+        stdout = output.stdout.strip()
+
+        if output.exit_code:
+            raise Exception(
+                f"Fetch snapshot command exited with error code {output.exit_code}.\nStderr: {output.stderr}\nRemCmd Exception: {output.ex}"
+            )
+        collection = await self.process_snapshot_lines(stdout.split("\n"))
 
         iphy, xphy, tcvr = collection.unpack()
         iphy = filter_timeseries(iphy, time_start, time_end)

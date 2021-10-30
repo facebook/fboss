@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 
 import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
 from fboss.lib.link_snapshots.snapshot_lib import SNAPSHOT_FORMAT, Backend
-from later.unittest.mock import AsyncContextManager, AsyncMock, patch, Mock
+from later.unittest.mock import AsyncContextManager, AsyncMock, patch
+from libfb.py.asyncio.await_utils import await_sync
 from libfb.py.asyncio.unittest import TestCase
 from neteng.fboss.phy.phy.types import (
     LinkSnapshot,
@@ -14,6 +15,7 @@ from neteng.fboss.phy.phy.types import (
     Side,
 )
 from neteng.fboss.transceiver.types import TransceiverInfo
+from remcmd.thrift.remcmd import types as remcmd_types
 from RockfortExpress import RockfortExpress as rfe
 from thrift.py3 import serialize, Protocol
 
@@ -51,7 +53,37 @@ def build_transceiver_snapshot(timestamp: int, tcvr_id: int) -> LinkSnapshot:
 
 
 class SnapshotLibTest(TestCase):
-    async def mock_snapshots(self, mock_get_rfe_client, mock_ssh_client):
+    def setUp(self) -> None:
+        super().setUp()
+        # snapshot client
+        self.client = await_sync(snapshot_lib.get_client())
+        self.snapshot_lines = self.mock_snapshots()
+        self.unprocessed_snapshots = "\n".join(self.snapshot_lines)
+
+        self.mock_job_result = remcmd_types.JobResult(
+            status=remcmd_types.JobStatus.FINISHED,
+            results=[
+                remcmd_types.TaskResult(
+                    stderr="task results test stderr",
+                    stdout="\n".join(self.snapshot_lines),
+                    exit_code=0,
+                    status=remcmd_types.TaskStatus.FINISHED,
+                )
+            ],
+            tasks_failed=0,
+            tasks_succeeded=0,
+            tasks_remaining=0,
+            tasks_total=1,
+            tasks_unknown=0,
+        )
+
+        # mock Scuba
+        self.rfe_client = AsyncMock()
+        self.rfe_client.querySQL.return_value = rfe.SQLQueryResult(
+            value=[[snapshot_line] for snapshot_line in self.snapshot_lines]
+        )
+
+    def mock_snapshots(self) -> t.List[str]:
         mock_snapshots = []
         base_timestamp = int(datetime.now().timestamp())
         for i in range(NUM_SNAPSHOTS):
@@ -72,45 +104,32 @@ class SnapshotLibTest(TestCase):
             for snapshot in mock_snapshots
         ]
 
-        # mock scuba
-        rfe_client = AsyncMock()
-        rfe_client.querySQL.return_value = rfe.SQLQueryResult(
-            value=[[snapshot_line] for snapshot_line in snapshot_lines]
+        return snapshot_lines
+
+    async def test_snapshot_types(self):
+        collection = await self.client.process_snapshot_lines(
+            self.unprocessed_snapshots.split("\n")
         )
-        mock_get_rfe_client.return_value = AsyncContextManager(
-            return_value=rfe_client, instance=True
-        )
+        iphy, xphy, tcvr = collection.unpack()
+        iphy_list = list(iphy.items())
+        time, snapshot = iphy_list[0]
+        self.assertTrue(type(snapshot) is PhyInfo or type(snapshot) is TransceiverInfo)
+        self.assertTrue(type(time) is int)
 
-        # mock ssh
-
-        mock_stdout = Mock()
-        mock_stdout.channel.recv_exit_status.return_value = 0
-        mock_stdout.read.return_value = "\n".join(snapshot_lines).encode()
-        mock_ssh_client.return_value.exec_command.return_value = [
-            Mock(),
-            mock_stdout,
-            Mock(),
-        ]
-
-        return await snapshot_lib.get_client()
-
-    @patch("fboss.lib.link_snapshots.snapshot_lib.paramiko.SSHClient")
+    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
-    async def test_fetch_recent_snapshots(self, mock_get_rfe_client, mock_ssh_client):
-        def check_snapshots(snapshots: t.Mapping[int, t.Any]):
-            for i in range(NUM_SNAPSHOTS):
-                self.assertTrue(i in snapshots)
-                snapshot = snapshots[i]
-                self.assertTrue(snapshot is PhyInfo or snapshot is TransceiverInfo)
-                self.assertEqual(snapshot.timeCollected, i)
-
-        client = await self.mock_snapshots(mock_get_rfe_client, mock_ssh_client)
+    async def test_fetch_recent_snapshots(
+        self, mock_get_rfe_client, mock_ssh_collection
+    ):
+        mock_get_rfe_client.return_value = AsyncContextManager(
+            return_value=self.rfe_client, instance=True
+        )
 
         # Test scuba
 
         # We're using fetch_recent_snapshots for simplicity. We dont go to an
         # actual SQL engine so we never check the timestamps in these tests
-        snapshot_collection = await client.fetch_recent_snapshots(
+        snapshot_collection = await self.client.fetch_recent_snapshots(
             HOSTNAME, PORT_NAME, backend=Backend.SCUBA
         )
         iphy_snapshots, xphy_snapshots, tcvr_snapshots = snapshot_collection.unpack()
@@ -120,7 +139,9 @@ class SnapshotLibTest(TestCase):
         self.assertEqual(len(tcvr_snapshots), NUM_SNAPSHOTS)
 
         # test ssh
-        snapshot_collection = await client.fetch_recent_snapshots(
+        mock_ssh_collection.return_value = self.mock_job_result
+
+        snapshot_collection = await self.client.fetch_recent_snapshots(
             HOSTNAME, PORT_NAME, backend=Backend.SSH
         )
         iphy_snapshots, xphy_snapshots, tcvr_snapshots = snapshot_collection.unpack()
@@ -129,56 +150,56 @@ class SnapshotLibTest(TestCase):
         self.assertEqual(len(xphy_snapshots), NUM_SNAPSHOTS)
         self.assertEqual(len(tcvr_snapshots), NUM_SNAPSHOTS)
 
-    @patch("fboss.lib.link_snapshots.snapshot_lib.paramiko.SSHClient")
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
-    async def test_fetch_snapshots_around_time(
-        self, mock_get_rfe_client, mock_ssh_client
-    ):
-        client = await self.mock_snapshots(mock_get_rfe_client, mock_ssh_client)
-
-        # via scuba
-
+    async def test_fetch_snapshots_around_time_scuba(self, mock_get_rfe_client) -> None:
+        mock_get_rfe_client.return_value = AsyncContextManager(
+            return_value=self.rfe_client, instance=True
+        )
         # test default param
-        await client.fetch_snapshots_around_time(
+        res = await self.client.fetch_snapshots_around_time(
             HOSTNAME, PORT_NAME, datetime.now(), backend=Backend.SCUBA
         )
+        self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
 
         # test non-default param
-        await client.fetch_snapshots_around_time(
+        res = await self.client.fetch_snapshots_around_time(
             HOSTNAME,
             PORT_NAME,
             datetime.now(),
             timedelta(seconds=1),
             backend=Backend.SCUBA,
         )
+        self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
 
-        # via ssh
+    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
+    async def test_fetch_snapshots_around_time_onbox(self, mock_ssh_collection) -> None:
+        mock_ssh_collection.return_value = self.mock_job_result
 
-        # test default param
-        await client.fetch_snapshots_around_time(
+        res = await self.client.fetch_snapshots_around_time(
             HOSTNAME, PORT_NAME, datetime.now(), backend=Backend.SSH
         )
+        self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
 
         # test non-default param
-        await client.fetch_snapshots_around_time(
+        res = await self.client.fetch_snapshots_around_time(
             HOSTNAME,
             PORT_NAME,
             datetime.now(),
             timedelta(seconds=1),
             backend=Backend.SSH,
         )
+        self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
 
-    @patch("fboss.lib.link_snapshots.snapshot_lib.paramiko.SSHClient")
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
-    async def test_fetch_snapshots_in_timespan(
-        self, mock_get_rfe_client, mock_ssh_client
-    ):
-        client = await self.mock_snapshots(mock_get_rfe_client, mock_ssh_client)
-
-        await client.fetch_snapshots_in_timespan(
-            HOSTNAME, PORT_NAME, datetime.now(), datetime.now(), backend=Backend.SCUBA
+    async def test_fetch_snapshots_in_timespan_scuba(self, mock_get_rfe_client) -> None:
+        mock_get_rfe_client.return_value = AsyncContextManager(
+            return_value=self.rfe_client, instance=True
         )
-
-        await client.fetch_snapshots_in_timespan(
-            HOSTNAME, PORT_NAME, datetime.now(), datetime.now(), backend=Backend.SSH
+        res = await self.client.fetch_snapshots_around_time(
+            HOSTNAME,
+            PORT_NAME,
+            datetime.now(),
+            timedelta(seconds=0),
+            backend=Backend.SCUBA,
         )
+        self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
