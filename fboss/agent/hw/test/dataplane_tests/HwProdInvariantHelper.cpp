@@ -114,36 +114,12 @@ PortID HwProdInvariantHelper::getDownlinkPort() {
       .second[0];
 }
 
-void HwProdInvariantHelper::sendAndVerifyPkts(
-    uint16_t destPort,
-    uint8_t queueId) {
-  auto sendPkts = [this, destPort] {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intf =
-        getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanId);
-    auto intfMac = intf->getMac();
-    utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
-    auto dstIp = intf->getAddresses().begin()->first;
-    utility::sendTcpPkts(
-        ensemble_->getHwSwitch(),
-        1 /*numPktsToSend*/,
-        vlanId,
-        intfMac,
-        dstIp,
-        utility::kNonSpecialPort1,
-        destPort,
-        getDownlinkPort());
-  };
-
-  utility::sendPktAndVerifyCpuQueue(
-      ensemble_->getHwSwitch(), queueId, sendPkts, 1);
-}
-
 void HwProdInvariantHelper::verifyCopp() {
-  sendAndVerifyPkts(
-      utility::kBgpPort,
-      utility::getCoppHighPriQueueId(ensemble_->getPlatform()->getAsic()));
-  sendAndVerifyPkts(utility::kNonSpecialPort2, utility::kCoppMidPriQueueId);
+  utility::verifyCoppInvariantHelper(
+      ensemble_->getHwSwitch(),
+      ensemble_->getPlatform()->getAsic(),
+      getProgrammedState(),
+      getDownlinkPort());
 }
 
 // two ways to get the ECMP ports

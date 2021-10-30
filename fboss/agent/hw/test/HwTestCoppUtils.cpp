@@ -13,6 +13,8 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 namespace {
@@ -419,6 +421,51 @@ uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
       (queueIter != hwPortStats.queueWatermarkBytes__ref()->end())
           ? queueIter->second
           : 0);
+}
+
+void sendAndVerifyPkts(
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort) {
+  auto sendPkts = [&] {
+    auto vlanId = utility::firstVlanID(swState);
+    auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
+    auto intfMac = intf->getMac();
+    utility::getInterfaceMac(swState, vlanId);
+    auto dstIp = intf->getAddresses().begin()->first;
+    utility::sendTcpPkts(
+        hwSwitch,
+        1 /*numPktsToSend*/,
+        vlanId,
+        intfMac,
+        dstIp,
+        utility::kNonSpecialPort1,
+        destPort,
+        srcPort);
+  };
+
+  sendPktAndVerifyCpuQueue(hwSwitch, queueId, sendPkts, 1);
+}
+
+void verifyCoppInvariantHelper(
+    HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort) {
+  sendAndVerifyPkts(
+      hwSwitch,
+      swState,
+      utility::kBgpPort,
+      utility::getCoppHighPriQueueId(hwAsic),
+      srcPort);
+  sendAndVerifyPkts(
+      hwSwitch,
+      swState,
+      utility::kNonSpecialPort2,
+      utility::kCoppMidPriQueueId,
+      srcPort);
 }
 
 } // namespace facebook::fboss::utility

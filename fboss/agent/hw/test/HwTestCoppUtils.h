@@ -27,6 +27,7 @@
 namespace facebook::fboss {
 class HwPortStats;
 class HwSwitch;
+class SwitchState;
 
 namespace utility {
 
@@ -169,6 +170,19 @@ void sendPktAndVerifyCpuQueue(
              << ", after pkts:" << afterOutPkts;
   EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
 }
+
+void sendAndVerifyPkts(
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort);
+
+void verifyCoppInvariantHelper(
+    HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort);
 
 } // namespace utility
 } // namespace facebook::fboss
