@@ -488,8 +488,8 @@ void updatePortSpeed(
     throw FbossError("No profile ", profileID, " found for port ", portID);
   }
   cfgPort->profileID_ref() = profileID;
-  removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
   cfgPort->speed_ref() = speed;
+  removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
 }
 
 std::vector<cfg::Port>::iterator findCfgPort(
