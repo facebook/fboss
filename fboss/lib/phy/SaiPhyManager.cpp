@@ -415,15 +415,77 @@ mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
     mka::MacsecDirection direction,
     bool readFromHw) {
   auto macsecStats = getMacsecStats(portName, readFromHw);
-  // TODO: sum stats across SCIs
+
+  // Consolidate the stats from all the SCI
+  auto sumFlowStats = [](std::vector<MacsecSciFlowStats>& sciFlowStats)
+      -> mka::MacsecFlowStats {
+    mka::MacsecFlowStats returnFlowStats{};
+    for (auto& singleFlowStat : sciFlowStats) {
+      returnFlowStats.ucastUncontrolledPkts_ref() =
+          returnFlowStats.ucastUncontrolledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->ucastUncontrolledPkts_ref().value();
+      returnFlowStats.ucastControlledPkts_ref() =
+          returnFlowStats.ucastControlledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->ucastControlledPkts_ref().value();
+      returnFlowStats.mcastUncontrolledPkts_ref() =
+          returnFlowStats.mcastUncontrolledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->mcastUncontrolledPkts_ref().value();
+      returnFlowStats.mcastControlledPkts_ref() =
+          returnFlowStats.mcastControlledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->mcastControlledPkts_ref().value();
+      returnFlowStats.bcastUncontrolledPkts_ref() =
+          returnFlowStats.bcastUncontrolledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->bcastUncontrolledPkts_ref().value();
+      returnFlowStats.bcastControlledPkts_ref() =
+          returnFlowStats.bcastControlledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->bcastControlledPkts_ref().value();
+      returnFlowStats.controlPkts_ref() =
+          returnFlowStats.controlPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->controlPkts_ref().value();
+      returnFlowStats.untaggedPkts_ref() =
+          returnFlowStats.untaggedPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->untaggedPkts_ref().value();
+      returnFlowStats.otherErrPkts_ref() =
+          returnFlowStats.otherErrPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->otherErrPkts_ref().value();
+      returnFlowStats.octetsUncontrolled_ref() =
+          returnFlowStats.octetsUncontrolled_ref().value() +
+          singleFlowStat.flowStats_ref()->octetsUncontrolled_ref().value();
+      returnFlowStats.octetsControlled_ref() =
+          returnFlowStats.octetsControlled_ref().value() +
+          singleFlowStat.flowStats_ref()->octetsControlled_ref().value();
+      returnFlowStats.outCommonOctets_ref() =
+          returnFlowStats.outCommonOctets_ref().value() +
+          singleFlowStat.flowStats_ref()->outCommonOctets_ref().value();
+      returnFlowStats.outTooLongPkts_ref() =
+          returnFlowStats.outTooLongPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->outTooLongPkts_ref().value();
+      returnFlowStats.inTaggedControlledPkts_ref() =
+          returnFlowStats.inTaggedControlledPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->inTaggedControlledPkts_ref().value();
+      returnFlowStats.inNoTagPkts_ref() =
+          returnFlowStats.inNoTagPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->inNoTagPkts_ref().value();
+      returnFlowStats.inBadTagPkts_ref() =
+          returnFlowStats.inBadTagPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->inBadTagPkts_ref().value();
+      returnFlowStats.noSciPkts_ref() =
+          returnFlowStats.noSciPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->noSciPkts_ref().value();
+      returnFlowStats.unknownSciPkts_ref() =
+          returnFlowStats.unknownSciPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->unknownSciPkts_ref().value();
+      returnFlowStats.overrunPkts_ref() =
+          returnFlowStats.overrunPkts_ref().value() +
+          singleFlowStat.flowStats_ref()->overrunPkts_ref().value();
+    }
+    return returnFlowStats;
+  };
+
   if (direction == mka::MacsecDirection::INGRESS) {
-    return macsecStats.ingressFlowStats_ref()->size()
-        ? macsecStats.ingressFlowStats_ref()->begin()->second
-        : mka::MacsecFlowStats{};
+    return sumFlowStats(macsecStats.ingressFlowStats_ref().value());
   } else {
-    return macsecStats.egressFlowStats_ref()->size()
-        ? macsecStats.egressFlowStats_ref()->begin()->second
-        : mka::MacsecFlowStats{};
+    return sumFlowStats(macsecStats.egressFlowStats_ref().value());
   }
 }
 

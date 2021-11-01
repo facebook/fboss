@@ -5,11 +5,16 @@ include "fboss/mka_service/if/mka_structs.thrift"
 
 const i64 STAT_UNINITIALIZED = -1;
 
+struct MacsecSciFlowStats {
+  1: mka_structs.MKASci sci;
+  2: mka_structs.MacsecFlowStats flowStats;
+}
+
 struct MacsecStats {
   1: mka_structs.MacsecPortStats ingressPortStats;
   2: mka_structs.MacsecPortStats egressPortStats;
-  3: map<mka_structs.MKASci, mka_structs.MacsecFlowStats> ingressFlowStats;
-  4: map<mka_structs.MKASci, mka_structs.MacsecFlowStats> egressFlowStats;
+  3: list<MacsecSciFlowStats> ingressFlowStats;
+  4: list<MacsecSciFlowStats> egressFlowStats;
   // Secure association stats
   5: map<
     mka_structs.MKASecureAssociationId,

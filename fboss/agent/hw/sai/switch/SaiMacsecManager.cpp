@@ -1162,7 +1162,7 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     // updated macsecStats flow stats map. This will take care of
     // removing any flows that have been deleted since last stat
     // collection
-    std::map<mka::MKASci, mka::MacsecFlowStats> newFlowStats;
+    std::vector<MacsecSciFlowStats> newFlowStats;
     std::map<mka::MKASecureAssociationId, mka::MacsecSaStats> newSaStats;
     auto& flowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
         ? *macsecStats.ingressFlowStats_ref()
@@ -1194,14 +1194,26 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       macsecSc.second->flow->updateStats<SaiMacsecFlowTraits>();
       auto curFlowStats =
           fillFlowStats(macsecSc.second->flow->getStats(), direction);
-      auto prevFlowStatsItr = flowStats.find(sci);
-      updateMacsecPortStats(
-          prevFlowStatsItr == flowStats.end()
-              ? std::nullopt
-              : std::optional<mka::MacsecFlowStats>(prevFlowStatsItr->second),
-          curFlowStats,
-          macsecPortStats);
-      newFlowStats[sci] = std::move(curFlowStats);
+
+      // Find flowStats for a given sci
+      auto findFlowStats =
+          [](const std::vector<MacsecSciFlowStats>& flowStats,
+             mka::MKASci sci) -> std::optional<mka::MacsecFlowStats> {
+        for (const auto& flowStat : flowStats) {
+          if (flowStat.sci_ref().value() == sci) {
+            return flowStat.flowStats_ref().value();
+          }
+        }
+        return std::nullopt;
+      };
+
+      auto prevFlowStats = findFlowStats(flowStats, sci);
+      updateMacsecPortStats(prevFlowStats, curFlowStats, macsecPortStats);
+
+      MacsecSciFlowStats singleFlowStats;
+      singleFlowStats.sci_ref() = sci;
+      singleFlowStats.flowStats_ref() = curFlowStats;
+      newFlowStats.push_back(singleFlowStats);
     }
     flowStats = std::move(newFlowStats);
     saStats = std::move(newSaStats);
