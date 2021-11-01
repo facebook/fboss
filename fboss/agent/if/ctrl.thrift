@@ -600,6 +600,7 @@ enum HwObjectType {
   DEBUG_COUNTER = 19,
   TELEMETRY = 20,
   LABEL_ENTRY = 21,
+  MACSEC = 22,
 }
 
 exception FbossFibUpdateError {

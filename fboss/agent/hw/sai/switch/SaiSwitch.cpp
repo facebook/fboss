@@ -2178,6 +2178,13 @@ std::string SaiSwitch::listObjects(
       case HwObjectType::LABEL_ENTRY:
         objTypes.push_back(SAI_OBJECT_TYPE_INSEG_ENTRY);
         break;
+      case HwObjectType::MACSEC:
+        objTypes.push_back(SAI_OBJECT_TYPE_MACSEC);
+        objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_PORT);
+        objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_FLOW);
+        objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_SC);
+        objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_SA);
+        break;
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);

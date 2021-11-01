@@ -46,7 +46,7 @@ SAI_ATTRIBUTE_NAME(Macsec, Direction)
 SAI_ATTRIBUTE_NAME(Macsec, PhysicalBypass)
 
 struct SaiMacsecPortTraits {
-  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC;
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MACSEC_PORT;
   using SaiApiT = MacsecApi;
   struct Attributes {
     using EnumType = sai_macsec_port_attr_t;

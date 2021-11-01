@@ -45,13 +45,14 @@ SaiAclTableManager::SaiAclTableManager(
           platform->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {}
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
-    const std::shared_ptr<AclTable>& /*addedAclTable*/) {
-  return {};
+    const std::shared_ptr<AclTable>& /* addedAclTable */) {
+  std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION};
+  return actionTypeList;
 }
 
-std::set<cfg::AclTableQualifier> getQualifierSet(
-    const std::shared_ptr<AclTable>& /*addedAclTable*/) {
-  return {};
+std::set<cfg::AclTableQualifier> SaiAclTableManager::getQualifierSet(
+    const std::shared_ptr<AclTable>& /* addedAclTable */) {
+  return {cfg::AclTableQualifier::DST_MAC, cfg::AclTableQualifier::ETHER_TYPE};
 }
 
 /*
