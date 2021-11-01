@@ -41,7 +41,7 @@ SNAPSHOT_REGEX = (
 DEFAULT_TIME_RANGE = timedelta(hours=1)
 FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS = 45
 FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' /var/facebook/logs/fboss/archive/network_events.log-*.gz /var/facebook/logs/network_events.log | grep {} | grep -v sshd"
-BYTES_STDOUT_LIMIT = 10000000
+BYTES_STDOUT_LIMIT = 20000000
 
 
 class Backend(enum.Enum):
