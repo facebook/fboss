@@ -10,8 +10,6 @@
 
 #include "fboss/agent/hw/HwSwitchStats.h"
 
-#include "fboss/agent/SwitchStats.h"
-
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 

@@ -64,166 +64,166 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void trappedPkt() {
-    trapPkts_->addValue(1);
+    addValue(*trapPkts_, 1);
   }
   void pktDropped() {
-    trapPktDrops_->addValue(1);
+    addValue(*trapPktDrops_, 1);
   }
   void pktBogus() {
-    trapPktBogus_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*trapPktBogus_, 1);
+    addValue(*trapPktDrops_, 1);
   }
   void pktError() {
-    trapPktErrors_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*trapPktErrors_, 1);
+    addValue(*trapPktDrops_, 1);
   }
   void pktUnhandled() {
-    trapPktUnhandled_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*trapPktUnhandled_, 1);
+    addValue(*trapPktDrops_, 1);
   }
   void pktToHost(uint32_t bytes) {
-    trapPktToHost_->addValue(1);
-    trapPktToHostBytes_->addValue(bytes);
+    addValue(*trapPktToHost_, 1);
+    addValue(*trapPktToHostBytes_, bytes);
   }
   void pktFromHost(uint32_t bytes) {
-    pktFromHost_->addValue(1);
-    pktFromHostBytes_->addValue(bytes);
+    addValue(*pktFromHost_, 1);
+    addValue(*pktFromHostBytes_, bytes);
   }
 
   void arpPkt() {
-    trapPktArp_->addValue(1);
+    addValue(*trapPktArp_, 1);
   }
   void arpUnsupported() {
-    arpUnsupported_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*arpUnsupported_, 1);
+    addValue(*trapPktDrops_, 1);
   }
   void arpNotMine() {
-    arpNotMine_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*arpNotMine_, 1);
+    addValue(*trapPktDrops_, 1);
   }
   void arpRequestRx() {
-    arpRequestsRx_->addValue(1);
+    addValue(*arpRequestsRx_, 1);
   }
   void arpRequestTx() {
-    arpRequestsTx_->addValue(1);
+    addValue(*arpRequestsTx_, 1);
   }
   void arpReplyRx() {
-    arpRepliesRx_->addValue(1);
+    addValue(*arpRepliesRx_, 1);
   }
   void arpReplyTx() {
-    arpRepliesTx_->addValue(1);
+    addValue(*arpRepliesTx_, 1);
   }
   void arpBadOp() {
-    arpBadOp_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*arpBadOp_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void ipv6NdpPkt() {
-    trapPktNdp_->addValue(1);
+    addValue(*trapPktNdp_, 1);
   }
   void ipv6NdpBad() {
-    ipv6NdpBad_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*ipv6NdpBad_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void dhcpV4Pkt() {
-    dhcpV4Pkt_->addValue(1);
+    addValue(*dhcpV4Pkt_, 1);
   }
 
   void dhcpV6Pkt() {
-    dhcpV6Pkt_->addValue(1);
+    addValue(*dhcpV6Pkt_, 1);
   }
 
   void ipv4Rx() {
-    ipv4Rx_->addValue(1);
+    addValue(*ipv4Rx_, 1);
   }
   void ipv4TooSmall() {
-    ipv4TooSmall_->addValue(1);
+    addValue(*ipv4TooSmall_, 1);
   }
   void ipv4WrongVer() {
-    ipv4WrongVer_->addValue(1);
+    addValue(*ipv4WrongVer_, 1);
   }
   void ipv4Nexthop() {
-    ipv4Nexthop_->addValue(1);
+    addValue(*ipv4Nexthop_, 1);
   }
   void ipv4Mine() {
-    ipv4Mine_->addValue(1);
+    addValue(*ipv4Mine_, 1);
   }
   void ipv4NoArp() {
-    ipv4NoArp_->addValue(1);
+    addValue(*ipv4NoArp_, 1);
   }
   void ipv4TtlExceeded() {
-    ipv4TtlExceeded_->addValue(1);
+    addValue(*ipv4TtlExceeded_, 1);
   }
 
   void ipv6HopExceeded() {
-    ipv6HopExceeded_->addValue(1);
+    addValue(*ipv6HopExceeded_, 1);
   }
 
   void udpTooSmall() {
-    udpTooSmall_->addValue(1);
+    addValue(*udpTooSmall_, 1);
   }
 
   void dhcpV4BadPkt() {
-    dhcpV4BadPkt_->addValue(1);
-    dhcpV4DropPkt_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*dhcpV4BadPkt_, 1);
+    addValue(*dhcpV4DropPkt_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void dhcpV4DropPkt() {
-    dhcpV4DropPkt_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*dhcpV4DropPkt_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void dhcpV6BadPkt() {
-    dhcpV6BadPkt_->addValue(1);
-    dhcpV6DropPkt_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*dhcpV6BadPkt_, 1);
+    addValue(*dhcpV6DropPkt_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void dhcpV6DropPkt() {
-    dhcpV6DropPkt_->addValue(1);
-    trapPktDrops_->addValue(1);
+    addValue(*dhcpV6DropPkt_, 1);
+    addValue(*trapPktDrops_, 1);
   }
 
   void addRouteV4() {
-    addRouteV4_->addValue(1);
+    addValue(*addRouteV4_, 1);
   }
   void addRouteV6() {
-    addRouteV6_->addValue(1);
+    addValue(*addRouteV6_, 1);
   }
   void delRouteV4() {
-    delRouteV4_->addValue(1);
+    addValue(*delRouteV4_, 1);
   }
   void delRouteV6() {
-    delRouteV6_->addValue(1);
+    addValue(*delRouteV6_, 1);
   }
 
   void addRoutesV4(uint64_t routeCount) {
-    addRouteV4_->addValue(routeCount);
+    addValue(*addRouteV4_, routeCount);
   }
   void addRoutesV6(uint64_t routeCount) {
-    addRouteV6_->addValue(routeCount);
+    addValue(*addRouteV6_, routeCount);
   }
   void delRoutesV4(uint64_t routeCount) {
-    delRouteV4_->addValue(routeCount);
+    addValue(*delRouteV4_, routeCount);
   }
   void delRoutesV6(uint64_t routeCount) {
-    delRouteV6_->addValue(routeCount);
+    addValue(*delRouteV6_, routeCount);
   }
 
   void ipv4DstLookupFailure() {
-    dstLookupFailureV4_->addValue(1);
-    dstLookupFailure_->addValue(1);
+    addValue(*dstLookupFailureV4_, 1);
+    addValue(*dstLookupFailure_, 1);
   }
 
   void ipv6DstLookupFailure() {
-    dstLookupFailureV6_->addValue(1);
-    dstLookupFailure_->addValue(1);
+    addValue(*dstLookupFailureV6_, 1);
+    addValue(*dstLookupFailure_, 1);
   }
 
   void stateUpdate(std::chrono::microseconds us) {
-    updateState_->addValue(us.count());
+    addValue(*updateState_, us.count());
   }
 
   void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
@@ -236,47 +236,47 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void bgHeartbeatDelay(int delay) {
-    bgHeartbeatDelay_->addValue(delay);
+    addValue(*bgHeartbeatDelay_, delay);
   }
 
   void updHeartbeatDelay(int delay) {
-    updHeartbeatDelay_->addValue(delay);
+    addValue(*updHeartbeatDelay_, delay);
   }
 
   void packetTxHeartbeatDelay(int value) {
-    packetTxHeartbeatDelay_->addValue(value);
+    addValue(*packetTxHeartbeatDelay_, value);
   }
 
   void lacpHeartbeatDelay(int value) {
-    lacpHeartbeatDelay_->addValue(value);
+    addValue(*lacpHeartbeatDelay_, value);
   }
 
   void neighborCacheHeartbeatDelay(int value) {
-    neighborCacheHeartbeatDelay_->addValue(value);
+    addValue(*neighborCacheHeartbeatDelay_, value);
   }
 
   void bgEventBacklog(int value) {
-    bgEventBacklog_->addValue(value);
+    addValue(*bgEventBacklog_, value);
   }
 
   void updEventBacklog(int value) {
-    updEventBacklog_->addValue(value);
+    addValue(*updEventBacklog_, value);
   }
 
   void lacpEventBacklog(int value) {
-    lacpEventBacklog_->addValue(value);
+    addValue(*lacpEventBacklog_, value);
   }
 
   void packetTxEventBacklog(int value) {
-    packetTxEventBacklog_->addValue(value);
+    addValue(*packetTxEventBacklog_, value);
   }
 
   void neighborCacheEventBacklog(int value) {
-    neighborCacheEventBacklog_->addValue(value);
+    addValue(*neighborCacheEventBacklog_, value);
   }
 
   void linkStateChange() {
-    linkStateChange_->addValue(1);
+    addValue(*linkStateChange_, 1);
   }
 
   void pcapDistFailure() {
@@ -284,58 +284,58 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void updateStatsException() {
-    updateStatsExceptions_->addValue(1);
+    addValue(*updateStatsExceptions_, 1);
   }
 
   void pktTooBig() {
-    trapPktTooBig_->addValue(1);
+    addValue(*trapPktTooBig_, 1);
   }
 
   void LldpRecvdPkt() {
-    LldpRecvdPkt_->addValue(1);
+    addValue(*LldpRecvdPkt_, 1);
   }
   void LldpBadPkt() {
-    LldpBadPkt_->addValue(1);
+    addValue(*LldpBadPkt_, 1);
   }
   void LldpValidateMisMatch() {
-    LldpValidateMisMatch_->addValue(1);
+    addValue(*LldpValidateMisMatch_, 1);
   }
   void LldpNeighborsSize(int value) {
-    LldpNeighborsSize_->addValue(value);
+    addValue(*LldpNeighborsSize_, value);
   }
   void LacpRxTimeouts() {
-    LacpRxTimeouts_->addValue(1);
+    addValue(*LacpRxTimeouts_, 1);
   }
   void LacpMismatchPduTeardown() {
-    LacpMismatchPduTeardown_->addValue(1);
+    addValue(*LacpMismatchPduTeardown_, 1);
   }
 
   void MkPduRecvdPkt() {
-    MkPduRecvdPkts_->addValue(1);
+    addValue(*MkPduRecvdPkts_, 1);
   }
   void MkPduSendPkt() {
-    MkPduSendPkts_->addValue(1);
+    addValue(*MkPduSendPkts_, 1);
   }
   void MkPduSendFailure() {
-    MkPduSendFailure_->addValue(1);
+    addValue(*MkPduSendFailure_, 1);
   }
   void MkPduPortNotRegistered() {
-    MkPduPortNotRegistered_->addValue(1);
+    addValue(*MkPduPortNotRegistered_, 1);
   }
   void MKAServiceSendFailue() {
-    MKAServiceSendFailure_->addValue(1);
+    addValue(*MKAServiceSendFailure_, 1);
   }
   void MKAServiceSendSuccess() {
-    MKAServiceSendSuccess_->addValue(1);
+    addValue(*MKAServiceSendSuccess_, 1);
   }
   void MKAServiceRecvSuccess() {
-    MKAServiceRecvSuccess_->addValue(1);
+    addValue(*MKAServiceRecvSuccess_, 1);
   }
   void PfcDeadlockDetectionCount() {
-    pfcDeadlockDetectionCount_->addValue(1);
+    addValue(*pfcDeadlockDetectionCount_, 1);
   }
   void PfcDeadlockRecoveryCount() {
-    pfcDeadlockRecoveryCount_->addValue(1);
+    addValue(*pfcDeadlockRecoveryCount_, 1);
   }
 
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
@@ -373,6 +373,9 @@ class SwitchStats : public boost::noncopyable {
       fb303::ExportType exportType,
       int percentile1,
       int percentile2);
+
+  static void addValue(TLTimeseries& stats, int64_t value);
+  static void addValue(TLHistogram& stats, int64_t value);
 
  private:
   // Forbidden copy constructor and assignment operator

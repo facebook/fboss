@@ -47,4 +47,14 @@ std::unique_ptr<SwitchStats::TLHistogram> SwitchStats::makeTLTHistogram(
       map, key, bucketWidth, min, max, exportType, percentile1, percentile2);
 }
 
+// static
+void SwitchStats::addValue(SwitchStats::TLTimeseries& stats, int64_t value) {
+  stats.addValue(value);
+}
+
+// static
+void SwitchStats::addValue(SwitchStats::TLHistogram& stats, int64_t value) {
+  stats.addValue(value);
+}
+
 } // namespace facebook::fboss

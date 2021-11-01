@@ -12,6 +12,7 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/ThreadLocal.h>
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
 namespace facebook::fboss {
@@ -24,38 +25,38 @@ class HwSwitchStats {
   HwSwitchStats(ThreadLocalStatsMap* map, const std::string& vendor);
 
   void txPktAlloc() {
-    txPktAlloc_->addValue(1);
+    SwitchStats::addValue(*txPktAlloc_, 1);
   }
   void txPktFree() {
-    txPktFree_->addValue(1);
+    SwitchStats::addValue(*txPktFree_, 1);
   }
   void txSent() {
-    txSent_->addValue(1);
+    SwitchStats::addValue(*txSent_, 1);
   }
   void txSentDone(uint64_t q) {
-    txSentDone_->addValue(1);
-    txQueued_->addValue(q);
+    SwitchStats::addValue(*txSentDone_, 1);
+    SwitchStats::addValue(*txQueued_, q);
   }
   void txError() {
-    txErrors_->addValue(1);
+    SwitchStats::addValue(*txErrors_, 1);
   }
   void txPktAllocErrors() {
-    txErrors_->addValue(1);
-    txPktAllocErrors_->addValue(1);
+    SwitchStats::addValue(*txErrors_, 1);
+    SwitchStats::addValue(*txPktAllocErrors_, 1);
   }
 
   void corrParityError() {
-    parityErrors_->addValue(1);
-    corrParityErrors_->addValue(1);
+    SwitchStats::addValue(*parityErrors_, 1);
+    SwitchStats::addValue(*corrParityErrors_, 1);
   }
 
   void uncorrParityError() {
-    parityErrors_->addValue(1);
-    uncorrParityErrors_->addValue(1);
+    SwitchStats::addValue(*parityErrors_, 1);
+    SwitchStats::addValue(*uncorrParityErrors_, 1);
   }
 
   void asicError() {
-    asicErrors_->addValue(1);
+    SwitchStats::addValue(*asicErrors_, 1);
   }
 
   // TODO: FSDB needs to support count() method on stats
