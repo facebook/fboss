@@ -1,5 +1,8 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.hardware_stats
+namespace go neteng.fboss.hardware_stats
+namespace py3 neteng.fboss
+namespace py.asyncio neteng.fboss.asyncio.hardware_stats
 
 include "fboss/mka_service/if/mka_structs.thrift"
 
