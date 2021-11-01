@@ -225,6 +225,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) override;
 
+  /*
+   * Minimal initialization of the BcmSwitch. This is used for BcmReplayTest.
+   */
+  void minimalInit();
+
   void runBcmScript(const std::string& filename) const;
 
   void unregisterCallbacks() override;

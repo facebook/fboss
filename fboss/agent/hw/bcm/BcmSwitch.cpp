@@ -734,6 +734,21 @@ void BcmSwitch::setMacAging(std::chrono::seconds agingInterval) {
   }
 }
 
+void BcmSwitch::minimalInit() {
+  std::lock_guard<std::mutex> g(lock_);
+
+  CHECK(!unitObject_);
+  unitObject_ = BcmAPI::createOnlyUnit(platform_);
+  unit_ = unitObject_->getNumber();
+  unitObject_->setCookie(this);
+
+  BcmAPI::initUnit(unit_, platform_);
+
+  bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
+}
+
 HwInitResult BcmSwitch::init(
     Callback* callback,
     bool /*failHwCallsOnWarmboot*/) {
