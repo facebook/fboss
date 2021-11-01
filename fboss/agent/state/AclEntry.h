@@ -104,6 +104,22 @@ struct AclEntryFields : public ThriftyFields {
   folly::dynamic toFollyDynamic() const;
   static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
 
+  bool operator==(const AclEntryFields& acl) const {
+    return priority == acl.priority && name == acl.name &&
+        actionType == acl.actionType && aclAction == acl.aclAction &&
+        srcIp == acl.srcIp && dstIp == acl.dstIp && proto == acl.proto &&
+        tcpFlagsBitMap == acl.tcpFlagsBitMap && srcPort == acl.srcPort &&
+        dstPort == acl.dstPort && ipFrag == acl.ipFrag &&
+        icmpType == acl.icmpType && icmpCode == acl.icmpCode &&
+        dscp == acl.dscp && dstMac == acl.dstMac && ipType == acl.ipType &&
+        ttl == acl.ttl && l4SrcPort == acl.l4SrcPort &&
+        l4DstPort == acl.l4DstPort && lookupClassL2 == acl.lookupClassL2 &&
+        lookupClassNeighbor == acl.lookupClassNeighbor &&
+        lookupClassRoute == acl.lookupClassRoute &&
+        packetLookupResult == acl.packetLookupResult &&
+        etherType == acl.etherType;
+  }
+
   static void checkFollyDynamic(const folly::dynamic& json);
   int priority{0};
   std::string name{nullptr};
@@ -150,37 +166,6 @@ class AclEntry
 
   folly::dynamic toFollyDynamicLegacy() const {
     return getFields()->toFollyDynamic();
-  }
-
-  bool operator==(const AclEntry& acl) const {
-    return getFields()->priority == acl.getPriority() &&
-        getFields()->name == acl.getID() &&
-        getFields()->actionType == acl.getActionType() &&
-        getFields()->aclAction == acl.getAclAction() &&
-        getFields()->srcIp == acl.getSrcIp() &&
-        getFields()->dstIp == acl.getDstIp() &&
-        getFields()->proto == acl.getProto() &&
-        getFields()->tcpFlagsBitMap == acl.getTcpFlagsBitMap() &&
-        getFields()->srcPort == acl.getSrcPort() &&
-        getFields()->dstPort == acl.getDstPort() &&
-        getFields()->ipFrag == acl.getIpFrag() &&
-        getFields()->icmpType == acl.getIcmpType() &&
-        getFields()->icmpCode == acl.getIcmpCode() &&
-        getFields()->dscp == acl.getDscp() &&
-        getFields()->dstMac == acl.getDstMac() &&
-        getFields()->ipType == acl.getIpType() &&
-        getFields()->ttl == acl.getTtl() &&
-        getFields()->l4SrcPort == acl.getL4SrcPort() &&
-        getFields()->l4DstPort == acl.getL4DstPort() &&
-        getFields()->lookupClassL2 == acl.getLookupClassL2() &&
-        getFields()->lookupClassNeighbor == acl.getLookupClassNeighbor() &&
-        getFields()->lookupClassRoute == acl.getLookupClassRoute() &&
-        getFields()->packetLookupResult == acl.getPacketLookupResult() &&
-        getFields()->etherType == acl.getEtherType();
-  }
-
-  bool operator!=(const AclEntry& acl) const {
-    return !(*this == acl);
   }
 
   int getPriority() const {

@@ -307,6 +307,19 @@ bool checkSwConfPortQueueMatch(
              cfgQueue->bandwidthBurstMaxKbits_ref().value_or({}));
 }
 
+bool PortQueueFields::operator==(const PortQueueFields& queue) const {
+  // TODO(joseph5wu) Add sharedBytes
+  return id == queue.id && streamType == queue.streamType &&
+      weight == queue.weight && reservedBytes == queue.reservedBytes &&
+      scalingFactor == queue.scalingFactor && scheduling == queue.scheduling &&
+      aqms == queue.aqms && name == queue.name &&
+      portQueueRate == queue.portQueueRate &&
+      bandwidthBurstMinKbits == queue.bandwidthBurstMinKbits &&
+      bandwidthBurstMaxKbits == queue.bandwidthBurstMaxKbits &&
+      trafficClass == queue.trafficClass &&
+      pfcPriorities == queue.pfcPriorities;
+}
+
 template class NodeBaseT<PortQueue, PortQueueFields>;
 
 } // namespace facebook::fboss

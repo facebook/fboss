@@ -74,13 +74,8 @@ struct SwitchStateFields : public ThriftyFields {
     fn(transceivers.get());
   }
 
-  state::SwitchState toThrift() const {
-    return state::SwitchState();
-  }
-
-  static SwitchStateFields fromThrift(const state::SwitchState state) {
-    return SwitchStateFields();
-  }
+  state::SwitchState toThrift() const;
+  static SwitchStateFields fromThrift(const state::SwitchState& state);
 
   /*
    * Serialize to folly::dynamic
@@ -90,6 +85,12 @@ struct SwitchStateFields : public ThriftyFields {
    * Reconstruct object from folly::dynamic
    */
   static SwitchStateFields fromFollyDynamic(const folly::dynamic& json);
+
+  bool operator==(const SwitchStateFields& other) const {
+    // TODO: add rest of fields as we convert them to thrifty
+    return std::tie(*ports) == std::tie(*other.ports);
+  }
+
   // Static state, which can be accessed without locking.
   std::shared_ptr<PortMap> ports;
   std::shared_ptr<AggregatePortMap> aggPorts;
@@ -232,6 +233,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       const std::shared_ptr<Route<AddressT>>& newRoute,
       const std::shared_ptr<Route<AddressT>>& oldRoute,
       std::shared_ptr<SwitchState>* appliedState);
+
+  bool operator==(const SwitchState& other) const {
+    return *getFields() == *other.getFields();
+  }
 
   const std::shared_ptr<PortMap>& getPorts() const {
     return getFields()->ports;

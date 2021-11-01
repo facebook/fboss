@@ -52,6 +52,8 @@ struct PortFields : public ThriftyFields {
 
   PortFields(PortID id, std::string name) : id(id), name(name) {}
 
+  bool operator==(const PortFields& other) const;
+
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 

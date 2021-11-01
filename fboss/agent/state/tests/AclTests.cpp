@@ -36,22 +36,6 @@ namespace {
 constexpr auto kAclStartPriority = 100000;
 } // namespace
 
-template <typename ThriftyNode>
-void validateThriftyMigration(const ThriftyNode& node) {
-  auto newNode = ThriftyNode::fromFollyDynamic(node.toFollyDynamic());
-  auto legacyNode =
-      ThriftyNode::fromFollyDynamicLegacy(node.toFollyDynamicLegacy());
-  auto forwardMigrationNode =
-      ThriftyNode::fromFollyDynamic(node.toFollyDynamicLegacy());
-  auto backwardMigrationNode =
-      ThriftyNode::fromFollyDynamicLegacy(node.toFollyDynamic());
-
-  EXPECT_EQ(node, *newNode);
-  EXPECT_EQ(*newNode, *legacyNode);
-  EXPECT_EQ(*legacyNode, *forwardMigrationNode);
-  EXPECT_EQ(*forwardMigrationNode, *backwardMigrationNode);
-}
-
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
