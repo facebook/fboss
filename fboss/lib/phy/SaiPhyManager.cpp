@@ -228,9 +228,15 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
     mka::MKASecureAssociationId saId;
     saId.sci_ref() = *sak.sci_ref();
     saId.assocNum_ref() = *sak.assocNum_ref();
-    auto saItr = macsecStats.txSecureAssociationStats_ref()->find(saId);
-    if (saItr != macsecStats.txSecureAssociationStats_ref()->end()) {
-      health.lowestAcceptablePN_ref() = *saItr->second.outEncryptedPkts_ref();
+    // Find the saStats for this sa
+    for (auto& txSaStats : macsecStats.txSecureAssociationStats_ref().value()) {
+      if (txSaStats.saId_ref()->sci_ref().value() == sak.sci_ref().value() &&
+          txSaStats.saId_ref()->assocNum_ref().value() ==
+              sak.assocNum_ref().value()) {
+        health.lowestAcceptablePN_ref() =
+            txSaStats.saStats_ref()->outEncryptedPkts_ref().value();
+        break;
+      }
     }
   }
   return health;
@@ -294,8 +300,8 @@ void SaiPhyManager::programOnePort(
   const auto& desiredPhyPortConfig =
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
 
-  // Before actually calling sai sdk to program the port again, we should check
-  // whether the port has been programmed in HW with the same config.
+  // Before actually calling sai sdk to program the port again, we should
+  // check whether the port has been programmed in HW with the same config.
   if (!(wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty())) {
     const auto& actualPhyPortConfig =
         getHwPhyPortConfigLocked(wLockedCache, portId);
@@ -421,6 +427,8 @@ mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
       -> mka::MacsecFlowStats {
     mka::MacsecFlowStats returnFlowStats{};
     for (auto& singleFlowStat : sciFlowStats) {
+      returnFlowStats.directionIngress_ref() =
+          singleFlowStat.flowStats_ref()->directionIngress_ref().value();
       returnFlowStats.ucastUncontrolledPkts_ref() =
           returnFlowStats.ucastUncontrolledPkts_ref().value() +
           singleFlowStat.flowStats_ref()->ucastUncontrolledPkts_ref().value();
@@ -494,15 +502,55 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
     mka::MacsecDirection direction,
     bool readFromHw) {
   auto macsecStats = getMacsecStats(portName, readFromHw);
-  // TODO: sum stats across SAs
+
+  // Conslidate stats across all SA
+  auto sumSaStats =
+      [](std::vector<MacsecSaIdSaStats>& saIdSaStats) -> mka::MacsecSaStats {
+    mka::MacsecSaStats returnSaStats{};
+    for (auto& singleSaStat : saIdSaStats) {
+      returnSaStats.directionIngress_ref() =
+          singleSaStat.saStats_ref()->directionIngress_ref().value();
+      returnSaStats.octetsEncrypted_ref() =
+          returnSaStats.octetsEncrypted_ref().value() +
+          singleSaStat.saStats_ref()->octetsEncrypted_ref().value();
+      returnSaStats.octetsProtected_ref() =
+          returnSaStats.octetsProtected_ref().value() +
+          singleSaStat.saStats_ref()->octetsProtected_ref().value();
+      returnSaStats.outEncryptedPkts_ref() =
+          returnSaStats.outEncryptedPkts_ref().value() +
+          singleSaStat.saStats_ref()->outEncryptedPkts_ref().value();
+      returnSaStats.outProtectedPkts_ref() =
+          returnSaStats.outProtectedPkts_ref().value() +
+          singleSaStat.saStats_ref()->outProtectedPkts_ref().value();
+      returnSaStats.inUncheckedPkts_ref() =
+          returnSaStats.inUncheckedPkts_ref().value() +
+          singleSaStat.saStats_ref()->inUncheckedPkts_ref().value();
+      returnSaStats.inDelayedPkts_ref() =
+          returnSaStats.inDelayedPkts_ref().value() +
+          singleSaStat.saStats_ref()->inDelayedPkts_ref().value();
+      returnSaStats.inLatePkts_ref() = returnSaStats.inLatePkts_ref().value() +
+          singleSaStat.saStats_ref()->inLatePkts_ref().value();
+      returnSaStats.inInvalidPkts_ref() =
+          returnSaStats.inInvalidPkts_ref().value() +
+          singleSaStat.saStats_ref()->inInvalidPkts_ref().value();
+      returnSaStats.inNotValidPkts_ref() =
+          returnSaStats.inNotValidPkts_ref().value() +
+          singleSaStat.saStats_ref()->inNotValidPkts_ref().value();
+      returnSaStats.inNoSaPkts_ref() = returnSaStats.inNoSaPkts_ref().value() +
+          singleSaStat.saStats_ref()->inNoSaPkts_ref().value();
+      returnSaStats.inUnusedSaPkts_ref() =
+          returnSaStats.inUnusedSaPkts_ref().value() +
+          singleSaStat.saStats_ref()->inUnusedSaPkts_ref().value();
+      returnSaStats.inOkPkts_ref() = returnSaStats.inOkPkts_ref().value() +
+          singleSaStat.saStats_ref()->inOkPkts_ref().value();
+    }
+    return returnSaStats;
+  };
+
   if (direction == mka::MacsecDirection::INGRESS) {
-    return macsecStats.rxSecureAssociationStats_ref()->size()
-        ? macsecStats.rxSecureAssociationStats_ref()->begin()->second
-        : mka::MacsecSaStats{};
+    return sumSaStats(macsecStats.rxSecureAssociationStats_ref().value());
   } else {
-    return macsecStats.txSecureAssociationStats_ref()->size()
-        ? macsecStats.txSecureAssociationStats_ref()->begin()->second
-        : mka::MacsecSaStats{};
+    return sumSaStats(macsecStats.txSecureAssociationStats_ref().value());
   }
 }
 

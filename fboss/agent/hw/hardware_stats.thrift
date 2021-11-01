@@ -10,20 +10,19 @@ struct MacsecSciFlowStats {
   2: mka_structs.MacsecFlowStats flowStats;
 }
 
+struct MacsecSaIdSaStats {
+  1: mka_structs.MKASecureAssociationId saId;
+  2: mka_structs.MacsecSaStats saStats;
+}
+
 struct MacsecStats {
   1: mka_structs.MacsecPortStats ingressPortStats;
   2: mka_structs.MacsecPortStats egressPortStats;
   3: list<MacsecSciFlowStats> ingressFlowStats;
   4: list<MacsecSciFlowStats> egressFlowStats;
   // Secure association stats
-  5: map<
-    mka_structs.MKASecureAssociationId,
-    mka_structs.MacsecSaStats
-  > rxSecureAssociationStats;
-  6: map<
-    mka_structs.MKASecureAssociationId,
-    mka_structs.MacsecSaStats
-  > txSecureAssociationStats;
+  5: list<MacsecSaIdSaStats> rxSecureAssociationStats;
+  6: list<MacsecSaIdSaStats> txSecureAssociationStats;
 }
 
 struct HwPortStats {
