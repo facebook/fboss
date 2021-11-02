@@ -19,6 +19,8 @@ from thrift.py3 import deserialize, Protocol
 
 T = t.TypeVar("T")
 
+NGT_SERVICE_FBID = 89002005347827
+
 SQL = """
 SELECT
     `msg`
@@ -247,4 +249,4 @@ class SnapshotClient:
 # once it's called from the NGT workflow like in D30830986
 # We can see if this is necessary once we start filling in the decision tree
 async def get_client() -> SnapshotClient:
-    return SnapshotClient(get_current_unix_user_fbid())
+    return SnapshotClient(get_current_unix_user_fbid() or NGT_SERVICE_FBID)
