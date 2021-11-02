@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <unordered_set>
 #include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
+#include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/helpers/firmwareUpgradeHelper.h"
-#include "fboss/platform/helpers/utils.h"
 
 #define DARWIN_CPLD_ADDR 0x23
 #define DARWIN_CPLD_JTAG_REG_ADDR 0x0c

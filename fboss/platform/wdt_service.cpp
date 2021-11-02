@@ -9,7 +9,7 @@
 #include <memory>
 #include <thread>
 #include "fboss/platform/helpers/ScdHelper.h"
-#include "fboss/platform/helpers/utils.h"
+#include "fboss/platform/helpers/Utils.h"
 
 using namespace facebook::fboss::platform::helpers;
 

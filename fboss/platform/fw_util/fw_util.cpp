@@ -8,7 +8,7 @@
 #include <memory>
 #include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
-#include "fboss/platform/helpers/utils.h"
+#include "fboss/platform/helpers/Utils.h"
 
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;

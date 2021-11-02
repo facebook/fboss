@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/helpers/utils.h"
+#include "fboss/platform/helpers/Utils.h"
 #include <fcntl.h>
 #include <glog/logging.h>
 #include <sys/mman.h>

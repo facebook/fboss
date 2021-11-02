@@ -2,8 +2,8 @@
 
 #include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/fw_util/upgradeBinary/upgradeBinaryDarwin.h"
+#include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/helpers/firmwareUpgradeHelper.h"
-#include "fboss/platform/helpers/utils.h"
 
 using namespace facebook::fboss::platform::helpers;
 

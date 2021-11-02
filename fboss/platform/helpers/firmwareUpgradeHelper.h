@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <filesystem>
 #include <iostream>
-#include "fboss/platform/helpers/utils.h"
+#include "fboss/platform/helpers/Utils.h"
 
 namespace facebook::fboss::platform::helpers {
 

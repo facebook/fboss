@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include "fboss/platform/helpers/utils.h"
+#include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/prefdl/prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;
