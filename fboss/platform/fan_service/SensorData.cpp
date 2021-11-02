@@ -2,7 +2,7 @@
 
 // Implementation of SensorData class. Refer to .h file
 // for the functional description
-#include "fboss/fan_service/SensorData.h"
+#include "fboss/platform/fan_service/SensorData.h"
 
 SensorData::SensorData() {}
 
