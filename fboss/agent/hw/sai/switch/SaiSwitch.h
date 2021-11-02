@@ -202,6 +202,9 @@ class SaiSwitch : public HwSwitch {
       const std::vector<sai_object_type_t>& objects,
       bool cached,
       const std::lock_guard<std::mutex>& lock) const;
+  void listManagedObjectsLocked(
+      std::string& output,
+      const std::lock_guard<std::mutex>& lock) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   void updateStatsImpl(SwitchStats* switchStats) override;

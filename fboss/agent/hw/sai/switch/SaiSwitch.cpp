@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
@@ -2109,6 +2110,7 @@ std::string SaiSwitch::listObjectsLocked(
 std::string SaiSwitch::listObjects(
     const std::vector<HwObjectType>& types,
     bool cached) const {
+  bool listManagedObjects{false};
   std::vector<sai_object_type_t> objTypes;
   for (auto type : types) {
     switch (type) {
@@ -2202,10 +2204,21 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_SA);
         break;
       case HwObjectType::SAI_MANAGED_OBJECTS:
-        throw FbossError("unsupported object type");
+        listManagedObjects = true;
+        break;
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
-  return listObjectsLocked(objTypes, cached, lk);
+  auto output = listObjectsLocked(objTypes, cached, lk);
+  if (listManagedObjects) {
+    listManagedObjectsLocked(output, lk);
+  }
+  return output;
+}
+
+void SaiSwitch::listManagedObjectsLocked(
+    std::string& /*output*/,
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  throw FbossError("unimplemented");
 }
 } // namespace facebook::fboss
