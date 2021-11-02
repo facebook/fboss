@@ -87,6 +87,11 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
   };
+
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::MPLS_TTL_1, kCoppLowPriQueueId));
+  }
   return rxReasonToQueues;
 }
 

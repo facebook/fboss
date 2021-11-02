@@ -246,6 +246,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       uint32_t topLabel,
       PortID from,
       std::optional<EXP> exp = std::nullopt,
+      uint8_t ttl = 128,
       folly::IPAddressV6 dstIp = folly::IPAddressV6("2001::")) {
     // construct eth hdr
     const auto srcMac = utility::kLocalCpuMac();
@@ -254,7 +255,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto vlanId = utility::firstVlanID(initialConfig()) + 1;
 
     uint8_t tc = exp.has_value() ? static_cast<uint8_t>(exp.value()) : 0;
-    MPLSHdr::Label mplsLabel{topLabel, tc, true, 128};
+    MPLSHdr::Label mplsLabel{topLabel, tc, true, ttl};
 
     // construct l3 hdr
     auto srcIp = folly::IPAddressV6(("1001::"));
@@ -284,11 +285,12 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       int queueId,
       int label = 1101,
       const int numPktsToSend = 1,
-      const int expectedPktDelta = 1) {
+      const int expectedPktDelta = 1,
+      uint8_t ttl = 128) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getHwSwitch(), queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
     for (int i = 0; i < numPktsToSend; i++) {
-      sendMplsPacket(label, masterLogicalPortIds()[1], EXP(5));
+      sendMplsPacket(label, masterLogicalPortIds()[1], EXP(5), ttl);
     }
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getHwSwitch(),
@@ -511,6 +513,7 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
         1101,
         this->masterLogicalPortIds()[1],
         EXP(0),
+        128,
         folly::IPAddressV6("1::0"));
     // ip packet should be punted to cpu after Pop
     auto frame = snooper.waitForPacket(1);
@@ -528,6 +531,18 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
     auto hdr = v6PayLoad->header();
     EXPECT_EQ(hdr.srcAddr, folly::IPAddress("1001::"));
     EXPECT_EQ(hdr.dstAddr, folly::IPAddress("1::0"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMPLSTest, ExpiringTTL) {
+  auto setup = [=]() {
+    this->setup();
+    this->programLabelSwap(this->getPortDescriptor(0));
+  };
+  auto verify = [=]() {
+    this->sendMplsPktAndVerifyTrappedCpuQueue(
+        utility::kCoppLowPriQueueId, 1101, 1, 1, 1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
