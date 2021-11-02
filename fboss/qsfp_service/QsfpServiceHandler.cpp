@@ -311,42 +311,6 @@ QsfpServiceHandler::co_macsecGetAllScInfo(
       macsecHandler_->macsecGetAllScInfo(*portName));
 }
 
-folly::coro::Task<std::unique_ptr<mka::MacsecPortStats>>
-QsfpServiceHandler::co_macsecGetPortStats(
-    std::unique_ptr<std::string> portName,
-    bool directionIngress,
-    bool readFromHw) {
-  auto log = LOG_THRIFT_CALL(INFO);
-  validateHandler();
-  co_return std::make_unique<mka::MacsecPortStats>(
-      macsecHandler_->macsecGetPortStats(
-          *portName, directionIngress, readFromHw));
-}
-
-folly::coro::Task<std::unique_ptr<mka::MacsecFlowStats>>
-QsfpServiceHandler::co_macsecGetFlowStats(
-    std::unique_ptr<std::string> portName,
-    bool directionIngress,
-    bool readFromHw) {
-  auto log = LOG_THRIFT_CALL(INFO);
-  validateHandler();
-  co_return std::make_unique<mka::MacsecFlowStats>(
-      macsecHandler_->macsecGetFlowStats(
-          *portName, directionIngress, readFromHw));
-}
-
-folly::coro::Task<std::unique_ptr<mka::MacsecSaStats>>
-QsfpServiceHandler::co_macsecGetSaStats(
-    std::unique_ptr<std::string> portName,
-    bool directionIngress,
-    bool readFromHw) {
-  auto log = LOG_THRIFT_CALL(INFO);
-  validateHandler();
-  co_return std::make_unique<mka::MacsecSaStats>(
-      macsecHandler_->macsecGetSaStats(
-          *portName, directionIngress, readFromHw));
-}
-
 folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
 QsfpServiceHandler::co_getAllMacsecPortStats(bool readFromHw) {
   auto log = LOG_THRIFT_CALL(INFO);

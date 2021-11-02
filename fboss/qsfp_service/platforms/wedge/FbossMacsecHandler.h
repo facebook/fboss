@@ -61,30 +61,6 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return false;
   }
 
-  // Virtual function to get the Port stats
-  virtual mka::MacsecPortStats macsecGetPortStats(
-      const std::string& /* portName */,
-      bool /* directionIngress */,
-      bool /*readFromHw*/) override {
-    return mka::MacsecPortStats();
-  }
-
-  // Virtual function to get the flow stats
-  virtual mka::MacsecFlowStats macsecGetFlowStats(
-      const std::string& /* portName */,
-      bool /* directionIngress */,
-      bool /*readFromHw*/) override {
-    return mka::MacsecFlowStats();
-  }
-
-  // Virtual function to get the SA stats
-  virtual mka::MacsecSaStats macsecGetSaStats(
-      const std::string& /* portName */,
-      bool /* directionIngress */,
-      bool /*readFromHw*/) override {
-    return mka::MacsecSaStats();
-  }
-
   virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(
       bool /* readFromHw */) override {
     return std::map<std::string, MacsecStats>{};
