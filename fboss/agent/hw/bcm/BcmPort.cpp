@@ -1469,6 +1469,15 @@ void BcmPort::updateStat(
     bcm_stat_val_t type,
     int64_t* statVal) {
   auto stat = getPortCounterIf(statKey);
+  if (stat == nullptr) {
+    for (auto iter = portCounters_.begin(); iter != portCounters_.end();
+         iter++) {
+      XLOG(ERR) << "key: " << iter->first
+                << " , counter name: " << iter->second.getName();
+    }
+    XLOG(FATAL) << "failed to find port counter for key " << statKey
+                << " and type " << type << ", existing counters:";
+  }
   // Use the non-sync API to just get the values accumulated in software.
   // The Broadom SDK's counter thread syncs the HW counters to software every
   // 500000us (defined in config.bcm).
