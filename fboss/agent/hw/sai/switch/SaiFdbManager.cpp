@@ -117,6 +117,8 @@ std::string ManagedFdbEntry::toString() const {
   auto metaDataStr = metadata_ ? std::to_string(metadata_.value()) : "none";
 
   return folly::to<std::string>(
+      getObject() ? "active " : "inactive ",
+      "managed fdb entry: ",
       "port: ",
       saiPortDescStr,
       ", interface: ",
@@ -413,5 +415,15 @@ void SaiFdbManager::removeUnclaimedDynanicEntries() {
         fdbEntry->release();
         return true;
       });
+}
+
+std::string SaiFdbManager::listManagedObjects() const {
+  std::string output{};
+
+  for (auto entry : managedFdbEntries_) {
+    output += entry.second->toString();
+    output += "\n";
+  }
+  return output;
 }
 } // namespace facebook::fboss

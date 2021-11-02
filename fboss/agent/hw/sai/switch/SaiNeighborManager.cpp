@@ -183,6 +183,15 @@ bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
   return managerTable_->lagManager().isMinimumLinkMet(port.aggPortID());
 }
 
+std::string SaiNeighborManager::listManagedObjects() const {
+  std::string output{};
+  for (auto entry : managedNeighbors_) {
+    output += entry.second->toString();
+    output += "\n";
+  }
+  return output;
+}
+
 void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
@@ -228,6 +237,8 @@ std::string ManagedNeighbor::toString() const {
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto saiPortDesc = getSaiPortDesc();
   return folly::to<std::string>(
+      getObject() ? "active " : "inactive ",
+      "managed neighbor: ",
       "ip: ",
       ip.str(),
       saiPortDesc.str(),

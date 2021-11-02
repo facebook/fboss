@@ -114,6 +114,8 @@ class SaiNextHopManager {
       typename NextHopTraits::AdapterHostKey adapterHostKey,
       typename NextHopTraits::CreateAttributes attributes);
 
+  std::string listManagedObjects() const;
+
  private:
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

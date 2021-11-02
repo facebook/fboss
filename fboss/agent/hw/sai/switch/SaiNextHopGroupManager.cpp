@@ -91,6 +91,29 @@ std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
   return store.setObject(key, attributes);
 }
 
+std::string SaiNextHopGroupManager::listManagedObjects() const {
+  std::set<std::string> outputs{};
+  for (auto entry : handles_) {
+    auto handle = entry.second;
+    auto handlePtr = handle.lock();
+    if (!handlePtr) {
+      continue;
+    }
+    std::string output{};
+    for (auto member : handlePtr->members_) {
+      output += member->toString();
+    }
+    outputs.insert(output);
+  }
+
+  std::string finalOutput{};
+  for (auto output : outputs) {
+    finalOutput += output;
+    finalOutput += "\n";
+  }
+  return finalOutput;
+}
+
 NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
@@ -143,6 +166,8 @@ std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
       ? std::to_string(this->getObject()->adapterKey())
       : "none";
   return folly::to<std::string>(
+      this->getObject() ? "active " : "inactive ",
+      "managed nhg member: ",
       "NextHopGroupId: ",
       nexthopGroupId_,
       "NextHopGroupMemberId:",

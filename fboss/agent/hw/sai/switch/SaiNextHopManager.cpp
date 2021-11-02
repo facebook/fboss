@@ -130,6 +130,27 @@ std::shared_ptr<SaiObject<NextHopTraits>> SaiNextHopManager::createSaiObject(
   return store.setObject(adapterHostKey, attributes);
 }
 
+std::string SaiNextHopManager::listManagedObjects() const {
+  std::string output;
+  for (auto entry : managedIpNextHops_) {
+    auto entryPtr = entry.second.lock();
+    if (!entryPtr) {
+      continue;
+    }
+    output += entryPtr->toString();
+    output += "\n";
+  }
+  for (auto entry : managedMplsNextHops_) {
+    auto entryPtr = entry.second.lock();
+    if (!entryPtr) {
+      continue;
+    }
+    output += entryPtr->toString();
+    output += "\n";
+  }
+  return output;
+}
+
 template <typename NextHopTraits>
 void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
   CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
@@ -160,20 +181,32 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
 
 template <typename NextHopTraits>
 std::string ManagedNextHop<NextHopTraits>::toString() const {
-  if (!this->getObject()) {
-    return {};
-  }
-
   if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
     return folly::to<std::string>(
+        this->getObject() ? "active " : "inactive ",
+        "managed ip nexthop: "
         "ip: ",
-        GET_ATTR(IpNextHop, Ip, this->getObject()->adapterHostKey()).str(),
+        GET_ATTR(IpNextHop, Ip, adapterHostKey()).str(),
         " routerInterfaceId:",
-        GET_ATTR(
-            IpNextHop, RouterInterfaceId, this->getObject()->adapterHostKey()));
+        GET_ATTR(IpNextHop, RouterInterfaceId, adapterHostKey()));
   } else {
-    // TODO MPLS
-    return {};
+    auto stack = GET_ATTR(MplsNextHop, LabelStack, adapterHostKey());
+    std::stringstream stringstream;
+    stringstream << "[";
+    for (auto label : stack) {
+      stringstream << label << ", ";
+    }
+    stringstream << "]";
+
+    return folly::to<std::string>(
+        this->getObject() ? "active " : "inactive ",
+        "managed mpls nexthop: "
+        "ip: ",
+        GET_ATTR(MplsNextHop, Ip, adapterHostKey()).str(),
+        " routerInterfaceId:",
+        GET_ATTR(MplsNextHop, RouterInterfaceId, adapterHostKey()),
+        " labelStack:",
+        stringstream.str());
   }
 }
 

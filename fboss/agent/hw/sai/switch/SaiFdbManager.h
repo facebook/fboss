@@ -131,6 +131,8 @@ class SaiFdbManager {
 
   void removeUnclaimedDynanicEntries();
 
+  std::string listManagedObjects() const;
+
  private:
   PortDescriptorSaiId getPortDescriptorSaiId(
       const PortDescriptor& portDesc) const;

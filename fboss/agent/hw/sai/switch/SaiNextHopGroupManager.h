@@ -112,6 +112,17 @@ class NextHopGroupMember {
         managedNextHopGroupMember_);
   }
 
+  std::string toString() {
+    return std::visit(
+        [](auto arg) {
+          if (!arg) {
+            return std::string("");
+          }
+          return arg->toString();
+        },
+        managedNextHopGroupMember_);
+  }
+
  private:
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
@@ -144,6 +155,8 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
       const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
+
+  std::string listManagedObjects() const;
 
  private:
   SaiStore* saiStore_;
