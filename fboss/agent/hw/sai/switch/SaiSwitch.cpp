@@ -40,6 +40,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -2217,8 +2218,12 @@ std::string SaiSwitch::listObjects(
 }
 
 void SaiSwitch::listManagedObjectsLocked(
-    std::string& /*output*/,
+    std::string& output,
     const std::lock_guard<std::mutex>& /*lock*/) const {
-  throw FbossError("unimplemented");
+  output += "\nmanaged sai objects\n";
+  output += managerTable_->fdbManager().listManagedObjects();
+  output += managerTable_->neighborManager().listManagedObjects();
+  output += managerTable_->nextHopManager().listManagedObjects();
+  output += managerTable_->nextHopGroupManager().listManagedObjects();
 }
 } // namespace facebook::fboss
