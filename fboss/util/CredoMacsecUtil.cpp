@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/util/CredoMacsecUtil.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::mka;
@@ -45,6 +46,7 @@ DEFINE_bool(
     get_sa_stats,
     false,
     "Get SA stats, use with --port --ingress/--egress");
+DEFINE_bool(get_allport_stats, false, "Get all port stats in this system");
 
 constexpr bool kReadFromHw = true;
 /*
@@ -445,6 +447,15 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   } else {
     printf("  OutEncryptedPacktes: %ld\n", *saStats.outEncryptedPkts_ref());
     printf("  OutProtectedPacktes: %ld\n", *saStats.outProtectedPkts_ref());
+  }
+}
+
+void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
+  std::map<std::string, MacsecStats> allportStats;
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+
+  for (auto& portStatsItr : allportStats) {
+    printf("Printing stats for %s\n", portStatsItr.first.c_str());
   }
 }
 
