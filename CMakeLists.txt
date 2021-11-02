@@ -358,6 +358,7 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
     mpls_cpp2
     mka_structs_cpp2
+    hardware_stats_cpp2
 )
 
 add_fbthrift_cpp_library(

@@ -5,6 +5,7 @@
 
 #include "common/fb303/cpp/FacebookBase2.h"
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
@@ -136,6 +137,10 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
       std::unique_ptr<std::string> portName,
       bool directionIngress,
       bool readFromHw) override;
+
+  folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
+  co_getAllMacsecPortStats() override;
+
 #endif
 
  private:

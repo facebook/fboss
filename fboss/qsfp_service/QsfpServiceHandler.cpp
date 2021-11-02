@@ -347,6 +347,13 @@ QsfpServiceHandler::co_macsecGetSaStats(
           *portName, directionIngress, readFromHw));
 }
 
+folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
+QsfpServiceHandler::co_getAllMacsecPortStats() {
+  auto log = LOG_THRIFT_CALL(INFO);
+  validateHandler();
+  co_return std::make_unique<std::map<std::string, MacsecStats>>(
+      macsecHandler_->getAllMacsecPortStats());
+}
 #endif
 
 } // namespace fboss

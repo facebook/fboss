@@ -2,6 +2,7 @@
 #pragma once
 
 #include <fboss/mka_service/if/gen-cpp2/mka_structs_types.h>
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 namespace facebook {
@@ -99,6 +100,13 @@ class MacsecHandler {
       bool /* directionIngress */,
       bool /* readFromHw */) {
     return MacsecSaStats{};
+  }
+
+  /*
+   * Get all the macsec port stats
+   */
+  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats() {
+    return std::map<std::string, MacsecStats>{};
   }
 
  private:

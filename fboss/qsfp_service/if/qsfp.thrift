@@ -10,6 +10,7 @@ include "fboss/agent/if/fboss.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
+include "fboss/agent/hw/hardware_stats.thrift"
 
 service QsfpService extends fb303.FacebookService {
   transceiver.TransceiverType getType(1: i32 idx);
@@ -148,4 +149,8 @@ service QsfpService extends fb303.FacebookService {
     2: bool directionIngress,
     3: bool readFromHardware = false,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+
+  map<string, hardware_stats.MacsecStats> getAllMacsecPortStats() throws (
+    1: fboss.FbossBaseError error,
+  ) (cpp.coroutine);
 }
