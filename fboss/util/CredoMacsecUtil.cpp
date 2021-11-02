@@ -433,11 +433,23 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     return;
   }
 
-  MacsecPortStats portStats;
-  fbMacsecHandler->sync_macsecGetPortStats(
-      portStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
+  std::map<std::string, MacsecStats> allportStats;
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
 
-  printPortStatsHelper(portStats, FLAGS_port, FLAGS_ingress);
+  auto portMacsecStatsItr = allportStats.find(FLAGS_port);
+  if (portMacsecStatsItr == allportStats.end()) {
+    printf("Wrong port name specified: %s\n", FLAGS_port.c_str());
+    return;
+  }
+
+  auto& portMacsecStats = portMacsecStatsItr->second;
+  if (FLAGS_ingress) {
+    auto& portStats = portMacsecStats.ingressPortStats_ref().value();
+    printPortStatsHelper(portStats, FLAGS_port, FLAGS_ingress);
+  } else {
+    auto& portStats = portMacsecStats.egressPortStats_ref().value();
+    printPortStatsHelper(portStats, FLAGS_port, FLAGS_ingress);
+  }
 }
 
 void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
@@ -450,11 +462,37 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     return;
   }
 
-  MacsecFlowStats flowStats;
-  fbMacsecHandler->sync_macsecGetFlowStats(
-      flowStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
+  std::map<std::string, MacsecStats> allportStats;
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
 
-  printFlowStatsHelper(flowStats, FLAGS_port, FLAGS_ingress);
+  auto portMacsecStatsItr = allportStats.find(FLAGS_port);
+  if (portMacsecStatsItr == allportStats.end()) {
+    printf("Wrong port name specified: %s\n", FLAGS_port.c_str());
+    return;
+  }
+
+  auto& portMacsecStats = portMacsecStatsItr->second;
+  if (FLAGS_ingress) {
+    for (auto& flowStatsItr : portMacsecStats.ingressFlowStats_ref().value()) {
+      auto& sci = flowStatsItr.sci_ref().value();
+      auto& flowStats = flowStatsItr.flowStats_ref().value();
+      printf(
+          "Flow stats for SCI: %s.%d\n",
+          sci.macAddress_ref().value().c_str(),
+          sci.port_ref().value());
+      printFlowStatsHelper(flowStats, FLAGS_port, FLAGS_ingress);
+    }
+  } else {
+    for (auto& flowStatsItr : portMacsecStats.egressFlowStats_ref().value()) {
+      auto& sci = flowStatsItr.sci_ref().value();
+      auto& flowStats = flowStatsItr.flowStats_ref().value();
+      printf(
+          "Flow stats for SCI: %s.%d\n",
+          sci.macAddress_ref().value().c_str(),
+          sci.port_ref().value());
+      printFlowStatsHelper(flowStats, FLAGS_port, FLAGS_ingress);
+    }
+  }
 }
 
 void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
@@ -467,11 +505,41 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     return;
   }
 
-  MacsecSaStats saStats;
-  fbMacsecHandler->sync_macsecGetSaStats(
-      saStats, FLAGS_port, FLAGS_ingress, kReadFromHw);
+  std::map<std::string, MacsecStats> allportStats;
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
 
-  printSaStatsHelper(saStats, FLAGS_port, FLAGS_ingress);
+  auto portMacsecStatsItr = allportStats.find(FLAGS_port);
+  if (portMacsecStatsItr == allportStats.end()) {
+    printf("Wrong port name specified: %s\n", FLAGS_port.c_str());
+    return;
+  }
+
+  auto& portMacsecStats = portMacsecStatsItr->second;
+  if (FLAGS_ingress) {
+    for (auto& saStatsItr :
+         portMacsecStats.rxSecureAssociationStats_ref().value()) {
+      auto& saId = saStatsItr.saId_ref().value();
+      auto& saStats = saStatsItr.saStats_ref().value();
+      printf(
+          "SA stats for SCI: %s.%d, AN: %d\n",
+          saId.sci_ref()->macAddress_ref().value().c_str(),
+          saId.sci_ref()->port_ref().value(),
+          saId.assocNum_ref().value());
+      printSaStatsHelper(saStats, FLAGS_port, FLAGS_ingress);
+    }
+  } else {
+    for (auto& saStatsItr :
+         portMacsecStats.txSecureAssociationStats_ref().value()) {
+      auto& saId = saStatsItr.saId_ref().value();
+      auto& saStats = saStatsItr.saStats_ref().value();
+      printf(
+          "SA stats for SCI: %s.%d, AN: %d\n",
+          saId.sci_ref()->macAddress_ref().value().c_str(),
+          saId.sci_ref()->port_ref().value(),
+          saId.assocNum_ref().value());
+      printSaStatsHelper(saStats, FLAGS_port, FLAGS_ingress);
+    }
+  }
 }
 
 void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
