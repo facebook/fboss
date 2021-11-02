@@ -401,10 +401,9 @@ unsigned int SffModule::numMediaLanes() const {
   // is added that have channel count different than 4, we need to
   // change this function to reflect that.
 
-  ExtendedSpecComplianceCode ext_comp_code =
-      getExtendedSpecificationComplianceCode();
+  auto ext_comp_code = getExtendedSpecificationComplianceCode();
 
-  if (ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
+  if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
     return 1;
   } else {
     return 4;
@@ -698,8 +697,8 @@ SignalFlags SffModule::getSignalFlagInfo() {
   return signalFlags;
 }
 
-ExtendedSpecComplianceCode SffModule::getExtendedSpecificationComplianceCode()
-    const {
+std::optional<ExtendedSpecComplianceCode>
+SffModule::getExtendedSpecificationComplianceCode() const {
   return (ExtendedSpecComplianceCode)getSettingsValue(
       SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }
@@ -710,18 +709,24 @@ bool SffModule::getMediaInterfaceId(
 
   // Currently setting the same media interface for all media lanes
   auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  if (!extSpecCompliance) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s}, getExtendedSpecificationComplianceCode returned nullopt",
+        qsfpImpl_->getName());
+    return false;
+  }
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane_ref() = lane;
     MediaInterfaceUnion media;
-    media.extendedSpecificationComplianceCode_ref() = extSpecCompliance;
-    if (auto it = mediaInterfaceMapping.find(extSpecCompliance);
+    media.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
+    if (auto it = mediaInterfaceMapping.find(*extSpecCompliance);
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code_ref() = it->second;
     } else {
       XLOG(ERR) << folly::sformat(
           "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
           qsfpImpl_->getName(),
-          apache::thrift::util::enumNameSafe(extSpecCompliance));
+          apache::thrift::util::enumNameSafe(*extSpecCompliance));
       mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
     }
     mediaInterface[lane].media_ref() = media;

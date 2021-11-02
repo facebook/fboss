@@ -225,8 +225,8 @@ class SffModule : public QsfpModule {
    * This is the field of Byte 192 on page00 and following table 4-4
    * of SFF-8024.
    */
-  ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
-      const override;
+  std::optional<ExtendedSpecComplianceCode>
+  getExtendedSpecificationComplianceCode() const override;
   /*
    * Return information in the identifier byte 0
    */

@@ -105,11 +105,6 @@ class Sff8472Module : public QsfpModule {
 
   virtual SignalFlags getSignalFlagInfo() override;
 
-  ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
-      const override {
-    return ExtendedSpecComplianceCode::UNKNOWN;
-  }
-
   TransceiverModuleIdentifier getIdentifier() override {
     return TransceiverModuleIdentifier::SFP_PLUS;
   }

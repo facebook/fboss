@@ -411,10 +411,12 @@ class QsfpModule : public Transceiver {
   /*
    * Return the extended specification compliance code of the module.
    * This is the field of Byte 192 on page00 and following table 4-4
-   * of SFF-8024.
+   * of SFF-8024. Applicable only for sff-8636
    */
-  virtual ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode()
-      const = 0;
+  virtual std::optional<ExtendedSpecComplianceCode>
+  getExtendedSpecificationComplianceCode() const {
+    return std::nullopt;
+  }
 
   double mwToDb(double value);
 

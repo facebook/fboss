@@ -252,8 +252,9 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   }
   info.signalFlag_ref() = getSignalFlagInfo();
   cacheSignalFlags(getSignalFlagInfo());
-  info.extendedSpecificationComplianceCode_ref() =
-      getExtendedSpecificationComplianceCode();
+  if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
+    info.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
+  }
   info.transceiverManagementInterface_ref() = managementInterface();
 
   info.identifier_ref() = getIdentifier();

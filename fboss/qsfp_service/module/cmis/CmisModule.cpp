@@ -115,7 +115,6 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::REVISION_NUMBER, {CmisPages::PAGE00, 164, 2}},
     {CmisField::VENDOR_SERIAL_NUMBER, {CmisPages::PAGE00, 166, 16}},
     {CmisField::MFG_DATE, {CmisPages::PAGE00, 182, 8}},
-    {CmisField::EXTENDED_SPECIFICATION_COMPLIANCE, {CmisPages::PAGE00, 192, 1}},
     {CmisField::LENGTH_COPPER, {CmisPages::PAGE00, 202, 1}},
     {CmisField::MEDIA_INTERFACE_TECHNOLOGY, {CmisPages::PAGE00, 212, 1}},
     {CmisField::PAGE0_CSUM, {CmisPages::PAGE00, 222, 1}},
@@ -1186,12 +1185,6 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   }
 
   return vdmStats;
-}
-
-ExtendedSpecComplianceCode CmisModule::getExtendedSpecificationComplianceCode()
-    const {
-  return (ExtendedSpecComplianceCode)getSettingsValue(
-      CmisField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }
 
 TransceiverModuleIdentifier CmisModule::getIdentifier() {
