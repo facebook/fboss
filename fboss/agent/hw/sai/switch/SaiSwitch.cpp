@@ -106,6 +106,20 @@ const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
 };
 
+std::string fdbEventToString(sai_fdb_event_t event) {
+  switch (event) {
+    case SAI_FDB_EVENT_LEARNED:
+      return "learned";
+    case SAI_FDB_EVENT_AGED:
+      return "aged";
+    case SAI_FDB_EVENT_MOVE:
+      return "moved";
+    case SAI_FDB_EVENT_FLUSHED:
+      return "flushed";
+  }
+  return "unknown";
+}
+
 static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
     facebook::fboss::cfg::PacketRxReason::TTL_1};
 } // namespace
@@ -1869,9 +1883,11 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
     auto ditr =
         kL2AddrUpdateOperationsOfInterest.find(fdbNotification.eventType);
     if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
+      auto updateTypeStr = fdbEventToString(ditr->first);
       auto l2Entry = getL2Entry(fdbNotification);
       if (l2Entry) {
-        XLOG(DBG2) << "Received FDB notification for: " << l2Entry->str();
+        XLOG(DBG2) << "Received FDB " << updateTypeStr
+                   << " notification for: " << l2Entry->str();
         callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
       }
     }
