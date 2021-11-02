@@ -72,9 +72,9 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
     return key_;
   }
 
- private:
   std::string toString() const;
 
+ private:
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
 };

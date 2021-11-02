@@ -84,9 +84,9 @@ class ManagedSaiNextHopGroupMember
 
   void handleLinkDown() {}
 
- private:
   std::string toString() const;
 
+ private:
   SaiNextHopGroupManager* manager_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;

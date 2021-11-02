@@ -109,6 +109,26 @@ void ManagedFdbEntry::handleLinkDown() {
       intfIDAndMac_);
 }
 
+std::string ManagedFdbEntry::toString() const {
+  auto saiPortDescStr = std::get<SaiPortDescriptor>(saiPortAndIntf_).str();
+  auto intfIdStr = std::to_string(std::get<InterfaceID>(intfIDAndMac_));
+  auto macStr = std::get<folly::MacAddress>(intfIDAndMac_).toString();
+  auto typeStr = std::to_string(type_);
+  auto metaDataStr = metadata_ ? std::to_string(metadata_.value()) : "none";
+
+  return folly::to<std::string>(
+      "port: ",
+      saiPortDescStr,
+      ", interface: ",
+      intfIdStr,
+      ", mac: ",
+      macStr,
+      ", type: ",
+      typeStr,
+      ", metadata: ",
+      metaDataStr);
+}
+
 void SaiFdbManager::addFdbEntry(
     SaiPortDescriptor port,
     InterfaceID interfaceId,

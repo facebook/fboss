@@ -90,6 +90,8 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
   void update(const std::shared_ptr<MacEntry>& updated);
 
+  std::string toString() const;
+
  private:
   SaiFdbManager* manager_;
   SwitchSaiId switchId_;

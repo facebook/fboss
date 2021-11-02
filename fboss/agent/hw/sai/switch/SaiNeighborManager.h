@@ -81,9 +81,9 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
 
   void notifySubscribers() const;
 
- private:
   std::string toString() const;
 
+ private:
   SaiNeighborManager* manager_;
   std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf_;
   std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
