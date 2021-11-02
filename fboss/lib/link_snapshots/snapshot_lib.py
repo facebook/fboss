@@ -226,6 +226,13 @@ class SnapshotClient:
             else:
                 snapshot_str = match.group(1)
 
+            # TODO(ccpowers): remove this line once we fix qsfp service to
+            # not read compliance code on CMIS modules (which don't support it)
+
+            snapshot_str = snapshot_str.replace(
+                '"extendedSpecificationComplianceCode":32,', ""
+            )
+
             snapshot = deserialize(
                 LinkSnapshot, snapshot_str.encode(), protocol=Protocol.JSON
             )
