@@ -65,4 +65,9 @@ void HwSwitch::updateStats(SwitchStats* switchStats) {
     normalizer->processStats(getPortStats());
   }
 }
+
+uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
+  return generateDeterministicSeed(
+      loadBalancerID, getPlatform()->getLocalMac());
+}
 } // namespace facebook::fboss

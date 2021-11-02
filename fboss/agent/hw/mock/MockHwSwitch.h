@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "folly/MacAddress.h"
 
 #include <gmock/gmock.h>
 #include <optional>
@@ -96,6 +97,13 @@ class MockHwSwitch : public HwSwitch {
   uint64_t getDeviceWatermarkBytes() const override {
     return 0;
   }
+
+  uint32_t generateDeterministicSeed(
+      LoadBalancerID /*loadBalancerID*/,
+      folly::MacAddress /*mac*/) const override {
+    return 0;
+  }
+
   MOCK_CONST_METHOD2(
       listObjects,
       std::string(const std::vector<HwObjectType>&, bool));

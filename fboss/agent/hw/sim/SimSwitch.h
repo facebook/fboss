@@ -113,6 +113,12 @@ class SimSwitch : public HwSwitch {
     return std::map<PortID, phy::PhyInfo>();
   }
 
+  uint32_t generateDeterministicSeed(
+      LoadBalancerID /*loadBalancerID*/,
+      folly::MacAddress /*mac*/) const override {
+    return 0;
+  }
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO

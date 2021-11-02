@@ -453,6 +453,15 @@ class BcmSwitch : public BcmSwitchIf {
   void dumpDebugState(const std::string& path) const override {
     dumpState(path);
   }
+
+  /**
+   * Generate seed for load balancer
+   */
+  uint32_t generateDeterministicSeed(
+      LoadBalancerID /*loadBalancerID*/,
+      folly::MacAddress /*mac*/) const override {
+    return 0;
+  }
   /**
    * Log the hardware state for the switch
    */

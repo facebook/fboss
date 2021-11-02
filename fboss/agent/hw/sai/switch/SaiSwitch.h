@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "folly/MacAddress.h"
 
 #include <folly/io/async/EventBase.h>
 
@@ -182,6 +183,12 @@ class SaiSwitch : public HwSwitch {
 
   virtual std::map<PortID, phy::PhyInfo> updateIPhyInfo() const override {
     return std::map<PortID, phy::PhyInfo>();
+  }
+
+  uint32_t generateDeterministicSeed(
+      LoadBalancerID /*loadBalancerID*/,
+      folly::MacAddress /*mac*/) const override {
+    return 0;
   }
 
  private:

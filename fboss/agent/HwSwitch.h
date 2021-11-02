@@ -326,6 +326,12 @@ class HwSwitch {
 
   HwSwitchStats* getSwitchStats() const;
 
+  uint32_t generateDeterministicSeed(LoadBalancerID loadBalancerID);
+
+  virtual uint32_t generateDeterministicSeed(
+      LoadBalancerID loadBalancerID,
+      folly::MacAddress mac) const = 0;
+
  private:
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
 
