@@ -26,6 +26,7 @@ const folly::IPAddress getIPFromHost(const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
+long getEpochFromDuration(const int64_t& duration);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
 const std::string formatBandwidth(const unsigned long& bandwidth);
