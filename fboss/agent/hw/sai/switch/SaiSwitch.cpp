@@ -2201,6 +2201,8 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_SC);
         objTypes.push_back(SAI_OBJECT_TYPE_MACSEC_SA);
         break;
+      case HwObjectType::SAI_MANAGED_OBJECTS:
+        throw FbossError("unsupported object type");
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);

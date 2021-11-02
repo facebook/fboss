@@ -601,6 +601,7 @@ enum HwObjectType {
   TELEMETRY = 20,
   LABEL_ENTRY = 21,
   MACSEC = 22,
+  SAI_MANAGED_OBJECTS = 23,
 }
 
 exception FbossFibUpdateError {
