@@ -69,6 +69,8 @@ class SaiPhyManager : public PhyManager {
       mka::MacsecDirection direction,
       bool readFromHw) override;
 
+  std::map<std::string, MacsecStats> getAllMacsecPortStats() override;
+
   void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,

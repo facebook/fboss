@@ -406,6 +406,27 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
                                        : MacsecStats{};
 }
 
+std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
+  std::map<std::string, MacsecStats> phyPortStatsMap;
+
+  for (auto& pimPlatformItr : saiPlatforms_) {
+    auto& pimPlatform = pimPlatformItr.second;
+    for (auto& platformItr : pimPlatform) {
+      GlobalXphyID xphyID = platformItr.first;
+      auto saiSwitch = getSaiSwitch(xphyID);
+      // Call getPortStats for the particular Phy
+      auto xphyPortStats = saiSwitch->getPortStats();
+      for (auto& statsItr : xphyPortStats) {
+        phyPortStatsMap[statsItr.first] =
+            statsItr.second.macsecStats_ref().has_value()
+            ? statsItr.second.macsecStats_ref().value()
+            : MacsecStats{};
+      }
+    }
+  }
+  return phyPortStatsMap;
+}
+
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
     mka::MacsecDirection direction,

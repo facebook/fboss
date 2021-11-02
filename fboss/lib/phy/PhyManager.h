@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"
@@ -126,6 +127,11 @@ class PhyManager {
       bool /* readFromHw */) {
     throw FbossError(
         "Attempted to call getMacsecSecureAssocStats from non-SaiPhyManager");
+  }
+
+  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats() {
+    throw FbossError(
+        "Attempted to call getAllMacsecPortStats from non-SaiPhyManager");
   }
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
