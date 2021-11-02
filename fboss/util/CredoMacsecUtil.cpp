@@ -157,7 +157,10 @@ DEFINE_bool(
     get_sa_stats,
     false,
     "Get SA stats, use with --port --ingress/--egress");
-DEFINE_bool(get_allport_stats, false, "Get all port stats in this system");
+DEFINE_bool(
+    get_allport_stats,
+    false,
+    "Get all port stats in this system, optionally use --port");
 
 constexpr bool kReadFromHw = true;
 /*
@@ -544,7 +547,14 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
 
 void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   std::map<std::string, MacsecStats> allportStats;
-  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+
+  if (FLAGS_port == "") {
+    fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+  } else {
+    std::vector<std::string> ports;
+    ports.push_back(FLAGS_port);
+    fbMacsecHandler->sync_getMacsecPortStats(allportStats, ports);
+  }
 
   for (auto& portStatsItr : allportStats) {
     auto portName = portStatsItr.first;
