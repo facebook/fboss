@@ -441,6 +441,21 @@ std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
   return phyPortStatsMap;
 }
 
+/*
+ * getMacsecPortStats
+ *
+ * Get the macsec stats for some ports in the system
+ */
+std::map<std::string, MacsecStats> SaiPhyManager::getMacsecPortStats(
+    const std::vector<std::string>& portNames) {
+  std::map<std::string, MacsecStats> phyPortStatsMap;
+
+  for (auto& portName : portNames) {
+    phyPortStatsMap[portName] = getMacsecStats(portName);
+  }
+  return phyPortStatsMap;
+}
+
 mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     std::string portName,
     mka::MacsecDirection direction,

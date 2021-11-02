@@ -71,6 +71,9 @@ class SaiPhyManager : public PhyManager {
 
   std::map<std::string, MacsecStats> getAllMacsecPortStats() override;
 
+  std::map<std::string, MacsecStats> getMacsecPortStats(
+      const std::vector<std::string>& portName) override;
+
   void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,

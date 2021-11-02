@@ -134,6 +134,12 @@ class PhyManager {
         "Attempted to call getAllMacsecPortStats from non-SaiPhyManager");
   }
 
+  virtual std::map<std::string, MacsecStats> getMacsecPortStats(
+      const std::vector<std::string>& /* portName */) {
+    throw FbossError(
+        "Attempted to call getMacsecPortStats from non-SaiPhyManager");
+  }
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   void

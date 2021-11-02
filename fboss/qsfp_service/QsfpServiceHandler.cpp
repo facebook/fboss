@@ -354,6 +354,15 @@ QsfpServiceHandler::co_getAllMacsecPortStats() {
   co_return std::make_unique<std::map<std::string, MacsecStats>>(
       macsecHandler_->getAllMacsecPortStats());
 }
+
+folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
+QsfpServiceHandler::co_getMacsecPortStats(
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  validateHandler();
+  co_return std::make_unique<std::map<std::string, MacsecStats>>(
+      macsecHandler_->getMacsecPortStats(*portNames));
+}
 #endif
 
 } // namespace fboss

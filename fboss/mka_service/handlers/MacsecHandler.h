@@ -109,6 +109,14 @@ class MacsecHandler {
     return std::map<std::string, MacsecStats>{};
   }
 
+  /*
+   * Get a macsec port stats
+   */
+  virtual std::map<std::string, MacsecStats> getMacsecPortStats(
+      const std::vector<std::string>& /* portNames */) {
+    return std::map<std::string, MacsecStats>{};
+  }
+
  private:
   MacsecHandler(const MacsecHandler&) = delete;
   MacsecHandler& operator=(const MacsecHandler&) = delete;

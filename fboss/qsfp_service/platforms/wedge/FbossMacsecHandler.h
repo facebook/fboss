@@ -89,6 +89,11 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return std::map<std::string, MacsecStats>{};
   }
 
+  virtual std::map<std::string, MacsecStats> getMacsecPortStats(
+      const std::vector<std::string>& /* portName */) override {
+    return std::map<std::string, MacsecStats>{};
+  }
+
  protected:
   // TransceiverManager or WedgeManager object pointer passed by QsfpService
   // main

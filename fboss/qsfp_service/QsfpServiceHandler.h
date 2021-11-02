@@ -141,6 +141,10 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
   co_getAllMacsecPortStats() override;
 
+  folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
+  co_getMacsecPortStats(
+      std::unique_ptr<std::vector<std::string>> portNames) override;
+
 #endif
 
  private:
