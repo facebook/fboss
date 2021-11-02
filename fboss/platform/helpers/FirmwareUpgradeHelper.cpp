@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/helpers/firmwareUpgradeHelper.h"
+#include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
 
 namespace facebook::fboss::platform::helpers {
 /*
