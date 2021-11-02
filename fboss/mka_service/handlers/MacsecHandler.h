@@ -105,7 +105,8 @@ class MacsecHandler {
   /*
    * Get all the macsec port stats
    */
-  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats() {
+  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(
+      bool /* readFromHw */) {
     return std::map<std::string, MacsecStats>{};
   }
 
@@ -113,7 +114,8 @@ class MacsecHandler {
    * Get a macsec port stats
    */
   virtual std::map<std::string, MacsecStats> getMacsecPortStats(
-      const std::vector<std::string>& /* portNames */) {
+      const std::vector<std::string>& /* portNames */,
+      bool /* readFromHw */) {
     return std::map<std::string, MacsecStats>{};
   }
 

@@ -85,12 +85,14 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return mka::MacsecSaStats();
   }
 
-  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats() override {
+  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(
+      bool /* readFromHw */) override {
     return std::map<std::string, MacsecStats>{};
   }
 
   virtual std::map<std::string, MacsecStats> getMacsecPortStats(
-      const std::vector<std::string>& /* portName */) override {
+      const std::vector<std::string>& /* portName */,
+      bool /* readFromHw */) override {
     return std::map<std::string, MacsecStats>{};
   }
 

@@ -129,13 +129,15 @@ class PhyManager {
         "Attempted to call getMacsecSecureAssocStats from non-SaiPhyManager");
   }
 
-  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats() {
+  virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(
+      bool /* readFromHw */) {
     throw FbossError(
         "Attempted to call getAllMacsecPortStats from non-SaiPhyManager");
   }
 
   virtual std::map<std::string, MacsecStats> getMacsecPortStats(
-      const std::vector<std::string>& /* portName */) {
+      const std::vector<std::string>& /* portName */,
+      bool /* readFromHw */) {
     throw FbossError(
         "Attempted to call getMacsecPortStats from non-SaiPhyManager");
   }

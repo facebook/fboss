@@ -414,7 +414,8 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
  * macsec stats for all ports. This function returns the map of port name to
  * MacsecStats structure which contains port, flow and SA stats
  */
-std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
+std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats(
+    bool readFromHw) {
   std::map<std::string, MacsecStats> phyPortStatsMap;
 
   // Loop through all pim platforms
@@ -427,6 +428,11 @@ std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
 
       // Get SaiSwitch using global xphy id
       auto saiSwitch = getSaiSwitch(xphyID);
+
+      if (readFromHw) {
+        static SwitchStats unused;
+        saiSwitch->updateStats(&unused);
+      }
 
       // Call getPortStats for the particular Phy and fill in to return map
       auto xphyPortStats = saiSwitch->getPortStats();
@@ -447,11 +453,12 @@ std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
  * Get the macsec stats for some ports in the system
  */
 std::map<std::string, MacsecStats> SaiPhyManager::getMacsecPortStats(
-    const std::vector<std::string>& portNames) {
+    const std::vector<std::string>& portNames,
+    bool readFromHw) {
   std::map<std::string, MacsecStats> phyPortStatsMap;
 
   for (auto& portName : portNames) {
-    phyPortStatsMap[portName] = getMacsecStats(portName);
+    phyPortStatsMap[portName] = getMacsecStats(portName, readFromHw);
   }
   return phyPortStatsMap;
 }

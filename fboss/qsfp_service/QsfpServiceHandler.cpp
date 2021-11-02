@@ -348,20 +348,21 @@ QsfpServiceHandler::co_macsecGetSaStats(
 }
 
 folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
-QsfpServiceHandler::co_getAllMacsecPortStats() {
+QsfpServiceHandler::co_getAllMacsecPortStats(bool readFromHw) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<std::map<std::string, MacsecStats>>(
-      macsecHandler_->getAllMacsecPortStats());
+      macsecHandler_->getAllMacsecPortStats(readFromHw));
 }
 
 folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
 QsfpServiceHandler::co_getMacsecPortStats(
-    std::unique_ptr<std::vector<std::string>> portNames) {
+    std::unique_ptr<std::vector<std::string>> portNames,
+    bool readFromHw) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<std::map<std::string, MacsecStats>>(
-      macsecHandler_->getMacsecPortStats(*portNames));
+      macsecHandler_->getMacsecPortStats(*portNames, readFromHw));
 }
 #endif
 

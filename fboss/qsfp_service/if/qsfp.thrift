@@ -150,11 +150,12 @@ service QsfpService extends fb303.FacebookService {
     3: bool readFromHardware = false,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
-  map<string, hardware_stats.MacsecStats> getAllMacsecPortStats() throws (
-    1: fboss.FbossBaseError error,
-  ) (cpp.coroutine);
+  map<string, hardware_stats.MacsecStats> getAllMacsecPortStats(
+    1: bool readFromHw = false,
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
   map<string, hardware_stats.MacsecStats> getMacsecPortStats(
     1: list<string> portNames,
+    2: bool readFromHw = false,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 }

@@ -437,7 +437,7 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   std::map<std::string, MacsecStats> allportStats;
-  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats, true);
 
   auto portMacsecStatsItr = allportStats.find(FLAGS_port);
   if (portMacsecStatsItr == allportStats.end()) {
@@ -466,7 +466,7 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   std::map<std::string, MacsecStats> allportStats;
-  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats, true);
 
   auto portMacsecStatsItr = allportStats.find(FLAGS_port);
   if (portMacsecStatsItr == allportStats.end()) {
@@ -509,7 +509,7 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   std::map<std::string, MacsecStats> allportStats;
-  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats, true);
 
   auto portMacsecStatsItr = allportStats.find(FLAGS_port);
   if (portMacsecStatsItr == allportStats.end()) {
@@ -549,11 +549,11 @@ void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   std::map<std::string, MacsecStats> allportStats;
 
   if (FLAGS_port == "") {
-    fbMacsecHandler->sync_getAllMacsecPortStats(allportStats);
+    fbMacsecHandler->sync_getAllMacsecPortStats(allportStats, true);
   } else {
     std::vector<std::string> ports;
     ports.push_back(FLAGS_port);
-    fbMacsecHandler->sync_getMacsecPortStats(allportStats, ports);
+    fbMacsecHandler->sync_getMacsecPortStats(allportStats, ports, true);
   }
 
   for (auto& portStatsItr : allportStats) {
