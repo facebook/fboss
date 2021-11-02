@@ -406,15 +406,29 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
                                        : MacsecStats{};
 }
 
+/*
+ * getAllMacsecPortStats
+ *
+ * Get the macsec stats for all ports in the system. This function will loop
+ * through all pim platforms and then all xphy in the pim platform and then get
+ * macsec stats for all ports. This function returns the map of port name to
+ * MacsecStats structure which contains port, flow and SA stats
+ */
 std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats() {
   std::map<std::string, MacsecStats> phyPortStatsMap;
 
+  // Loop through all pim platforms
   for (auto& pimPlatformItr : saiPlatforms_) {
     auto& pimPlatform = pimPlatformItr.second;
+
+    // Loop through all xphy in the pim
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
+
+      // Get SaiSwitch using global xphy id
       auto saiSwitch = getSaiSwitch(xphyID);
-      // Call getPortStats for the particular Phy
+
+      // Call getPortStats for the particular Phy and fill in to return map
       auto xphyPortStats = saiSwitch->getPortStats();
       for (auto& statsItr : xphyPortStats) {
         phyPortStatsMap[statsItr.first] =
