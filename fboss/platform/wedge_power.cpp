@@ -7,7 +7,7 @@
 #include <sysexits.h>
 #include <iostream>
 #include <ratio>
-#include "./helpers/Utils.h"
+#include "fboss/platform/helpers/Utils.h"
 
 using namespace facebook::fboss::platform::helpers;
 
@@ -20,7 +20,7 @@ DEFINE_bool(h, false, "Help");
 
 void print_status(void) {
   // To Do: add more status info
-  std::cout << "Switch card pownered on" << std::endl;
+  std::cout << "Switch card powered on" << std::endl;
 }
 
 void print_usage(void) {
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
-  if (argc == 1 || FLAGS_h) {
+  if (FLAGS_h) {
     print_usage();
     return EX_OK;
   }
