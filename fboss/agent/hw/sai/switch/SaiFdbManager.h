@@ -30,7 +30,7 @@
 
 namespace facebook::fboss {
 
-class ConcurrentIndices;
+struct ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class MacEntry;

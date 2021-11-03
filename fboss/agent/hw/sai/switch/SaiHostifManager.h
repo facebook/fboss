@@ -27,6 +27,7 @@
 
 namespace facebook::fboss {
 
+struct ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
@@ -50,7 +51,8 @@ class SaiHostifManager {
   explicit SaiHostifManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+      const SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices);
   HostifTrapSaiId addHostifTrap(
       cfg::PacketRxReason trapId,
       uint32_t queueId,
@@ -111,6 +113,7 @@ class SaiHostifManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+  ConcurrentIndices* concurrentIndices_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
   /*

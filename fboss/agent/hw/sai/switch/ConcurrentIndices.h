@@ -45,6 +45,11 @@ struct ConcurrentIndices {
    * lag sai id to aggregate port id
    */
   folly::ConcurrentHashMap<LagSaiId, AggregatePortID> aggregatePortIds;
+
+  /*
+   * Config Hostif trap ID to Rx reason
+   */
+  folly::ConcurrentHashMap<HostifTrapSaiId, cfg::PacketRxReason> hostifTrapIds;
 };
 
 } // namespace facebook::fboss

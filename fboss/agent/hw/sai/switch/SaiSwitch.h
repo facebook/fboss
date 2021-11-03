@@ -29,7 +29,7 @@ DECLARE_int32(update_watermark_stats_interval_s);
 
 namespace facebook::fboss {
 
-class ConcurrentIndices;
+struct ConcurrentIndices;
 class SaiStore;
 
 /*

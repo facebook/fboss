@@ -21,7 +21,7 @@ struct dynamic;
 
 namespace facebook::fboss {
 
-class ConcurrentIndices;
+struct ConcurrentIndices;
 class SaiAclTableGroupManager;
 class SaiAclTableManager;
 class SaiBridgeManager;

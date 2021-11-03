@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -27,8 +28,12 @@ namespace facebook::fboss {
 SaiHostifManager::SaiHostifManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+    const SaiPlatform* platform,
+    ConcurrentIndices* concurrentIndices)
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
+      platform_(platform),
+      concurrentIndices_(concurrentIndices) {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     loadCpuPort();
   }
@@ -173,17 +178,21 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
   auto handle = std::make_unique<SaiHostifTrapHandle>();
   handle->trap = hostifTrap;
   handle->trapGroup = hostifTrapGroup;
+  concurrentIndices_->hostifTrapIds.emplace(handle->trap->adapterKey(), trapId);
   handles_.emplace(trapId, std::move(handle));
   return hostifTrap->adapterKey();
 }
 
 void SaiHostifManager::removeHostifTrap(cfg::PacketRxReason trapId) {
-  auto count = handles_.erase(trapId);
-  if (!count) {
+  auto handleItr = handles_.find(trapId);
+  if (handleItr == handles_.end()) {
     throw FbossError(
         "Attempted to remove non-existent trap for rx reason: ",
         apache::thrift::util::enumName(trapId));
   }
+  concurrentIndices_->hostifTrapIds.erase(
+      handleItr->second->trap->adapterKey());
+  handles_.erase(trapId);
 }
 
 void SaiHostifManager::changeHostifTrap(
