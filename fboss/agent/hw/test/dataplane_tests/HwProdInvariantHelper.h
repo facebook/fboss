@@ -103,7 +103,7 @@ class HwProdInvariantHelper {
   }
   virtual ~HwProdInvariantHelper() {}
   std::vector<PortID> getEcmpPortIds();
-  std::vector<PortDescriptor> getUplinksForEcmp(const int uplinkCount);
+  std::vector<PortDescriptor> getUplinksForEcmp();
   void set_mmu_lossless(bool mmu_lossless) {
     _mmu_lossless_mode = mmu_lossless;
   }

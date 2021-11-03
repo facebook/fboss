@@ -823,6 +823,21 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
   return std::pair(uplinks, downlinks);
 }
 
+std::vector<PortDescriptor> getUplinksForEcmp(
+    const HwSwitch* hwSwitch,
+    const cfg::SwitchConfig& config,
+    const int uplinkCount,
+    const bool mmu_lossless_mode) {
+  auto uplinks = getAllUplinkDownlinkPorts(
+                     hwSwitch, config, uplinkCount, mmu_lossless_mode)
+                     .first;
+  std::vector<PortDescriptor> ecmpPorts;
+  for (auto it = uplinks.begin(); it != uplinks.end(); it++) {
+    ecmpPorts.push_back(PortDescriptor(*it));
+  }
+  return ecmpPorts;
+}
+
 /*
  * Generic function to separate uplinks and downlinks, given a HwSwitch* and a
  * SwitchConfig.

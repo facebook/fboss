@@ -38,19 +38,10 @@ void HwProdInvariantHelper::setupEcmp() {
       kEcmpWidth, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
 
-std::vector<PortDescriptor> HwProdInvariantHelper::getUplinksForEcmp(
-    const int uplinkCount) {
+std::vector<PortDescriptor> HwProdInvariantHelper::getUplinksForEcmp() {
   auto hwSwitch = ensemble_->getHwSwitch();
-  auto uplinks =
-      utility::getAllUplinkDownlinkPorts(
-          hwSwitch, initialConfig(), uplinkCount, is_mmu_lossless_mode())
-          .first;
-
-  std::vector<PortDescriptor> ecmpPorts;
-  for (auto it = uplinks.begin(); it != uplinks.end(); it++) {
-    ecmpPorts.push_back(PortDescriptor(*it));
-  }
-  EXPECT_TRUE(ecmpPorts.size() > 0);
+  auto ecmpPorts = utility::getUplinksForEcmp(
+      hwSwitch, initialConfig(), kEcmpWidth, is_mmu_lossless_mode());
   return ecmpPorts;
 }
 
@@ -59,7 +50,7 @@ void HwProdInvariantHelper::setupEcmpWithNextHopMac(
   ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
       ensemble_, nextHopMac, RouterID(0));
 
-  ecmpPorts_ = getUplinksForEcmp(kEcmpWidth);
+  ecmpPorts_ = getUplinksForEcmp();
   ecmpHelper_->programRoutesVecHelper(
       ecmpPorts_, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }
@@ -68,7 +59,7 @@ void HwProdInvariantHelper::setupEcmpOnUplinks() {
   ecmpHelper_ = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
       ensemble_, RouterID(0));
 
-  ecmpPorts_ = getUplinksForEcmp(kEcmpWidth);
+  ecmpPorts_ = getUplinksForEcmp();
   ecmpHelper_->programRoutesVecHelper(
       ecmpPorts_, std::vector<NextHopWeight>(kEcmpWidth, 1));
 }

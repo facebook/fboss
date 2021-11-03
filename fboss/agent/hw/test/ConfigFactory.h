@@ -9,11 +9,11 @@
  */
 
 #pragma once
+#include <folly/MacAddress.h>
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
-
-#include <folly/MacAddress.h>
 
 #include <vector>
 
@@ -110,6 +110,12 @@ void addMatcher(
     const std::string& matcherName,
     const cfg::MatchAction& matchAction);
 std::vector<PortID> getAllPortsInGroup(const HwSwitch* hwSwitch, PortID portID);
+
+std::vector<PortDescriptor> getUplinksForEcmp(
+    const HwSwitch* hwSwitch,
+    const cfg::SwitchConfig& config,
+    const int uplinkCount,
+    const bool mmu_lossless_mode = false);
 
 cfg::SwitchConfig createUplinkDownlinkConfig(
     const HwSwitch* hwSwitch,
