@@ -125,7 +125,9 @@ class TransceiverManager {
    */
   virtual bool initExternalPhyMap() = 0;
 
-  virtual PhyManager* getPhyManager() = 0;
+  PhyManager* getPhyManager() {
+    return phyManager_.get();
+  }
 
   /*
    * Virtual function to program a PHY port on external PHY. This function
@@ -177,6 +179,10 @@ class TransceiverManager {
   // trigger the corresponding program event to program the component.
   void triggerProgrammingEvents();
 
+  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
+    phyManager_ = std::move(phyManager);
+  }
+
   // An override of programmed iphy ports.
   // Due to hw_test won't be able to get wedge_agent running, this override
   // map will mimic the return of programmed iphy ports based on transceiver.
@@ -207,6 +213,8 @@ class TransceiverManager {
   mutable PortNameMap portNameToModule_;
   PortGroups portGroupMap_;
   std::unique_ptr<QsfpConfig> qsfpConfig_;
+  // For platforms that needs to program xphy
+  std::unique_ptr<PhyManager> phyManager_;
 
  private:
   // Forbidden copy constructor and assignment operator

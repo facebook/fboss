@@ -138,9 +138,6 @@ class WedgeManager : public TransceiverManager {
 
   void updateAllXphyPortsStats() override;
 
-  PhyManager* getPhyManager() override {
-    return phyManager_.get();
-  }
   const AgentConfig* getAgentConfig() const {
     return agentConfig_.get();
   }
@@ -165,10 +162,6 @@ class WedgeManager : public TransceiverManager {
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
 
-  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
-    phyManager_ = std::move(phyManager);
-  }
-
   virtual bool shouldInitializePimXphy() const;
 
   // thread safe handle to access bus
@@ -180,9 +173,6 @@ class WedgeManager : public TransceiverManager {
       ports_;
 
   PlatformMode platformMode_;
-
-  // For platforms that needs to program xphy
-  std::unique_ptr<PhyManager> phyManager_;
 
  private:
   // Forbidden copy constructor and assignment operator

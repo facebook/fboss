@@ -118,6 +118,7 @@ void TransceiverManager::startThreads() {
     }));
   }
 }
+
 void TransceiverManager::stopThreads() {
   // We use runInEventBaseThread() to terminateLoopSoon() rather than calling it
   // directly here.  This ensures that any events already scheduled via
@@ -128,9 +129,17 @@ void TransceiverManager::stopThreads() {
     updateThread_->join();
     XLOG(DBG2) << "Terminated qsfpModuleStateUpdateThread";
   }
-  // TODO(joseph5wu) Might need to consider how to handle pending updates just
-  // as wedge_agent
+  // Drain any pending updates by calling handlePendingUpdates directly.
+  bool updatesDrained = false;
+  do {
+    handlePendingUpdates();
+    {
+      std::unique_lock guard(pendingUpdatesLock_);
+      updatesDrained = pendingUpdates_.empty();
+    }
+  } while (!updatesDrained);
 }
+
 void TransceiverManager::threadLoop(
     folly::StringPiece name,
     folly::EventBase* eventBase) {
