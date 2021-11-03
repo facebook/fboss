@@ -1,6 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/TransceiverManager.h"
 
+#include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
@@ -8,6 +9,8 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
+
+using namespace std::chrono;
 
 namespace facebook {
 namespace fboss {
@@ -150,16 +153,31 @@ void TransceiverManager::threadLoop(
 void TransceiverManager::updateState(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
-  auto stateMachineUpdate =
-      std::make_unique<TransceiverStateMachineUpdate>(id, event);
+  auto update = std::make_unique<TransceiverStateMachineUpdate>(id, event);
+  updateState(std::move(update));
+}
+
+void TransceiverManager::updateStateBlocking(
+    TransceiverID id,
+    TransceiverStateMachineEvent event) {
+  auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
+  auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
+      id, event, result);
+  updateState(std::move(update));
+  // wait for the result
+  result->wait();
+}
+
+void TransceiverManager::updateState(
+    std::unique_ptr<TransceiverStateMachineUpdate> update) {
   if (isExiting_) {
-    XLOG(WARN) << "Skipped queueing update:" << stateMachineUpdate->getName()
+    XLOG(WARN) << "Skipped queueing update:" << update->getName()
                << ", since exit already started";
     return;
   }
   {
     std::unique_lock guard(pendingUpdatesLock_);
-    pendingUpdates_.push_back(*stateMachineUpdate.release());
+    pendingUpdates_.push_back(*update.release());
   }
 
   // Signal the update thread that updates are pending.
@@ -253,6 +271,8 @@ void TransceiverManager::triggerProgrammingEvents() {
   if (!FLAGS_use_new_state_machine) {
     return;
   }
+  int32_t numProgramIphy{0}, numProgramXphy{0}, numProgramTcvr{0};
+  steady_clock::time_point begin = steady_clock::now();
   for (auto& stateMachine : stateMachines_) {
     bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false};
     {
@@ -263,17 +283,25 @@ void TransceiverManager::triggerProgrammingEvents() {
           !lockedStateMachine->get_attribute(isTransceiverProgrammed);
     }
     if (needProgramIphy) {
-      updateState(
+      numProgramIphy++;
+      updateStateBlocking(
           stateMachine.first, TransceiverStateMachineEvent::PROGRAM_IPHY);
     } else if (needProgramXphy) {
-      updateState(
+      numProgramXphy++;
+      updateStateBlocking(
           stateMachine.first, TransceiverStateMachineEvent::PROGRAM_XPHY);
     } else if (needProgramTcvr) {
-      updateState(
+      numProgramTcvr++;
+      updateStateBlocking(
           stateMachine.first,
           TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
     }
   }
+  XLOG(DBG2)
+      << "triggerProgrammingEvents has " << numProgramIphy
+      << " IPHY programming, " << numProgramXphy << " XPHY programming, "
+      << numProgramTcvr << " TCVR programming. Total execute time(ms):"
+      << duration_cast<milliseconds>(steady_clock::now() - begin).count();
 }
 
 void TransceiverManager::programInternalPhyPorts(TransceiverID id) {

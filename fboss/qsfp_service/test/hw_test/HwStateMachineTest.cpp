@@ -90,7 +90,7 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
     : public HwStateMachineTest {
  public:
   HwStateMachineTestWithOverrideTcvrToPortAndProfile()
-      : HwStateMachineTest(true) {}
+      : HwStateMachineTest(true /* setupOverrideTcvrToPortAndProfile */) {}
 };
 
 TEST_F(

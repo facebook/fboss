@@ -161,6 +161,9 @@ class TransceiverManager {
   const std::string getPortName(TransceiverID tcvrId) const;
 
   void updateState(TransceiverID id, TransceiverStateMachineEvent event);
+  void updateStateBlocking(
+      TransceiverID id,
+      TransceiverStateMachineEvent event);
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
@@ -236,6 +239,8 @@ class TransceiverManager {
   void startThreads();
   void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  void updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();

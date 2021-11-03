@@ -18,17 +18,17 @@
 namespace facebook::fboss {
 TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
     TransceiverID id,
-    TransceiverStateMachineEvent transceiverEvent)
+    TransceiverStateMachineEvent event)
     : id_(id),
-      transceiverEvent_(transceiverEvent),
+      event_(event),
       name_(fmt::format(
           "[Transceiver: {}, Event:{}]",
           id,
-          getTransceiverStateMachineEventName(transceiverEvent))) {}
+          getTransceiverStateMachineEventName(event))) {}
 
 void TransceiverStateMachineUpdate::applyUpdate(
     state_machine<TransceiverStateMachine>& curState) {
-  switch (transceiverEvent_) {
+  switch (event_) {
     case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
       curState.process_event(DETECT_TRANSCEIVER);
       return;
@@ -60,6 +60,50 @@ void TransceiverStateMachineUpdate::onSuccess() {
   XLOG(INFO) << "Successfully applied state update for " << name_;
   // TODO(joseph5wu) Need to figure out whether we need to notify anything when
   // the state is applied successfully
+}
+
+void BlockingTransceiverStateMachineUpdateResult::wait() {
+  std::unique_lock<std::mutex> guard(lock_);
+  cond_.wait(guard, [this] { return done_; });
+  // TODO(joseph5wu) Need to figure out how to properly handle error cases/
+  // Like how to provide a retry mechanism.
+}
+
+void BlockingTransceiverStateMachineUpdateResult::signalSuccess() {
+  {
+    std::unique_lock<std::mutex> guard(lock_);
+    CHECK(!done_);
+    done_ = true;
+  }
+  cond_.notify_one();
+}
+
+void BlockingTransceiverStateMachineUpdateResult::signalError(
+    const std::exception_ptr& ex) noexcept {
+  {
+    std::unique_lock<std::mutex> guard(lock_);
+    CHECK(!done_);
+    error_ = ex;
+    done_ = true;
+  }
+  cond_.notify_one();
+}
+
+void BlockingTransceiverStateMachineUpdate::onSuccess() {
+  TransceiverStateMachineUpdate::onSuccess();
+  result_->signalSuccess();
+}
+
+void BlockingTransceiverStateMachineUpdate::onError(
+    const std::exception& ex) noexcept {
+  TransceiverStateMachineUpdate::onError(ex);
+  // Note that we need to use std::current_exception() here rather than
+  // std::make_exception_ptr() -- make_exception_ptr will lose the original
+  // exception type information.
+  // TransceiverManager guarantees that the exception
+  // passed in will still be available as std::current_exception() when
+  // onError() is called.
+  result_->signalError(std::current_exception());
 }
 
 } // namespace facebook::fboss
