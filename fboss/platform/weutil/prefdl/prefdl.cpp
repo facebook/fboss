@@ -91,8 +91,9 @@ bool PrefdlBase::parseTlvField() {
 
   int id = std::stoi(sId, nullptr, 16);
 
-  if (id == 0)
+  if (id == 0) {
     return false;
+  }
 
   auto search = table_.find(id);
   if (search != table_.end()) {

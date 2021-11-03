@@ -7,10 +7,8 @@
 #include <sysexits.h>
 #include <iostream>
 #include <memory>
-#include <ratio>
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
-#include "fboss/platform/weutil/WeutilInterface.h"
 
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
