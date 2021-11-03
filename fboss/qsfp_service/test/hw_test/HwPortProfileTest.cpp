@@ -97,12 +97,12 @@ class HwPortProfileTest : public HwTest {
       EXPECT_TRUE(
           mgmtInterface == TransceiverManagementInterface::SFF ||
           mgmtInterface == TransceiverManagementInterface::CMIS);
-      auto mediaIntefaces =
+      auto mediaInterfaces =
           apache::thrift::can_throw(*settings.mediaInterface_ref());
       switch (Profile) {
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
-          for (const auto& mediaId : mediaIntefaces) {
+          for (const auto& mediaId : mediaInterfaces) {
             if (mgmtInterface == TransceiverManagementInterface::SFF) {
               auto specComplianceCode =
                   *mediaId.media_ref()
@@ -123,10 +123,30 @@ class HwPortProfileTest : public HwTest {
           }
           break;
         case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC:
+          // TODO
+          break;
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+          EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+          for (const auto& mediaId : mediaInterfaces) {
+            EXPECT_EQ(
+                *mediaId.media_ref()->smfCode_ref(),
+                SMFMediaInterfaceCode::FR4_200G);
+            EXPECT_EQ(*mediaId.code_ref(), MediaInterfaceCode::FR4_200G);
+          }
+          break;
         case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
-          // TODO
+          EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+          for (const auto& mediaId : mediaInterfaces) {
+            EXPECT_TRUE(
+                *mediaId.media_ref()->smfCode_ref() ==
+                    SMFMediaInterfaceCode::FR4_400G ||
+                *mediaId.media_ref()->smfCode_ref() ==
+                    SMFMediaInterfaceCode::LR4_10_400G);
+            EXPECT_TRUE(
+                *mediaId.code_ref() == MediaInterfaceCode::FR4_400G ||
+                *mediaId.code_ref() == MediaInterfaceCode::LR4_400G_10KM);
+          }
           break;
         default:
           throw FbossError("Unhandled profile ", Profile);
