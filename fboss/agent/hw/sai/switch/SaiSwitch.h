@@ -401,7 +401,7 @@ class SaiSwitch : public HwSwitch {
   std::optional<L2Entry> getL2Entry(
       const FdbEventNotificationData& fdbEvent) const;
 
-  bool isAllowedHostifTrapId(HostifTrapSaiId hostifTrapSaiId);
+  bool isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:

@@ -86,8 +86,6 @@ class SaiHostifManager {
   const SaiHostifTrapHandle* getHostifTrapHandle(
       cfg::PacketRxReason rxReason) const;
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
-  std::optional<cfg::PacketRxReason> getHostifPacketRxReason(
-      HostifTrapSaiId hostifTrapSaiId);
 
  private:
   uint32_t getMaxCpuQueues() const;

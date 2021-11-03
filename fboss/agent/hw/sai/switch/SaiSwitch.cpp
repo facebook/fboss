@@ -1274,12 +1274,16 @@ void SaiSwitch::initLinkScanLocked(
       switchId_, __glinkStateChangedNotification);
 }
 
-bool SaiSwitch::isAllowedHostifTrapId(HostifTrapSaiId hostifTrapSaiId) {
-  auto rxReason =
-      managerTable_->hostifManager().getHostifPacketRxReason(hostifTrapSaiId);
+bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
+  static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
+      facebook::fboss::cfg::PacketRxReason::TTL_1};
+  const auto hostifTrapItr =
+      concurrentIndices_->hostifTrapIds.find(hostifTrapSaiId);
+  if (hostifTrapItr == concurrentIndices_->hostifTrapIds.cend()) {
+    return false;
+  }
   return (
-      rxReason.has_value() &&
-      (kAllowedRxReasons.find(rxReason.value()) != kAllowedRxReasons.end()));
+      kAllowedRxReasons.find(hostifTrapItr->second) != kAllowedRxReasons.end());
 }
 
 void SaiSwitch::packetRxCallback(
