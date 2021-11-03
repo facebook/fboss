@@ -6,7 +6,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "fboss/platform/helpers/Utils.h"
-#include "fboss/platform/weutil/prefdl/prefdl.h"
+#include "fboss/platform/weutil/prefdl/Prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;
 

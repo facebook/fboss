@@ -18,12 +18,12 @@ class PrefdlBase {
  public:
   explicit PrefdlBase(const std::string& fileName);
 
-  void parseData();
   void printData();
   std::string getField(const std::string&);
 
-  // ToDo: add method to get individule field
- protected:
+  // ToDo: add method to get individual field
+ private:
+  void parseData();
   void preParse(void);
   bool parseTlvField();
   void parseFixedField(int code);

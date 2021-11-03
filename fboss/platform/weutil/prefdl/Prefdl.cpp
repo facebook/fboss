@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/platform/weutil/prefdl/prefdl.h"
+#include "fboss/platform/weutil/prefdl/Prefdl.h"
 #include <folly/Conv.h>
 #include <fstream>
 #include <iostream>
