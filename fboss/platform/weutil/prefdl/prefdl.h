@@ -1,7 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 /*
- * For parsing system metadata (known as prefdl) for selected Arista OEM
+ * For parsing system metadata (known as prefdl) for selected Darwin
  * switches The prefdl is a block of ASCII text, decoded into a set of key:value
  * pairs
  */
