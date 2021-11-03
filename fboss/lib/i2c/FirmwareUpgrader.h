@@ -25,7 +25,8 @@ class CmisFirmwareUpgrader {
       {"finisar-200g-fr4", {"FTCC1112E1PLL-FB"}},
       {"finisar-400g-fr4", {"FTCD4313E2PCL   "}},
       {"finisar-400g-lr4", {"FTCD4323E2PCL   "}},
-      {"innolight-200g-fr4", {"T-FX4FNT-HFB    ", "T-FX4FNT-HFP    "}},
+      {"innolight-200g-fr4",
+       {"T-FX4FNT-HFB    ", "T-FX4FNT-HFP    ", "T-FX4FNT-HFS    "}},
       {"innolight-400g-fr4", {"T-DQ4CNT-NFB    "}},
   };
 
