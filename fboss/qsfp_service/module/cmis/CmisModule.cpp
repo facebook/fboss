@@ -271,6 +271,14 @@ static SpeedApplicationMapping speedApplicationMapping = {
      {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::LR4_10_400G}},
 };
 
+static std::unordered_map<SMFMediaInterfaceCode, cfg::PortSpeed>
+    mediaInterfaceToPortSpeedMapping = {
+        {SMFMediaInterfaceCode::CWDM4_100G, cfg::PortSpeed::HUNDREDG},
+        {SMFMediaInterfaceCode::FR4_200G, cfg::PortSpeed::TWOHUNDREDG},
+        {SMFMediaInterfaceCode::FR4_400G, cfg::PortSpeed::FOURHUNDREDG},
+        {SMFMediaInterfaceCode::LR4_10_400G, cfg::PortSpeed::FOURHUNDREDG},
+};
+
 static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
         {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
@@ -1854,6 +1862,22 @@ void CmisModule::configureModule() {
       "Module {:s}, Rx Equalizer configuration not specified in the QSFP config",
       qsfpImpl_->getName());
 }
+
+MediaInterfaceCode CmisModule::getModuleMediaInterface() {
+  // Go over all module capabilities and return the one with max speed
+  auto maxSpeed = cfg::PortSpeed::DEFAULT;
+  auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
+  for (auto moduleCapIter : moduleCapabilities_) {
+    auto smfCode = static_cast<SMFMediaInterfaceCode>(moduleCapIter.first);
+    auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
+    if (speed > maxSpeed) {
+      maxSpeed = speed;
+      moduleMediaInterface = mediaInterfaceMapping[smfCode];
+    }
+  }
+
+  return moduleMediaInterface;
+};
 
 /*
  * setModuleRxEqualizerLocked

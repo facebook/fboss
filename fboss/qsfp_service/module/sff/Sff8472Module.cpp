@@ -191,7 +191,6 @@ bool Sff8472Module::getMediaInterfaceId(
     std::vector<MediaInterfaceId>& mediaInterface) {
   CHECK_EQ(mediaInterface.size(), numMediaLanes());
 
-  // TODO: Read this from the module
   auto ethernet10GCompliance = getEthernet10GComplianceCode();
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane_ref() = lane;

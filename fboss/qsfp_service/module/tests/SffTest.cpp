@@ -117,6 +117,7 @@ TEST(SffTest, transceiverInfoTest) {
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
   testCachedMediaSignals(qsfp.get());
 }
 
@@ -144,6 +145,7 @@ TEST(SffDacTest, transceiverInfoTest) {
         ExtendedSpecComplianceCode::CR4_100G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CR4_100G);
   }
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CR4_100G);
   testCachedMediaSignals(qsfp.get());
 }
 
@@ -171,6 +173,7 @@ TEST(SffFr1Test, transceiverInfoTest) {
         ExtendedSpecComplianceCode::FR1_100G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::FR1_100G);
   }
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR1_100G);
   testCachedMediaSignals(qsfp.get());
 }
 
@@ -198,6 +201,7 @@ TEST(SffMiniphotonTest, transceiverInfoTest) {
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
 }
 
 TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
@@ -223,6 +227,7 @@ TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
 }
 
 // Tests that a badly programmed module throws an exception
@@ -280,6 +285,7 @@ TEST(SfpTest, transceiverInfoTest) {
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, sfp->numMediaLanes());
   tests.verifyVendorName("FACETEST");
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::LR_10G);
 }
 
 } // namespace

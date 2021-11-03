@@ -123,7 +123,8 @@ class Sff8472Module : public QsfpModule {
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
 
-  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  bool getMediaInterfaceId(
+      std::vector<MediaInterfaceId>& mediaInterface) override;
   const uint8_t* getSfpValuePtr(
       int dataAddress,
       int offset,

@@ -242,7 +242,8 @@ class CmisModule : public QsfpModule {
    * Fetches the media interface ids per media lane and returns false if it
    * fails
    */
-  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  bool getMediaInterfaceId(
+      std::vector<MediaInterfaceId>& mediaInterface) override;
   /*
    * Gets the Single Mode Fiber Interface codes from SFF-8024
    */
@@ -358,6 +359,15 @@ class CmisModule : public QsfpModule {
    * ApplicationCode to ApplicationCodeSel mapping.
    */
   std::map<uint8_t, ApplicationAdvertisingField> moduleCapabilities_;
+
+  /*
+   * Gets the module media interface. This is the intended media interface
+   * application for this module. The module may be able to run in a different
+   * application (with lesser bandwidth). For example if a 200G-FR4 module is
+   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
+   * return 200G-FR4
+   */
+  MediaInterfaceCode getModuleMediaInterface() override;
 };
 
 } // namespace fboss

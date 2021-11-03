@@ -462,6 +462,22 @@ class QsfpModule : public Transceiver {
   virtual void resetLowPowerMode() {}
 
   /*
+   * Gets the module media interface. This is the intended media interface
+   * application for this module. The module may be able to run in a different
+   * application (with lesser bandwidth). For example if a 200G-FR4 module is
+   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
+   * return 200G-FR4
+   */
+  virtual MediaInterfaceCode getModuleMediaInterface();
+
+  /*
+   * Returns true if getting the mediaInterfaceId is successful, false otherwise
+   * Populates the passed in vector with the mediaInterfaceId per lane
+   */
+  virtual bool getMediaInterfaceId(
+      std::vector<MediaInterfaceId>& mediaInterface) = 0;
+
+  /*
    * Determine if it is safe to customize the ports based on the
    * status of our member ports.
    */

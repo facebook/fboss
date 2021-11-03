@@ -268,6 +268,8 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   info.remediationCounter_ref() = numRemediation_;
   info.eepromCsumValid_ref() = verifyEepromChecksums();
 
+  info.moduleMediaInterface_ref() = getModuleMediaInterface();
+
   return info;
 }
 
@@ -1032,6 +1034,17 @@ void QsfpModule::setLegacyModuleStateMachineCmisModuleReady(bool isReady) {
 bool QsfpModule::getLegacyModuleStateMachineCmisModuleReady() const {
   return moduleStateMachine_.get_attribute(cmisModuleReady);
 }
+
+MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
+  std::vector<MediaInterfaceId> mediaInterfaceCodes(numMediaLanes());
+  if (!getMediaInterfaceId(mediaInterfaceCodes)) {
+    return MediaInterfaceCode::UNKNOWN;
+  }
+  if (!mediaInterfaceCodes.empty()) {
+    return mediaInterfaceCodes[0].get_code();
+  }
+  return MediaInterfaceCode::UNKNOWN;
+};
 
 } // namespace fboss
 } // namespace facebook

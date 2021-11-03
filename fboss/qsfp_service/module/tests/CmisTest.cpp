@@ -140,6 +140,7 @@ TEST(CmisTest, transceiverInfoTest) {
   EXPECT_TRUE(*diagsCap->loopbackSystem_ref());
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR4_200G);
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout
@@ -434,6 +435,7 @@ TEST(Cmis400GLr4Test, transceiverInfoTest) {
   }
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::LR4_400G_10KM);
 }
 
 TEST(CmisFlatMemTest, transceiverInfoTest) {

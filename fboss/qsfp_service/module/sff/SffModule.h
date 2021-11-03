@@ -199,7 +199,8 @@ class SffModule : public QsfpModule {
    * Fetches the media interface ids per media lane and returns false if it
    * fails
    */
-  bool getMediaInterfaceId(std::vector<MediaInterfaceId>& mediaInterface);
+  bool getMediaInterfaceId(
+      std::vector<MediaInterfaceId>& mediaInterface) override;
   /*
    * Return which rate select capability is being used, if any
    */
