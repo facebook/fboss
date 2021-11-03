@@ -1,8 +1,12 @@
+namespace cpp2 facebook.fboss.sensor_service
+namespace go neteng.fboss.sensor_service
+namespace py neteng.fboss.sensor_service
+namespace py3 neteng.fboss.sensor_service
+namespace py.asyncio neteng.fboss.asyncio.sensor_service
+
 include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
-
-namespace cpp2 facebook.fboss.sensor_service
 
 struct SensorDataThrift {
   1: string name;
