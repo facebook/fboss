@@ -99,9 +99,21 @@ class MockHwSwitch : public HwSwitch {
   }
 
   uint32_t generateDeterministicSeed(
-      LoadBalancerID /*loadBalancerID*/,
-      folly::MacAddress /*mac*/) const override {
-    return 0;
+      LoadBalancerID loadBalancerID,
+      folly::MacAddress mac) const override {
+    auto mac64 = mac.u64HBO();
+    uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+
+    uint32_t seed = 0;
+    switch (loadBalancerID) {
+      case LoadBalancerID::ECMP:
+        seed = folly::hash::jenkins_rev_mix32(mac32);
+        break;
+      case LoadBalancerID::AGGREGATE_PORT:
+        seed = folly::hash::twang_32from64(mac64);
+        break;
+    }
+    return seed;
   }
 
   MOCK_CONST_METHOD2(

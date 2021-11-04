@@ -175,10 +175,10 @@ TEST_F(HwHashPolarizationTests, fullXHalfHash) {
 TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   // Setup 2 identical hashes with only the seed changed
   auto firstHash = utility::getEcmpFullHashConfig(getPlatform());
-  firstHash.seed_ref() = LoadBalancer::generateDeterministicSeed(
+  firstHash.seed_ref() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
   auto secondHash = utility::getEcmpFullHashConfig(getPlatform());
-  secondHash.seed_ref() = LoadBalancer::generateDeterministicSeed(
+  secondHash.seed_ref() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
   runTest(firstHash, secondHash, false /*expect polarization*/);
 }

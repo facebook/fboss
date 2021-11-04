@@ -223,27 +223,6 @@ folly::dynamic LoadBalancer::toFollyDynamic() const {
   return serialized;
 }
 
-uint32_t LoadBalancer::generateDeterministicSeed(
-    LoadBalancerID loadBalancerID,
-    folly::MacAddress platformMac) {
-  // To avoid changing the seed across graceful restarts, the seed is generated
-  // deterministically using the local MAC address.
-  auto mac64 = platformMac.u64HBO();
-  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
-
-  uint32_t seed = 0;
-  switch (loadBalancerID) {
-    case LoadBalancerID::ECMP:
-      seed = folly::hash::jenkins_rev_mix32(mac32);
-      break;
-    case LoadBalancerID::AGGREGATE_PORT:
-      seed = folly::hash::twang_32from64(mac64);
-      break;
-  }
-
-  return seed;
-}
-
 bool LoadBalancer::operator==(const LoadBalancer& rhs) const {
   return getID() == rhs.getID() && getSeed() == rhs.getSeed() &&
       getAlgorithm() == rhs.getAlgorithm() &&

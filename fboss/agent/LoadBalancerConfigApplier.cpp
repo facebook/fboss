@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
@@ -51,9 +52,9 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
   auto loadBalancerID = parseLoadBalancerID(cfg);
   auto fields = parseFields(cfg);
   auto algorithm = *cfg.algorithm_ref(); // TODO(samank): handle not being set
-  auto seed = cfg.seed_ref() ? *cfg.seed_ref()
-                             : LoadBalancer::generateDeterministicSeed(
-                                   loadBalancerID, platform_->getLocalMac());
+  auto hwSeed =
+      platform_->getHwSwitch()->generateDeterministicSeed(loadBalancerID);
+  auto seed = cfg.seed_ref() ? *cfg.seed_ref() : hwSeed;
 
   return std::make_shared<LoadBalancer>(
       loadBalancerID,

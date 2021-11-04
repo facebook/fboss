@@ -124,10 +124,6 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   bool operator==(const LoadBalancer& rhs) const;
   bool operator!=(const LoadBalancer& rhs) const;
 
-  static uint32_t generateDeterministicSeed(
-      LoadBalancerID loadBalancerID,
-      folly::MacAddress platformMac);
-
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;
