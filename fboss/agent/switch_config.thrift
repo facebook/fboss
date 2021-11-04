@@ -753,6 +753,7 @@ enum PacketRxReason {
   L3_MTU_ERROR = 14, // Packet size exceeds L3 MTU
   MPLS_TTL_1 = 15, // SAI only for MPLS packet with TTL is 1
   MPLS_UNKNOWN_LABEL = 16, // SAI only for MPLS packet with unprogrammed label
+  DHCPV6 = 17, // DHCPv6
 }
 
 enum PortLoopbackMode {
