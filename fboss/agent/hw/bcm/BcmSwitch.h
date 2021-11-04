@@ -458,10 +458,8 @@ class BcmSwitch : public BcmSwitchIf {
    * Generate seed for load balancer
    */
   uint32_t generateDeterministicSeed(
-      LoadBalancerID /*loadBalancerID*/,
-      folly::MacAddress /*mac*/) const override {
-    return 0;
-  }
+      LoadBalancerID loadBalancerID,
+      folly::MacAddress mac) const override;
   /**
    * Log the hardware state for the switch
    */

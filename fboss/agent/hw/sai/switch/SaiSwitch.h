@@ -186,10 +186,8 @@ class SaiSwitch : public HwSwitch {
   }
 
   uint32_t generateDeterministicSeed(
-      LoadBalancerID /*loadBalancerID*/,
-      folly::MacAddress /*mac*/) const override {
-    return 0;
-  }
+      LoadBalancerID loadBalancerID,
+      folly::MacAddress mac) const override;
 
  private:
   template <typename LockPolicyT>

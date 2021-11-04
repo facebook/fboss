@@ -61,6 +61,7 @@
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "folly/MacAddress.h"
 
 #include <folly/logging/xlog.h>
 
@@ -2229,5 +2230,22 @@ void SaiSwitch::listManagedObjectsLocked(
   output += managerTable_->neighborManager().listManagedObjects();
   output += managerTable_->nextHopManager().listManagedObjects();
   output += managerTable_->nextHopGroupManager().listManagedObjects();
+}
+
+uint32_t SaiSwitch::generateDeterministicSeed(
+    LoadBalancerID loadBalancerID,
+    folly::MacAddress platformMac) const {
+  auto mac64 = platformMac.u64HBO();
+  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
+  uint32_t seed = 0;
+  switch (loadBalancerID) {
+    case LoadBalancerID::ECMP:
+      seed = folly::hash::twang_32from64(mac64);
+      break;
+    case LoadBalancerID::AGGREGATE_PORT:
+      seed = folly::hash::jenkins_rev_mix32(mac32);
+      break;
+  }
+  return seed;
 }
 } // namespace facebook::fboss
