@@ -80,7 +80,7 @@ target_link_libraries(hw_test_utils
   fboss_types
   hardware_stats_cpp2
   agent_test_utils
-) 
+)
 
 add_library(hw_switch_ensemble
   fboss/agent/hw/test/HwSwitchEnsemble.cpp
@@ -172,6 +172,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwResourceStatsTests.cpp
+  fboss/agent/hw/test/HwRxReasonTests.cpp
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
@@ -252,11 +253,11 @@ target_link_libraries(hw_switch_test
 
 add_library(hw_pfc_utils
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
-)  
+)
 
 target_link_libraries(hw_pfc_utils
   hw_switch_ensemble
-)  
+)
 
 add_library(prod_config_factory
   fboss/agent/hw/test/ProdConfigFactory.cpp
