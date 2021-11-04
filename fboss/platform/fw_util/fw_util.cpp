@@ -13,16 +13,6 @@
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 
-void show_info(void) {
-  int out = 0;
-  std::string res = execCommand("cat /etc/fbwhoami", out);
-  if (!out) {
-    std::cout << res;
-  } else {
-    LOG(ERROR) << "Error: can not find /etc/fbwhoami";
-  }
-}
-
 std::unique_ptr<FirmwareUpgradeInterface> get_plat_type(void) {
   // TODO: use new class to get platform information so that
   // we can pick the right firmware class accordingly
@@ -41,8 +31,7 @@ int main(int argc, char* argv[]) {
   if (FirmwareUpgradeInstance) {
     FirmwareUpgradeInstance->upgradeFirmware(argc, argv);
   } else {
-    show_info();
+    showDeviceInfo();
   }
-
   return EX_OK;
 }

@@ -9,4 +9,5 @@ namespace facebook::fboss::platform::helpers {
 std::string execCommand(const std::string& cmd, int& out_exitStatus);
 uint32_t mmap_read(uint32_t address, char acc_type);
 int mmap_write(uint32_t address, char acc_type, uint32_t val);
+void showDeviceInfo();
 } // namespace facebook::fboss::platform::helpers

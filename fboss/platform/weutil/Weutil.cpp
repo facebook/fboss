@@ -13,18 +13,6 @@
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 
-void show_info(void) {
-  int out = 0;
-
-  std::string res = execCommand("cat /etc/fbwhoami", out);
-
-  if (!out) {
-    std::cout << res;
-  } else {
-    LOG(ERROR) << "Error: can not find /etc/fbwhoami";
-  }
-}
-
 std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
   // ToDo: use class PlatformProductInfo to get platform information
   // and pickup the right weutil class accordingly
@@ -43,7 +31,7 @@ int main(int argc, char* argv[]) {
   if (weutilInstance) {
     weutilInstance->printInfo();
   } else {
-    show_info();
+    showDeviceInfo();
   }
 
   return EX_OK;
