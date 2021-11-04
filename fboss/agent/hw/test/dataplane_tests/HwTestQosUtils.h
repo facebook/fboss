@@ -27,6 +27,7 @@ class HwSwitchEnsemble;
 struct HwPortStats;
 class HwSwitch;
 class PortDescriptor;
+class SwitchState;
 
 namespace utility {
 
@@ -35,6 +36,14 @@ bool verifyQueueMappings(
     const std::map<int, std::vector<uint8_t>>& q2dscps,
     HwSwitchEnsemble* ensemble,
     facebook::fboss::PortID egressPort);
+
+bool verifyQueueMappingsInvariantHelper(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const std::vector<PortID>& ecmpPorts,
+    PortID downlinkPort);
 
 void disableTTLDecrements(
     HwSwitch* hw,

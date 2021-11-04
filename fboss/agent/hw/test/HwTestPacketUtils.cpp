@@ -30,6 +30,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
+#include "fboss/agent/test/ResourceLibUtil.h"
+
 using namespace facebook::fboss;
 using folly::MacAddress;
 using folly::io::RWPrivateCursor;
@@ -665,6 +667,50 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
       ttl,
       capabilities);
   return pkt;
+}
+
+void sendTcpPkts(
+    facebook::fboss::HwSwitch* hwSwitch,
+    int numPktsToSend,
+    VlanID vlanId,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    PortID outPort,
+    uint8_t trafficClass,
+    std::optional<std::vector<uint8_t>> payload) {
+  folly::MacAddress srcMac;
+
+  if (!dstMac.isUnicast()) {
+    // some arbitrary mac
+    srcMac = folly::MacAddress("00:00:01:02:03:04");
+  } else {
+    srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+  }
+
+  // arbit
+  const auto srcIp =
+      folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+  for (int i = 0; i < numPktsToSend; i++) {
+    auto txPacket = utility::makeTCPTxPacket(
+        hwSwitch,
+        vlanId,
+        srcMac,
+        dstMac,
+        srcIp,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        dstIpAddress.isV4()
+            ? trafficClass
+            : trafficClass << 2, // v6 header takes entire TC byte with
+                                 // trailing 2 bits for ECN. V4 header OTOH
+                                 // expects only dscp value.
+        255,
+        payload);
+    hwSwitch->sendPacketOutOfPortSync(std::move(txPacket), outPort);
+  }
 }
 
 } // namespace facebook::fboss::utility

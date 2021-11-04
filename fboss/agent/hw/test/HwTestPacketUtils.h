@@ -237,6 +237,18 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const uint16_t ttl,
     const uint16_t capabilities);
 
+void sendTcpPkts(
+    facebook::fboss::HwSwitch* hwSwitch,
+    int numPktsToSend,
+    VlanID vlanId,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    PortID outPort,
+    uint8_t trafficClass = 0,
+    std::optional<std::vector<uint8_t>> payload = std::nullopt);
+
 struct RandomNumberGenerator {
   RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)
       : generator(seed), distibution(begin, end) {}

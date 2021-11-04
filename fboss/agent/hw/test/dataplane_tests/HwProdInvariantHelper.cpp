@@ -133,43 +133,20 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   if (!ensemble_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
-  auto portStatsBefore =
-      ensemble_->getLatestPortStats(ensemble_->masterLogicalPortIds());
-  auto vlanId = utility::firstVlanID(getProgrammedState());
-  auto intfMac =
-      utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
+  auto portId = getDownlinkPort();
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats = [this]() {
+    return ensemble_->getLatestPortStats(ensemble_->masterLogicalPortIds());
+  };
 
-  // Since Olympic QoS is enabled on uplinks (at least on mhnics), we send the
-  // packets to be verified on an arbitrary downlink.
-  auto downlinkPort = getDownlinkPort();
   auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
-  for (const auto& q2dscps : q2dscpMap) {
-    for (auto dscp : q2dscps.second) {
-      utility::sendTcpPkts(
-          ensemble_->getHwSwitch(),
-          1 /*numPktsToSend*/,
-          vlanId,
-          intfMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-          8000,
-          8001,
-          downlinkPort,
-          dscp);
-    }
-  }
-  bool mappingVerified = false;
-  auto portIds = getEcmpPortIds();
-  for (auto portId : portIds) {
-    // Since we don't know which port the above IP will get hashed to,
-    // iterate over all ports in ecmp group to find one which satisfies
-    // dscp to queue mapping.
-    if (mappingVerified) {
-      break;
-    }
-    mappingVerified = utility::verifyQueueMappings(
-        portStatsBefore[portId], q2dscpMap, ensemble_, portId);
-  }
-  EXPECT_TRUE(mappingVerified);
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+      q2dscpMap,
+      ensemble_->getHwSwitch(),
+      getProgrammedState(),
+      getPortStats,
+      getEcmpPortIds(),
+      portId));
 }
 
 void HwProdInvariantHelper::verifySafeDiagCmds() {

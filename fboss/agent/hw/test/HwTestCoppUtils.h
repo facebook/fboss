@@ -122,18 +122,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue);
 
-void sendTcpPkts(
-    HwSwitch* hwSwitch,
-    int numPktsToSend,
-    VlanID vlan,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    PortID outPort,
-    uint8_t trafficClass = 0,
-    std::optional<std::vector<uint8_t>> payload = std::nullopt);
-
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const HwSwitch* hwSwitch,
     VlanID vlanId,

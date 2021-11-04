@@ -12,6 +12,10 @@
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/SwitchState.h"
+
 #include <folly/logging/xlog.h>
 
 #include <chrono>
@@ -27,17 +31,18 @@ namespace facebook::fboss::utility {
 bool verifyQueueMappings(
     const HwPortStats& portStatsBefore,
     const std::map<int, std::vector<uint8_t>>& q2dscps,
-    std::function<HwPortStats(void)> getHwPortStats) {
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const PortID portId) {
   auto retries = 10;
   bool statsMatch;
   do {
-    auto portStatsAfter = getHwPortStats();
+    auto portStatsAfter = getAllHwPortStats();
     statsMatch = true;
     for (const auto& _q2dscps : q2dscps) {
       auto queuePacketsBefore =
           portStatsBefore.queueOutPackets__ref()->find(_q2dscps.first)->second;
       auto queuePacketsAfter =
-          portStatsAfter.queueOutPackets__ref()[_q2dscps.first];
+          portStatsAfter[portId].queueOutPackets__ref()[_q2dscps.first];
       // Note, on some platforms, due to how loopbacked packets are pruned
       // from being broadcast, they will appear more than once on a queue
       // counter, so we can only check that the counter went up, not that it
@@ -57,17 +62,61 @@ bool verifyQueueMappings(
   return statsMatch;
 }
 
+bool verifyQueueMappingsInvariantHelper(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const std::vector<PortID>& ecmpPorts,
+    PortID portId) {
+  auto portStatsBefore = getAllHwPortStats();
+  auto vlanId = utility::firstVlanID(swState);
+  auto intfMac = utility::getInterfaceMac(swState, vlanId);
+
+  for (const auto& q2dscps : q2dscpMap) {
+    for (auto dscp : q2dscps.second) {
+      utility::sendTcpPkts(
+          hwSwitch,
+          1 /*numPktsToSend*/,
+          vlanId,
+          intfMac,
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
+          8000,
+          8001,
+          portId,
+          dscp);
+    }
+  }
+
+  bool mappingVerified = false;
+  for (auto& ecmpPort : ecmpPorts) {
+    // Since we don't know which port the above IP will get hashed to,
+    // iterate over all ports in ecmp group to find one which satisfies
+    // dscp to queue mapping.
+    if (mappingVerified) {
+      break;
+    }
+    XLOG(INFO) << "Mapping verified for : " << (int)ecmpPort;
+
+    mappingVerified = verifyQueueMappings(
+        portStatsBefore[ecmpPort], q2dscpMap, getAllHwPortStats, ecmpPort);
+  }
+  return mappingVerified;
+}
+
 bool verifyQueueMappings(
     const HwPortStats& portStatsBefore,
     const std::map<int, std::vector<uint8_t>>& q2dscps,
     HwSwitchEnsemble* ensemble,
     facebook::fboss::PortID egressPort) {
   // lambda that returns HwPortStats for the given port
-  auto getPortStats = [ensemble, egressPort]() -> HwPortStats {
+  auto getPortStats = [ensemble,
+                       egressPort]() -> std::map<PortID, HwPortStats> {
     std::vector<facebook::fboss::PortID> portIds = {egressPort};
-    return ensemble->getLatestPortStats(portIds)[egressPort];
+    return ensemble->getLatestPortStats(portIds);
   };
 
-  return verifyQueueMappings(portStatsBefore, q2dscps, getPortStats);
+  return verifyQueueMappings(
+      portStatsBefore, q2dscps, getPortStats, egressPort);
 }
 } // namespace facebook::fboss::utility
