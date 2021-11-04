@@ -16,7 +16,7 @@ UpgradeBinaryDarwin::UpgradeBinaryDarwin() {
       "i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | awk '{ print $1}'";
   bus = execCommand(cmd, out);
   if (out) {
-    LOG(ERROR) << "Error running " << cmd;
+    throw std::runtime_error("Error running: " + cmd);
   }
   bus.erase(std::remove(bus.begin(), bus.end(), '\n'), bus.end());
 }

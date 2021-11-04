@@ -41,7 +41,7 @@ void i2cRegWrite(
       std::to_string(value));
   execCommand(cmd, out);
   if (out) {
-    LOG(ERROR) << "Error running " << cmd;
+    throw std::runtime_error("Error running: " + cmd);
   }
 }
 
