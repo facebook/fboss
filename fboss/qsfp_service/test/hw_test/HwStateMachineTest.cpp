@@ -97,11 +97,11 @@ TEST_F(
     HwStateMachineTestWithOverrideTcvrToPortAndProfile,
     CheckPortsProgrammed) {
   auto verify = [this]() {
-    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     // Right now we should expect present or absent transceiver should be
     // IPHY_PORTS_PROGRAMMED or XPHY_PORTS_PROGRAMMED(if xphy exists) now.
     auto checkTransceiverIphyPortProgrammed =
-        [wedgeMgr](const std::vector<TransceiverID>& tcvrs) {
+        [this](const std::vector<TransceiverID>& tcvrs) {
+          auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
           std::vector<PortID> xphyPorts;
           if (auto phyManager = wedgeMgr->getPhyManager()) {
             xphyPorts = phyManager->getXphyPorts();
@@ -114,6 +114,7 @@ TEST_F(
               continue;
             }
 
+            auto tcvrOpt = std::make_optional(wedgeMgr->getTransceiverInfo(id));
             bool hasXphy = false;
             // Check programmed iphy port and profile
             const auto programmedIphyPortAndProfile =
@@ -124,9 +125,12 @@ TEST_F(
               auto expectedPortAndProfileIt = portAndProfile.find(portID);
               EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
               EXPECT_EQ(profileID, expectedPortAndProfileIt->second);
-              hasXphy |=
-                  (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
-                   xphyPorts.end());
+              if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
+                  xphyPorts.end()) {
+                hasXphy = true;
+                utility::verifyXphyPort(
+                    portID, profileID, tcvrOpt, getHwQsfpEnsemble());
+              }
             }
 
             auto curState = wedgeMgr->getCurrentState(id);

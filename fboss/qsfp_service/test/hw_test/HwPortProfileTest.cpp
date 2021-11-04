@@ -50,14 +50,7 @@ class HwPortProfileTest : public HwTest {
         tcvrOpt = tcvr->second;
       }
 
-      const auto& expectedPhyPortConfig =
-          getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
-              portID, profile, tcvrOpt);
-
-      utility::verifyPhyPortConfig(
-          portID, getHwQsfpEnsemble()->getPhyManager(), expectedPhyPortConfig);
-
-      utility::verifyPhyPortConnector(portID, getHwQsfpEnsemble());
+      utility::verifyXphyPort(portID, profile, tcvrOpt, getHwQsfpEnsemble());
     }
   }
 

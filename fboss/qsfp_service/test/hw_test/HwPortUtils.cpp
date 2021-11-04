@@ -237,4 +237,19 @@ std::vector<int32_t> legacyTransceiverIds(
   });
   return legacyIds;
 }
+
+void verifyXphyPort(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    std::optional<TransceiverInfo> tcvrOpt,
+    HwQsfpEnsemble* ensemble) {
+  const auto& expectedPhyPortConfig =
+      ensemble->getPhyManager()->getDesiredPhyPortConfig(
+          portID, profileID, tcvrOpt);
+
+  utility::verifyPhyPortConfig(
+      portID, ensemble->getPhyManager(), expectedPhyPortConfig);
+
+  utility::verifyPhyPortConnector(portID, ensemble);
+}
 } // namespace facebook::fboss::utility

@@ -177,6 +177,10 @@ class TransceiverManager {
 
   void programExternalPhyPorts(TransceiverID id);
 
+  // If the transceiver doesn't exit, it will still return a TransceiverInfo
+  // with present filed is false.
+  TransceiverInfo getTransceiverInfo(TransceiverID id);
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -246,8 +250,6 @@ class TransceiverManager {
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
-
-  TransceiverInfo getTransceiverInfo(TransceiverID id);
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,

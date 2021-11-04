@@ -38,6 +38,13 @@ void verifyPhyPortConfig(
     const phy::PhyPortConfig& expectedConfig);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
+
+void verifyXphyPort(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    std::optional<TransceiverInfo> tcvrOpt,
+    HwQsfpEnsemble* ensemble);
+
 std::optional<TransceiverID> getTranscieverIdx(
     PortID portId,
     const HwQsfpEnsemble* ensemble);
