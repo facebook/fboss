@@ -12,6 +12,17 @@
 namespace {
 constexpr uint32_t MAP_SIZE = 4096;
 constexpr uint32_t MAP_MASK = MAP_SIZE - 1;
+
+std::string execCommandImpl(const std::string& cmd, int* exitStatus) {
+  folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
+  auto result = p.communicate();
+  if (exitStatus) {
+    *exitStatus = p.wait().exitStatus();
+  } else {
+    p.waitChecked();
+  }
+  return result.first;
+}
 } // namespace
 namespace facebook::fboss::platform::helpers {
 
@@ -20,17 +31,12 @@ void showDeviceInfo(void) {
             << " model: " << FbWhoAmI::getModelName();
 }
 
-/*
- * execCommand
- * Execute shell command and return output and exit status
- */
-std::string execCommand(const std::string& cmd, int& out_exitStatus) {
-  out_exitStatus = 0;
+std::string execCommand(const std::string& cmd) {
+  return execCommandImpl(cmd, nullptr);
+}
 
-  folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
-  auto result = p.communicate();
-  out_exitStatus = p.wait().exitStatus();
-  return result.first;
+std::string execCommandUnchecked(const std::string& cmd, int& exitStatus) {
+  return execCommandImpl(cmd, &exitStatus);
 }
 
 /*

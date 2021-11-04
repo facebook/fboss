@@ -11,13 +11,9 @@ namespace facebook::fboss::platform {
 
 UpgradeBinaryDarwin::UpgradeBinaryDarwin() {
   /*Detect the bus # on master 2 bus 0 */
-  int out = 0;
   const std::string cmd =
       "i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | awk '{ print $1}'";
-  bus = execCommand(cmd, out);
-  if (out) {
-    throw std::runtime_error("Error running: " + cmd);
-  }
+  bus = execCommand(cmd);
   bus.erase(std::remove(bus.begin(), bus.end(), '\n'), bus.end());
 }
 

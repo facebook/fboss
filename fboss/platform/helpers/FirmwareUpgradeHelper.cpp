@@ -29,7 +29,6 @@ void i2cRegWrite(
     std::string devAddress,
     std::string regAddress,
     uint8_t value = 0x00) {
-  int out = 0;
   const std::string cmd = folly::to<std::string>(
       "i2cset -f -y ",
       bus,
@@ -39,10 +38,7 @@ void i2cRegWrite(
       regAddress,
       " ",
       std::to_string(value));
-  execCommand(cmd, out);
-  if (out) {
-    throw std::runtime_error("Error running: " + cmd);
-  }
+  execCommand(cmd);
 }
 
 int runCmd(const std::string& cmd) {

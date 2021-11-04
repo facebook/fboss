@@ -37,34 +37,15 @@ const std::unordered_map<std::string, std::string> kMapping{
 namespace facebook::fboss::platform {
 
 WeutilDarwin::WeutilDarwin() {
-  std::string ret;
-  int retVal = 0;
-
   if (!std::filesystem::exists(kPathPrefix)) {
     if (!std::filesystem::create_directory(kPathPrefix)) {
       throw std::runtime_error("Cannot create directory: " + kPathPrefix);
     }
   }
 
-  ret = execCommand(kCreteLayout, retVal);
-
-  if (retVal) {
-    throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
-  }
-
-  ret = execCommand(kFlashRom, retVal);
-
-  if (retVal) {
-    throw std::runtime_error(
-        "Cannot create BIOS file with: " + kFlashRom + " " +
-        std::to_string(retVal));
-  }
-
-  ret = execCommand(kddComands, retVal);
-
-  if (retVal) {
-    throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
-  }
+  execCommand(kCreteLayout);
+  execCommand(kFlashRom);
+  execCommand(kddComands);
 }
 
 void WeutilDarwin::printInfo() {

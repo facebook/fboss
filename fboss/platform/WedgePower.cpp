@@ -29,15 +29,9 @@ void print_usage(void) {
   std::cout << "To reboot uServer: wedge_power reset" << std::endl;
 }
 void reboot_userver(void) {
-  int out = 0;
-
   std::cout << "Power Cycle uServer/CPU board" << std::endl;
 
-  std::string res = execCommand("sudo systemctl reboot", out);
-
-  if (out != 0) {
-    std::cout << "Reboot uServer failed!" << std::endl;
-  }
+  std::string res = execCommand("sudo systemctl reboot");
 }
 
 void power_cycle_chassis(void) {

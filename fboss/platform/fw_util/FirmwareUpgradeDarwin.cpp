@@ -11,7 +11,7 @@ namespace facebook::fboss::platform {
 
 FirmwareUpgradeDarwin::FirmwareUpgradeDarwin() {
   int exitStatus = 0;
-  std::string cmdOutput = execCommand(flashromStrCmd, exitStatus);
+  std::string cmdOutput = execCommandUnchecked(flashromStrCmd, exitStatus);
   /*cmd exit status is expected to be 1 since cmd
    is not complete, so skipping checking for out
    value. Purpose is to look for the chip name.
@@ -22,10 +22,7 @@ FirmwareUpgradeDarwin::FirmwareUpgradeDarwin() {
     chip = "-c N25Q128..3E";
   }
 
-  execCommand(createLayoutCmd, exitStatus);
-  if (exitStatus) {
-    throw std::runtime_error("running command " + createLayoutCmd + " failed");
-  }
+  execCommand(createLayoutCmd);
 }
 
 void FirmwareUpgradeDarwin::upgradeFirmware(int argc, char* argv[]) {
