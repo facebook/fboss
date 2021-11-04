@@ -250,6 +250,17 @@ void SaiHostifManager::processRxReasonToQueueDelta(
    */
   for (auto index = 0; index < newRxReasonToQueue.size(); index++) {
     auto& newRxReasonEntry = newRxReasonToQueue[index];
+    // We'll need to skip for unmatched reason because
+    // (1) we're not programming hostif trap for that, and
+    // (2) If newly added rx reason entries are above the unmatched reason,
+    // we'll try to call changeHostifTrap() for the unmatched reason.
+    // TODO(zecheng): Fix the below logic of comparing index (instead we should
+    // compare priority)
+    if (newRxReasonEntry.rxReason_ref() == cfg::PacketRxReason::UNMATCHED) {
+      // what is the trap for unmatched?
+      XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
+      continue;
+    }
     auto oldRxReasonEntry = std::find_if(
         oldRxReasonToQueue.begin(),
         oldRxReasonToQueue.end(),
@@ -277,11 +288,6 @@ void SaiHostifManager::processRxReasonToQueueDelta(
             priority);
       }
     } else {
-      if (newRxReasonEntry.rxReason_ref() == cfg::PacketRxReason::UNMATCHED) {
-        // what is the trap for unmatched?
-        XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
-        continue;
-      }
       addHostifTrap(
           *newRxReasonEntry.rxReason_ref(),
           *newRxReasonEntry.queueId_ref(),
