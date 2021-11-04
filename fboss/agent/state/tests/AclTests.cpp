@@ -216,6 +216,22 @@ TEST(Acl, applyConfig) {
   auto aclV9 = stateV9->getAcl("acl3");
   EXPECT_NE(nullptr, aclV9);
   EXPECT_FALSE(aclV9->getPacketLookupResult());
+
+  // set vlan_id matching
+  configV2.acls_ref()[0].vlanID_ref() = 2001;
+  auto stateV10 = publishAndApplyConfig(stateV9, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV10);
+  auto aclV10 = stateV10->getAcl("acl3");
+  EXPECT_NE(nullptr, aclV10);
+  EXPECT_EQ(aclV10->getVlanID().value(), 2001);
+
+  // remove vlan_id matching
+  configV2.acls_ref()[0].vlanID_ref().reset();
+  auto stateV11 = publishAndApplyConfig(stateV10, &configV2, platform.get());
+  EXPECT_NE(nullptr, stateV11);
+  auto aclV11 = stateV11->getAcl("acl3");
+  EXPECT_NE(nullptr, aclV11);
+  EXPECT_FALSE(aclV11->getVlanID());
 }
 
 TEST(Acl, stateDelta) {
@@ -608,6 +624,24 @@ TEST(Acl, PacketLookupResultSerialization) {
   EXPECT_EQ(
       entryBack->getPacketLookupResult().value(),
       cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
+}
+
+TEST(Acl, VlanIDSerialization) {
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  entry->setVlanID(2001);
+  auto action = MatchAction();
+  auto counter = cfg::TrafficCounter();
+  counter.name_ref() = "stat0.c";
+  action.setTrafficCounter(counter);
+  entry->setAclAction(action);
+
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  validateThriftyMigration(*entry);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getVlanID());
+  EXPECT_EQ(entryBack->getVlanID().value(), 2001);
 }
 
 TEST(Acl, IpType) {
