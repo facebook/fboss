@@ -105,4 +105,13 @@ bool isLoadBalanced(
 bool isLoadBalanced(
     const std::map<std::string, HwPortStats>& portStats,
     int maxDeviationPct);
+
+bool isLoadBalanced(
+    const std::vector<PortDescriptor>& ecmpPorts,
+    const std::vector<NextHopWeight>& weights,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getPortStatsFn,
+    int maxDeviationPct,
+    bool noTrafficOk = false);
+
 } // namespace facebook::fboss::utility

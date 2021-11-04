@@ -365,9 +365,10 @@ bool isLoadBalanced(
 }
 
 bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     const std::vector<NextHopWeight>& weights,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getPortStatsFn,
     int maxDeviationPct,
     bool noTrafficOk) {
   auto portIDs = folly::gen::from(ecmpPorts) |
@@ -376,8 +377,22 @@ bool isLoadBalanced(
                    return portDesc.phyPortID();
                  }) |
       folly::gen::as<std::vector<PortID>>();
-  auto portIdToStats = hwSwitchEnsemble->getLatestPortStats(portIDs);
+  auto portIdToStats = getPortStatsFn(portIDs);
   return isLoadBalanced(portIdToStats, weights, maxDeviationPct, noTrafficOk);
+}
+
+bool isLoadBalanced(
+    HwSwitchEnsemble* hwSwitchEnsemble,
+    const std::vector<PortDescriptor>& ecmpPorts,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk) {
+  auto getPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return hwSwitchEnsemble->getLatestPortStats(portIds);
+  };
+  return isLoadBalanced(
+      ecmpPorts, weights, getPortStatsFn, maxDeviationPct, noTrafficOk);
 }
 
 bool isLoadBalanced(
