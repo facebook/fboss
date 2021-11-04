@@ -8,6 +8,10 @@
 
 #include <folly/Subprocess.h>
 
+namespace {
+constexpr uint32_t MAP_SIZE = 4096;
+constexpr uint32_t MAP_MASK = MAP_SIZE - 1;
+} // namespace
 namespace facebook::fboss::platform::helpers {
 
 /*
