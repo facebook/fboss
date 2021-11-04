@@ -1291,10 +1291,8 @@ bool SffModule::verifyEepromChecksums() {
     }
     rc |= verifyEepromChecksum(csumInfoIt.first);
   }
-  XLOG(INFO) << folly::sformat(
-      "Module {} EEPROM Checksum {:s}",
-      qsfpImpl_->getName(),
-      rc ? "Passed" : "Failed");
+  XLOG_IF(WARN, !rc) << folly::sformat(
+      "Module {} EEPROM Checksum {:s}", qsfpImpl_->getName(), "Failed");
   return rc;
 }
 
@@ -1314,7 +1312,7 @@ bool SffModule::verifyEepromChecksum(int pageId) {
 
   // Return false if the registers are not cached yet (this is not expected)
   if (!cacheIsValid()) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(WARN) << folly::sformat(
         "Module {} can't do eeprom checksum as the register cache is not populated",
         qsfpImpl_->getName());
     return false;
@@ -1322,7 +1320,7 @@ bool SffModule::verifyEepromChecksum(int pageId) {
   // Return false if we don't know range of registers to validate the checksum
   // on this page
   if (checksumInfoSff.find(pageId) == checksumInfoSff.end()) {
-    XLOG(INFO) << folly::sformat(
+    XLOG(WARN) << folly::sformat(
         "Module {} can't do eeprom checksum for page {:d}",
         qsfpImpl_->getName(),
         pageId);
@@ -1355,7 +1353,7 @@ bool SffModule::verifyEepromChecksum(int pageId) {
           checkSum);
       return false;
     } else {
-      XLOG(INFO) << folly::sformat(
+      XLOG(DBG5) << folly::sformat(
           "Module {}: Page {:d}: checksum verified successfully {:#x}",
           qsfpImpl_->getName(),
           pageId,
