@@ -2415,6 +2415,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto packetLookupResult = config->packetLookupResult_ref()) {
     newAcl->setPacketLookupResult(*packetLookupResult);
   }
+  if (auto vlanID = config->vlanID_ref()) {
+    newAcl->setVlanID(*vlanID);
+  }
   return newAcl;
 }
 

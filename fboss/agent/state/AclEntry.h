@@ -117,7 +117,7 @@ struct AclEntryFields : public ThriftyFields {
         lookupClassNeighbor == acl.lookupClassNeighbor &&
         lookupClassRoute == acl.lookupClassRoute &&
         packetLookupResult == acl.packetLookupResult &&
-        etherType == acl.etherType;
+        etherType == acl.etherType && vlanID == acl.vlanID;
   }
 
   static void checkFollyDynamic(const folly::dynamic& json);
@@ -143,6 +143,7 @@ struct AclEntryFields : public ThriftyFields {
   std::optional<cfg::AclLookupClass> lookupClassNeighbor{std::nullopt};
   std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
   std::optional<cfg::PacketLookupResultType> packetLookupResult{std::nullopt};
+  std::optional<uint32_t> vlanID{std::nullopt};
 
   std::optional<cfg::EtherType> etherType{std::nullopt};
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
@@ -350,6 +351,14 @@ class AclEntry
     writableFields()->packetLookupResult = packetLookupResult;
   }
 
+  std::optional<uint32_t> getVlanID() const {
+    return getFields()->vlanID;
+  }
+
+  void setVlanID(uint32_t vlanID) {
+    writableFields()->vlanID = vlanID;
+  }
+
   bool hasMatcher() const {
     // at least one qualifier must be specified
     return getSrcIp().first || getDstIp().first || getProto() ||
@@ -357,7 +366,7 @@ class AclEntry
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
         getLookupClassNeighbor() || getLookupClassRoute() ||
-        getPacketLookupResult() || getEtherType();
+        getPacketLookupResult() || getEtherType() || getVlanID();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

@@ -46,6 +46,7 @@ constexpr auto kLookupClass = "lookupClass";
 constexpr auto kLookupClassNeighbor = "lookupClassNeighbor";
 constexpr auto kLookupClassRoute = "lookupClassRoute";
 constexpr auto kPacketLookupResult = "packetLookupResult";
+constexpr auto kVlanID = "vlanID";
 constexpr auto kAclAction = "aclAction";
 } // namespace
 
@@ -118,6 +119,7 @@ state::AclEntryFields AclEntryFields::toThrift() const {
   entry.lookupClassNeighbor_ref().from_optional(lookupClassNeighbor);
   entry.lookupClassRoute_ref().from_optional(lookupClassRoute);
   entry.packetLookupResult_ref().from_optional(packetLookupResult);
+  entry.vlanID_ref().from_optional(vlanID);
   entry.etherType_ref().from_optional(etherType);
   entry.actionType_ref() = actionType;
 
@@ -177,6 +179,7 @@ AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
   aclEntryFields.lookupClassRoute = entry.lookupClassRoute_ref().to_optional();
   aclEntryFields.packetLookupResult =
       entry.packetLookupResult_ref().to_optional();
+  aclEntryFields.vlanID = entry.vlanID_ref().to_optional();
   aclEntryFields.etherType = entry.etherType_ref().to_optional();
   aclEntryFields.actionType = entry.get_actionType();
   if (auto aclAction = entry.aclAction_ref()) {
@@ -307,6 +310,9 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     aclEntry[kPacketLookupResult] =
         static_cast<uint32_t>(packetLookupResult.value());
   }
+  if (vlanID) {
+    aclEntry[kVlanID] = static_cast<uint32_t>(vlanID.value());
+  }
   auto actionTypeName = apache::thrift::util::enumName(actionType);
   if (actionTypeName == nullptr) {
     throw FbossError("invalid actionType");
@@ -408,6 +414,9 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   if (aclEntryJson.find(kPacketLookupResult) != aclEntryJson.items().end()) {
     aclEntry.packetLookupResult = static_cast<cfg::PacketLookupResultType>(
         aclEntryJson[kPacketLookupResult].asInt());
+  }
+  if (aclEntryJson.find(kVlanID) != aclEntryJson.items().end()) {
+    aclEntry.vlanID = aclEntryJson[kVlanID].asInt();
   }
   TEnumTraits<cfg::AclActionType>::findValue(
       aclEntryJson[kActionType].asString().c_str(), &aclEntry.actionType);

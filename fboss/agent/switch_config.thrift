@@ -447,6 +447,8 @@ struct AclEntry {
   28: optional PacketLookupResultType packetLookupResult;
 
   29: optional EtherType etherType;
+
+  30: optional i32 vlanID;
 }
 
 enum AclTableActionType {

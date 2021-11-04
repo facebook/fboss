@@ -141,6 +141,7 @@ struct AclEntryFields {
   23: optional switch_config.EtherType etherType;
   24: switch_config.AclActionType actionType = switch_config.AclActionType.PERMIT;
   25: optional MatchAction aclAction;
+  26: optional i32 vlanID;
 }
 
 struct SwitchState {
