@@ -39,7 +39,7 @@ void TransceiverStateMachineUpdate::applyUpdate(
       curState.process_event(PROGRAM_IPHY);
       return;
     case TransceiverStateMachineEvent::PROGRAM_XPHY:
-      // TODO(joseph5wu) Will call PhyManager programOnePort()
+      curState.process_event(PROGRAM_XPHY);
       return;
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       // TODO(joseph5wu) Will call Transceiver customizeTransceiver()

@@ -10,8 +10,6 @@
 
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 
-#include "fboss/agent/FbossError.h"
-
 DEFINE_bool(use_new_state_machine, false, "Use the new state machine logic");
 
 namespace facebook::fboss {
@@ -85,44 +83,11 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
     return TransceiverStateMachineState::DISCOVERED;
   } else if (currentStateOrder == 3) {
     return TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
+  } else if (currentStateOrder == 4) {
+    return TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
   }
   // TODO(joseph5wu) Need to support other states
   throw FbossError(
       "Unsupported TransceiverStateMachineState order: ", currentStateOrder);
 }
-
-template <class State>
-TransceiverStateMachineState stateToStateEnum(State& /* state */) {
-  if constexpr (std::is_same_v<State, decltype(NOT_PRESENT)>) {
-    return TransceiverStateMachineState::NOT_PRESENT;
-  } else if constexpr (std::is_same_v<State, decltype(PRESENT)>) {
-    return TransceiverStateMachineState::PRESENT;
-  } else if constexpr (std::is_same_v<State, decltype(DISCOVERED)>) {
-    return TransceiverStateMachineState::DISCOVERED;
-  } else if constexpr (std::is_same_v<State, decltype(IPHY_PORTS_PROGRAMMED)>) {
-    return TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
-  } else if constexpr (std::is_same_v<State, decltype(XPHY_PORTS_PROGRAMMED)>) {
-    return TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
-  } else if constexpr (std::
-                           is_same_v<State, decltype(TRANSCEIVER_PROGRAMMED)>) {
-    return TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED;
-  } else if constexpr (std::is_same_v<State, decltype(ACTIVE)>) {
-    return TransceiverStateMachineState::ACTIVE;
-  } else if constexpr (std::is_same_v<State, decltype(INACTIVE)>) {
-    return TransceiverStateMachineState::INACTIVE;
-  } else if constexpr (std::is_same_v<State, decltype(UPGRADING)>) {
-    return TransceiverStateMachineState::UPGRADING;
-  }
-
-  throw FbossError("Unsupported TransceiverStateMachineState");
-}
-
-template TransceiverStateMachineState stateToStateEnum<decltype(NOT_PRESENT)>(
-    decltype(NOT_PRESENT)& state);
-template TransceiverStateMachineState stateToStateEnum<decltype(PRESENT)>(
-    decltype(PRESENT)& state);
-template TransceiverStateMachineState stateToStateEnum<decltype(DISCOVERED)>(
-    decltype(DISCOVERED)& state);
-template TransceiverStateMachineState stateToStateEnum<
-    decltype(IPHY_PORTS_PROGRAMMED)>(decltype(IPHY_PORTS_PROGRAMMED)& state);
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
 
 #include <boost/msm/back/state_machine.hpp>
@@ -113,7 +114,30 @@ BOOST_MSM_EUML_EVENT(PROGRAM_TRANSCEIVER)
 
 // Module State Machine Actions
 template <class State>
-TransceiverStateMachineState stateToStateEnum(State& state);
+TransceiverStateMachineState stateToStateEnum(State& /* state */) {
+  if constexpr (std::is_same_v<State, decltype(NOT_PRESENT)>) {
+    return TransceiverStateMachineState::NOT_PRESENT;
+  } else if constexpr (std::is_same_v<State, decltype(PRESENT)>) {
+    return TransceiverStateMachineState::PRESENT;
+  } else if constexpr (std::is_same_v<State, decltype(DISCOVERED)>) {
+    return TransceiverStateMachineState::DISCOVERED;
+  } else if constexpr (std::is_same_v<State, decltype(IPHY_PORTS_PROGRAMMED)>) {
+    return TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
+  } else if constexpr (std::is_same_v<State, decltype(XPHY_PORTS_PROGRAMMED)>) {
+    return TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
+  } else if constexpr (std::
+                           is_same_v<State, decltype(TRANSCEIVER_PROGRAMMED)>) {
+    return TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED;
+  } else if constexpr (std::is_same_v<State, decltype(ACTIVE)>) {
+    return TransceiverStateMachineState::ACTIVE;
+  } else if constexpr (std::is_same_v<State, decltype(INACTIVE)>) {
+    return TransceiverStateMachineState::INACTIVE;
+  } else if constexpr (std::is_same_v<State, decltype(UPGRADING)>) {
+    return TransceiverStateMachineState::UPGRADING;
+  }
+
+  throw FbossError("Unsupported TransceiverStateMachineState");
+}
 
 // clang-format couldn't handle the marco in a pretty way. So manually turn off
 // the auto formating
@@ -153,19 +177,42 @@ bool operator()(
   }
 }
 };
+
+BOOST_MSM_EUML_ACTION(programXphyPorts) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  try {
+    fsm.get_attribute(transceiverMgrPtr)->programExternalPhyPorts(tcvrID);
+    fsm.get_attribute(isXphyProgrammed) = true;
+    return true;
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "[Transceiver:" << tcvrID
+               << "] programExternalPhyPorts failed:"
+               << folly::exceptionStr(ex);
+    return false;
+  }
+}
+};
 // clang-format on
 
 // Transceiver State Machine State transition table
 // clang-format off
 BOOST_MSM_EUML_TRANSITION_TABLE((
-//  Start       + Event        [Guard]            / Action          == Next
+//  Start                 + Event        [Guard]            / Action          == Next
 // +----------------------------------------------------------------------------------------+
-    NOT_PRESENT + DETECT_TRANSCEIVER              / logStateChanged == PRESENT,
-    PRESENT     + READ_EEPROM                     / logStateChanged == DISCOVERED,
+    NOT_PRESENT           + DETECT_TRANSCEIVER              / logStateChanged == PRESENT,
+    PRESENT               + READ_EEPROM                     / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call port program in case optic is actually
     // inserted but just can't read the present state
-    NOT_PRESENT + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED,
-    DISCOVERED  + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED
+    NOT_PRESENT           + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    DISCOVERED            + PROGRAM_IPHY [programIphyPorts] / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    IPHY_PORTS_PROGRAMMED + PROGRAM_XPHY [programXphyPorts] / logStateChanged == XPHY_PORTS_PROGRAMMED
 //  +---------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

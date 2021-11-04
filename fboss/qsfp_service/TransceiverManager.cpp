@@ -286,7 +286,7 @@ void TransceiverManager::triggerProgrammingEvents() {
       numProgramIphy++;
       updateStateBlocking(
           stateMachine.first, TransceiverStateMachineEvent::PROGRAM_IPHY);
-    } else if (needProgramXphy) {
+    } else if (needProgramXphy && phyManager_ != nullptr) {
       numProgramXphy++;
       updateStateBlocking(
           stateMachine.first, TransceiverStateMachineEvent::PROGRAM_XPHY);
@@ -305,22 +305,6 @@ void TransceiverManager::triggerProgrammingEvents() {
 }
 
 void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
-  // First get current transceiverInfo
-  std::optional<TransceiverInfo> itTcvr;
-  {
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto it = lockedTransceivers->find(id);
-        it != lockedTransceivers->end()) {
-      itTcvr = it->second->getTransceiverInfo();
-    } else {
-      TransceiverInfo absentTcvr;
-      absentTcvr.present_ref() = false;
-      absentTcvr.port_ref() = id;
-      itTcvr = absentTcvr;
-    }
-  }
-  CHECK(itTcvr.has_value());
-
   std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
   if (auto overridePortAndProfileIt =
           overrideTcvrToPortAndProfileForTest_.find(id);
@@ -333,11 +317,11 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
     // Then call wedge_agent programInternalPhyPorts
     auto wedgeAgentClient = utils::createWedgeAgentClient();
     wedgeAgentClient->sync_programInternalPhyPorts(
-        programmedIphyPorts, *itTcvr, false);
+        programmedIphyPorts, getTransceiverInfo(id), false);
   }
 
   std::string logStr = folly::to<std::string>(
-      "programInternalPhyPorts() for Transceiver:", id, " return [");
+      "programInternalPhyPorts() for Transceiver=", id, " return [");
   for (const auto& [portID, profileID] : programmedIphyPorts) {
     logStr = folly::to<std::string>(
         logStr, id, " : ", apache::thrift::util::enumNameSafe(profileID), ", ");
@@ -372,6 +356,32 @@ TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
     return portAndProfileIt->second;
   }
   return {};
+}
+
+void TransceiverManager::programExternalPhyPorts(TransceiverID id) {
+  auto phyManager = getPhyManager();
+  if (!phyManager) {
+    return;
+  }
+  const auto& transceiver = getTransceiverInfo(id);
+  for (const auto& [portID, profileID] : getProgrammedIphyPortAndProfile(id)) {
+    phyManager->programOnePort(portID, profileID, transceiver);
+    XLOG(DBG2) << "Programmed XPHY port for Transceiver=" << id
+               << ", Port=" << portID
+               << ", Profile=" << apache::thrift::util::enumNameSafe(profileID);
+  }
+}
+
+TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    return it->second->getTransceiverInfo();
+  } else {
+    TransceiverInfo absentTcvr;
+    absentTcvr.present_ref() = false;
+    absentTcvr.port_ref() = id;
+    return absentTcvr;
+  }
 }
 } // namespace fboss
 } // namespace facebook

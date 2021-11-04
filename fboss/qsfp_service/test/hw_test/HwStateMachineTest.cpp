@@ -95,26 +95,26 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
 
 TEST_F(
     HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckIphyPortsProgrammed) {
+    CheckPortsProgrammed) {
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     // Right now we should expect present or absent transceiver should be
-    // IPHY_PORTS_PROGRAMMED now.
+    // IPHY_PORTS_PROGRAMMED or XPHY_PORTS_PROGRAMMED(if xphy exists) now.
     auto checkTransceiverIphyPortProgrammed =
         [wedgeMgr](const std::vector<TransceiverID>& tcvrs) {
+          std::vector<PortID> xphyPorts;
+          if (auto phyManager = wedgeMgr->getPhyManager()) {
+            xphyPorts = phyManager->getXphyPorts();
+          }
+
           for (auto id : tcvrs) {
             const auto& portAndProfile =
                 wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
             if (portAndProfile.empty()) {
               continue;
             }
-            auto curState = wedgeMgr->getCurrentState(id);
-            EXPECT_EQ(
-                curState, TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED)
-                << "Transceiver:" << id
-                << " Actual: " << getTransceiverStateMachineStateName(curState)
-                << ", Expected: IPHY_PORTS_PROGRAMMED";
 
+            bool hasXphy = false;
             // Check programmed iphy port and profile
             const auto programmedIphyPortAndProfile =
                 wedgeMgr->getProgrammedIphyPortAndProfile(id);
@@ -124,6 +124,24 @@ TEST_F(
               auto expectedPortAndProfileIt = portAndProfile.find(portID);
               EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
               EXPECT_EQ(profileID, expectedPortAndProfileIt->second);
+              hasXphy |=
+                  (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
+                   xphyPorts.end());
+            }
+
+            auto curState = wedgeMgr->getCurrentState(id);
+            if (hasXphy) {
+              EXPECT_EQ(
+                  curState, TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED)
+                  << "Transceiver:" << id << " Actual: "
+                  << getTransceiverStateMachineStateName(curState)
+                  << ", Expected: XPHY_PORTS_PROGRAMMED";
+            } else {
+              EXPECT_EQ(
+                  curState, TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED)
+                  << "Transceiver:" << id << " Actual: "
+                  << getTransceiverStateMachineStateName(curState)
+                  << ", Expected: IPHY_PORTS_PROGRAMMED";
             }
           }
         };

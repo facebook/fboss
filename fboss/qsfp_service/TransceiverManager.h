@@ -175,6 +175,8 @@ class TransceiverManager {
   std::unordered_map<PortID, cfg::PortProfileID>
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
 
+  void programExternalPhyPorts(TransceiverID id);
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -244,6 +246,8 @@ class TransceiverManager {
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
+
+  TransceiverInfo getTransceiverInfo(TransceiverID id);
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,
