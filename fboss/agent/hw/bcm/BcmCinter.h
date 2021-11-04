@@ -142,6 +142,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       uint32 data,
       uint32 mask) override;
+  int bcm_field_qualify_OuterVlanId(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_vlan_t data,
+      bcm_vlan_t mask) override;
   int bcm_field_action_delete(
       int unit,
       bcm_field_entry_t entry,
@@ -999,6 +1004,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t /*entry*/,
       uint32* /*data*/,
       uint32* /*mask*/) override {
+    return 0;
+  }
+  int bcm_field_qualify_OuterVlanId_get(
+      int /*unit*/,
+      bcm_field_entry_t /*entry*/,
+      bcm_vlan_t* /*data*/,
+      bcm_vlan_t* /*mask*/) override {
     return 0;
   }
   int bcm_cosq_control_get(

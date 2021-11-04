@@ -703,6 +703,18 @@ class BcmSdkInterface {
       uint32 data,
       uint32 mask) = 0;
 
+  virtual int bcm_field_qualify_OuterVlanId_get(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_vlan_t* data,
+      bcm_vlan_t* mask) = 0;
+
+  virtual int bcm_field_qualify_OuterVlanId(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_vlan_t data,
+      bcm_vlan_t mask) = 0;
+
   virtual int bcm_field_group_destroy(int unit, bcm_field_group_t) = 0;
 
   virtual int bcm_cosq_control_get(

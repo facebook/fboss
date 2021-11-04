@@ -1589,6 +1589,19 @@ int BcmCinter::bcm_field_qualify_PacketRes(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_OuterVlanId(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_vlan_t data,
+    bcm_vlan_t mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_OuterVlanId",
+      "(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), data, mask),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_qualify_Ttl(
     int unit,
     bcm_field_entry_t entry,
