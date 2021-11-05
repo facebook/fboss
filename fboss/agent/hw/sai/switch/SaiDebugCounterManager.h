@@ -37,6 +37,7 @@ class SaiDebugCounterManager {
   }
 
  private:
+  void setupPortL3BlackHoleCounter();
   std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{0};
   SaiStore* saiStore_;

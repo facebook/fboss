@@ -19,6 +19,10 @@
 namespace facebook::fboss {
 
 void SaiDebugCounterManager::setupDebugCounters() {
+  setupPortL3BlackHoleCounter();
+}
+
+void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
   SaiDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
