@@ -1292,7 +1292,7 @@ bool SffModule::verifyEepromChecksums() {
     rc |= verifyEepromChecksum(csumInfoIt.first);
   }
   XLOG_IF(WARN, !rc) << folly::sformat(
-      "Module {} EEPROM Checksum {:s}", qsfpImpl_->getName(), "Failed");
+      "Module {} EEPROM Checksum Failed", qsfpImpl_->getName());
   return rc;
 }
 
