@@ -226,4 +226,18 @@ class RouteGenerator : public ResourceGenerator<
   PrefixGenerator<AddrT> prefixGenerator_;
 };
 
+class SakKeyHexGenerator : public ResourceGenerator<std::string, uint64_t> {
+ public:
+  using ResourceT = std::string;
+  using IdT = uint64_t;
+  ResourceT get(IdT id) const override;
+};
+
+class SakKeyIdHexGenerator : public ResourceGenerator<std::string, uint64_t> {
+ public:
+  using ResourceT = std::string;
+  using IdT = uint64_t;
+  ResourceT get(IdT id) const override;
+};
+
 } // namespace facebook::fboss::utility

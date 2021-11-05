@@ -262,4 +262,60 @@ TEST(ResourceLibUtilTest, RouteV6Generator) {
   }
 }
 
+TEST(ResourceLibUtilTest, SakKeyHexGenerator) {
+  auto generator = utility::SakKeyHexGenerator();
+  std::array<std::string, 5> expectedKeys{
+      "faceb00cfaceb00c0000000000000001",
+      "faceb00cfaceb00c0000000000000002",
+      "faceb00cfaceb00c0000000000000003",
+      "faceb00cfaceb00c0000000000000004",
+      "faceb00cfaceb00c0000000000000005",
+  };
+  std::array<std::string, 5> expectedKeys2{
+      "faceb00cfaceb00c000000000000000a",
+      "faceb00cfaceb00c000000000000000b",
+      "faceb00cfaceb00c000000000000000c",
+      "faceb00cfaceb00c000000000000000d",
+      "faceb00cfaceb00c000000000000000e",
+  };
+
+  for (auto expectedKey : expectedKeys) {
+    ASSERT_EQ(generator.getNext(), expectedKey);
+  }
+
+  // Make sure we're hex, not integer by going above 10.
+  generator.getNextN(4);
+  for (auto expectedKey : expectedKeys2) {
+    ASSERT_EQ(generator.getNext(), expectedKey);
+  }
+}
+
+TEST(ResourceLibUtilTest, SakKeyIdHexGenerator) {
+  auto generator = utility::SakKeyIdHexGenerator();
+  std::array<std::string, 5> expectedKeys{
+      "0000000000000001",
+      "0000000000000002",
+      "0000000000000003",
+      "0000000000000004",
+      "0000000000000005",
+  };
+  std::array<std::string, 5> expectedKeys2{
+      "000000000000000a",
+      "000000000000000b",
+      "000000000000000c",
+      "000000000000000d",
+      "000000000000000e",
+  };
+
+  for (auto expectedKey : expectedKeys) {
+    ASSERT_EQ(generator.getNext(), expectedKey);
+  }
+
+  // Make sure we're hex, not integer by going above 10.
+  generator.getNextN(4);
+  for (auto expectedKey : expectedKeys2) {
+    ASSERT_EQ(generator.getNext(), expectedKey);
+  }
+}
+
 } // namespace facebook::fboss

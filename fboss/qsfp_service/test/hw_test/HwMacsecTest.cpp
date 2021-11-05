@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
 #include "fboss/mka_service/if/gen-cpp2/mka_structs_types.h"
@@ -65,7 +66,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
       mka::MKASak& sak,
       mka::MKASci& sci,
       sai_macsec_direction_t direction,
-      PhyManager* phyManager) {
+      PhyManager* phyManager,
+      bool expectAbsent = false) {
     if (!getHwQsfpEnsemble()->isSaiPlatform()) {
       throw FbossError("Cannot verify Macsec programming on non-sai platform");
     }
@@ -123,7 +125,12 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     EXPECT_NE(macsecSecureChannelHandle, nullptr);
     EXPECT_NE(macsecSecureChannelHandle->flow, nullptr);
     EXPECT_NE(macsecSecureChannelHandle->secureChannel, nullptr);
-    EXPECT_NE(macsecSecureAssoc, nullptr);
+    if (expectAbsent) {
+      EXPECT_EQ(macsecSecureAssoc, nullptr);
+      return;
+    } else {
+      EXPECT_NE(macsecSecureAssoc, nullptr);
+    }
 
     auto saiPortId = portHandle->port->adapterKey();
     auto macsecId = macsecHandle->macsec->adapterKey();
@@ -284,6 +291,67 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
     // Delete keys
     phyManager->sakDeleteRx(rxSak, remoteSci);
     phyManager->sakDelete(txSak);
+  }
+}
+
+TEST_F(HwMacsecTest, rotateRxKeys) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+    auto remoteSci = makeSci(macGen.getNext().toString(), port);
+    auto rxSak = makeSak(
+        remoteSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKeyGen.getNext(),
+        sakKeyIdGen.getNext(),
+        0);
+    // 2nd key with new association number
+    auto rxSak2 = makeSak(
+        remoteSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKeyGen.getNext(),
+        sakKeyIdGen.getNext(),
+        1);
+
+    wedgeManager->programXphyPort(port, profile);
+
+    XLOG(INFO) << "rotateKeys: Installing Macsec RX for port " << port;
+    phyManager->sakInstallRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "rotateKeys: Verifying Macsec RX for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    XLOG(INFO) << "rotateKeys: Installing new Macsec RX for port " << port;
+    phyManager->sakInstallRx(rxSak2, remoteSci);
+
+    XLOG(INFO) << "rotateKeys: Verifying new and old Macsec RX for port "
+               << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+    verifyMacsecProgramming(
+        port, rxSak2, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    XLOG(INFO) << "rotateKeys: Removing old Macsec RX for port " << port;
+    phyManager->sakDeleteRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "rotateKeys: Verifying removal of old Macsec RX for port "
+               << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true);
+    verifyMacsecProgramming(
+        port, rxSak2, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    // Delete keys
+    phyManager->sakDeleteRx(rxSak2, remoteSci);
   }
 }
 

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include <fmt/core.h>
 #include "fboss/agent/state/RouteTypes.h"
 
 namespace facebook::fboss::utility {
@@ -98,5 +99,18 @@ template class IPAddressGenerator<folly::IPAddressV4>;
 template class IPAddressGenerator<folly::IPAddressV6>;
 template class RouteGenerator<folly::IPAddressV4>;
 template class RouteGenerator<folly::IPAddressV6>;
+
+SakKeyHexGenerator::ResourceT SakKeyHexGenerator::get(
+    SakKeyHexGenerator::IdT id) const {
+  // Output is 32 hex chars. But we don't really need the full 128-bit range.
+  // Instead of using 2x uint64_t like in IPv6, just pad the front with 16
+  // fixed chars.
+  return fmt::format("faceb00cfaceb00c{:016x}", id);
+}
+
+SakKeyIdHexGenerator::ResourceT SakKeyIdHexGenerator::get(
+    SakKeyIdHexGenerator::IdT id) const {
+  return fmt::format("{:016x}", id);
+}
 
 } // namespace facebook::fboss::utility
