@@ -41,8 +41,8 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.minorVersion_ref() = 91;
       break;
     case PlatformMode::FUJI:
-      desiredFw.version_ref() = 0xD006;
-      desiredFw.crc_ref() = 0x77265d92;
+      desiredFw.version_ref() = 0xD008;
+      desiredFw.crc_ref() = 0x4dcf6a59;
       break;
     case PlatformMode::CLOUDRIPPER:
       desiredFw.version_ref() = 1;
