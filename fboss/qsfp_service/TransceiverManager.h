@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/types.h"
@@ -175,9 +176,13 @@ class TransceiverManager {
   void programTransceiver(TransceiverID id);
 
   // ========== Public functions for TransceiverStateMachine ==========
-
-  std::unordered_map<PortID, cfg::PortProfileID>
-  getProgrammedIphyPortAndProfile(TransceiverID id) const;
+  // A struct to keep track of the software port profile and status
+  struct TransceiverPortInfo {
+    cfg::PortProfileID profile;
+    std::optional<PortStatus> status;
+  };
+  std::unordered_map<PortID, TransceiverPortInfo>
+  getProgrammedIphyPortToPortInfo(TransceiverID id) const;
 
   std::unordered_map<PortID, cfg::PortProfileID>
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
@@ -241,11 +246,11 @@ class TransceiverManager {
           folly::Synchronized<state_machine<TransceiverStateMachine>>>>;
   TransceiverToStateMachine setupTransceiverToStateMachine();
 
-  using TransceiverToPortAndProfile = std::unordered_map<
+  using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<
-          folly::Synchronized<std::unordered_map<PortID, cfg::PortProfileID>>>>;
-  TransceiverToPortAndProfile setupTransceiverToPortAndProfile();
+      std::unique_ptr<folly::Synchronized<
+          std::unordered_map<PortID, TransceiverPortInfo>>>>;
+  TransceiverToPortInfo setupTransceiverToPortInfo();
 
   void startThreads();
   void stopThreads();
@@ -286,9 +291,9 @@ class TransceiverManager {
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
-   * to profile mapping.
+   * to TransceiverPortInfo mapping.
    */
-  const TransceiverToPortAndProfile tcvrToPortAndProfile_;
+  const TransceiverToPortInfo tcvrToPortInfo_;
 };
 } // namespace fboss
 } // namespace facebook

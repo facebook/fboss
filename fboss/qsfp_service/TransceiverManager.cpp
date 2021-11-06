@@ -20,7 +20,7 @@ TransceiverManager::TransceiverManager(
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(std::move(platformMapping)),
       stateMachines_(setupTransceiverToStateMachine()),
-      tcvrToPortAndProfile_(setupTransceiverToPortAndProfile()) {
+      tcvrToPortInfo_(setupTransceiverToPortInfo()) {
   // Now we might need to start threads
   startThreads();
 }
@@ -94,21 +94,21 @@ TransceiverManager::setupTransceiverToStateMachine() {
   return stateMachineMap;
 }
 
-TransceiverManager::TransceiverToPortAndProfile
-TransceiverManager::setupTransceiverToPortAndProfile() {
-  TransceiverToPortAndProfile tcvrToPortAndProfile;
+TransceiverManager::TransceiverToPortInfo
+TransceiverManager::setupTransceiverToPortInfo() {
+  TransceiverToPortInfo tcvrToPortInfo;
   if (FLAGS_use_new_state_machine) {
     for (auto chip : platformMapping_->getChips()) {
       if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
       auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
-      auto portAndProfile = std::make_unique<folly::Synchronized<
-          std::unordered_map<PortID, cfg::PortProfileID>>>();
-      tcvrToPortAndProfile.emplace(tcvrID, std::move(portAndProfile));
+      auto portToPortInfo = std::make_unique<folly::Synchronized<
+          std::unordered_map<PortID, TransceiverPortInfo>>>();
+      tcvrToPortInfo.emplace(tcvrID, std::move(portToPortInfo));
     }
   }
-  return tcvrToPortAndProfile;
+  return tcvrToPortInfo;
 }
 
 void TransceiverManager::startThreads() {
@@ -328,21 +328,23 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
   XLOG(INFO) << logStr << "]";
 
   // Now update the programmed SW port to profile mapping
-  if (auto portAndProfileIt = tcvrToPortAndProfile_.find(id);
-      portAndProfileIt != tcvrToPortAndProfile_.end()) {
-    auto portAndProfileWithLock = portAndProfileIt->second->wlock();
-    portAndProfileWithLock->clear();
+  if (auto portToPortInfoIt = tcvrToPortInfo_.find(id);
+      portToPortInfoIt != tcvrToPortInfo_.end()) {
+    auto portToPortInfoWithLock = portToPortInfoIt->second->wlock();
+    portToPortInfoWithLock->clear();
     for (auto [portID, profileID] : programmedIphyPorts) {
-      portAndProfileWithLock->emplace(PortID(portID), profileID);
+      TransceiverPortInfo portInfo;
+      portInfo.profile = profileID;
+      portToPortInfoWithLock->emplace(PortID(portID), portInfo);
     }
   }
 }
 
-std::unordered_map<PortID, cfg::PortProfileID>
-TransceiverManager::getProgrammedIphyPortAndProfile(TransceiverID id) const {
-  if (auto portAndProfileIt = tcvrToPortAndProfile_.find(id);
-      portAndProfileIt != tcvrToPortAndProfile_.end()) {
-    return *(portAndProfileIt->second->rlock());
+std::unordered_map<PortID, TransceiverManager::TransceiverPortInfo>
+TransceiverManager::getProgrammedIphyPortToPortInfo(TransceiverID id) const {
+  if (auto tcvrToPortInfo_It = tcvrToPortInfo_.find(id);
+      tcvrToPortInfo_It != tcvrToPortInfo_.end()) {
+    return *(tcvrToPortInfo_It->second->rlock());
   }
   return {};
 }
@@ -363,19 +365,19 @@ void TransceiverManager::programExternalPhyPorts(TransceiverID id) {
     return;
   }
   // Get programmed iphy port profile
-  const auto& programmedPortAndProfile = getProgrammedIphyPortAndProfile(id);
-  if (programmedPortAndProfile.empty()) {
+  const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
+  if (programmedPortToPortInfo.empty()) {
     // This is due to the iphy ports are disabled. So no need to program xphy
     XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << id
-               << ". Can't find programmed iphy port and profile";
+               << ". Can't find programmed iphy port and port info";
     return;
   }
   const auto& transceiver = getTransceiverInfo(id);
-  for (const auto& [portID, profileID] : programmedPortAndProfile) {
-    phyManager->programOnePort(portID, profileID, transceiver);
+  for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+    phyManager->programOnePort(portID, portInfo.profile, transceiver);
     XLOG(INFO) << "Programmed XPHY port for Transceiver=" << id
-               << ", Port=" << portID
-               << ", Profile=" << apache::thrift::util::enumNameSafe(profileID);
+               << ", Port=" << portID << ", Profile="
+               << apache::thrift::util::enumNameSafe(portInfo.profile);
   }
 }
 
@@ -393,11 +395,11 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
 
 void TransceiverManager::programTransceiver(TransceiverID id) {
   // Get programmed iphy port profile
-  const auto& programmedPortAndProfile = getProgrammedIphyPortAndProfile(id);
-  if (programmedPortAndProfile.empty()) {
+  const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
+  if (programmedPortToPortInfo.empty()) {
     // This is due to the iphy ports are disabled. So no need to program tcvr
     XLOG(DBG2) << "Skip programming Transceiver=" << id
-               << ". Can't find programmed iphy port and profile";
+               << ". Can't find programmed iphy port and port info";
     return;
   }
   // TODO(joseph5wu) Usually we only need to program optical Transceiver which
@@ -407,7 +409,7 @@ void TransceiverManager::programTransceiver(TransceiverID id) {
   // If in the future, we need to support flex port copper transceiver
   // programming, we might need to combine the speeds of all flex port to
   // program such transceiver.
-  const auto profileID = programmedPortAndProfile.begin()->second;
+  const auto profileID = programmedPortToPortInfo.begin()->second.profile;
   auto profileCfgOpt = platformMapping_->getPortProfileConfig(
       PlatformPortProfileConfigMatcher(profileID));
   if (!profileCfgOpt) {
