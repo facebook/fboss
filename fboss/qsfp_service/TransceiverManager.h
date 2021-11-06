@@ -196,7 +196,13 @@ class TransceiverManager {
 
   // Check whether iphy/xphy/transceiver programmed is done. If not, then
   // trigger the corresponding program event to program the component.
-  void triggerProgrammingEvents();
+  // Return the list of transceivers that have programming events
+  std::vector<TransceiverID> triggerProgrammingEvents();
+
+  // Update the cached PortStatus of TransceiverToPortInfo for the specified
+  // transceiver list
+  void updateTransceiverPortStatus(
+      const std::vector<TransceiverID>& transceivers) noexcept;
 
   void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
     phyManager_ = std::move(phyManager);

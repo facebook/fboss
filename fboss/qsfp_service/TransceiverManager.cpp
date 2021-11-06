@@ -266,10 +266,8 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return curState;
 }
 
-void TransceiverManager::triggerProgrammingEvents() {
-  if (!FLAGS_use_new_state_machine) {
-    return;
-  }
+std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
+  std::vector<TransceiverID> programmedTcvrs;
   int32_t numProgramIphy{0}, numProgramXphy{0}, numProgramTcvr{0};
   steady_clock::time_point begin = steady_clock::now();
   for (auto& stateMachine : stateMachines_) {
@@ -281,26 +279,28 @@ void TransceiverManager::triggerProgrammingEvents() {
       needProgramTcvr =
           !lockedStateMachine->get_attribute(isTransceiverProgrammed);
     }
+    auto tcvrID = stateMachine.first;
     if (needProgramIphy) {
+      programmedTcvrs.push_back(tcvrID);
       numProgramIphy++;
-      updateStateBlocking(
-          stateMachine.first, TransceiverStateMachineEvent::PROGRAM_IPHY);
+      updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY);
     } else if (needProgramXphy && phyManager_ != nullptr) {
+      programmedTcvrs.push_back(tcvrID);
       numProgramXphy++;
-      updateStateBlocking(
-          stateMachine.first, TransceiverStateMachineEvent::PROGRAM_XPHY);
+      updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY);
     } else if (needProgramTcvr) {
+      programmedTcvrs.push_back(tcvrID);
       numProgramTcvr++;
       updateStateBlocking(
-          stateMachine.first,
-          TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+          tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
     }
   }
-  XLOG_IF(DBG2, (numProgramIphy + numProgramXphy + numProgramTcvr) > 0)
+  XLOG_IF(DBG2, !programmedTcvrs.empty())
       << "triggerProgrammingEvents has " << numProgramIphy
       << " IPHY programming, " << numProgramXphy << " XPHY programming, "
       << numProgramTcvr << " TCVR programming. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
+  return programmedTcvrs;
 }
 
 void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
@@ -429,6 +429,78 @@ void TransceiverManager::programTransceiver(TransceiverID id) {
   tcvrIt->second->programTransceiver(speed);
   XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
              << " with speed=" << apache::thrift::util::enumNameSafe(speed);
+}
+
+void TransceiverManager::updateTransceiverPortStatus(
+    const std::vector<TransceiverID>& transceivers) noexcept {
+  if (transceivers.empty()) {
+    XLOG(DBG2)
+        << "No target transceiver specified, skip updateTransceiverPortStatus";
+    return;
+  }
+
+  int32_t numTcvrPortStatusChanged = 0;
+  steady_clock::time_point begin = steady_clock::now();
+
+  std::map<int32_t, PortStatus> newPortToPortStatus;
+  try {
+    // Then call wedge_agent getPortStatus() to get current port status
+    auto wedgeAgentClient = utils::createWedgeAgentClient();
+    wedgeAgentClient->sync_getPortStatus(newPortToPortStatus, {});
+
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
+               << folly::exceptionStr(ex);
+    return;
+  }
+
+  // Now try to update the TransceiverToPortInfo map with new status
+  for (auto tcvrID : transceivers) {
+    auto tcvrToPortInfo_It = tcvrToPortInfo_.find(tcvrID);
+    if (tcvrToPortInfo_It == tcvrToPortInfo_.end()) {
+      continue;
+    }
+    bool portStatusChanged = false;
+    bool anyPortUp = false;
+    auto portToPortInfoWithLock = tcvrToPortInfo_It->second->wlock();
+    for (auto& [portID, portInfo] : *portToPortInfoWithLock) {
+      // Get the new PortStatus from wedge_agent getPortStatus()
+      auto portStatusIt = newPortToPortStatus.find(portID);
+      if (portStatusIt == newPortToPortStatus.end()) {
+        XLOG(WARN) << "Can't find port:" << portID
+                   << " from wedge_agent getPortStatus() result";
+        continue;
+      }
+      bool newPortUp = *portStatusIt->second.up_ref();
+      anyPortUp |= newPortUp;
+      // If there's a cached status, check whether we need to change the
+      // status and trigger a state machine event
+      if (auto cachedStatus = portInfo.status) {
+        if (*cachedStatus->up_ref() != newPortUp) {
+          portStatusChanged = true;
+          cachedStatus->up_ref() = newPortUp;
+        }
+      } else {
+        // If cached status is empty, that means there's a change
+        portStatusChanged = true;
+        portInfo.status = portStatusIt->second;
+      }
+    }
+
+    // Only need to trigger state machine event if there's a port status change
+    if (portStatusChanged) {
+      numTcvrPortStatusChanged++;
+      updateStateBlocking(
+          tcvrID,
+          anyPortUp ? TransceiverStateMachineEvent::PORT_UP
+                    : TransceiverStateMachineEvent::ALL_PORTS_DOWN);
+    }
+  }
+  XLOG_IF(DBG2, numTcvrPortStatusChanged > 0)
+      << "updateTransceiverPortStatus has " << numTcvrPortStatusChanged
+      << " transceivers need to update port status. Total execute time(ms):"
+      << duration_cast<milliseconds>(steady_clock::now() - begin).count();
 }
 } // namespace fboss
 } // namespace facebook
