@@ -372,8 +372,17 @@ void TransceiverManager::programExternalPhyPorts(TransceiverID id) {
                << ". Can't find programmed iphy port and port info";
     return;
   }
+  const auto& supportedXphyPorts = phyManager->getXphyPorts();
   const auto& transceiver = getTransceiverInfo(id);
   for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+    if (std::find(
+            supportedXphyPorts.begin(), supportedXphyPorts.end(), portID) ==
+        supportedXphyPorts.end()) {
+      XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << id
+                 << ", Port=" << portID << ". Can't find supported xphy";
+      continue;
+    }
+
     phyManager->programOnePort(portID, portInfo.profile, transceiver);
     XLOG(INFO) << "Programmed XPHY port for Transceiver=" << id
                << ", Port=" << portID << ", Profile="
