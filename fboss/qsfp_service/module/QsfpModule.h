@@ -556,7 +556,7 @@ class QsfpModule : public Transceiver {
   QsfpModule& operator=(QsfpModule const&) = delete;
 
   void refreshLocked();
-  virtual TransceiverInfo parseDataLocked();
+  void updateCachedTransceiverInfoLocked();
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_

@@ -17,6 +17,7 @@
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 #include <folly/logging/xlog.h>
 
@@ -59,91 +60,7 @@ class HwPortProfileTest : public HwTest {
     XLOG(INFO) << " Will verify transceiver settings for : "
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
-      auto& transceiver = idAndTransceiver.second;
-      auto id = idAndTransceiver.first;
-      if (!*transceiver.present_ref()) {
-        XLOG(INFO) << " Skip verifying: " << id << ", not present";
-        continue;
-      }
-      XLOG(INFO) << " Verifying: " << id;
-      // Only testing QSFP transceivers right now
-      EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
-      auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
-      // Disable low power mode
-      EXPECT_TRUE(
-          *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
-          *settings.powerControl_ref() ==
-              PowerControlState::HIGH_POWER_OVERRIDE);
-      EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
-      EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
-      for (auto& mediaLane :
-           apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
-        EXPECT_FALSE(mediaLane.txDisable_ref().value());
-        EXPECT_FALSE(mediaLane.txSquelch_ref().value());
-      }
-      for (auto& hostLane :
-           apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
-        EXPECT_FALSE(hostLane.rxSquelch_ref().value());
-      }
-      auto mgmtInterface = apache::thrift::can_throw(
-          *transceiver.transceiverManagementInterface_ref());
-      EXPECT_TRUE(
-          mgmtInterface == TransceiverManagementInterface::SFF ||
-          mgmtInterface == TransceiverManagementInterface::CMIS);
-      auto mediaInterfaces =
-          apache::thrift::can_throw(*settings.mediaInterface_ref());
-      switch (Profile) {
-        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
-        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
-          for (const auto& mediaId : mediaInterfaces) {
-            if (mgmtInterface == TransceiverManagementInterface::SFF) {
-              auto specComplianceCode =
-                  *mediaId.media_ref()
-                       ->extendedSpecificationComplianceCode_ref();
-              EXPECT_TRUE(
-                  specComplianceCode ==
-                      ExtendedSpecComplianceCode::CWDM4_100G ||
-                  specComplianceCode == ExtendedSpecComplianceCode::FR1_100G);
-              EXPECT_TRUE(
-                  mediaId.code_ref() == MediaInterfaceCode::CWDM4_100G ||
-                  mediaId.code_ref() == MediaInterfaceCode::FR1_100G);
-            } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-              EXPECT_EQ(
-                  *mediaId.media_ref()->smfCode_ref(),
-                  SMFMediaInterfaceCode::CWDM4_100G);
-              EXPECT_EQ(*mediaId.code_ref(), MediaInterfaceCode::CWDM4_100G);
-            }
-          }
-          break;
-        case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC:
-          // TODO
-          break;
-        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
-        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
-          EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
-          for (const auto& mediaId : mediaInterfaces) {
-            EXPECT_EQ(
-                *mediaId.media_ref()->smfCode_ref(),
-                SMFMediaInterfaceCode::FR4_200G);
-            EXPECT_EQ(*mediaId.code_ref(), MediaInterfaceCode::FR4_200G);
-          }
-          break;
-        case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
-          EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
-          for (const auto& mediaId : mediaInterfaces) {
-            EXPECT_TRUE(
-                *mediaId.media_ref()->smfCode_ref() ==
-                    SMFMediaInterfaceCode::FR4_400G ||
-                *mediaId.media_ref()->smfCode_ref() ==
-                    SMFMediaInterfaceCode::LR4_10_400G);
-            EXPECT_TRUE(
-                *mediaId.code_ref() == MediaInterfaceCode::FR4_400G ||
-                *mediaId.code_ref() == MediaInterfaceCode::LR4_400G_10KM);
-          }
-          break;
-        default:
-          throw FbossError("Unhandled profile ", Profile);
-      }
+      utility::verifyTransceiverSettings(idAndTransceiver.second, Profile);
     }
   }
 

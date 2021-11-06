@@ -296,7 +296,7 @@ void TransceiverManager::triggerProgrammingEvents() {
           TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
     }
   }
-  XLOG(DBG2)
+  XLOG_IF(DBG2, (numProgramIphy + numProgramXphy + numProgramTcvr) > 0)
       << "triggerProgrammingEvents has " << numProgramIphy
       << " IPHY programming, " << numProgramXphy << " XPHY programming, "
       << numProgramTcvr << " TCVR programming. Total execute time(ms):"

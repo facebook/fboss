@@ -14,6 +14,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
 
@@ -126,20 +127,13 @@ TEST_F(
           }
 
           for (auto id : tcvrs) {
-            auto curState = wedgeMgr->getCurrentState(id);
-            // Now all state should be in TRANSCEIVER_PROGRAMMED
-            EXPECT_EQ(
-                curState, TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED)
-                << "Transceiver:" << id
-                << " Actual: " << getTransceiverStateMachineStateName(curState)
-                << ", Expected: TRANSCEIVER_PROGRAMMED";
-
             // Verify IPHY/ XPHY/ TCVR programmed as expected
             const auto& portAndProfile =
                 wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
             // Check programmed iphy port and profile
             const auto programmedIphyPortAndProfile =
                 wedgeMgr->getProgrammedIphyPortAndProfile(id);
+            const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
             if (portAndProfile.empty()) {
               // If iphy port and profile is empty, it means the ports are
               // disabled. We don't need to program such transceivers
@@ -147,9 +141,6 @@ TEST_F(
             } else {
               EXPECT_EQ(
                   programmedIphyPortAndProfile.size(), portAndProfile.size());
-              auto tcvrOpt =
-                  std::make_optional(wedgeMgr->getTransceiverInfo(id));
-
               for (auto [portID, profileID] : programmedIphyPortAndProfile) {
                 auto expectedPortAndProfileIt = portAndProfile.find(portID);
                 EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
@@ -157,8 +148,19 @@ TEST_F(
                 if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
                     xphyPorts.end()) {
                   utility::verifyXphyPort(
-                      portID, profileID, tcvrOpt, getHwQsfpEnsemble());
+                      portID, profileID, transceiver, getHwQsfpEnsemble());
                 }
+              }
+              // TODO(joseph5wu) Usually we only need to program optical
+              // Transceiver which doesn't need to support split-out copper
+              // cable for flex ports. Which means for the optical transceiver,
+              // it usually has one programmed iphy port and profile. If in the
+              // future, we need to support flex port copper transceiver
+              // programming, we might need to combine the speeds of all flex
+              // port to program such transceiver.
+              if (programmedIphyPortAndProfile.size() == 1) {
+                utility::verifyTransceiverSettings(
+                    transceiver, programmedIphyPortAndProfile.begin()->second);
               }
             }
           }

@@ -208,69 +208,70 @@ bool QsfpModule::detectPresenceLocked() {
   return currentQsfpStatus;
 }
 
-TransceiverInfo QsfpModule::parseDataLocked() {
+void QsfpModule::updateCachedTransceiverInfoLocked() {
   TransceiverInfo info;
   auto channel_count = numMediaLanes();
   info.present_ref() = present_;
   info.transceiver_ref() = type();
   info.port_ref() = qsfpImpl_->getNum();
-  if (!present_) {
-    return info;
+  if (present_) {
+    info.sensor_ref() = getSensorInfo();
+    info.vendor_ref() = getVendorInfo();
+    info.cable_ref() = getCableInfo();
+    if (auto threshold = getThresholdInfo()) {
+      info.thresholds_ref() = *threshold;
+    }
+    info.settings_ref() = getTransceiverSettingsInfo();
+    info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(channel_count);
+    info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
+
+    for (int i = 0; i < channel_count; i++) {
+      Channel chan;
+      chan.channel_ref() = i;
+      info.channels_ref()->push_back(chan);
+    }
+    if (!getSensorsPerChanInfo(*info.channels_ref())) {
+      info.channels_ref()->clear();
+    }
+
+    if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
+      info.mediaLaneSignals_ref()->clear();
+    }
+    if (auto mediaLaneSignals = info.mediaLaneSignals_ref()) {
+      cacheMediaLaneSignals(*mediaLaneSignals);
+    }
+    if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
+      info.hostLaneSignals_ref()->clear();
+    }
+
+    if (auto transceiverStats = getTransceiverStats()) {
+      info.stats_ref() = *transceiverStats;
+    }
+    info.signalFlag_ref() = getSignalFlagInfo();
+    cacheSignalFlags(getSignalFlagInfo());
+    if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
+      info.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
+    }
+    info.transceiverManagementInterface_ref() = managementInterface();
+
+    info.identifier_ref() = getIdentifier();
+    info.status_ref() = getModuleStatus();
+
+    if (auto vdmStats = getVdmDiagsStatsInfo()) {
+      info.vdmDiagsStats_ref() = *vdmStats;
+    }
+
+    info.timeCollected_ref() = lastRefreshTime_;
+    info.remediationCounter_ref() = numRemediation_;
+    info.eepromCsumValid_ref() = verifyEepromChecksums();
+
+    info.moduleMediaInterface_ref() = getModuleMediaInterface();
   }
 
-  info.sensor_ref() = getSensorInfo();
-  info.vendor_ref() = getVendorInfo();
-  info.cable_ref() = getCableInfo();
-  if (auto threshold = getThresholdInfo()) {
-    info.thresholds_ref() = *threshold;
-  }
-  info.settings_ref() = getTransceiverSettingsInfo();
-  info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(channel_count);
-  info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
-
-  for (int i = 0; i < channel_count; i++) {
-    Channel chan;
-    chan.channel_ref() = i;
-    info.channels_ref()->push_back(chan);
-  }
-  if (!getSensorsPerChanInfo(*info.channels_ref())) {
-    info.channels_ref()->clear();
-  }
-
-  if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
-    info.mediaLaneSignals_ref()->clear();
-  }
-  if (auto mediaLaneSignals = info.mediaLaneSignals_ref()) {
-    cacheMediaLaneSignals(*mediaLaneSignals);
-  }
-  if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
-    info.hostLaneSignals_ref()->clear();
-  }
-
-  if (auto transceiverStats = getTransceiverStats()) {
-    info.stats_ref() = *transceiverStats;
-  }
-  info.signalFlag_ref() = getSignalFlagInfo();
-  cacheSignalFlags(getSignalFlagInfo());
-  if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
-    info.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
-  }
-  info.transceiverManagementInterface_ref() = managementInterface();
-
-  info.identifier_ref() = getIdentifier();
-  info.status_ref() = getModuleStatus();
-
-  if (auto vdmStats = getVdmDiagsStatsInfo()) {
-    info.vdmDiagsStats_ref() = *vdmStats;
-  }
-
-  info.timeCollected_ref() = lastRefreshTime_;
-  info.remediationCounter_ref() = numRemediation_;
-  info.eepromCsumValid_ref() = verifyEepromChecksums();
-
-  info.moduleMediaInterface_ref() = getModuleMediaInterface();
-
-  return info;
+  phy::LinkSnapshot snapshot;
+  snapshot.transceiverInfo_ref() = info;
+  snapshots_.wlock()->addSnapshot(snapshot);
+  *info_.wlock() = info;
 }
 
 bool QsfpModule::safeToCustomize() const {
@@ -524,9 +525,13 @@ void QsfpModule::refreshLocked() {
     stateUpdateLocked(TransceiverStateMachineEvent::READ_EEPROM);
   }
 
-  if (customizeWanted) {
+  if (customizeWanted && !FLAGS_use_new_state_machine) {
+    // New state machine will customize transceiver in the PROGRAM_TRANSCEIVER
+    // event
     customizeTransceiverLocked(getPortSpeed());
 
+    // New state machine will remdiate transceiver in the REMEDIATE_TRANSCEIVER
+    // event
     if (shouldRemediate(FLAGS_remediate_interval)) {
       remediateFlakyTransceiver();
       ++numRemediation_;
@@ -552,12 +557,7 @@ void QsfpModule::refreshLocked() {
     updateQsfpData(false);
   }
 
-  // assign
-  auto info = parseDataLocked();
-  phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo_ref() = info;
-  snapshots_.wlock()->addSnapshot(snapshot);
-  *info_.wlock() = info;
+  updateCachedTransceiverInfoLocked();
 }
 
 bool QsfpModule::shouldRemediate(time_t cooldown) {
@@ -1044,13 +1044,34 @@ MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
     return mediaInterfaceCodes[0].get_code();
   }
   return MediaInterfaceCode::UNKNOWN;
-};
+}
 
-void QsfpModule::programTransceiver(cfg::PortSpeed /* speed */) {
-  // TODO(joseph5wu) For now, we will only call configureModule() that read
-  // from qsfp.config to program th CMIS Rx Equalizer settings
-  // Will add customizeTransceiver() later.
-  configureModule();
+void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
+  // Always use i2cEvb to program transceivers
+  auto programTcvrFunc = [speed, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    if (present_) {
+      // Current configureModule() actually assumes the locked is obtained.
+      // See CmisModule::configureModule(). Need to clean it up in the future.
+      configureModule();
+      customizeTransceiverLocked(speed);
+      // Since we're touching the transceiver, we need to update the cached
+      // transceiver info
+      updateQsfpData(false);
+      updateCachedTransceiverInfoLocked();
+    }
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    programTcvrFunc();
+  } else {
+    via(i2cEvb)
+        .thenValue([programTcvrFunc](auto&&) mutable { programTcvrFunc(); })
+        .get();
+  }
 }
 } // namespace fboss
 } // namespace facebook

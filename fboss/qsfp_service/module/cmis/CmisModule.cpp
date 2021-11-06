@@ -2016,13 +2016,6 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP, offset, length, &stage0ControlTrigger);
 
-    XLOG(INFO) << folly::sformat(
-        "Module {:s} customized for {:s} {:s} {:s}",
-        qsfpImpl_->getName(),
-        changePre ? "Pre-cursor" : "",
-        changePost ? "Post-cursor" : "",
-        changeMain ? "Rx-out-main" : "");
-
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
       XLOG(ERR) << folly::sformat(
