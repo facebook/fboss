@@ -239,6 +239,8 @@ class QsfpModule : public Transceiver {
 
   void setLegacyModuleStateMachineModulePointer(QsfpModule* modulePtr);
 
+  void programTransceiver(cfg::PortSpeed speed) override;
+
  protected:
   enum : unsigned int {
     EEPROM_DEFAULT = 255,

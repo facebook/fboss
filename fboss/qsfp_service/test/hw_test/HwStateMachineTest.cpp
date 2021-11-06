@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
@@ -96,10 +97,27 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
 TEST_F(
     HwStateMachineTestWithOverrideTcvrToPortAndProfile,
     CheckPortsProgrammed) {
+  auto setup = [this]() {
+    // Due to some platforms are easy to have i2c issue that cause the current
+    // refresh work perfectly. Adding enough retries to make sure that we at
+    // least can secure TRANSCEIVER_PROGRAMMED after 10 times.
+    auto refreshStateMachinesTillTcvrProgrammed = [this]() {
+      auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+      // Later will change it to refreshStateMachines()
+      wedgeMgr->refreshTransceivers();
+      for (auto id : getPresentTransceivers()) {
+        auto curState = wedgeMgr->getCurrentState(id);
+        if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+          return false;
+        }
+      }
+      return true;
+    };
+    // Retry 10 times until all state machine reach TRANSCEIVER_PROGRAMMED
+    checkWithRetry(refreshStateMachinesTillTcvrProgrammed);
+  };
   auto verify = [this]() {
-    // Right now we should expect present or absent transceiver should be
-    // IPHY_PORTS_PROGRAMMED or XPHY_PORTS_PROGRAMMED(if xphy exists) now.
-    auto checkTransceiverIphyPortProgrammed =
+    auto checkTransceiverProgrammed =
         [this](const std::vector<TransceiverID>& tcvrs) {
           auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
           std::vector<PortID> xphyPorts;
@@ -108,51 +126,54 @@ TEST_F(
           }
 
           for (auto id : tcvrs) {
+            auto curState = wedgeMgr->getCurrentState(id);
+            // Now all state should be in TRANSCEIVER_PROGRAMMED
+            EXPECT_EQ(
+                curState, TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED)
+                << "Transceiver:" << id
+                << " Actual: " << getTransceiverStateMachineStateName(curState)
+                << ", Expected: TRANSCEIVER_PROGRAMMED";
+
+            // Verify IPHY/ XPHY/ TCVR programmed as expected
             const auto& portAndProfile =
                 wedgeMgr->getOverrideProgrammedIphyPortAndProfileForTest(id);
-            if (portAndProfile.empty()) {
-              continue;
-            }
-
-            auto tcvrOpt = std::make_optional(wedgeMgr->getTransceiverInfo(id));
-            bool hasXphy = false;
             // Check programmed iphy port and profile
             const auto programmedIphyPortAndProfile =
                 wedgeMgr->getProgrammedIphyPortAndProfile(id);
-            EXPECT_EQ(
-                programmedIphyPortAndProfile.size(), portAndProfile.size());
-            for (auto [portID, profileID] : programmedIphyPortAndProfile) {
-              auto expectedPortAndProfileIt = portAndProfile.find(portID);
-              EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
-              EXPECT_EQ(profileID, expectedPortAndProfileIt->second);
-              if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
-                  xphyPorts.end()) {
-                hasXphy = true;
-                utility::verifyXphyPort(
-                    portID, profileID, tcvrOpt, getHwQsfpEnsemble());
-              }
-            }
-
-            auto curState = wedgeMgr->getCurrentState(id);
-            if (hasXphy) {
-              EXPECT_EQ(
-                  curState, TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED)
-                  << "Transceiver:" << id << " Actual: "
-                  << getTransceiverStateMachineStateName(curState)
-                  << ", Expected: XPHY_PORTS_PROGRAMMED";
+            if (portAndProfile.empty()) {
+              // If iphy port and profile is empty, it means the ports are
+              // disabled. We don't need to program such transceivers
+              EXPECT_TRUE(programmedIphyPortAndProfile.empty());
             } else {
               EXPECT_EQ(
-                  curState, TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED)
-                  << "Transceiver:" << id << " Actual: "
-                  << getTransceiverStateMachineStateName(curState)
-                  << ", Expected: IPHY_PORTS_PROGRAMMED";
+                  programmedIphyPortAndProfile.size(), portAndProfile.size());
+              auto tcvrOpt =
+                  std::make_optional(wedgeMgr->getTransceiverInfo(id));
+
+              for (auto [portID, profileID] : programmedIphyPortAndProfile) {
+                auto expectedPortAndProfileIt = portAndProfile.find(portID);
+                EXPECT_TRUE(expectedPortAndProfileIt != portAndProfile.end());
+                EXPECT_EQ(profileID, expectedPortAndProfileIt->second);
+                if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
+                    xphyPorts.end()) {
+                  utility::verifyXphyPort(
+                      portID, profileID, tcvrOpt, getHwQsfpEnsemble());
+                }
+              }
             }
           }
         };
 
-    checkTransceiverIphyPortProgrammed(getPresentTransceivers());
-    checkTransceiverIphyPortProgrammed(getAbsentTransceivers());
+    checkTransceiverProgrammed(getPresentTransceivers());
+    checkTransceiverProgrammed(getAbsentTransceivers());
   };
-  verifyAcrossWarmBoots([]() {}, verify);
+  // Because state machine is not warmboot-able, which means we have to rebuild
+  // the state machine from init state for each transceiver every time
+  // qsfp_service restarts, no matter coldboot or warmboot.
+  // So we only need to very non-warmboot case here.
+  // For verifying warmboot ability of each component(iphy/xphy/tcvr)
+  // programming, we already have other tests to cover, like HwPortProfileTest.
+  setup();
+  verify();
 }
 } // namespace facebook::fboss

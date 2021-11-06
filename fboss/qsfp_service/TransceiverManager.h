@@ -167,15 +167,20 @@ class TransceiverManager {
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
+  // ========== Public functions for TransceiverStateMachine ==========
   void programInternalPhyPorts(TransceiverID id);
+
+  void programExternalPhyPorts(TransceiverID id);
+
+  void programTransceiver(TransceiverID id);
+
+  // ========== Public functions for TransceiverStateMachine ==========
 
   std::unordered_map<PortID, cfg::PortProfileID>
   getProgrammedIphyPortAndProfile(TransceiverID id) const;
 
   std::unordered_map<PortID, cfg::PortProfileID>
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
-
-  void programExternalPhyPorts(TransceiverID id);
 
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.

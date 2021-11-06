@@ -42,7 +42,7 @@ void TransceiverStateMachineUpdate::applyUpdate(
       curState.process_event(PROGRAM_XPHY);
       return;
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
-      // TODO(joseph5wu) Will call Transceiver customizeTransceiver()
+      curState.process_event(PROGRAM_TRANSCEIVER);
       return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);

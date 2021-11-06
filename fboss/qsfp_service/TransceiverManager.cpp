@@ -1,7 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/TransceiverManager.h"
 
-#include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
@@ -326,7 +325,7 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
     logStr = folly::to<std::string>(
         logStr, id, " : ", apache::thrift::util::enumNameSafe(profileID), ", ");
   }
-  XLOG(DBG2) << logStr << "]";
+  XLOG(INFO) << logStr << "]";
 
   // Now update the programmed SW port to profile mapping
   if (auto portAndProfileIt = tcvrToPortAndProfile_.find(id);
@@ -363,10 +362,18 @@ void TransceiverManager::programExternalPhyPorts(TransceiverID id) {
   if (!phyManager) {
     return;
   }
+  // Get programmed iphy port profile
+  const auto& programmedPortAndProfile = getProgrammedIphyPortAndProfile(id);
+  if (programmedPortAndProfile.empty()) {
+    // This is due to the iphy ports are disabled. So no need to program xphy
+    XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << id
+               << ". Can't find programmed iphy port and profile";
+    return;
+  }
   const auto& transceiver = getTransceiverInfo(id);
-  for (const auto& [portID, profileID] : getProgrammedIphyPortAndProfile(id)) {
+  for (const auto& [portID, profileID] : programmedPortAndProfile) {
     phyManager->programOnePort(portID, profileID, transceiver);
-    XLOG(DBG2) << "Programmed XPHY port for Transceiver=" << id
+    XLOG(INFO) << "Programmed XPHY port for Transceiver=" << id
                << ", Port=" << portID
                << ", Profile=" << apache::thrift::util::enumNameSafe(profileID);
   }
@@ -382,6 +389,44 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
     absentTcvr.port_ref() = id;
     return absentTcvr;
   }
+}
+
+void TransceiverManager::programTransceiver(TransceiverID id) {
+  // Get programmed iphy port profile
+  const auto& programmedPortAndProfile = getProgrammedIphyPortAndProfile(id);
+  if (programmedPortAndProfile.empty()) {
+    // This is due to the iphy ports are disabled. So no need to program tcvr
+    XLOG(DBG2) << "Skip programming Transceiver=" << id
+               << ". Can't find programmed iphy port and profile";
+    return;
+  }
+  // TODO(joseph5wu) Usually we only need to program optical Transceiver which
+  // doesn't need to support split-out copper cable for flex ports.
+  // Which means for the optical transceiver, it usually has one programmed
+  // iphy port and profile.
+  // If in the future, we need to support flex port copper transceiver
+  // programming, we might need to combine the speeds of all flex port to
+  // program such transceiver.
+  const auto profileID = programmedPortAndProfile.begin()->second;
+  auto profileCfgOpt = platformMapping_->getPortProfileConfig(
+      PlatformPortProfileConfigMatcher(profileID));
+  if (!profileCfgOpt) {
+    throw FbossError(
+        "Can't find profile config for profileID=",
+        apache::thrift::util::enumNameSafe(profileID));
+  }
+  const auto speed = *profileCfgOpt->speed_ref();
+
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Skip programming Transceiver=" << id
+               << ". Transeciver is not present";
+    return;
+  }
+  tcvrIt->second->programTransceiver(speed);
+  XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
+             << " with speed=" << apache::thrift::util::enumNameSafe(speed);
 }
 } // namespace fboss
 } // namespace facebook

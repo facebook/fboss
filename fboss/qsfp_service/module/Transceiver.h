@@ -69,6 +69,15 @@ class Transceiver {
   virtual DOMDataUnion getDOMDataUnion() = 0;
 
   /*
+   * Program Transceiver based on speed
+   * This new function will combine current customizeTransceiver() and
+   * configureModule() from QsfpModule.
+   * TODO(joseph5wu) Will deprecate configureModule() and customizeTransceiver()
+   * once we switch to use the new state machine.
+   */
+  virtual void programTransceiver(cfg::PortSpeed speed) = 0;
+
+  /*
    * Set speed specific settings for the transceiver
    */
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;

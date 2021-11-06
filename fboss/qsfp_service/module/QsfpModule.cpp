@@ -1046,5 +1046,11 @@ MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
   return MediaInterfaceCode::UNKNOWN;
 };
 
+void QsfpModule::programTransceiver(cfg::PortSpeed /* speed */) {
+  // TODO(joseph5wu) For now, we will only call configureModule() that read
+  // from qsfp.config to program th CMIS Rx Equalizer settings
+  // Will add customizeTransceiver() later.
+  configureModule();
+}
 } // namespace fboss
 } // namespace facebook
