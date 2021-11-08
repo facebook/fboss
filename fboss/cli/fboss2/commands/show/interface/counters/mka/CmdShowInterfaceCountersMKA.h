@@ -213,6 +213,75 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       }
     };
 
+    auto printSaStatsMap = [&out](const auto& modelIntfMKAStats) {
+      const auto& inStatsList =
+          *modelIntfMKAStats.rxSecureAssociationStats_ref();
+      const auto& outStatsList =
+          *modelIntfMKAStats.txSecureAssociationStats_ref();
+
+      auto printSaStats = [&out](const auto& saStat, bool ingress) {
+        const auto& stats = saStat.get_saStats();
+        const auto& sa = saStat.get_saId();
+        const auto& sci = sa.get_sci();
+
+        out << "SA INFO: " << std::endl;
+        out << "MAC: " << sci.get_macAddress() << std::endl;
+        out << "PORT: " << sci.get_port() << std::endl;
+        out << "Association#: " << sa.get_assocNum() << std::endl;
+
+        Table table;
+        table.setHeader({"SA Counter Name", "Value"});
+        table.addRow(
+            {"OctetsEncrypted", std::to_string(*stats.octetsEncrypted_ref())});
+        table.addRow(
+            {"OctetsProtected", std::to_string(*stats.octetsProtected_ref())});
+        if (ingress) {
+          table.addRow(
+              {"UncheckedPacktes",
+               std::to_string(*stats.inUncheckedPkts_ref())});
+          table.addRow(
+              {"DelayedPacktes", std::to_string(*stats.inDelayedPkts_ref())});
+          table.addRow(
+              {"LatePacktes", std::to_string(*stats.inLatePkts_ref())});
+          table.addRow(
+              {"LatePacktes", std::to_string(*stats.inLatePkts_ref())});
+          table.addRow(
+              {"InvalidPacktes", std::to_string(*stats.inInvalidPkts_ref())});
+          table.addRow(
+              {"NotValidPacktes", std::to_string(*stats.inNotValidPkts_ref())});
+          table.addRow(
+              {"NoSaPacktes", std::to_string(*stats.inNoSaPkts_ref())});
+          table.addRow(
+              {"UnusedSaPacktes", std::to_string(*stats.inUnusedSaPkts_ref())});
+          table.addRow({"OkPacktes", std::to_string(*stats.inOkPkts_ref())});
+        } else {
+          table.addRow(
+              {"EncryptedPacktes",
+               std::to_string(*stats.outEncryptedPkts_ref())});
+          table.addRow(
+              {"ProtectedPacktes",
+               std::to_string(*stats.outProtectedPkts_ref())});
+        }
+        out << table << std::endl;
+      };
+
+      if (!inStatsList.empty()) {
+        out << "Ingress SA Stats" << std::endl;
+        out << std::string(20, '-') << std::endl;
+        for (const auto& inStat : inStatsList) {
+          printSaStats(inStat, true);
+        }
+      }
+
+      if (!outStatsList.empty()) {
+        out << "Egress SA Stats" << std::endl;
+        out << std::string(20, '-') << std::endl;
+        for (const auto& outStat : outStatsList) {
+          printSaStats(outStat, false);
+        }
+      }
+    };
+
     for (auto& m : model.get_intfMKAStats()) {
       out << "Port: " << m.first << std::endl;
       out << std::string(20, '=') << std::endl;
@@ -221,6 +290,8 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       printPortStats(m.second);
       // Print flow stats
       printFlowStatsMap(m.second);
+      // Print SA stats
+      printSaStatsMap(m.second);
     }
   }
 };
