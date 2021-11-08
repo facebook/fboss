@@ -135,11 +135,92 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       out << table << std::endl;
     };
 
+    auto printFlowStatsMap = [&out](const auto& modelIntfMKAStats) {
+      const auto& inStatsList = *modelIntfMKAStats.ingressFlowStats_ref();
+      const auto& outStatsList = *modelIntfMKAStats.egressFlowStats_ref();
+
+      auto printFlowStats = [&out](const auto& flowStat, bool ingress) {
+        const auto& sci = *flowStat.sci_ref();
+        const auto& stats = *flowStat.flowStats_ref();
+
+        out << "SCI INFO: " << std::endl;
+        out << "MAC: " << sci.get_macAddress() << std::endl;
+        out << "PORT: " << sci.get_port() << std::endl;
+        Table table;
+        table.setHeader({"Flow Counter Name", "Value"});
+        table.addRow(
+            {"UnicastUncontrolledPackets",
+             std::to_string(*stats.ucastUncontrolledPkts_ref())});
+        table.addRow(
+            {"UnicastControlledPackets",
+             std::to_string(*stats.ucastControlledPkts_ref())});
+        table.addRow(
+            {"MulticastUncontrolledPackets",
+             std::to_string(*stats.mcastUncontrolledPkts_ref())});
+        table.addRow(
+            {"MulticastControlledPackets",
+             std::to_string(*stats.mcastControlledPkts_ref())});
+        table.addRow(
+            {"BroadcastUncontrolledPackets",
+             std::to_string(*stats.bcastUncontrolledPkts_ref())});
+        table.addRow(
+            {"BroadcastControlledPackets",
+             std::to_string(*stats.bcastControlledPkts_ref())});
+        table.addRow(
+            {"ControlPackets", std::to_string(*stats.controlPkts_ref())});
+        table.addRow(
+            {"OtherErroredPackets", std::to_string(*stats.otherErrPkts_ref())});
+        table.addRow(
+            {"OctetsUncontrolled",
+             std::to_string(*stats.octetsUncontrolled_ref())});
+        table.addRow(
+            {"OctetsControlled",
+             std::to_string(*stats.octetsControlled_ref())});
+
+        if (ingress) {
+          table.addRow(
+              {"UntaggedPackets", std::to_string(*stats.untaggedPkts_ref())});
+          table.addRow(
+              {"BadTagPackets", std::to_string(*stats.inBadTagPkts_ref())});
+          table.addRow(
+              {"NoSciPackets", std::to_string(*stats.noSciPkts_ref())});
+          table.addRow(
+              {"UnknownSciPackets",
+               std::to_string(*stats.unknownSciPkts_ref())});
+        } else {
+          table.addRow(
+              {"CommonOctets", std::to_string(*stats.outCommonOctets_ref())});
+          table.addRow(
+              {"TooLongPackets", std::to_string(*stats.outTooLongPkts_ref())});
+        }
+        out << table << std::endl;
+      };
+
+      if (!inStatsList.empty()) {
+        out << "Ingress Flow Stats" << std::endl;
+        out << std::string(20, '-') << std::endl;
+        for (const auto& inStat : inStatsList) {
+          printFlowStats(inStat, true);
+        }
+      }
+
+      if (!outStatsList.empty()) {
+        out << "Egress Flow Stats" << std::endl;
+        out << std::string(20, '-') << std::endl;
+        for (const auto& outStat : outStatsList) {
+          printFlowStats(outStat, false);
+        }
+      }
+    };
+
     for (auto& m : model.get_intfMKAStats()) {
       out << "Port: " << m.first << std::endl;
       out << std::string(20, '=') << std::endl;
 
+      // Print port stats
       printPortStats(m.second);
+      // Print flow stats
+      printFlowStatsMap(m.second);
     }
   }
 };
