@@ -65,6 +65,15 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
 )
+
+add_fbthrift_cpp_library(
+  show_interface_counters_mka
+  fboss/cli/fboss2/commands/show/interface/counters/mka/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_cpp2
+)
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -84,6 +93,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
+  fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/Main.cpp
@@ -106,6 +116,8 @@ target_link_libraries(fboss2
   fb303_cpp2
   ctrl_cpp2
   qsfp_cpp2
+  hardware_stats_cpp2
+  mka_structs_cpp2
   Folly::folly
   show_acl_model
   show_arp_model
@@ -116,6 +128,7 @@ target_link_libraries(fboss2
   show_interface_flaps
   show_interface_errors
   show_interface_counters
+  show_interface_counters_mka
 )
 
 add_library(tabulate

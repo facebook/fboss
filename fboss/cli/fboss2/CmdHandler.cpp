@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
@@ -93,6 +94,9 @@ template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
+template void CmdHandler<
+    CmdShowInterfaceCountersMKA,
+    CmdShowInterfaceCountersMKATraits>::run();
 template void
 CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::run();
 template void

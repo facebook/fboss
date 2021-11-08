@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
@@ -73,7 +74,13 @@ const CommandTree& kCommandTree() {
            {"counters",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Counters",
-            commandHandler<CmdShowInterfaceCounters>},
+            commandHandler<CmdShowInterfaceCounters>,
+            {
+                {"mka",
+                 utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+                 "Show Interface MKA counters",
+                 commandHandler<CmdShowInterfaceCountersMKA>},
+            }},
 
            {"errors",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
