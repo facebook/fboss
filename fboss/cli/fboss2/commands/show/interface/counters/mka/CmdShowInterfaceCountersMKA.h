@@ -39,21 +39,108 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& /*queriedIfs*/) {
+      const std::vector<std::string>& queriedIfs) {
     auto client =
         utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(hostInfo);
 
-    return createModel();
+    std::map<std::string, facebook::fboss::MacsecStats> intfsMKAStatsMap;
+
+    if (queriedIfs.empty()) {
+      client->sync_getAllMacsecPortStats(intfsMKAStatsMap, true);
+    } else {
+      client->sync_getMacsecPortStats(intfsMKAStatsMap, queriedIfs, true);
+    }
+
+    return createModel(intfsMKAStatsMap);
   }
 
-  RetType createModel() {
-    RetType ret;
-    return ret;
+  RetType createModel(const std::map<std::string, facebook::fboss::MacsecStats>&
+                          intfsMKAStatsMap) {
+    RetType model;
+    model.intfMKAStats_ref() = intfsMKAStatsMap;
+
+    return model;
   }
 
-  void printOutput(const RetType& /*model*/, std::ostream& out = std::cout) {
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
-    out << "NOT implemented yet!" << std::endl;
+
+    auto printPortStats = [&out](const auto& modelIntfMKAStats) {
+      const auto& inStats = *modelIntfMKAStats.ingressPortStats_ref();
+      const auto& outStats = *modelIntfMKAStats.egressPortStats_ref();
+
+      Table table;
+      table.setHeader({"Counter Name", "IN", "OUT"});
+      table.addRow(
+          {"PreMacsecDropPackets",
+           std::to_string(*inStats.preMacsecDropPkts_ref()),
+           std::to_string(*outStats.preMacsecDropPkts_ref())});
+      table.addRow(
+          {"ControlPackets",
+           std::to_string(*inStats.controlPkts_ref()),
+           std::to_string(*outStats.controlPkts_ref())});
+      table.addRow(
+          {"DataPackets",
+           std::to_string(*inStats.dataPkts_ref()),
+           std::to_string(*outStats.dataPkts_ref())});
+      table.addRow(
+          {"(En/De)cryptedOctets",
+           std::to_string(*inStats.octetsEncrypted_ref()),
+           std::to_string(*outStats.octetsEncrypted_ref())});
+      table.addRow(
+          {"MacsecTagPkts",
+           std::to_string(*inStats.noMacsecTagPkts_ref()),
+           std::to_string(*outStats.noMacsecTagPkts_ref())});
+      table.addRow(
+          {"BadOrNoMacsecTagDroppedPkts",
+           std::to_string(*outStats.inBadOrNoMacsecTagDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"NoSciDroppedPkts",
+           std::to_string(*inStats.inNoSciDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"UnknownSciPkts",
+           std::to_string(*inStats.inUnknownSciPkts_ref()),
+           "--"});
+      table.addRow(
+          {"OverrunDroppedPkts",
+           std::to_string(*inStats.inOverrunDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"DelayedPkts", std::to_string(*inStats.inDelayedPkts_ref()), "--"});
+      table.addRow(
+          {"LateDroppedPkts",
+           std::to_string(*inStats.inLateDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"NotValidDroppedPkts",
+           std::to_string(*inStats.inNotValidDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"InvalidPkts", std::to_string(*inStats.inInvalidPkts_ref()), "--"});
+      table.addRow(
+          {"NoSaDroppedPkts",
+           std::to_string(*inStats.inNoSaDroppedPkts_ref()),
+           "--"});
+      table.addRow(
+          {"UnusedSaPkts",
+           std::to_string(*inStats.inUnusedSaPkts_ref()),
+           "--"});
+      table.addRow(
+          {"TooLongDroppedPkts",
+           "--",
+           std::to_string(*outStats.outTooLongDroppedPkts_ref())});
+
+      out << table << std::endl;
+    };
+
+    for (auto& m : model.get_intfMKAStats()) {
+      out << "Port: " << m.first << std::endl;
+      out << std::string(20, '=') << std::endl;
+
+      printPortStats(m.second);
+    }
   }
 };
 
