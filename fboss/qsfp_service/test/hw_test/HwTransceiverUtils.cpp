@@ -53,6 +53,7 @@ void verifyTransceiverSettings(
   switch (profile) {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
       for (const auto& mediaId : mediaInterfaces) {
         if (mgmtInterface == TransceiverManagementInterface::SFF) {
           auto specComplianceCode =
