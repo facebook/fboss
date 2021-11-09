@@ -6,6 +6,9 @@
 #include <folly/init/Init.h>
 
 namespace facebook::fboss {
+
+void setVersionInfo() {}
+
 int qsfpServiceInit(int* argc, char*** argv) {
   folly::init(argc, argv, true);
   return 0;

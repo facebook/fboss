@@ -47,6 +47,10 @@ void initFlagDefaults(int argc, char** argv) {
 }
 
 int main(int argc, char** argv) {
+  // NOTE: Must set the version info before any other functions which will touch
+  // the command line args.
+  setVersionInfo();
+
   // Read the config and set default command line arguments
   initFlagDefaults(argc, argv);
 

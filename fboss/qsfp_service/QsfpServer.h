@@ -15,6 +15,7 @@ namespace facebook::fboss {
 class QsfpServiceHandler;
 class WedgeManager;
 
+void setVersionInfo();
 int qsfpServiceInit(int* argc, char*** argv);
 std::pair<
     std::shared_ptr<apache::thrift::ThriftServer>,
