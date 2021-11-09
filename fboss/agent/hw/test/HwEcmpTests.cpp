@@ -18,6 +18,11 @@
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{folly::IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
+
+facebook::fboss::RoutePrefixV6 kRoute2{
+    folly::IPAddressV6{"2803:6080:d038:3063::"},
+    64};
+folly::CIDRNetwork kRoute2Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
 } // namespace
 namespace facebook::fboss {
 
@@ -89,7 +94,9 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   void programResolvedUcmp(
       const std::vector<NextHopWeight>& swWs,
       const std::vector<NextHopWeight>& hwWs);
-  void verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs);
+  void verifyResolvedUcmp(
+      const folly::CIDRNetwork& routePrefix,
+      const std::vector<NextHopWeight>& hwWs);
 };
 
 void HwEcmpTest::programResolvedUcmp(
@@ -105,9 +112,11 @@ void HwEcmpTest::programResolvedUcmp(
   resolveNhops(swWs.size());
 }
 
-void HwEcmpTest::verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs) {
+void HwEcmpTest::verifyResolvedUcmp(
+    const folly::CIDRNetwork& routePrefix,
+    const std::vector<NextHopWeight>& hwWs) {
   auto pathsInHw = utility::getEcmpMembersInHw(
-      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+      getHwSwitch(), routePrefix, kRid, FLAGS_ecmp_width);
   auto pathsInHwCount = pathsInHw.size();
   EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
 
@@ -135,7 +144,9 @@ void HwEcmpTest::runSimpleUcmpTest(
   EXPECT_EQ(swWs.size(), hwWs.size());
   EXPECT_LE(swWs.size(), kNumNextHops);
   auto setup = [this, &swWs, &hwWs]() { programResolvedUcmp(swWs, hwWs); };
-  auto verify = [this, &hwWs]() { verifyResolvedUcmp(hwWs); };
+  auto verify = [this, &hwWs]() {
+    verifyResolvedUcmp(kDefaultRoutePrefix, hwWs);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -272,6 +283,52 @@ TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
         << "Do not support ecmp_width other than 64 or 128, please extend the test";
   }
   runSimpleUcmpTest(swWs, hwWs);
+}
+
+TEST_F(HwEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
+  std::vector<NextHopWeight> swWs, hwWs;
+
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1};
+    hwWs = {31, 31, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1};
+    hwWs = {63, 63, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+
+  std::vector<NextHopWeight> swWs2 = {8, 8, 8, 40};
+  const std::vector<NextHopWeight>& hwWs2 = {1, 1, 1, 5};
+
+  EXPECT_EQ(swWs.size(), hwWs.size());
+  EXPECT_LE(swWs.size(), kNumNextHops);
+  auto setup = [this, &swWs, &swWs2]() {
+    auto nHops = swWs.size();
+    ecmpHelper_->programRoutes(
+        getRouteUpdater(),
+        nHops,
+        {kDefaultRoute},
+        std::vector<NextHopWeight>(swWs.begin(), swWs.begin() + nHops));
+
+    auto nHops2 = swWs2.size();
+    ecmpHelper_->programRoutes(
+        getRouteUpdater(),
+        nHops2,
+        {kRoute2},
+        std::vector<NextHopWeight>(swWs2.begin(), swWs2.begin() + nHops2));
+
+    resolveNhops(swWs.size());
+  };
+
+  auto verify = [this, &hwWs, &hwWs2]() {
+    verifyResolvedUcmp(kDefaultRoutePrefix, hwWs);
+    verifyResolvedUcmp(kRoute2Prefix, hwWs2);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Wide UCMP underflow test for when total UCMP weight of the group is less
