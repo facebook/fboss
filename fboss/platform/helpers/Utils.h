@@ -18,4 +18,10 @@ std::string execCommand(const std::string& cmd);
 uint32_t mmap_read(uint32_t address, char acc_type);
 int mmap_write(uint32_t address, char acc_type, uint32_t val);
 void showDeviceInfo();
+
+/*
+ * Search Flash Type from flashrom output, e.g. flashrom -p internal
+ * If it can not find, return empty string
+ */
+std::string getFlashType(const std::string& str);
 } // namespace facebook::fboss::platform::helpers

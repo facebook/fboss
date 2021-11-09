@@ -5,6 +5,7 @@
 #include <glog/logging.h>
 #include <sys/mman.h>
 #include <iostream>
+#include <unordered_set>
 
 #include <folly/Subprocess.h>
 #include "common/fbwhoami/FbWhoAmI.h"
@@ -12,6 +13,11 @@
 namespace {
 constexpr uint32_t MAP_SIZE = 4096;
 constexpr uint32_t MAP_MASK = MAP_SIZE - 1;
+
+const std::unordered_set<std::string> kFlashType = {
+    "MX25L12805D",
+    "N25Q128..3E",
+};
 
 std::string execCommandImpl(const std::string& cmd, int* exitStatus) {
   folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
@@ -152,6 +158,15 @@ int mmap_write(uint32_t address, char acc_type, uint32_t val) {
   close(fd);
 
   return 0;
+}
+
+std::string getFlashType(const std::string& str) {
+  for (auto& it : kFlashType) {
+    if (str.find(it) != std::string::npos) {
+      return it;
+    }
+  }
+  return "";
 }
 
 } // namespace facebook::fboss::platform::helpers

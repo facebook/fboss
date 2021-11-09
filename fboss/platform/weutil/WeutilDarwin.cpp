@@ -1,7 +1,9 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/platform/weutil/WeutilDarwin.h"
+#include <fboss/platform/helpers/Utils.h>
 #include <folly/Conv.h>
+#include <folly/Format.h>
 #include <filesystem>
 #include <iostream>
 #include <unordered_map>
@@ -11,12 +13,15 @@
 using namespace facebook::fboss::platform::helpers;
 
 namespace {
-const std::string kPathPrefix = "/tmp/WeutilDarwin/";
-const std::string kPredfl = kPathPrefix + "system-prefdl-bin";
+const std::string kPathPrefix = "/tmp/WeutilDarwin";
+const std::string kPredfl = kPathPrefix + "/system-prefdl-bin";
 const std::string kCreteLayout =
-    "echo \"00001000:0001efff prefdl\" > " + kPathPrefix + "layout";
-const std::string kFlashRom = "flashrom -p internal -l " + kPathPrefix +
-    "layout -i prefdl -r " + kPathPrefix + "/bios > /dev/null 2>&1";
+    "echo \"00001000:0001efff prefdl\" > " + kPathPrefix + "/layout";
+const std::string kFlashromGetFlashType = "flashrom -p internal ";
+
+const std::string kFlashromGetContent = " -l " + kPathPrefix +
+    "/layout -i prefdl -r " + kPathPrefix + "/bios > /dev/null 2>&1";
+
 const std::string kddComands = "dd if=" + kPathPrefix + "/bios of=" + kPredfl +
     " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
 
@@ -34,18 +39,64 @@ const std::unordered_map<std::string, std::string> kMapping{
 };
 
 } // namespace
+
 namespace facebook::fboss::platform {
 
 WeutilDarwin::WeutilDarwin() {
+  int retVal = 0;
+  std::string ret;
+
   if (!std::filesystem::exists(kPathPrefix)) {
     if (!std::filesystem::create_directory(kPathPrefix)) {
       throw std::runtime_error("Cannot create directory: " + kPathPrefix);
     }
   }
 
-  execCommand(kCreteLayout);
-  execCommand(kFlashRom);
-  execCommand(kddComands);
+  ret = execCommandUnchecked(kCreteLayout, retVal);
+
+  if (retVal != 0) {
+    throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
+  }
+
+  // Get flash type
+  ret = execCommandUnchecked(kFlashromGetFlashType + " 2>&1 ", retVal);
+
+  /* Since flashrom will return 1 for "flashrom -p internal"
+   * we ignore retVal == 1
+   */
+
+  if ((retVal != 0) && (retVal != 1)) {
+    throw std::runtime_error(
+        "Cannot get flash type with: " + kFlashromGetFlashType);
+  }
+
+  std::string getPrefdl;
+  std::string flashType = getFlashType(ret);
+
+  if (!flashType.empty()) {
+    getPrefdl = folly::to<std::string>(
+        kFlashromGetFlashType, " -c ", flashType, kFlashromGetContent);
+  } else {
+    getPrefdl =
+        folly::to<std::string>(kFlashromGetFlashType, kFlashromGetContent);
+  }
+
+  ret = execCommandUnchecked(getPrefdl, retVal);
+
+  if (retVal != 0) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Cannot create BIOS file with: ",
+        getPrefdl,
+        " ",
+        ", return value: ",
+        std::to_string(retVal)));
+  }
+
+  ret = execCommandUnchecked(kddComands, retVal);
+
+  if (retVal != 0) {
+    throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
+  }
 }
 
 void WeutilDarwin::printInfo() {
