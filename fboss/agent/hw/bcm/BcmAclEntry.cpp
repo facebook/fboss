@@ -214,6 +214,14 @@ void BcmAclEntry::createAclQualifiers() {
     bcmCheckError(rv, "failed to qualify IP type");
   }
 
+  if (acl_->getEtherType()) {
+    uint16_t bcmData, bcmMask;
+    bcmData = static_cast<uint16>(acl_->getEtherType().value());
+    bcmMask = 0xFFFF;
+    rv = bcm_field_qualify_EtherType(hw_->getUnit(), handle_, bcmData, bcmMask);
+    bcmCheckError(rv, "failed to qualify Ether type");
+  }
+
   if (acl_->getTtl()) {
     rv = bcm_field_qualify_Ttl(
         hw_->getUnit(),
@@ -697,6 +705,25 @@ bool BcmAclEntry::isStateSame(
         packetLookupResult,
         aclMsg,
         "PacketRes");
+  }
+
+  // check EtherType
+  if (BCM_FIELD_QSET_TEST(
+          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
+          bcmFieldQualifyEtherType)) {
+    std::optional<uint16> etherType{std::nullopt};
+    if (acl->getEtherType()) {
+      uint16 data, mask;
+      cfgEtherTypeToBcmEtherType(acl->getEtherType().value(), &data, &mask);
+      etherType = data;
+    }
+    isSame &= isBcmQualFieldStateSame(
+        bcm_field_qualify_EtherType_get,
+        hw->getUnit(),
+        handle,
+        etherType,
+        aclMsg,
+        "EtherType");
   }
 
   // check acl stat

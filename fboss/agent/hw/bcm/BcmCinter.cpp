@@ -1625,6 +1625,18 @@ int BcmCinter::bcm_field_qualify_IpType(
   return 0;
 }
 
+int BcmCinter::bcm_field_qualify_EtherType(
+    int unit,
+    bcm_field_entry_t entry,
+    uint16 data,
+    uint16 mask) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_qualify_EtherType(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), data, mask),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_qualify_IpProtocol(
     int unit,
     bcm_field_entry_t entry,

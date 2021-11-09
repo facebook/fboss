@@ -123,6 +123,14 @@ void cfgDscpToBcmDscp(uint8_t cfgDscp, uint8* bcmData, uint8* bcmMask) {
   *bcmMask = 0xFC;
 }
 
+void cfgEtherTypeToBcmEtherType(
+    cfg::EtherType cfgEtherType,
+    uint16* bcmData,
+    uint16* bcmMask) {
+  *bcmData = static_cast<uint16>(cfgEtherType);
+  *bcmMask = 0xFFFF;
+}
+
 bcm_field_IpType_t cfgIpTypeToBcmIpType(cfg::IpType cfgIpType) {
   switch (cfgIpType) {
     case cfg::IpType::ANY:

@@ -147,6 +147,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_field_entry_t entry,
       bcm_vlan_t data,
       bcm_vlan_t mask) override;
+  int bcm_field_qualify_EtherType(
+      int unit,
+      bcm_field_entry_t entry,
+      uint16 data,
+      uint16 mask) override;
   int bcm_field_action_delete(
       int unit,
       bcm_field_entry_t entry,
@@ -956,6 +961,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int /* unit */,
       bcm_field_entry_t /* entry */,
       bcm_field_IpType_t* /* type */) override {
+    return 0;
+  }
+  int bcm_field_qualify_EtherType_get(
+      int /* unit */,
+      bcm_field_entry_t /* entry */,
+      uint16* /* data */,
+      uint16* /* mask */) override {
     return 0;
   }
   int bcm_field_qualify_Ttl_get(

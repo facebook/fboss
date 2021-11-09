@@ -1387,6 +1387,12 @@ int __real_bcm_field_qualify_IpType_get(
     bcm_field_entry_t entry,
     bcm_field_IpType_t* type);
 
+int __real_bcm_field_qualify_EtherType_get(
+    int unit,
+    bcm_field_entry_t entry,
+    uint16* data,
+    uint16* mask);
+
 int __real_bcm_field_qualify_Ttl_get(
     int unit,
     bcm_field_entry_t entry,
@@ -1420,6 +1426,12 @@ int __real_bcm_field_qualify_IpType(
     int unit,
     bcm_field_entry_t entry,
     bcm_field_IpType_t type);
+
+int __real_bcm_field_qualify_EtherType(
+    int unit,
+    bcm_field_entry_t entry,
+    uint16 data,
+    uint16 mask);
 
 int __real_bcm_field_qualify_DSCP(
     int unit,
@@ -3713,6 +3725,14 @@ int __wrap_bcm_field_qualify_IpType_get(
   CALL_WRAPPERS_RV(bcm_field_qualify_IpType_get(unit, entry, type));
 }
 
+int __wrap_bcm_field_qualify_EtherType_get(
+    int unit,
+    bcm_field_entry_t entry,
+    uint16* data,
+    uint16* mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_EtherType_get(unit, entry, data, mask));
+}
+
 int __wrap_bcm_field_qualify_Ttl_get(
     int unit,
     bcm_field_entry_t entry,
@@ -3757,6 +3777,14 @@ int __wrap_bcm_field_qualify_IpType(
     bcm_field_entry_t entry,
     bcm_field_IpType_t type) {
   CALL_WRAPPERS_RV(bcm_field_qualify_IpType(unit, entry, type));
+}
+
+int __wrap_bcm_field_qualify_EtherType(
+    int unit,
+    bcm_field_entry_t entry,
+    uint16 data,
+    uint16 mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_EtherType(unit, entry, data, mask));
 }
 
 int __wrap_bcm_field_qualify_DSCP(

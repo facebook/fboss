@@ -144,7 +144,6 @@ struct AclEntryFields : public ThriftyFields {
   std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
   std::optional<cfg::PacketLookupResultType> packetLookupResult{std::nullopt};
   std::optional<uint32_t> vlanID{std::nullopt};
-
   std::optional<cfg::EtherType> etherType{std::nullopt};
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   std::optional<MatchAction> aclAction{std::nullopt};

@@ -627,6 +627,12 @@ class BcmSdkInterface {
       bcm_field_entry_t entry,
       bcm_field_IpType_t* type) = 0;
 
+  virtual int bcm_field_qualify_EtherType_get(
+      int unit,
+      bcm_field_entry_t entry,
+      uint16* data,
+      uint16* mask) = 0;
+
   virtual int bcm_field_qualify_Ttl_get(
       int unit,
       bcm_field_entry_t entry,
@@ -714,6 +720,11 @@ class BcmSdkInterface {
       bcm_field_entry_t entry,
       bcm_vlan_t data,
       bcm_vlan_t mask) = 0;
+  virtual int bcm_field_qualify_EtherType(
+      int unit,
+      bcm_field_entry_t entry,
+      uint16 data,
+      uint16 mask) = 0;
 
   virtual int bcm_field_group_destroy(int unit, bcm_field_group_t) = 0;
 

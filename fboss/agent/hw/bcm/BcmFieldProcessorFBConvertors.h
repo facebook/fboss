@@ -47,6 +47,11 @@ void bcmIcmpTypeCodeToCfgIcmpTypeAndCode(
 
 void cfgDscpToBcmDscp(uint8_t cfgDscp, uint8* bcmData, uint8* bcmMask);
 
+void cfgEtherTypeToBcmEtherType(
+    cfg::EtherType cfgEtherType,
+    uint16* bcmData,
+    uint16* bcmMask);
+
 bcm_field_IpType_t cfgIpTypeToBcmIpType(cfg::IpType cfgType);
 cfg::IpType bcmIpTypeToCfgIpType(bcm_field_IpType_t bcmIpType);
 

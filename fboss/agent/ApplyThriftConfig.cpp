@@ -2400,6 +2400,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto ipType = config->ipType_ref()) {
     newAcl->setIpType(*ipType);
   }
+  if (auto etherType = config->etherType_ref()) {
+    newAcl->setEtherType(*etherType);
+  }
   if (auto ttl = config->ttl_ref()) {
     newAcl->setTtl(AclTtl(*ttl->value_ref(), *ttl->mask_ref()));
   }

@@ -306,6 +306,7 @@ bcm_field_qset_t getAclQset(HwAsic::AsicType asicType) {
     BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL2);
     /* Used for counting mpls lookup miss currently. Not used on trident2 */
     BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyPacketRes);
+    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyEtherType);
   }
 
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL3);
