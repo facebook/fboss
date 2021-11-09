@@ -139,18 +139,26 @@ typename std::
     NextHopSaiId nextHopSaiId{apiTable->nextHopGroupApi().getAttribute(
         NextHopGroupMemberSaiId(memberId),
         SaiNextHopGroupMemberTraits::Attributes::NextHopId{})};
+    unsigned int weight{apiTable->nextHopGroupApi().getAttribute(
+        NextHopGroupMemberSaiId(memberId),
+        SaiNextHopGroupMemberTraits::Attributes::Weight{})};
+
     /* next hop group member could be either mpls or ip next hop, so first read
      * condition attribute and then read adapter host key for  object trait
      * matching condition, */
     auto conditionAttributes = apiTable->nextHopApi().getAttribute(
         nextHopSaiId, SaiNextHopTraits::ConditionAttributes{});
     if (conditionAttributes == SaiIpNextHopTraits::kConditionAttributes) {
-      ret.insert(apiTable->nextHopApi().getAttribute(
-          nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}));
+      ret.insert(std::make_pair(
+          apiTable->nextHopApi().getAttribute(
+              nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}),
+          weight));
     } else if (
         conditionAttributes == SaiMplsNextHopTraits::kConditionAttributes) {
-      ret.insert(apiTable->nextHopApi().getAttribute(
-          nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}));
+      ret.insert(std::make_pair(
+          apiTable->nextHopApi().getAttribute(
+              nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
+          weight));
     }
   }
   return ret;

@@ -13,9 +13,10 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
   for (auto& ahk : adapterHostKey_) {
     folly::dynamic object = folly::dynamic::object;
     object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
-        folly::to<std::string>(ahk.index());
+        folly::to<std::string>(ahk.first.index());
 
-    if (auto ipAhk = std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&ahk)) {
+    if (auto ipAhk =
+            std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&ahk.first)) {
       object[AttributeName<
           SaiIpNextHopTraits::Attributes::RouterInterfaceId>::value] =
           folly::to<std::string>(
@@ -26,7 +27,7 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
           std::get<SaiIpNextHopTraits::Attributes::Ip>(*ipAhk).value().str();
     } else if (
         auto mplsAhk =
-            std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&ahk)) {
+            std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&ahk.first)) {
       object[AttributeName<
           SaiMplsNextHopTraits::Attributes::RouterInterfaceId>::value] =
           folly::to<std::string>(
@@ -48,6 +49,10 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
                 .push_back(folly::to<std::string>(label));
       }
     }
+
+    object[AttributeName<
+        SaiNextHopGroupMemberTraits::Attributes::Weight>::value] = ahk.second;
+
     json.push_back(object);
   }
   return json;
@@ -62,6 +67,22 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
     auto type =
         object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value]
             .asInt();
+
+    // D32229488 adds logic to write weight to switch_state's nhop group.
+    // While warmbooting from pre-D32229488 to post-D32229488, default the
+    // weight to 1 (default for SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT).
+    // UCMP would only be enabled after D32229488 is rolled out, so OK to
+    // use default weight.
+    sai_uint32_t weight = 1;
+    if (object.find(AttributeName<
+                    SaiNextHopGroupMemberTraits::Attributes::Weight>::value) !=
+        object.items().end()) {
+      weight =
+          object[AttributeName<
+                     SaiNextHopGroupMemberTraits::Attributes::Weight>::value]
+              .asInt();
+    }
+
     switch (type) {
       case SAI_NEXT_HOP_TYPE_IP: {
         SaiIpNextHopTraits::AdapterHostKey ipAhk;
@@ -74,7 +95,7 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
         std::get<SaiIpNextHopTraits::Attributes::Ip>(ipAhk) = folly::IPAddress(
             object[AttributeName<SaiIpNextHopTraits::Attributes::Ip>::value]
                 .asString());
-        key.insert(ipAhk);
+        key.insert(std::make_pair(ipAhk, weight));
       } break;
 
       case SAI_NEXT_HOP_TYPE_MPLS: {
@@ -98,7 +119,7 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
               label.asInt());
         }
         std::get<SaiMplsNextHopTraits::Attributes::LabelStack>(mplsAhk) = stack;
-        key.insert(mplsAhk);
+        key.insert(std::make_pair(mplsAhk, weight));
       } break;
 
       default:

@@ -56,7 +56,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         folly::poly_cast<ResolvedNextHop>(swNextHop));
-    nextHopGroupAdapterHostKey.insert(nhk);
+    nextHopGroupAdapterHostKey.insert(std::make_pair(nhk, swNextHop.weight()));
   }
 
   // Create the NextHopGroup and NextHopGroupMembers

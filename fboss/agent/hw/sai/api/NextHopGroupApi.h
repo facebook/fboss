@@ -43,7 +43,8 @@ struct SaiNextHopGroupTraits {
   };
 
   using AdapterKey = NextHopGroupSaiId;
-  using NextHopMemberKey = SaiNextHopTraits::AdapterHostKey;
+  using NextHopMemberKey =
+      std::pair<SaiNextHopTraits::AdapterHostKey, sai_uint32_t>; // weight
   using AdapterHostKey = std::set<NextHopMemberKey>;
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
