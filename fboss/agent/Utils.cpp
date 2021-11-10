@@ -17,6 +17,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
 
 #include <folly/FileUtil.h>
 #include <folly/Subprocess.h>
@@ -220,6 +221,30 @@ UnicastRoute makeUnicastRoute(
       });
   route.nextHops_ref() = thriftNextHopsFromAddresses(addrs);
   return route;
+}
+
+bool isAnyInterfacePortInLoopbackMode(
+    std::shared_ptr<SwitchState> swState,
+    const std::shared_ptr<Interface> interface) {
+  auto vlanId = interface->getVlanID();
+  auto vlan = swState->getVlans()->getVlanIf(vlanId);
+  if (vlan) {
+    // walk all ports for the given interface and ensure that there are no
+    // loopbacks configured This is mostly for the agent tests for which we dont
+    // want to flood grat arp when we are in loopback resulting in these pkts
+    // getting looped back forever
+    for (const auto& memberPort : vlan->getPorts()) {
+      auto* port = swState->getPorts()->getPortIf(memberPort.first).get();
+      if (port) {
+        if (port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
+          XLOG(DBG2) << "Port: " << port->getName()
+                     << " is in loopback mode for vlanId: " << (int)vlanId;
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 StopWatch::StopWatch(std::optional<std::string> name, bool json)

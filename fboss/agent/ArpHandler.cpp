@@ -22,6 +22,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -212,6 +213,13 @@ static void sendArp(
 
 void ArpHandler::floodGratuituousArp() {
   for (const auto& intf : *sw_->getState()->getInterfaces()) {
+    // mostly for agent tests where we dont want to flood arp
+    // causing loop, when ports are in loopback
+    if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+      XLOG(DBG2) << "Do not flood gratuituous arp on interface: "
+                 << intf->getName();
+      continue;
+    }
     for (const auto& addrEntry : intf->getAddresses()) {
       if (!addrEntry.first.isV4()) {
         continue;

@@ -34,6 +34,7 @@ struct dynamic;
 namespace facebook::fboss {
 
 class SwitchState;
+class Interface;
 
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
@@ -142,6 +143,10 @@ UnicastRoute makeUnicastRoute(
     const folly::CIDRNetwork& nw,
     const std::vector<folly::IPAddress>& nhops,
     AdminDistance admin = AdminDistance::EBGP);
+
+bool isAnyInterfacePortInLoopbackMode(
+    std::shared_ptr<SwitchState> swState,
+    const std::shared_ptr<Interface> interface);
 
 class StopWatch {
  public:

@@ -850,6 +850,13 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
 
 void IPv6Handler::floodNeighborAdvertisements() {
   for (const auto& intf : *sw_->getState()->getInterfaces()) {
+    // This check is mostly for agent tests where we dont want to flood NDP
+    // causing loop, when ports are in loopback
+    if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+      XLOG(DBG2) << "Do not flood neighbor advertisement on interface: "
+                 << intf->getName();
+      continue;
+    }
     for (const auto& addrEntry : intf->getAddresses()) {
       if (!addrEntry.first.isV6()) {
         continue;
