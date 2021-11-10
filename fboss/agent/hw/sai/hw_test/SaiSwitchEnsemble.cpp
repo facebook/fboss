@@ -11,6 +11,7 @@
 
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 

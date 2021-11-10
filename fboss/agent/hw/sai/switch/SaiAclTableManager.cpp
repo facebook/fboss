@@ -491,22 +491,29 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
-  // TODO(skhare) support cpu source port (SaiCpuPortHandle)
-  if (addedAclEntry->getSrcPort() &&
-      addedAclEntry->getSrcPort().value() !=
-          cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
-    auto portHandle = managerTable_->portManager().getPortHandle(
-        PortID(addedAclEntry->getSrcPort().value()));
-    if (!portHandle) {
-      throw FbossError(
-          "attempted to configure srcPort: ",
-          addedAclEntry->getSrcPort().value(),
-          " ACL:",
-          addedAclEntry->getID());
+  if (addedAclEntry->getSrcPort()) {
+    if (addedAclEntry->getSrcPort().value() !=
+        cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
+      auto portHandle = managerTable_->portManager().getPortHandle(
+          PortID(addedAclEntry->getSrcPort().value()));
+      if (!portHandle) {
+        throw FbossError(
+            "attempted to configure srcPort: ",
+            addedAclEntry->getSrcPort().value(),
+            " ACL:",
+            addedAclEntry->getID());
+      }
+      fieldSrcPort =
+          SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
+              std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
+    } else if (platform_->getAsic()->isSupported(
+                   HwAsic::Feature::SAI_ACL_ENTRY_SRC_CPU_PORT_QUALIFIER)) {
+      // enable or retire this feature once processing of acl entry with cpu
+      // source port is present in prod.
+      fieldSrcPort = SaiAclEntryTraits::Attributes::FieldSrcPort{
+          AclEntryFieldSaiObjectIdT(std::make_pair(
+              managerTable_->switchManager().getCpuPort(), kMaskDontCare))};
     }
-    fieldSrcPort =
-        SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
-            std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldOutPort> fieldOutPort{
