@@ -17,10 +17,13 @@
 #include <string>
 #include <vector>
 
-namespace facebook::fboss::platform {
-class ThriftHandler : virtual public rackmon::RackmonCtrlSvIf,
+namespace facebook::fboss::platform::rackmon {
+
+class ThriftHandler : virtual public RackmonCtrlSvIf,
                       public fb303::FacebookBase2 {
  public:
+  ThriftHandler() : FacebookBase2("Rackmon") {}
+
   void getPsuDevices(std::vector<rackmon::PsuDevice>& /*psuDevices*/) override {
     // TODO
   }
@@ -40,4 +43,4 @@ class ThriftHandler : virtual public rackmon::RackmonCtrlSvIf,
     // TODO
   }
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::rackmon
