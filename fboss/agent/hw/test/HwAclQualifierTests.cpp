@@ -369,6 +369,31 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      return;
+    }
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
+
+    acl->vlanID_ref() = 2001;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      return;
+    }
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
