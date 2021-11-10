@@ -478,12 +478,39 @@ void BcmCosQueueManager::programReservedBytes(
   if (queue.getReservedBytes()) {
     reservedBytes = queue.getReservedBytes().value();
   }
-  programControlValue(
+  // Based on CS00011976085, Broadcom recommends us *NOT* to change reserved
+  // bytes if there's traffic running.
+  // "Lets say, you are trying to configure
+  // bcmCosqControlEgressUCQueueMinLimitBytes to a value X. To configure X, we
+  // first need to adjust Shared buffer. If X is less than current value, shared
+  // buffer needs to be increased. If X is greater than current value, then
+  // shared buffer needs to be decreased. Now, in the case where Shared buffer
+  // needs to be increased, we first need to make sure MIN_COUNT (current usage)
+  // is less than the amount of bytes/cells required to increase shared buffer.
+  // If MIN_COUNT does not come down, then we will not get any free cells to
+  // allocate to Shared buffer. Hence, we have this check in place to make sure
+  // you total Cell limit/usage is always in sync and within the available
+  // buffer limits."
+  // Therefore, we should just check whether the to-be-programmed value is the
+  // same as hw value, if so we don't need to reprogram it again.
+  int programmedReservedBytes = getControlValue(
       queue.getStreamType(),
       gport,
       cosQ,
-      BcmCosQueueControlType::RESERVED_BYTES,
-      reservedBytes);
+      BcmCosQueueControlType::RESERVED_BYTES);
+  if (programmedReservedBytes == reservedBytes) {
+    XLOG(DBG2) << "Current programmed queue reserved bytes for gport " << gport
+               << ", queue " << static_cast<int>(queue.getID())
+               << " is the same as target value:" << reservedBytes
+               << ", skip programming reserved bytes";
+  } else {
+    programControlValue(
+        queue.getStreamType(),
+        gport,
+        cosQ,
+        BcmCosQueueControlType::RESERVED_BYTES,
+        reservedBytes);
+  }
 }
 
 void BcmCosQueueManager::getSharedBytes(
@@ -513,15 +540,26 @@ void BcmCosQueueManager::programSharedBytes(
   if (queue.getSharedBytes()) {
     sharedBytes = queue.getSharedBytes().value();
   }
-  XLOG(DBG1) << "Setting gport " << gport << ", queue "
-             << static_cast<int>(queue.getID()) << " shared bytes to "
-             << sharedBytes << " bytes";
-  programControlValue(
-      queue.getStreamType(),
-      gport,
-      cosQ,
-      BcmCosQueueControlType::SHARED_BYTES,
-      sharedBytes);
+  // Only program shared bytes if it's different from the programmed one.
+  // Same reason as programReservedBytes() above
+  int programmedSharedBytes = getControlValue(
+      queue.getStreamType(), gport, cosQ, BcmCosQueueControlType::SHARED_BYTES);
+  if (programmedSharedBytes == sharedBytes) {
+    XLOG(DBG2) << "Current programmed queue shared bytes for gport " << gport
+               << ", queue " << static_cast<int>(queue.getID())
+               << " is the same as target value:" << sharedBytes
+               << ", skip programming shared bytes";
+  } else {
+    XLOG(DBG1) << "Setting gport " << gport << ", queue "
+               << static_cast<int>(queue.getID()) << " shared bytes to "
+               << sharedBytes << " bytes";
+    programControlValue(
+        queue.getStreamType(),
+        gport,
+        cosQ,
+        BcmCosQueueControlType::SHARED_BYTES,
+        sharedBytes);
+  }
 }
 
 void BcmCosQueueManager::getBandwidth(
