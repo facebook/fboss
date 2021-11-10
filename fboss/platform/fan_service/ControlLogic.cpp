@@ -6,6 +6,7 @@
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "ControlLogic.h"
 
+namespace facebook::fboss::platform {
 ControlLogic::ControlLogic(
     std::shared_ptr<ServiceConfig> pC,
     std::shared_ptr<Bsp> pB) {
@@ -540,3 +541,5 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // Update the time stamp
   lastControlUpdateSec_ = pBsp_->getCurrentTime();
 }
+
+} // namespace facebook::fboss::platform

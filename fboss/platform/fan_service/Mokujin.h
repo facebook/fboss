@@ -10,6 +10,7 @@
 //           the input with test scenario file, and the output with
 //           test output file describing when pwm changes and so on.
 
+namespace facebook::fboss::platform {
 class Mokujin : public Bsp {
  public:
   // Constructor / Destructors
@@ -56,3 +57,4 @@ class Mokujin : public Bsp {
   std::ofstream oFs_;
   bool oFOpen_;
 };
+} // namespace facebook::fboss::platform

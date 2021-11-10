@@ -33,6 +33,8 @@ using folly::parseJson;
 #define FSVC_DEFAULT_PWM_LOWER_THRES 15
 #define FSVC_DEFAULT_PWM_UPPER_THRES 85
 
+namespace facebook::fboss::platform {
+
 class AccessMethod {
  public:
   SourceType accessType;
@@ -285,3 +287,4 @@ class ServiceConfig {
   void prepareDict();
   void parseBspType(std::string bspString);
 };
+} // namespace facebook::fboss::platform

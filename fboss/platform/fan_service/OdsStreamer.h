@@ -21,6 +21,7 @@
 // Headerfile for SensorData class
 #include "SensorData.h"
 
+namespace facebook::fboss::platform {
 class OdsStreamer {
  public:
   // Constructor / Destructor
@@ -41,3 +42,4 @@ class OdsStreamer {
   facebook::maestro::ODSAppValue
   getOdsAppValue(std::string key, int64_t value, uint64_t timeStampSec);
 };
+} // namespace facebook::fboss::platform

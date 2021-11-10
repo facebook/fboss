@@ -4,6 +4,7 @@
 // for functional description
 #include "fboss/platform/fan_service/FanService.h"
 
+namespace facebook::fboss::platform {
 FanService::FanService(std::string configFileName) {
   lastControlExecutionTimeSec_ = 0;
   lastSensorFetchTimeSec_ = 0;
@@ -195,3 +196,4 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
   XLOG(INFO) << "File closed. Exiting...";
   return rc;
 }
+} // namespace facebook::fboss::platform

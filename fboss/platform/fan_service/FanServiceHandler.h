@@ -6,9 +6,7 @@
 #include "FanService.h"
 #include "common/fb303/cpp/FacebookBase2.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss::platform {
 class FanServiceHandler : public facebook::fb303::FacebookBase2 {
  public:
   FanServiceHandler(std::unique_ptr<FanService> fanService);
@@ -24,5 +22,4 @@ class FanServiceHandler : public facebook::fb303::FacebookBase2 {
   // Internal pointer for FanService.
   std::unique_ptr<FanService> service_{nullptr};
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::platform

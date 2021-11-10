@@ -10,6 +10,8 @@
 #include "SensorData.h"
 #include "ServiceConfig.h"
 
+namespace facebook::fboss::platform {
+
 // FanService    : The main Class the represent the fan_service
 //                 Instantiates the following classes.
 //
@@ -82,3 +84,4 @@ class FanService {
   // Main Loop for standalone execution
   int mainLoop();
 };
+} // namespace facebook::fboss::platform

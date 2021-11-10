@@ -1,6 +1,7 @@
 // Copyright 2021- Facebook. All rights reserved.
 #include "ServiceConfig.h"
 
+namespace facebook::fboss::platform {
 ServiceConfig::ServiceConfig() {
   prepareDict();
   jsonConfig_ = "";
@@ -505,3 +506,4 @@ void ServiceConfig::prepareDict() {
   configDict_["shutdown"] = kFsvcCfgInvalidRangeActionShutdown;
   configDict_["no_action"] = kFsvcCfgInvalidRangeActionNone;
 }
+} // namespace facebook::fboss::platform

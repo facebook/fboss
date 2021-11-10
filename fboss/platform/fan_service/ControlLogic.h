@@ -5,6 +5,8 @@
 #include "Bsp.h"
 #include "SensorData.h"
 
+namespace facebook::fboss::platform {
+
 // ControlLogic class is a part of Fan Service
 // Role : This class contains the logics to detect sensor/fan failures and,
 //        the logics to calculate the PWM values from sensor reading.
@@ -37,3 +39,4 @@ class ControlLogic {
   void updateTargetPwm(Sensor* sensorItem);
   Sensor* findSensorConfig(std::string sensorName);
 };
+} // namespace facebook::fboss::platform

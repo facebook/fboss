@@ -4,6 +4,7 @@
 // Role : To store sensor data and its metadata like timestamp,
 //        and also to support key-based value search.
 
+#pragma once
 // Standard C++ routines
 #include <unordered_map>
 #include <vector>
@@ -13,7 +14,7 @@
 // , for consistency
 #include "fboss/agent/FbossError.h"
 
-#pragma once
+namespace facebook::fboss::platform {
 
 // Fundamental data type definition
 typedef enum { kSensorEntryInt, kSensorEntryFloat } SensorEntryType;
@@ -62,3 +63,5 @@ class SensorData {
   SensorEntry* getSensorEntry(std::string name);
   SensorEntry* getOrCreateSensorEntry(std::string name);
 };
+
+} // namespace facebook::fboss::platform

@@ -25,7 +25,7 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 // runServer : a helper function to run Fan Service as Thrift Server.
 int runServer(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<facebook::fboss::FanServiceHandler> handler) {
+    std::shared_ptr<facebook::fboss::platform::FanServiceHandler> handler) {
   facebook::services::ServiceFrameworkLight service("Fan Service");
   thriftServer->setAllowPlaintextOnLoopback(true);
   service.addThriftService(thriftServer, handler.get(), FLAGS_thrift_port);
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   // No Thrift service will be created at all.
   if (FLAGS_mock_input != "") {
     // Run as Mock mode
-    FanService mockedFanService(FLAGS_config_file);
+    facebook::fboss::platform::FanService mockedFanService(FLAGS_config_file);
     mockedFanService.kickstart();
     int rc = mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
     exit(rc);
@@ -68,7 +68,8 @@ int main(int argc, char** argv) {
   // Create Fan Service Object as unique_ptr
   XLOG(INFO) << "Starting FanService as a service config file "
              << FLAGS_config_file;
-  auto fanService = std::make_unique<FanService>(FLAGS_config_file);
+  auto fanService = std::make_unique<facebook::fboss::platform::FanService>(
+      FLAGS_config_file);
   fanService->setOdsTier(FLAGS_ods_tier);
 
   // Setup Thrift Server. Nothing special.
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
   // The previously created unique_ptr of fanService will be transferred into
   // the handler This is the interface between FanService and any Thrift call
   // handler to be created
-  auto handler = std::make_shared<facebook::fboss::FanServiceHandler>(
+  auto handler = std::make_shared<facebook::fboss::platform::FanServiceHandler>(
       std::move(fanService));
 
   // Need to run kickstart method in the FanService object,

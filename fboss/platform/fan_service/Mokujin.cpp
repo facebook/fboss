@@ -4,6 +4,8 @@
 // for functional description.
 #include "Mokujin.h"
 
+namespace facebook::fboss::platform {
+
 Mokujin::Mokujin() {
   iFOpen_ = false;
   oFOpen_ = false;
@@ -195,3 +197,4 @@ bool Mokujin::isEof() {
 bool Mokujin::bothFileOpen() {
   return (iFOpen_ && oFOpen_);
 }
+} // namespace facebook::fboss::platform

@@ -4,6 +4,7 @@
 #include "Bsp.h"
 #include <string>
 
+namespace facebook::fboss::platform {
 Bsp::Bsp() {
   emergencyShutdownState = false;
   sensordThriftPort_ = 7001;
@@ -209,3 +210,5 @@ bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
   // Return if this command execution was successful
   return (retVal == 0);
 }
+
+} // namespace facebook::fboss::platform

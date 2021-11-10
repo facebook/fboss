@@ -27,7 +27,7 @@
 #include "servicerouter/client/cpp2/ServiceRouter.h"
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
-
+namespace facebook::fboss::platform {
 class Bsp {
  public:
   // Constructur / Destructors
@@ -81,3 +81,5 @@ class Bsp {
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData);
 };
+
+} // namespace facebook::fboss::platform

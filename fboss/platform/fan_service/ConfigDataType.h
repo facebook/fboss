@@ -4,6 +4,7 @@
 // used by ServiceConfig class
 
 #pragma once
+namespace facebook::fboss::platform {
 typedef enum {
   kFsvcCfgInvalid,
   kFsvcCfgBsp,
@@ -89,3 +90,4 @@ typedef enum {
   kSensorPwmCalcPid,
   kSensorPwmCalcDisable
 } SensorPwmCalcType;
+} // namespace facebook::fboss::platform

@@ -4,13 +4,13 @@
 // for functional description
 #include "FanServiceHandler.h"
 
-facebook::fb303::cpp2::fb_status
-facebook::fboss::FanServiceHandler::getStatus() {
+namespace facebook::fboss::platform {
+facebook::fb303::cpp2::fb_status FanServiceHandler::getStatus() {
   return facebook::fb303::cpp2::fb_status::ALIVE;
 }
 
-facebook::fboss::FanServiceHandler::FanServiceHandler(
-    std::unique_ptr<FanService> fanService)
+FanServiceHandler::FanServiceHandler(std::unique_ptr<FanService> fanService)
     : FacebookBase2("FanService"), service_(std::move(fanService)) {
   XLOG(INFO) << "FanServiceHandler Started";
 }
+} // namespace facebook::fboss::platform

@@ -4,6 +4,7 @@
 // for the functional description
 #include "fboss/platform/fan_service/SensorData.h"
 
+namespace facebook::fboss::platform {
 SensorData::SensorData() {}
 
 SensorData::~SensorData() {}
@@ -94,3 +95,4 @@ SensorEntry* SensorData::getSensorEntry(std::string name) {
     return NULL;
   return &sensorEntry_[name];
 }
+} // namespace facebook::fboss::platform

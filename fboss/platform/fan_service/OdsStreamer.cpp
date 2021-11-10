@@ -5,6 +5,7 @@
 #include "fboss/platform/fan_service/OdsStreamer.h"
 
 DECLARE_string(ods_tier);
+namespace facebook::fboss::platform {
 
 OdsStreamer::OdsStreamer(std::shared_ptr<SensorData> pSd, std::string oT) {
   pSensorData_ = pSd;
@@ -78,3 +79,4 @@ int OdsStreamer::postData(folly::EventBase* evb) {
   XLOG(INFO) << "ODS Streamer : Done publishing with rc : " << rc;
   return rc;
 }
+} // namespace facebook::fboss::platform
