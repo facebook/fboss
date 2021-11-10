@@ -80,6 +80,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_CPU_PORT_QUALIFIER:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SAI_MPLS_QOS:
