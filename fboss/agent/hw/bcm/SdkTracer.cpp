@@ -1475,6 +1475,18 @@ int __real_bcm_field_qualify_PacketRes_get(
     uint32* data,
     uint32* mask);
 
+int __real_bcm_field_qualify_OuterVlanId(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_vlan_t data,
+    bcm_vlan_t mask);
+
+int __real_bcm_field_qualify_OuterVlanId_get(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_vlan_t* data,
+    bcm_vlan_t* mask);
+
 int __real_bcm_mirror_init(int unit);
 
 int __real_bcm_mirror_mode_set(int unit, int mode);
@@ -3841,6 +3853,22 @@ int __wrap_bcm_field_qualify_DstClassL3(
     uint32 data,
     uint32 mask) {
   CALL_WRAPPERS_RV(bcm_field_qualify_DstClassL3(unit, entry, data, mask));
+}
+
+int __wrap_bcm_field_qualify_OuterVlanId(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_vlan_t data,
+    bcm_vlan_t mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_OuterVlanId(unit, entry, data, mask));
+}
+
+int __wrap_bcm_field_qualify_OuterVlanId_get(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_vlan_t* data,
+    bcm_vlan_t* mask) {
+  CALL_WRAPPERS_RV(bcm_field_qualify_OuterVlanId_get(unit, entry, data, mask));
 }
 
 // MIRRORS

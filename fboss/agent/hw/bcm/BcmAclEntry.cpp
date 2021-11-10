@@ -283,6 +283,13 @@ void BcmAclEntry::createAclQualifiers() {
     bcmCheckError(
         rv, "failed to qualify PacketLookupResult:", packetLookupResult);
   }
+
+  if (acl_->getVlanID()) {
+    rv = bcm_field_qualify_OuterVlanId(
+        hw_->getUnit(), handle_, acl_->getVlanID().value(), 0xFFF);
+    bcmCheckError(
+        rv, "failed to qualify OuterVlanId:", acl_->getVlanID().value());
+  }
 }
 
 void BcmAclEntry::createAclActions() {
@@ -724,6 +731,22 @@ bool BcmAclEntry::isStateSame(
         etherType,
         aclMsg,
         "EtherType");
+  }
+
+  if (BCM_FIELD_QSET_TEST(
+          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
+          bcmFieldQualifyOuterVlanId)) {
+    std::optional<bcm_vlan_t> outerVlanId{std::nullopt};
+    if (acl->getVlanID()) {
+      outerVlanId = acl->getVlanID().value();
+    }
+    isSame &= isBcmQualFieldStateSame(
+        bcm_field_qualify_OuterVlanId_get,
+        hw->getUnit(),
+        handle,
+        outerVlanId,
+        aclMsg,
+        "OuterVlanId");
   }
 
   // check acl stat
