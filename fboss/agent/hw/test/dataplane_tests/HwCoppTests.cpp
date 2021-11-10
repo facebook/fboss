@@ -921,6 +921,19 @@ TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwCoppTest, EapolToHighPriQ) {
+  auto setup = [=]() { this->setup(); };
+
+  auto verify = [=]() {
+    this->sendPktAndVerifyEthPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() { this->setup(); };
 

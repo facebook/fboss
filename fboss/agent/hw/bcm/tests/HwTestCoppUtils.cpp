@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -59,6 +60,21 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         acl,
         createQueueMatchAction(
             getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+  }
+
+  // EAPOL
+  {
+    if (BCM_FIELD_QSET_TEST(
+            getAclQset(hwAsic->getAsicType()), bcmFieldQualifyEtherType)) {
+      cfg::AclEntry acl;
+      acl.name_ref() = "cpuPolicing-high-eapol";
+      acl.dstMac_ref() = "ff:ff:ff:ff:ff:ff";
+      acl.etherType_ref() = cfg::EtherType::EAPOL;
+      acls.push_back(std::make_pair(
+          acl,
+          createQueueMatchAction(
+              getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic))));
+    }
   }
 
   // dstClassL3 w/ BGP port to high pri queue

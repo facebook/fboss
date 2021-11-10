@@ -46,7 +46,7 @@ enum class ETHERTYPE : uint16_t {
   ETHERTYPE_JUMBO = 0x8870,
 
   // Extensible Authentication Protocol (802.1X)
-  ETHERRTPE_EAPOL = 0x888E,
+  ETHERTYPE_EAPOL = 0x888E,
 
   // IEEE 802.1ad (Q-in-Q)
   ETHERTYPE_QINQ = 0x88A8,
