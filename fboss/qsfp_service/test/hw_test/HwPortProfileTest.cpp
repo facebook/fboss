@@ -125,6 +125,8 @@ class HwPortProfileTest : public HwTest {
     runTest();                                                    \
   }
 
+TEST_PROFILE(PROFILE_10G_1_NRZ_NOFEC_OPTICAL)
+
 TEST_PROFILE(PROFILE_100G_4_NRZ_RS528_OPTICAL)
 
 TEST_PROFILE(PROFILE_200G_4_PAM4_RS544X2N_OPTICAL)
