@@ -148,10 +148,12 @@ BOOST_MSM_EUML_ACTION(logStateChanged){
 template <class Event, class Fsm, class Source, class Target>
 void operator()(
     const Event& /* event */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     Source& source,
     Target& target) const {
-  XLOG(DBG2) << "State changed from "
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  XLOG(DBG2) << "[Transceiver:" << tcvrID
+             << "] State changed from "
              << getTransceiverStateMachineStateName(stateToStateEnum(source))
              << " to "
              << getTransceiverStateMachineStateName(stateToStateEnum(target));

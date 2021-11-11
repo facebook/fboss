@@ -323,7 +323,11 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
       "programInternalPhyPorts() for Transceiver=", id, " return [");
   for (const auto& [portID, profileID] : programmedIphyPorts) {
     logStr = folly::to<std::string>(
-        logStr, id, " : ", apache::thrift::util::enumNameSafe(profileID), ", ");
+        logStr,
+        portID,
+        " : ",
+        apache::thrift::util::enumNameSafe(profileID),
+        ", ");
   }
   XLOG(INFO) << logStr << "]";
 
