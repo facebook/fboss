@@ -26,7 +26,7 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
-  bool isValid() {
+  bool isValid() const {
     bool hostsSet = !getHosts().empty();
     bool smcSet = !getSmc().empty();
     bool fileSet = !getFile().empty();
@@ -41,58 +41,62 @@ class CmdGlobalOptions {
     return true;
   }
 
-  std::vector<std::string> getHosts() {
+  std::vector<std::string> getHosts() const {
     return hosts_;
   }
 
-  std::string getSmc() {
+  std::string getSmc() const {
     return smc_;
   }
 
-  std::string getFile() {
+  std::string getFile() const {
     return file_;
   }
 
-  std::string getLogLevel() {
+  std::string getLogLevel() const {
     return logLevel_;
   }
 
-  const SSLPolicy& getSslPolicy() {
+  const SSLPolicy& getSslPolicy() const {
     return sslPolicy_;
   }
 
-  std::string getFmt() {
+  std::string getFmt() const {
     return fmt_;
   }
 
-  std::string getLogUsage() {
+  std::string getLogUsage() const {
     return logUsage_;
   }
 
-  int getAgentThriftPort() {
+  int getAgentThriftPort() const {
     return agentThriftPort_;
   }
 
-  int getQsfpThriftPort() {
+  int getQsfpThriftPort() const {
     return qsfpThriftPort_;
   }
 
-  int getBgpThriftPort() {
+  int getBgpThriftPort() const {
     return bgpThriftPort_;
   }
 
-  int getMkaThriftPort() {
+  int getMkaThriftPort() const {
     return mkaThriftPort_;
   }
-  int getCoopThriftPort() {
+  int getCoopThriftPort() const {
     return coopThriftPort_;
   }
 
-  int getBmcHttpPort() {
+  int getRackmonThriftPort() const {
+    return rackmonThriftPort_;
+  }
+
+  int getBmcHttpPort() const {
     return bmcHttpPort_;
   }
 
-  std::string getColor() {
+  std::string getColor() const {
     return color_;
   }
 
@@ -121,6 +125,7 @@ class CmdGlobalOptions {
   int coopThriftPort_{6969};
   int mkaThriftPort_{5920};
   int bmcHttpPort_{8080};
+  int rackmonThriftPort_{7910};
   std::string color_{"yes"};
 };
 
