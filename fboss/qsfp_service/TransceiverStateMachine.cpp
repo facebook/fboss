@@ -87,6 +87,10 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
     return TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
   } else if (currentStateOrder == 5) {
     return TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED;
+  } else if (currentStateOrder == 6) {
+    return TransceiverStateMachineState::ACTIVE;
+  } else if (currentStateOrder == 7) {
+    return TransceiverStateMachineState::INACTIVE;
   }
   // TODO(joseph5wu) Need to support other states
   throw FbossError(

@@ -111,6 +111,8 @@ BOOST_MSM_EUML_EVENT(READ_EEPROM)
 BOOST_MSM_EUML_EVENT(PROGRAM_IPHY)
 BOOST_MSM_EUML_EVENT(PROGRAM_XPHY)
 BOOST_MSM_EUML_EVENT(PROGRAM_TRANSCEIVER)
+BOOST_MSM_EUML_EVENT(PORT_UP)
+BOOST_MSM_EUML_EVENT(ALL_PORTS_DOWN)
 
 // Module State Machine Actions
 template <class State>
@@ -226,18 +228,23 @@ bool operator()(
 // Transceiver State Machine State transition table
 // clang-format off
 BOOST_MSM_EUML_TRANSITION_TABLE((
-//  Start                 + Event               [Guard]              / Action          == Next
+//  Start                  + Event               [Guard]              / Action          == Next
 // +-------------------------------------------------------------------------------------------------------------+
-    NOT_PRESENT           + DETECT_TRANSCEIVER                       / logStateChanged == PRESENT,
-    PRESENT               + READ_EEPROM                              / logStateChanged == DISCOVERED,
+    NOT_PRESENT            + DETECT_TRANSCEIVER                       / logStateChanged == PRESENT,
+    PRESENT                + READ_EEPROM                              / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call port program in case optic is actually
     // inserted but just can't read the present state
-    NOT_PRESENT           + PROGRAM_IPHY        [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
-    DISCOVERED            + PROGRAM_IPHY        [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
-    IPHY_PORTS_PROGRAMMED + PROGRAM_XPHY        [programXphyPorts]   / logStateChanged == XPHY_PORTS_PROGRAMMED,
+    NOT_PRESENT            + PROGRAM_IPHY        [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    DISCOVERED             + PROGRAM_IPHY        [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    IPHY_PORTS_PROGRAMMED  + PROGRAM_XPHY        [programXphyPorts]   / logStateChanged == XPHY_PORTS_PROGRAMMED,
     // For non-xphy platform, we will program tcvr after programming iphy ports
-    IPHY_PORTS_PROGRAMMED + PROGRAM_TRANSCEIVER [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED,
-    XPHY_PORTS_PROGRAMMED + PROGRAM_TRANSCEIVER [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED
+    IPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED,
+    XPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED,
+    // Only trigger port status events after TRANSCEIVER_PROGRAMMED
+    TRANSCEIVER_PROGRAMMED + PORT_UP                                  / logStateChanged == ACTIVE,
+    TRANSCEIVER_PROGRAMMED + ALL_PORTS_DOWN                           / logStateChanged == INACTIVE,
+    ACTIVE                 + ALL_PORTS_DOWN                           / logStateChanged == INACTIVE,
+    INACTIVE               + PORT_UP                                  / logStateChanged == ACTIVE
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

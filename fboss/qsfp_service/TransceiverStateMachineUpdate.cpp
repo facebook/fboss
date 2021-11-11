@@ -44,6 +44,12 @@ void TransceiverStateMachineUpdate::applyUpdate(
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       curState.process_event(PROGRAM_TRANSCEIVER);
       return;
+    case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
+      curState.process_event(ALL_PORTS_DOWN);
+      return;
+    case TransceiverStateMachineEvent::PORT_UP:
+      curState.process_event(PORT_UP);
+      return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
   }
