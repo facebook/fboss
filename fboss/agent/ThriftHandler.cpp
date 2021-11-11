@@ -2179,4 +2179,43 @@ void ThriftHandler::listHwObjects(
   ensureConfigured(__func__);
   out = sw_->getHw()->listObjects(*hwObjects, cached);
 }
+
+void ThriftHandler::setNeighborsToBlock(
+    std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
+  std::string neighborsToBlockStr;
+  std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
+
+  if (neighborsToBlock) {
+    for (const auto& neighborToBlock : *neighborsToBlock) {
+      if (!folly::IPAddress::validate(*neighborToBlock.ipAddress_ref())) {
+        throw FbossError(
+            "Invalid IP address: ", *neighborToBlock.ipAddress_ref());
+      }
+
+      auto neighborToBlockStr = folly::to<std::string>(
+          "[vlan: ",
+          *neighborToBlock.vlanID_ref(),
+          " ip: ",
+          *neighborToBlock.ipAddress_ref(),
+          "], ");
+      neighborsToBlockStr.append(neighborToBlockStr);
+
+      blockNeighbors.emplace_back(
+          VlanID(*neighborToBlock.vlanID_ref()),
+          folly::IPAddress(*neighborToBlock.ipAddress_ref()));
+    }
+  }
+
+  auto log = LOG_THRIFT_CALL(DBG1, neighborsToBlockStr);
+
+  sw_->updateStateBlocking(
+      "Update blocked neighbors ",
+      [blockNeighbors](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+        newSwitchSettings->setBlockNeighbors(blockNeighbors);
+        return newState;
+      });
+}
+
 } // namespace facebook::fboss

@@ -1156,6 +1156,17 @@ service FbossCtrl extends fb303.FacebookService {
     1: string policyName,
     2: common.ForwardingClass fc,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Set neighbors to block. Useful to temporarily block traffic to a list of
+   * neighbors. This does not affect the configuration, the list will be
+   * cleared out due to config reapplication post agent restart.
+   *
+   * To clear, set neighborsToBlock to empty.
+   */
+  void setNeighborsToBlock(
+    1: list<switch_config.Neighbor> neighborsToBlock,
+  ) throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

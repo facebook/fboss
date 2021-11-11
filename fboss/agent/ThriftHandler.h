@@ -338,6 +338,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void getPlatformMapping(cfg::PlatformMapping& ret) override;
 
+  void setNeighborsToBlock(
+      std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) override;
+
  protected:
   void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,
