@@ -25,9 +25,6 @@
 // Service Config needs to access sensor data
 #include "SensorData.h"
 
-using folly::parseJson;
-
-#pragma once
 #define FSVC_DEFAULT_SENSOR_FETCH_FREQUENCY 30
 #define FSVC_DEFAULT_CONTROL_FREQUENCY 30
 #define FSVC_DEFAULT_PWM_LOWER_THRES 15
