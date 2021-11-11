@@ -136,8 +136,10 @@ class TransceiverManager {
    * and the PHY code is running in this qsfp_service process
    */
   virtual void programXphyPort(
-      int32_t portId,
+      PortID portId,
       cfg::PortProfileID portProfileId) = 0;
+
+  virtual phy::PhyInfo getXphyInfo(PortID portId) = 0;
 
   virtual void updateAllXphyPortsStats() = 0;
 

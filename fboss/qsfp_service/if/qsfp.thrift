@@ -11,6 +11,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
+include "fboss/lib/phy/phy.thrift"
 
 service QsfpService extends fb303.FacebookService {
   transceiver.TransceiverType getType(1: i32 idx);
@@ -85,6 +86,7 @@ service QsfpService extends fb303.FacebookService {
    * MACSEC capable port ids
   */
   list<i32> getMacsecCapablePorts() throws (1: fboss.FbossBaseError error);
+
   /*
    * Thrift call to program one PHY port. This call will be made by agent to
    * qsfp_service
@@ -93,6 +95,8 @@ service QsfpService extends fb303.FacebookService {
     1: i32 portId,
     2: switch_config.PortProfileID portProfileId,
   );
+
+  phy.PhyInfo getXphyInfo(1: i32 portID) throws (1: fboss.FbossBaseError error);
 
   bool sakInstallRx(
     1: mka_structs.MKASak sak,

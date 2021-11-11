@@ -126,13 +126,15 @@ class WedgeManager : public TransceiverManager {
    * function here, it needs to be implemented by the platforms which support
    * external PHY and the PHY code is running in this qsfp_service process
    */
-  void programXphyPort(int32_t portId, cfg::PortProfileID portProfileId)
+  void programXphyPort(PortID portId, cfg::PortProfileID portProfileId)
       override;
 
   void programXphyPortPrbs(
       PortID portID,
       phy::Side side,
       const phy::PortPrbsState& prbs);
+
+  phy::PhyInfo getXphyInfo(PortID portID) override;
 
   phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side);
 

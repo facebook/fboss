@@ -838,8 +838,20 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
   return phyPortConfig;
 }
 
+phy::PhyInfo WedgeManager::getXphyInfo(PortID portID) {
+  if (phyManager_ == nullptr) {
+    throw FbossError("Unable to get xphy info when PhyManager is not set");
+  }
+
+  if (auto phyInfoOpt = phyManager_->getXphyInfo(portID)) {
+    return *phyInfoOpt;
+  } else {
+    throw FbossError("Unable to get xphy info for port: ", portID);
+  }
+}
+
 void WedgeManager::programXphyPort(
-    int32_t portId,
+    PortID portId,
     cfg::PortProfileID portProfileId) {
   if (phyManager_ == nullptr) {
     throw FbossError("Unable to program xphy port when PhyManager is not set");
@@ -872,7 +884,7 @@ void WedgeManager::programXphyPort(
                   << " doesn't have transceiver info for transceiver id:"
                   << *tcvrID;
   }
-  phyManager_->programOnePort(PortID(portId), portProfileId, itTcvr);
+  phyManager_->programOnePort(portId, portProfileId, itTcvr);
 }
 
 /*

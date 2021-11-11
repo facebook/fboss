@@ -152,7 +152,12 @@ void QsfpServiceHandler::programXphyPort(
     int32_t portId,
     cfg::PortProfileID portProfileId) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->programXphyPort(portId, portProfileId);
+  manager_->programXphyPort(PortID(portId), portProfileId);
+}
+
+void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portID) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  response = manager_->getXphyInfo(PortID(portID));
 }
 
 void QsfpServiceHandler::getMacsecCapablePorts(std::vector<int32_t>& ports) {
