@@ -212,7 +212,6 @@ class ExternalPhy {
       const std::vector<LaneID>& lineLanes) = 0;
 
   virtual PhyInfo getPortInfo(
-      const facebook::fboss::Port* /* port */,
       const std::vector<LaneID>& /* sysLanes */,
       const std::vector<LaneID>& /* lineLanes */) {
     throw facebook::fboss::FbossError(

@@ -106,7 +106,6 @@ class PhyInterfaceHandler {
    */
   virtual phy::PhyInfo getPortInfo(
       int /* phyPortIdentifier */,
-      const Port* /* port */,
       phy::PhyPortConfig /* config */) {
     throw facebook::fboss::FbossError(
         "Port info not supported on this platform");

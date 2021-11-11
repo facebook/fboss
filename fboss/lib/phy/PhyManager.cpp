@@ -7,6 +7,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/json.h>
@@ -447,9 +448,19 @@ void PhyManager::updateStatsLocked(
                 // Since this is delay future job, we need to fetch the
                 // cache with wlock again
                 const auto& wCache = getWLockedCache(portID);
-                const auto& stats =
-                    xphy->getPortStats(wCache->systemLanes, wCache->lineLanes);
-                wCache->stats->updateXphyStats(stats);
+                std::optional<ExternalPhyPortStats> stats;
+                // if PORT_INFO feature is supported, use getPortInfo instead
+                if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
+                  auto xphyPortInfo =
+                      xphy->getPortInfo(wCache->systemLanes, wCache->lineLanes);
+                  xphyPortInfo.name_ref() = getPortName(portID);
+                  updateXphyInfo(portID, xphyPortInfo);
+                  stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
+                } else {
+                  stats = xphy->getPortStats(
+                      wCache->systemLanes, wCache->lineLanes);
+                }
+                wCache->stats->updateXphyStats(*stats);
                 XLOG(DBG3) << "Port " << portID
                            << ": xphy port stat collection took "
                            << duration_cast<milliseconds>(
