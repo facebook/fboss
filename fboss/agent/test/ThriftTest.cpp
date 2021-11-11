@@ -219,6 +219,66 @@ TEST_F(ThriftTest, setPortState) {
   EXPECT_FALSE(port->isEnabled());
 }
 
+TEST_F(ThriftTest, setNeighborsToBlock) {
+  ThriftHandler handler(sw_);
+
+  auto blockListVerify = [&handler](
+                             std::vector<std::pair<VlanID, folly::IPAddress>>
+                                 neighborsToBlock) {
+    auto cfgNeighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+
+    for (const auto& [vlanID, ipAddress] : neighborsToBlock) {
+      cfg::Neighbor neighbor;
+      neighbor.vlanID_ref() = vlanID;
+      neighbor.ipAddress_ref() = ipAddress.str();
+      cfgNeighborsToBlock->emplace_back(neighbor);
+    }
+    handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+    waitForStateUpdates(handler.getSw());
+
+    auto gotBlockedNeighbors =
+        handler.getSw()->getState()->getSwitchSettings()->getBlockNeighbors();
+    EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
+  };
+
+  // set blockneighbor1
+  blockListVerify(
+      {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0003")}});
+
+  // set blockneighbor1, blockNeighbor2
+  blockListVerify(
+      {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0003")},
+       {VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0004")}});
+
+  // set blockNeighbor2
+  blockListVerify(
+      {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0004")}});
+
+  // set null list (clears block list)
+  handler.setNeighborsToBlock({});
+  waitForStateUpdates(sw_);
+  EXPECT_EQ(
+      0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+
+  // set empty list (clears block list)
+  auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+  handler.setNeighborsToBlock(std::move(neighborsToBlock));
+  waitForStateUpdates(sw_);
+  EXPECT_EQ(
+      0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+
+  auto invalidNeighborToBlock =
+      "twshared12345.06.abc7"; // only IPs are supported
+  auto invalidNeighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+  cfg::Neighbor neighbor;
+  neighbor.vlanID_ref() = 2000;
+  neighbor.ipAddress_ref() = invalidNeighborToBlock;
+  invalidNeighborsToBlock->emplace_back(neighbor);
+  EXPECT_THROW(
+      handler.setNeighborsToBlock(std::move(invalidNeighborsToBlock)),
+      FbossError);
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
