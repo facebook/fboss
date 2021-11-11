@@ -73,12 +73,15 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_stats_publish_interval),
       "statsPublish");
+
+  // Change the previous refreshTransceivers() to refreshStateMachines(), the
+  // later one will call refreshTransceivers() and update state machines as well
   scheduler.addFunction(
       [mgr = handler->getTransceiverManager()]() {
-        mgr->refreshTransceivers();
+        mgr->refreshStateMachines();
       },
       std::chrono::seconds(FLAGS_loop_interval),
-      "refreshTransceivers");
+      "refreshStateMachines");
 
   // Schedule the function to periodically send the I2c transaction
   // stats to the ServiceData object which gets pulled by FBagent.

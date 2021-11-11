@@ -515,5 +515,35 @@ void TransceiverManager::updateTransceiverPortStatus(
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
 }
+
+void TransceiverManager::refreshStateMachines() {
+  // TODO(joseph5wu) Step1: Check whether there's a wedge_agent config change
+
+  // Step2: Refresh all transceivers so that we can get an update
+  // TransceiverInfo
+  const auto& transceiverIds = refreshTransceivers();
+
+  if (FLAGS_use_new_state_machine) {
+    // Step3: Once the transceivers are detected, trigger programming events
+    const auto& programmedTcvrs = triggerProgrammingEvents();
+
+    // Step4: Update port status for stable transceivers
+    // Only need to update port status that are not recently finished
+    // programming Because if they only finished early stage programming like
+    // iphy without programming xphy or tcvr, the ports of such transceiver will
+    // still be not stable to update the port related status.
+    std::vector<TransceiverID> stableTcvrs;
+    for (auto tcvrID : transceiverIds) {
+      if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
+          programmedTcvrs.end()) {
+        stableTcvrs.push_back(tcvrID);
+      }
+    }
+    // Update port status for the stable transceivers
+    updateTransceiverPortStatus(stableTcvrs);
+  }
+
+  // TODO(joseph5wu) Step5: Remediate inactive transceivers
+}
 } // namespace fboss
 } // namespace facebook

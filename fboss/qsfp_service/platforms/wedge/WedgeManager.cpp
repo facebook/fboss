@@ -466,25 +466,6 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
     folly::collectAll(futs.begin(), futs.end()).wait();
     XLOG(INFO) << "Finished refreshing all transceivers";
   }
-
-  if (FLAGS_use_new_state_machine) {
-    const auto& programmedTcvrs = triggerProgrammingEvents();
-
-    // Only need to update port status that are not recently finished
-    // programming Because if they only finished early stage programming like
-    // iphy without programming xphy or tcvr, the ports of such transceiver will
-    // still be not stable to update the port related status.
-    std::vector<TransceiverID> stableTcvrs;
-    for (auto tcvrID : transceiverIds) {
-      if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
-          programmedTcvrs.end()) {
-        stableTcvrs.push_back(tcvrID);
-      }
-    }
-    // Update port status for the stable transceivers
-    updateTransceiverPortStatus(stableTcvrs);
-  }
-
   return transceiverIds;
 }
 

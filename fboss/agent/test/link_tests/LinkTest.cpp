@@ -24,7 +24,12 @@ void LinkTest::SetUp() {
   AgentTest::SetUp();
   initializeCabledPorts();
   // Wait for all the cabled ports to link up before finishing the setup
-  waitForAllCabledPorts(true);
+  // TODO(joseph5wu) Temporarily increase the timeout to 3mins because current
+  // TransceiverStateMachine can only allow handle updates sequentially and for
+  // Minipack xphy programming, it will take about 68s to program all 128 ports.
+  // Will lower the timeout back to 1min once we can support parallel
+  // programming
+  waitForAllCabledPorts(true, 60, 5s);
   XLOG(INFO) << "Link Test setup ready";
 }
 

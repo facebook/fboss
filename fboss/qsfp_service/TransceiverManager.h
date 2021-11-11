@@ -171,6 +171,10 @@ class TransceiverManager {
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
   // ========== Public functions for TransceiverStateMachine ==========
+  // This refresh TransceiverStateMachine functions will handle all state
+  // machine updates.
+  void refreshStateMachines();
+
   void programInternalPhyPorts(TransceiverID id);
 
   void programExternalPhyPorts(TransceiverID id);
@@ -195,16 +199,6 @@ class TransceiverManager {
 
  protected:
   virtual void loadConfig() = 0;
-
-  // Check whether iphy/xphy/transceiver programmed is done. If not, then
-  // trigger the corresponding program event to program the component.
-  // Return the list of transceivers that have programming events
-  std::vector<TransceiverID> triggerProgrammingEvents();
-
-  // Update the cached PortStatus of TransceiverToPortInfo for the specified
-  // transceiver list
-  void updateTransceiverPortStatus(
-      const std::vector<TransceiverID>& transceivers) noexcept;
 
   void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
     phyManager_ = std::move(phyManager);
@@ -268,6 +262,16 @@ class TransceiverManager {
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
+
+  // Check whether iphy/xphy/transceiver programmed is done. If not, then
+  // trigger the corresponding program event to program the component.
+  // Return the list of transceivers that have programming events
+  std::vector<TransceiverID> triggerProgrammingEvents();
+
+  // Update the cached PortStatus of TransceiverToPortInfo for the specified
+  // transceiver list
+  void updateTransceiverPortStatus(
+      const std::vector<TransceiverID>& transceivers) noexcept;
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,

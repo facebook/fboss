@@ -104,8 +104,7 @@ TEST_F(
     // least can secure TRANSCEIVER_PROGRAMMED after 10 times.
     auto refreshStateMachinesTillTcvrProgrammed = [this]() {
       auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-      // Later will change it to refreshStateMachines()
-      wedgeMgr->refreshTransceivers();
+      wedgeMgr->refreshStateMachines();
       for (auto id : getPresentTransceivers()) {
         auto curState = wedgeMgr->getCurrentState(id);
         if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
