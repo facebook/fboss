@@ -1869,10 +1869,14 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() {
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
   for (auto moduleCapIter : moduleCapabilities_) {
     auto smfCode = static_cast<SMFMediaInterfaceCode>(moduleCapIter.first);
-    auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
-    if (speed > maxSpeed) {
-      maxSpeed = speed;
-      moduleMediaInterface = mediaInterfaceMapping[smfCode];
+    if (mediaInterfaceToPortSpeedMapping.find(smfCode) !=
+            mediaInterfaceToPortSpeedMapping.end() &&
+        mediaInterfaceMapping.find(smfCode) != mediaInterfaceMapping.end()) {
+      auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
+      if (speed > maxSpeed) {
+        maxSpeed = speed;
+        moduleMediaInterface = mediaInterfaceMapping[smfCode];
+      }
     }
   }
 
