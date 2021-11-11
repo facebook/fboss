@@ -26,31 +26,49 @@ void verifyTransceiverSettings(
   }
   XLOG(INFO) << " Verifying: " << id;
   // Only testing QSFP transceivers right now
-  EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::QSFP);
-  auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
-  // Disable low power mode
   EXPECT_TRUE(
-      *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
-      *settings.powerControl_ref() == PowerControlState::HIGH_POWER_OVERRIDE);
-  EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
-  EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+      *transceiver.transceiver_ref() == TransceiverType::QSFP ||
+      *transceiver.transceiver_ref() == TransceiverType::SFP);
+  auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
+  if (*transceiver.transceiver_ref() == TransceiverType::QSFP) {
+    // Disable low power mode
+    EXPECT_TRUE(
+        *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
+        *settings.powerControl_ref() == PowerControlState::HIGH_POWER_OVERRIDE);
+    EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
+    EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+    for (auto& mediaLane :
+         apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
+      EXPECT_FALSE(mediaLane.txSquelch_ref().value());
+    }
+    for (auto& hostLane :
+         apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
+      EXPECT_FALSE(hostLane.rxSquelch_ref().value());
+    }
+  }
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
     EXPECT_FALSE(mediaLane.txDisable_ref().value());
-    EXPECT_FALSE(mediaLane.txSquelch_ref().value());
-  }
-  for (auto& hostLane :
-       apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
-    EXPECT_FALSE(hostLane.rxSquelch_ref().value());
   }
   auto mgmtInterface = apache::thrift::can_throw(
       *transceiver.transceiverManagementInterface_ref());
   EXPECT_TRUE(
+      mgmtInterface == TransceiverManagementInterface::SFF8472 ||
       mgmtInterface == TransceiverManagementInterface::SFF ||
       mgmtInterface == TransceiverManagementInterface::CMIS);
   auto mediaInterfaces =
       apache::thrift::can_throw(*settings.mediaInterface_ref());
   switch (profile) {
+    case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
+      EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::SFF8472);
+      EXPECT_EQ(*transceiver.transceiver_ref(), TransceiverType::SFP);
+      for (const auto& mediaId : mediaInterfaces) {
+        EXPECT_EQ(
+            *mediaId.media_ref()->ethernet10GComplianceCode_ref(),
+            Ethernet10GComplianceCode::LR_10G);
+        EXPECT_EQ(*mediaId.code_ref(), MediaInterfaceCode::LR_10G);
+      }
+      break;
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
