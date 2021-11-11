@@ -24,6 +24,7 @@
 #include "fboss/platform/fan_service/ConfigDataType.h"
 // Service Config needs to access sensor data
 #include "SensorData.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 #define FSVC_DEFAULT_SENSOR_FETCH_FREQUENCY 30
 #define FSVC_DEFAULT_CONTROL_FREQUENCY 30
@@ -237,7 +238,8 @@ class ServiceConfig {
   ~ServiceConfig();
   int parse(std::string filename);
   const folly::dynamic getConfig();
-  FsvcConfigDictIndex convertKeywordToIndex(std::string keyword);
+  fan_config_structs::FsvcConfigDictIndex convertKeywordToIndex(
+      std::string keyword) const;
   float getPwmBoostValue();
   std::string getShutDownCommand();
   int getSensorFetchFrequency();
@@ -267,7 +269,9 @@ class ServiceConfig {
 
   // Eanble Watchdog
   bool watchdog_;
-  std::unordered_map<std::string, FsvcConfigDictIndex> configDict_;
+  // TODO - just use thrift enum names
+  std::unordered_map<std::string, fan_config_structs::FsvcConfigDictIndex>
+      configDict_;
 
   //
   // Methods

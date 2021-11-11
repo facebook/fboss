@@ -1,5 +1,6 @@
 // Copyright 2021- Facebook. All rights reserved.
 #include "ServiceConfig.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss::platform {
 ServiceConfig::ServiceConfig() {
@@ -54,37 +55,37 @@ int ServiceConfig::parse(std::string filename) {
     folly::dynamic value = pair.second;
     std::string bspString;
     switch (convertKeywordToIndex(key)) {
-      case kFsvcCfgChapterZones:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones:
         parseZonesChapter(value);
         break;
-      case kFsvcCfgFans:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans:
         parseFansChapter(value);
         break;
-      case kFsvcCfgSensors:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors:
         parseSensorsChapter(value);
         break;
-      case kFsvcCfgPwmBoost:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmBoost:
         pwmBoostValue_ = value.asInt();
         break;
-      case kFsvcCfgBoostOnDeadFan:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBoostOnDeadFan:
         pwmBoostOnDeadFan = value.asInt();
         break;
-      case kFsvcCfgBoostOnDeadSensor:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBoostOnDeadSensor:
         pwmBoostOnDeadSensor = value.asInt();
         break;
-      case kFsvcCfgPwmUpper:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmUpper:
         pwmUpperThreshold_ = value.asInt();
         break;
-      case kFsvcCfgPwmLower:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmLower:
         pwmLowerThreshold_ = value.asInt();
         break;
-      case kFscvCfgWatchdogEnable:
+      case fan_config_structs::FsvcConfigDictIndex::kFscvCfgWatchdogEnable:
         watchdog_ = value.asBool();
         break;
-      case kFsvcCfgShutdownCmd:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd:
         shutDownCommand_ = value.asString();
         break;
-      case kFsvcCfgBsp:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBsp:
         bspString = value.asString();
         parseBspType(bspString);
         break;
@@ -99,19 +100,19 @@ int ServiceConfig::parse(std::string filename) {
 
 void ServiceConfig::parseBspType(std::string bspString) {
   switch (convertKeywordToIndex(bspString)) {
-    case kFsvcCfgBspGeneric:
+    case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspGeneric:
       bspType = kBspGeneric;
       break;
-    case kFsvcCfgBspDarwin:
+    case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspDarwin:
       bspType = kBspDarwin;
       break;
-    case kFsvcCfgBspLassen:
+    case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspLassen:
       bspType = kBspLassen;
       break;
-    case kFsvcCfgBspMinipack3:
+    case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMinipack3:
       bspType = kBspMinipack3;
       break;
-    case kFsvcCfgBspMokujin:
+    case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMokujin:
       bspType = kBspMokujin;
       break;
     default:
@@ -126,22 +127,29 @@ AccessMethod ServiceConfig::parseAccessMethod(folly::dynamic values) {
   for (auto& item : values.items()) {
     std::string key = item.first.asString();
     auto value = item.second;
-    switch ((int)convertKeywordToIndex(key)) {
-      case kFsvcCfgSource:
-        if (convertKeywordToIndex(value.asString()) == kFsvcCfgSourceSysfs)
+    switch (convertKeywordToIndex(key)) {
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
+        if (convertKeywordToIndex(value.asString()) ==
+            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
           returnVal.accessType = kSrcSysfs;
-        else if (
-            convertKeywordToIndex(value.asString()) == kFsvcCfgSourceThrift)
+        } else if (
+            convertKeywordToIndex(value.asString()) ==
+            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
           returnVal.accessType = kSrcThrift;
-        else if (convertKeywordToIndex(value.asString()) == kFsvcCfgSourceUtil)
+        } else if (
+            convertKeywordToIndex(value.asString()) ==
+            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
           returnVal.accessType = kSrcUtil;
-        else if (convertKeywordToIndex(value.asString()) == kFsvcCfgSourceRest)
+        } else if (
+            convertKeywordToIndex(value.asString()) ==
+            fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
           returnVal.accessType = kSrcRest;
-        else
+        } else {
           throw facebook::fboss::FbossError(
               "Invalid Access Type : ", value.asString());
+        }
         break;
-      case kFsvcCfgAccessPath:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath:
         returnVal.path = value.asString();
         break;
       default:
@@ -175,28 +183,31 @@ RangeCheck ServiceConfig::parseRangeCheck(folly::dynamic valueCluster) {
   for (auto& item : valueCluster.items()) {
     std::string key = item.first.asString();
     auto value = item.second;
-    switch ((int)convertKeywordToIndex(key)) {
-      case kFsvcCfgRangeLow:
+    switch (convertKeywordToIndex(key)) {
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeLow:
         returnVal.rangeLow = (float)value.asDouble();
         lowSet = true;
         break;
-      case kFsvcCfgRangeHigh:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeHigh:
         returnVal.rangeHigh = (float)value.asDouble();
         highSet = true;
         break;
-      case kFsvcCfgInvalidRangeAction:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeAction:
         if (convertKeywordToIndex(value.asString()) ==
-            kFsvcCfgInvalidRangeActionShutdown)
+            fan_config_structs::FsvcConfigDictIndex::
+                kFsvcCfgInvalidRangeActionShutdown)
           returnVal.action = kRangeCheckActionShutdown;
         else if (
             convertKeywordToIndex(value.asString()) ==
-            kFsvcCfgInvalidRangeActionNone)
+            fan_config_structs::FsvcConfigDictIndex::
+                kFsvcCfgInvalidRangeActionNone)
           returnVal.action = kRangeCheckActionNone;
         else
           facebook::fboss::FbossError(
               "Invalid Sensor-Out-Of-Range action-type : ", value.asString());
         break;
-      case kFsvcCfgInvalidRangeTolerance:
+      case fan_config_structs::FsvcConfigDictIndex::
+          kFsvcCfgInvalidRangeTolerance:
         returnVal.tolerance = value.asInt();
         break;
       default:
@@ -219,14 +230,14 @@ Alarm ServiceConfig::parseAlarm(folly::dynamic valueCluster) {
   for (auto& item : valueCluster.items()) {
     std::string key = item.first.asString();
     auto value = item.second;
-    switch ((int)convertKeywordToIndex(key)) {
-      case kFsvcCfgAlarmMajor:
+    switch (convertKeywordToIndex(key)) {
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor:
         returnVal.high_major = (float)value.asDouble();
         break;
-      case kFsvcCfgAlarmMinor:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor:
         returnVal.high_minor = (float)value.asDouble();
         break;
-      case kFsvcCfgAlarmMinorSoakInSec:
+      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec:
         returnVal.high_minor_soak = value.asInt();
         break;
       default:
@@ -253,28 +264,32 @@ void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
       for (auto& pair : zoneAttrib.items()) {
         auto key = pair.first.asString();
         auto value = pair.second;
-        switch ((int)convertKeywordToIndex(key)) {
-          case kFsvcCfgZonesType:
-            if (convertKeywordToIndex(value.asString()) == kFsvcCfgZonesTypeMax)
+        switch (convertKeywordToIndex(key)) {
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType:
+            if (convertKeywordToIndex(value.asString()) ==
+                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMax) {
               newZone.type = kZoneMax;
-            else if (
-                convertKeywordToIndex(value.asString()) == kFsvcCfgZonesTypeMin)
+            } else if (
+                convertKeywordToIndex(value.asString()) ==
+                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMin) {
               newZone.type = kZoneMin;
-            else if (
-                convertKeywordToIndex(value.asString()) == kFsvcCfgZonesTypeAvg)
+            } else if (
+                convertKeywordToIndex(value.asString()) ==
+                fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeAvg) {
               newZone.type = kZoneAvg;
-            else
+            } else {
               facebook::fboss::FbossError(
                   "Invalid Zone Type : ", value.asString());
+            }
             break;
-          case kFsvcCfgZonesFanSlope:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope:
             newZone.slope = (float)value.asDouble();
             break;
-          case kFsvcCfgSensors:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors:
             for (auto& item : value)
               newZone.sensorNames.push_back(item.asString());
             break;
-          case kFsvcCfgFans:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans:
             for (auto& item : value)
               newZone.fanNames.push_back(item.asString());
             break;
@@ -307,10 +322,10 @@ void ServiceConfig::parseFansChapter(folly::dynamic value) {
         auto key = pair.first.asString();
         auto value = pair.second;
         switch (convertKeywordToIndex(key)) {
-          case kFsvcCfgFanPwm:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm:
             newFan.pwm = parseAccessMethod(value);
             break;
-          case kFsvcCfgFanRpm:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm:
             newFan.rpmAccess = parseAccessMethod(value);
             break;
           default:
@@ -343,62 +358,76 @@ void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
         auto key = pair.first.asString();
         auto value = pair.second;
         switch (convertKeywordToIndex(key)) {
-          case kFsvcCfgAccess:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess:
             newSensor.access = parseAccessMethod(value);
             break;
-          case kFsvcCfgSensorAdjustment:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensorAdjustment:
             newSensor.offsetTable = parseTable(value);
             break;
-          case kFsvcCfgSensorType:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType:
             valStr = value.asString();
-            if (convertKeywordToIndex(valStr) == kFsvcCfgSensorType4Cuv)
+            if (convertKeywordToIndex(valStr) ==
+                fan_config_structs::FsvcConfigDictIndex::
+                    kFsvcCfgSensorType4Cuv) {
               newSensor.calculationType = kSensorPwmCalcFourLinearTable;
-            else if (
-                convertKeywordToIndex(valStr) == kFsvcCfgSensorTypeIncrementPid)
+            } else if (
+                convertKeywordToIndex(valStr) ==
+                fan_config_structs::FsvcConfigDictIndex::
+                    kFsvcCfgSensorTypeIncrementPid) {
               newSensor.calculationType = kSensorPwmCalcIncrementPid;
-            else if (convertKeywordToIndex(valStr) == kFsvcCfgSensorTypePid)
+            } else if (
+                convertKeywordToIndex(valStr) ==
+                fan_config_structs::FsvcConfigDictIndex::
+                    kFsvcCfgSensorTypePid) {
               newSensor.calculationType = kSensorPwmCalcPid;
-            else
+            } else {
               facebook::fboss::FbossError(
                   "Invalide Sensor PWM Calculation Type ", valStr);
+            }
             break;
-          case kFsvcCfgSensor4CuvUp:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvUp:
             newSensor.fourCurves.normalUp = parseTable(value);
             break;
-          case kFsvcCfgSensor4CuvDown:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvDown:
             newSensor.fourCurves.normalDown = parseTable(value);
             break;
-          case kFsvcCfgSensor4CuvFailUp:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensor4CuvFailUp:
             newSensor.fourCurves.failUp = parseTable(value);
             break;
-          case kFsvcCfgSensor4CuvFailDown:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensor4CuvFailDown:
             newSensor.fourCurves.failDown = parseTable(value);
             break;
-          case kFsvcCfgSensorIncrpidSetpoint:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensorIncrpidSetpoint:
             newSensor.incrementPid.setPoint = (float)value.asDouble();
             newSensor.incrementPid.updateMinMaxVal();
             break;
-          case kFsvcCfgSensorIncrpidPosHyst:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensorIncrpidPosHyst:
             newSensor.incrementPid.posHysteresis = (float)value.asDouble();
             newSensor.incrementPid.updateMinMaxVal();
             break;
-          case kFsvcCfgSensorIncrpidNegHyst:
+          case fan_config_structs::FsvcConfigDictIndex::
+              kFsvcCfgSensorIncrpidNegHyst:
             newSensor.incrementPid.negHysteresis = (float)value.asDouble();
             newSensor.incrementPid.updateMinMaxVal();
             break;
-          case kFsvcCfgSensorIncrpidKd:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKd:
             newSensor.incrementPid.kd = (float)value.asDouble();
             break;
-          case kFsvcCfgSensorIncrpidKi:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKi:
             newSensor.incrementPid.ki = (float)value.asDouble();
             break;
-          case kFsvcCfgSensorIncrpidKp:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKp:
             newSensor.incrementPid.kp = (float)value.asDouble();
             break;
-          case kFsvcCfgSensorAlarm:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm:
             newSensor.alarm = parseAlarm(value);
             break;
-          case kFsvcCfgRangeCheck:
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeCheck:
             newSensor.rangeCheck = parseRangeCheck(value);
             break;
           default:
@@ -422,11 +451,12 @@ float ServiceConfig::getPwmBoostValue() {
   return pwmBoostValue_;
 }
 
-FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(std::string keyword) {
-  if (configDict_.find(keyword) == configDict_.end()) {
-    return kFsvcCfgInvalid;
-  }
-  return configDict_[keyword];
+fan_config_structs::FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(
+    std::string keyword) const {
+  auto itr = configDict_.find(keyword);
+  return itr == configDict_.end()
+      ? fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalid
+      : itr->second;
 }
 
 std::string ServiceConfig::getShutDownCommand() {
@@ -448,62 +478,115 @@ int ServiceConfig::getPwmLowerThreshold() {
 }
 
 void ServiceConfig::prepareDict() {
-  configDict_["bsp"] = kFsvcCfgBsp;
-  configDict_["generic"] = kFsvcCfgBspGeneric;
-  configDict_["darwin"] = kFsvcCfgBspDarwin;
-  configDict_["mokujin"] = kFsvcCfgBspMokujin;
-  configDict_["lassen"] = kFsvcCfgBspLassen;
-  configDict_["minipack3"] = kFsvcCfgBspMinipack3;
-  configDict_["pwm_boost_value"] = kFsvcCfgPwmBoost;
-  configDict_["boost_on_dead_fan"] = kFsvcCfgBoostOnDeadFan;
-  configDict_["boost_on_dead_sensor"] = kFsvcCfgBoostOnDeadSensor;
-  configDict_["pwm_percent_upper_limit"] = kFsvcCfgPwmUpper;
-  configDict_["pwm_percent_lower_limit"] = kFsvcCfgPwmLower;
-  configDict_["watchdog"] = kFscvCfgWatchdogEnable;
-  configDict_["shutdown_command"] = kFsvcCfgShutdownCmd;
-  configDict_["zones"] = kFsvcCfgChapterZones;
-  configDict_["name"] = kFsvcCfgZonesName;
-  configDict_["zone_type"] = kFsvcCfgZonesType;
-  configDict_["max"] = kFsvcCfgZonesTypeMax;
-  configDict_["min"] = kFsvcCfgZonesTypeMin;
-  configDict_["avg"] = kFsvcCfgZonesTypeAvg;
-  configDict_["slope"] = kFsvcCfgZonesFanSlope;
-  configDict_["fans"] = kFsvcCfgFans;
-  configDict_["pwm"] = kFsvcCfgFanPwm;
-  configDict_["rpm"] = kFsvcCfgFanRpm;
-  configDict_["source"] = kFsvcCfgSource;
-  configDict_["sysfs"] = kFsvcCfgSourceSysfs;
-  configDict_["util"] = kFsvcCfgSourceUtil;
-  configDict_["thrift"] = kFsvcCfgSourceThrift;
-  configDict_["REST"] = kFsvcCfgSourceRest;
-  configDict_["path"] = kFsvcCfgAccessPath;
-  configDict_["sensors"] = kFsvcCfgSensors;
-  configDict_["adjustment"] = kFsvcCfgSensorAdjustment;
-  configDict_["alarm"] = kFsvcCfgSensorAlarm;
-  configDict_["access"] = kFsvcCfgAccess;
-  configDict_["alarm_major"] = kFsvcCfgAlarmMajor;
-  configDict_["alarm_minor"] = kFsvcCfgAlarmMinor;
-  configDict_["alarm_minor_soak"] = kFsvcCfgAlarmMinorSoakInSec;
-  configDict_["type"] = kFsvcCfgSensorType;
-  configDict_["linear_four_curves"] = kFsvcCfgSensorType4Cuv;
-  configDict_["incrementpid"] = kFsvcCfgSensorTypeIncrementPid;
-  configDict_["pid"] = kFsvcCfgSensorTypePid;
-  configDict_["normal_up_table"] = kFsvcCfgSensor4CuvUp;
-  configDict_["normal_down_table"] = kFsvcCfgSensor4CuvDown;
-  configDict_["onefail_up_table"] = kFsvcCfgSensor4CuvFailUp;
-  configDict_["onefail_down_table"] = kFsvcCfgSensor4CuvFailDown;
-  configDict_["setpoint"] = kFsvcCfgSensorIncrpidSetpoint;
-  configDict_["positive_hysteresis"] = kFsvcCfgSensorIncrpidPosHyst;
-  configDict_["negative_hysteresis"] = kFsvcCfgSensorIncrpidNegHyst;
-  configDict_["kp"] = kFsvcCfgSensorIncrpidKp;
-  configDict_["ki"] = kFsvcCfgSensorIncrpidKi;
-  configDict_["kd"] = kFsvcCfgSensorIncrpidKd;
-  configDict_["range_check"] = kFsvcCfgRangeCheck;
-  configDict_["range_low"] = kFsvcCfgRangeLow;
-  configDict_["range_high"] = kFsvcCfgRangeHigh;
-  configDict_["tolerance"] = kFsvcCfgInvalidRangeTolerance;
-  configDict_["invalid_range_action"] = kFsvcCfgInvalidRangeAction;
-  configDict_["shutdown"] = kFsvcCfgInvalidRangeActionShutdown;
-  configDict_["no_action"] = kFsvcCfgInvalidRangeActionNone;
+  configDict_["bsp"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBsp;
+  configDict_["generic"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspGeneric;
+  configDict_["darwin"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspDarwin;
+  configDict_["mokujin"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMokujin;
+  configDict_["lassen"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspLassen;
+  configDict_["minipack3"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMinipack3;
+  configDict_["pwm_boost_value"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmBoost;
+  configDict_["boost_on_dead_fan"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBoostOnDeadFan;
+  configDict_["boost_on_dead_sensor"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBoostOnDeadSensor;
+  configDict_["pwm_percent_upper_limit"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmUpper;
+  configDict_["pwm_percent_lower_limit"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmLower;
+  configDict_["watchdog"] =
+      fan_config_structs::FsvcConfigDictIndex::kFscvCfgWatchdogEnable;
+  configDict_["shutdown_command"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd;
+  configDict_["zones"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgChapterZones;
+  configDict_["name"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesName;
+  configDict_["zone_type"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType;
+  configDict_["max"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMax;
+  configDict_["min"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMin;
+  configDict_["avg"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeAvg;
+  configDict_["slope"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesFanSlope;
+  configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
+  configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
+  configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;
+  configDict_["source"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource;
+  configDict_["sysfs"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs;
+  configDict_["util"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil;
+  configDict_["thrift"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift;
+  configDict_["REST"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest;
+  configDict_["path"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath;
+  configDict_["sensors"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensors;
+  configDict_["adjustment"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAdjustment;
+  configDict_["alarm"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorAlarm;
+  configDict_["access"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccess;
+  configDict_["alarm_major"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMajor;
+  configDict_["alarm_minor"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinor;
+  configDict_["alarm_minor_soak"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAlarmMinorSoakInSec;
+  configDict_["type"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType;
+  configDict_["linear_four_curves"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorType4Cuv;
+  configDict_["incrementpid"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorTypeIncrementPid;
+  configDict_["pid"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorTypePid;
+  configDict_["normal_up_table"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvUp;
+  configDict_["normal_down_table"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvDown;
+  configDict_["onefail_up_table"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvFailUp;
+  configDict_["onefail_down_table"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensor4CuvFailDown;
+  configDict_["setpoint"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidSetpoint;
+  configDict_["positive_hysteresis"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidPosHyst;
+  configDict_["negative_hysteresis"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidNegHyst;
+  configDict_["kp"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKp;
+  configDict_["ki"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKi;
+  configDict_["kd"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSensorIncrpidKd;
+  configDict_["range_check"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeCheck;
+  configDict_["range_low"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeLow;
+  configDict_["range_high"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgRangeHigh;
+  configDict_["tolerance"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeTolerance;
+  configDict_["invalid_range_action"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeAction;
+  configDict_["shutdown"] = fan_config_structs::FsvcConfigDictIndex::
+      kFsvcCfgInvalidRangeActionShutdown;
+  configDict_["no_action"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgInvalidRangeActionNone;
 }
 } // namespace facebook::fboss::platform
