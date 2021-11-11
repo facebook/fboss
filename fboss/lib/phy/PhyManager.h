@@ -231,8 +231,6 @@ class PhyManager {
       cfg::PortProfileID profileID,
       const phy::PhyPortConfig& portConfig);
 
-  virtual int32_t getXphyPortStatsUpdateIntervalInSec() const;
-
   void setPortToExternalPhyPortStatsLocked(
       const PortCacheWLockedPtr& lockedCache,
       std::unique_ptr<ExternalPhyPortStatsUtils> stats);

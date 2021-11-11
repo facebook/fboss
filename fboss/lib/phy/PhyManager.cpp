@@ -18,16 +18,6 @@
 #include <cstdlib>
 #include <memory>
 
-DEFINE_int32(
-    xphy_port_stat_interval_secs,
-    200,
-    "Interval to collect xphy port statistics (seconds)");
-
-DEFINE_int32(
-    xphy_prbs_stat_interval_secs,
-    10,
-    "Interval to collect xphy prbs statistics (seconds)");
-
 namespace {
 // Key of the portToCacheInfo map in warmboot state cache
 constexpr auto kPortToCacheInfoKey = "portToCacheInfo";
@@ -490,10 +480,6 @@ void PhyManager::restoreFromWarmbootState(
   }
 }
 
-int32_t PhyManager::getXphyPortStatsUpdateIntervalInSec() const {
-  return FLAGS_xphy_port_stat_interval_secs;
-}
-
 void PhyManager::setPortToExternalPhyPortStatsLocked(
     const PortCacheWLockedPtr& lockedCache,
     std::unique_ptr<ExternalPhyPortStatsUtils> stats) {
@@ -537,40 +523,37 @@ void PhyManager::updateStatsLocked(
                  << " still underway...";
     } else {
       // Collect xphy port stats
-      steady_clock::time_point begin = steady_clock::now();
       wLockedCache->ongoingStatCollection =
-          folly::via(evb)
-              .thenValue([this, portID, xphy, begin](auto&&) {
-                // Since this is delay future job, we need to fetch the
-                // cache with wlock again
-                const auto& wCache = getWLockedCache(portID);
-                std::optional<ExternalPhyPortStats> stats;
-                // if PORT_INFO feature is supported, use getPortInfo instead
-                if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
-                  auto xphyPortInfo =
-                      xphy->getPortInfo(wCache->systemLanes, wCache->lineLanes);
-                  xphyPortInfo.name_ref() = getPortName(portID);
-                  if (auto programmedSpeed = wCache->speed) {
-                    xphyPortInfo.speed_ref() = *programmedSpeed;
-                  } else {
-                    throw FbossError(
-                        "Missing programmed speed for port:", portID);
-                  }
-                  updateXphyInfo(portID, xphyPortInfo);
-                  stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
-                } else {
-                  stats = xphy->getPortStats(
-                      wCache->systemLanes, wCache->lineLanes);
-                }
-                wCache->stats->updateXphyStats(*stats);
-                XLOG(DBG3) << "Port " << portID
-                           << ": xphy port stat collection took "
-                           << duration_cast<milliseconds>(
-                                  steady_clock::now() - begin)
-                                  .count()
-                           << "ms";
-              })
-              .delayed(seconds(getXphyPortStatsUpdateIntervalInSec()));
+          folly::via(evb).thenValue([this, portID, xphy](auto&&) {
+            // Since this is future job, we need to fetch the cache with wlock
+            // again
+            const auto& wCache = getWLockedCache(portID);
+            steady_clock::time_point begin = steady_clock::now();
+            std::optional<ExternalPhyPortStats> stats;
+            // if PORT_INFO feature is supported, use getPortInfo instead
+            if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
+              auto xphyPortInfo =
+                  xphy->getPortInfo(wCache->systemLanes, wCache->lineLanes);
+              xphyPortInfo.name_ref() = getPortName(portID);
+              if (auto programmedSpeed = wCache->speed) {
+                xphyPortInfo.speed_ref() = *programmedSpeed;
+              } else {
+                throw FbossError("Missing programmed speed for port:", portID);
+              }
+              updateXphyInfo(portID, xphyPortInfo);
+              stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
+            } else {
+              stats =
+                  xphy->getPortStats(wCache->systemLanes, wCache->lineLanes);
+            }
+            wCache->stats->updateXphyStats(*stats);
+            XLOG(DBG3) << "Port " << portID
+                       << ": xphy port stat collection took "
+                       << duration_cast<milliseconds>(
+                              steady_clock::now() - begin)
+                              .count()
+                       << "ms";
+          });
     }
   }
 
@@ -584,24 +567,22 @@ void PhyManager::updateStatsLocked(
                    << " still underway...";
       } else {
         // Collect xphy prbs stats
-        steady_clock::time_point begin = steady_clock::now();
         wLockedCache->ongoingPrbsStatCollection =
-            folly::via(evb)
-                .thenValue([this, portID, xphy, begin](auto&&) {
-                  // Since this is delay future job, we need to fetch the
-                  // cache with wlock again
-                  const auto& wCache = getWLockedCache(portID);
-                  const auto& stats = xphy->getPortPrbsStats(
-                      wCache->systemLanes, wCache->lineLanes);
-                  wCache->stats->updateXphyPrbsStats(stats);
-                  XLOG(DBG3) << "Port " << portID
-                             << ": xphy prbs stat collection took "
-                             << duration_cast<milliseconds>(
-                                    steady_clock::now() - begin)
-                                    .count()
-                             << "ms";
-                })
-                .delayed(seconds(FLAGS_xphy_prbs_stat_interval_secs));
+            folly::via(evb).thenValue([this, portID, xphy](auto&&) {
+              // Since this is future job, we need to fetch the cache with wlock
+              // again
+              const auto& wCache = getWLockedCache(portID);
+              steady_clock::time_point begin = steady_clock::now();
+              const auto& stats = xphy->getPortPrbsStats(
+                  wCache->systemLanes, wCache->lineLanes);
+              wCache->stats->updateXphyPrbsStats(stats);
+              XLOG(DBG3) << "Port " << portID
+                         << ": xphy prbs stat collection took "
+                         << duration_cast<milliseconds>(
+                                steady_clock::now() - begin)
+                                .count()
+                         << "ms";
+            });
       }
     }
   }

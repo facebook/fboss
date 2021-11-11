@@ -58,9 +58,6 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
     };
 
     auto verify = [&]() {
-      // Change the default xphy port stat collection delay to 1s
-      gflags::SetCommandLineOptionWithMode(
-          "xphy_port_stat_interval_secs", "0", gflags::SET_FLAGS_DEFAULT);
       getHwQsfpEnsemble()->getWedgeManager()->updateAllXphyPortsStats();
       /* sleep override */
       sleep(getSleepSeconds(
@@ -178,12 +175,6 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
     };
 
     auto verify = [&]() {
-      // Change the default xphy port stat collection delay to no delay
-      gflags::SetCommandLineOptionWithMode(
-          "xphy_port_stat_interval_secs", "0", gflags::SET_FLAGS_DEFAULT);
-      gflags::SetCommandLineOptionWithMode(
-          "xphy_prbs_stat_interval_secs", "0", gflags::SET_FLAGS_DEFAULT);
-
       auto platformMode =
           getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
       int sleepSeconds = getSleepSeconds(platformMode);

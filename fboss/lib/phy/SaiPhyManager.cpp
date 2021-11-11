@@ -114,23 +114,27 @@ void SaiPhyManager::updateAllXphyPortsStats() {
                  << "is still ongoing";
     } else {
       pim2OngoingStatsCollection_[pimId] =
-          folly::via(getPimEventBase(pimId))
-              .thenValue([this, pimId](auto&&) {
-                auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
-                for (auto& [xphy, platformInfo] : xphyToPlatform) {
-                  try {
-                    static SwitchStats unused;
-                    platformInfo->getHwSwitch()->updateStats(&unused);
-                  } catch (const std::exception& e) {
-                    XLOG(INFO) << "Stats collection failed on : "
-                               << "switch: "
-                               << platformInfo->getHwSwitch()->getSwitchId()
-                               << " xphy: " << xphy << " error: " << e.what();
-                  }
-                }
-              })
-              .delayed(
-                  std::chrono::seconds(getXphyPortStatsUpdateIntervalInSec()));
+          folly::via(getPimEventBase(pimId)).thenValue([this, pimId](auto&&) {
+            steady_clock::time_point begin = steady_clock::now();
+            auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
+            for (auto& [xphy, platformInfo] : xphyToPlatform) {
+              try {
+                static SwitchStats unused;
+                platformInfo->getHwSwitch()->updateStats(&unused);
+              } catch (const std::exception& e) {
+                XLOG(INFO) << "Stats collection failed on : "
+                           << "switch: "
+                           << platformInfo->getHwSwitch()->getSwitchId()
+                           << " xphy: " << xphy << " error: " << e.what();
+              }
+            }
+            XLOG(DBG3) << "Pim " << static_cast<int>(pimId) << ": all "
+                       << xphyToPlatform.size() << " xphy stat collection took "
+                       << duration_cast<milliseconds>(
+                              steady_clock::now() - begin)
+                              .count()
+                       << "ms";
+          });
     }
   }
 }
