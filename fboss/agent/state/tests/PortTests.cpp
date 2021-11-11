@@ -45,6 +45,33 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
 }
 } // namespace
 
+// Test to validate isAnyInterfacePortInLoopbackMode
+// Validate that none of the interface/ports are in loopback mode
+// modify ports to be in loopback and check again
+TEST(Port, checkPortLoopbackMode) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (const auto& intf : *stateV1->getInterfaces()) {
+    EXPECT_FALSE(isAnyInterfacePortInLoopbackMode(stateV1, intf));
+  }
+
+  // set all ports in the configuration to loopback
+  // all interfaces should also point to these loopbacks
+  for (auto& port : *config.ports_ref()) {
+    port.loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+  }
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+
+  for (const auto& intf : *stateV2->getInterfaces()) {
+    EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, intf));
+  }
+}
+
 TEST(Port, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
