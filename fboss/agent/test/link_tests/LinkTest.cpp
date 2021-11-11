@@ -32,6 +32,8 @@ void LinkTest::setupFlags() const {
   FLAGS_enable_macsec = true;
   // Collect stats faster instead of defaulting to 200s. So our stat
   // tests can finish faster.
+  // TODO(joseph5wu) Will deprecate this gearbox_stat_interval flag in agent
+  // and rely on qsfp_service to collect xphy stats
   switch (sw()->getPlatform()->getMode()) {
     case PlatformMode::MINIPACK:
     case PlatformMode::FUJI:
@@ -201,11 +203,6 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
     connectedPairs.insert(connectedPair);
   }
   return connectedPairs;
-}
-
-int32_t LinkTest::getMaxStatDelay() const {
-  int32_t maxSplay = FLAGS_gearbox_stat_interval / 2;
-  return FLAGS_gearbox_stat_interval + maxSplay;
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

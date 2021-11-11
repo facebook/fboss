@@ -9,6 +9,7 @@
 #include <boost/container/flat_set.hpp>
 
 DECLARE_int32(gearbox_stat_interval);
+DECLARE_bool(skip_xphy_programming);
 
 namespace facebook::fboss {
 
@@ -60,7 +61,6 @@ class LinkTest : public AgentTest {
   }
   PortID getPortID(const std::string& portName) const;
   std::string getPortName(PortID port) const;
-  int32_t getMaxStatDelay() const;
 
  private:
   void programDefaultRoute(

@@ -8,6 +8,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/PhyInterfaceHandler.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;
@@ -15,6 +16,10 @@ using namespace facebook::fboss;
 using namespace std::chrono_literals;
 
 static constexpr int kSecondsBetweenSnapshots = 20;
+// When we switch to use qsfp_service to collect stats(PhyInfo), default stats
+// collection frequency is 60s. Give the maximum check time 5x24=120s here.
+static constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
+static constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
 
 namespace {
 void validatePhyInfo(
@@ -41,6 +46,31 @@ void validatePhyInfo(
   EXPECT_TRUE(
       *prevRsFecInfo.correctedCodewords_ref() <=
       *currRsFecInfo.correctedCodewords_ref());
+}
+
+// This function supports both using qsfp_service thrift api and
+// PhyInterfaceHandler from wedge_agent directly to get the XphyInfo for a
+// specific port.
+// TODO(joseph5wu) Will remove the way of using PhyInterfaceHandler to get
+// xphy info once we fully switch to use qsfp_service to program xphy.
+std::optional<phy::PhyInfo> getXphyInfo(
+    PortID portID,
+    PhyInterfaceHandler* phyIntHandler) {
+  std::optional<phy::PhyInfo> phyInfo;
+  if (FLAGS_skip_xphy_programming) {
+    // thrift can't support return optional
+    try {
+      phy::PhyInfo thriftPhyInfo;
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getXphyInfo(thriftPhyInfo, portID);
+      phyInfo.emplace(thriftPhyInfo);
+    } catch (const thrift::FbossBaseError& /* err */) {
+      // If there's no phyInfo collected, it will throw fboss error.
+    }
+  } else {
+    phyInfo = phyIntHandler->getXphyInfo(portID);
+  }
+  return phyInfo;
 }
 } // namespace
 
@@ -108,9 +138,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
           if (phyInfoBefore.count(port)) {
             continue;
           }
-
           auto phyInfo =
-              sw()->getPlatform()->getPhyInterfaceHandler()->getXphyInfo(port);
+              getXphyInfo(port, sw()->getPlatform()->getPhyInterfaceHandler());
           if (phyInfo.has_value()) {
             phyInfoBefore.emplace(port, *phyInfo);
           } else {
@@ -128,8 +157,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
   try {
     checkWithRetry(
         phyInfoReady,
-        getMaxStatDelay() + 10 /* retries */,
-        1s /* retry period */);
+        kMaxNumXphyInfoCollectionCheck /* retries */,
+        kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
   } catch (...) {
     XLOG(ERR) << "Failed to wait for all ports to have snapshots:";
     phyInfoReady(true);
@@ -145,7 +174,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
       }
 
       auto phyInfo =
-          sw()->getPlatform()->getPhyInterfaceHandler()->getXphyInfo(port);
+          getXphyInfo(port, sw()->getPlatform()->getPhyInterfaceHandler());
       if (phyInfo.has_value() &&
           phyInfo->get_timeCollected() -
                   phyInfoBefore[port].get_timeCollected() >=
@@ -168,8 +197,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
   try {
     checkWithRetry(
         phyInfoUpdated,
-        getMaxStatDelay() + 10 /* retries */,
-        1s /* retry period */);
+        kMaxNumXphyInfoCollectionCheck /* retries */,
+        kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
   } catch (...) {
     XLOG(ERR) << "Failed to wait for all ports to have snapshot updates:";
     phyInfoUpdated(true);
