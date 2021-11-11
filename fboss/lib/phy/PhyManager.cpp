@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/PhySnapshotManager.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -32,9 +33,43 @@ namespace {
 constexpr auto kPortToCacheInfoKey = "portToCacheInfo";
 constexpr auto kSystemLanesKey = "systemLanes";
 constexpr auto kLineLanesKey = "lineLanes";
+constexpr auto kPortProfileStrKey = "profile";
+constexpr auto kPortSpeedStrKey = "speed";
 } // namespace
 
 namespace facebook::fboss {
+
+namespace {
+cfg::PortProfileID getProfileIDBySpeed(
+    PortID portID,
+    cfg::PortSpeed speed,
+    const PlatformMapping* platformMapping) {
+  auto portEntryIt = platformMapping->getPlatformPorts().find(portID);
+  if (portEntryIt == platformMapping->getPlatformPorts().end()) {
+    throw FbossError("Can't find port:", portID, " in PlatformMapping");
+  }
+  for (auto profile : *portEntryIt->second.supportedProfiles_ref()) {
+    auto profileID = profile.first;
+    if (auto profileCfg = platformMapping->getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profileID, portID))) {
+      if (*profileCfg->speed_ref() == speed) {
+        return profileID;
+      }
+    } else {
+      throw FbossError(
+          "Platform port ",
+          portID,
+          " has invalid profile ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
+  }
+  throw FbossError(
+      "Port:",
+      portID,
+      " doesn't support speed:",
+      apache::thrift::util::enumNameSafe(speed));
+}
+} // namespace
 
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
@@ -141,8 +176,9 @@ void PhyManager::programOnePort(
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
   xphy->programOnePort(desiredPhyPortConfig);
 
-  // Once the port is programmed successfully, update the portToLanesInfo_
-  setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
+  // Once the port is programmed successfully, update the portToCacheInfo_
+  setPortToPortCacheInfoLocked(
+      wLockedCache, portId, portProfileId, desiredPhyPortConfig);
   if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
     setPortToExternalPhyPortStatsLocked(
         wLockedCache, createExternalPhyPortStats(PortID(portId)));
@@ -177,11 +213,16 @@ void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
 }
 
-void PhyManager::setPortToLanesInfoLocked(
+void PhyManager::setPortToPortCacheInfoLocked(
     const PortCacheWLockedPtr& lockedCache,
     PortID portID,
+    cfg::PortProfileID profileID,
     const phy::PhyPortConfig& portConfig) {
-  // First check whether there's a systemLanes and lineLanes cache already
+  // Always update profile/speed
+  lockedCache->profile = profileID;
+  lockedCache->speed = portConfig.profile.speed;
+
+  // Check whether there's a systemLanes and lineLanes cache already
   const auto& systemLanesConfig = portConfig.config.system.lanes;
   const auto& lineLanesConfig = portConfig.config.line.lanes;
   // check whether all the lanes match
@@ -211,7 +252,6 @@ void PhyManager::setPortToLanesInfoLocked(
   if (matched) {
     return;
   }
-
   // Now reset the cached lane info if there's no match
   lockedCache->systemLanes.clear();
   for (const auto& it : portConfig.config.system.lanes) {
@@ -308,6 +348,13 @@ folly::dynamic PhyManager::getWarmbootState() const {
     }
     portCacheInfo[kSystemLanesKey] = systemLanes;
     portCacheInfo[kLineLanesKey] = lineLanes;
+    // Both speed and profile exist
+    if (rLockedCache->speed && rLockedCache->profile) {
+      portCacheInfo[kPortSpeedStrKey] =
+          apache::thrift::util::enumNameSafe(*rLockedCache->speed);
+      portCacheInfo[kPortProfileStrKey] =
+          apache::thrift::util::enumNameSafe(*rLockedCache->profile);
+    }
     portToCacheInfoCache[folly::to<std::string>(static_cast<int>(it.first))] =
         portCacheInfo;
   }
@@ -356,6 +403,45 @@ void PhyManager::restoreFromWarmbootState(
 
     if (isProgrammed) {
       auto* xphy = getExternalPhyLocked(wLockedCache);
+      std::optional<phy::PhyPortConfig> hwPortConfig;
+      // Restore programmed profile and speed
+      if (portCacheInfo.find(kPortProfileStrKey) !=
+              portCacheInfo.items().end() &&
+          portCacheInfo.find(kPortSpeedStrKey) != portCacheInfo.items().end()) {
+        cfg::PortProfileID profile;
+        if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
+                portCacheInfo[kPortProfileStrKey].c_str(), &profile)) {
+          throw FbossError(
+              "Unrecognized profile:",
+              portCacheInfo[kPortProfileStrKey].c_str(),
+              " for port:",
+              portID);
+        }
+        wLockedCache->profile = profile;
+
+        cfg::PortSpeed speed;
+        if (!apache::thrift::TEnumTraits<cfg::PortSpeed>::findValue(
+                portCacheInfo[kPortSpeedStrKey].c_str(), &speed)) {
+          throw FbossError(
+              "Unrecognized speed:",
+              portCacheInfo[kPortSpeedStrKey].c_str(),
+              " for port:",
+              portID);
+        }
+        wLockedCache->speed = speed;
+      } else {
+        // If we can't restore programmed speed + profile from warmboot cache,
+        // get from hardware. This should only happen because last version of
+        // qsfp_service doesn't cache these two fields in the cache.
+        // TODO(joseph5wu) Will remove this after next push
+        hwPortConfig = xphy->getConfigOnePort(
+            wLockedCache->systemLanes, wLockedCache->lineLanes);
+        auto speed = hwPortConfig->profile.speed;
+        wLockedCache->speed = speed;
+        wLockedCache->profile =
+            getProfileIDBySpeed(portIDStrong, speed, platformMapping_);
+      }
+
       // If the port has programmed lane info, we also need to restore the
       // ExternalPhyPortStatsUtils
       if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
@@ -369,19 +455,22 @@ void PhyManager::restoreFromWarmbootState(
         const auto& linePrbsState =
             xphy->getPortPrbs(phy::Side::LINE, wLockedCache->lineLanes);
         if (*sysPrbsState.enabled_ref() || *linePrbsState.enabled_ref()) {
-          const auto& phyPortConfig =
-              getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
+          if (!hwPortConfig) {
+            hwPortConfig = xphy->getConfigOnePort(
+                wLockedCache->systemLanes, wLockedCache->lineLanes);
+          }
+          hwPortConfig = getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
           if (*sysPrbsState.enabled_ref()) {
             wLockedCache->stats->setupPrbsCollection(
                 phy::Side::SYSTEM,
                 wLockedCache->systemLanes,
-                phyPortConfig.getLaneSpeedInMb(phy::Side::SYSTEM));
+                hwPortConfig->getLaneSpeedInMb(phy::Side::SYSTEM));
           }
           if (*linePrbsState.enabled_ref()) {
             wLockedCache->stats->setupPrbsCollection(
                 phy::Side::LINE,
                 wLockedCache->lineLanes,
-                phyPortConfig.getLaneSpeedInMb(phy::Side::LINE));
+                hwPortConfig->getLaneSpeedInMb(phy::Side::LINE));
           }
         }
       }
@@ -389,7 +478,14 @@ void PhyManager::restoreFromWarmbootState(
 
     XLOG(INFO) << "Restore port=" << portID
                << ", systemLanes=" << portCacheInfo[kSystemLanesKey]
-               << ", lineLanes=" << portCacheInfo[kLineLanesKey]
+               << ", lineLanes=" << portCacheInfo[kLineLanesKey] << ", profile="
+               << (wLockedCache->profile ? apache::thrift::util::enumNameSafe(
+                                               *wLockedCache->profile)
+                                         : "")
+               << ", speed="
+               << (wLockedCache->speed ? apache::thrift::util::enumNameSafe(
+                                             *wLockedCache->speed)
+                                       : "")
                << " from the phy warmboot state";
   }
 }
@@ -454,6 +550,12 @@ void PhyManager::updateStatsLocked(
                   auto xphyPortInfo =
                       xphy->getPortInfo(wCache->systemLanes, wCache->lineLanes);
                   xphyPortInfo.name_ref() = getPortName(portID);
+                  if (auto programmedSpeed = wCache->speed) {
+                    xphyPortInfo.speed_ref() = *programmedSpeed;
+                  } else {
+                    throw FbossError(
+                        "Missing programmed speed for port:", portID);
+                  }
                   updateXphyInfo(portID, xphyPortInfo);
                   stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
                 } else {
@@ -606,4 +708,23 @@ std::optional<phy::PhyInfo> PhyManager::getXphyInfo(PortID port) const {
   return xphySnapshotManager_->getPhyInfo(port);
 }
 
+// Return programmed profile id for a specific port
+std::optional<cfg::PortProfileID> PhyManager::getProgrammedProfile(
+    PortID portID) {
+  if (auto portCacheInfoIt = portToCacheInfo_.find(portID);
+      portCacheInfoIt != portToCacheInfo_.end()) {
+    const auto& rLockedCache = portCacheInfoIt->second->rlock();
+    return rLockedCache->profile;
+  }
+  throw FbossError("Can't find port:", portID, " in portToCacheInfo_");
+}
+// Return programmed port speed for a specific port
+std::optional<cfg::PortSpeed> PhyManager::getProgrammedSpeed(PortID portID) {
+  if (auto portCacheInfoIt = portToCacheInfo_.find(portID);
+      portCacheInfoIt != portToCacheInfo_.end()) {
+    const auto& rLockedCache = portCacheInfoIt->second->rlock();
+    return rLockedCache->speed;
+  }
+  throw FbossError("Can't find port:", portID, " in portToCacheInfo_");
+}
 } // namespace facebook::fboss

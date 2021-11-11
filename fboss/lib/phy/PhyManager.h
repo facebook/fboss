@@ -84,6 +84,11 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
+  // Return programmed profile id for a specific port
+  std::optional<cfg::PortProfileID> getProgrammedProfile(PortID portID);
+  // Return programmed port speed for a specific port
+  std::optional<cfg::PortSpeed> getProgrammedSpeed(PortID portID);
+
   // Macsec is only supported on SAI, so only SaiPhyManager will override this.
   virtual void sakInstallTx(const mka::MKASak& /* sak */) {
     throw FbossError("sakInstallTx must be implemented by defired phyManager");
@@ -187,6 +192,8 @@ class PhyManager {
     // ExternalPhy so that we can call ExternalPhy apis to program the xphy.
     // This map will cache the two global ID: PortID and GlobalXphyID
     GlobalXphyID xphyID;
+    std::optional<cfg::PortSpeed> speed;
+    std::optional<cfg::PortProfileID> profile;
     // Based on current ExternalPhy design, it's hard to get which lanes that
     // a SW port is using. Because all the ExternalPhy are using lanes to
     // program the configs directly instead of a software port. Since we always
@@ -218,9 +225,10 @@ class PhyManager {
     return getExternalPhy(lockedCache->xphyID);
   }
 
-  void setPortToLanesInfoLocked(
+  void setPortToPortCacheInfoLocked(
       const PortCacheWLockedPtr& lockedCache,
       PortID portID,
+      cfg::PortProfileID profileID,
       const phy::PhyPortConfig& portConfig);
 
   virtual int32_t getXphyPortStatsUpdateIntervalInSec() const;

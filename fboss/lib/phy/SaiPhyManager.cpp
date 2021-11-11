@@ -345,8 +345,9 @@ void SaiPhyManager::programOnePort(
           folly::sformat("Port {} program", static_cast<int>(portId)),
           updateFn);
 
-  // Once the port is programmed successfully, update the portToLanesInfo_
-  setPortToLanesInfoLocked(wLockedCache, portId, desiredPhyPortConfig);
+  // Once the port is programmed successfully, update the portToCacheInfo_
+  setPortToPortCacheInfoLocked(
+      wLockedCache, portId, portProfileId, desiredPhyPortConfig);
   if (getExternalPhyLocked(wLockedCache)
           ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
     setPortToExternalPhyPortStatsLocked(

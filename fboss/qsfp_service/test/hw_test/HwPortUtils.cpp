@@ -243,9 +243,15 @@ void verifyXphyPort(
     cfg::PortProfileID profileID,
     std::optional<TransceiverInfo> tcvrOpt,
     HwQsfpEnsemble* ensemble) {
+  auto* phyManager = ensemble->getPhyManager();
   const auto& expectedPhyPortConfig =
-      ensemble->getPhyManager()->getDesiredPhyPortConfig(
-          portID, profileID, tcvrOpt);
+      phyManager->getDesiredPhyPortConfig(portID, profileID, tcvrOpt);
+
+  // Make sure we cached the correct port profile and speed
+  EXPECT_EQ(*phyManager->getProgrammedProfile(portID), profileID);
+  EXPECT_EQ(
+      *phyManager->getProgrammedSpeed(portID),
+      expectedPhyPortConfig.profile.speed);
 
   utility::verifyPhyPortConfig(
       portID, ensemble->getPhyManager(), expectedPhyPortConfig);
