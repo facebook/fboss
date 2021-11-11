@@ -115061,7 +115061,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "factor": {
         "profiles": [
-          8
+          8,
+          23
         ],
         "mediaInterfaceCode": 3
       },
@@ -115090,12 +115091,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "factor": {
         "profiles": [
-          8
+          8,
+          23
         ],
         "transceiverManagementInterface": 1
       },
       "pins": {
         "iphy": [
+
         ],
         "xphyLine": [
           {
