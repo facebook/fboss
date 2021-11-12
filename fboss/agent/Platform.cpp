@@ -51,6 +51,19 @@ DEFINE_string(
     "/var/facebook/fboss/qsfp_service/phy",
     "Directory for storing phy persistent state");
 
+// Eventually we will switch the whole xphy programming to qsfp_service.
+// Now this flag will be used to bypass the xphy programming when
+// qsfo_service switches the two flags;
+// - `init_pim_xphys`
+// - `use_new_state_machine`
+// to be true, and then wedge_agent will set `skip_xphy_programming` to be true.
+// Both services will use "defaultCommandLineArgs" to control the flags from
+// their own configs
+DEFINE_bool(
+    skip_xphy_programming,
+    false,
+    "Skip all xphy programming in wedge_agent");
+
 namespace facebook::fboss {
 
 Platform::Platform(
