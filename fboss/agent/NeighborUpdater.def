@@ -1,7 +1,7 @@
 /*
  * This file is used to generate class interfaces and implementations for
- * `NeighborUpdater` and `NeighborUpdaterImpl`. Having the definition in a
- * centralized place ensures that both classes are in sync and agree on the
+ * `NeighborUpdater`, `NeighborUpdaterImpl` and `NeighborUpdaterNoopImpl`. Having the definition in a
+ * centralized place ensures that these classes are in sync and agree on the
  * argument types being used.
  * This file defines a couple of utility macros, followed by multiple calls to
  * `NEIGHBOR_UPDATER_METHOD()`. This macro is *not* defined in this file; it's
