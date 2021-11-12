@@ -56,6 +56,11 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return PortOperState::DOWN;
   }
 
+  // Virtual function to get the phy port eye info
+  virtual phy::PhyInfo getPhyInfo(const std::string& /* portName */) override {
+    return phy::PhyInfo{};
+  }
+
   // Virtual function to get the phy port link info
   virtual bool deleteAllSc(const std::string& /* portName */) override {
     return false;
