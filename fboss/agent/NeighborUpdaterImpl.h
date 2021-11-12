@@ -28,6 +28,25 @@ class Vlan;
 enum ArpOpCode : uint16_t;
 enum class ICMPv6Type : uint8_t;
 
+struct NeighborCaches {
+  // These are shared_ptrs for safety reasons as it lets callers safely use
+  // the results of getArpCacheFor or getNdpCacheFor even if the vlan is
+  // deleted in another thread.
+  std::shared_ptr<ArpCache> arpCache;
+  std::shared_ptr<NdpCache> ndpCache;
+
+  NeighborCaches(
+      SwSwitch* sw,
+      const SwitchState* state,
+      VlanID vlanID,
+      std::string vlanName,
+      InterfaceID intfID)
+      : arpCache(
+            std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
+        ndpCache(
+            std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {}
+};
+
 /**
  * This class implements the core neighbor update logic. Its methods are only
  * called from `NeighborUpdater` which schedules calls to this class on the
@@ -36,26 +55,6 @@ enum class ICMPv6Type : uint8_t;
  * concurrency issues and simplifies the threading model.
  */
 class NeighborUpdaterImpl {
-  struct NeighborCaches {
-    // These are shared_ptrs for safety reasons as it lets callers safely use
-    // the results of getArpCacheFor or getNdpCacheFor even if the vlan is
-    // deleted in another thread.
-    std::shared_ptr<ArpCache> arpCache;
-    std::shared_ptr<NdpCache> ndpCache;
-
-    NeighborCaches(
-        SwSwitch* sw,
-        const SwitchState* state,
-        VlanID vlanID,
-        std::string vlanName,
-        InterfaceID intfID)
-        : arpCache(
-              std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
-          ndpCache(
-              std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {
-    }
-  };
-
  public:
   explicit NeighborUpdaterImpl(SwSwitch* sw);
   ~NeighborUpdaterImpl();
@@ -75,9 +74,6 @@ class NeighborUpdaterImpl {
   std::shared_ptr<NeighborCaches> createCaches(
       const SwitchState* state,
       const Vlan* vlan);
-
-  template <typename NeighborCacheT>
-  std::shared_ptr<NeighborCacheT> getNeighborCacheFor(VlanID vlan);
 
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -103,17 +99,4 @@ class NeighborUpdaterImpl {
 
   friend class NeighborUpdater;
 };
-
-template <>
-inline std::shared_ptr<ArpCache> NeighborUpdaterImpl::getNeighborCacheFor(
-    VlanID vlan) {
-  return getArpCacheFor(vlan);
-}
-
-template <>
-inline std::shared_ptr<NdpCache> NeighborUpdaterImpl::getNeighborCacheFor(
-    VlanID vlan) {
-  return getNdpCacheFor(vlan);
-}
-
 } // namespace facebook::fboss
