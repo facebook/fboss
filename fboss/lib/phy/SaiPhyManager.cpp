@@ -616,4 +616,28 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
   }
 }
 
+std::string SaiPhyManager::listHwObjects(
+    std::vector<HwObjectType>& hwObjects,
+    bool cached) {
+  std::string resultStr = "";
+
+  // Loop through all pim platforms
+  for (auto& pimPlatformItr : saiPlatforms_) {
+    auto& pimPlatform = pimPlatformItr.second;
+
+    // Loop through all xphy in the pim
+    for (auto& platformItr : pimPlatform) {
+      GlobalXphyID xphyID = platformItr.first;
+
+      // Get SaiSwitch using global xphy id
+      auto saiSwitch = getSaiSwitch(xphyID);
+
+      resultStr += folly::to<std::string>("Xphy Id: ", xphyID, "\n");
+      resultStr += saiSwitch->listObjects(hwObjects, cached);
+    }
+  }
+
+  return resultStr;
+}
+
 } // namespace facebook::fboss

@@ -1009,12 +1009,12 @@ void WedgeManager::setOverrideTcvrToPortAndProfileForTest() {
 }
 
 std::string WedgeManager::listHwObjects(
-    std::vector<HwObjectType>& /* hwObjects */,
-    bool /* cached */) const {
+    std::vector<HwObjectType>& hwObjects,
+    bool cached) const {
   if (!phyManager_) {
     return "";
   }
-  return "";
+  return phyManager_->listHwObjects(hwObjects, cached);
 }
 } // namespace fboss
 } // namespace facebook

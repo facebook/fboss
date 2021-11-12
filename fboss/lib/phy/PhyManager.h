@@ -147,6 +147,12 @@ class PhyManager {
         "Attempted to call getMacsecPortStats from non-SaiPhyManager");
   }
 
+  virtual std::string listHwObjects(
+      std::vector<HwObjectType>& /* hwObjects */,
+      bool /* cached */) {
+    return "";
+  }
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   void
