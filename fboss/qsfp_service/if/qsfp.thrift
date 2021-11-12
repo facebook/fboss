@@ -133,6 +133,10 @@ service QsfpService extends fb303.FacebookService {
     1: fboss.FbossBaseError error,
   ) (cpp.coroutine);
 
+  phy.PhyInfo getPhyInfo(1: string portName) throws (
+    1: fboss.FbossBaseError error,
+  ) (cpp.coroutine);
+
   bool deleteAllSc(1: string portName) throws (1: fboss.FbossBaseError error) (
     cpp.coroutine,
   );

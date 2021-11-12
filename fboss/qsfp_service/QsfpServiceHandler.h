@@ -122,6 +122,9 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
   folly::coro::Task<PortOperState> co_macsecGetPhyLinkInfo(
       std::unique_ptr<std::string> portName) override;
 
+  folly::coro::Task<std::unique_ptr<phy::PhyInfo>> co_getPhyInfo(
+      std::unique_ptr<std::string> portName) override;
+
   folly::coro::Task<bool> co_deleteAllSc(
       std::unique_ptr<std::string> portName) override;
 

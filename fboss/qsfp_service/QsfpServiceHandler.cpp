@@ -307,6 +307,14 @@ folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(
   co_return macsecHandler_->macsecGetPhyLinkInfo(*portName);
 }
 
+folly::coro::Task<std::unique_ptr<phy::PhyInfo>>
+QsfpServiceHandler::co_getPhyInfo(std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  validateHandler();
+  co_return std::make_unique<phy::PhyInfo>(
+      macsecHandler_->getPhyInfo(*portName));
+}
+
 folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);

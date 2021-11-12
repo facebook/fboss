@@ -4,6 +4,7 @@
 #include <fboss/mka_service/if/gen-cpp2/mka_structs_types.h>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -55,6 +56,13 @@ class MacsecHandler {
   virtual PortOperState macsecGetPhyLinkInfo(
       const std::string& /* portName */) {
     return PortOperState::DOWN;
+  }
+
+  /*
+   * Get the Phy port link information from Macsec handler
+   */
+  virtual phy::PhyInfo getPhyInfo(const std::string& /* portName */) {
+    return phy::PhyInfo{};
   }
 
   /*
