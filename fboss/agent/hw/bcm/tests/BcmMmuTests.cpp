@@ -155,10 +155,6 @@ class BcmMmuTests : public BcmTest {
 // this is achieved using the following bcm cfg knobs
 // (1) buf.mqueue.guarantee.0 (2) mmu_config_override
 TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
-    return;
-  }
   auto setup = [=]() { setupBaseConfig(); };
   auto verify = [=]() {
     const int numCpuQueues = NUM_CPU_COSQ(getUnit());
@@ -188,10 +184,6 @@ TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
 // except the ones are expicitly programmed.
 // this is done using buf.prigroup7.guarantee bcm cfg knob
 TEST_F(BcmMmuTests, PgMinLimitBytes) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
-    return;
-  }
   auto setup = [&]() { setupPfcConfig(); };
   auto verify = [&]() {
     std::set<PortID> cfgPorts{
@@ -263,10 +255,6 @@ static int queueMinLimitBytesGportTraveralCallback(
 // is set to 0. This is done by the config buf.qgroup.guarantee and
 // buf.qgroup.guarantee_mc.
 TEST_F(BcmMmuTests, UcMcQueueMinLimitBytes) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
-    return;
-  }
   auto setup = [&]() { setupPfcConfig(); };
   auto verify = [&]() {
     int rv = bcm_cosq_gport_traverse(
@@ -280,11 +268,6 @@ TEST_F(BcmMmuTests, UcMcQueueMinLimitBytes) {
 // and ensure that production MMU cfg can be applied correctly
 // to fboss/SDK
 TEST_F(BcmMmuTests, ZionExMmuConfigMax) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support MMU lossless mode/PFC";
-    return;
-  }
-
   auto setup = [&]() { setupZionExConfig(); };
   auto verify = [&]() {
     // validate that shared bytes is as expected or more on the

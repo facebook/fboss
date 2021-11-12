@@ -239,11 +239,6 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
 // validate that SDK programming is as per the cfg
 // Read back from HW (using SDK calls) and validate
 TEST_F(BcmPortIngressBufferManagerTest, validateConfig) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [=]() { setupHelper(); };
 
   auto verify = [&]() { checkSwHwPgCfgMatch(); };
@@ -254,11 +249,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validateConfig) {
 // Create PG config, associate with PFC config and reset it
 // Ensure that its getting reset to the defaults in HW as expected
 TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() {
     setupHelper();
     // reset PG config
@@ -276,11 +266,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
 // Create PG, Ingress pool config, associate with PFC config
 // Modify the ingress pool params onlyand ensure that its getting re-programmed
 TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() {
     setupHelper();
     // setup bufferPool
@@ -301,11 +286,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
 // Create PG config, associate with PFC config
 // Modify the PG config params and ensure that its getting re-programmed
 TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
@@ -324,11 +304,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
 // Create PG config, associate with PFC config
 // Modify the PG queue config params and ensure that its getting re-programmed
 TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
@@ -356,11 +331,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
 // do not create the headroom cfg, PGs should be in lossy mode now
 // validate that SDK programming is as per the cfg
 TEST_F(BcmPortIngressBufferManagerTest, validateLossyMode) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() { setupHelper(false /* enable headroom */); };
 
   auto verify = [&]() { checkSwHwPgCfgMatch(); };
@@ -373,11 +343,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validateLossyMode) {
 // on every PG. Force the port to have no PFC
 // Validate that Pg's pfc mode is False now
 TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() {
     setupHelper(true /* enable headroom */, false /* pfc */);
   };
@@ -392,10 +357,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
 // has been added to program whaever buffer value is lower than
 // programmed first to workaround the sdk error
 TEST_F(BcmPortIngressBufferManagerTest, validateHighBufferValues) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
   auto setup = [&]() { setupHelperWithHighBufferValues(); };
   auto verify = [&]() { checkSwHwPgCfgMatch(); };
   verifyAcrossWarmBoots(setup, verify);

@@ -344,9 +344,6 @@ class HwPfcTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwPfcTest, verifyPfcDefault) {
-  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
@@ -358,9 +355,6 @@ TEST_F(HwPfcTest, verifyPfcDefault) {
 // is 1:1, which means PG 1 is mapped to pfc priority 1.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwPfcTest, verifyPfcWithMapChanges_0) {
-  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   const int trafficClass = 0;
   const int pfcPriority = 1;
   tc2PgOverride.insert(std::make_pair(0, 1));
@@ -372,9 +366,6 @@ TEST_F(HwPfcTest, verifyPfcWithMapChanges_0) {
 // priority is 1:1, which means PG 0 is mapped to pfc priority 0.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
-  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   const int trafficClass = 7;
   const int pfcPriority = 0;
   tc2PgOverride.insert(std::make_pair(7, 0));
@@ -386,9 +377,6 @@ TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
 // watchdog counters are created/incremented when callback
 // for deadlock/recovery kicks in
 TEST_F(HwPfcTest, PfcWatchdog) {
-  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);
@@ -410,9 +398,6 @@ TEST_F(HwPfcTest, PfcWatchdog) {
 // Since the watchdog counters are sw based, upon warm boot
 // we don't expect these counters to be incremented either
 TEST_F(HwPfcTest, PfcWatchdogReset) {
-  if (!HwTest::isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);

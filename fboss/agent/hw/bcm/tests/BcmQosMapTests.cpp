@@ -205,11 +205,6 @@ TEST_F(BcmQosMapTest, BcmDscpMapWithRules) {
 // policy so that trafficClassToPg map is reset  to default
 // Query HW to validate the same
 TEST_F(BcmQosMapTest, PfcMapsRemovePolicy) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [this]() {
     auto config = setupDefaultQueueWithPfcMaps();
     // reset qosPolicy
@@ -230,11 +225,6 @@ TEST_F(BcmQosMapTest, PfcMapsRemovePolicy) {
 // Since we reset the trafficClassToPg map explicitly
 // it takes a diffeent code path from Tc2PgRemovePolicy
 TEST_F(BcmQosMapTest, PfcMapsReset) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [this]() {
     cfg::QosMap qosMap;
     auto config = setupDefaultQueueWithPfcMaps();
@@ -253,11 +243,6 @@ TEST_F(BcmQosMapTest, PfcMapsReset) {
 }
 
 TEST_F(BcmQosMapTest, BcmAllQosMapsWithPfcMaps) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [this]() {
     auto config = initialConfig();
 

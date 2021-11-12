@@ -277,17 +277,11 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
 // validate that running there are no discards during line rate run
 // of traffic while doing warm boot
 TEST_F(HwProdInvariantsMmuLosslessTest, ValidateMmuLosslessMode) {
-  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   verifyAcrossWarmBoots(
       []() {}, [this]() { verifyInvariants(getInvariantOptions()); });
 }
 
 TEST_F(HwProdInvariantsMmuLosslessTest, ValidateWarmBootNoDiscards) {
-  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    return;
-  }
   auto setup = [=]() {
     // run the loop, so traffic continues running
     sendTrafficInLoop();

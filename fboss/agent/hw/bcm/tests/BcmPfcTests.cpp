@@ -286,11 +286,6 @@ class BcmPfcTests : public BcmTest {
 
   // Run the various enabled/disabled combinations of PFC RX/TX
   void runPfcTest(bool rxEnabled, bool txEnabled) {
-    if (!isSupported(HwAsic::Feature::PFC)) {
-      XLOG(WARNING) << "Platform doesn't support PFC";
-      return;
-    }
-
     auto setup = [=]() {
       currentConfig = initialConfig();
       setupPfc(masterLogicalPortIds()[0], rxEnabled, txEnabled);
@@ -310,11 +305,6 @@ class BcmPfcTests : public BcmTest {
 
   // Test to verify PFC is not configured in HW
   void runPfcNotConfiguredTest(bool rxEnabled, bool txEnabled) {
-    if (!isSupported(HwAsic::Feature::PFC)) {
-      XLOG(WARNING) << "Platform doesn't support PFC";
-      return;
-    }
-
     auto setup = [=]() { setupBaseConfig(); };
 
     auto verify = [=]() {
@@ -331,11 +321,6 @@ class BcmPfcTests : public BcmTest {
 
   // Test to verify PFC watchdog is not configured in HW
   void runPfcWatchdogNotConfiguredTest() {
-    if (!isSupported(HwAsic::Feature::PFC)) {
-      XLOG(WARNING) << "Platform doesn't support PFC";
-      return;
-    }
-
     auto setup = [=]() {
       currentConfig = initialConfig();
       setupPfc(masterLogicalPortIds()[0], true, true);
@@ -355,11 +340,6 @@ class BcmPfcTests : public BcmTest {
 
   // Cross check PFC watchdog HW programming with SW config
   void runPfcWatchdogTest(const cfg::PfcWatchdog& pfcWatchdogConfig) {
-    if (!isSupported(HwAsic::Feature::PFC)) {
-      XLOG(WARNING) << "Platform doesn't support PFC";
-      return;
-    }
-
     auto setup = [=]() {
       currentConfig = initialConfig();
       setupPfcAndPfcWatchdog(masterLogicalPortIds()[0], pfcWatchdogConfig);
@@ -378,11 +358,6 @@ class BcmPfcTests : public BcmTest {
   void runPfcWatchdogGranularityTest(
       const cfg::PfcWatchdog& pfcWatchdogConfig,
       const int expectedBcmGranularity) {
-    if (!isSupported(HwAsic::Feature::PFC)) {
-      XLOG(WARNING) << "Platform doesn't support PFC";
-      return;
-    }
-
     auto setup = [=]() {
       currentConfig = initialConfig();
       setupPfcAndPfcWatchdog(masterLogicalPortIds()[0], pfcWatchdogConfig);
@@ -438,11 +413,6 @@ TEST_F(BcmPfcTests, PfcWatchdogProgramming) {
 
 // Try a sequence of configuring, modifying and removing PFC watchdog
 TEST_F(BcmPfcTests, PfcWatchdogProgrammingSequence) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
@@ -569,11 +539,6 @@ TEST_F(BcmPfcTests, PfcWatchdogGranularity6) {
 
 // PFC watchdog deadlock recovery action tests
 TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
@@ -641,11 +606,6 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
 // Verify all ports should be configured with the same
 // PFC watchdog deadlock recovery action.
 TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
-  if (!isSupported(HwAsic::Feature::PFC)) {
-    XLOG(WARNING) << "Platform doesn't support PFC";
-    return;
-  }
-
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
