@@ -65,14 +65,6 @@ class MacsecHandler {
   }
 
   /*
-   * Get the list of all SC SA on a phy
-   */
-  virtual MacsecAllScInfo macsecGetAllScInfo(
-      const std::string& /* portName */) {
-    return MacsecAllScInfo{};
-  }
-
-  /*
    * Get all the macsec port stats
    */
   virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(

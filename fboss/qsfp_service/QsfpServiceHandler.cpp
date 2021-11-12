@@ -314,15 +314,6 @@ folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
   co_return macsecHandler_->deleteAllSc(*portName);
 }
 
-folly::coro::Task<std::unique_ptr<mka::MacsecAllScInfo>>
-QsfpServiceHandler::co_macsecGetAllScInfo(
-    std::unique_ptr<std::string> portName) {
-  auto log = LOG_THRIFT_CALL(INFO);
-  validateHandler();
-  co_return std::make_unique<mka::MacsecAllScInfo>(
-      macsecHandler_->macsecGetAllScInfo(*portName));
-}
-
 folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
 QsfpServiceHandler::co_getAllMacsecPortStats(bool readFromHw) {
   auto log = LOG_THRIFT_CALL(INFO);
