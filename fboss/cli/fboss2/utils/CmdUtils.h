@@ -27,6 +27,8 @@ const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 long getEpochFromDuration(const int64_t& duration);
+timeval splitFractionalSecondsFromTimer(const long& timer);
+const std::string parseTimeToTimeStamp(const long& timeToParse);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
 const std::string formatBandwidth(const unsigned long& bandwidth);
