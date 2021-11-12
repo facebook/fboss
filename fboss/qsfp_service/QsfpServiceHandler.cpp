@@ -185,6 +185,13 @@ void QsfpServiceHandler::updateWarmBootConfig() const {
 }
 */
 
+void QsfpServiceHandler::listHwObjects(
+    std::string& out,
+    std::unique_ptr<std::vector<HwObjectType>> hwObjects,
+    bool cached) {
+  out = manager_->listHwObjects(*hwObjects, cached);
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(

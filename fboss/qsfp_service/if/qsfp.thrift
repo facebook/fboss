@@ -98,6 +98,11 @@ service QsfpService extends fb303.FacebookService {
 
   phy.PhyInfo getXphyInfo(1: i32 portID) throws (1: fboss.FbossBaseError error);
 
+  string listHwObjects(
+    1: list<ctrl.HwObjectType> objects,
+    2: bool cached,
+  ) throws (1: fboss.FbossBaseError error);
+
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,

@@ -399,31 +399,12 @@ void CredoMacsecUtil::printPhyLinkInfo(
 }
 
 void CredoMacsecUtil::getAllScInfo(QsfpServiceAsyncClient* fbMacsecHandler) {
-  if (FLAGS_port == "") {
-    printf("Port name is required\n");
-    return;
-  }
+  std::string allScInfo;
+  std::vector<HwObjectType> in{HwObjectType::MACSEC};
+  fbMacsecHandler->sync_listHwObjects(allScInfo, in, true);
 
-  MacsecAllScInfo allScInfo;
-  fbMacsecHandler->sync_macsecGetAllScInfo(allScInfo, FLAGS_port);
-
-  printf("Printing all SC info for %s\n", FLAGS_port.c_str());
-  for (auto sc : *allScInfo.scList_ref()) {
-    printf("SC: %d\n", *sc.scId_ref());
-    printf("Flow: %d\n", *sc.flowId_ref());
-    printf("Acl: %d\n", *sc.aclId_ref());
-    printf(
-        "Direction: %s\n", *sc.directionIngress_ref() ? "Ingress" : "egress");
-    for (auto sa : *sc.saList_ref()) {
-      printf("    SA: %d\n", sa);
-    }
-  }
-  printf("Printing all Macsec port:\n");
-  for (auto it : *allScInfo.linePortInfo_ref()) {
-    printf("Lineport: %d\n", it.first);
-    printf("  Macsec Ingress Port: %d\n", *it.second.ingressPort_ref());
-    printf("  Macsec Egress Port: %d\n", *it.second.egressPort_ref());
-  }
+  printf("Printing all SC info\n");
+  printf("%s\n", allScInfo.c_str());
 }
 
 void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {

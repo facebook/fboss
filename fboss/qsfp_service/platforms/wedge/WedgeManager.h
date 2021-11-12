@@ -160,6 +160,10 @@ class WedgeManager : public TransceiverManager {
 
   static std::string warmbootStateFileName();
 
+  virtual std::string listHwObjects(
+      std::vector<HwObjectType>& hwObjects,
+      bool cached) const override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();

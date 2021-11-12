@@ -154,6 +154,10 @@ class TransceiverManager {
   };
   virtual std::vector<PortID> getMacsecCapablePorts() const = 0;
 
+  virtual std::string listHwObjects(
+      std::vector<HwObjectType>& hwObjects,
+      bool cached) const = 0;
+
   // Returns the interface names for a given transceiverId
   // Returns empty list when there is no corresponding name for a given
   // transceiver ID
