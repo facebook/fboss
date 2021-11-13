@@ -38,21 +38,41 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::shared_ptr;
 
+DEFINE_bool(
+    disable_neighbor_updates,
+    false,
+    "Disable neighbor updater in agent");
+
 namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
+NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl)
+    : AutoRegisterStateObserver(sw, "NeighborUpdater"), sw_(sw) {
+  // for agent tests, we want to disable the neighbor updater
+  // functionality. Simplest way to do so is to create stub version
+  // of NeighborUpdaterImpl i.e. NeighborUpdaterNoopImpl
+  // and invoke it with same interface across the code
+  if (disableImpl) {
+    XLOG(INFO) << "Disable neighbor update implementation";
+    impl_ = std::make_shared<NeighborUpdaterVariant>(
+        std::in_place_type_t<NeighborUpdaterNoopImpl>(), sw);
+  } else {
+    impl_ = std::make_shared<NeighborUpdaterVariant>(
+        std::in_place_type_t<NeighborUpdaterImpl>(), sw);
+  }
+}
+
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "NeighborUpdater"),
-      impl_(std::make_shared<NeighborUpdaterImpl>(sw)),
-      sw_(sw) {}
+    : NeighborUpdater(sw, FLAGS_disable_neighbor_updates){};
 
 NeighborUpdater::~NeighborUpdater() {
   // we make sure to destroy the NeighborUpdaterImpl on the neighbor
   // cache thread to avoid racing between background entry processing
   // and destruction.
+
   sw_->getNeighborCacheEvb()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this]() mutable { return impl_.reset(); });
+      [this]() mutable { return this->impl_.reset(); });
 }
 
 void NeighborUpdater::waitForPendingUpdates() {

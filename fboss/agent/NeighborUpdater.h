@@ -17,6 +17,7 @@
 #include "fboss/agent/ArpCache.h"
 #include "fboss/agent/NdpCache.h"
 #include "fboss/agent/NeighborUpdaterImpl.h"
+#include "fboss/agent/NeighborUpdaterNoopImpl.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
@@ -25,6 +26,9 @@ namespace facebook::fboss {
 
 class SwitchState;
 class StateDelta;
+
+using NeighborUpdaterVariant =
+    std::variant<NeighborUpdaterImpl, NeighborUpdaterNoopImpl>;
 
 /**
  * This class handles all updates to neighbor entries. Whenever we perform an
@@ -44,10 +48,11 @@ class StateDelta;
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
  private:
-  std::shared_ptr<NeighborUpdaterImpl> impl_;
+  std::shared_ptr<NeighborUpdaterVariant> impl_;
   SwSwitch* sw_{nullptr};
 
  public:
+  explicit NeighborUpdater(SwSwitch* sw, bool disableImpl);
   explicit NeighborUpdater(SwSwitch* sw);
   ~NeighborUpdater() override;
 
@@ -66,14 +71,19 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME(                        \
       ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {                         \
     return folly::via(sw_->getNeighborCacheEvb(), [=, impl = this->impl_]() { \
-      return impl->NAME(ARG_LIST(ARG_NAME_ONLY, ##__VA_ARGS__));              \
+      return std::visit(                                                      \
+          [&](auto&& arg) {                                                   \
+            return arg.NAME(ARG_LIST(ARG_NAME_ONLY, ##__VA_ARGS__));          \
+          },                                                                  \
+          *impl);                                                             \
     });                                                                       \
   }
+
 #define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE)     \
   VISIBILITY:                                                              \
   folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME() {                  \
     return folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() { \
-      return impl->NAME();                                                 \
+      return std::visit([&](auto&& arg) { return arg.NAME(); }, *impl);    \
     });                                                                    \
   }
 #include "fboss/agent/NeighborUpdater.def"
