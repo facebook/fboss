@@ -2180,6 +2180,20 @@ void ThriftHandler::listHwObjects(
   out = sw_->getHw()->listObjects(*hwObjects, cached);
 }
 
+void ThriftHandler::getBlockedNeighbors(
+    std::vector<cfg::Neighbor>& blockedNeighbors) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  for (const auto& [vlanID, ipAddress] :
+       sw_->getState()->getSwitchSettings()->getBlockNeighbors()) {
+    cfg::Neighbor blockedNeighbor;
+    blockedNeighbor.vlanID_ref() = vlanID;
+    blockedNeighbor.ipAddress_ref() = ipAddress.str();
+    blockedNeighbors.emplace_back(std::move(blockedNeighbor));
+  }
+}
+
 void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
   std::string neighborsToBlockStr;

@@ -1158,6 +1158,13 @@ service FbossCtrl extends fb303.FacebookService {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Get the list of neighbors traffic is blocked for.
+   */
+  list<switch_config.Neighbor> getBlockedNeighbors() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Set neighbors to block. Useful to temporarily block traffic to a list of
    * neighbors. This does not affect the configuration, the list will be
    * cleared out due to config reapplication post agent restart.
