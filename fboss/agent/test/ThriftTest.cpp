@@ -219,7 +219,7 @@ TEST_F(ThriftTest, setPortState) {
   EXPECT_FALSE(port->isEnabled());
 }
 
-TEST_F(ThriftTest, setNeighborsToBlock) {
+TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   ThriftHandler handler(sw_);
 
   auto blockListVerify = [&handler](
@@ -233,12 +233,17 @@ TEST_F(ThriftTest, setNeighborsToBlock) {
       neighbor.ipAddress_ref() = ipAddress.str();
       cfgNeighborsToBlock->emplace_back(neighbor);
     }
+    auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
     handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
     waitForStateUpdates(handler.getSw());
 
     auto gotBlockedNeighbors =
         handler.getSw()->getState()->getSwitchSettings()->getBlockNeighbors();
     EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
+
+    std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
+    handler.getBlockedNeighbors(gotBlockedNeighborsViaThrift);
+    EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
   };
 
   // set blockneighbor1
@@ -255,10 +260,13 @@ TEST_F(ThriftTest, setNeighborsToBlock) {
       {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0004")}});
 
   // set null list (clears block list)
+  std::vector<cfg::Neighbor> blockedNeighbors;
   handler.setNeighborsToBlock({});
   waitForStateUpdates(sw_);
   EXPECT_EQ(
       0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+  handler.getBlockedNeighbors(blockedNeighbors);
+  EXPECT_TRUE(blockedNeighbors.empty());
 
   // set empty list (clears block list)
   auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
@@ -266,6 +274,8 @@ TEST_F(ThriftTest, setNeighborsToBlock) {
   waitForStateUpdates(sw_);
   EXPECT_EQ(
       0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+  handler.getBlockedNeighbors(blockedNeighbors);
+  EXPECT_TRUE(blockedNeighbors.empty());
 
   auto invalidNeighborToBlock =
       "twshared12345.06.abc7"; // only IPs are supported
@@ -277,6 +287,8 @@ TEST_F(ThriftTest, setNeighborsToBlock) {
   EXPECT_THROW(
       handler.setNeighborsToBlock(std::move(invalidNeighborsToBlock)),
       FbossError);
+  handler.getBlockedNeighbors(blockedNeighbors);
+  EXPECT_TRUE(blockedNeighbors.empty());
 }
 
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
