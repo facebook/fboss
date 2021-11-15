@@ -3,8 +3,8 @@
 // Handler class is the interface between FanService and Thrift call handlers
 #pragma once
 #include <folly/futures/Future.h>
-#include "FanService.h"
 #include "common/fb303/cpp/FacebookBase2.h"
+#include "fboss/platform/fan_service/FanService.h"
 
 namespace facebook::fboss::platform {
 class FanServiceHandler : public facebook::fb303::FacebookBase2 {
