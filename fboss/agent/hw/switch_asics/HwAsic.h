@@ -88,6 +88,7 @@ class HwAsic {
     SAI_ACL_TABLE_UPDATE,
     PORT_EYE_VALUES,
     SAI_MPLS_TTL_1_TRAP,
+    SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
   };
 
   enum class AsicType {

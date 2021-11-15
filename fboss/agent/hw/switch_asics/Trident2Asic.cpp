@@ -88,6 +88,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_CPU_PORT_QUALIFIER:
+    case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
       return false;
   }
   return false;
