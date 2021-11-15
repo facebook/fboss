@@ -260,15 +260,15 @@ void ServiceConfig::parseZonesChapter(folly::dynamic zonesDynamic) {
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesType:
             if (convertKeywordToIndex(value.asString()) ==
                 fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMax) {
-              newZone.type = kZoneMax;
+              newZone.type = fan_config_structs::ZoneType::kZoneMax;
             } else if (
                 convertKeywordToIndex(value.asString()) ==
                 fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeMin) {
-              newZone.type = kZoneMin;
+              newZone.type = fan_config_structs::ZoneType::kZoneMin;
             } else if (
                 convertKeywordToIndex(value.asString()) ==
                 fan_config_structs::FsvcConfigDictIndex::kFsvcCfgZonesTypeAvg) {
-              newZone.type = kZoneAvg;
+              newZone.type = fan_config_structs::ZoneType::kZoneAvg;
             } else {
               facebook::fboss::FbossError(
                   "Invalid Zone Type : ", value.asString());

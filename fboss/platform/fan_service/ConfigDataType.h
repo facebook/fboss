@@ -5,7 +5,6 @@
 
 #pragma once
 namespace facebook::fboss::platform {
-typedef enum { kZoneMax, kZoneMin, kZoneAvg, kZoneInval } ZoneType;
 
 typedef enum {
   kSrcSysfs,

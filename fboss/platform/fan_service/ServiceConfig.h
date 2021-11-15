@@ -46,17 +46,14 @@ class AccessMethod {
   }
 };
 
-class Zone {
+struct Zone {
  public:
-  ZoneType type;
+  fan_config_structs::ZoneType type;
   std::string zoneName;
   std::vector<std::string> sensorNames;
   std::vector<std::string> fanNames;
-  float slope;
-  Zone() {
-    // 0 means immediate
-    slope = 0;
-  }
+  // 0 means immediate
+  float slope{0};
 };
 
 class FanStatus {

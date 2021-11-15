@@ -4,7 +4,7 @@
 // for function description
 
 #include "fboss/platform/fan_service/ControlLogic.h"
-#include "ControlLogic.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 namespace facebook::fboss::platform {
 ControlLogic::ControlLogic(
@@ -395,7 +395,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     float pwmSoFar = 0;
     XLOG(INFO) << "Zone : " << zone->zoneName;
     // First, calculate the pwm value for this zone
-    ZoneType zoneType = zone->type;
+    auto zoneType = zone->type;
     for (auto sensorName = zone->sensorNames.begin();
          sensorName != zone->sensorNames.end();
          sensorName++) {
@@ -403,20 +403,20 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
       if (pSensorConfig_ != NULL) {
         float pwmForThisSensor = pSensorConfig_->processedData.targetPwmCache;
         switch (zoneType) {
-          case kZoneMax:
+          case fan_config_structs::ZoneType::kZoneMax:
             if (pwmSoFar < pwmForThisSensor) {
               pwmSoFar = pwmForThisSensor;
             }
             break;
-          case kZoneMin:
+          case fan_config_structs::ZoneType::kZoneMin:
             if (pwmSoFar > pwmForThisSensor) {
               pwmSoFar = pwmForThisSensor;
             }
             break;
-          case kZoneAvg:
+          case fan_config_structs::ZoneType::kZoneAvg:
             pwmSoFar += pwmForThisSensor;
             break;
-          case kZoneInval:
+          case fan_config_structs::ZoneType::kZoneInval:
           default:
             facebook::fboss::FbossError(
                 "Undefined Zone Type for zone : ", zone->zoneName);
@@ -426,7 +426,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
                    << pSensorConfig_->processedData.targetPwmCache
                    << " Overall so far : " << pwmSoFar;
       }
-      if (zoneType == kZoneAvg) {
+      if (zoneType == fan_config_structs::ZoneType::kZoneAvg) {
         pwmSoFar /= (float)zone->sensorNames.size();
       }
       XLOG(INFO) << "  Final PWM : " << pwmSoFar;
