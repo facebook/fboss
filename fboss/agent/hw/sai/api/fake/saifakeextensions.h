@@ -10,6 +10,7 @@ typedef enum _sai_port_serdes_extensions_attr_t {
   SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_DSP_MODE,
   SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_TRIM,
   SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AC_COUPLING_BYPASS,
+  SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE,
 } sai_port_serdes_extensions_attr_t;
 
 typedef enum _sai_switch_extensions_attr_t {

@@ -9,6 +9,7 @@
  */
 #include "FakeSaiPort.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -753,7 +754,15 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
-
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE:
+      fillVec(
+          portSerdes.rxAfeTrimAdaptiveEnable,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxAfeTrimAdaptiveEnable)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }
@@ -868,6 +877,17 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.rxCouplingByPass, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE:
+        if (!checkListSize(
+                attr_list[i].value.s32list,
+                portSerdes.rxAfeTrimAdaptiveEnable)) {
+          attr_list[i].value.s32list.count =
+              portSerdes.rxAfeTrimAdaptiveEnable.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(
+            portSerdes.rxAfeTrimAdaptiveEnable, attr_list[i].value.s32list);
         break;
       default:
         return SAI_STATUS_NOT_IMPLEMENTED;

@@ -77,6 +77,7 @@ struct FakePortSerdes {
   std::vector<int32_t> rxDspMode;
   std::vector<int32_t> rxAfeTrim;
   std::vector<int32_t> rxCouplingByPass;
+  std::vector<int32_t> rxAfeTrimAdaptiveEnable;
 };
 
 struct FakePortConnector {

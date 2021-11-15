@@ -339,6 +339,10 @@ struct SaiPortSerdesTraits {
     struct AttributeRxAcCouplingBypassIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+
+    struct AttributeRxAfeAdaptiveEnableWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     using RxCtleCode = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxCtleCodeIdWrapper>;
@@ -351,6 +355,9 @@ struct SaiPortSerdesTraits {
     using RxAcCouplingByPass = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxAcCouplingBypassIdWrapper>;
+    using RxAfeAdaptiveEnable = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxAfeAdaptiveEnableWrapper>;
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;
@@ -364,7 +371,8 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxCtleCode>,
       std::optional<Attributes::RxDspMode>,
       std::optional<Attributes::RxAfeTrim>,
-      std::optional<Attributes::RxAcCouplingByPass>>;
+      std::optional<Attributes::RxAcCouplingByPass>,
+      std::optional<Attributes::RxAfeAdaptiveEnable>>;
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
@@ -380,6 +388,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxCtleCode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeAdaptiveEnable);
 
 struct SaiPortConnectorTraits {
   static constexpr sai_object_type_t ObjectType =
