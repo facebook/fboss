@@ -351,6 +351,7 @@ struct TransceiverInfo {
   24: optional VdmDiagsStats vdmDiagsStats;
   25: optional bool eepromCsumValid;
   26: optional MediaInterfaceCode moduleMediaInterface;
+  27: optional TransceiverStateMachineState stateMachineState;
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
@@ -445,4 +446,16 @@ struct DiagsCapability {
   5: bool prbsSystem = false;
   6: bool loopbackLine = false;
   7: bool loopbackSystem = false;
+}
+
+enum TransceiverStateMachineState {
+  NOT_PRESENT = 0,
+  PRESENT = 1,
+  DISCOVERED = 2,
+  IPHY_PORTS_PROGRAMMED = 3,
+  XPHY_PORTS_PROGRAMMED = 4,
+  TRANSCEIVER_PROGRAMMED = 5,
+  ACTIVE = 6,
+  INACTIVE = 7,
+  UPGRADING = 8,
 }

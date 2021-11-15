@@ -49,31 +49,6 @@ std::string getTransceiverStateMachineEventName(
   throw FbossError("Unsupported TransceiverStateMachineEvent");
 }
 
-std::string getTransceiverStateMachineStateName(
-    TransceiverStateMachineState state) {
-  switch (state) {
-    case TransceiverStateMachineState::NOT_PRESENT:
-      return "NOT_PRESENT";
-    case TransceiverStateMachineState::PRESENT:
-      return "PRESENT";
-    case TransceiverStateMachineState::DISCOVERED:
-      return "DISCOVERED";
-    case TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED:
-      return "IPHY_PORTS_PROGRAMMED";
-    case TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED:
-      return "XPHY_PORTS_PROGRAMMED";
-    case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
-      return "TRANSCEIVER_PROGRAMMED";
-    case TransceiverStateMachineState::ACTIVE:
-      return "ACTIVE";
-    case TransceiverStateMachineState::INACTIVE:
-      return "INACTIVE";
-    case TransceiverStateMachineState::UPGRADING:
-      return "UPGRADING";
-  }
-  throw FbossError("Unsupported TransceiverStateMachineState");
-}
-
 TransceiverStateMachineState getStateByOrder(int currentStateOrder) {
   if (currentStateOrder == 0) {
     return TransceiverStateMachineState::NOT_PRESENT;

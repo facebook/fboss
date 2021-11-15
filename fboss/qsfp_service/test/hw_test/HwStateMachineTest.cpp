@@ -74,14 +74,14 @@ TEST_F(HwStateMachineTest, CheckOpticsDetection) {
       auto curState = wedgeMgr->getCurrentState(id);
       EXPECT_EQ(curState, TransceiverStateMachineState::DISCOVERED)
           << "Transceiver:" << id
-          << " Actual: " << getTransceiverStateMachineStateName(curState)
+          << " Actual: " << apache::thrift::util::enumNameSafe(curState)
           << ", Expected: DISCOVERED";
     }
     for (auto id : getAbsentTransceivers()) {
       auto curState = wedgeMgr->getCurrentState(id);
       EXPECT_EQ(curState, TransceiverStateMachineState::NOT_PRESENT)
           << "Transceiver:" << id
-          << " Actual: " << getTransceiverStateMachineStateName(curState)
+          << " Actual: " << apache::thrift::util::enumNameSafe(curState)
           << ", Expected: NOT_PRESENT";
     }
   };

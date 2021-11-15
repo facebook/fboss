@@ -262,7 +262,7 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   auto curState = getStateByOrder(curStateOrder);
   XLOG(DBG4) << "Current transceiver:" << static_cast<int32_t>(id)
              << ", state order:" << curStateOrder
-             << ", state:" << getTransceiverStateMachineStateName(curState);
+             << ", state:" << apache::thrift::util::enumNameSafe(curState);
   return curState;
 }
 

@@ -11,11 +11,13 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
 #include <boost/msm/front/euml/state_grammar.hpp>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 DECLARE_bool(use_new_state_machine);
 
@@ -49,21 +51,6 @@ enum class TransceiverStateMachineEvent {
 
 std::string getTransceiverStateMachineEventName(
     TransceiverStateMachineEvent event);
-
-enum class TransceiverStateMachineState {
-  NOT_PRESENT,
-  PRESENT,
-  DISCOVERED,
-  IPHY_PORTS_PROGRAMMED,
-  XPHY_PORTS_PROGRAMMED,
-  TRANSCEIVER_PROGRAMMED,
-  ACTIVE,
-  INACTIVE,
-  UPGRADING,
-};
-
-std::string getTransceiverStateMachineStateName(
-    TransceiverStateMachineState state);
 
 /*
  * Convert current_state() return int value to TransceiverStateMachineState
@@ -154,9 +141,9 @@ void operator()(
   auto tcvrID = fsm.get_attribute(transceiverID);
   XLOG(DBG2) << "[Transceiver:" << tcvrID
              << "] State changed from "
-             << getTransceiverStateMachineStateName(stateToStateEnum(source))
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(source))
              << " to "
-             << getTransceiverStateMachineStateName(stateToStateEnum(target));
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(target));
 }
 };
 
