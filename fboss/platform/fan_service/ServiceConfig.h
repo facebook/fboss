@@ -235,17 +235,15 @@ class ServiceConfig {
   //
 
   ServiceConfig();
-  ~ServiceConfig();
   int parse(std::string filename);
-  const folly::dynamic getConfig();
   fan_config_structs::FsvcConfigDictIndex convertKeywordToIndex(
       std::string keyword) const;
-  float getPwmBoostValue();
-  std::string getShutDownCommand();
-  int getSensorFetchFrequency();
-  int getControlFrequency();
-  int getPwmUpperThreshold();
-  int getPwmLowerThreshold();
+  float getPwmBoostValue() const;
+  std::string getShutDownCommand() const;
+  int getSensorFetchFrequency() const;
+  int getControlFrequency() const;
+  int getPwmUpperThreshold() const;
+  int getPwmLowerThreshold() const;
 
  private:
   //
@@ -283,8 +281,6 @@ class ServiceConfig {
   void parseZonesChapter(folly::dynamic value);
   void parseFansChapter(folly::dynamic value);
   void parseSensorsChapter(folly::dynamic value);
-  // keyExists_ : return true if a dict (json blob) has the key
-  bool keyExists_(folly::dynamic dict, std::string key);
   void prepareDict();
   void parseBspType(std::string bspString);
 };

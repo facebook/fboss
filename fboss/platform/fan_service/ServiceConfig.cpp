@@ -1,6 +1,5 @@
 // Copyright 2021- Facebook. All rights reserved.
 #include "ServiceConfig.h"
-#include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss::platform {
 ServiceConfig::ServiceConfig() {
@@ -14,13 +13,6 @@ ServiceConfig::ServiceConfig() {
   controlFrequency_ = FSVC_DEFAULT_CONTROL_FREQUENCY;
   pwmLowerThreshold_ = FSVC_DEFAULT_PWM_LOWER_THRES;
   pwmUpperThreshold_ = FSVC_DEFAULT_PWM_UPPER_THRES;
-}
-
-ServiceConfig::~ServiceConfig() {}
-
-bool keyExists_(folly::dynamic dict, std::string key) {
-  auto tester = dict.find(key);
-  return !(tester == dict.items().end());
 }
 
 int ServiceConfig::parse(std::string filename) {
@@ -447,7 +439,7 @@ void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
   return;
 }
 
-float ServiceConfig::getPwmBoostValue() {
+float ServiceConfig::getPwmBoostValue() const {
   return pwmBoostValue_;
 }
 
@@ -459,21 +451,21 @@ fan_config_structs::FsvcConfigDictIndex ServiceConfig::convertKeywordToIndex(
       : itr->second;
 }
 
-std::string ServiceConfig::getShutDownCommand() {
+std::string ServiceConfig::getShutDownCommand() const {
   return shutDownCommand_;
 }
 
-int ServiceConfig::getSensorFetchFrequency() {
+int ServiceConfig::getSensorFetchFrequency() const {
   return sensorFetchFrequency_;
 }
-int ServiceConfig::getControlFrequency() {
+int ServiceConfig::getControlFrequency() const {
   return controlFrequency_;
 }
 
-int ServiceConfig::getPwmUpperThreshold() {
+int ServiceConfig::getPwmUpperThreshold() const {
   return pwmUpperThreshold_;
 }
-int ServiceConfig::getPwmLowerThreshold() {
+int ServiceConfig::getPwmLowerThreshold() const {
   return pwmLowerThreshold_;
 }
 
