@@ -107,14 +107,22 @@ class SnapshotLibTest(TestCase):
         return snapshot_lines
 
     async def test_snapshot_types(self):
-        collection = await self.client.process_snapshot_lines(
-            self.unprocessed_snapshots.split("\n")
-        )
-        iphy, xphy, tcvr = collection.unpack()
-        iphy_list = list(iphy.items())
-        time, snapshot = iphy_list[0]
-        self.assertTrue(type(snapshot) is PhyInfo or type(snapshot) is TransceiverInfo)
-        self.assertTrue(type(time) is int)
+        snapshots_to_test = [
+            self.unprocessed_snapshots.split("\n"),
+            self.unprocessed_snapshots.replace(
+                r"<port:eth2/1/1>",
+                r"<port:eth2/1/1> <port:eth2/1/2> <port:eth2/1/3> <port:eth2/1/4>",
+            ).split("\n"),
+        ]
+        for test_snapshot in snapshots_to_test:
+            collection = await self.client.process_snapshot_lines(test_snapshot)
+            iphy, xphy, tcvr = collection.unpack()
+            iphy_list = list(iphy.items())
+            time, snapshot = iphy_list[0]
+            self.assertTrue(
+                type(snapshot) is PhyInfo or type(snapshot) is TransceiverInfo
+            )
+            self.assertTrue(type(time) is int)
 
     @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")

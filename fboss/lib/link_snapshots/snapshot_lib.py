@@ -37,6 +37,7 @@ SNAPSHOT_FORMAT = r"{}LINK_SNAPSHOT_EVENT(LINK_SNAPSHOT): Collected snapshot for
 SNAPSHOT_REGEX = (
     SNAPSHOT_FORMAT.replace("(", r"\(")
     .replace(")", r"\)")
+    .replace(r"<port:{}> ", r"(<port:{}> )+")
     .format(r".*", r"eth\d+/\d+/\d+", r"(.*)")
 )
 
@@ -224,7 +225,7 @@ class SnapshotClient:
                     "link snapshot has invalid format\nSnapshot was: {}".format(line)
                 )
             else:
-                snapshot_str = match.group(1)
+                snapshot_str = match.group(2)
 
             # TODO(ccpowers): remove this line once we fix qsfp service to
             # not read compliance code on CMIS modules (which don't support it)
