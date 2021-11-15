@@ -47,10 +47,11 @@ void ControlLogic::getFanUpdate() {
         entryType = pSensor_->getSensorEntryType(fanItemName);
         switch (entryType) {
           case kSensorEntryInt:
-            fanRpm = (int)pSensor_->getSensorDataInt(fanItemName);
+            fanRpm = static_cast<int>(pSensor_->getSensorDataInt(fanItemName));
             break;
           case kSensorEntryFloat:
-            fanRpm = (int)pSensor_->getSensorDataFloat(fanItemName);
+            fanRpm =
+                static_cast<int>(pSensor_->getSensorDataFloat(fanItemName));
             break;
           default:
             facebook::fboss::FbossError(
@@ -113,7 +114,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
   uint64_t dT;
   std::vector<std::pair<float, float>> tableToUse;
   switch (sensorItem->calculationType) {
-    case kSensorPwmCalcFourLinearTable:
+    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcFourLinearTable:
       accelerate = true;
       previousSensorValue = sensorItem->fourCurves.previousSensorRead;
       sensorValue = sensorItem->processedData.adjustedReadCache;
@@ -155,7 +156,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
                  << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
       break;
 
-    case kSensorPwmCalcIncrementPid:
+    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcIncrementPid:
       value = sensorItem->processedData.adjustedReadCache;
       lastPwm = sensorItem->incrementPid.previousTargetPwm;
       kp = sensorItem->incrementPid.kp;
@@ -179,7 +180,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
 
       break;
 
-    case kSensorPwmCalcPid:
+    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcPid:
       value = sensorItem->processedData.adjustedReadCache;
       lastPwm = sensorItem->incrementPid.previousTargetPwm;
       pwm = lastPwm;
@@ -215,7 +216,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
                  << " Max : " << maxVal;
       break;
 
-    case kSensorPwmCalcDisable:
+    case fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable:
       // Do nothing
       XLOG(WARN) << "Control :: Sensor : " << sensorItem->sensorName
                  << "Do Nothing ";

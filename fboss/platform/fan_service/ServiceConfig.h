@@ -20,8 +20,6 @@
 // Reuse facebook::fboss::FbossError for consistency
 #include "fboss/agent/FbossError.h"
 
-// Fundamental data types and enums are defined here
-#include "fboss/platform/fan_service/ConfigDataType.h"
 // Service Config needs to access sensor data
 #include "SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
@@ -201,14 +199,15 @@ class Sensor {
   std::vector<std::pair<float, float>> offsetTable;
   Alarm alarm;
   RangeCheck rangeCheck;
-  SensorPwmCalcType calculationType;
+  fan_config_structs::SensorPwmCalcType calculationType;
   IncrementPid incrementPid;
   FourCurves fourCurves;
   int sensorFailThresholdInSec;
   SensorReadCache processedData;
   Sensor() {
     sensorFailThresholdInSec = 300;
-    calculationType = kSensorPwmCalcDisable;
+    calculationType =
+        fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable;
   }
 };
 

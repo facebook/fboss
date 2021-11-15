@@ -362,17 +362,20 @@ void ServiceConfig::parseSensorsChapter(folly::dynamic value) {
             if (convertKeywordToIndex(valStr) ==
                 fan_config_structs::FsvcConfigDictIndex::
                     kFsvcCfgSensorType4Cuv) {
-              newSensor.calculationType = kSensorPwmCalcFourLinearTable;
+              newSensor.calculationType = fan_config_structs::
+                  SensorPwmCalcType::kSensorPwmCalcFourLinearTable;
             } else if (
                 convertKeywordToIndex(valStr) ==
                 fan_config_structs::FsvcConfigDictIndex::
                     kFsvcCfgSensorTypeIncrementPid) {
-              newSensor.calculationType = kSensorPwmCalcIncrementPid;
+              newSensor.calculationType = fan_config_structs::
+                  SensorPwmCalcType::kSensorPwmCalcIncrementPid;
             } else if (
                 convertKeywordToIndex(valStr) ==
                 fan_config_structs::FsvcConfigDictIndex::
                     kFsvcCfgSensorTypePid) {
-              newSensor.calculationType = kSensorPwmCalcPid;
+              newSensor.calculationType =
+                  fan_config_structs::SensorPwmCalcType::kSensorPwmCalcPid;
             } else {
               facebook::fboss::FbossError(
                   "Invalide Sensor PWM Calculation Type ", valStr);
