@@ -616,8 +616,8 @@ sai_status_t set_acl_entry_attribute_fn(
       break;
     case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
       aclEntry.fieldOuterVlanIdEnable = attr->value.aclfield.enable;
-      aclEntry.fieldEtherTypeData = attr->value.aclfield.data.u16;
-      aclEntry.fieldEtherTypeMask = attr->value.aclfield.mask.u16;
+      aclEntry.fieldOuterVlanIdData = attr->value.aclfield.data.u16;
+      aclEntry.fieldOuterVlanIdMask = attr->value.aclfield.mask.u16;
       res = SAI_STATUS_SUCCESS;
       break;
 

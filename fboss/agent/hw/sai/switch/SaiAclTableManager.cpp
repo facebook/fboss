@@ -663,6 +663,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         AclEntryFieldU16(std::make_pair(etherTypeData, kEtherTypeMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldOuterVlanId>
+      fieldOuterVlanId{std::nullopt};
+  if (addedAclEntry->getVlanID()) {
+    fieldOuterVlanId = SaiAclEntryTraits::Attributes::FieldOuterVlanId{
+        AclEntryFieldU16(std::make_pair(
+            addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
   if (addedAclEntry->getLookupClassL2()) {
@@ -886,6 +894,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       fieldEtherType,
+      fieldOuterVlanId,
       aclActionPacketAction,
       aclActionCounter,
       aclActionSetTC,
@@ -1264,6 +1273,11 @@ bool SaiAclTableManager::isQualifierSupported(
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldEthertype>>(
+              attributes));
+    case cfg::AclTableQualifier::OUTER_VLAN:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
               attributes));
   }
   return false;

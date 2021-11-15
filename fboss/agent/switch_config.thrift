@@ -484,6 +484,7 @@ enum AclTableQualifier {
   LOOKUP_CLASS_NEIGHBOR = 20,
   LOOKUP_CLASS_ROUTE = 21,
   ETHER_TYPE = 22,
+  OUTER_VLAN = 23,
 }
 
 struct AclTable {

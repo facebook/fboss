@@ -96,6 +96,7 @@ std::
       std::nullopt, // route meta
       std::nullopt, // neighbor meta
       true, // ether type
+      std::nullopt, // fieldOuterVlanId
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

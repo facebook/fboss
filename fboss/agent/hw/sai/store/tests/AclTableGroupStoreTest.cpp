@@ -67,6 +67,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // route meta
             true, // neighbor meta
             true, // ether type
+            true, // outer vlan id
         },
         0);
   }

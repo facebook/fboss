@@ -137,6 +137,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(0x0800, 0xFFFF);
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kOuterVlanId() const {
+    return std::make_pair(2000, 0xFFFF);
+  }
+
   sai_uint32_t kPacketAction() const {
     return SAI_PACKET_ACTION_DROP;
   }
@@ -208,6 +212,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // route meta
             true, // neighbor meta
             true, // ethertype
+            true, // outer vlan id
         },
         0);
   }
@@ -241,6 +246,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kRouteDstUserMeta()),
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
             AclEntryFieldU16(this->kEtherType()),
+            AclEntryFieldU16(this->kOuterVlanId()),
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
@@ -361,6 +367,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // route meta
       true, // neighbor meta
       true, // ethertype
+      true, // outer vlan id
   };
 
   SaiAclTableTraits::AdapterHostKey k{"AclTable1"};
@@ -400,6 +407,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kRouteDstUserMeta(),
       this->kNeighborDstUserMeta(),
       this->kEtherType(),
+      this->kOuterVlanId(),
       this->kPacketAction(),
       this->kCounter(),
       this->kSetTC(),
