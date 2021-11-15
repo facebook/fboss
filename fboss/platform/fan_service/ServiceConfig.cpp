@@ -123,19 +123,19 @@ AccessMethod ServiceConfig::parseAccessMethod(folly::dynamic values) {
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
         if (convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
-          returnVal.accessType = kSrcSysfs;
+          returnVal.accessType = fan_config_structs::SourceType::kSrcSysfs;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
-          returnVal.accessType = kSrcThrift;
+          returnVal.accessType = fan_config_structs::SourceType::kSrcThrift;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
-          returnVal.accessType = kSrcUtil;
+          returnVal.accessType = fan_config_structs::SourceType::kSrcUtil;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
-          returnVal.accessType = kSrcRest;
+          returnVal.accessType = fan_config_structs::SourceType::kSrcRest;
         } else {
           throw facebook::fboss::FbossError(
               "Invalid Access Type : ", value.asString());

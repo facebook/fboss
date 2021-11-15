@@ -3,6 +3,7 @@
 // Implementation of Bsp class. Refer to .h for functional description
 #include "Bsp.h"
 #include <string>
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 namespace facebook::fboss::platform {
 Bsp::Bsp() {
@@ -28,16 +29,16 @@ void Bsp::getSensorData(
     float readVal;
     bool readSuccessful;
     switch (sensor->access.accessType) {
-      case kSrcThrift:
+      case fan_config_structs::SourceType::kSrcThrift:
         fetchOverThrift = true;
         break;
-      case kSrcRest:
+      case fan_config_structs::SourceType::kSrcRest:
         fetchOverRest = true;
         break;
-      case kSrcUtil:
+      case fan_config_structs::SourceType::kSrcUtil:
         fetchOverUtil = true;
         break;
-      case kSrcSysfs:
+      case fan_config_structs::SourceType::kSrcSysfs:
         nowSec = facebook::WallClockUtil::NowInSecFast();
         readSuccessful = false;
         try {
@@ -49,7 +50,7 @@ void Bsp::getSensorData(
         if (readSuccessful)
           pSensorData->updateEntryFloat(sensor->sensorName, readVal, nowSec);
         break;
-      case kSrcInvalid:
+      case fan_config_structs::SourceType::kSrcInvalid:
       default:
         facebook::fboss::FbossError("Invalid way for fetching sensor data!");
         break;

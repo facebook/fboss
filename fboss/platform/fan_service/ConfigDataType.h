@@ -7,14 +7,6 @@
 namespace facebook::fboss::platform {
 
 typedef enum {
-  kSrcSysfs,
-  kSrcUtil,
-  kSrcThrift,
-  kSrcRest,
-  kSrcInvalid
-} SourceType;
-
-typedef enum {
   kBspGeneric,
   kBspDarwin,
   kBspLassen,

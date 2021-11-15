@@ -27,18 +27,22 @@ void ControlLogic::getFanUpdate() {
   for (auto fanItem = pConfig_->fans.begin(); fanItem != pConfig_->fans.end();
        ++fanItem) {
     XLOG(INFO) << "Control :: Fan name " << fanItem->fanName
-               << " Access type : " << fanItem->rpmAccess.accessType;
+               << " Access type : "
+               << static_cast<int>(fanItem->rpmAccess.accessType);
     bool fanAccessFail = false;
     int fanRpm;
     uint64_t rpmTimeStamp;
     std::string fanItemName = fanItem->fanName;
     // Check if RPM name in Thrift data is overridden
-    if (fanItem->rpmAccess.accessType == kSrcThrift) {
+    if (fanItem->rpmAccess.accessType ==
+        fan_config_structs::SourceType::kSrcThrift) {
       fanItemName = fanItem->rpmAccess.path;
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
-    if ((fanItem->rpmAccess.accessType == kSrcInvalid) ||
-        (fanItem->rpmAccess.accessType == kSrcThrift)) {
+    if ((fanItem->rpmAccess.accessType ==
+         fan_config_structs::SourceType::kSrcInvalid) ||
+        (fanItem->rpmAccess.accessType ==
+         fan_config_structs::SourceType::kSrcThrift)) {
       if (pSensor_->checkIfEntryExists(fanItemName)) {
         entryType = pSensor_->getSensorEntryType(fanItemName);
         switch (entryType) {
@@ -65,7 +69,9 @@ void ControlLogic::getFanUpdate() {
       } else {
         fanAccessFail = true;
       }
-    } else if (fanItem->rpmAccess.accessType == kSrcSysfs) {
+    } else if (
+        fanItem->rpmAccess.accessType ==
+        fan_config_structs::SourceType::kSrcSysfs) {
       try {
         XLOG(INFO) << "Reading RPM of fan " << fanItem->fanName << " at "
                    << fanItem->rpmAccess.path;
@@ -450,7 +456,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     // Secondly, set Zone pwm value to all the fans in the zone
     for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end();
          ++fan) {
-      SourceType srcType = fan->pwm.accessType;
+      auto srcType = fan->pwm.accessType;
       float pwmToProgram = 0;
       float currentPwm = fan->fanStatus.currentPwm;
       if ((zone->slope == 0) || (currentPwm == 0)) {
@@ -480,15 +486,15 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
         pwmInt = fan->pwmMax;
       }
       switch (srcType) {
-        case kSrcSysfs:
+        case fan_config_structs::SourceType::kSrcSysfs:
           pBsp_->setFanPwmSysfs(fan->pwm.path, pwmInt);
           break;
-        case kSrcUtil:
+        case fan_config_structs::SourceType::kSrcUtil:
           pBsp_->setFanPwmShell(fan->pwm.path, fan->fanName, pwmInt);
           break;
-        case kSrcThrift:
-        case kSrcRest:
-        case kSrcInvalid:
+        case fan_config_structs::SourceType::kSrcThrift:
+        case fan_config_structs::SourceType::kSrcRest:
+        case fan_config_structs::SourceType::kSrcInvalid:
         default:
           facebook::fboss::FbossError(
               "Unsupported PWM access type for : ", fan->fanName);

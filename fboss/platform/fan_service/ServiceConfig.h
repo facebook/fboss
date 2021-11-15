@@ -35,14 +35,14 @@ namespace facebook::fboss::platform {
 
 class AccessMethod {
  public:
-  SourceType accessType;
+  fan_config_structs::SourceType accessType;
   std::string path;
   unsigned int min;
   unsigned int max;
   AccessMethod() {
     min = 0;
     max = 255;
-    accessType = kSrcInvalid;
+    accessType = fan_config_structs::SourceType::kSrcInvalid;
   }
 };
 
