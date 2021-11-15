@@ -5,7 +5,7 @@ namespace facebook::fboss::platform {
 ServiceConfig::ServiceConfig() {
   prepareDict();
   jsonConfig_ = "";
-  bspType = kBspGeneric;
+  bspType = fan_config_structs::BspType::kBspGeneric;
   pwmBoostValue_ = 0;
   pwmBoostOnDeadFan = 0;
   pwmBoostOnDeadSensor = 0;
@@ -93,19 +93,19 @@ int ServiceConfig::parse(std::string filename) {
 void ServiceConfig::parseBspType(std::string bspString) {
   switch (convertKeywordToIndex(bspString)) {
     case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspGeneric:
-      bspType = kBspGeneric;
+      bspType = fan_config_structs::BspType::kBspGeneric;
       break;
     case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspDarwin:
-      bspType = kBspDarwin;
+      bspType = fan_config_structs::BspType::kBspDarwin;
       break;
     case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspLassen:
-      bspType = kBspLassen;
+      bspType = fan_config_structs::BspType::kBspLassen;
       break;
     case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMinipack3:
-      bspType = kBspMinipack3;
+      bspType = fan_config_structs::BspType::kBspMinipack3;
       break;
     case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMokujin:
-      bspType = kBspMokujin;
+      bspType = fan_config_structs::BspType::kBspMokujin;
       break;
     default:
       throw facebook::fboss::FbossError("Unrecognizable BSP type ", bspString);

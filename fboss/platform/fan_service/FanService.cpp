@@ -4,6 +4,8 @@
 // for functional description
 #include "fboss/platform/fan_service/FanService.h"
 
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+
 namespace facebook::fboss::platform {
 FanService::FanService(std::string configFileName) {
   lastControlExecutionTimeSec_ = 0;
@@ -51,14 +53,14 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
   Bsp* returnVal = NULL;
   switch (pConfig_->bspType) {
     // In many cases, generic BSP is enough.
-    case kBspGeneric:
-    case kBspDarwin:
-    case kBspLassen:
-    case kBspMinipack3:
+    case fan_config_structs::BspType::kBspGeneric:
+    case fan_config_structs::BspType::kBspDarwin:
+    case fan_config_structs::BspType::kBspLassen:
+    case fan_config_structs::BspType::kBspMinipack3:
       returnVal = new Bsp();
       break;
     // For unit testing, we use Mock (Mokujin) BSP.
-    case kBspMokujin:
+    case fan_config_structs::BspType::kBspMokujin:
       returnVal = static_cast<Bsp*>(new Mokujin());
       break;
 
@@ -124,7 +126,7 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
   std::string simulationSensorName;
   float simulationSensorValue;
   // Make sure BSP is a mock bsp type
-  if (pConfig_->bspType != kBspMokujin) {
+  if (pConfig_->bspType != fan_config_structs::BspType::kBspMokujin) {
     XLOG(ERR) << "Mock mode is enabled, but BSP is not a Mock BSP!";
     return -1;
   }

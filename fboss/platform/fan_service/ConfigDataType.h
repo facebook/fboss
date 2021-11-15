@@ -7,14 +7,6 @@
 namespace facebook::fboss::platform {
 
 typedef enum {
-  kBspGeneric,
-  kBspDarwin,
-  kBspLassen,
-  kBspMinipack3,
-  kBspMokujin
-} BspType;
-
-typedef enum {
   kSensorPwmCalcFourLinearTable,
   kSensorPwmCalcIncrementPid,
   kSensorPwmCalcPid,

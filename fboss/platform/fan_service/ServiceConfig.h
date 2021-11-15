@@ -225,7 +225,7 @@ class ServiceConfig {
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadSensor;
   // BSP Type
-  BspType bspType;
+  fan_config_structs::BspType bspType;
 
   //
   // Methods
