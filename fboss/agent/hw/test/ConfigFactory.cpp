@@ -623,8 +623,8 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
       masterLogicalPortIds, uplinks, downlinks, disabledLinks, kTotalLinkCount);
 
   // make all logicalPorts have their own vlan id
-  auto cfg =
-      utility::onePortPerVlanConfig(hwSwitch, masterLogicalPortIds, lbMode);
+  auto cfg = utility::onePortPerVlanConfig(
+      hwSwitch, masterLogicalPortIds, lbMode, true, kUplinkBaseVlanId);
   for (auto portId : uplinks) {
     utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
   }
@@ -659,8 +659,13 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * speed and return the config.
    */
   if (!isRswPlatform(platform->getMode())) {
-    auto config =
-        utility::onePortPerVlanConfig(hwSwitch, masterLogicalPortIds, lbMode);
+    auto config = utility::onePortPerVlanConfig(
+        hwSwitch,
+        masterLogicalPortIds,
+        lbMode,
+        interfaceHasSubnet,
+        true,
+        kUplinkBaseVlanId);
     for (auto portId : masterLogicalPortIds) {
       utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
     }
@@ -682,7 +687,12 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * speed update.
    */
   auto config = utility::onePortPerVlanConfig(
-      hwSwitch, uplinkMasterPorts, lbMode, interfaceHasSubnet);
+      hwSwitch,
+      uplinkMasterPorts,
+      lbMode,
+      interfaceHasSubnet,
+      true,
+      kUplinkBaseVlanId);
   for (auto portId : uplinkMasterPorts) {
     utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
   }
