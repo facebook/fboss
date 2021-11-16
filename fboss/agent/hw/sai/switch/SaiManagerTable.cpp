@@ -60,7 +60,7 @@ void SaiManagerTable::createSaiTableManagers(
   bridgeManager_ = std::make_unique<SaiBridgeManager>(saiStore, this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(saiStore, this, platform);
   debugCounterManager_ =
-      std::make_unique<SaiDebugCounterManager>(saiStore, this);
+      std::make_unique<SaiDebugCounterManager>(saiStore, this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(
       saiStore, this, platform, concurrentIndices);
   hashManager_ = std::make_unique<SaiHashManager>(saiStore, this, platform);

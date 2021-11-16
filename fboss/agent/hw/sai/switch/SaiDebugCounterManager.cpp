@@ -15,11 +15,14 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 
 void SaiDebugCounterManager::setupDebugCounters() {
   setupPortL3BlackHoleCounter();
+  setupMPLSLookupFailedCounter();
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
