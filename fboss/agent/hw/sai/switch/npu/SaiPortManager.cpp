@@ -252,4 +252,74 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   };
 }
 
+/*
+ * This is a temporary routine to fix AFE trim issue in TAJO.
+ * TAJO provided a new extension attribute to set AFE mode to adaptive
+ * per port.
+ * 1) Apply only on 25G copper port
+ * 2) Attribute to use: SAI_PORT_SERDES_ATTR_EXT_RX_AFE_ADAPTIVE_ENABLE
+ * 3) Enable adaptive mode only if its not enabled in the SDK.
+ */
+void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  if (!portHandle) {
+    XLOG(INFO) << "afe adaptive mode not enabled: failed to find port"
+               << portId;
+    return;
+  }
+  std::optional<SaiPortTraits::Attributes::MediaType> mediaTypeAttr{};
+  auto mediaType = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), mediaTypeAttr);
+  // Return if media type is not copper
+  if (!(mediaType == SAI_PORT_MEDIA_TYPE_COPPER ||
+        mediaType == SAI_PORT_MEDIA_TYPE_UNKNOWN)) {
+    XLOG(INFO)
+        << "afe adaptive mode not enabled: media type do not match for port: "
+        << portId;
+    return;
+  }
+
+  if (!portHandle->serdes) {
+    XLOG(INFO) << "afe adaptive mode not enabled: failed to find serdes on port"
+               << portId;
+    return;
+  }
+
+  auto serdesId = portHandle->serdes->adapterKey();
+  std::optional<SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable>
+      rxAfeAdaptiveEnableAttr{};
+  auto rxAfeAdaptiveEnabledList =
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          PortSerdesSaiId(serdesId), rxAfeAdaptiveEnableAttr);
+  bool afeReset = false;
+  if (rxAfeAdaptiveEnabledList.has_value()) {
+    for (auto afeEnabledPerLane : rxAfeAdaptiveEnabledList.value()) {
+      if (afeEnabledPerLane == 0) {
+        afeReset = true;
+        break;
+      }
+    }
+  }
+  if (!afeReset) {
+    XLOG(INFO) << "afe adaptive mode is already enabled on port: " << portId;
+    return;
+  }
+
+  SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable::ValueType
+      rxAfeAdaptiveEnable;
+  auto& portKey = portHandle->port->adapterHostKey();
+  for (auto i = 0; i < portKey.value().size(); i++) {
+    rxAfeAdaptiveEnable.push_back(1);
+  }
+  auto& store = saiStore_->get<SaiPortSerdesTraits>();
+  SaiPortSerdesTraits::AdapterHostKey serdesKey{portHandle->port->adapterKey()};
+  auto serdesAttributes = portHandle->serdes->attributes();
+  std::get<std::optional<std::decay_t<decltype(
+      SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{})>>>(
+      serdesAttributes) = rxAfeAdaptiveEnable;
+  portHandle->serdes.reset();
+  portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
+  XLOG(INFO) << "Configuring afe mode to adaptive on port: " << portId;
+}
+
 } // namespace facebook::fboss

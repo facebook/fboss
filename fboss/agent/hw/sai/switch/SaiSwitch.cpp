@@ -208,6 +208,7 @@ SaiSwitch::~SaiSwitch() {}
 HwInitResult SaiSwitch::init(
     Callback* callback,
     bool failHwCallsOnWarmboot) noexcept {
+  asicType_ = platform_->getAsic()->getAsicType();
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
@@ -1055,6 +1056,12 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
+      /*
+       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port flaps
+       */
+      if (asicType_ == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+        managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
+      }
     }
     swPortId2Status[swPortId] = up;
   }

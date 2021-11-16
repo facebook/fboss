@@ -171,6 +171,8 @@ class SaiPortManager {
 
   sai_port_eye_values_list_t getPortEyeValues(PortSaiId saiPortId) const;
 
+  void enableAfeAdaptiveMode(PortID portId);
+
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void addRemovedHandle(PortID portID);

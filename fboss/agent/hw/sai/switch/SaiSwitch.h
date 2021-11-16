@@ -20,6 +20,7 @@
 #include "folly/MacAddress.h"
 
 #include <folly/io/async/EventBase.h>
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <memory>
 #include <mutex>
@@ -446,6 +447,7 @@ class SaiSwitch : public HwSwitch {
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 
   int64_t watermarkStatsUpdateTime_{0};
+  HwAsic::AsicType asicType_;
 };
 
 } // namespace facebook::fboss
