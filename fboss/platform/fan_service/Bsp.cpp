@@ -13,6 +13,7 @@ void Bsp::getSensorData(
   bool fetchOverThrift = false;
   bool fetchOverRest = false;
   bool fetchOverUtil = false;
+
   // Only sysfs is read one by one. For other type of read,
   // we set the flags for each type, then read them in batch
   for (auto sensor = pServiceConfig->sensors.begin();
@@ -40,29 +41,35 @@ void Bsp::getSensorData(
         } catch (std::exception& e) {
           XLOG(ERR) << "Failed to read sysfs " << *sensor->access.path_ref();
         }
-        if (readSuccessful)
+        if (readSuccessful) {
           pSensorData->updateEntryFloat(sensor->sensorName, readVal, nowSec);
+        }
         break;
       case fan_config_structs::SourceType::kSrcInvalid:
       default:
-        facebook::fboss::FbossError("Invalid way for fetching sensor data!");
+        throw facebook::fboss::FbossError(
+            "Invalid way for fetching sensor data!");
         break;
     }
   }
-  // Now, fetch data per different access type othern than sysfs
+  // Now, fetch data per different access type other than sysfs
   // We don't use switch statement, as the config should support
   // mixed read methods. (For example, one sensor is read through thrift.
   // then another sensor is read from sysfs)
-  if (fetchOverThrift)
+  if (fetchOverThrift) {
     getSensorDataThrift(pServiceConfig, pSensorData);
-  if (fetchOverUtil)
+  }
+  if (fetchOverUtil) {
     getSensorDataUtil(pServiceConfig, pSensorData);
-  if (fetchOverRest)
+  }
+  if (fetchOverRest) {
     getSensorDataRest(pServiceConfig, pSensorData);
+  }
 
   // Set flag if not set yet
-  if (!initialSensorDataRead_)
+  if (!initialSensorDataRead_) {
     initialSensorDataRead_ = true;
+  }
 }
 bool Bsp::checkIfInitialSensorDataRead() const {
   return initialSensorDataRead_;
@@ -136,13 +143,15 @@ void Bsp::getSensorDataThriftWithSensorList(
 void Bsp::getSensorDataRest(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> /*pSensorData*/) const {
-  facebook::fboss::FbossError("getSensorDataRest is NOT IMPLEMENTED YET!");
+  throw facebook::fboss::FbossError(
+      "getSensorDataRest is NOT IMPLEMENTED YET!");
 }
 
 void Bsp::getSensorDataUtil(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> /*pSensorData*/) const {
-  facebook::fboss::FbossError("getSensorDataUtil is NOT IMPLEMENTED YET!");
+  throw facebook::fboss::FbossError(
+      "getSensorDataUtil is NOT IMPLEMENTED YET!");
 }
 
 // Sysfs may fail, but fan_service should keep running even
