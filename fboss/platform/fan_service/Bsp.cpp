@@ -46,7 +46,6 @@ void Bsp::getSensorData(
         }
         break;
       case fan_config_structs::SourceType::kSrcInvalid:
-      default:
         throw facebook::fboss::FbossError(
             "Invalid way for fetching sensor data!");
         break;
