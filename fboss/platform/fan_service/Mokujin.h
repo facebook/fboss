@@ -13,8 +13,6 @@
 namespace facebook::fboss::platform {
 class Mokujin : public Bsp {
  public:
-  // Constructor / Destructors
-  Mokujin();
   ~Mokujin();
   // Override some methods in Bsp class
   void getSensorData(
@@ -43,7 +41,7 @@ class Mokujin : public Bsp {
 
  private:
   // Attributes, mostly for keeping the state of the simulation
-  uint64_t currentTimeStampSec_;
+  uint64_t currentTimeStampSec_{0};
   std::string nextEventSensor_;
   float nextEventValue_;
   uint64_t nextEventTimeSec_;
@@ -51,10 +49,10 @@ class Mokujin : public Bsp {
   std::string inputFileName_;
   std::string outputFileName_;
   std::ifstream iFs_;
-  bool iFOpen_;
+  bool iFOpen_{false};
   bool eofIf_;
-  bool nextEventDeadSensor_;
+  bool nextEventDeadSensor_{false};
   std::ofstream oFs_;
-  bool oFOpen_;
+  bool oFOpen_{false};
 };
 } // namespace facebook::fboss::platform

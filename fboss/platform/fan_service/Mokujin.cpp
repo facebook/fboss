@@ -6,13 +6,6 @@
 
 namespace facebook::fboss::platform {
 
-Mokujin::Mokujin() {
-  iFOpen_ = false;
-  oFOpen_ = false;
-  nextEventDeadSensor_ = false;
-  currentTimeStampSec_ = 0;
-  return;
-}
 void Mokujin::openIOFiles(std::string iFileName, std::string oFileName) {
   try {
     iFs_.open(iFileName, std::ifstream::in);
@@ -89,7 +82,7 @@ int Mokujin::emergencyShutdown(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     bool enable) {
   int rc = 0;
-  emergencyShutdownState = true;
+  setEmergencyState(true);
   oFs_ << std::to_string(currentTimeStampSec_) << "::"
        << "SYSTEM"
        << "::"

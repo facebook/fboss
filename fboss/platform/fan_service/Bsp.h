@@ -30,9 +30,7 @@
 namespace facebook::fboss::platform {
 class Bsp {
  public:
-  // Constructur / Destructors
-  Bsp();
-  virtual ~Bsp();
+  virtual ~Bsp() = default;
   // getSensorData: Get sensor data from either cache or direct access
   virtual void getSensorData(
       std::shared_ptr<ServiceConfig> pServiceConfig,
@@ -56,15 +54,16 @@ class Bsp {
 
  protected:
   // This attribute is accessed by internal function and Mock class (Mokujin)
-  bool emergencyShutdownState;
+  void setEmergencyState(bool state);
 
  private:
+  bool emergencyShutdownState_{false};
+
   // Private Attributes
-  int sensordThriftPort_;
-  bool initialSensorDataRead_;
+  int sensordThriftPort_{7001};
+  bool initialSensorDataRead_{false};
 
   // Private Methods
-  void setEmergencyState(bool state);
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
   void getSensorDataThrift(
       std::shared_ptr<ServiceConfig> pServiceConfig,

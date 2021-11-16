@@ -6,13 +6,6 @@
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 
 namespace facebook::fboss::platform {
-Bsp::Bsp() {
-  emergencyShutdownState = false;
-  sensordThriftPort_ = 7001;
-  initialSensorDataRead_ = false;
-}
-
-Bsp::~Bsp() {}
 
 void Bsp::getSensorData(
     std::shared_ptr<ServiceConfig> pServiceConfig,
@@ -96,11 +89,11 @@ uint64_t Bsp::getCurrentTime() {
 }
 
 bool Bsp::getEmergencyState() {
-  return emergencyShutdownState;
+  return emergencyShutdownState_;
 }
 
 void Bsp::setEmergencyState(bool state) {
-  emergencyShutdownState = state;
+  emergencyShutdownState_ = state;
 }
 
 void Bsp::getSensorDataThrift(
