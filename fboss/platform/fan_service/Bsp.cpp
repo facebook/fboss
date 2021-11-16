@@ -64,7 +64,7 @@ void Bsp::getSensorData(
   if (!initialSensorDataRead_)
     initialSensorDataRead_ = true;
 }
-bool Bsp::checkIfInitialSensorDataRead() {
+bool Bsp::checkIfInitialSensorDataRead() const {
   return initialSensorDataRead_;
 }
 
@@ -84,11 +84,11 @@ int Bsp::emergencyShutdown(
   return rc;
 }
 
-uint64_t Bsp::getCurrentTime() {
+uint64_t Bsp::getCurrentTime() const {
   return facebook::WallClockUtil::NowInSecFast();
 }
 
-bool Bsp::getEmergencyState() {
+bool Bsp::getEmergencyState() const {
   return emergencyShutdownState_;
 }
 
@@ -98,7 +98,7 @@ void Bsp::setEmergencyState(bool state) {
 
 void Bsp::getSensorDataThrift(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) {
+    std::shared_ptr<SensorData> pSensorData) const {
   // Simply call the helper fucntion with empty string vector.
   // (which means we want all sensor data)
   std::vector<std::string> emptyStrVec;
@@ -109,7 +109,7 @@ void Bsp::getSensorDataThrift(
 void Bsp::getSensorDataThriftWithSensorList(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> pSensorData,
-    std::vector<std::string> sensorList) {
+    std::vector<std::string> sensorList) const {
   std::string ip = "::1";
   auto params = facebook::servicerouter::ClientParams().setSingleHost(
       ip, sensordThriftPort_);
@@ -131,29 +131,28 @@ void Bsp::getSensorDataThriftWithSensorList(
     // uint64_t timeStamp=facebook::WallClockUtil::NowInSecFast();
     pSensorData->updateEntryFloat(key, value, timeStamp);
   }
-  return;
 }
 
 void Bsp::getSensorDataRest(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) {
+    std::shared_ptr<SensorData> /*pSensorData*/) const {
   facebook::fboss::FbossError("getSensorDataRest is NOT IMPLEMENTED YET!");
 }
 
 void Bsp::getSensorDataUtil(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) {
+    std::shared_ptr<SensorData> /*pSensorData*/) const {
   facebook::fboss::FbossError("getSensorDataUtil is NOT IMPLEMENTED YET!");
 }
 
 // Sysfs may fail, but fan_service should keep running even
 // after these failures. Therefore, in case of failure,
 // we just throw exception and let caller handle it.
-float Bsp::getSensorDataSysfs(std::string path) {
+float Bsp::getSensorDataSysfs(std::string path) const {
   return readSysfs(path);
 }
 
-float Bsp::readSysfs(std::string path) {
+float Bsp::readSysfs(std::string path) const {
   float retVal;
   std::ifstream juicejuice(path);
   std::string buf;
@@ -171,6 +170,7 @@ float Bsp::readSysfs(std::string path) {
   }
   return retVal;
 }
+
 bool Bsp::setFanPwmSysfs(std::string path, int pwm) {
   std::string pwmStr = std::to_string(pwm);
   bool success = true;
@@ -183,8 +183,11 @@ bool Bsp::setFanPwmSysfs(std::string path, int pwm) {
   }
   return success;
 }
-std::string
-Bsp::replaceAllString(std::string original, std::string src, std::string tgt) {
+
+std::string Bsp::replaceAllString(
+    std::string original,
+    std::string src,
+    std::string tgt) const {
   std::string retVal = original;
   size_t index = 0;
   index = retVal.find(src, index);

@@ -96,7 +96,7 @@ bool Mokujin::setFanPwmSysfs(std::string path, int pwm) {
   return true;
 }
 
-uint64_t Mokujin::getCurrentTime() {
+uint64_t Mokujin::getCurrentTime() const {
   return currentTimeStampSec_;
 }
 

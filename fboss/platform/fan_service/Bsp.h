@@ -43,16 +43,18 @@ class Bsp {
   virtual bool setFanPwmSysfs(std::string path, int pwm);
   virtual bool
   setFanPwmShell(std::string command, std::string fanName, int pwm);
-  // replaceAllString : String replace helper function
-  std::string
-  replaceAllString(std::string original, std::string src, std::string tgt);
   // Other public functions that cannot be overridden
-  virtual uint64_t getCurrentTime();
-  virtual bool checkIfInitialSensorDataRead();
-  bool getEmergencyState();
-  float readSysfs(std::string path);
+  virtual uint64_t getCurrentTime() const;
+  virtual bool checkIfInitialSensorDataRead() const;
+  bool getEmergencyState() const;
+  float readSysfs(std::string path) const;
 
  protected:
+  // replaceAllString : String replace helper function
+  std::string replaceAllString(
+      std::string original,
+      std::string src,
+      std::string tgt) const;
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
 
@@ -67,18 +69,18 @@ class Bsp {
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
   void getSensorDataThrift(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+      std::shared_ptr<SensorData> pSensorData) const;
   void getSensorDataThriftWithSensorList(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData,
-      std::vector<std::string> sensorList);
+      std::vector<std::string> sensorList) const;
   void getSensorDataUtil(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
-  float getSensorDataSysfs(std::string path);
+      std::shared_ptr<SensorData> pSensorData) const;
+  float getSensorDataSysfs(std::string path) const;
   void getSensorDataRest(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+      std::shared_ptr<SensorData> pSensorData) const;
 };
 
 } // namespace facebook::fboss::platform

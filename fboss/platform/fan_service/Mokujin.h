@@ -17,13 +17,14 @@ class Mokujin : public Bsp {
   // Override some methods in Bsp class
   void getSensorData(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
+      std::shared_ptr<SensorData> pSensorData) override;
   int emergencyShutdown(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      bool enable);
-  bool setFanPwmSysfs(std::string path, int pwm);
-  bool setFanPwmShell(std::string command, std::string fanName, int pwm);
-  uint64_t getCurrentTime();
+      bool enable) override;
+  bool setFanPwmSysfs(std::string path, int pwm) override;
+  bool setFanPwmShell(std::string command, std::string fanName, int pwm)
+      override;
+  uint64_t getCurrentTime() const override;
 
   // The following public methods are used by Fan Service to interact with
   // this Mock DSP, so that it will timewarp when there is no more current
