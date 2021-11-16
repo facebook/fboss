@@ -21,7 +21,7 @@ void Bsp::getSensorData(
     uint64_t nowSec;
     float readVal;
     bool readSuccessful;
-    switch (sensor->access.accessType) {
+    switch (*sensor->access.accessType_ref()) {
       case fan_config_structs::SourceType::kSrcThrift:
         fetchOverThrift = true;
         break;
@@ -35,10 +35,10 @@ void Bsp::getSensorData(
         nowSec = facebook::WallClockUtil::NowInSecFast();
         readSuccessful = false;
         try {
-          readVal = getSensorDataSysfs(sensor->access.path);
+          readVal = getSensorDataSysfs(*sensor->access.path_ref());
           readSuccessful = true;
         } catch (std::exception& e) {
-          XLOG(ERR) << "Failed to read sysfs " << sensor->access.path;
+          XLOG(ERR) << "Failed to read sysfs " << *sensor->access.path_ref();
         }
         if (readSuccessful)
           pSensorData->updateEntryFloat(sensor->sensorName, readVal, nowSec);

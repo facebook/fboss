@@ -114,8 +114,9 @@ void ServiceConfig::parseBspType(std::string bspString) {
   return;
 }
 
-AccessMethod ServiceConfig::parseAccessMethod(folly::dynamic values) {
-  AccessMethod returnVal;
+fan_config_structs::AccessMethod ServiceConfig::parseAccessMethod(
+    folly::dynamic values) {
+  fan_config_structs::AccessMethod returnVal;
   for (auto& item : values.items()) {
     std::string key = item.first.asString();
     auto value = item.second;
@@ -123,26 +124,28 @@ AccessMethod ServiceConfig::parseAccessMethod(folly::dynamic values) {
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
         if (convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
-          returnVal.accessType = fan_config_structs::SourceType::kSrcSysfs;
+          returnVal.accessType_ref() =
+              fan_config_structs::SourceType::kSrcSysfs;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
-          returnVal.accessType = fan_config_structs::SourceType::kSrcThrift;
+          returnVal.accessType_ref() =
+              fan_config_structs::SourceType::kSrcThrift;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
-          returnVal.accessType = fan_config_structs::SourceType::kSrcUtil;
+          returnVal.accessType_ref() = fan_config_structs::SourceType::kSrcUtil;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
-          returnVal.accessType = fan_config_structs::SourceType::kSrcRest;
+          returnVal.accessType_ref() = fan_config_structs::SourceType::kSrcRest;
         } else {
           throw facebook::fboss::FbossError(
               "Invalid Access Type : ", value.asString());
         }
         break;
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath:
-        returnVal.path = value.asString();
+        returnVal.path_ref() = value.asString();
         break;
       default:
         XLOG(ERR) << "Invalid Key in Access Method Parsing : " << key;

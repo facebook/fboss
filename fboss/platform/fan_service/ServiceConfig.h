@@ -31,19 +31,6 @@
 
 namespace facebook::fboss::platform {
 
-class AccessMethod {
- public:
-  fan_config_structs::SourceType accessType;
-  std::string path;
-  unsigned int min;
-  unsigned int max;
-  AccessMethod() {
-    min = 0;
-    max = 255;
-    accessType = fan_config_structs::SourceType::kSrcInvalid;
-  }
-};
-
 struct Zone {
  public:
   fan_config_structs::ZoneType type;
@@ -75,8 +62,8 @@ class Fan {
   // Fan RPM is read as a sensor, but referred here
   // through the sensor name
   std::string rpmSensorName;
-  AccessMethod pwm;
-  AccessMethod rpmAccess;
+  fan_config_structs::AccessMethod pwm;
+  fan_config_structs::AccessMethod rpmAccess;
   unsigned int pwmMin;
   unsigned int pwmMax;
   FanStatus fanStatus;
@@ -195,7 +182,7 @@ class IncrementPid {
 class Sensor {
  public:
   std::string sensorName;
-  AccessMethod access;
+  fan_config_structs::AccessMethod access;
   std::vector<std::pair<float, float>> offsetTable;
   Alarm alarm;
   RangeCheck rangeCheck;
@@ -270,7 +257,7 @@ class ServiceConfig {
   //
   // Methods
   //
-  AccessMethod parseAccessMethod(folly::dynamic value);
+  fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
   Alarm parseAlarm(folly::dynamic value);
   RangeCheck parseRangeCheck(folly::dynamic value);

@@ -28,20 +28,20 @@ void ControlLogic::getFanUpdate() {
        ++fanItem) {
     XLOG(INFO) << "Control :: Fan name " << fanItem->fanName
                << " Access type : "
-               << static_cast<int>(fanItem->rpmAccess.accessType);
+               << static_cast<int>(*fanItem->rpmAccess.accessType_ref());
     bool fanAccessFail = false;
     int fanRpm;
     uint64_t rpmTimeStamp;
     std::string fanItemName = fanItem->fanName;
     // Check if RPM name in Thrift data is overridden
-    if (fanItem->rpmAccess.accessType ==
+    if (fanItem->rpmAccess.accessType_ref() ==
         fan_config_structs::SourceType::kSrcThrift) {
-      fanItemName = fanItem->rpmAccess.path;
+      fanItemName = *fanItem->rpmAccess.path_ref();
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
-    if ((fanItem->rpmAccess.accessType ==
+    if ((fanItem->rpmAccess.accessType_ref() ==
          fan_config_structs::SourceType::kSrcInvalid) ||
-        (fanItem->rpmAccess.accessType ==
+        (fanItem->rpmAccess.accessType_ref() ==
          fan_config_structs::SourceType::kSrcThrift)) {
       if (pSensor_->checkIfEntryExists(fanItemName)) {
         entryType = pSensor_->getSensorEntryType(fanItemName);
@@ -71,18 +71,19 @@ void ControlLogic::getFanUpdate() {
         fanAccessFail = true;
       }
     } else if (
-        fanItem->rpmAccess.accessType ==
+        fanItem->rpmAccess.accessType_ref() ==
         fan_config_structs::SourceType::kSrcSysfs) {
       try {
         XLOG(INFO) << "Reading RPM of fan " << fanItem->fanName << " at "
-                   << fanItem->rpmAccess.path;
-        fanItem->fanStatus.rpm = pBsp_->readSysfs(fanItem->rpmAccess.path);
+                   << *fanItem->rpmAccess.path_ref();
+        fanItem->fanStatus.rpm =
+            pBsp_->readSysfs(*fanItem->rpmAccess.path_ref());
         fanItem->fanStatus.fanFailed = false;
         fanItem->fanStatus.timeStamp = pBsp_->getCurrentTime();
         XLOG(INFO) << "Successfully read  " << fanItem->fanName << " at "
-                   << fanItem->rpmAccess.path;
+                   << *fanItem->rpmAccess.path_ref();
       } catch (std::exception& e) {
-        XLOG(ERR) << "Fan RPM access fail " << fanItem->rpmAccess.path;
+        XLOG(ERR) << "Fan RPM access fail " << *fanItem->rpmAccess.path_ref();
         fanAccessFail = true;
       }
     } else {
@@ -457,7 +458,7 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     // Secondly, set Zone pwm value to all the fans in the zone
     for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end();
          ++fan) {
-      auto srcType = fan->pwm.accessType;
+      auto srcType = *fan->pwm.accessType_ref();
       float pwmToProgram = 0;
       float currentPwm = fan->fanStatus.currentPwm;
       if ((zone->slope == 0) || (currentPwm == 0)) {
@@ -488,10 +489,10 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
       }
       switch (srcType) {
         case fan_config_structs::SourceType::kSrcSysfs:
-          pBsp_->setFanPwmSysfs(fan->pwm.path, pwmInt);
+          pBsp_->setFanPwmSysfs(*fan->pwm.path_ref(), pwmInt);
           break;
         case fan_config_structs::SourceType::kSrcUtil:
-          pBsp_->setFanPwmShell(fan->pwm.path, fan->fanName, pwmInt);
+          pBsp_->setFanPwmShell(*fan->pwm.path_ref(), fan->fanName, pwmInt);
           break;
         case fan_config_structs::SourceType::kSrcThrift:
         case fan_config_structs::SourceType::kSrcRest:

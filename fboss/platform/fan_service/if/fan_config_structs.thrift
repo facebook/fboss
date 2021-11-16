@@ -80,6 +80,11 @@ enum SourceType {
   kSrcInvalid = 4,
 }
 
+struct AccessMethod {
+  1: SourceType accessType = kSrcInvalid;
+  2: string path;
+}
+
 enum BspType {
   kBspGeneric = 0,
   kBspDarwin = 1,
