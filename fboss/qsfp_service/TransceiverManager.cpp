@@ -517,11 +517,12 @@ void TransceiverManager::updateTransceiverPortStatus(
 }
 
 void TransceiverManager::refreshStateMachines() {
-  // TODO(joseph5wu) Step1: Check whether there's a wedge_agent config change
-
-  // Step2: Refresh all transceivers so that we can get an update
+  // Step1: Refresh all transceivers so that we can get an update
   // TransceiverInfo
   const auto& transceiverIds = refreshTransceivers();
+
+  // Step2: Check whether there's a wedge_agent config change
+  triggerAgentConfigChangeEvent(transceiverIds);
 
   if (FLAGS_use_new_state_machine) {
     // Step3: Once the transceivers are detected, trigger programming events
@@ -544,6 +545,36 @@ void TransceiverManager::refreshStateMachines() {
   }
 
   // TODO(joseph5wu) Step5: Remediate inactive transceivers
+}
+
+void TransceiverManager::triggerAgentConfigChangeEvent(
+    const std::vector<TransceiverID>& /* transceivers */) {
+  if (!FLAGS_use_new_state_machine) {
+    return;
+  }
+
+  auto wedgeAgentClient = utils::createWedgeAgentClient();
+  int64_t lastConfigApplied{0};
+  try {
+    lastConfigApplied = wedgeAgentClient->sync_getLastConfigAppliedInMs();
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "Failed to call wedge_agent getLastConfigAppliedInMs(). "
+               << folly::exceptionStr(ex);
+    return;
+  }
+
+  // Now check if the new timestamp is different from the cached one.
+  // Only need to change if the new timestamp is after the current one
+  if (lastConfigApplied > lastConfigAppliedInMs_) {
+    XLOG(INFO) << "New Agent config applied time:" << lastConfigApplied
+               << " and last cached time:" << lastConfigAppliedInMs_
+               << ". Issue all ports reprogramming events";
+    // TODO(joseph5wu) Add new state machine event
+    // Update present transceiver state machine back to DISCOVERED
+    // and absent transeiver state machine back to NOT_PRESENT
+    lastConfigAppliedInMs_ = lastConfigApplied;
+  }
 }
 } // namespace fboss
 } // namespace facebook

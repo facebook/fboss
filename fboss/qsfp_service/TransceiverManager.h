@@ -272,6 +272,9 @@ class TransceiverManager {
   // Return the list of transceivers that have programming events
   std::vector<TransceiverID> triggerProgrammingEvents();
 
+  void triggerAgentConfigChangeEvent(
+      const std::vector<TransceiverID>& transceivers);
+
   // Update the cached PortStatus of TransceiverToPortInfo for the specified
   // transceiver list
   void updateTransceiverPortStatus(
@@ -310,6 +313,15 @@ class TransceiverManager {
    * to TransceiverPortInfo mapping.
    */
   const TransceiverToPortInfo tcvrToPortInfo_;
+
+  /*
+   * A timestamp to keep track of the last wedge_agent config applied time.
+   * refreshStateMachines() will routinely call wedge_agent thrift api to
+   * getLastConfigAppliedInMs() thrift api, and then we can use that to tell
+   * whether there's a config change. This will probably introduce an updated
+   * iphy port profile change, and we should then issue a port re-programming
+   */
+  int64_t lastConfigAppliedInMs_{0};
 };
 } // namespace fboss
 } // namespace facebook
