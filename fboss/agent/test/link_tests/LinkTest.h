@@ -15,6 +15,13 @@ DECLARE_bool(skip_xphy_programming);
 
 namespace facebook::fboss {
 
+using namespace std::chrono_literals;
+
+// When we switch to use qsfp_service to collect stats(PhyInfo), default stats
+// collection frequency is 60s. Give the maximum check time 5x24=120s here.
+constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
+constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
+
 class LinkTest : public AgentTest {
  protected:
   void SetUp() override;

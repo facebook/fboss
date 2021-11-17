@@ -13,13 +13,8 @@
 
 using namespace ::testing;
 using namespace facebook::fboss;
-using namespace std::chrono_literals;
 
 static constexpr int kSecondsBetweenSnapshots = 20;
-// When we switch to use qsfp_service to collect stats(PhyInfo), default stats
-// collection frequency is 60s. Give the maximum check time 5x24=120s here.
-static constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
-static constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
 
 namespace {
 void validatePhyInfo(

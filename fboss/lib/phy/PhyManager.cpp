@@ -510,13 +510,15 @@ void PhyManager::updateStatsLocked(
   auto* xphy = getExternalPhyLocked(wLockedCache);
   // If the xphy doesn't support either port or prbs stats, no-op
   if (!xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) &&
+      !xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO) &&
       !xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
     return;
   }
 
   auto pimID = getPhyIDInfo(xphyID).pimID;
   auto evb = getPimEventBase(pimID);
-  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+      xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
     if (wLockedCache->ongoingStatCollection.has_value() &&
         !wLockedCache->ongoingStatCollection->isReady()) {
       XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
