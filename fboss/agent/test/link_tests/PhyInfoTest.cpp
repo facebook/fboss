@@ -185,6 +185,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
     return true;
   };
 
+  const auto timeStart = std::chrono::steady_clock::now();
+
   // Wait until every active port have an updated snapshot
   // sleep override
   std::this_thread::sleep_for(std::chrono::seconds(kSecondsBetweenSnapshots));
@@ -199,6 +201,12 @@ TEST_F(LinkTest, xPhyInfoTest) {
     phyInfoUpdated(true);
     throw;
   }
+
+  const auto timeEnd = std::chrono::steady_clock::now();
+  const auto timeTaken =
+      std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
+  XLOG(INFO) << "Updating snapshots on all ports took " << timeTaken.count()
+             << "s";
 
   // Validate PhyInfo
   for (const auto& port : cabledPorts) {

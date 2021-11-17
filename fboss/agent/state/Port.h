@@ -429,6 +429,8 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   Port* modify(std::shared_ptr<SwitchState>* state);
 
+  void fillPhyInfo(phy::PhyInfo* phyInfo);
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT<state::PortFields, Port, PortFields>::ThriftyBaseT;

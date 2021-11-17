@@ -286,6 +286,11 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+void Port::fillPhyInfo(phy::PhyInfo* phyInfo) {
+  phyInfo->name_ref() = getName();
+  phyInfo->speed_ref() = getSpeed();
+}
+
 template class NodeBaseT<Port, PortFields>;
 
 } // namespace facebook::fboss

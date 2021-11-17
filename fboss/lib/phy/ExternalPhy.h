@@ -21,10 +21,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
-namespace facebook::fboss {
-class Port;
-}
-
 namespace facebook::fboss::phy {
 
 /*
