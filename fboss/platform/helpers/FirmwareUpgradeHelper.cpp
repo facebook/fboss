@@ -41,6 +41,36 @@ void i2cRegWrite(
   execCommand(cmd);
 }
 
+std::string
+i2cRegRead(std::string bus, std::string devAddress, std::string regAddress) {
+  const std::string cmd = folly::to<std::string>(
+      "i2cget -f -y ", bus, " ", devAddress, " ", regAddress);
+  std::string regVal = execCommand(cmd);
+  return regVal;
+}
+
+std::string readSysfs(std::string path) {
+  std::ifstream inFile(path);
+  std::string buf;
+  try {
+    getline(inFile, buf);
+  } catch (std::exception& e) {
+    /* exception will be handle by the caller
+     * which will print appropriate log message
+     */
+    throw e;
+  }
+  return buf;
+}
+
+std::string toLower(std::string str) {
+  std::transform(
+      str.begin(), str.end(), str.begin(), [](unsigned char charValue) {
+        return std::tolower(charValue);
+      });
+  return str;
+}
+
 int runCmd(const std::string& cmd) {
   auto subProc = folly::Subprocess(folly::shellify(cmd));
   auto ret = subProc.wait().exitStatus();
@@ -50,6 +80,7 @@ int runCmd(const std::string& cmd) {
 void jamUpgrade(std::string fpga, std::string action, std::string fpgaFile) {
   if (action == "read") {
     std::cout << action << " not supported for " << fpga << std::endl;
+    exit(0);
   }
   const std::string cmd = folly::to<std::string>(
       "/usr/bin/jam -a", action, " -f", fpga, " -v ", fpgaFile);
@@ -82,21 +113,21 @@ void flashromBiosUpgrade(
       chip,
       " -l ",
       layout,
-      " -i normal -i fallback -r ",
+      " -i normal -i fallback -i aboot_conf -r ",
       biosFile);
   const std::string verifyBiosCmd = folly::to<std::string>(
       "flashrom -p internal ",
       chip,
       " -l ",
       layout,
-      " -i normal -i fallback -v ",
+      " -i normal -i fallback -i aboot_conf -v ",
       biosFile);
   const std::string writeBiosCmd = folly::to<std::string>(
       "flashrom -p internal ",
       chip,
       " -l ",
       layout,
-      " -i normal -i fallback --noverify-all -w ",
+      " -i normal -i fallback -i aboot_conf --noverify-all -w ",
       biosFile);
   int exitStatus = 0;
 

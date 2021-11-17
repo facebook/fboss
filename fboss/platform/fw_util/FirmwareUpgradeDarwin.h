@@ -17,6 +17,7 @@ class FirmwareUpgradeDarwin : public FirmwareUpgradeInterface {
   const std::string layout =
       "echo \"A00000:FFFFFF normal\n"
       "400000:9EFFFF fallback\n"
+      "9FA000:9FEFFF aboot_conf\n"
       "000000:FFFFFF total\n"
       "001000:01EFFF prefdl\"";
   const std::string flashromStrCmd = "flashrom -p internal 2>&1";
