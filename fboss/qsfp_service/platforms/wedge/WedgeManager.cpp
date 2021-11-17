@@ -209,33 +209,27 @@ void WedgeManager::initTransceiverMap() {
 void WedgeManager::getTransceiversInfo(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
-  XLOG(INFO) << "Received request for getTransceiverInfo, with ids: "
+  XLOG(INFO) << "Received request for getTransceiversInfo, with ids: "
              << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
     folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
   }
 
-  auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
     if (!isValidTransceiver(i)) {
-      // If the transceiver idx is not valid,
-      // just skip and continue to the next.
+      // If the transceiver idx is invalid, just skip and continue to the next.
       continue;
     }
-    TransceiverInfo trans;
-    if (auto it = lockedTransceivers->find(TransceiverID(i));
-        it != lockedTransceivers->end()) {
-      try {
-        trans = it->second->getTransceiverInfo();
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << i
-                  << ": Error calling getTransceiverInfo(): " << ex.what();
+    try {
+      auto tcvrID = TransceiverID(i);
+      info.insert({i, getTransceiverInfo(tcvrID)});
+      if (FLAGS_use_new_state_machine) {
+        info[i].stateMachineState_ref() = getCurrentState(tcvrID);
       }
-    } else {
-      trans.present_ref() = false;
-      trans.port_ref() = i;
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Transceiver " << i
+                << ": Error calling getTransceiverInfo(): " << ex.what();
     }
-    info[i] = trans;
   }
 }
 

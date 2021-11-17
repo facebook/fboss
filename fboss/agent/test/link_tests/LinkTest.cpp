@@ -15,6 +15,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 DECLARE_bool(enable_macsec);
 
@@ -63,15 +65,32 @@ void LinkTest::waitForAllCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
+  waitForStateMachineState(
+      cabledTransceivers_,
+      TransceiverStateMachineState::ACTIVE,
+      retries,
+      msBetweenRetry);
 }
 
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
 void LinkTest::initializeCabledPorts() {
+  const auto& platformPorts =
+      sw()->getPlatform()->getPlatformMapping()->getPlatformPorts();
+  const auto& chips = sw()->getPlatform()->getPlatformMapping()->getChips();
   for (const auto port : *sw()->getConfig().ports_ref()) {
     if (!(*port.expectedLLDPValues_ref()).empty()) {
-      cabledPorts_.push_back(PortID(*port.logicalID_ref()));
+      auto portID = *port.logicalID_ref();
+      cabledPorts_.push_back(PortID(portID));
+      const auto platformPortEntry = platformPorts.find(portID);
+      EXPECT_TRUE(platformPortEntry != platformPorts.end())
+          << "Can't find port:" << portID << " in PlatformMapping";
+      auto transceiverID =
+          utility::getTransceiverId(platformPortEntry->second, chips);
+      if (transceiverID.has_value()) {
+        cabledTransceivers_.insert(*transceiverID);
+      }
     }
   }
 }
@@ -208,6 +227,68 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
     connectedPairs.insert(connectedPair);
   }
   return connectedPairs;
+}
+
+void LinkTest::waitForStateMachineState(
+    const std::set<TransceiverID>& transceiversToCheck,
+    TransceiverStateMachineState stateMachineState,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  if (!FLAGS_skip_xphy_programming) {
+    XLOG(INFO) << "Skip waiting for state machine state, "
+               << "FLAGS_skip_xphy_programming is false";
+    return;
+  }
+  XLOG(INFO) << "Checking qsfp TransceiverStateMachineState on "
+             << folly::join(",", transceiversToCheck);
+
+  std::vector<int32_t> expectedTransceiver;
+  for (auto transceiverID : transceiversToCheck) {
+    expectedTransceiver.push_back(transceiverID);
+  }
+
+  std::vector<int32_t> badTransceivers;
+  while (retries--) {
+    badTransceivers.clear();
+    std::map<int32_t, TransceiverInfo> info;
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getTransceiverInfo(info, expectedTransceiver);
+    } catch (const std::exception& ex) {
+      // We have retry mechanism to handle failure. No crash here
+      XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+                 << folly::exceptionStr(ex);
+    }
+    // Check whether all expected transceivers have expected state
+    for (auto transceiverID : expectedTransceiver) {
+      // Only continue if the transceiver state machine matches
+      if (auto transceiverInfoIt = info.find(transceiverID);
+          transceiverInfoIt != info.end()) {
+        if (auto state = transceiverInfoIt->second.stateMachineState_ref();
+            state.has_value() && *state == stateMachineState) {
+          continue;
+        }
+      }
+      // Otherwise such transceiver is considered to be in a bad state
+      badTransceivers.push_back(transceiverID);
+    }
+
+    if (badTransceivers.empty()) {
+      XLOG(INFO) << "All qsfp TransceiverStateMachineState on "
+                 << folly::join(",", expectedTransceiver) << " match "
+                 << apache::thrift::util::enumNameSafe(stateMachineState);
+      return;
+    } else {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+
+  throw FbossError(
+      "Transceivers:[",
+      folly::join(",", badTransceivers),
+      "] don't have expected TransceiverStateMachineState:",
+      apache::thrift::util::enumNameSafe(stateMachineState));
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

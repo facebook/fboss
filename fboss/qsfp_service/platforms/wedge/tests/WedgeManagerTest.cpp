@@ -64,6 +64,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   /* sleep override */
   std::this_thread::sleep_for(std::chrono::seconds(1));
   wedgeManager_->refreshTransceivers();
+  transInfo.clear();
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
 

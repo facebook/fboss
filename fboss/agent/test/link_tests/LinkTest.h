@@ -5,6 +5,8 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -32,6 +34,9 @@ class LinkTest : public AgentTest {
    * null LLDP neighbors. We pick that up here to extract cabled ports
    */
   const std::vector<PortID>& getCabledPorts() const;
+  const std::set<TransceiverID>& getCabledTranceivers() const {
+    return cabledTransceivers_;
+  }
   boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
   /*
    * Assert no in discards occured on any of the switch ports.
@@ -62,6 +67,12 @@ class LinkTest : public AgentTest {
   PortID getPortID(const std::string& portName) const;
   std::string getPortName(PortID port) const;
 
+  void waitForStateMachineState(
+      const std::set<TransceiverID>& transceiversToCheck,
+      TransceiverStateMachineState stateMachineState,
+      uint32_t retries,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
@@ -69,6 +80,7 @@ class LinkTest : public AgentTest {
   void setupFlags() const override;
   void initializeCabledPorts();
   std::vector<PortID> cabledPorts_;
+  std::set<TransceiverID> cabledTransceivers_;
 };
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);
 } // namespace facebook::fboss
