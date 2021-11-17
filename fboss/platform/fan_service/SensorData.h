@@ -20,48 +20,40 @@ namespace facebook::fboss::platform {
 typedef enum { kSensorEntryInt, kSensorEntryFloat } SensorEntryType;
 
 // One sensor data entry
-class SensorEntry {
+struct SensorEntry {
  public:
   union Value {
     float floatValue;
     int intValue;
   };
   std::string name;
-  SensorEntryType sensorEntryType;
-  SensorEntry() {
-    sensorEntryType = kSensorEntryFloat;
-    timeStampSec = 0;
-    value.floatValue = 0.0;
-  }
-  ~SensorEntry();
-  uint64_t timeStampSec;
-  Value value;
+  SensorEntryType sensorEntryType{kSensorEntryFloat};
+  uint64_t timeStampSec = 0;
+  Value value{0};
 };
 
 // The main class for storing sensor data
 class SensorData {
  public:
-  // Constructor / Destructor
-  SensorData();
-  ~SensorData();
   // Get sensor data and its type
-  int getSensorDataInt(std::string name);
-  float getSensorDataFloat(std::string name);
-  SensorEntryType getSensorEntryType(std::string name);
+  int getSensorDataInt(const std::string& name) const;
+  float getSensorDataFloat(const std::string& name) const;
+  SensorEntryType getSensorEntryType(const std::string& name) const;
   // When was this sensor reading acquired?
-  uint64_t getLastUpdated(std::string name);
+  uint64_t getLastUpdated(const std::string& name) const;
   // Check if key exists in sensordata hash table
-  bool checkIfEntryExists(std::string name);
+  bool checkIfEntryExists(const std::string& name) const;
   // Update entry
-  void updateEntryInt(std::string name, int data, uint64_t timeStampSec);
-  void updateEntryFloat(std::string name, float data, uint64_t timeStampSec);
+  void updateEntryInt(const std::string& name, int data, uint64_t timeStampSec);
+  void
+  updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
   // Get key lists of the hash table for iteration (during ODS streaming)
-  std::vector<std::string> getKeyLists();
+  std::vector<std::string> getKeyLists() const;
 
  private:
   std::unordered_map<std::string, SensorEntry> sensorEntry_;
-  SensorEntry* getSensorEntry(std::string name);
-  SensorEntry* getOrCreateSensorEntry(std::string name);
+  const SensorEntry* getSensorEntry(const std::string& name) const;
+  SensorEntry* getOrCreateSensorEntry(const std::string& name);
 };
 
 } // namespace facebook::fboss::platform
