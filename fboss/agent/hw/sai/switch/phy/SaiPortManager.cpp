@@ -184,4 +184,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, std::nullopt, std::nullopt, std::nullopt
   };
 }
+
+void SaiPortManager::enableAfeAdaptiveMode(PortID /*portID*/) {}
 } // namespace facebook::fboss
