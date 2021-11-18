@@ -4,12 +4,23 @@
 // for functional description
 #include "fboss/platform/fan_service/OdsStreamer.h"
 
-namespace facebook::fboss::platform {
+#include "fboss/platform/fan_service/SensorData.h"
 
-int OdsStreamer::publishToOds(
+// FB service routines for streaming ODS data
+#include "common/network/NetworkUtil.h"
+#include "maestro/if/OdsRouter/gen-cpp2/OdsRouter.h"
+#include "monitoring/common/OdsCategoryId.h"
+#include "servicerouter/client/cpp2/ServiceRouter.h"
+
+// Folly library header file for conversion and log
+#include <folly/Conv.h>
+#include <folly/logging/xlog.h>
+namespace {
+
+int publishToOds(
     folly::EventBase* evb,
     std::vector<facebook::maestro::ODSAppValue> values,
-    std::string odsTier) const {
+    std::string odsTier) {
   int rc = 0;
   XLOG(INFO) << "ODS Streamer : Publisher : Entered. ";
   try {
@@ -31,10 +42,8 @@ int OdsStreamer::publishToOds(
   return rc;
 }
 
-facebook::maestro::ODSAppValue OdsStreamer::getOdsAppValue(
-    std::string key,
-    int64_t value,
-    uint64_t timeStampSec) const {
+facebook::maestro::ODSAppValue
+getOdsAppValue(std::string key, int64_t value, uint64_t timeStampSec) {
   facebook::maestro::ODSAppValue retVal;
   retVal.key_ref() = key;
   retVal.value_ref() = value;
@@ -44,6 +53,9 @@ facebook::maestro::ODSAppValue OdsStreamer::getOdsAppValue(
       static_cast<int32_t>(facebook::monitoring::OdsCategoryId::ODS_FBOSS));
   return retVal;
 }
+} // namespace
+
+namespace facebook::fboss::platform {
 
 int OdsStreamer::postData(folly::EventBase* evb, const SensorData& sensorData)
     const {
