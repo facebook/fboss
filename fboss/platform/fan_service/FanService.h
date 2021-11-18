@@ -10,6 +10,9 @@
 #include "SensorData.h"
 #include "ServiceConfig.h"
 
+namespace folly {
+class EventBase;
+}
 namespace facebook::fboss::platform {
 
 // FanService    : The main Class the represent the fan_service
@@ -35,7 +38,7 @@ class FanService {
   // (simulation for unit testing)
   int runMock(std::string mockInputFile, std::string mockOutputFile);
   // Public function to expose ODS streamer. Needed by Handler class
-  OdsStreamer* getOdsStreamer();
+  void publishToOds(folly::EventBase* evb);
   // Set / Change ODS Tier based on config file
   void setOdsTier(std::string oT);
 

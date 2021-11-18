@@ -25,15 +25,15 @@ namespace facebook::fboss::platform {
 class OdsStreamer {
  public:
   // Constructor / Destructor
-  OdsStreamer(std::shared_ptr<SensorData> pSd, std::string oT);
-  ~OdsStreamer();
+  OdsStreamer(const SensorData& sensorData, const std::string& odsTier)
+      : sensorData_(sensorData), odsTier_(odsTier) {}
   // Main entry to initiate the ODS data send
   int postData(folly::EventBase* evb);
 
  private:
   // Internal states
-  std::shared_ptr<SensorData> pSensorData_;
-  std::string odsTier_;
+  const SensorData& sensorData_;
+  const std::string odsTier_;
   // Internal helper functions
   int publishToOds(
       folly::EventBase* evb,

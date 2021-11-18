@@ -5,14 +5,8 @@
 #include "fboss/platform/fan_service/OdsStreamer.h"
 
 DECLARE_string(ods_tier);
+
 namespace facebook::fboss::platform {
-
-OdsStreamer::OdsStreamer(std::shared_ptr<SensorData> pSd, std::string oT) {
-  pSensorData_ = pSd;
-  odsTier_ = oT;
-}
-
-OdsStreamer::~OdsStreamer() {}
 
 int OdsStreamer::publishToOds(
     folly::EventBase* evb,
@@ -46,37 +40,34 @@ facebook::maestro::ODSAppValue OdsStreamer::getOdsAppValue(
   facebook::maestro::ODSAppValue retVal;
   retVal.key_ref() = key;
   retVal.value_ref() = value;
-  retVal.unixTime_ref() = (int64_t)timeStampSec;
+  retVal.unixTime_ref() = static_cast<int64_t>(timeStampSec);
   retVal.entity_ref() = facebook::network::NetworkUtil::getLocalHost(true);
-  retVal.category_id_ref() =
-      folly::to_signed(int32_t(facebook::monitoring::OdsCategoryId::ODS_FBOSS));
+  retVal.category_id_ref() = folly::to_signed(
+      static_cast<int32_t>(facebook::monitoring::OdsCategoryId::ODS_FBOSS));
   return retVal;
 }
 
 int OdsStreamer::postData(folly::EventBase* evb) {
   int rc = 0;
-  std::vector<facebook::maestro::ODSAppValue> dataToStream;
+  std::vector<facebook::maestro::ODSAppValue> entriesToStream;
   float value = 0;
   int64_t int64Value;
   XLOG(INFO) << "ODS Streamer : Started";
-  std::vector<std::string> keyList = pSensorData_->getKeyLists();
-  for (auto sensorName = keyList.begin(); sensorName != keyList.end();
-       ++sensorName) {
-    if (pSensorData_->getSensorEntryType(*sensorName) ==
-        SensorEntryType::kSensorEntryInt) {
-      value = (float)pSensorData_->getSensorDataInt(*sensorName);
-    } else {
-      value = pSensorData_->getSensorDataFloat(*sensorName);
+  for (const auto& [sensorName, entry] : sensorData_) {
+    switch (entry.sensorEntryType) {
+      case SensorEntryType::kSensorEntryInt:
+        value = std::get<int>(entry.value);
+        break;
+      case SensorEntryType::kSensorEntryFloat:
+        value = std::get<float>(entry.value);
     }
     int64Value = static_cast<int64_t>(value * 1000.0);
-    XLOG(INFO) << "ODS Streamer : Packing " << *sensorName << " : " << value;
-    dataToStream.push_back(getOdsAppValue(
-        *sensorName,
-        value,
-        (uint64_t)pSensorData_->getLastUpdated(*sensorName)));
+    XLOG(INFO) << "ODS Streamer : Packing " << entry.name << " : " << value;
+    entriesToStream.push_back(getOdsAppValue(
+        entry.name, value, sensorData_.getLastUpdated(entry.name)));
   }
   XLOG(INFO) << "ODS Streamer : Data packed. Publishing";
-  rc = publishToOds(evb, dataToStream, odsTier_);
+  rc = publishToOds(evb, entriesToStream, odsTier_);
   XLOG(INFO) << "ODS Streamer : Done publishing with rc : " << rc;
   return rc;
 }

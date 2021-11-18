@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
   // Add Ods Streamer to the scheduler.
   scheduler.addFunction(
       [handler, server = server]() {
-        handler->getFanService()->getOdsStreamer()->postData(
+        handler->getFanService()->publishToOds(
             server->getEventBaseManager()->getEventBase());
       },
       std::chrono::seconds(FLAGS_ods_publish_interval),
