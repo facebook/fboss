@@ -62,7 +62,8 @@ int OdsStreamer::postData(folly::EventBase* evb) {
   std::vector<std::string> keyList = pSensorData_->getKeyLists();
   for (auto sensorName = keyList.begin(); sensorName != keyList.end();
        ++sensorName) {
-    if (pSensorData_->getSensorEntryType(*sensorName) == kSensorEntryInt) {
+    if (pSensorData_->getSensorEntryType(*sensorName) ==
+        SensorEntryType::kSensorEntryInt) {
       value = (float)pSensorData_->getSensorDataInt(*sensorName);
     } else {
       value = pSensorData_->getSensorDataFloat(*sensorName);

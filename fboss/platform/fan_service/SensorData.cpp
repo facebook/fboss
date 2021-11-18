@@ -23,7 +23,7 @@ void SensorData::updateEntryInt(
   auto pEntry = getOrCreateSensorEntry(name);
   pEntry->timeStampSec = timeStamp;
   // pEntry->odsTime=facebook::WallClockUtil::NowInSecFast();
-  pEntry->sensorEntryType = kSensorEntryInt;
+  pEntry->sensorEntryType = SensorEntryType::kSensorEntryInt;
   pEntry->value.intValue = data;
 }
 void SensorData::updateEntryFloat(
@@ -32,7 +32,7 @@ void SensorData::updateEntryFloat(
     uint64_t timeStamp) {
   auto pEntry = getOrCreateSensorEntry(name);
   pEntry->timeStampSec = timeStamp;
-  pEntry->sensorEntryType = kSensorEntryFloat;
+  pEntry->sensorEntryType = SensorEntryType::kSensorEntryFloat;
   pEntry->value.floatValue = data;
 }
 
@@ -41,7 +41,7 @@ int SensorData::getSensorDataInt(const std::string& name) const {
   if (pEntry == NULL) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
-  if (pEntry->sensorEntryType != kSensorEntryInt) {
+  if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryInt) {
     throw facebook::fboss::FbossError("Sensor Entry is not Int: ", name);
   }
   return pEntry->value.intValue;
@@ -61,7 +61,7 @@ SensorEntryType SensorData::getSensorEntryType(const std::string& name) const {
   if (pEntry == NULL) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
-  if (pEntry->sensorEntryType != kSensorEntryFloat) {
+  if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryFloat) {
     throw facebook::fboss::FbossError("Sensor Entry is not Float: ", name);
   }
   return pEntry->sensorEntryType;
@@ -72,7 +72,7 @@ float SensorData::getSensorDataFloat(const std::string& name) const {
   if (pEntry == NULL) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
-  if (pEntry->sensorEntryType != kSensorEntryFloat) {
+  if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryFloat) {
     throw facebook::fboss::FbossError("Sensor Entry is not Float: ", name);
   }
   return pEntry->value.floatValue;

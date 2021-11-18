@@ -46,17 +46,12 @@ void ControlLogic::getFanUpdate() {
       if (pSensor_->checkIfEntryExists(fanItemName)) {
         entryType = pSensor_->getSensorEntryType(fanItemName);
         switch (entryType) {
-          case kSensorEntryInt:
+          case SensorEntryType::kSensorEntryInt:
             fanRpm = static_cast<int>(pSensor_->getSensorDataInt(fanItemName));
             break;
-          case kSensorEntryFloat:
+          case SensorEntryType::kSensorEntryFloat:
             fanRpm =
                 static_cast<int>(pSensor_->getSensorDataFloat(fanItemName));
-            break;
-          default:
-            facebook::fboss::FbossError(
-                "Invalid Fan RPM Sensor Entry Type in entry name : ",
-                fanItemName);
             break;
         }
         rpmTimeStamp = pSensor_->getLastUpdated(fanItemName);
@@ -258,11 +253,11 @@ void ControlLogic::getSensorUpdate() {
       // 1.a Get the reading
       SensorEntryType entryType = pSensor_->getSensorEntryType(sensorItemName);
       switch (entryType) {
-        case kSensorEntryInt:
-          rawValue = (float)pSensor_->getSensorDataInt(sensorItemName);
+        case SensorEntryType::kSensorEntryInt:
+          rawValue = pSensor_->getSensorDataInt(sensorItemName);
           break;
-        case kSensorEntryFloat:
-          rawValue = (float)pSensor_->getSensorDataFloat(sensorItemName);
+        case SensorEntryType::kSensorEntryFloat:
+          rawValue = pSensor_->getSensorDataFloat(sensorItemName);
           break;
         default:
           facebook::fboss::FbossError(

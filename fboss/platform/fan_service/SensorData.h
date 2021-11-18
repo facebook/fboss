@@ -17,7 +17,7 @@
 namespace facebook::fboss::platform {
 
 // Fundamental data type definition
-typedef enum { kSensorEntryInt, kSensorEntryFloat } SensorEntryType;
+enum class SensorEntryType { kSensorEntryInt, kSensorEntryFloat };
 
 // One sensor data entry
 struct SensorEntry {
@@ -27,7 +27,7 @@ struct SensorEntry {
     int intValue;
   };
   std::string name;
-  SensorEntryType sensorEntryType{kSensorEntryFloat};
+  SensorEntryType sensorEntryType{SensorEntryType::kSensorEntryFloat};
   uint64_t timeStampSec = 0;
   Value value{0};
 };
