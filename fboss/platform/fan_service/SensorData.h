@@ -45,8 +45,6 @@ class SensorData {
   void updateEntryInt(const std::string& name, int data, uint64_t timeStampSec);
   void
   updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
-  // Get key lists of the hash table for iteration (during ODS streaming)
-  std::vector<std::string> getKeyLists() const;
   auto begin() const {
     return sensorEntry_.begin();
   }

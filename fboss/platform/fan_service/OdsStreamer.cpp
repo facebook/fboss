@@ -4,14 +4,12 @@
 // for functional description
 #include "fboss/platform/fan_service/OdsStreamer.h"
 
-DECLARE_string(ods_tier);
-
 namespace facebook::fboss::platform {
 
 int OdsStreamer::publishToOds(
     folly::EventBase* evb,
     std::vector<facebook::maestro::ODSAppValue> values,
-    std::string odsTier) {
+    std::string odsTier) const {
   int rc = 0;
   XLOG(INFO) << "ODS Streamer : Publisher : Entered. ";
   try {
@@ -36,7 +34,7 @@ int OdsStreamer::publishToOds(
 facebook::maestro::ODSAppValue OdsStreamer::getOdsAppValue(
     std::string key,
     int64_t value,
-    uint64_t timeStampSec) {
+    uint64_t timeStampSec) const {
   facebook::maestro::ODSAppValue retVal;
   retVal.key_ref() = key;
   retVal.value_ref() = value;
@@ -47,13 +45,14 @@ facebook::maestro::ODSAppValue OdsStreamer::getOdsAppValue(
   return retVal;
 }
 
-int OdsStreamer::postData(folly::EventBase* evb) {
+int OdsStreamer::postData(folly::EventBase* evb, const SensorData& sensorData)
+    const {
   int rc = 0;
   std::vector<facebook::maestro::ODSAppValue> entriesToStream;
   float value = 0;
   int64_t int64Value;
   XLOG(INFO) << "ODS Streamer : Started";
-  for (const auto& [sensorName, entry] : sensorData_) {
+  for (const auto& [sensorName, entry] : sensorData) {
     switch (entry.sensorEntryType) {
       case SensorEntryType::kSensorEntryInt:
         value = std::get<int>(entry.value);
@@ -64,7 +63,7 @@ int OdsStreamer::postData(folly::EventBase* evb) {
     int64Value = static_cast<int64_t>(value * 1000.0);
     XLOG(INFO) << "ODS Streamer : Packing " << entry.name << " : " << value;
     entriesToStream.push_back(getOdsAppValue(
-        entry.name, value, sensorData_.getLastUpdated(entry.name)));
+        entry.name, value, sensorData.getLastUpdated(entry.name)));
   }
   XLOG(INFO) << "ODS Streamer : Data packed. Publishing";
   rc = publishToOds(evb, entriesToStream, odsTier_);

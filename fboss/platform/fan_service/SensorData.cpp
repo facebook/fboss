@@ -47,15 +47,6 @@ int SensorData::getSensorDataInt(const std::string& name) const {
   return std::get<int>(pEntry->value);
 }
 
-std::vector<std::string> SensorData::getKeyLists() const {
-  std::vector<std::string> retVal;
-  retVal.reserve(sensorEntry_.size());
-  for (const auto& kv : sensorEntry_) {
-    retVal.push_back(kv.first);
-  }
-  return retVal;
-}
-
 SensorEntryType SensorData::getSensorEntryType(const std::string& name) const {
   auto pEntry = getSensorEntry(name);
   if (pEntry == nullptr) {
