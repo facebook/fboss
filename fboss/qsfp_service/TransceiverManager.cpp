@@ -112,10 +112,11 @@ void TransceiverManager::startThreads() {
       stateMachineHelper.second->startThread();
     }
 
-    XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
+    XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
     updateEventBase_ = std::make_unique<folly::EventBase>();
     updateThread_.reset(new std::thread([=] {
-      this->threadLoop("qsfpModuleStateUpdateThread", updateEventBase_.get());
+      this->threadLoop(
+          "TransceiverStateMachineUpdateThread", updateEventBase_.get());
     }));
   }
 }
@@ -128,7 +129,7 @@ void TransceiverManager::stopThreads() {
     updateEventBase_->runInEventBaseThread(
         [this] { updateEventBase_->terminateLoopSoon(); });
     updateThread_->join();
-    XLOG(DBG2) << "Terminated qsfpModuleStateUpdateThread";
+    XLOG(DBG2) << "Terminated TransceiverStateMachineUpdateThread";
   }
   // Drain any pending updates by calling handlePendingUpdates directly.
   bool updatesDrained = false;
@@ -198,16 +199,25 @@ void TransceiverManager::handlePendingUpdates() {
   // In some case we might also end up finding 0 updates to process if a
   // previous handlePendingUpdates() call processed multiple updates.
   StateUpdateList updates;
+  std::set<TransceiverID> toBeUpdateTransceivers;
   {
     std::unique_lock guard(pendingUpdatesLock_);
-    // So far we don't have to support non coalescing updates like wedge_agent
-    // we can just dump all existing updates in pendingUpdates_ to this temp
-    // StateUpdateList `updates`
+    // Each TransceiverStateMachineUpdate should be able to process at the same
+    // time as we already have lock protection in ExternalPhy and QsfpModule.
+    // Therefore, we should just put all the pending update into the updates
+    // list as long as they are from totally different transceivers.
+    auto iter = pendingUpdates_.begin();
+    while (iter != pendingUpdates_.end()) {
+      auto [_, isInserted] =
+          toBeUpdateTransceivers.insert(iter->getTransceiverID());
+      if (!isInserted) {
+        // Stop when we find another update for the same transceiver
+        break;
+      }
+      ++iter;
+    }
     updates.splice(
-        updates.begin(),
-        pendingUpdates_,
-        pendingUpdates_.begin(),
-        pendingUpdates_.end());
+        updates.begin(), pendingUpdates_, pendingUpdates_.begin(), iter);
   }
 
   // handlePendingUpdates() is invoked once for each update, but a previous
@@ -217,6 +227,10 @@ void TransceiverManager::handlePendingUpdates() {
     return;
   }
 
+  XLOG(DBG2) << "About to update " << updates.size()
+             << " TransceiverStateMachine";
+  // To expedite all these different transceivers state update, use Future
+  std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
   auto iter = updates.begin();
   while (iter != updates.end()) {
     TransceiverStateMachineUpdate* update = &(*iter);
@@ -230,21 +244,24 @@ void TransceiverManager::handlePendingUpdates() {
       continue;
     }
 
-    XLOG(INFO) << "Preparing ModuleStateMachine update for "
-               << update->getName();
-    // Hold the module state machine lock
-    const auto& lockedStateMachine =
-        stateMachineItr->second->getStateMachine().wlock();
-    try {
-      update->applyUpdate(*lockedStateMachine);
-    } catch (const std::exception& ex) {
-      // Call the update's onError() function, and then immediately delete
-      // it (therefore removing it from the intrusive list).  This way we won't
-      // call it's onSuccess() function later.
-      update->onError(ex);
-      delete update;
-    }
+    stateUpdateTasks.push_back(
+        folly::via(stateMachineItr->second->getEventBase())
+            .thenValue([update, stateMachineItr](auto&&) {
+              XLOG(INFO) << "Preparing TransceiverStateMachine update for "
+                         << update->getName();
+              // Hold the module state machine lock
+              const auto& lockedStateMachine =
+                  stateMachineItr->second->getStateMachine().wlock();
+              update->applyUpdate(*lockedStateMachine);
+            })
+            .thenError(
+                folly::tag_t<std::exception>{},
+                [update](const std::exception& ex) {
+                  update->onError(ex);
+                  delete update;
+                }));
   }
+  folly::collectAll(stateUpdateTasks).wait();
 
   // Notify all of the updates of success and delete them.
   while (!updates.empty()) {
