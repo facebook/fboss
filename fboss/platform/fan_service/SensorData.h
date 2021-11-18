@@ -14,6 +14,8 @@
 // , for consistency
 #include "fboss/agent/FbossError.h"
 
+#include <variant>
+
 namespace facebook::fboss::platform {
 
 // Fundamental data type definition
@@ -22,14 +24,10 @@ enum class SensorEntryType { kSensorEntryInt, kSensorEntryFloat };
 // One sensor data entry
 struct SensorEntry {
  public:
-  union Value {
-    float floatValue;
-    int intValue;
-  };
   std::string name;
   SensorEntryType sensorEntryType{SensorEntryType::kSensorEntryFloat};
   uint64_t timeStampSec = 0;
-  Value value{0};
+  std::variant<int, float> value{0};
 };
 
 // The main class for storing sensor data

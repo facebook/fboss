@@ -24,7 +24,7 @@ void SensorData::updateEntryInt(
   pEntry->timeStampSec = timeStamp;
   // pEntry->odsTime=facebook::WallClockUtil::NowInSecFast();
   pEntry->sensorEntryType = SensorEntryType::kSensorEntryInt;
-  pEntry->value.intValue = data;
+  pEntry->value = data;
 }
 void SensorData::updateEntryFloat(
     const std::string& name,
@@ -33,18 +33,18 @@ void SensorData::updateEntryFloat(
   auto pEntry = getOrCreateSensorEntry(name);
   pEntry->timeStampSec = timeStamp;
   pEntry->sensorEntryType = SensorEntryType::kSensorEntryFloat;
-  pEntry->value.floatValue = data;
+  pEntry->value = data;
 }
 
 int SensorData::getSensorDataInt(const std::string& name) const {
   auto pEntry = getSensorEntry(name);
-  if (pEntry == NULL) {
+  if (pEntry == nullptr) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
   if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryInt) {
     throw facebook::fboss::FbossError("Sensor Entry is not Int: ", name);
   }
-  return pEntry->value.intValue;
+  return std::get<int>(pEntry->value);
 }
 
 std::vector<std::string> SensorData::getKeyLists() const {
@@ -58,7 +58,7 @@ std::vector<std::string> SensorData::getKeyLists() const {
 
 SensorEntryType SensorData::getSensorEntryType(const std::string& name) const {
   auto pEntry = getSensorEntry(name);
-  if (pEntry == NULL) {
+  if (pEntry == nullptr) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
   if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryFloat) {
@@ -69,18 +69,18 @@ SensorEntryType SensorData::getSensorEntryType(const std::string& name) const {
 
 float SensorData::getSensorDataFloat(const std::string& name) const {
   auto pEntry = getSensorEntry(name);
-  if (pEntry == NULL) {
+  if (pEntry == nullptr) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
   if (pEntry->sensorEntryType != SensorEntryType::kSensorEntryFloat) {
     throw facebook::fboss::FbossError("Sensor Entry is not Float: ", name);
   }
-  return pEntry->value.floatValue;
+  return std::get<float>(pEntry->value);
 }
 
 uint64_t SensorData::getLastUpdated(const std::string& name) const {
   auto pEntry = getSensorEntry(name);
-  if (pEntry == NULL) {
+  if (pEntry == nullptr) {
     throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
   }
   return pEntry->timeStampSec;
