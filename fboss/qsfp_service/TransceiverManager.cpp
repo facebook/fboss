@@ -19,7 +19,7 @@ TransceiverManager::TransceiverManager(
     std::unique_ptr<PlatformMapping> platformMapping)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(std::move(platformMapping)),
-      stateMachines_(setupTransceiverToStateMachine()),
+      stateMachines_(setupTransceiverToStateMachineHelper()),
       tcvrToPortInfo_(setupTransceiverToPortInfo()) {
   // Now we might need to start threads
   startThreads();
@@ -70,25 +70,19 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   return portNames.empty() ? "" : *portNames.begin();
 }
 
-TransceiverManager::TransceiverToStateMachine
-TransceiverManager::setupTransceiverToStateMachine() {
+TransceiverManager::TransceiverToStateMachineHelper
+TransceiverManager::setupTransceiverToStateMachineHelper() {
   // Set up NewModuleStateMachine map
-  TransceiverToStateMachine stateMachineMap;
+  TransceiverToStateMachineHelper stateMachineMap;
   if (FLAGS_use_new_state_machine) {
     for (auto chip : platformMapping_->getChips()) {
       if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
       auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
-      // Init state should be "TRANSCEIVER_STATE_NOT_PRESENT"
-      auto stateMachine = std::make_unique<
-          folly::Synchronized<state_machine<TransceiverStateMachine>>>();
-      {
-        auto lockedStateMachine = stateMachine->wlock();
-        lockedStateMachine->get_attribute(transceiverMgrPtr) = this;
-        lockedStateMachine->get_attribute(transceiverID) = tcvrID;
-      }
-      stateMachineMap.emplace(tcvrID, std::move(stateMachine));
+      stateMachineMap.emplace(
+          tcvrID,
+          std::make_unique<TransceiverStateMachineHelper>(this, tcvrID));
     }
   }
   return stateMachineMap;
@@ -113,6 +107,11 @@ TransceiverManager::setupTransceiverToPortInfo() {
 
 void TransceiverManager::startThreads() {
   if (FLAGS_use_new_state_machine) {
+    // Setup all TransceiverStateMachineHelper thread
+    for (auto& stateMachineHelper : stateMachines_) {
+      stateMachineHelper.second->startThread();
+    }
+
     XLOG(DBG2) << "Started qsfpModuleStateUpdateThread";
     updateEventBase_ = std::make_unique<folly::EventBase>();
     updateThread_.reset(new std::thread([=] {
@@ -140,6 +139,10 @@ void TransceiverManager::stopThreads() {
       updatesDrained = pendingUpdates_.empty();
     }
   } while (!updatesDrained);
+  // And finally stop all TransceiverStateMachineHelper thread
+  for (auto& stateMachineHelper : stateMachines_) {
+    stateMachineHelper.second->stopThread();
+  }
 }
 
 void TransceiverManager::threadLoop(
@@ -230,7 +233,8 @@ void TransceiverManager::handlePendingUpdates() {
     XLOG(INFO) << "Preparing ModuleStateMachine update for "
                << update->getName();
     // Hold the module state machine lock
-    const auto& lockedStateMachine = stateMachineItr->second->wlock();
+    const auto& lockedStateMachine =
+        stateMachineItr->second->getStateMachine().wlock();
     try {
       update->applyUpdate(*lockedStateMachine);
     } catch (const std::exception& ex) {
@@ -257,7 +261,8 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
     throw FbossError("Transceiver:", id, " doesn't exist");
   }
 
-  const auto& lockedStateMachine = stateMachineItr->second->rlock();
+  const auto& lockedStateMachine =
+      stateMachineItr->second->getStateMachine().rlock();
   auto curStateOrder = *lockedStateMachine->current_state();
   auto curState = getStateByOrder(curStateOrder);
   XLOG(DBG4) << "Current transceiver:" << static_cast<int32_t>(id)
@@ -273,7 +278,8 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
   for (auto& stateMachine : stateMachines_) {
     bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false};
     {
-      const auto& lockedStateMachine = stateMachine.second->rlock();
+      const auto& lockedStateMachine =
+          stateMachine.second->getStateMachine().rlock();
       needProgramIphy = !lockedStateMachine->get_attribute(isIphyProgrammed);
       needProgramXphy = !lockedStateMachine->get_attribute(isXphyProgrammed);
       needProgramTcvr =
@@ -594,6 +600,30 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
   lastConfigAppliedInMs_ = lastConfigApplied;
+}
+
+TransceiverManager::TransceiverStateMachineHelper::
+    TransceiverStateMachineHelper(
+        TransceiverManager* tcvrMgrPtr,
+        TransceiverID tcvrID)
+    : tcvrID_(tcvrID) {
+  // Init state should be "TRANSCEIVER_STATE_NOT_PRESENT"
+  auto lockedStateMachine = stateMachine_.wlock();
+  lockedStateMachine->get_attribute(transceiverMgrPtr) = tcvrMgrPtr;
+  lockedStateMachine->get_attribute(transceiverID) = tcvrID_;
+}
+
+void TransceiverManager::TransceiverStateMachineHelper::startThread() {
+  updateEventBase_ = std::make_unique<folly::EventBase>();
+  updateThread_.reset(
+      new std::thread([this] { updateEventBase_->loopForever(); }));
+}
+
+void TransceiverManager::TransceiverStateMachineHelper::stopThread() {
+  if (updateThread_) {
+    updateEventBase_->terminateLoopSoon();
+    updateThread_->join();
+  }
 }
 } // namespace fboss
 } // namespace facebook

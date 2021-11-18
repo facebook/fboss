@@ -246,11 +246,43 @@ class TransceiverManager {
   TransceiverManager(TransceiverManager const&) = delete;
   TransceiverManager& operator=(TransceiverManager const&) = delete;
 
-  using TransceiverToStateMachine = std::unordered_map<
+  /*
+   * This is the private class to capture all information a
+   * TransceiverStateMachine needs
+   * A Synchronized state_machine to keep track of the state
+   * thread and EventBase so that we can operate multiple different transceivers
+   * StateMachine update at the same time and also better starting and
+   * terminating these threads.
+   */
+  class TransceiverStateMachineHelper {
+   public:
+    TransceiverStateMachineHelper(
+        TransceiverManager* tcvrMgrPtr,
+        TransceiverID tcvrID);
+
+    void startThread();
+    void stopThread();
+    folly::EventBase* getEventBase() const {
+      return updateEventBase_.get();
+    }
+    folly::Synchronized<state_machine<TransceiverStateMachine>>&
+    getStateMachine() {
+      return stateMachine_;
+    }
+
+   private:
+    TransceiverID tcvrID_;
+    folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
+    // Can't use ScopedEventBaseThread as it won't work well with
+    // handcrafted HeaderClientChannel client instead of servicerouter client
+    std::unique_ptr<std::thread> updateThread_;
+    std::unique_ptr<folly::EventBase> updateEventBase_;
+  };
+
+  using TransceiverToStateMachineHelper = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<
-          folly::Synchronized<state_machine<TransceiverStateMachine>>>>;
-  TransceiverToStateMachine setupTransceiverToStateMachine();
+      std::unique_ptr<TransceiverStateMachineHelper>>;
+  TransceiverToStateMachineHelper setupTransceiverToStateMachineHelper();
 
   using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
@@ -294,6 +326,7 @@ class TransceiverManager {
    */
   std::unique_ptr<std::thread> updateThread_;
   std::unique_ptr<folly::EventBase> updateEventBase_;
+
   // TODO(joseph5wu) Will add heartbeat watchdog later
 
   // A global flag to indicate whether the service is exiting.
@@ -306,7 +339,7 @@ class TransceiverManager {
    * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
    * and no other functions will erase any items from this map.
    */
-  const TransceiverToStateMachine stateMachines_;
+  const TransceiverToStateMachineHelper stateMachines_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
