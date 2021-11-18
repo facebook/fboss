@@ -12,6 +12,15 @@ from fboss.cli.commands import commands as cmds
 
 
 class ListHwObjectsCmd(cmds.FbossCmd):
-    def run(self, hw_object_types, cached):
-        with self._create_agent_client() as client:
-            print(client.listHwObjects(hw_object_types, cached))
+    def run(self, hw_object_types, cached, phy_only, switch_asic_only):
+        print_both = (not phy_only) and (not switch_asic_only)
+
+        # PHY Objects:
+        if phy_only or print_both:
+            with self._create_qsfp_client() as client:
+                print(client.listHwObjects(hw_object_types, cached))
+
+        # Switch ASIC Objects:
+        if switch_asic_only or print_both:
+            with self._create_agent_client() as client:
+                print(client.listHwObjects(hw_object_types, cached))
