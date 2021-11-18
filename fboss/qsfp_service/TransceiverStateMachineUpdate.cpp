@@ -50,6 +50,12 @@ void TransceiverStateMachineUpdate::applyUpdate(
     case TransceiverStateMachineEvent::PORT_UP:
       curState.process_event(PORT_UP);
       return;
+    case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
+      curState.process_event(RESET_TO_NOT_PRESENT);
+      return;
+    case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
+      curState.process_event(RESET_TO_DISCOVERED);
+      return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
   }

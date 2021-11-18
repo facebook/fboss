@@ -67,7 +67,8 @@ void LinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
   waitForStateMachineState(
       cabledTransceivers_,
-      TransceiverStateMachineState::ACTIVE,
+      up ? TransceiverStateMachineState::ACTIVE
+         : TransceiverStateMachineState::INACTIVE,
       retries,
       msBetweenRetry);
 }

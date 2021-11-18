@@ -86,6 +86,8 @@ TEST_F(LinkTest, warmbootIsHitLess) {
                 RouterID(0),
                 ecmpSizeInSw),
             ecmpSizeInSw);
+        // Assert all cabled transceivers have ACTIVE state
+        EXPECT_NO_THROW(waitForAllCabledPorts(true));
       });
 }
 

@@ -979,7 +979,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::OPTICS_REMOVED:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
         return;
-      case TransceiverStateMachineEvent::OPTICS_RESET:
+      case TransceiverStateMachineEvent::RESET_TRANSCEIVER:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_RESET);
         return;
       case TransceiverStateMachineEvent::READ_EEPROM:
@@ -1009,6 +1009,8 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::PROGRAM_IPHY:
       case TransceiverStateMachineEvent::PROGRAM_XPHY:
       case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
+      case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
+      case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
         throw FbossError(
             "Only new state machine can support TransceiverStateMachineEvent: ",
             getTransceiverStateMachineEventName(event));

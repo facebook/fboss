@@ -327,7 +327,7 @@ TEST(CmisTest, testMsmFwUpgrading) {
   EXPECT_EQ(CurrState, 5);
 
   // Finish upgrading with module reset and move it to first state
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_RESET);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::RESET_TRANSCEIVER);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }
@@ -360,7 +360,7 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
   EXPECT_EQ(CurrState, 5);
 
   // Finish upgrading with module reset and move it to first state
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_RESET);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::RESET_TRANSCEIVER);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }

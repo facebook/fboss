@@ -282,15 +282,15 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
     auto tcvrID = stateMachine.first;
     if (needProgramIphy) {
       programmedTcvrs.push_back(tcvrID);
-      numProgramIphy++;
+      ++numProgramIphy;
       updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY);
     } else if (needProgramXphy && phyManager_ != nullptr) {
       programmedTcvrs.push_back(tcvrID);
-      numProgramXphy++;
+      ++numProgramXphy;
       updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY);
     } else if (needProgramTcvr) {
       programmedTcvrs.push_back(tcvrID);
-      numProgramTcvr++;
+      ++numProgramTcvr;
       updateStateBlocking(
           tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
     }
@@ -476,34 +476,36 @@ void TransceiverManager::updateTransceiverPortStatus(
     }
     bool portStatusChanged = false;
     bool anyPortUp = false;
-    auto portToPortInfoWithLock = tcvrToPortInfo_It->second->wlock();
-    for (auto& [portID, portInfo] : *portToPortInfoWithLock) {
-      // Get the new PortStatus from wedge_agent getPortStatus()
-      auto portStatusIt = newPortToPortStatus.find(portID);
-      if (portStatusIt == newPortToPortStatus.end()) {
-        XLOG(WARN) << "Can't find port:" << portID
-                   << " from wedge_agent getPortStatus() result";
-        continue;
-      }
-      bool newPortUp = *portStatusIt->second.up_ref();
-      anyPortUp |= newPortUp;
-      // If there's a cached status, check whether we need to change the
-      // status and trigger a state machine event
-      if (auto cachedStatus = portInfo.status) {
-        if (*cachedStatus->up_ref() != newPortUp) {
-          portStatusChanged = true;
-          cachedStatus->up_ref() = newPortUp;
+    { // lock block for portToPortInfo
+      auto portToPortInfoWithLock = tcvrToPortInfo_It->second->wlock();
+      for (auto& [portID, portInfo] : *portToPortInfoWithLock) {
+        // Get the new PortStatus from wedge_agent getPortStatus()
+        auto portStatusIt = newPortToPortStatus.find(portID);
+        if (portStatusIt == newPortToPortStatus.end()) {
+          XLOG(WARN) << "Can't find port:" << portID
+                     << " from wedge_agent getPortStatus() result";
+          continue;
         }
-      } else {
-        // If cached status is empty, that means there's a change
-        portStatusChanged = true;
-        portInfo.status = portStatusIt->second;
+        bool newPortUp = *portStatusIt->second.up_ref();
+        anyPortUp |= newPortUp;
+        // Two cases we need to update the port status here:
+        // 1) portInfo.status is not set
+        // 2) portInfo.status up != newPortUp
+        if (!portInfo.status.has_value() ||
+            (portInfo.status.has_value() &&
+             portInfo.status->up_ref() != newPortUp)) {
+          portStatusChanged = true;
+          portInfo.status = portStatusIt->second;
+        }
       }
-    }
+    } // lock block for portToPortInfo
 
     // Only need to trigger state machine event if there's a port status change
-    if (portStatusChanged) {
-      numTcvrPortStatusChanged++;
+    // Or if the state just became TRANSCEIVER_PROGRAMMED
+    if (portStatusChanged ||
+        getCurrentState(tcvrID) ==
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+      ++numTcvrPortStatusChanged;
       updateStateBlocking(
           tcvrID,
           anyPortUp ? TransceiverStateMachineEvent::PORT_UP
@@ -548,7 +550,7 @@ void TransceiverManager::refreshStateMachines() {
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent(
-    const std::vector<TransceiverID>& /* transceivers */) {
+    const std::vector<TransceiverID>& transceivers) {
   if (!FLAGS_use_new_state_machine) {
     return;
   }
@@ -564,17 +566,34 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
     return;
   }
 
-  // Now check if the new timestamp is different from the cached one.
-  // Only need to change if the new timestamp is after the current one
-  if (lastConfigApplied > lastConfigAppliedInMs_) {
-    XLOG(INFO) << "New Agent config applied time:" << lastConfigApplied
-               << " and last cached time:" << lastConfigAppliedInMs_
-               << ". Issue all ports reprogramming events";
-    // TODO(joseph5wu) Add new state machine event
-    // Update present transceiver state machine back to DISCOVERED
-    // and absent transeiver state machine back to NOT_PRESENT
-    lastConfigAppliedInMs_ = lastConfigApplied;
+  // Now check if the new timestamp is later than the cached one.
+  if (lastConfigApplied <= lastConfigAppliedInMs_) {
+    return;
   }
+
+  XLOG(INFO) << "New Agent config applied time:" << lastConfigApplied
+             << " and last cached time:" << lastConfigAppliedInMs_
+             << ". Issue all ports reprogramming events";
+  // Update present transceiver state machine back to DISCOVERED
+  // and absent transeiver state machine back to NOT_PRESENT
+  int numResetToDiscovered{0}, numResetToNotPresent{0};
+  for (auto& stateMachine : stateMachines_) {
+    auto tcvrID = stateMachine.first;
+    if (std::find(transceivers.begin(), transceivers.end(), tcvrID) !=
+        transceivers.end()) {
+      ++numResetToDiscovered;
+      updateStateBlocking(
+          tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED);
+    } else {
+      ++numResetToNotPresent;
+      updateStateBlocking(
+          tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT);
+    }
+  }
+  XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
+             << " transceivers state machines set back to discovered, "
+             << numResetToNotPresent << " set back to not_present";
+  lastConfigAppliedInMs_ = lastConfigApplied;
 }
 } // namespace fboss
 } // namespace facebook

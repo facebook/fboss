@@ -21,8 +21,8 @@ std::string getTransceiverStateMachineEventName(
       return "DETECT_TRANSCEIVER";
     case TransceiverStateMachineEvent::OPTICS_REMOVED:
       return "OPTICS_REMOVED";
-    case TransceiverStateMachineEvent::OPTICS_RESET:
-      return "OPTICS_RESET";
+    case TransceiverStateMachineEvent::RESET_TRANSCEIVER:
+      return "RESET_TRANSCEIVER";
     case TransceiverStateMachineEvent::READ_EEPROM:
       return "READ_EEPROM";
     case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
@@ -45,6 +45,10 @@ std::string getTransceiverStateMachineEventName(
       return "PROGRAM_XPHY";
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       return "PROGRAM_TRANSCEIVER";
+    case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
+      return "RESET_TO_DISCOVERED";
+    case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
+      return "RESET_TO_NOT_PRESENT";
   }
   throw FbossError("Unsupported TransceiverStateMachineEvent");
 }
