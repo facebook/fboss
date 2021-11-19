@@ -21,6 +21,18 @@ TransceiverManager::TransceiverManager(
       platformMapping_(std::move(platformMapping)),
       stateMachines_(setupTransceiverToStateMachineHelper()),
       tcvrToPortInfo_(setupTransceiverToPortInfo()) {
+  // Cache the static mapping based on platformMapping_
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  const auto& chips = platformMapping_->getChips();
+  for (const auto& [portIDInt, platformPort] : platformPorts) {
+    PortID portID = PortID(portIDInt);
+    const auto& portName = *platformPort.mapping_ref()->name_ref();
+    portNameToPortID_.emplace(portName, portID);
+    SwPortInfo portInfo;
+    portInfo.name = portName;
+    portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
+    portToSwPortInfo_.emplace(portID, std::move(portInfo));
+  }
   // Now we might need to start threads
   startThreads();
 }
@@ -487,7 +499,6 @@ void TransceiverManager::updateTransceiverPortStatus(
     // Then call wedge_agent getPortStatus() to get current port status
     auto wedgeAgentClient = utils::createWedgeAgentClient();
     wedgeAgentClient->sync_getPortStatus(newPortToPortStatus, {});
-
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
     XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
@@ -656,6 +667,21 @@ void TransceiverManager::waitForAllBlockingStateUpdateDone(
   for (const auto& result : results) {
     result->wait();
   }
+}
+
+/*
+ * getPortIDByPortName
+ *
+ * This function takes the port name string (eth2/1/1) and returns the software
+ * port id (or the agent port id) for that
+ */
+std::optional<PortID> TransceiverManager::getPortIDByPortName(
+    const std::string& portName) {
+  auto portMapIt = portNameToPortID_.find(portName);
+  if (portMapIt != portNameToPortID_.end()) {
+    return portMapIt->second;
+  }
+  return std::nullopt;
 }
 } // namespace fboss
 } // namespace facebook

@@ -4,6 +4,7 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/lib/usb/tests/MockTransceiverI2CApi.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 
@@ -11,11 +12,11 @@ namespace facebook::fboss {
 
 class MockWedgeManager : public WedgeManager {
  public:
-  MockWedgeManager(
-      int numModules = 16,
-      int numPortsPerModule = 4,
-      std::unique_ptr<PlatformMapping> platformMapping = nullptr)
-      : WedgeManager(nullptr, std::move(platformMapping), PlatformMode::WEDGE) {
+  MockWedgeManager(int numModules = 16, int numPortsPerModule = 4)
+      : WedgeManager(
+            nullptr,
+            makeFakePlatformMappnig(numModules, numPortsPerModule),
+            PlatformMode::WEDGE) {
     numModules_ = numModules;
     numPortsPerModule_ = numPortsPerModule;
   }
@@ -78,6 +79,21 @@ class MockWedgeManager : public WedgeManager {
   }
 
  private:
+  std::unique_ptr<FakeTestPlatformMapping> makeFakePlatformMappnig(
+      int numModules,
+      int numPortsPerModule) {
+    std::vector<int> controllingPortIDs(numModules);
+    std::generate(
+        begin(controllingPortIDs),
+        end(controllingPortIDs),
+        [n = 1, numPortsPerModule]() mutable {
+          int port = n;
+          n += numPortsPerModule;
+          return port;
+        });
+    return std::make_unique<FakeTestPlatformMapping>(controllingPortIDs);
+  }
+
   int numModules_;
   int numPortsPerModule_;
 };

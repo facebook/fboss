@@ -144,9 +144,6 @@ class WedgeManager : public TransceiverManager {
     return agentConfig_.get();
   }
 
-  // Function to convert port name string to software port id
-  std::optional<int> getSwPortByPortName(const std::string& portName);
-
   virtual bool canWarmboot() const {
     return !forceColdBoot_;
   }
@@ -195,7 +192,6 @@ class WedgeManager : public TransceiverManager {
       int idx,
       LockedTransceiversPtr& lockedTransceivers);
 
-  std::map<std::string, int> portNameToSwPort_;
   bool forceColdBoot_{false};
   folly::dynamic qsfpServiceState_;
 };

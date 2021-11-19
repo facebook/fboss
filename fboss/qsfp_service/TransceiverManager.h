@@ -202,6 +202,9 @@ class TransceiverManager {
   // with present filed is false.
   TransceiverInfo getTransceiverInfo(TransceiverID id);
 
+  // Function to convert port name string to software port id
+  std::optional<PortID> getPortIDByPortName(const std::string& portName);
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -361,6 +364,15 @@ class TransceiverManager {
    * iphy port profile change, and we should then issue a port re-programming
    */
   int64_t lastConfigAppliedInMs_{0};
+
+  // Use the following map to cache the static mapping so that we don't have
+  // to search from PlatformMapping again and again
+  std::unordered_map<std::string, PortID> portNameToPortID_;
+  struct SwPortInfo {
+    std::optional<TransceiverID> tcvrID;
+    std::string name;
+  };
+  std::unordered_map<PortID, SwPortInfo> portToSwPortInfo_;
 };
 } // namespace fboss
 } // namespace facebook

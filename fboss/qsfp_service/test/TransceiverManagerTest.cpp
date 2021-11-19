@@ -2,7 +2,6 @@
 
 #include "fboss/qsfp_service/test/TransceiverManagerTest.h"
 
-#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
 #include <folly/Singleton.h>
@@ -18,20 +17,8 @@ void TransceiverManagerTest::SetUp() {
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-
-  std::vector<int> controllingPortIDs(numModules);
-  std::generate(
-      begin(controllingPortIDs), end(controllingPortIDs), [n = 1]() mutable {
-        int port = n;
-        n += numPortsPerModule;
-        return port;
-      });
-
-  auto platformMapping =
-      std::make_unique<FakeTestPlatformMapping>(controllingPortIDs);
-
-  transceiverManager_ = std::make_unique<MockWedgeManager>(
-      numModules, numPortsPerModule, std::move(platformMapping));
+  transceiverManager_ =
+      std::make_unique<MockWedgeManager>(numModules, numPortsPerModule);
 }
 
 TEST_F(TransceiverManagerTest, getPortNameToModuleMap) {
