@@ -89,8 +89,10 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "bridge";
     case SAI_API_TAM:
       return "tam";
+#if !defined(SAI_VERSION_6_0_0_11_ODP)
     case SAI_API_SEGMENTROUTE:
       return "segmentroute";
+#endif
     case SAI_API_MPLS:
       return "mpls";
     case SAI_API_DTEL:
