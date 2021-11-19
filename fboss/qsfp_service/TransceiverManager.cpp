@@ -160,15 +160,15 @@ void TransceiverManager::updateState(
   updateState(std::move(update));
 }
 
-void TransceiverManager::updateStateBlocking(
+std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+TransceiverManager::updateStateBlockingWithoutWait(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
   auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
   auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
       id, event, result);
   updateState(std::move(update));
-  // wait for the result
-  result->wait();
+  return result;
 }
 
 void TransceiverManager::updateState(
@@ -291,6 +291,7 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
 std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
   std::vector<TransceiverID> programmedTcvrs;
   int32_t numProgramIphy{0}, numProgramXphy{0}, numProgramTcvr{0};
+  BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
   for (auto& stateMachine : stateMachines_) {
     bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false};
@@ -306,18 +307,21 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
     if (needProgramIphy) {
       programmedTcvrs.push_back(tcvrID);
       ++numProgramIphy;
-      updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY);
+      results.push_back(updateStateBlockingWithoutWait(
+          tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY));
     } else if (needProgramXphy && phyManager_ != nullptr) {
       programmedTcvrs.push_back(tcvrID);
       ++numProgramXphy;
-      updateStateBlocking(tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY);
+      results.push_back(updateStateBlockingWithoutWait(
+          tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY));
     } else if (needProgramTcvr) {
       programmedTcvrs.push_back(tcvrID);
       ++numProgramTcvr;
-      updateStateBlocking(
-          tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+      results.push_back(updateStateBlockingWithoutWait(
+          tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER));
     }
   }
+  waitForAllBlockingStateUpdateDone(results);
   XLOG_IF(DBG2, !programmedTcvrs.empty())
       << "triggerProgrammingEvents has " << numProgramIphy
       << " IPHY programming, " << numProgramXphy << " XPHY programming, "
@@ -491,6 +495,7 @@ void TransceiverManager::updateTransceiverPortStatus(
     return;
   }
 
+  BlockingStateUpdateResultList results;
   // Now try to update the TransceiverToPortInfo map with new status
   for (auto tcvrID : transceivers) {
     auto tcvrToPortInfo_It = tcvrToPortInfo_.find(tcvrID);
@@ -529,12 +534,13 @@ void TransceiverManager::updateTransceiverPortStatus(
         getCurrentState(tcvrID) ==
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
       ++numTcvrPortStatusChanged;
-      updateStateBlocking(
+      results.push_back(updateStateBlockingWithoutWait(
           tcvrID,
           anyPortUp ? TransceiverStateMachineEvent::PORT_UP
-                    : TransceiverStateMachineEvent::ALL_PORTS_DOWN);
+                    : TransceiverStateMachineEvent::ALL_PORTS_DOWN));
     }
   }
+  waitForAllBlockingStateUpdateDone(results);
   XLOG_IF(DBG2, numTcvrPortStatusChanged > 0)
       << "updateTransceiverPortStatus has " << numTcvrPortStatusChanged
       << " transceivers need to update port status. Total execute time(ms):"
@@ -600,19 +606,21 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   // Update present transceiver state machine back to DISCOVERED
   // and absent transeiver state machine back to NOT_PRESENT
   int numResetToDiscovered{0}, numResetToNotPresent{0};
+  BlockingStateUpdateResultList results;
   for (auto& stateMachine : stateMachines_) {
     auto tcvrID = stateMachine.first;
     if (std::find(transceivers.begin(), transceivers.end(), tcvrID) !=
         transceivers.end()) {
       ++numResetToDiscovered;
-      updateStateBlocking(
-          tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED);
+      results.push_back(updateStateBlockingWithoutWait(
+          tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED));
     } else {
       ++numResetToNotPresent;
-      updateStateBlocking(
-          tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT);
+      results.push_back(updateStateBlockingWithoutWait(
+          tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT));
     }
   }
+  waitForAllBlockingStateUpdateDone(results);
   XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
@@ -640,6 +648,13 @@ void TransceiverManager::TransceiverStateMachineHelper::stopThread() {
   if (updateThread_) {
     updateEventBase_->terminateLoopSoon();
     updateThread_->join();
+  }
+}
+
+void TransceiverManager::waitForAllBlockingStateUpdateDone(
+    const TransceiverManager::BlockingStateUpdateResultList& results) {
+  for (const auto& result : results) {
+    result->wait();
   }
 }
 } // namespace fboss

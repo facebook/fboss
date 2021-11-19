@@ -168,7 +168,8 @@ class TransceiverManager {
   const std::string getPortName(TransceiverID tcvrId) const;
 
   void updateState(TransceiverID id, TransceiverStateMachineEvent event);
-  void updateStateBlocking(
+  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  updateStateBlockingWithoutWait(
       TransceiverID id,
       TransceiverStateMachineEvent event);
 
@@ -245,6 +246,11 @@ class TransceiverManager {
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
   TransceiverManager& operator=(TransceiverManager const&) = delete;
+
+  using BlockingStateUpdateResultList =
+      std::vector<std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>>;
+  void waitForAllBlockingStateUpdateDone(
+      const BlockingStateUpdateResultList& results);
 
   /*
    * This is the private class to capture all information a
