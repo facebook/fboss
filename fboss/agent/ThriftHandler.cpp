@@ -220,6 +220,8 @@ void getPortInfoHelper(
                 *aqm.second.detection_ref()->get_linear().minimumLength_ref();
             *aqmThrift.detection_ref()->linear_ref()->maximumLength_ref() =
                 *aqm.second.detection_ref()->get_linear().maximumLength_ref();
+            aqmThrift.detection_ref()->linear_ref()->probability_ref() =
+                *aqm.second.detection_ref()->get_linear().probability_ref();
             break;
           case facebook::fboss::cfg::QueueCongestionDetection::Type::__EMPTY__:
             XLOG(WARNING) << "Invalid queue congestion detection config";

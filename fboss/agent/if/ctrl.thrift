@@ -294,6 +294,7 @@ enum PortLoopbackMode {
 struct LinearQueueCongestionDetection {
   1: i32 minimumLength;
   2: i32 maximumLength;
+  3: i32 probability;
 }
 
 struct QueueCongestionDetection {
