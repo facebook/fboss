@@ -235,7 +235,7 @@ uint32_t AggregatePort::forwardingSubportCount() const {
 }
 
 bool AggregatePort::isMemberPort(PortID port) const {
-  for (const auto memberPort : getFields()->ports_) {
+  for (const auto& memberPort : getFields()->ports_) {
     if (memberPort.portID == port) {
       return true;
     }
