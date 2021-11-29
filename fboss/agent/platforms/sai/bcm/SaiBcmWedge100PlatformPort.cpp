@@ -99,7 +99,8 @@ void SaiBcmWedge100PlatformPort::externalState(PortLedExternalState lfs) {
 std::optional<std::tuple<uint32_t, uint32_t>>
 SaiBcmWedge100PlatformPort::getLedAndIndex(uint32_t phyPortId) {
   PortID port = static_cast<PortID>(phyPortId);
-  int index = Wedge100LedUtils::getPortIndex(port);
+  int index =
+      Wedge100LedUtils::getPortOffset(Wedge100LedUtils::getPortIndex(port));
   auto led = Wedge100LedUtils::getLEDProcessorNumber(port);
   if (!led) {
     return std::nullopt;
