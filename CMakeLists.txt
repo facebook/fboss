@@ -619,6 +619,7 @@ if (NOT SAI_ONLY)
       fboss/agent/NdpCache.cpp
       fboss/agent/NeighborUpdater.cpp
       fboss/agent/NeighborUpdaterImpl.cpp
+      fboss/agent/NeighborUpdaterNoopImpl.cpp
       fboss/agent/normalization/Normalizer.cpp
       fboss/agent/normalization/oss/Normalizer.cpp
       fboss/agent/normalization/PortStatsProcessor.cpp
