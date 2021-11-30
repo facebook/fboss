@@ -418,7 +418,7 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
-  phySnapshotManager_->updatePhyInfos(getHw()->updateIPhyInfo());
+  phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
 }
 
 void SwSwitch::registerNeighborListener(
