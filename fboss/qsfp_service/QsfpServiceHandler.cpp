@@ -192,6 +192,10 @@ void QsfpServiceHandler::listHwObjects(
   out = manager_->listHwObjects(*hwObjects, cached);
 }
 
+bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
+  return manager_->getSdkState(*fileName);
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(

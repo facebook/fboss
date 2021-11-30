@@ -158,6 +158,8 @@ class TransceiverManager {
       std::vector<HwObjectType>& hwObjects,
       bool cached) const = 0;
 
+  virtual bool getSdkState(std::string filename) const = 0;
+
   // Returns the interface names for a given transceiverId
   // Returns empty list when there is no corresponding name for a given
   // transceiver ID

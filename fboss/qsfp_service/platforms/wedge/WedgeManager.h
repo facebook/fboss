@@ -161,6 +161,8 @@ class WedgeManager : public TransceiverManager {
       std::vector<HwObjectType>& hwObjects,
       bool cached) const override;
 
+  virtual bool getSdkState(std::string filename) const override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();

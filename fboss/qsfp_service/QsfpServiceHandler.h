@@ -98,6 +98,8 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
       std::unique_ptr<std::vector<HwObjectType>> hwObjects,
       bool cached) override;
 
+  bool getSdkState(std::unique_ptr<std::string> fileName) override;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,
