@@ -182,9 +182,7 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() const override {
-    return std::map<PortID, phy::PhyInfo>();
-  }
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() const override;
 
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
@@ -289,6 +287,8 @@ class SaiSwitch : public HwSwitch {
 
   folly::F14FastMap<std::string, HwPortStats> getPortStatsLocked(
       const std::lock_guard<std::mutex>& lock) const;
+
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked() const;
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);

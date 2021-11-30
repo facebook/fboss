@@ -895,6 +895,46 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
   return portStatsMap;
 }
 
+std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfo() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return updateAllPhyInfoLocked();
+}
+
+std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
+  std::map<PortID, phy::PhyInfo> returnPhyParams;
+
+  for (const auto& portIdAndHandle : managerTable_->portManager()) {
+    PortID swPort = portIdAndHandle.first;
+
+    auto portHandle = portIdAndHandle.second.get();
+    if (portHandle == nullptr) {
+      XLOG(DBG3) << folly::sformat(
+          "PortHandle not found for port {}", static_cast<int>(swPort));
+      continue;
+    }
+
+    auto eyeStatus = managerTable_->portManager().getPortEyeValues(
+        portHandle->port->adapterKey());
+
+    phy::PhyInfo phyParams;
+    for (int i = 0; i < eyeStatus.count; i++) {
+      phy::LaneInfo laneInfo;
+      std::vector<phy::EyeInfo> eyeInfo;
+      phy::EyeInfo oneLaneEyeInfo;
+
+      int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
+      int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
+      oneLaneEyeInfo.height_ref() = height;
+      oneLaneEyeInfo.width_ref() = width;
+      eyeInfo.push_back(oneLaneEyeInfo);
+      laneInfo.eyes_ref() = eyeInfo;
+      phyParams.line_ref()->pmd_ref()->lanes_ref()[i] = laneInfo;
+    }
+    returnPhyParams[swPort] = phyParams;
+  }
+  return returnPhyParams;
+}
+
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);
@@ -1030,7 +1070,8 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * affected.
        * - We now signal the callback (SwSwitch for wedge_agent, HwTest for hw
        * tests) for this link down state
-       *    - SwSwitch in turn schedules a non coalescing port down state update
+       *    - SwSwitch in turn schedules a non coalescing port down state
+       * update
        *    - Schedules a neighbor remove state update
        * - Meanwhile, if we get a port up event, we will just signal this upto
        * the SwSwitch and not handle this is in the fast path. Reason being,
@@ -1040,13 +1081,14 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * updates, which means that it will be queued behind the link down and
        * neighbor purge. So a ECMP group reexpansion would need both a link up
        * and neighbor add state update for expansion. At this point we are
-       * guaranteed to have the link be ready for packet transmission, since we
-       * already resolved neighbors over that link.
+       * guaranteed to have the link be ready for packet transmission, since
+       * we already resolved neighbors over that link.
        */
       std::lock_guard<std::mutex> lock{saiSwitchMutex_};
       if (swAggPort) {
         // member of lag is gone down. unbundle it from LAG
-        // once link comes back up LACP engine in SwSwitch will bundle it again
+        // once link comes back up LACP engine in SwSwitch will bundle it
+        // again
         managerTable_->lagManager().disableMember(swAggPort.value(), swPortId);
         if (!managerTable_->lagManager().isMinimumLinkMet(swAggPort.value())) {
           // remove fdb entries on LAG, this would remove neighbors, next hops
@@ -1057,7 +1099,8 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
       /*
-       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port flaps
+       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
+       * flaps
        */
       if (asicType_ == HwAsic::AsicType::ASIC_TYPE_TAJO) {
         managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
@@ -1848,14 +1891,14 @@ void SaiSwitch::fdbEventCallback(
    * 1) Deep copy of sai_fdb_event_notification_data_t. This includes
    * allocating memory for sai_attribute_t in the fdb event data and freeing
    * them in the fdb bottom half thread.
-   * 2) Create a temporary struct FdbEventNotificationData which is a subset of
-   * sai_fdb_event_notification_data_t. This will be used to store only
-   * the necessary attributes and pass it on to fdb bottom half thread.
-   * 3) Avoid creating temporary structs and create L2Entry which can be sent
-   * to sw switch. The problem with this approach is we need to hold the sai
-   * switch mutex in the callback thread. Also, this can cause deadlock when
-   * we used the bridge port id to fetch the port id from the SDK.
-   * Going with option 2 for fdb event notifications.
+   * 2) Create a temporary struct FdbEventNotificationData which is a subset
+   * of sai_fdb_event_notification_data_t. This will be used to store only the
+   * necessary attributes and pass it on to fdb bottom half thread.
+   * 3) Avoid creating temporary structs and create L2Entry which can be sent to
+   * sw switch. The problem with this approach is we need to hold the sai switch
+   * mutex in the callback thread. Also, this can cause deadlock when we used
+   * the bridge port id to fetch the port id from the SDK. Going with option 2
+   * for fdb event notifications.
    */
   std::vector<FdbEventNotificationData> fdbEventNotificationDataTmp;
   for (auto i = 0; i < count; i++) {

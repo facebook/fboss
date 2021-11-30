@@ -387,6 +387,25 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
                                                      : PortOperState::DOWN;
 }
 
+/*
+ * getPhyInfo
+ *
+ * Get the macsec phy line side and system link information from
+ * SaiPortManager SaiPortHandle attribute
+ */
+phy::PhyInfo SaiPhyManager::getPhyInfo(PortID swPort) {
+  // Get phy platform
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  auto allPhyParams = saiSwitch->updateAllPhyInfo();
+  if (allPhyParams.find(swPort) != allPhyParams.end()) {
+    return allPhyParams[swPort];
+  }
+  return phy::PhyInfo{};
+}
+
 std::unique_ptr<ExternalPhyPortStatsUtils>
 SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   // TODO(joseph5wu) Need to check what kinda stas we can get from
