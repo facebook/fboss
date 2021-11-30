@@ -62,6 +62,10 @@ int main(int argc, char* argv[]) {
     macsec.getAllPortStats(client.get());
     return 0;
   }
+  if (FLAGS_get_sdk_state) {
+    macsec.getSdkState(client.get());
+    return 0;
+  }
 
   return 0;
 }

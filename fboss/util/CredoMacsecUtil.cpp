@@ -161,6 +161,8 @@ DEFINE_bool(
     get_allport_stats,
     false,
     "Get all port stats in this system, optionally use --port");
+DEFINE_bool(get_sdk_state, false, "Get entire SAI state, use with --filename");
+DEFINE_string(filename, "", "File name");
 
 constexpr bool kReadFromHw = true;
 /*
@@ -564,6 +566,19 @@ void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     }
     printf("\n");
   }
+}
+
+void CredoMacsecUtil::getSdkState(QsfpServiceAsyncClient* fbMacsecHandler) {
+  if (FLAGS_filename == "") {
+    printf("File name is required\n");
+    return;
+  }
+
+  bool rc = fbMacsecHandler->sync_getSdkState(FLAGS_filename);
+  printf(
+      "SAI state dump to file %s was %s",
+      FLAGS_filename.c_str(),
+      rc ? "Successful" : "Failed");
 }
 
 } // namespace fboss

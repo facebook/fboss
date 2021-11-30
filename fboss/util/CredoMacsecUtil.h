@@ -24,6 +24,8 @@ DECLARE_bool(egress);
 DECLARE_bool(get_flow_stats);
 DECLARE_bool(get_sa_stats);
 DECLARE_bool(get_allport_stats);
+DECLARE_bool(get_sdk_state);
+DECLARE_string(filename);
 
 class CredoMacsecUtil {
  public:
@@ -50,6 +52,7 @@ class CredoMacsecUtil {
   void deleteAllSc(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getAllPortStats(
       facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
+  void getSdkState(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
 
  private:
   // Forbidden copy constructor and assignment operator
