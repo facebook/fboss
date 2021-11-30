@@ -640,4 +640,28 @@ std::string SaiPhyManager::listHwObjects(
   return resultStr;
 }
 
+bool SaiPhyManager::getSdkState(const std::string& fileName) {
+  if (fileName.empty()) {
+    XLOG(ERR) << "getSdkState get invalid filename";
+    return false;
+  }
+
+  auto pimPlatformItr = saiPlatforms_.begin();
+  if (pimPlatformItr == saiPlatforms_.end()) {
+    return false;
+  }
+  auto& pimPlatform = pimPlatformItr->second;
+
+  auto platformItr = pimPlatform.begin();
+  if (platformItr == pimPlatform.end()) {
+    return false;
+  }
+
+  GlobalXphyID xphyID = platformItr->first;
+  // Get SaiSwitch using global xphy id and dump sdk debug state
+  auto saiSwitch = getSaiSwitch(xphyID);
+  saiSwitch->dumpDebugState(fileName);
+  return true;
+}
+
 } // namespace facebook::fboss

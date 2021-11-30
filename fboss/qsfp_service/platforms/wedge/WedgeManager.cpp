@@ -987,11 +987,11 @@ std::string WedgeManager::listHwObjects(
   return phyManager_->listHwObjects(hwObjects, cached);
 }
 
-bool WedgeManager::getSdkState(std::string /* filename */) const {
+bool WedgeManager::getSdkState(std::string filename) const {
   if (!phyManager_) {
     return false;
   }
-  return true;
+  return phyManager_->getSdkState(filename);
 }
 } // namespace fboss
 } // namespace facebook

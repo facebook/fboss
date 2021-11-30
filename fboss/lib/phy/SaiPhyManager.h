@@ -90,6 +90,8 @@ class SaiPhyManager : public PhyManager {
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   void updateAllXphyPortsStats() override;
 
+  bool getSdkState(const std::string& fileName) override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,

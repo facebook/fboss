@@ -153,6 +153,10 @@ class PhyManager {
     return "";
   }
 
+  virtual bool getSdkState(const std::string& /* fileName */) {
+    throw FbossError("Attempted to call getSdkState from non-SaiPhyManager");
+  }
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   void
