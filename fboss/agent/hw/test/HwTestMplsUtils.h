@@ -77,4 +77,9 @@ void verifyMultiPathLabelSwitchAction(
     const LabelForwardingEntry::Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops);
+
+uint64_t getMplsDestNoMatchCounter(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState> state,
+    PortID inPort);
 } // namespace facebook::fboss::utility

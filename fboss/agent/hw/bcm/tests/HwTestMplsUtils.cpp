@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
+
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
@@ -19,6 +20,8 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 
 extern "C" {
@@ -384,4 +387,12 @@ template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
     const LabelForwardingEntry::Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
+
+uint64_t getMplsDestNoMatchCounter(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState> state,
+    PortID /*inPort*/) {
+  const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
+  return utility::getAclInOutPackets(hwSwitch, state, "", mplsNoMatchCounter);
+}
 } // namespace facebook::fboss::utility

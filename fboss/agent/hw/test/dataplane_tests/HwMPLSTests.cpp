@@ -397,21 +397,31 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
   auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
-    const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
-    auto statBefore = utility::getAclInOutPackets(
+    auto statBefore = utility::getMplsDestNoMatchCounter(
         this->getHwSwitch(),
         this->getProgrammedState(),
-        "",
-        mplsNoMatchCounter);
+        this->masterLogicalPortIds()[1]);
+    auto portStatsBefore =
+        this->getLatestPortStats(this->masterLogicalPortIds()[1]);
 
     this->sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
 
-    auto statAfter = utility::getAclInOutPackets(
+    auto statAfter = utility::getMplsDestNoMatchCounter(
         this->getHwSwitch(),
         this->getProgrammedState(),
-        "",
-        mplsNoMatchCounter);
+        this->masterLogicalPortIds()[1]);
+    auto portStatsAfter =
+        this->getLatestPortStats(this->masterLogicalPortIds()[1]);
+
     EXPECT_EQ(statBefore + 1, statAfter);
+    EXPECT_EQ(
+        portStatsAfter.inDiscardsRaw__ref(),
+        portStatsBefore.inDiscardsRaw__ref());
+    EXPECT_EQ(
+        portStatsAfter.inDstNullDiscards__ref(),
+        portStatsBefore.inDstNullDiscards__ref());
+    EXPECT_EQ(
+        portStatsAfter.inDiscards__ref(), portStatsBefore.inDiscards__ref());
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
