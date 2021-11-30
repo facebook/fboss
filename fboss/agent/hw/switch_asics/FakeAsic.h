@@ -27,6 +27,8 @@ class FakeAsic : public HwAsic {
       case Feature::WIDE_ECMP:
       // Can be removed once CS00012110063 is resolved
       case Feature::SAI_PORT_SPEED_CHANGE:
+      case Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER: // TODO(pshaikh):
+                                                        // support in fake
         return false;
 
       default:

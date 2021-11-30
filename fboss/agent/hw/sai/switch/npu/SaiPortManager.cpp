@@ -53,6 +53,11 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
     counterIds.emplace_back(
         managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)) {
+    counterIds.emplace_back(managerTable_->debugCounterManager()
+                                .getMPLSLookupFailedCounterStatId());
+  }
   return counterIds;
 }
 

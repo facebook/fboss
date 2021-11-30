@@ -103,6 +103,10 @@ void fillHwPortStats(
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {
           hwPortStats.inDstNullDiscards__ref() = value;
+        } else if (
+            counterId ==
+            debugCounterManager.getMPLSLookupFailedCounterStatId()) {
+          hwPortStats.inLabelMissDiscards__ref() = value;
         } else {
           throw FbossError("Got unexpected port counter id: ", counterId);
         }
