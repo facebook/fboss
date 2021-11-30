@@ -8,6 +8,7 @@
  *
  */
 #pragma once
+#include <fboss/agent/hw/test/HwSwitchEnsemble.h>
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -79,7 +80,7 @@ void verifyMultiPathLabelSwitchAction(
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops);
 
 uint64_t getMplsDestNoMatchCounter(
-    const HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
     const std::shared_ptr<SwitchState> state,
     PortID inPort);
 } // namespace facebook::fboss::utility

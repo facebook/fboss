@@ -398,7 +398,7 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
 
   auto verify = [=]() {
     auto statBefore = utility::getMplsDestNoMatchCounter(
-        this->getHwSwitch(),
+        this->getHwSwitchEnsemble(),
         this->getProgrammedState(),
         this->masterLogicalPortIds()[1]);
     auto portStatsBefore =
@@ -407,7 +407,7 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
     this->sendMplsPktAndVerifyTrappedCpuQueue(utility::kCoppLowPriQueueId);
 
     auto statAfter = utility::getMplsDestNoMatchCounter(
-        this->getHwSwitch(),
+        this->getHwSwitchEnsemble(),
         this->getProgrammedState(),
         this->masterLogicalPortIds()[1]);
     auto portStatsAfter =

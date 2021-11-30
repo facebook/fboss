@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include <folly/gen/Base.h>
 
@@ -457,9 +458,10 @@ template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
     const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
 
 uint64_t getMplsDestNoMatchCounter(
-    const HwSwitch* /*hwSwitch*/,
+    HwSwitchEnsemble* ensemble,
     const std::shared_ptr<SwitchState> /*state*/,
-    PortID /*inPort*/) {
-  return 0;
+    PortID inPort) {
+  auto inPortStats = ensemble->getLatestPortStats(inPort);
+  return *inPortStats.inLabelMissDiscards__ref();
 }
 } // namespace facebook::fboss::utility
