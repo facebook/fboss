@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
@@ -198,6 +199,13 @@ void setPortAttributes(
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
+        // Handle extension attributes
+        auto systemPortId = facebook::fboss::SaiPortTraits::Attributes::
+            SystemPortId::optionalExtensionAttributeId();
+        if (systemPortId.has_value() &&
+            attr_list[i].id == systemPortId.value()) {
+          attrLines.push_back(u16Attr(attr_list, i));
+        }
         break;
     }
   }
@@ -208,6 +216,32 @@ void setPortSerdesAttributes(
     uint32_t attr_count,
     std::vector<std::string>& attrLines) {
   uint32_t listCount = 0;
+  std::unordered_set<sai_attr_id_t> s32ExtensionAttr;
+  auto rxCtleCodeId = facebook::fboss::SaiPortSerdesTraits::Attributes::
+      RxCtleCode::optionalExtensionAttributeId();
+  auto rxDspModeId = facebook::fboss::SaiPortSerdesTraits::Attributes::
+      RxDspMode::optionalExtensionAttributeId();
+  auto rxAfeTrimId = facebook::fboss::SaiPortSerdesTraits::Attributes::
+      RxAfeTrim::optionalExtensionAttributeId();
+  auto rxAcCouplingByPassId = facebook::fboss::SaiPortSerdesTraits::Attributes::
+      RxAcCouplingByPass::optionalExtensionAttributeId();
+  auto rxAfeAdaptiveEnableId = facebook::fboss::SaiPortSerdesTraits::
+      Attributes::RxAfeAdaptiveEnable::optionalExtensionAttributeId();
+  if (rxCtleCodeId.has_value()) {
+    s32ExtensionAttr.insert(rxCtleCodeId.value());
+  }
+  if (rxDspModeId.has_value()) {
+    s32ExtensionAttr.insert(rxDspModeId.value());
+  }
+  if (rxAfeTrimId.has_value()) {
+    s32ExtensionAttr.insert(rxAfeTrimId.value());
+  }
+  if (rxAcCouplingByPassId.has_value()) {
+    s32ExtensionAttr.insert(rxAcCouplingByPassId.value());
+  }
+  if (rxAfeAdaptiveEnableId.has_value()) {
+    s32ExtensionAttr.insert(rxAfeAdaptiveEnableId.value());
+  }
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -225,6 +259,10 @@ void setPortSerdesAttributes(
         u32ListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
+        // Handle extension attributes
+        if (s32ExtensionAttr.find(attr_list[i].id) != s32ExtensionAttr.end()) {
+          s32ListAttr(attr_list, i, listCount++, attrLines);
+        }
         break;
     }
   }

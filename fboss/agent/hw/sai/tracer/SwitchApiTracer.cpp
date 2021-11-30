@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
@@ -187,6 +188,36 @@ void setSwitchAttributes(
         attrLines.push_back(u64Attr(attr_list, i));
         break;
       default:
+        // Handle extension attributes
+        auto ledId = facebook::fboss::SaiSwitchTraits::Attributes::Led::
+            optionalExtensionAttributeId();
+        auto ledResetId = facebook::fboss::SaiSwitchTraits::Attributes::
+            LedReset::optionalExtensionAttributeId();
+        auto aclFieldListId = facebook::fboss::SaiSwitchTraits::Attributes::
+            AclFieldList::optionalExtensionAttributeId();
+        auto egressPoolAvailableSizeId =
+            facebook::fboss::SaiSwitchTraits::Attributes::
+                EgressPoolAvaialableSize::optionalExtensionAttributeId();
+        auto hwECCErrorInitiateWrapperId = facebook::fboss::SaiSwitchTraits::
+            Attributes::HwEccErrorInitiate::optionalExtensionAttributeId();
+        if (ledId.has_value() && attr_list[i].id == ledId.value()) {
+          u32ListAttr(attr_list, i, listCount++, attrLines);
+        } else if (
+            ledResetId.has_value() && attr_list[i].id == ledResetId.value()) {
+          u32ListAttr(attr_list, i, listCount++, attrLines);
+        } else if (
+            aclFieldListId.has_value() &&
+            attr_list[i].id == aclFieldListId.value()) {
+          s32ListAttr(attr_list, i, listCount++, attrLines);
+        } else if (
+            egressPoolAvailableSizeId.has_value() &&
+            attr_list[i].id == egressPoolAvailableSizeId.value()) {
+          attrLines.push_back(u32Attr(attr_list, i));
+        } else if (
+            hwECCErrorInitiateWrapperId.has_value() &&
+            attr_list[i].id == hwECCErrorInitiateWrapperId.value()) {
+          attrLines.push_back(u16Attr(attr_list, i));
+        }
         break;
     }
   }

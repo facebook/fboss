@@ -789,6 +789,10 @@ class SaiExtensionAttribute {
     return saiAttr_.id;
   }
 
+  static std::optional<sai_attr_id_t> optionalExtensionAttributeId() {
+    return SaiExtensionAttributeId()();
+  }
+
  private:
   void setValue(const ValueType& value) {
     value_ = value;

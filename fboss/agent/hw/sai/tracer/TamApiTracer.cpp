@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
+#include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
@@ -80,7 +81,6 @@ void setTamEventAttributes(
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
-      // TODO(zecheng): Handle Tam event extension attribute SwitchEventType
       case SAI_TAM_EVENT_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
@@ -89,6 +89,19 @@ void setTamEventAttributes(
         oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
+        // Handle extension attributes
+        auto switchEventTypeId = facebook::fboss::SaiTamEventTraits::
+            Attributes::SwitchEventType::optionalExtensionAttributeId();
+        auto switchEventId = facebook::fboss::SaiTamEventTraits::Attributes::
+            SwitchEventId::optionalExtensionAttributeId();
+        if (switchEventTypeId.has_value() &&
+            attr_list[i].id == switchEventTypeId.value()) {
+          s32ListAttr(attr_list, i, listCount++, attrLines);
+        } else if (
+            switchEventId.has_value() &&
+            attr_list[i].id == switchEventId.value()) {
+          attrLines.push_back(u32Attr(attr_list, i));
+        }
         break;
     }
   }
