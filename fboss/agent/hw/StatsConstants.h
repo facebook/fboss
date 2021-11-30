@@ -133,6 +133,10 @@ inline folly::StringPiece constexpr kFecUncorrectable() {
   return "fec_uncorrectable_errors";
 }
 
+inline folly::StringPiece constexpr kInLabelMissDiscards() {
+  return "in_label_miss_discards";
+}
+
 inline folly::StringPiece constexpr kWredDroppedPackets() {
   return "wred_dropped_packets";
 }

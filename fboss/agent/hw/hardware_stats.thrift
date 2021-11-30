@@ -72,6 +72,7 @@ struct HwPortStats {
   50: i64 timestamp_ = STAT_UNINITIALIZED;
   51: string portName_ = "";
   52: optional MacsecStats macsecStats;
+  53: i64 inLabelMissDiscards_ = STAT_UNINITIALIZED;
 }
 
 struct HwTrunkStats {

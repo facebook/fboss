@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-std::array<folly::StringPiece, 23> HwPortFb303Stats::kPortStatKeys() {
+std::array<folly::StringPiece, 24> HwPortFb303Stats::kPortStatKeys() {
   return {
       kInBytes(),
       kInUnicastPkts(),
@@ -41,6 +41,7 @@ std::array<folly::StringPiece, 23> HwPortFb303Stats::kPortStatKeys() {
       kOutEcnCounter(),
       kFecCorrectable(),
       kFecUncorrectable(),
+      kInLabelMissDiscards(),
   };
 }
 
@@ -247,6 +248,10 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kFecUncorrectable(),
       *curPortStats.fecUncorrectableErrors_ref());
+  updateStat(
+      timeRetrieved_,
+      kInLabelMissDiscards(),
+      *curPortStats.inLabelMissDiscards__ref());
 
   // Update queue stats
   auto updateQueueStat = [this](

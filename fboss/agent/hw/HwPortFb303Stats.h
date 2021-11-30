@@ -70,7 +70,7 @@ class HwPortFb303Stats {
       int queueId,
       folly::StringPiece queueName);
 
-  static std::array<folly::StringPiece, 23> kPortStatKeys();
+  static std::array<folly::StringPiece, 24> kPortStatKeys();
   static std::array<folly::StringPiece, 4> kQueueStatKeys();
   static std::array<folly::StringPiece, 15> kInMacsecPortStatKeys();
   static std::array<folly::StringPiece, 6> kOutMacsecPortStatKeys();

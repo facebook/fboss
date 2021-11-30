@@ -112,6 +112,7 @@ HwPortStats getInitedStats() {
       0, // timestamp
       "test", // portName
       macsecStats,
+      24 // inLabelMissDiscards_
   };
 }
 
@@ -176,10 +177,11 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
   auto curValue{1};
   for (auto counterName : HwPortFb303Stats::kPortStatKeys()) {
     // +1 because first initialization is to -1
-    EXPECT_EQ(
-        portStats.getCounterLastIncrement(
-            HwPortFb303Stats::statName(counterName, kPortName)),
-        curValue++ + 1);
+    auto actualVal = portStats.getCounterLastIncrement(
+        HwPortFb303Stats::statName(counterName, kPortName));
+    auto expectedVal = (curValue++) + 1;
+    EXPECT_EQ(actualVal, expectedVal) << "failed for " << counterName;
+    XLOG(INFO) << counterName << ": " << actualVal << " " << expectedVal;
   }
   curValue = 1;
   for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
