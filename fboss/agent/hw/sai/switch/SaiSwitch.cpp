@@ -916,6 +916,15 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     auto eyeStatus = managerTable_->portManager().getPortEyeValues(
         portHandle->port->adapterKey());
 
+    if (eyeStatus.count == 0) {
+      // Non xphy systems don't return eye status so no need to populate PhyInfo
+      // for those systems
+      XLOG(DBG5) << folly::sformat(
+          "Did not get port Eye values for {} so skipping this port",
+          static_cast<int>(swPort));
+      continue;
+    }
+
     phy::PhyInfo phyParams;
     for (int i = 0; i < eyeStatus.count; i++) {
       phy::LaneInfo laneInfo;
@@ -928,6 +937,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
       oneLaneEyeInfo.width_ref() = width;
       eyeInfo.push_back(oneLaneEyeInfo);
       laneInfo.eyes_ref() = eyeInfo;
+      phyParams.name_ref() = folly::to<std::string>("port", swPort);
       phyParams.line_ref()->pmd_ref()->lanes_ref()[i] = laneInfo;
     }
     returnPhyParams[swPort] = phyParams;
