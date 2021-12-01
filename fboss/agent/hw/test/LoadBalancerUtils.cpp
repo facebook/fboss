@@ -92,6 +92,10 @@ std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
     const Platform* platform) {
   return {getEcmpHalfHashConfig(platform), getTrunkFullHashConfig(platform)};
 }
+std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
+    const Platform* platform) {
+  return {getEcmpFullHashConfig(platform), getTrunkFullHashConfig(platform)};
+}
 
 std::shared_ptr<SwitchState> setLoadBalancer(
     const Platform* platform,
