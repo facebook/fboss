@@ -129,6 +129,10 @@ DEFINE_bool(
     phy_link_info,
     false,
     "Print link info for a port in a phy, use with --port");
+DEFINE_bool(
+    phy_serdes_info,
+    false,
+    "Print serdes info for a port in a phy, use with --port");
 DEFINE_string(port, "", "Switch port");
 DEFINE_bool(
     delete_sa_rx,
@@ -398,6 +402,33 @@ void CredoMacsecUtil::printPhyLinkInfo(
       "Port %s phy line status: %s\n",
       FLAGS_port.c_str(),
       (apache::thrift::util::enumNameSafe(phyLink)).c_str());
+}
+
+void CredoMacsecUtil::printPhySerdesInfo(
+    QsfpServiceAsyncClient* fbMacsecHandler) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+
+  phy::PhyInfo phyInfo;
+  fbMacsecHandler->sync_getPhyInfo(phyInfo, FLAGS_port);
+
+  printf("Printing Eye values for the port %s\n", FLAGS_port.c_str());
+  for (auto& laneEye : phyInfo.line_ref()->pmd_ref()->lanes_ref().value()) {
+    if (!laneEye.second.eyes_ref().has_value()) {
+      continue;
+    }
+    printf("  Lane id: %d\n", laneEye.first);
+    for (auto eye : laneEye.second.eyes_ref().value()) {
+      printf(
+          "    Width: %d\n",
+          eye.width_ref().has_value() ? eye.width_ref().value() : 0);
+      printf(
+          "    Height: %d\n",
+          eye.height_ref().has_value() ? eye.height_ref().value() : 0);
+    }
+  }
 }
 
 void CredoMacsecUtil::getAllScInfo(QsfpServiceAsyncClient* fbMacsecHandler) {

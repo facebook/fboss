@@ -42,6 +42,10 @@ int main(int argc, char* argv[]) {
     macsec.printPhyLinkInfo(client.get());
     return 0;
   }
+  if (FLAGS_phy_serdes_info) {
+    macsec.printPhySerdesInfo(client.get());
+    return 0;
+  }
   if (FLAGS_get_all_sc_info) {
     macsec.getAllScInfo(client.get());
     return 0;

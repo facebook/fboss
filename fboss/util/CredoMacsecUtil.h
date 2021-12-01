@@ -13,6 +13,7 @@ DECLARE_string(sa_config);
 DECLARE_string(sc_config);
 DECLARE_bool(add_sa_tx);
 DECLARE_bool(phy_link_info);
+DECLARE_bool(phy_serdes_info);
 DECLARE_string(port);
 DECLARE_bool(delete_sa_rx);
 DECLARE_bool(delete_sa_tx);
@@ -44,6 +45,8 @@ class CredoMacsecUtil {
   void deleteSaRx(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void deleteSaTx(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void printPhyLinkInfo(
+      facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
+  void printPhySerdesInfo(
       facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getAllScInfo(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getPortStats(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
