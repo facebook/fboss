@@ -177,7 +177,7 @@ struct SaiPortTraits {
     using PortEyeValues = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_EYE_VALUES,
-        sai_port_eye_values_list_t,
+        std::vector<sai_port_lane_eye_values_t>,
         SaiPortEyeValuesDefault>;
   };
   using AdapterKey = PortSaiId;

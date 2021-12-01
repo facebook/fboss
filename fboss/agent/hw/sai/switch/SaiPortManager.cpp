@@ -1221,9 +1221,13 @@ sai_port_eye_values_list_t SaiPortManager::getPortEyeValues(
     return sai_port_eye_values_list_t{};
   }
 
-  sai_port_eye_values_list_t portEyeVal =
-      SaiApiTable::getInstance()->portApi().getAttribute(
-          saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
+  sai_port_eye_values_list_t portEyeVal;
+
+  auto portLaneList = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
+
+  portEyeVal.count = portLaneList.size();
+  portEyeVal.list = portLaneList.data();
 
   return portEyeVal;
 }

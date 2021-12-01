@@ -98,8 +98,8 @@ struct SaiAclEntryActionSaiObjectDefault {
 };
 
 struct SaiPortEyeValuesDefault {
-  sai_port_eye_values_list_t operator()() const {
-    return sai_port_eye_values_list_t{0, nullptr};
+  sai_port_lane_eye_values_t operator()() const {
+    return sai_port_lane_eye_values_t{0, 0, 0, 0, 0};
   }
 };
 

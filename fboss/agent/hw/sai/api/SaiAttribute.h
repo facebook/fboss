@@ -163,6 +163,7 @@ DEFINE_extract(std::vector<sai_int8_t>, s8list);
 DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
+DEFINE_extract(std::vector<sai_port_lane_eye_values_t>, porteyevalues);
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
@@ -174,7 +175,6 @@ DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
-DEFINE_extract(sai_port_eye_values_list_t, porteyevalues);
 
 // TODO:
 DEFINE_extract(sai_vlan_list_t, vlanlist);

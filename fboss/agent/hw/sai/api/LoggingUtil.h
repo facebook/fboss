@@ -198,25 +198,24 @@ struct formatter<sai_qos_map_t> {
 
 // Formatting for sai_port_eye_values_list_t
 template <>
-struct formatter<sai_port_eye_values_list_t> {
+struct formatter<sai_port_lane_eye_values_t> {
   template <typename ParseContext>
   constexpr auto parse(ParseContext& ctx) {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const sai_port_eye_values_list_t& eyeVal, FormatContext& ctx) {
+  auto format(const sai_port_lane_eye_values_t& eyeVal, FormatContext& ctx) {
     return format_to(
         ctx.out(),
-        "(eye_value: eyeVal.count: {}, eyeVal.list->lane: {}, "
-        "eyeVal.list->left: {}, eyeVal.list->right: {}, "
-        "eyeVal.list->up: {}, eyeVal.list->down: {})",
-        eyeVal.count,
-        (eyeVal.list ? eyeVal.list->lane : 0),
-        (eyeVal.list ? eyeVal.list->left : 0),
-        (eyeVal.list ? eyeVal.list->right : 0),
-        (eyeVal.list ? eyeVal.list->up : 0),
-        (eyeVal.list ? eyeVal.list->down : 0));
+        "(eye_value: eyeVal.lane: {}, "
+        "eyeVal.left: {}, eyeVal.right: {}, "
+        "eyeVal.up: {}, eyeVal.down: {})",
+        eyeVal.lane,
+        eyeVal.left,
+        eyeVal.right,
+        eyeVal.up,
+        eyeVal.down);
   }
 };
 
