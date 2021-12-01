@@ -299,6 +299,7 @@ struct VdmDiagsStats {
   7: double preFecBerHostMax;
   8: double preFecBerHostAvg;
   9: double preFecBerHostCur;
+  10: i64 statsCollectionTme;
 }
 
 struct TransceiverSettings {
@@ -352,6 +353,7 @@ struct TransceiverInfo {
   25: optional bool eepromCsumValid;
   26: optional MediaInterfaceCode moduleMediaInterface;
   27: optional TransceiverStateMachineState stateMachineState;
+  28: optional VdmDiagsStats vdmDiagsStatsForOds;
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

@@ -12,6 +12,7 @@
 #include <boost/assign.hpp>
 #include <iomanip>
 #include <string>
+#include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -259,6 +260,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked() {
 
     if (auto vdmStats = getVdmDiagsStatsInfo()) {
       info.vdmDiagsStats_ref() = *vdmStats;
+      info.vdmDiagsStatsForOds_ref() = *vdmStats;
     }
 
     info.timeCollected_ref() = lastRefreshTime_;

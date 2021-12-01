@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iomanip>
 #include <string>
+#include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -1039,6 +1040,8 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   if (!isVdmSupported() || !cacheIsValid()) {
     return std::nullopt;
   }
+
+  vdmStats.statsCollectionTme_ref() = WallClockUtil::NowInSecFast();
 
   // Fill in channel SNR Media In
   getQsfpFieldAddress(
