@@ -491,7 +491,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
-  if (addedAclEntry->getSrcPort()) {
+  if (addedAclEntry->getSrcPort() &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
     if (addedAclEntry->getSrcPort().value() !=
         cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
       auto portHandle = managerTable_->portManager().getPortHandle(
@@ -506,10 +508,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldSrcPort =
           SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
               std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
-    } else if (platform_->getAsic()->isSupported(
-                   HwAsic::Feature::SAI_ACL_ENTRY_SRC_CPU_PORT_QUALIFIER)) {
-      // enable or retire this feature once processing of acl entry with cpu
-      // source port is present in prod.
+    } else {
       fieldSrcPort = SaiAclEntryTraits::Attributes::FieldSrcPort{
           AclEntryFieldSaiObjectIdT(std::make_pair(
               managerTable_->switchManager().getCpuPort(), kMaskDontCare))};
