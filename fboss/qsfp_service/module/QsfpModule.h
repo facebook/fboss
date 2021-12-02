@@ -447,7 +447,7 @@ class QsfpModule : public Transceiver {
    */
   virtual double getQsfpDACLength() const = 0;
 
-  virtual bool shouldRemediate(time_t cooldown);
+  virtual bool shouldRemediate();
 
   /*
    * Put logic here that should only be run on ports that have been

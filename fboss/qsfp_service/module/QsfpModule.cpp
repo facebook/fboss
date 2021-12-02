@@ -102,12 +102,7 @@ QsfpModule::QsfpModule(
               ? std::set<std::string>()
               : transceiverManager_->getPortNames(getID()))),
       portsPerTransceiver_(portsPerTransceiver) {
-  // Setting up the last down time as current time minus the difference
-  // between remediate_interval and initial_remediate_interval so
-  // that the first remediation takes place initial_remediate_interval from now
-  // and the subsequent remediation takes places every remediate_interval.
-  lastDownTime_ = std::time(nullptr) -
-      (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
+  lastDownTime_ = std::time(nullptr);
 
   // Keeping the QsfpModule object raw pointer inside the Module State Machine
   // as an FSM attribute. This will be used when FSM invokes the state
@@ -422,8 +417,7 @@ void QsfpModule::transceiverPortsChanged(
       needsCustomization_ = true;
       // safetocustomize helped confirmed that no port was up for this
       // transceiver. Record the time for future references.
-      lastDownTime_ = std::time(nullptr) -
-          (FLAGS_remediate_interval - FLAGS_initial_remediate_interval);
+      lastDownTime_ = std::time(nullptr);
     }
 
     if (dirty_) {
@@ -534,7 +528,7 @@ void QsfpModule::refreshLocked() {
 
     // New state machine will remdiate transceiver in the REMEDIATE_TRANSCEIVER
     // event
-    if (shouldRemediate(FLAGS_remediate_interval)) {
+    if (shouldRemediate()) {
       remediateFlakyTransceiver();
       ++numRemediation_;
     }
@@ -562,25 +556,35 @@ void QsfpModule::refreshLocked() {
   updateCachedTransceiverInfoLocked();
 }
 
-bool QsfpModule::shouldRemediate(time_t cooldown) {
-  auto now = std::time(nullptr);
+bool QsfpModule::shouldRemediate() {
   // Since Miniphton module is always showing as present and four ports
   // sharing a single optical module. Doing remediation on one port will
   // have side effect on the neighbor port as well. So we don't do
   // remediation as suggested by our HW optic team.
-  if (getTransceiverInfo().vendor_ref().has_value() &&
-      *getTransceiverInfo().vendor_ref()->partNumber_ref() ==
-          kMiniphotonPartNumber) {
+  const auto& cachedTcvrInfo = getTransceiverInfo();
+  if (cachedTcvrInfo.vendor_ref().has_value() &&
+      *cachedTcvrInfo.vendor_ref()->partNumber_ref() == kMiniphotonPartNumber) {
     return false;
   }
+
+  auto now = std::time(nullptr);
   bool remediationEnabled =
       now > transceiverManager_->getPauseRemediationUntil();
   // Rather than immediately attempting to remediate a module,
   // we would like to introduce a bit delay to de-couple the consequences
   // of a remediation with the root cause that brought down the link.
   // This is an effort to help with debugging.
-  bool remediationCooled =
-      now - std::max(lastDownTime_, lastRemediateTime_) > cooldown;
+  // And for the first remediation, we don't want to wait for
+  // `FLAGS_remediate_interval`, instead we just need to wait for
+  // `FLAGS_initial_remediate_interval`. (D26014510)
+  bool remediationCooled = false;
+  if (lastDownTime_ > lastRemediateTime_) {
+    // New lastDownTime_ means the port just recently went down
+    remediationCooled =
+        (now - lastDownTime_) > FLAGS_initial_remediate_interval;
+  } else {
+    remediationCooled = (now - lastRemediateTime_) > FLAGS_remediate_interval;
+  }
   return remediationEnabled && remediationCooled;
 }
 
