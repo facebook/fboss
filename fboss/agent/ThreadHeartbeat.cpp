@@ -41,7 +41,7 @@ void ThreadHeartbeatWatchdog::watchdogLoop() {
           timestamp != std::chrono::steady_clock::time_point::min()) {
         XLOG(ERR) << heartbeat.first->getThreadName()
                   << "thread heartbeat missed!";
-        missedHeartbeats_++;
+        heartbeatMissFunc_();
       }
       heartbeats_.assign(heartbeat.first, timestamp);
     }

@@ -337,6 +337,9 @@ class SwitchStats : public boost::noncopyable {
   void PfcDeadlockRecoveryCount() {
     addValue(*pfcDeadlockRecoveryCount_, 1);
   }
+  void ThreadHeartbeatMissCount() {
+    addValue(*threadHeartbeatMissCount_, 1);
+  }
 
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
@@ -579,6 +582,8 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseriesPtr pfcDeadlockDetectionCount_;
   // Number of timers pfc deadlock recovery hit
   TLTimeseriesPtr pfcDeadlockRecoveryCount_;
+  // Number of thread heartbeat misses
+  TLTimeseriesPtr threadHeartbeatMissCount_;
 };
 
 } // namespace facebook::fboss

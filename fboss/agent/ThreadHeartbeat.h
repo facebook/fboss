@@ -77,8 +77,11 @@ class ThreadHeartbeatWatchdog {
  public:
   // intervalMsecs should be longer than the interval of monitored thread
   // heartbeats, e.g. at least 2 times
-  explicit ThreadHeartbeatWatchdog(std::chrono::milliseconds intervalMsecs) {
+  explicit ThreadHeartbeatWatchdog(
+      std::chrono::milliseconds intervalMsecs,
+      std::function<void()> heartbeatMissFunc) {
     intervalMsecs_ = intervalMsecs;
+    heartbeatMissFunc_ = heartbeatMissFunc;
   }
 
   virtual ~ThreadHeartbeatWatchdog() {
@@ -101,7 +104,6 @@ class ThreadHeartbeatWatchdog {
   void start() {
     if (!running_) {
       running_ = true;
-      missedHeartbeats_ = 0;
       thread_ = std::thread([this]() {
         XLOG(INFO) << "Start thread heartbeat watchdog";
         watchdogLoop();
@@ -119,11 +121,6 @@ class ThreadHeartbeatWatchdog {
     }
   }
 
-  // only for testing purpose right now
-  int getMissedHeartbeats() {
-    return missedHeartbeats_;
-  }
-
  private:
   void watchdogLoop();
   std::thread thread_;
@@ -133,9 +130,9 @@ class ThreadHeartbeatWatchdog {
       std::shared_ptr<ThreadHeartbeat>,
       std::chrono::time_point<std::chrono::steady_clock>>
       heartbeats_;
-  std::atomic_int missedHeartbeats_{0};
   std::mutex m_;
   std::condition_variable cv_;
+  std::function<void()> heartbeatMissFunc_;
 };
 
 } // namespace facebook::fboss

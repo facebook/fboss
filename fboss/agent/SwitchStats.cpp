@@ -284,9 +284,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "pfc_deadlock_detection",
           SUM)),
-      pfcDeadlockRecoveryCount_(makeTLTimeseries(
+      pfcDeadlockRecoveryCount_(
+          makeTLTimeseries(map, kCounterPrefix + "pfc_deadlock_recovery", SUM)),
+      threadHeartbeatMissCount_(makeTLTimeseries(
           map,
-          kCounterPrefix + "pfc_deadlock_recovery",
+          kCounterPrefix + "thread_heartbeat_miss",
           SUM)) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {

@@ -26,18 +26,20 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   auto statsFunc = [&heartbeats](int /*delay*/, int /*backLog*/) {
     heartbeats++;
   };
+  std::atomic_int misses = 0;
+  auto watchdogFunc = [&misses]() { misses++; };
   // create an evb thread with heartbeat every 10ms
   std::shared_ptr<ThreadHeartbeat> testHb = std::make_shared<ThreadHeartbeat>(
       &testEvb, "testThread", heartbeatInterval, statsFunc);
   // create a watchdog to monitor heartbeat timestamp change every 100ms
   ThreadHeartbeatWatchdog testWd(
-      std::chrono::milliseconds(heartbeatInterval * 10));
+      std::chrono::milliseconds(heartbeatInterval * 10), watchdogFunc);
   testWd.startMonitoringHeartbeat(testHb);
   testWd.start();
 
   // monitor 1 second, should be no missed heartbeats
   sleep(1.0);
-  EXPECT_TRUE(testWd.getMissedHeartbeats() == 0);
+  EXPECT_TRUE(misses == 0);
   EXPECT_TRUE(heartbeats > 0);
 
   // emaulate thread got stuck, and expect missed heartbeats
@@ -45,13 +47,13 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
     std::this_thread::sleep_for(
         std::chrono::milliseconds(heartbeatInterval * 20));
   });
-  EXPECT_TRUE(testWd.getMissedHeartbeats() > 0);
+  EXPECT_TRUE(misses > 0);
 
   // continue monitoring another second, and expect no more missed
   // heartbeats
-  auto missedHeartbeats = testWd.getMissedHeartbeats();
+  auto missesBefore = misses.load();
   sleep(1.0);
-  EXPECT_TRUE(testWd.getMissedHeartbeats() == missedHeartbeats);
+  EXPECT_TRUE(misses == missesBefore);
 
   testWd.stop();
   testHb.reset();

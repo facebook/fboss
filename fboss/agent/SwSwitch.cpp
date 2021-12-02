@@ -589,7 +589,8 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       });
 
   heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
-      std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10));
+      std::chrono::milliseconds(FLAGS_thread_heartbeat_ms * 10),
+      [this]() { stats()->ThreadHeartbeatMissCount(); });
   heartbeatWatchdog_->startMonitoringHeartbeat(bgThreadHeartbeat_);
   heartbeatWatchdog_->startMonitoringHeartbeat(packetTxThreadHeartbeat_);
   heartbeatWatchdog_->startMonitoringHeartbeat(updThreadHeartbeat_);
