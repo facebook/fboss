@@ -117,19 +117,22 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     auto macsecSecureAssoc = macsecManager.getMacsecSecureAssoc(
         portId, scIdentifier, direction, *sak.assocNum_ref() % 4);
 
-    // Verify all macsec objects were created
-    EXPECT_NE(macsecHandle, nullptr);
-    EXPECT_NE(macsecHandle->macsec, nullptr);
-    EXPECT_NE(macsecPortHandle, nullptr);
-    EXPECT_NE(macsecPortHandle->port, nullptr);
-    EXPECT_NE(macsecSecureChannelHandle, nullptr);
-    EXPECT_NE(macsecSecureChannelHandle->flow, nullptr);
-    EXPECT_NE(macsecSecureChannelHandle->secureChannel, nullptr);
-    if (expectAbsent) {
+    // Verify all macsec objects were created/destroyed
+    if (!expectAbsent) {
+      ASSERT_NE(macsecHandle, nullptr);
+      EXPECT_NE(macsecHandle->macsec, nullptr);
+      ASSERT_NE(macsecPortHandle, nullptr);
+      EXPECT_NE(macsecPortHandle->port, nullptr);
+      ASSERT_NE(macsecSecureChannelHandle, nullptr);
+      EXPECT_NE(macsecSecureChannelHandle->flow, nullptr);
+      EXPECT_NE(macsecSecureChannelHandle->secureChannel, nullptr);
+      ASSERT_NE(macsecSecureAssoc, nullptr);
+    } else {
+      // Check only that the SA is gone. The rest of the objects may and
+      // may not be gone, depending on whether we still have other keys
+      // there.
       EXPECT_EQ(macsecSecureAssoc, nullptr);
       return;
-    } else {
-      EXPECT_NE(macsecSecureAssoc, nullptr);
     }
 
     auto saiPortId = portHandle->port->adapterKey();
@@ -323,27 +326,27 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
 
     wedgeManager->programXphyPort(port, profile);
 
-    XLOG(INFO) << "rotateKeys: Installing Macsec RX for port " << port;
+    XLOG(INFO) << "rotateRxKeys: Installing Macsec RX for port " << port;
     phyManager->sakInstallRx(rxSak, remoteSci);
 
-    XLOG(INFO) << "rotateKeys: Verifying Macsec RX for port " << port;
+    XLOG(INFO) << "rotateRxKeys: Verifying Macsec RX for port " << port;
     verifyMacsecProgramming(
         port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
 
-    XLOG(INFO) << "rotateKeys: Installing new Macsec RX for port " << port;
+    XLOG(INFO) << "rotateRxKeys: Installing new Macsec RX for port " << port;
     phyManager->sakInstallRx(rxSak2, remoteSci);
 
-    XLOG(INFO) << "rotateKeys: Verifying new and old Macsec RX for port "
+    XLOG(INFO) << "rotateRxKeys: Verifying new and old Macsec RX for port "
                << port;
     verifyMacsecProgramming(
         port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
     verifyMacsecProgramming(
         port, rxSak2, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
 
-    XLOG(INFO) << "rotateKeys: Removing old Macsec RX for port " << port;
+    XLOG(INFO) << "rotateRxKeys: Removing old Macsec RX for port " << port;
     phyManager->sakDeleteRx(rxSak, remoteSci);
 
-    XLOG(INFO) << "rotateKeys: Verifying removal of old Macsec RX for port "
+    XLOG(INFO) << "rotateRxKeys: Verifying removal of old Macsec RX for port "
                << port;
     verifyMacsecProgramming(
         port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true);
@@ -352,6 +355,55 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
 
     // Delete keys
     phyManager->sakDeleteRx(rxSak2, remoteSci);
+  }
+}
+
+// Verify that the RX SAK APIs are idempotent because MKA service may need
+// to retry in some cases.
+TEST_F(HwMacsecTest, idempotentRx) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+    auto remoteSci = makeSci(macGen.getNext().toString(), port);
+    auto rxSak = makeSak(
+        remoteSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKeyGen.getNext(),
+        sakKeyIdGen.getNext(),
+        0);
+
+    wedgeManager->programXphyPort(port, profile);
+
+    XLOG(INFO) << "idempotentRx: 2x installing RX SAK for port " << port;
+    phyManager->sakInstallRx(rxSak, remoteSci);
+    phyManager->sakInstallRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "idempotentRx: Verifying RX SAK for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    XLOG(INFO) << "idempotentRx: Removing RX SAK for port " << port;
+    phyManager->sakDeleteRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "idempotentRx: Verifying removal of RX SAK for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true);
+
+    XLOG(INFO) << "idempotentRx: Again removing RX SAK for port " << port;
+    phyManager->sakDeleteRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "idempotentRx: Again verifying removal of RX SAK for port "
+               << port;
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true);
   }
 }
 
