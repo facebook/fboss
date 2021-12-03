@@ -242,13 +242,6 @@ class QsfpModule : public Transceiver {
   void programTransceiver(cfg::PortSpeed speed) override;
 
  protected:
-  enum : unsigned int {
-    EEPROM_DEFAULT = 255,
-    MAX_GAUGE = 30,
-    DECIMAL_BASE = 10,
-    HEX_BASE = 16,
-  };
-
   TransceiverManager* transceiverManager_{nullptr};
 
   /* Qsfp Internal Implementation */

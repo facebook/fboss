@@ -74,16 +74,6 @@ class CmisModule : public QsfpModule {
   void configureModule() override;
 
  protected:
-  // no copy or assignment
-  CmisModule(CmisModule const&) = delete;
-  CmisModule& operator=(CmisModule const&) = delete;
-
-  enum : unsigned int {
-    EEPROM_DEFAULT = 255,
-    MAX_GAUGE = 30,
-    DECIMAL_BASE = 10,
-    HEX_BASE = 16,
-  };
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
   // referenced information, including vendor identifiers.  There are
@@ -293,6 +283,10 @@ class CmisModule : public QsfpModule {
   bool verifyEepromChecksums() override;
 
  private:
+  // no copy or assignment
+  CmisModule(CmisModule const&) = delete;
+  CmisModule& operator=(CmisModule const&) = delete;
+
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
@@ -300,32 +294,6 @@ class CmisModule : public QsfpModule {
    * byte range of the SFF spec.
    */
   double getQsfpDACLength() const override;
-
-  /*
-   * Determine if it is safe to customize the ports based on the
-   * status of our member ports.
-   */
-  bool safeToCustomize() const;
-
-  /*
-   * Similar to safeToCustomize, but also factors in whether we think
-   * we need customization (needsCustomization_) and also makes sure
-   * we haven't customized too recently via the cooldown param.
-   */
-  bool customizationWanted(time_t cooldown) const;
-
-  /*
-   * Whether enough time has passed that we should refresh our data.
-   * Cooldown parameter indicates how much time must have elapsed
-   * since last time we refreshed the DOM data.
-   */
-  bool shouldRefresh(time_t cooldown) const;
-
-  /*
-   * In the case of Minipack using Facebook FPGA, we need to clear the reset
-   * register of QSFP whenever it is newly inserted.
-   */
-  void ensureOutOfReset() const;
 
   /*
    * Set the optics Rx euqlizer pre/post/main values
@@ -351,9 +319,6 @@ class CmisModule : public QsfpModule {
    * This function veifies the Module eeprom register checksum for a given page
    */
   bool verifyEepromChecksum(int pageId);
-
-  std::map<uint32_t, PortStatus> ports_;
-  unsigned int portsPerTransceiver_{0};
 
   /*
    * ApplicationCode to ApplicationCodeSel mapping.
