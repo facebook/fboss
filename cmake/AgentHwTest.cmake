@@ -49,11 +49,11 @@ target_link_libraries(hw_copp_utils
   switch_config_cpp2
 )
 
-add_library(hw_qos_utils
+add_library(hw_olympic_qos_utils
   fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
 )
 
-target_link_libraries(hw_qos_utils
+target_link_libraries(hw_olympic_qos_utils
   fboss_types
   hw_switch_ensemble
   packet_factory
@@ -118,7 +118,7 @@ add_library(prod_config_utils
 target_link_libraries(prod_config_utils
   load_balancer_utils
   switch_config_cpp2
-  hw_qos_utils
+  hw_olympic_qos_utils
   hw_copp_utils
   hw_switch_test
 )
@@ -266,7 +266,7 @@ add_library(prod_config_factory
 target_link_libraries(prod_config_factory
   config_factory
   hw_copp_utils
-  hw_qos_utils
+  hw_olympic_qos_utils
   hw_queue_per_host_utils
   load_balancer_utils
   hw_pfc_utils

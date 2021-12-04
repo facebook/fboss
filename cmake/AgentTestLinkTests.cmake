@@ -15,7 +15,7 @@ target_link_libraries(link_tests
   config_factory
   fboss_config_utils
   load_balancer_utils
-  hw_qos_utils
+  hw_olympic_qos_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
