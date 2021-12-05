@@ -534,9 +534,8 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
   std::optional<bool> secureChannelEnable;
   std::optional<sai_int32_t> replayProtectionWindow;
 
-  if (direction == SAI_MACSEC_DIRECTION_EGRESS) {
-    secureChannelEnable = true;
-  }
+  secureChannelEnable = true;
+
   if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
     replayProtectionWindow = kReplayProtectionWindow;
   }

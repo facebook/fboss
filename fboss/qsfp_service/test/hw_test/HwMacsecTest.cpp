@@ -145,7 +145,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
 
     auto replayProtectionWindow =
         (direction == SAI_MACSEC_DIRECTION_INGRESS) ? 100 : 0;
-    auto secureChannelEnable = (direction == SAI_MACSEC_DIRECTION_EGRESS);
+    bool secureChannelEnable = true;
 
     // Verify macsec objects have the correct settings
     EXPECT_EQ(
