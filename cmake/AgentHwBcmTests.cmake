@@ -197,4 +197,6 @@ target_link_libraries(bcm_multinode_test
   multinode_tests
   platform
   bcm
+  bcm_qos_utils
+  bcm_trunk_utils
 )

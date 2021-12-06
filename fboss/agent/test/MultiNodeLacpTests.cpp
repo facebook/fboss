@@ -15,13 +15,21 @@
 #include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestTrunkUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "common/process/Process.h"
+#include "folly/IPAddressV4.h"
+#include "folly/IPAddressV6.h"
+#include "folly/MacAddress.h"
 
 using namespace facebook::fboss;
 
@@ -39,12 +47,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   void SetUp() override {
     MultiNodeTest::SetUp();
     if (isDUT()) {
-      // Wait for AggPort
-      waitForAggPortStatus(true);
-
-      // verify lacp state information
-      verifyLacpState();
-      verifyReachability();
+      verifyInitialState();
     }
   }
 
@@ -74,7 +77,28 @@ class MultiNodeLacpTest : public MultiNodeTest {
         {FLAGS_multiNodeTestPort1, FLAGS_multiNodeTestPort2},
         &config,
         rate);
+
+    config.loadBalancers_ref() =
+        utility::getEcmpFullTrunkHalfHashConfig(platform());
+    config.staticRoutesWithNhops_ref()->resize(2);
+    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "::/0";
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] =
+        getNeighborIpAddr<folly::IPAddressV6>().str();
+    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "0.0.0.0/0";
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+    config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] =
+        getNeighborIpAddr<folly::IPAddressV4>().str();
     return config;
+  }
+
+  template <typename AddrT>
+  AddrT getNeighborIpAddr() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return AddrT(isDUT() ? "1::1" : "1::");
+    } else {
+      return AddrT(isDUT() ? "1.1.1.2" : "1.1.1.1");
+    }
   }
 
   // Waits for Aggregate port to be up
@@ -106,8 +130,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
     }
   }
   void verifyReachability() const {
-    const auto dstIpV4 = "1.1.1.2";
-    const auto dstIpV6 = "1::1";
+    const auto dstIpV4 = getNeighborIpAddr<folly::IPAddressV4>();
+    const auto dstIpV6 = getNeighborIpAddr<folly::IPAddressV6>();
 
     auto verifyNeighborEntries = [=]() {
       const auto vlanId =
@@ -122,13 +146,22 @@ class MultiNodeLacpTest : public MultiNodeTest {
       std::string resultStr;
       std::string errStr;
       EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIpV4, &resultStr, &errStr));
+          pingCmd + dstIpV4.str(), &resultStr, &errStr));
       EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIpV6, &resultStr, &errStr));
+          pingCmd + dstIpV6.str(), &resultStr, &errStr));
       // Verify neighbor entries
       verifyNeighborEntries();
     };
     verify();
+  }
+
+  void verifyInitialState() {
+    // Wait for AggPort
+    waitForAggPortStatus(true);
+
+    // verify lacp state information
+    verifyLacpState();
+    verifyReachability();
   }
 
   AggregatePort::SubportsConstRange getSubPorts() {
@@ -143,6 +176,29 @@ class MultiNodeLacpTest : public MultiNodeTest {
         sw()->getState()->getAggregatePorts()->getAggregatePort(kAggId);
     EXPECT_NE(aggPort, nullptr);
     return aggPort->getPartnerState(portId).port;
+  }
+
+  void createL3DataplaneFlood() {
+    disableTTLDecrementsForRoute<folly::IPAddressV6>({folly::IPAddressV6(), 0});
+    disableTTLDecrementsForRoute<folly::IPAddressV4>({folly::IPAddressV4(), 0});
+    if (isDUT()) {
+      auto state = sw()->getState();
+      auto vlan = (*state->getVlans()->begin())->getID();
+      auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+      auto destMac =
+          getNeighborEntry(getNeighborIpAddr<folly::IPAddressV6>()).first;
+
+      for (const auto& sendV6 : {true, false}) {
+        utility::pumpTraffic(
+            sendV6,
+            sw()->getHw(),
+            destMac,
+            (*sw()->getState()->getVlans()->begin())->getID(),
+            std::nullopt,
+            255,
+            srcMac);
+      }
+    }
   }
 
   const facebook::fboss::AggregatePortID kAggId{500};
@@ -211,6 +267,28 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
 
     // verify lacp state information
     verifyLacpState();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeLacpTest, LacpWarmBoootIsHitless) {
+  auto setup = [&]() {
+    // Setup() already verified state for DUT
+    if (!isDUT()) {
+      verifyInitialState();
+    }
+    createL3DataplaneFlood();
+  };
+
+  auto verify = [&]() {
+    assertNoInDiscards();
+    const auto countInSw = sw()->getState()
+                               ->getAggregatePorts()
+                               ->getAggregatePort(kAggId)
+                               ->subportsCount();
+    EXPECT_EQ(
+        utility::getTrunkMemberCountInHw(sw()->getHw(), kAggId, countInSw),
+        countInSw);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
