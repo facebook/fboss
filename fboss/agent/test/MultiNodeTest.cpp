@@ -12,6 +12,7 @@
 #include <gflags/gflags.h>
 
 #include "common/network/NetworkUtil.h"
+#include "common/strings/StringUtil.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -34,6 +35,11 @@ DECLARE_bool(nodeZ);
 DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
 DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
 
+DEFINE_string(
+    multiNodeTestPorts,
+    "",
+    "Comma separated list of ports for multinode tests");
+
 namespace facebook::fboss {
 
 // Construct a config file by combining the hw config passed
@@ -43,6 +49,7 @@ void MultiNodeTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), platform());
+  parseTestPorts(FLAGS_multiNodeTestPorts);
   *testConfig.sw_ref() = initialConfig();
   const auto& baseConfig = platform()->config();
   *testConfig.platform_ref() = *baseConfig->thrift.platform_ref();
@@ -56,6 +63,19 @@ void MultiNodeTest::setupConfigFlag() {
   FLAGS_config = newCfgFile;
   // reload config so that test config is loaded
   platform()->reloadConfig();
+}
+
+void MultiNodeTest::parseTestPorts(std::string portList) {
+  if (!portList.empty()) {
+    std::vector<std::string> strs;
+    folly::split(',', portList, strs, true);
+    for (const auto& str : strs) {
+      uint32_t portId;
+      if (strings::parseUInt32(str, &portId)) {
+        testPorts_.emplace_back(portId);
+      }
+    }
+  }
 }
 
 void MultiNodeTest::SetUp() {

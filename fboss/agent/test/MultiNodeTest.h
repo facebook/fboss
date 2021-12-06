@@ -90,6 +90,8 @@ class MultiNodeTest : public AgentTest {
     return isDUT();
   }
   virtual cfg::SwitchConfig initialConfig() const = 0;
+  void parseTestPorts(std::string portList);
+  std::vector<PortID> testPorts_;
 };
 int mulitNodeTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);
 } // namespace facebook::fboss
