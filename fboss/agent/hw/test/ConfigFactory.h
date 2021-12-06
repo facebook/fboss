@@ -75,6 +75,14 @@ cfg::SwitchConfig onePortPerVlanConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseVlanId = kBaseVlanId);
+cfg::SwitchConfig multiplePortsPerVlanConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& ports,
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    bool interfaceHasSubnet = true,
+    bool setInterfaceMac = true,
+    const int baseVlanId = kBaseVlanId,
+    const int portsPerVlan = 1);
 
 cfg::SwitchConfig twoL3IntfConfig(
     const HwSwitch* hwSwitch,

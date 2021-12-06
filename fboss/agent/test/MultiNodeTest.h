@@ -35,9 +35,10 @@ class MultiNodeTest : public AgentTest {
 
   template <typename AddrT>
   std::pair<folly::MacAddress, PortDescriptor> getNeighborEntry(
-      AddrT addr) const {
+      AddrT addr,
+      InterfaceID intfID) const {
     auto state = sw()->getState();
-    auto vlan = (*state->getVlans()->begin())->getID();
+    auto vlan = state->getInterfaces()->getInterfaceIf(intfID)->getVlanID();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
       auto entry = sw()->getState()
                        ->getVlans()
@@ -67,15 +68,15 @@ class MultiNodeTest : public AgentTest {
       if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
         auto ecmpNh = utility::EcmpNextHop<AddrT>(
             nhop.addr().asV6(),
-            getNeighborEntry(nhop.addr().asV6()).second,
-            getNeighborEntry(nhop.addr().asV6()).first,
+            getNeighborEntry(nhop.addr().asV6(), nhop.intf()).second,
+            getNeighborEntry(nhop.addr().asV6(), nhop.intf()).first,
             *nhop.intfID());
         utility::disableTTLDecrements(sw()->getHw(), RouterID(0), ecmpNh);
       } else {
         auto ecmpNh = utility::EcmpNextHop<AddrT>(
             nhop.addr().asV4(),
-            getNeighborEntry(nhop.addr().asV4()).second,
-            getNeighborEntry(nhop.addr().asV4()).first,
+            getNeighborEntry(nhop.addr().asV4(), nhop.intf()).second,
+            getNeighborEntry(nhop.addr().asV4(), nhop.intf()).first,
             *nhop.intfID());
         utility::disableTTLDecrements(sw()->getHw(), RouterID(0), ecmpNh);
       }

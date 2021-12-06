@@ -386,15 +386,39 @@ cfg::SwitchConfig onePortPerVlanConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseVlanId) {
+  return multiplePortsPerVlanConfig(
+      hwSwitch,
+      ports,
+      lbMode,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseVlanId,
+      1);
+}
+
+cfg::SwitchConfig multiplePortsPerVlanConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& ports,
+    cfg::PortLoopbackMode lbMode,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    const int baseVlanId,
+    const int portsPerVlan) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
   auto idx = 0;
+  auto vlan = baseVlanId;
   for (auto port : ports) {
-    auto vlan = baseVlanId + idx++;
     port2vlan[port] = VlanID(vlan);
-    vlans.push_back(VlanID(vlan));
     vlanPorts.push_back(port);
+    idx++;
+    // If current vlan has portsPerVlan port,
+    // then add a new vlan
+    if (idx % portsPerVlan == 0) {
+      vlans.push_back(VlanID(vlan));
+      vlan++;
+    }
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
   config.interfaces_ref()->resize(vlans.size());

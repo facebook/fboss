@@ -83,9 +83,7 @@ void MultiNodeTest::SetUp() {
 
   if (isDUT()) {
     // Tune this if certain tests want to WB while keeping some ports down
-    waitForLinkStatus(
-        {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)},
-        true /*up*/);
+    waitForLinkStatus(testPorts(), true /*up*/);
   }
 
   XLOG(DBG0) << "Multinode setup ready";
@@ -131,6 +129,9 @@ bool MultiNodeTest::isDUT() const {
 }
 
 std::vector<PortID> MultiNodeTest::testPorts() const {
+  if (testPorts_.size() >= 2) {
+    return std::vector<PortID>(testPorts_.begin(), testPorts_.begin() + 2);
+  }
   return {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)};
 }
 
