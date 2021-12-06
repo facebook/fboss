@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
+#include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>
 
@@ -67,5 +68,16 @@ void verifyPktFromAggregatePort(
   // in the bcm_pkt_s, so they can be queried from this data structure.
   // For PKTIO, such information is not available from the packet data
   // structure.
+}
+
+int getTrunkMemberCountInHw(
+    const HwSwitch* hw,
+    AggregatePortID id,
+    int countInSw) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  return getBcmTrunkMemberCount(
+      bcmSwitch->getUnit(),
+      bcmSwitch->getTrunkTable()->getBcmTrunkId(id),
+      countInSw);
 }
 } // namespace facebook::fboss::utility

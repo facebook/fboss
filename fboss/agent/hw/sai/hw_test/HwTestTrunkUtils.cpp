@@ -49,4 +49,12 @@ void verifyPktFromAggregatePort(
   EXPECT_TRUE(rxPacket->isFromAggregatePort());
 }
 
+int getTrunkMemberCountInHw(
+    const HwSwitch* hw,
+    AggregatePortID id,
+    int /* countInSw */) {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+  auto& lagManager = saiSwitch->managerTable()->lagManager();
+  return lagManager.getActiveMemberCount(id);
+}
 } // namespace facebook::fboss::utility

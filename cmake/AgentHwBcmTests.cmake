@@ -162,6 +162,15 @@ target_link_libraries(bcm_qos_utils
   bcm
 )
 
+add_library(bcm_trunk_utils
+  fboss/agent/hw/bcm/tests/HwTestTrunkUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
+)
+
+target_link_libraries(bcm_trunk_utils
+  bcm
+)
+
 add_library(bcm_copp_utils
   fboss/agent/hw/bcm/tests/HwTestCoppUtils.cpp
 )

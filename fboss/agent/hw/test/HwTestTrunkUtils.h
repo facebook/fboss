@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -24,5 +25,10 @@ void verifyAggregatePortMemberCount(
 void verifyPktFromAggregatePort(
     const HwSwitchEnsemble* ensemble,
     AggregatePortID aggregatePortID);
+
+int getTrunkMemberCountInHw(
+    const HwSwitch* hw,
+    AggregatePortID id,
+    int CountInSw);
 } // namespace utility
 } // namespace facebook::fboss
