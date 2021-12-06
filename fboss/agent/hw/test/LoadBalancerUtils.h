@@ -14,6 +14,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
+#include "folly/MacAddress.h"
 
 #include <optional>
 
@@ -52,10 +53,11 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
-    folly::MacAddress intfMac,
+    folly::MacAddress dstMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
-    int hopLimit = 255);
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMac = std::nullopt);
 
 void pumpDeterministicRandomTraffic(
     bool isV6,

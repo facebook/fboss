@@ -22,6 +22,7 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "folly/MacAddress.h"
 
 #include <folly/gen/Base.h>
 #include <sstream>
@@ -132,11 +133,14 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
-    folly::MacAddress intfMac,
+    folly::MacAddress dstMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
-    int hopLimit) {
-  auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    int hopLimit,
+    std::optional<folly::MacAddress> srcMacAddr) {
+  folly::MacAddress srcMac(
+      srcMacAddr.has_value() ? *srcMacAddr
+                             : MacAddressGenerator().get(dstMac.u64HBO() + 1));
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
@@ -147,7 +151,7 @@ void pumpTraffic(
           hw,
           vlan,
           srcMac,
-          intfMac,
+          dstMac,
           srcIp,
           dstIp,
           10000 + i,
