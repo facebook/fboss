@@ -113,35 +113,6 @@ boost::container::flat_set<PortDescriptor> LinkTest::getVlanOwningCabledPorts()
   return ecmpPorts;
 }
 
-void LinkTest::assertNoInDiscards() {
-  // When port stat is not updated yet post warmboot (collect timestamp will be
-  // -1), retry another round on all ports.
-  int numRounds = 0;
-  int maxRetry = 5;
-  while (numRounds < 2 && maxRetry-- > 0) {
-    bool retry = false;
-    auto portStats = sw()->getHw()->getPortStats();
-    for (auto [port, stats] : portStats) {
-      auto inDiscards = *stats.inDiscards__ref();
-      XLOG(INFO) << "Port: " << port << " in discards: " << inDiscards
-                 << " in bytes: " << *stats.inBytes__ref()
-                 << " out bytes: " << *stats.outBytes__ref() << " at timestamp "
-                 << *stats.timestamp__ref();
-      if (*stats.timestamp__ref() > 0) {
-        EXPECT_EQ(inDiscards, 0);
-      } else {
-        retry = true;
-        break;
-      }
-    }
-    numRounds = retry ? numRounds : numRounds + 1;
-    // Allow for a few rounds of stat collection
-    sleep(1);
-  }
-  // Need at least two rounds of stats collection.
-  EXPECT_EQ(numRounds, 2);
-}
-
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     utility::EcmpSetupTargetedPorts6& ecmp6) {

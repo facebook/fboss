@@ -46,12 +46,6 @@ class LinkTest : public AgentTest {
   }
   boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
   /*
-   * Assert no in discards occured on any of the switch ports.
-   * When used in conjunction with createL3DataplaneFlood, can be
-   * used to verify that none of the traffic bearing ports flapped
-   */
-  void assertNoInDiscards();
-  /*
    * Program default (v6) route over ports
    */
 

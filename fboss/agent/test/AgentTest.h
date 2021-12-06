@@ -43,6 +43,12 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  /*
+   * Assert no in discards occured on any of the switch ports.
+   * When used in conjunction with createL3DataplaneFlood, can be
+   * used to verify that none of the traffic bearing ports flapped
+   */
+  void assertNoInDiscards();
 
   template <
       typename SETUP_FN,
