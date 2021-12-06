@@ -38,6 +38,7 @@ DECLARE_bool(enable_lacp);
 using utility::addAggPort;
 namespace {
 constexpr int kMaxRetries{60};
+constexpr int kRemoteSwitchMaxRetries{150};
 constexpr int kBaseVlanId{2000};
 constexpr int kLacpLongTimeout{30};
 } // unnamed namespace
@@ -111,7 +112,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
       }
       return false;
     };
-    EXPECT_TRUE(waitForSwitchStateCondition(aggPortUp, kMaxRetries));
+    EXPECT_TRUE(waitForSwitchStateCondition(
+        aggPortUp, isDUT() ? kMaxRetries : kRemoteSwitchMaxRetries));
   }
 
   // Verify that LACP converged on all member ports
