@@ -685,6 +685,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (act == cfg::AclActionType::DENY) {
     aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
         SAI_PACKET_ACTION_DROP};
+  } else {
+    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+        SAI_PACKET_ACTION_FORWARD};
   }
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
