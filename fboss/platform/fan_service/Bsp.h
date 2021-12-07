@@ -19,7 +19,7 @@
 #include "ServiceConfig.h"
 
 // Auto-generated Thrift inteface headerfile (by Buck)
-#include "fboss/platform/sensor_service/if/gen-cpp2/SensorService.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
 
 // Facebook Service Router Headerfiles
 // - used when sending Thrift request to sensor_service

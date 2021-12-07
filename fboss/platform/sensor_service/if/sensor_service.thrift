@@ -1,32 +1,40 @@
-namespace cpp2 facebook.fboss.sensor_service
-namespace go neteng.fboss.sensor_service
-namespace py neteng.fboss.sensor_service
-namespace py3 neteng.fboss.sensor_service
-namespace py.asyncio neteng.fboss.asyncio.sensor_service
+namespace cpp2 facebook.fboss.platform.sensor_service
+namespace go neteng.fboss.platform.sensor_service
+namespace py neteng.fboss.platform.sensor_service
+namespace py3 neteng.fboss.platform.sensor_service
+namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 
 include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 
-struct SensorDataThrift {
+// All timestamps are Epoch time in second
+struct SensorData {
   1: string name;
   2: float value;
   3: i64 timeStamp;
 }
 
-struct SensorReadRequestThrift {
-  1: string label;
-  2: list<string> optionalSensorList;
+// ToDo: Add more FRU types
+enum FruType {
+  ALL = 0,
+  SMB = 1,
+  SCM = 2,
+  PEM = 3,
+  PSU = 4,
 }
 
-struct SensorReadResponseThrift {
-  1: string requestLabel;
-  2: i64 timeStamp;
-  3: list<SensorDataThrift> sensorData;
+// Send back sensor data based on request
+struct SensorReadResponse {
+  1: i64 timeStamp;
+  2: list<SensorData> sensorData;
 }
 
-service SensorService extends fb303.FacebookService {
-  SensorReadResponseThrift getSensorValues(
-    1: SensorReadRequestThrift request,
-  ) throws (1: fboss.FbossBaseError error);
+service SensorServiceThrift extends fb303.FacebookService {
+  SensorReadResponse getSensorValuesByNames(
+    1: list<string> sensorNames,
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+  SensorReadResponse getSensorValuesByFruTypes(
+    1: list<FruType> fruTypes,
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 }

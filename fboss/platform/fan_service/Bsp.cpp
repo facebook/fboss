@@ -121,20 +121,17 @@ void Bsp::getSensorDataThriftWithSensorList(
       ip, sensordThriftPort_);
   auto client =
       facebook::servicerouter::cpp2::getClientFactory()
-          .getSRClientUnique<
-              facebook::fboss::sensor_service::SensorServiceAsyncClient>(
-              "", params);
-  auto request = facebook::fboss::sensor_service::SensorReadRequestThrift();
-  request.label_ref() = "FanService BSP Request";
-  request.optionalSensorList_ref() = sensorList;
-  auto response =
-      folly::coro::blockingWait(client->co_getSensorValues(request));
+          .getSRClientUnique<facebook::fboss::platform::sensor_service::
+                                 SensorServiceThriftAsyncClient>("", params);
+
+  sensor_service::SensorReadResponse response;
+  client->sync_getSensorValuesByNames(response, sensorList);
+
   auto responseSensorData = response.sensorData_ref();
   for (auto& it : *responseSensorData) {
     std::string key = *it.name_ref();
     float value = *it.value_ref();
     int64_t timeStamp = *it.timeStamp_ref();
-    // uint64_t timeStamp=facebook::WallClockUtil::NowInSecFast();
     pSensorData->updateEntryFloat(key, value, timeStamp);
   }
 }
