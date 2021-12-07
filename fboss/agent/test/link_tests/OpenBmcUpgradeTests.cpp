@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include "common/process/Process.h"
+#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -109,4 +110,28 @@ class OpenBmcUpgradeTest : public LinkTest {
   }
 };
 
-TEST_F(OpenBmcUpgradeTest, openBmcHitlessUpgrade) {}
+TEST_F(OpenBmcUpgradeTest, openBmcHitlessUpgrade) {
+  // Do an initial sanity check on the OpenBmc
+  openBmcSanityCheck();
+  XLOG(INFO) << "OpenBMC version before upgrade : " << openBmcVersion();
+
+  // Start traffic
+  createL3DataplaneFlood();
+  // Assert traffic is clean before upgrading OpenBMC
+  assertNoInDiscards();
+
+  // Upgrade OpenBMC
+  upgradeOpenBmc();
+
+  // Assert no traffic loss and no ecmp shrink. If ports flap
+  // these conditions will not be true
+  assertNoInDiscards();
+  auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+  EXPECT_EQ(
+      utility::getEcmpSizeInHw(
+          sw()->getHw(),
+          {folly::IPAddress("::"), 0},
+          RouterID(0),
+          ecmpSizeInSw),
+      ecmpSizeInSw);
+}
