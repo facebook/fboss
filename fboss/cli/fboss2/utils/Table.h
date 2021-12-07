@@ -25,6 +25,7 @@ class Table {
     GOOD,
     WARN,
     ERROR,
+    INFO,
   };
 
   class Row {

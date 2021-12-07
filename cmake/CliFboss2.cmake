@@ -108,6 +108,7 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/utils/oss/CLIParserUtils.cpp
   fboss/cli/fboss2/options/SSLPolicy.h
+  ${RE2}
 )
 
 target_link_libraries(fboss2

@@ -30,6 +30,9 @@ void setStyleImpl(tabulate::Format& format, Table::Style style) {
     case Table::Style::GOOD:
       setColor(format, tabulate::Color::green);
       return;
+    case Table::Style::INFO:
+      setColor(format, tabulate::Color::cyan);
+      return;
     case Table::Style::WARN:
       setColor(format, tabulate::Color::yellow);
       return;
