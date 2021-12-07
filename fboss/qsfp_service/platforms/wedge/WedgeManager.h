@@ -163,6 +163,8 @@ class WedgeManager : public TransceiverManager {
 
   virtual bool getSdkState(std::string filename) const override;
 
+  void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();

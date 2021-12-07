@@ -253,9 +253,28 @@ void QsfpModule::updateCachedTransceiverInfoLocked() {
     info.identifier_ref() = getIdentifier();
     info.status_ref() = getModuleStatus();
 
+    // If the StatsPublisher thread has triggered the VDM data capture then
+    // latch, read data (page 24 and 25), release latch
+    if (captureVdmStats_) {
+      latchAndReadVdmDataLocked();
+    }
+
     if (auto vdmStats = getVdmDiagsStatsInfo()) {
       info.vdmDiagsStats_ref() = *vdmStats;
-      info.vdmDiagsStatsForOds_ref() = *vdmStats;
+
+      // If the StatsPublisher thread has triggered the VDM data capture then
+      // capure this data into transceiverInfo cache
+      if (captureVdmStats_) {
+        info.vdmDiagsStatsForOds_ref() = *vdmStats;
+      } else {
+        // If the VDM is not updated in this cycle then retain older values
+        auto cachedTcvrInfo = getTransceiverInfo();
+        if (cachedTcvrInfo.vdmDiagsStatsForOds_ref()) {
+          info.vdmDiagsStatsForOds_ref() =
+              cachedTcvrInfo.vdmDiagsStatsForOds_ref().value();
+        }
+      }
+      captureVdmStats_ = false;
     }
 
     info.timeCollected_ref() = lastRefreshTime_;

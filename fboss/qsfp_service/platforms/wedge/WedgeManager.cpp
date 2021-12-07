@@ -734,6 +734,40 @@ void WedgeManager::getAndClearTransceiversMediaSignals(
 }
 
 /*
+ * triggerVdmStatsCapture
+ *
+ * This function triggers the next VDM data capture for the list of transceiver
+ * Id's to be displayed in ODS
+ */
+void WedgeManager::triggerVdmStatsCapture(std::vector<int32_t>& ids) {
+  XLOG(DBG2) << "triggerVdmStatsCapture, with ids: "
+             << (ids.size() > 0 ? folly::join(",", ids) : "None");
+  if (ids.empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(ids);
+  }
+
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
+      // Calling the trigger VDM stats capure function for transceiver
+      try {
+        it->second->triggerVdmStatsCapture();
+      } catch (std::exception& e) {
+        XLOG(ERR) << "Transceiver VDM could not be reset for port "
+                  << TransceiverID(i) << " message: " << e.what();
+        continue;
+      }
+    }
+  }
+}
+
+/*
  * getPhyPortConfigValues
  *
  * This function takes the portId and port profile id. Based on these it looks

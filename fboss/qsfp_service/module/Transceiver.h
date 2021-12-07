@@ -125,6 +125,11 @@ class Transceiver {
   virtual std::map<int, MediaLaneSignals>
   readAndClearCachedMediaLaneSignals() = 0;
 
+  virtual void triggerVdmStatsCapture() = 0;
+
+ protected:
+  virtual void latchAndReadVdmDataLocked() = 0;
+
  private:
   // no copy or assignment
   Transceiver(Transceiver const&) = delete;

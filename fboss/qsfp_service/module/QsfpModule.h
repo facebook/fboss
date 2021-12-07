@@ -241,6 +241,8 @@ class QsfpModule : public Transceiver {
 
   void programTransceiver(cfg::PortSpeed speed) override;
 
+  virtual void triggerVdmStatsCapture() override {}
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
@@ -514,6 +516,8 @@ class QsfpModule : public Transceiver {
    * for ODS to report.
    */
   void cacheSignalFlags(const SignalFlags& signalflag);
+
+  virtual void latchAndReadVdmDataLocked() override {}
 
   /*
    * We found that some CMIS module did not enable Rx output squelch by

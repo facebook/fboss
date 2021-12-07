@@ -285,12 +285,12 @@ class CmisModule : public QsfpModule {
   /*
    * Trigger next VDM stats capture
    */
-  void triggerVdmStatsCapture();
+  void triggerVdmStatsCapture() override;
 
   /*
    * Latch and read VDM data
    */
-  void latchAndReadVdmDataLocked();
+  void latchAndReadVdmDataLocked() override;
 
  private:
   // no copy or assignment
