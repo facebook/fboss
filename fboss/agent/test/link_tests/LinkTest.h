@@ -12,6 +12,9 @@
 
 DECLARE_int32(gearbox_stat_interval);
 DECLARE_bool(skip_xphy_programming);
+DECLARE_string(oob_asset);
+DECLARE_string(oob_flash_device_name);
+DECLARE_string(openbmc_password);
 
 namespace facebook::fboss {
 
