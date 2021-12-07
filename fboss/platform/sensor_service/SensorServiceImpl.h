@@ -72,8 +72,9 @@ class SensorServiceImpl {
   folly::Synchronized<std::unordered_map<std::string, struct SensorLiveData>>
       liveDataTable_;
 
-  virtual void init();
-  virtual void parseSensorJsonData(const std::string&);
+  void init();
+  void parseSensorJsonData(const std::string&);
+  void getSensorDataFromPath();
 };
 
 } // namespace facebook::fboss::platform::sensor_service

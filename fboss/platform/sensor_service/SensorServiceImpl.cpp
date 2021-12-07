@@ -137,6 +137,7 @@ void SensorServiceImpl::fetchSensorData() {
   } else if (sensorSource_ == SensorSource::SYSFS) {
     // ToDo
     // Get sensor value via read from path (key of sensorTable_)
+    getSensorDataFromPath();
   } else if (sensorSource_ == SensorSource::MOCK) {
     std::string sensorDataJson;
     if (folly::readFile(kMockLmsensorJasonData.c_str(), sensorDataJson)) {
@@ -149,6 +150,24 @@ void SensorServiceImpl::fetchSensorData() {
     throw std::runtime_error(
         "Unknow Sensor Source selected : " +
         folly::to<std::string>(static_cast<int>(sensorSource_)));
+  }
+}
+
+void SensorServiceImpl::getSensorDataFromPath() {
+  auto dataTable = liveDataTable_.wlock();
+
+  for (const auto& [path, name] : sensorNameMap_) {
+    std::string sensorInput;
+
+    if (folly::readFile(path.c_str(), sensorInput)) {
+      (*dataTable)[name].value = folly::to<float>(sensorInput);
+      (*dataTable)[name].timeStamp = WallClockUtil::NowInSecFast();
+      XLOG(INFO) << name << "(" << path << ")"
+                 << " : " << (*dataTable)[name].value << " >>>> "
+                 << (*dataTable)[name].timeStamp;
+    } else {
+      XLOG(INFO) << "Can not read data for " << name << " from " << path;
+    }
   }
 }
 
