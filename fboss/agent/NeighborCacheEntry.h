@@ -293,6 +293,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   void enter(NeighborEntryState state) {
     CHECK(evb_->inRunningEventBaseThread());
 
+    XLOG(DBG4) << "enter(" << getStateName(state) << ") for " << getIP();
     state_ = state;
     switch (state) {
       case NeighborEntryState::INCOMPLETE:
@@ -321,6 +322,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   void probeIfProbesLeft() {
     DCHECK(isProbing());
+    XLOG(DBG4) << "Probing for " << getIP() << " (" << probesLeft_ << " left)";
     if (hasProbesLeft()) {
       if (state_ == NeighborEntryState::INCOMPLETE) {
         /* entry is INCOMPLETE, issue multicast probe */
@@ -411,7 +413,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   Cache* cache_;
   folly::EventBase* evb_;
   NeighborEntryState state_{NeighborEntryState::UNINITIALIZED};
-  uint8_t probesLeft_{0};
+  uint32_t probesLeft_{0};
   std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
 
