@@ -2207,6 +2207,61 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
 }
 
 /*
+ * latchAndReadVdmDataLocked
+ *
+ * This function holds the latch and reads the VDM data from the module. This
+ * function call will be triggered by StatsPublisher thread setting the atomic
+ * variable to capture the VDM stats (typically every 5 minutes)
+ */
+void CmisModule::latchAndReadVdmDataLocked() {
+  int offset, length, dataAddress;
+  if (!isVdmSupported()) {
+    return;
+  }
+  XLOG(DBG3) << folly::sformat(
+      "latchAndReadVdmDataLocked for module {}", qsfpImpl_->getName());
+
+  // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
+  getQsfpFieldAddress(
+      CmisField::VDM_LATCH_REQUEST, dataAddress, offset, length);
+  uint8_t latchRequest;
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+
+  latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
+  // Hold the latch to read the VDM data
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+
+  // Wait tNack time
+  /* sleep override */
+  usleep(kUsecVdmLatchHold);
+
+  // Read data for publishing to ODS
+  uint8_t page = 0x24;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+
+  page = 0x25;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
+
+  // Write Byte 2F.144, bit 7 to 0 (clear latch)
+  latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
+  // Release the latch to resume VDM data collection
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+
+  // Wait tNack time
+  /* sleep override */
+  usleep(kUsecVdmLatchHold);
+}
+
+/*
  * triggerVdmStatsCapture
  *
  * This function triggers the next VDM stats capture by qsfp_service refresh

@@ -287,6 +287,11 @@ class CmisModule : public QsfpModule {
    */
   void triggerVdmStatsCapture();
 
+  /*
+   * Latch and read VDM data
+   */
+  void latchAndReadVdmDataLocked();
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
