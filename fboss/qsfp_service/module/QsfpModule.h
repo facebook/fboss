@@ -543,6 +543,8 @@ class QsfpModule : public Transceiver {
   SignalFlags signalFlagCache_;
   std::map<int, MediaLaneSignals> mediaSignalsCache_;
 
+  std::atomic_bool captureVdmStats_{false};
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

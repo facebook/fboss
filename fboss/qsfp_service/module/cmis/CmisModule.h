@@ -282,6 +282,11 @@ class CmisModule : public QsfpModule {
    */
   bool verifyEepromChecksums() override;
 
+  /*
+   * Trigger next VDM stats capture
+   */
+  void triggerVdmStatsCapture();
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;

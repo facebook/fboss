@@ -34,6 +34,7 @@ namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
+constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kResetCounterLimit = 5;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -64,7 +65,8 @@ enum CmisPages {
   PAGE20,
   PAGE21,
   PAGE24,
-  PAGE25
+  PAGE25,
+  PAGE2F
 };
 
 enum DiagnosticFeatureEncoding {
@@ -254,6 +256,9 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX, {CmisPages::PAGE25, 162, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG, {CmisPages::PAGE25, 164, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR, {CmisPages::PAGE25, 166, 2}},
+    // Page 2Fh
+    {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},
+    {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
 
 static CmisFieldMultiplier qsfpMultiplier = {
@@ -2199,6 +2204,22 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
         checkSum);
   }
   return true;
+}
+
+/*
+ * triggerVdmStatsCapture
+ *
+ * This function triggers the next VDM stats capture by qsfp_service refresh
+ * thread. This function gets called by ODS cycle (every 5 mins)
+ */
+void CmisModule::triggerVdmStatsCapture() {
+  if (!isVdmSupported()) {
+    return;
+  }
+  XLOG(DBG3) << folly::sformat(
+      "triggerVdmStatsCapture for module {}", qsfpImpl_->getName());
+
+  captureVdmStats_ = true;
 }
 
 } // namespace fboss
