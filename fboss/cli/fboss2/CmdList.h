@@ -80,6 +80,8 @@ using CommandTree = std::vector<RootCommand>;
 const CommandTree& kCommandTree();
 const CommandTree& kAdditionalCommandTree();
 
+const std::vector<Command>& kSpecialCommands();
+
 template <typename T>
 void commandHandler() {
   T().run();

@@ -27,6 +27,7 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
+
 const CommandTree& kCommandTree() {
   const static CommandTree root = {
       {"show",

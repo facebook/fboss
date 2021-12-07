@@ -39,15 +39,8 @@ std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
 
 namespace facebook::fboss {
 
-void CmdSubcommands::addCommandBranch(
-    CLI::App& app,
-    const Command& cmd,
-    int depth) {
-  // Command should not already exists since we only traverse the tree once
-  if (utils::getSubcommandIf(app, cmd.name)) {
-    // TODO explore moving this check to a compile time check
-    std::runtime_error("Command already exists, command tree must be invalid");
-  }
+CLI::App*
+CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
   auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
   if (auto& handler = cmd.handler) {
     subCmd->callback(*handler);
@@ -61,7 +54,26 @@ void CmdSubcommands::addCommandBranch(
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
       subCmd->add_option("ports", args, "Port(s)");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE) {
+      subCmd->add_option("msg", args, "Message");
     }
+  }
+  return subCmd;
+}
+
+void CmdSubcommands::addCommandBranch(
+    CLI::App& app,
+    const Command& cmd,
+    int depth) {
+  // Command should not already exists since we only traverse the tree once
+  if (utils::getSubcommandIf(app, cmd.name)) {
+    // TODO explore moving this check to a compile time check
+    std::runtime_error("Command already exists, command tree must be invalid");
+  }
+  auto* subCmd = addCommand(app, cmd, depth);
+  if (cmd.handler) {
+    // Do not increase depth for pass through commands that don't have arguments
     depth++;
   }
   for (const auto& child : cmd.subcommands) {
@@ -77,7 +89,7 @@ void CmdSubcommands::initCommandTree(
     auto* verbCmd = utils::getSubcommandIf(app, verb);
     // TODO explore moving this check to a compile time check
     if (!verbCmd) {
-      throw std::runtime_error("unsupported verb " + verb);
+      throw std::runtime_error("Unsupported verb " + verb);
     }
 
     addCommandBranch(*verbCmd, cmd);
@@ -91,6 +103,10 @@ void CmdSubcommands::init(CLI::App& app) {
 
   initCommandTree(app, kCommandTree());
   initCommandTree(app, kAdditionalCommandTree());
+
+  for (const auto& cmd : kSpecialCommands()) {
+    addCommand(app, cmd, 0);
+  }
 }
 
 } // namespace facebook::fboss

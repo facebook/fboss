@@ -17,4 +17,8 @@ const CommandTree& kAdditionalCommandTree() {
   return root;
 }
 
+const std::vector<Command>& kSpecialCommands() {
+  static const std::vector<Command> cmds = {};
+  return cmds;
+}
 } // namespace facebook::fboss

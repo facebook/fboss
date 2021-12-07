@@ -27,6 +27,10 @@ static auto constexpr kSendTimeout = 5000;
 template <typename T>
 std::unique_ptr<T> createClient(const HostInfo& hostInfo);
 
+// Some clients do not require info about host info
+template <typename T>
+std::unique_ptr<T> createClient();
+
 template <typename Client>
 std::unique_ptr<Client> createPlaintextClient(
     const HostInfo& hostInfo,

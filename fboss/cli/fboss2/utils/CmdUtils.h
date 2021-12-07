@@ -20,6 +20,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
   OBJECT_ARG_TYPE_ID_PORT_LIST,
+  OBJECT_ARG_TYPE_ID_MESSAGE,
 };
 
 const folly::IPAddress getIPFromHost(const std::string& hostname);
