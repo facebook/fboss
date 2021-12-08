@@ -52,14 +52,21 @@ class RibRouteUpdater {
     folly::CIDRNetwork prefix;
     RouteNextHopEntry nhopEntry;
   };
+
+  struct MplsRouteEntry {
+    LabelID label;
+    RouteNextHopEntry nhopEntry;
+  };
+
   /*
    * Update routes for a clients and trigger
    * resolution
    */
+  template <typename RouteType, typename RouteIdType>
   void update(
       ClientID client,
-      const std::vector<RouteEntry>& toAdd,
-      const std::vector<folly::CIDRNetwork>& toDel,
+      const std::vector<RouteType>& toAdd,
+      const std::vector<RouteIdType>& toDel,
       bool resetClientsRoutes) {
     updateImpl(client, toAdd, toDel, resetClientsRoutes);
     updateDone();
@@ -80,15 +87,23 @@ class RibRouteUpdater {
       const std::vector<RouteEntry>& toAdd,
       const std::vector<folly::CIDRNetwork>& toDel,
       bool resetClientsRoutes);
+  void updateImpl(
+      ClientID client,
+      const std::vector<MplsRouteEntry>& toAdd,
+      const std::vector<LabelID>& toDel,
+      bool resetClientsRoutes);
   void addOrReplaceRoute(
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientID,
       RouteNextHopEntry entry);
+  void
+  addOrReplaceRoute(LabelID label, ClientID clientID, RouteNextHopEntry entry);
   void updateDone();
 
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
+  void delRoute(const LabelID& label, const ClientID clientID);
   void removeAllRoutesForClient(ClientID clientID);
 
   template <typename AddressT>

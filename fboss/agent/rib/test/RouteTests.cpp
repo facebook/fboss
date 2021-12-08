@@ -80,7 +80,7 @@ TEST(Route, removeRoutesForClient) {
   RouteV6::Prefix r4{IPAddressV6("2001::0"), 48};
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
-  u2.update(
+  u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
           {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
@@ -88,7 +88,7 @@ TEST(Route, removeRoutesForClient) {
       },
       {},
       false);
-  u2.update(
+  u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientB,
       {
           {{r2.network, r2.mask}, RouteNextHopEntry(nhop2, kDistance)},
@@ -115,7 +115,7 @@ TEST(Route, serializeRouteTable) {
   std::optional<RouteCounterID> counterID2("route.counter.1");
 
   RibRouteUpdater u2(&v4Routes, &v6Routes);
-  u2.update(
+  u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
           {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},

@@ -90,6 +90,21 @@ void RibRouteUpdater::updateImpl(
   });
 }
 
+void RibRouteUpdater::updateImpl(
+    ClientID client,
+    const std::vector<MplsRouteEntry>& toAdd,
+    const std::vector<LabelID>& toDel,
+    bool /* resetClientsRoutes */) {
+  // TODO - reset client routes
+  std::for_each(
+      toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
+        addOrReplaceRoute(routeEntry.label, client, routeEntry.nhopEntry);
+      });
+  std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& label) {
+    delRoute(label, client);
+  });
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
@@ -126,6 +141,13 @@ void RibRouteUpdater::addOrReplaceRoute(
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     addOrReplaceRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
   }
+}
+
+void RibRouteUpdater::addOrReplaceRoute(
+    LabelID label,
+    ClientID /* clientID */,
+    RouteNextHopEntry entry) {
+  XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
 }
 
 template <typename AddressT>
@@ -170,6 +192,12 @@ void RibRouteUpdater::delRoute(
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
     delRouteImpl(prefix, v6Routes_, clientID);
   }
+}
+
+void RibRouteUpdater::delRoute(
+    const LabelID& label,
+    const ClientID /* clientID */) {
+  XLOG(DBG3) << "Delete mpls route for " << label;
 }
 
 template <typename AddressT>
