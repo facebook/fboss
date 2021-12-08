@@ -135,9 +135,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
   }
 
   routes->insert(
-      prefix.network,
-      prefix.mask,
-      std::make_shared<Route<AddressT>>(prefix, clientID, entry));
+      prefix, std::make_shared<Route<AddressT>>(prefix, clientID, entry));
 }
 
 void RibRouteUpdater::addOrReplaceRoute(

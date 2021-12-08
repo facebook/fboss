@@ -117,9 +117,9 @@ class Timer {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-template <typename AddressT>
+template <typename AddressT, typename FibType>
 void reconstructRibFromFib(
-    const std::shared_ptr<ForwardingInformationBase<AddressT>>& fib,
+    const std::shared_ptr<FibType>& fib,
     NetworkToRouteMap<AddressT>* addrToRoute) {
   // FIB has all but unresolved routes from RIB
   std::vector<std::shared_ptr<Route<AddressT>>> unresolvedRoutes;
@@ -127,22 +127,31 @@ void reconstructRibFromFib(
       addrToRoute->begin(),
       addrToRoute->end(),
       [&unresolvedRoutes](auto& node) {
-        auto& route = node.value();
+        auto& route = value(node);
         if (!route->isResolved()) {
           unresolvedRoutes.push_back(route);
         }
       });
   addrToRoute->clear();
   for (auto& route : *fib) {
-    addrToRoute->insert(route->prefix().network, route->prefix().mask, route);
+    if constexpr (std::is_same_v<LabelID, AddressT>) {
+      auto ribRoute =
+          std::make_shared<Route<AddressT>>(AddressT(route->getID()));
+      for (const auto& clientEntry : route->getLabelNextHopsByClient()) {
+        ribRoute->update(clientEntry.first, clientEntry.second);
+      }
+      ribRoute->setResolved(route->getLabelNextHop());
+      addrToRoute->insert(AddressT(route->getID()), std::move(ribRoute));
+    } else {
+      addrToRoute->insert(route->prefix(), route);
+    }
   }
   // Copy unresolved routes
   std::for_each(
       unresolvedRoutes.begin(),
       unresolvedRoutes.end(),
       [addrToRoute](const auto& route) {
-        addrToRoute->insert(
-            route->prefix().network, route->prefix().mask, route);
+        addrToRoute->insert(route->prefix(), route);
       });
 }
 } // namespace
@@ -285,10 +294,20 @@ void RibRouteTables::updateFib(
       auto fib = hwUpdateError.appliedState->getFibs()->getFibContainer(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
       auto& routeTable = lockedRouteTables->find(vrf)->second;
-      reconstructRibFromFib<folly::IPAddressV4>(
+      reconstructRibFromFib<
+          folly::IPAddressV4,
+          ForwardingInformationBase<folly::IPAddressV4>>(
           fib->getFibV4(), &routeTable.v4NetworkToRoute);
-      reconstructRibFromFib<folly::IPAddressV6>(
+      reconstructRibFromFib<
+          folly::IPAddressV6,
+          ForwardingInformationBase<folly::IPAddressV6>>(
           fib->getFibV6(), &routeTable.v6NetworkToRoute);
+      if (FLAGS_mpls_rib) {
+        auto labelFib =
+            hwUpdateError.appliedState->getLabelForwardingInformationBase();
+        reconstructRibFromFib<LabelID, LabelForwardingInformationBase>(
+            std::move(labelFib), &routeTable.labelToRoute);
+      }
     }
     throw;
   }
@@ -560,8 +579,7 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
   if (fibs) {
     auto importRoutes = [](const auto& fib, auto* addrToRoute) {
       for (auto& route : *fib) {
-        auto [itr, inserted] = addrToRoute->insert(
-            route->prefix().network, route->prefix().mask, route);
+        auto [itr, inserted] = addrToRoute->insert(route->prefix(), route);
         if (!inserted) {
           // If RIB already had a route, replace it with FIB route so we
           // share the same objects. The only case where this can occur is

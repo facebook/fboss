@@ -51,17 +51,15 @@ class NetworkToRouteMap
   }
   folly::dynamic toFollyDynamic(const FilterFn& fn) const {
     folly::dynamic routesJson = folly::dynamic::array;
-    if constexpr (std::is_same_v<LabelID, AddressT>) {
-      for (const auto& routeNode : *this) {
-        if (fn(routeNode.second)) {
-          routesJson.push_back(routeNode.second->toFollyDynamic());
-        }
+    for (const auto& routeNode : *this) {
+      std::shared_ptr<Route<AddressT>> route;
+      if constexpr (std::is_same_v<LabelID, AddressT>) {
+        route = routeNode.second;
+      } else {
+        route = routeNode.value();
       }
-    } else {
-      for (const auto& routeNode : *this) {
-        if (fn(routeNode.value())) {
-          routesJson.push_back(routeNode.value()->toFollyDynamic());
-        }
+      if (fn(route)) {
+        routesJson.push_back(route->toFollyDynamic());
       }
     }
     folly::dynamic routesObject = folly::dynamic::object;
@@ -76,17 +74,23 @@ class NetworkToRouteMap
     auto routesJson = routes[kRoutes];
     for (const auto& routeJson : routesJson) {
       auto route = Route<AddressT>::fromFollyDynamic(routeJson);
-      if constexpr (std::is_same_v<LabelID, AddressT>) {
-        auto label = route->prefix().label;
-        networkToRouteMap.emplace(label, std::move(route));
-      } else {
-        RoutePrefix<AddressT> prefix = route->prefix();
-        networkToRouteMap.insert(prefix.network, prefix.mask, std::move(route));
-      }
+      networkToRouteMap.insert(route->getID(), std::move(route));
     }
 
     return networkToRouteMap;
   }
+
+  std::pair<Iterator, bool> insert(
+      typename Route<AddressT>::Prefix key,
+      std::shared_ptr<Route<AddressT>> route) {
+    if constexpr (std::is_same_v<LabelID, AddressT>) {
+      return this->emplace(
+          std::make_pair(LabelID(key.label), std::move(route)));
+    } else {
+      return Base::insert(key.network, key.mask, std::move(route));
+    }
+  }
+
   template <typename Fn>
   void forAll(const Fn& fn) {
     std::for_each(this->begin(), this->end(), fn);
