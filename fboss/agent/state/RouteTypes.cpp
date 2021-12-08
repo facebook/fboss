@@ -16,6 +16,7 @@ constexpr auto kMask = "mask";
 constexpr auto kDrop = "Drop";
 constexpr auto kToCpu = "ToCPU";
 constexpr auto kNexthops = "Nexthops";
+constexpr auto kLabel = "label";
 } // namespace
 
 namespace facebook::fboss {
@@ -102,6 +103,10 @@ void toAppend(const RoutePrefixV6& prefix, std::string* result) {
   result->append(prefix.str());
 }
 
+void toAppend(const RouteKeyMpls& route, std::string* result) {
+  result->append(fmt::format("{}", route.label));
+}
+
 void toAppend(const RouteForwardAction& action, std::string* result) {
   result->append(forwardActionStr(action));
 }
@@ -109,6 +114,18 @@ void toAppend(const RouteForwardAction& action, std::string* result) {
 std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action) {
   os << forwardActionStr(action);
   return os;
+}
+
+folly::dynamic Label::toFollyDynamic() const {
+  folly::dynamic pfx = folly::dynamic::object;
+  pfx[kLabel] = static_cast<int32_t>(label);
+  return pfx;
+}
+
+Label Label::fromFollyDynamic(const folly::dynamic& prefixJson) {
+  Label lbl;
+  lbl.label = static_cast<int32_t>(prefixJson[kLabel].asInt());
+  return lbl;
 }
 
 template class RoutePrefix<folly::IPAddressV4>;

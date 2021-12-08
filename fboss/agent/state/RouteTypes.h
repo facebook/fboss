@@ -58,11 +58,51 @@ struct RoutePrefix {
   typedef AddrT AddressT;
 };
 
+struct Label {
+  LabelID label;
+  Label() : label(0) {}
+  /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
+  std::string str() const {
+    return folly::to<std::string>(label);
+  }
+
+  /*
+   * Serialize to folly::dynamic
+   */
+  folly::dynamic toFollyDynamic() const;
+
+  /*
+   * Deserialize from folly::dynamic
+   */
+  static Label fromFollyDynamic(const folly::dynamic& prefixJson);
+
+  static Label fromString(std::string str) {
+    Label lbl;
+    lbl.label = folly::to<int32_t>(str);
+    return lbl;
+  }
+
+  bool operator<(const Label& p) const {
+    return label < p.label;
+  }
+  bool operator>(const Label& p) const {
+    return label > p.label;
+  }
+  bool operator==(const Label& p) const {
+    return label == p.label;
+  }
+  bool operator!=(const Label& p) const {
+    return !operator==(p);
+  }
+};
+
 typedef RoutePrefix<folly::IPAddressV4> RoutePrefixV4;
 typedef RoutePrefix<folly::IPAddressV6> RoutePrefixV6;
+using RouteKeyMpls = Label;
 
 void toAppend(const RoutePrefixV4& prefix, std::string* result);
 void toAppend(const RoutePrefixV6& prefix, std::string* result);
+void toAppend(const RouteKeyMpls& route, std::string* result);
 void toAppend(const RouteForwardAction& action, std::string* result);
 std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action);
 
