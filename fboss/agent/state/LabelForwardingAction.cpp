@@ -104,9 +104,6 @@ LabelForwardingAction::combinePushLabelStack(
         adjacencyLabels->type());
     return adjacencyLabels;
   } else if (!adjacencyLabels) {
-    CHECK(
-        LabelForwardingAction::LabelForwardingType::PUSH ==
-        tunnelStack->type());
     return tunnelStack;
   } else {
     CHECK(

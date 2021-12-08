@@ -24,6 +24,9 @@
 
 #include <algorithm>
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/RouteTypes.h"
+#include "folly/IPAddressV4.h"
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -100,8 +103,10 @@ void RibRouteUpdater::updateImpl(
     ClientID client,
     const std::vector<MplsRouteEntry>& toAdd,
     const std::vector<LabelID>& toDel,
-    bool /* resetClientsRoutes */) {
-  // TODO - reset client routes
+    bool resetClientsRoutes) {
+  if (resetClientsRoutes) {
+    removeAllMplsRoutesForClient(client);
+  }
   std::for_each(
       toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
         addOrReplaceRoute(routeEntry.label, client, routeEntry.nhopEntry);
@@ -246,7 +251,7 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
   std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
 
   for (auto it = routes->begin(); it != routes->end(); ++it) {
-    auto route = it->value();
+    auto route = value<AddressT>(it);
     auto nhopEntry = route->getEntryForClient(clientID);
     if (!nhopEntry) {
       continue;
@@ -274,6 +279,10 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
 void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
   removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
   removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
+}
+
+void RibRouteUpdater::removeAllMplsRoutesForClient(ClientID clientID) {
+  removeAllRoutesFromClientImpl<LabelID>(mplsRoutes_, clientID);
 }
 
 // Some helper functions for recursive weight resolution
@@ -548,7 +557,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     typename NetworkToRouteMap<AddressT>::Iterator ritr) {
-  auto& route = ritr->value();
+  auto route = value<AddressT>(ritr);
   // Starting resolution for this route, remove from resolution queue
   needsResolution_.erase(route.get());
 
@@ -569,6 +578,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
+      bool labelPopandLookup = false;
       // loop through all nexthops to find out the forward info
       for (const auto& nh : bestEntry->getNextHopSet()) {
         const auto& addr = nh.addr();
@@ -584,6 +594,20 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               (addr.isV6() and addr.isLinkLocal()));
           nhToFwds[nh].emplace(nh);
           continue;
+        }
+
+        // For pop and lookup, forwarding is based on inner
+        // header. There should be only one nhop in this case.
+        if (nh.labelForwardingAction().has_value() &&
+            nh.labelForwardingAction().value().type() ==
+                MplsActionCode::POP_AND_LOOKUP) {
+          if (bestEntry->getNextHopSet().size() > 1) {
+            throw FbossError(
+                "MPLS pop and lookup forwarding action has more than one nexthop");
+          }
+          labelPopandLookup = true;
+          nhToFwds[nh].emplace(nh);
+          break;
         }
 
         if (addr.isV4()) {
@@ -606,10 +630,17 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         }
       }
 
+      // For label pop and lookup, the label lookup result instructs
+      // the hw to perform another lookup on inner header and
+      // forward packet based on inner header result. This means
+      // that label pop and lookup will not have a valid nhop ip
+      // or interface and any merge operation has to be skipped.
+      RouteNextHopSet nhSet = labelPopandLookup
+          ? bestEntry->getNextHopSet()
+          : mergeForwardInfos(nhToFwds, route);
+
       fwItr = unresolvedToResolvedNhops_
-                  .insert(
-                      {bestEntry->getNextHopSet(),
-                       mergeForwardInfos(nhToFwds, route)})
+                  .insert({bestEntry->getNextHopSet(), std::move(nhSet)})
                   .first;
     }
     fwd = &(fwItr->second);
@@ -638,8 +669,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         route->getForwardInfo().getCounterID() != counterID) {
       updateRoute(
           ritr,
-          RouteNextHopEntry(
-              *fwd, AdminDistance::MAX_ADMIN_DISTANCE, counterID));
+          RouteNextHopEntry(*fwd, bestEntry->getAdminDistance(), counterID));
     }
   } else if (hasToCpu) {
     if (!route->isToCPU() ||
@@ -676,10 +706,10 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
     typename NetworkToRouteMap<AddressT>::Iterator ritr) {
-  if (ritr->value()->isPublished()) {
-    ritr->value() = ritr->value()->clone();
+  if (value<AddressT>(ritr)->isPublished()) {
+    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
   }
-  return ritr->value();
+  return value<AddressT>(ritr);
 }
 
 template <typename AddressT>
@@ -694,7 +724,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
 template <typename AddressT>
 void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
   for (auto ritr = routes->begin(); ritr != routes->end(); ++ritr) {
-    if (needResolve(ritr->value())) {
+    if (needResolve(value(*ritr))) {
       resolveOne<AddressT>(ritr);
     }
   }
@@ -709,18 +739,23 @@ bool RibRouteUpdater::needResolve(
 void RibRouteUpdater::updateDone() {
   // Record all routes as needing resolution
   auto markForResolution = [this](const auto& routes) {
-    std::for_each(routes->begin(), routes->end(), [this](const auto& route) {
-      needsResolution_.insert(route.value().get());
+    std::for_each(routes->begin(), routes->end(), [this](auto& route) {
+      needsResolution_.insert(value(route).get());
     });
   };
   markForResolution(v4Routes_);
   markForResolution(v6Routes_);
+  if (mplsRoutes_) {
+    markForResolution(mplsRoutes_);
+  }
   SCOPE_EXIT {
     needsResolution_.clear();
     unresolvedToResolvedNhops_.clear();
   };
   resolve(v4Routes_);
   resolve(v6Routes_);
+  if (mplsRoutes_) {
+    resolve(mplsRoutes_);
+  }
 }
-
 } // namespace facebook::fboss

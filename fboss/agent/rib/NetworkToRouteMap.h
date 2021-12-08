@@ -103,4 +103,26 @@ using IPv4NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV4>;
 using IPv6NetworkToRouteMap = NetworkToRouteMap<folly::IPAddressV6>;
 using LabelToRouteMap = NetworkToRouteMap<LabelID>;
 
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>>& value(
+    typename NetworkToRouteMap<AddrT>::Iterator& iter) {
+  if constexpr (std::is_same_v<LabelID, AddrT>) {
+    return iter->second;
+  } else {
+    return iter->value();
+  }
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>>& value(
+    facebook::network::RadixTreeNode<AddrT, std::shared_ptr<Route<AddrT>>>&
+        iter) {
+  return iter.value();
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>>& value(
+    std::pair<const AddrT, std::shared_ptr<Route<AddrT>>>& iter) {
+  return iter.second;
+}
 } // namespace facebook::fboss
