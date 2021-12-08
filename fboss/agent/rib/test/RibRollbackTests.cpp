@@ -13,6 +13,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/test/LabelForwardingUtils.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -74,6 +75,7 @@ class FailSomeUpdates {
 class RibRollbackTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_mpls_rib = true;
     rib_.ensureVrf(kRid);
     switchState_ = std::make_shared<SwitchState>();
     auto origSwitchState = switchState_;
@@ -90,7 +92,20 @@ class RibRollbackTest : public ::testing::Test {
         &switchState_);
     EXPECT_NE(switchState_, origSwitchState);
     EXPECT_EQ(1, switchState_->getGeneration());
-    assertRouteCount(0, 1);
+    auto oldSwitchState = switchState_;
+    rib_.update(
+        kRid,
+        kBgpClient,
+        kBgpDistance,
+        util::getTestRoutes(0, 1),
+        {},
+        false,
+        "add only",
+        ribToSwitchStateUpdate,
+        &switchState_);
+    EXPECT_NE(switchState_, oldSwitchState);
+    EXPECT_EQ(2, switchState_->getGeneration());
+    assertRouteCount(0, 1, 1);
   }
   void TearDown() override {
     switchState_->publish();
@@ -108,14 +123,32 @@ class RibRollbackTest : public ::testing::Test {
         "empty update",
         ribToSwitchStateUpdate,
         &switchState_);
+    EXPECT_EQ(curSwitchState, switchState_);
 
+    rib_.update(
+        kRid,
+        kBgpClient,
+        kBgpDistance,
+        std::vector<MplsRoute>{},
+        {},
+        false,
+        "empty update",
+        ribToSwitchStateUpdate,
+        &switchState_);
     EXPECT_EQ(curSwitchState, switchState_);
   }
-  void assertRouteCount(int v4Expected, int v6Expected) const {
+  void assertRouteCount(int v4Expected, int v6Expected, int mplsExpected)
+      const {
     auto [numV4, numV6] = switchState_->getFibs()->getRouteCount();
     EXPECT_EQ(v6Expected, numV6);
     EXPECT_EQ(v4Expected, numV4);
     EXPECT_EQ(v6Expected + v4Expected, rib_.getRouteTableDetails(kRid).size());
+    EXPECT_EQ(
+        mplsExpected,
+        switchState_->getLabelForwardingInformationBase()
+            ->getAllNodes()
+            .size());
+    EXPECT_EQ(mplsExpected, rib_.getMplsRouteTableDetails().size());
   }
 
  protected:
@@ -155,7 +188,7 @@ TEST_F(RibRollbackTest, rollbackAdd) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -175,7 +208,7 @@ TEST_F(RibRollbackTest, rollbackAddExisting) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -195,7 +228,7 @@ TEST_F(RibRollbackTest, rollbackDel) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -212,7 +245,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
       "nonexistent prefix del",
       ribToSwitchStateUpdate,
       &switchState_);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));
   // Failed update, still rib is left as is
   FailSomeUpdates failFirstUpdate({1});
@@ -228,7 +261,7 @@ TEST_F(RibRollbackTest, rollbackDelNonExistent) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -248,7 +281,7 @@ TEST_F(RibRollbackTest, rollbackAddAndDel) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -267,7 +300,7 @@ TEST_F(RibRollbackTest, rollbackDifferentClient) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -287,7 +320,7 @@ TEST_F(RibRollbackTest, rollbackDifferentNexthops) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -310,7 +343,7 @@ TEST_F(RibRollbackTest, syncFibRollbackExistingClient) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
 
@@ -333,6 +366,26 @@ TEST_F(RibRollbackTest, syncFibRollbackNewClient) {
           failFirstUpdate,
           &switchState_),
       FbossHwUpdateError);
-  assertRouteCount(0, 1);
+  assertRouteCount(0, 1, 1);
+  EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
+TEST_F(RibRollbackTest, rollbackMpls) {
+  // Fail route update. Rib should rollback to pre failed add state
+  auto routeTableBeforeFailedUpdate = rib_.getRouteTableDetails(kRid);
+  FailSomeUpdates failFirstUpdate({1});
+  EXPECT_THROW(
+      rib_.update(
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          util::getTestRoutes(1, 1),
+          {},
+          false,
+          "fail add mpls",
+          failFirstUpdate,
+          &switchState_),
+      FbossHwUpdateError);
+  assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
 }
