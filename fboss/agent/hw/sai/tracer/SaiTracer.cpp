@@ -118,7 +118,7 @@ sai_status_t __wrap_sai_api_initialize(
     const sai_service_method_table_t* services) {
   sai_status_t rv = __real_sai_api_initialize(flags, services);
 
-  if (services) {
+  if (FLAGS_enable_replayer && services) {
     // Reset service table iterator
     services->profile_get_next_value(0, nullptr, nullptr);
 
@@ -151,6 +151,10 @@ sai_status_t __wrap_sai_api_query(
   // (See 'AclApiTracer.h' for example).
 
   sai_status_t rv = __real_sai_api_query(sai_api_id, api_method_table);
+
+  if (!FLAGS_enable_replayer) {
+    return rv;
+  }
 
   switch (sai_api_id) {
     case SAI_API_ACL:
@@ -332,7 +336,8 @@ sai_status_t __wrap_sai_get_object_key(
   sai_status_t rv = __real_sai_get_object_key(
       switch_id, object_type, object_count, object_list);
 
-  if (*object_count == 0 || !should_log(object_type)) {
+  if (!FLAGS_enable_replayer || *object_count == 0 ||
+      !should_log(object_type)) {
     return rv;
   }
 
