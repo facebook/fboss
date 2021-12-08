@@ -568,12 +568,17 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
     auto vrf = RouterID(routeTable.first.asInt());
+    NetworkToRouteMap<LabelID> mplsTable;
+    if (routeTable.second.find(kRibMpls) != routeTable.second.items().end()) {
+      mplsTable =
+          LabelToRouteMap::fromFollyDynamic(routeTable.second[kRibMpls]);
+    }
     lockedRouteTables->insert(std::make_pair(
         vrf,
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
             IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
-            LabelToRouteMap::fromFollyDynamic(routeTable.second[kRibMpls])}));
+            std::move(mplsTable)}));
   }
 
   if (fibs) {
