@@ -65,6 +65,16 @@ void LabelForwardingEntry::updateLabelNextHop() {
   }
 }
 
+void LabelForwardingEntry::setLabelNextHop(LabelNextHopEntry entry) {
+  writableFields()->nexthop = entry;
+}
+
+void LabelForwardingEntry::setEntryForClient(
+    ClientID clientId,
+    LabelNextHopEntry entry) {
+  writableFields()->labelNextHopsByClient.update(clientId, std::move(entry));
+}
+
 folly::dynamic LabelForwardingEntry::toFollyDynamic() const {
   folly::dynamic json = folly::dynamic::object;
   json[kIncomingLabel] = static_cast<int>(getID());
@@ -87,6 +97,10 @@ std::shared_ptr<LabelForwardingEntry> LabelForwardingEntry::fromFollyDynamic(
 bool LabelForwardingEntry::operator==(const LabelForwardingEntry& rhs) const {
   return getID() == rhs.getID() && getLabelNextHop() == rhs.getLabelNextHop() &&
       getLabelNextHopsByClient() == rhs.getLabelNextHopsByClient();
+}
+
+bool LabelForwardingEntry::operator!=(const LabelForwardingEntry& rhs) const {
+  return !(*this == rhs);
 }
 
 void LabelForwardingEntryFields::validateLabelNextHopEntry(

@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
+#include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -25,10 +27,12 @@ namespace facebook::fboss {
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const IPv6NetworkToRouteMap& v6NetworkToRoute)
+    const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& labelToRoute)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
-      v6NetworkToRoute_(v6NetworkToRoute) {}
+      v6NetworkToRoute_(v6NetworkToRoute),
+      labelToRoute_(labelToRoute) {}
 
 std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
@@ -55,7 +59,10 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   auto newFibV6 =
       createUpdatedFib(v6NetworkToRoute_, previousFibContainer->getFibV6());
 
-  if (!newFibV4 && !newFibV6) {
+  auto newLabelFib = createUpdatedLabelFib(
+      labelToRoute_, state->getLabelForwardingInformationBase());
+
+  if (!newFibV4 && !newFibV6 && !newLabelFib) {
     // return nextState in case we modified state above to insert new VRF
     return nextState;
   }
@@ -67,6 +74,10 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
 
   if (newFibV6) {
     nextFibContainer->writableFields()->fibV6 = std::move(newFibV6);
+  }
+
+  if (newLabelFib) {
+    nextState->resetLabelForwardingInformationBase(newLabelFib);
   }
   return nextState;
 }
@@ -133,6 +144,51 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
   return updated ? std::make_shared<ForwardingInformationBase<AddressT>>(
                        std::move(updatedFib))
                  : nullptr;
+}
+
+std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+ForwardingInformationBaseUpdater::createUpdatedLabelFib(
+    const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
+    std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib) {
+  if (!FLAGS_mpls_rib) {
+    return nullptr;
+  }
+
+  bool updated = false;
+  auto newFib = std::make_shared<LabelForwardingInformationBase>();
+  for (const auto& entry : rib) {
+    const auto& label = entry.first;
+    const auto& ribRoute = entry.second;
+    if (!ribRoute->isResolved()) {
+      // The recursive resolution algorithm considers a next-hop TO_CPU or
+      // DROP to be resolved.
+      continue;
+    }
+    auto oldEntry = fib->getLabelForwardingEntryIf(label);
+    auto labelEntry = std::make_shared<LabelForwardingEntry>(MplsLabel(label));
+    for (const auto& ribEntry : ribRoute->getEntryForClients()) {
+      labelEntry->setEntryForClient(ribEntry.first, ribEntry.second);
+    }
+    labelEntry->setLabelNextHop(ribRoute->getForwardInfo());
+    if (!oldEntry || *oldEntry != *labelEntry) {
+      updated = true;
+      if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
+              ribRoute->getForwardInfo().getNextHopSet())) {
+        throw FbossError("invalid label next hop");
+      }
+    }
+    newFib->addNode(labelEntry);
+  }
+  // Check for deleted routes. Routes that were in the previous FIB
+  // and have now been removed
+  for (const auto& fibEntry : *fib) {
+    const auto& label = fibEntry->getID();
+    if (!newFib->getLabelForwardingEntryIf(label)) {
+      updated = true;
+      break;
+    }
+  }
+  return updated ? newFib : nullptr;
 }
 
 } // namespace facebook::fboss

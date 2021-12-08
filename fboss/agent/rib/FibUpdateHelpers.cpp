@@ -11,6 +11,7 @@
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -18,10 +19,10 @@ std::shared_ptr<facebook::fboss::SwitchState> ribToSwitchStateUpdate(
     facebook::fboss::RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
-    const LabelToRouteMap& /* labelToRoute */,
+    const LabelToRouteMap& labelToRoute,
     void* cookie) {
   ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
+      vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto switchState =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);

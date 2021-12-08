@@ -12,6 +12,7 @@
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -26,7 +27,8 @@ class ForwardingInformationBaseUpdater {
   ForwardingInformationBaseUpdater(
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
-      const IPv6NetworkToRouteMap& v6NetworkToRoute);
+      const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      const LabelToRouteMap& labelToRoute);
 
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
@@ -41,10 +43,15 @@ class ForwardingInformationBaseUpdater {
       const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
           facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
+  std::shared_ptr<facebook::fboss::LabelForwardingInformationBase>
+  createUpdatedLabelFib(
+      const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
+      std::shared_ptr<facebook::fboss::LabelForwardingInformationBase> fib);
 
   RouterID vrf_;
   const IPv4NetworkToRouteMap& v4NetworkToRoute_;
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;
+  const LabelToRouteMap& labelToRoute_;
 };
 
 } // namespace facebook::fboss

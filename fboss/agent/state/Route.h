@@ -85,6 +85,10 @@ struct RouteFields {
     return nexthopsmulti.getEntryForClient(clientId);
   }
 
+  const RouteNextHopsMulti& getEntryForClients() const {
+    return nexthopsmulti;
+  }
+
  private:
   /**
    * Bit definition for RouteFields<>::flags
@@ -324,6 +328,10 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   }
   void delEntryForClient(ClientID clientId) {
     RouteBase::writableFields()->delEntryForClient(clientId);
+  }
+
+  const RouteNextHopsMulti& getEntryForClients() const {
+    return RouteBase::getFields()->getEntryForClients();
   }
 
  private:

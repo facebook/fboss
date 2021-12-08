@@ -39,13 +39,15 @@ namespace facebook::fboss {
  *
  */
 
+using ClientToNHopMap = boost::container::flat_map<ClientID, RouteNextHopEntry>;
+
 /**
  * Map form clientId -> RouteNextHopEntry
  */
 class RouteNextHopsMulti {
  protected:
   ClientID findLowestAdminDistance();
-  boost::container::flat_map<ClientID, RouteNextHopEntry> map_;
+  ClientToNHopMap map_;
   ClientID lowestAdminDistanceClientId_;
 
  public:
@@ -63,6 +65,14 @@ class RouteNextHopsMulti {
 
   bool operator==(const RouteNextHopsMulti& p2) const {
     return map_ == p2.map_;
+  }
+
+  ClientToNHopMap::const_iterator begin() const {
+    return map_.begin();
+  }
+
+  ClientToNHopMap::const_iterator end() const {
+    return map_.end();
   }
 
   bool isEmpty() const {

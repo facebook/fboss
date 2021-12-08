@@ -17,6 +17,7 @@ using LabelNextHopsByClient = RouteNextHopsMulti;
 
 struct LabelForwardingEntryFields {
   LabelForwardingEntryFields() {}
+  explicit LabelForwardingEntryFields(MplsLabel label) : topLabel(label) {}
   LabelForwardingEntryFields(
       MplsLabel label,
       ClientID clientId,
@@ -71,12 +72,18 @@ class LabelForwardingEntry
 
   void delEntryForClient(ClientID clientId);
 
+  void setLabelNextHop(LabelNextHopEntry entry);
+
+  void setEntryForClient(ClientID clientId, LabelNextHopEntry entry);
+
   folly::dynamic toFollyDynamic() const override;
 
   static std::shared_ptr<LabelForwardingEntry> fromFollyDynamic(
       const folly::dynamic& json);
 
   bool operator==(const LabelForwardingEntry& rhs) const;
+
+  bool operator!=(const LabelForwardingEntry& rhs) const;
 
   LabelForwardingEntry* modify(std::shared_ptr<SwitchState>* state);
 

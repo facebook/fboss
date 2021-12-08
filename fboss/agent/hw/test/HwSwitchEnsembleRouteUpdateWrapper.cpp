@@ -27,10 +27,10 @@ std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    const facebook::fboss::LabelToRouteMap& /* labelToRoute */,
+    const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie) {
   facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      vrf, v4NetworkToRoute, v6NetworkToRoute);
+      vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
   hwEnsemble->getHwSwitch()->transactionsSupported()
