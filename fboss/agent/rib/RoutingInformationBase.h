@@ -99,6 +99,7 @@ class RibRouteTables {
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
+  std::vector<MplsRouteDetails> getMplsRouteTableDetails() const;
 
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
@@ -283,7 +284,9 @@ class RoutingInformationBase {
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const {
     return ribTables_.getRouteTableDetails(rid);
   }
-
+  std::vector<MplsRouteDetails> getMplsRouteTableDetails() const {
+    return ribTables_.getMplsRouteTableDetails();
+  }
   void waitForRibUpdates() {
     ensureRunning();
     ribUpdateEventBase_.runInEventBaseThreadAndWait([] { return; });

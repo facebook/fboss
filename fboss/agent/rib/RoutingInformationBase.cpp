@@ -612,12 +612,36 @@ RoutingInformationBase::fromFollyDynamic(
   return rib;
 }
 
+std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
+  std::vector<MplsRouteDetails> mplsRouteDetails;
+  synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
+    const auto it = synchronizedRouteTables.find(RouterID(0));
+    if (it != synchronizedRouteTables.end()) {
+      for (auto rit = it->second.labelToRoute.begin();
+           rit != it->second.labelToRoute.end();
+           ++rit) {
+        MplsRouteDetails mplsRouteDetail;
+        auto routeDetails = rit->second->toRouteDetails();
+        mplsRouteDetail.topLabel_ref() = rit->first;
+        mplsRouteDetail.nextHopMulti_ref() = *routeDetails.nextHopMulti_ref();
+        mplsRouteDetail.nextHops_ref() = *routeDetails.nextHops_ref();
+        if (routeDetails.adminDistance_ref().has_value()) {
+          mplsRouteDetail.adminDistance_ref() =
+              *routeDetails.adminDistance_ref();
+        }
+        mplsRouteDetails.emplace_back(mplsRouteDetail);
+      }
+    }
+  });
+  return mplsRouteDetails;
+}
+
 std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     RouterID rid) const {
   std::vector<RouteDetails> routeDetails;
-  SYNCHRONIZED_CONST(synchronizedRouteTables_) {
-    const auto it = synchronizedRouteTables_.find(rid);
-    if (it != synchronizedRouteTables_.end()) {
+  synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
+    const auto it = synchronizedRouteTables.find(rid);
+    if (it != synchronizedRouteTables.end()) {
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
@@ -629,7 +653,7 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
         routeDetails.emplace_back(rit->value()->toRouteDetails());
       }
     }
-  }
+  });
   return routeDetails;
 }
 
