@@ -44,6 +44,12 @@ RibRouteUpdater::RibRouteUpdater(
     IPv6NetworkToRouteMap* v6Routes)
     : v4Routes_(v4Routes), v6Routes_(v6Routes) {}
 
+RibRouteUpdater::RibRouteUpdater(
+    IPv4NetworkToRouteMap* v4Routes,
+    IPv6NetworkToRouteMap* v6Routes,
+    LabelToRouteMap* mplsRoutes)
+    : v4Routes_(v4Routes), v6Routes_(v6Routes), mplsRoutes_(mplsRoutes) {}
+
 void RibRouteUpdater::update(
     const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
     const std::map<ClientID, std::vector<folly::CIDRNetwork>>& toDel,
@@ -145,9 +151,21 @@ void RibRouteUpdater::addOrReplaceRoute(
 
 void RibRouteUpdater::addOrReplaceRoute(
     LabelID label,
-    ClientID /* clientID */,
+    ClientID clientID,
     RouteNextHopEntry entry) {
   XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
+  auto iter = mplsRoutes_->find(label);
+  if (iter == mplsRoutes_->end()) {
+    mplsRoutes_->emplace(std::make_pair(
+        label, std::make_shared<Route<LabelID>>(label, clientID, entry)));
+  } else {
+    auto route = iter->second;
+    auto existingRouteForClient = route->getEntryForClient(clientID);
+    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+      route = writableRoute<LabelID>(route);
+      route->update(clientID, entry);
+    }
+  }
 }
 
 template <typename AddressT>
@@ -194,10 +212,31 @@ void RibRouteUpdater::delRoute(
   }
 }
 
-void RibRouteUpdater::delRoute(
-    const LabelID& label,
-    const ClientID /* clientID */) {
+void RibRouteUpdater::delRoute(const LabelID& label, const ClientID clientID) {
   XLOG(DBG3) << "Delete mpls route for " << label;
+  auto it = mplsRoutes_->find(label);
+  if (it == mplsRoutes_->end()) {
+    XLOG(DBG3) << "Failed to delete mpls route: label " << label
+               << " does not exist";
+    return;
+  }
+
+  auto& route = it->second;
+  auto clientNhopEntry = route->getEntryForClient(clientID);
+  if (!clientNhopEntry) {
+    return;
+  }
+  if (route->numClientEntries() == 1) {
+    // If this client's the only entry, simply erase
+    XLOG(DBG3) << "Deleting route: " << route->str();
+    mplsRoutes_->erase(it);
+  } else {
+    route = writableRoute<LabelID>(route);
+    route->delEntryForClient(clientID);
+
+    XLOG(DBG3) << "Deleted next-hops for label " << label << "from client "
+               << folly::to<std::string>(clientID);
+  }
 }
 
 template <typename AddressT>
@@ -641,6 +680,15 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
     ritr->value() = ritr->value()->clone();
   }
   return ritr->value();
+}
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
+    std::shared_ptr<Route<AddressT>> route) {
+  if (route->isPublished()) {
+    route = route->clone();
+  }
+  return route;
 }
 
 template <typename AddressT>

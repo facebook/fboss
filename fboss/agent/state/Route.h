@@ -30,11 +30,12 @@ namespace facebook::fboss {
  */
 template <typename AddrT>
 struct RouteFields {
-  typedef RoutePrefix<AddrT> Prefix;
+  using Prefix = std::
+      conditional_t<std::is_same_v<LabelID, AddrT>, Label, RoutePrefix<AddrT>>;
   explicit RouteFields(const Prefix& prefix);
   RouteFields(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : RouteFields(prefix) {
-    if (!entry.isValid(false)) {
+    if (!entry.isValid(std::is_same_v<LabelID, AddrT>)) {
       throw FbossError("Invalid label forwarding action for IP route");
     }
     update(clientId, std::move(entry));
@@ -54,7 +55,13 @@ struct RouteFields {
 
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
   bool isHostRoute() const {
-    return prefix.mask == prefix.network.bitCount();
+    if constexpr (
+        std::is_same_v<folly::IPAddressV6, AddrT> ||
+        std::is_same_v<folly::IPAddressV4, AddrT>) {
+      return prefix.mask == prefix.network.bitCount();
+    } else {
+      return false;
+    }
   }
 
   bool hasNoEntry() const {
@@ -322,14 +329,15 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
  private:
   // no copy or assign operator
   Route(const Route&) = delete;
-  Route& operator&(const Route&) = delete;
+  Route& operator=(const Route&) = delete;
 
   // Inherit the constructors required for clone()
   using NodeBaseT<Route<AddrT>, RouteFields<AddrT>>::NodeBaseT;
   friend class CloneAllocator;
 };
 
-typedef Route<folly::IPAddressV4> RouteV4;
-typedef Route<folly::IPAddressV6> RouteV6;
+using RouteV4 = Route<folly::IPAddressV4>;
+using RouteV6 = Route<folly::IPAddressV6>;
+using RouteMpls = Route<LabelID>;
 
 } // namespace facebook::fboss

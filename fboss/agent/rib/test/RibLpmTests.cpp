@@ -127,7 +127,7 @@ void CHECK_LPM(
     AddressT address,
     uint8_t mask) {
   facebook::fboss::RoutePrefix<AddressT> routePrefix{address, mask};
-  facebook::fboss::RouteFields fields(routePrefix);
+  facebook::fboss::RouteFields<AddressT> fields(routePrefix);
 
   EXPECT_EQ(route->prefix().network, address);
   EXPECT_EQ(route->prefix().mask, mask);

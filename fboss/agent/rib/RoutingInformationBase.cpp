@@ -255,7 +255,9 @@ void RibRouteTables::update(
     void* cookie) {
   updateRib(routerID, [&](auto& routeTable) {
     RibRouteUpdater updater(
-        &(routeTable.v4NetworkToRoute), &(routeTable.v6NetworkToRoute));
+        &(routeTable.v4NetworkToRoute),
+        &(routeTable.v6NetworkToRoute),
+        &(routeTable.labelToRoute));
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(routerID, fibUpdateCallback, cookie);

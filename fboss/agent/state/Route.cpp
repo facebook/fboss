@@ -15,6 +15,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "folly/IPAddressV4.h"
 
 using facebook::network::toBinaryAddress;
 
@@ -65,9 +66,13 @@ template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
     bool normalizedNhopWeights) const {
   RouteDetails rd;
-  // Add the prefix
-  rd.dest_ref()->ip_ref() = toBinaryAddress(prefix.network);
-  rd.dest_ref()->prefixLength_ref() = prefix.mask;
+  if constexpr (
+      std::is_same_v<folly::IPAddressV6, AddrT> ||
+      std::is_same_v<folly::IPAddressV4, AddrT>) {
+    // Add the prefix
+    rd.dest_ref()->ip_ref() = toBinaryAddress(prefix.network);
+    rd.dest_ref()->prefixLength_ref() = prefix.mask;
+  }
   // Add the action
   rd.action_ref() = forwardActionStr(fwd.getAction());
   auto nhopSet =
@@ -141,6 +146,7 @@ void RouteFields<AddrT>::delEntryForClient(ClientID clientId) {
 
 template struct RouteFields<folly::IPAddressV4>;
 template struct RouteFields<folly::IPAddressV6>;
+template struct RouteFields<LabelID>;
 
 template <typename AddrT>
 bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
@@ -164,5 +170,6 @@ std::shared_ptr<Route<AddrT>> Route<AddrT>::cloneForReresolve() const {
 
 template class Route<folly::IPAddressV4>;
 template class Route<folly::IPAddressV6>;
+template class Route<LabelID>;
 
 } // namespace facebook::fboss

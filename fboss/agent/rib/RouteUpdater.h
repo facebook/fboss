@@ -48,6 +48,11 @@ class RibRouteUpdater {
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes);
 
+  RibRouteUpdater(
+      IPv4NetworkToRouteMap* v4Routes,
+      IPv6NetworkToRouteMap* v6Routes,
+      LabelToRouteMap* mplsRoutes);
+
   struct RouteEntry {
     folly::CIDRNetwork prefix;
     RouteNextHopEntry nhopEntry;
@@ -137,6 +142,10 @@ class RibRouteUpdater {
       typename NetworkToRouteMap<AddressT>::Iterator ritr);
 
   template <typename AddressT>
+  std::shared_ptr<Route<AddressT>> writableRoute(
+      std::shared_ptr<Route<AddressT>> route);
+
+  template <typename AddressT>
   void getFwdInfoFromNhop(
       NetworkToRouteMap<AddressT>* routes,
       const AddressT& nh,
@@ -153,6 +162,7 @@ class RibRouteUpdater {
 
   IPv4NetworkToRouteMap* v4Routes_{nullptr};
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
+  LabelToRouteMap* mplsRoutes_{nullptr};
   std::unordered_set<void*> needsResolution_;
   /*
    * Cache for next hop to FWD informatio. For our use case

@@ -22,7 +22,7 @@ namespace {
 template <typename AddressT>
 std::shared_ptr<facebook::fboss::Route<AddressT>> createRouteFromPrefix(
     facebook::fboss::RoutePrefix<AddressT> prefix) {
-  facebook::fboss::RouteFields fields(prefix);
+  facebook::fboss::RouteFields<AddressT> fields(prefix);
 
   return std::make_shared<facebook::fboss::Route<AddressT>>(fields);
 }

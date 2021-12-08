@@ -110,6 +110,7 @@ class RibRouteTables {
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
+    LabelToRouteMap labelToRoute;
 
     bool operator==(const RouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
