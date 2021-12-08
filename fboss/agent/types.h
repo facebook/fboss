@@ -82,6 +82,7 @@ FBOSS_STRONG_TYPE(uint8_t, PhyAddr);
 FBOSS_STRONG_TYPE(uint16_t, GlobalXphyID);
 FBOSS_STRONG_TYPE(uint16_t, XphyId);
 FBOSS_STRONG_TYPE(uint32_t, LaneID);
+FBOSS_STRONG_TYPE(int32_t, LabelID);
 
 /*
  * A unique ID identifying a node in our state tree.
