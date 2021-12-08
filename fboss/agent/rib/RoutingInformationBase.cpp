@@ -38,6 +38,68 @@ namespace facebook::fboss {
 
 namespace {
 
+class RibIpRouteUpdate {
+ public:
+  using ThriftRoute = UnicastRoute;
+  using ThriftRouteId = IpPrefix;
+  using RibRoute = RibRouteUpdater::RouteEntry;
+  using RibRouteId = folly::CIDRNetwork;
+  static RibRoute ToAddFn(
+      const ThriftRoute& route,
+      const AdminDistance distance,
+      RoutingInformationBase::UpdateStatistics& stats) {
+    auto network = facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
+    auto mask = static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+    std::optional<RouteCounterID> counterID;
+    if (route.counterID_ref().has_value()) {
+      counterID = route.counterID_ref().value();
+    }
+    if (network.isV4()) {
+      ++stats.v4RoutesAdded;
+    } else {
+      ++stats.v6RoutesAdded;
+    }
+    return {
+        {network, mask}, RouteNextHopEntry::from(route, distance, counterID)};
+  }
+  static RibRouteId ToDelFn(
+      const ThriftRouteId& prefix,
+      RoutingInformationBase::UpdateStatistics& stats) {
+    auto network = facebook::network::toIPAddress(*prefix.ip_ref());
+    auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+    if (network.isV4()) {
+      ++stats.v4RoutesDeleted;
+    } else {
+      ++stats.v6RoutesDeleted;
+    }
+    return {network, mask};
+  }
+};
+
+class RibMplsRouteUpdate {
+ public:
+  using ThriftRoute = MplsRoute;
+  using ThriftRouteId = MplsLabel;
+  using RibRoute = RibRouteUpdater::MplsRouteEntry;
+  using RibRouteId = LabelID;
+  static RibRoute ToAddFn(
+      const ThriftRoute& route,
+      const AdminDistance distance,
+      RoutingInformationBase::UpdateStatistics& stats) {
+    ++stats.mplsRoutesAdded;
+    return {
+        LabelID(route.get_topLabel()),
+        RouteNextHopEntry::from(route, distance, std::nullopt)};
+  }
+
+  static RibRouteId ToDelFn(
+      const ThriftRouteId& topLabel,
+      RoutingInformationBase::UpdateStatistics& stats) {
+    ++stats.mplsRoutesDeleted;
+    return RibRouteId(topLabel);
+  }
+};
+
 class Timer {
  public:
   explicit Timer(std::chrono::microseconds* duration)
@@ -180,12 +242,13 @@ void RibRouteTables::reconfigure(
   }
 }
 
+template <typename RouteType, typename RouteIdType>
 void RibRouteTables::update(
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
-    const std::vector<RibRouteUpdater::RouteEntry>& toAddRoutes,
-    const std::vector<folly::CIDRNetwork>& toDelPrefixes,
+    const std::vector<RouteType>& toAddRoutes,
+    const std::vector<RouteIdType>& toDelPrefixes,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
     const FibUpdateFunction& fibUpdateCallback,
@@ -364,12 +427,13 @@ void RoutingInformationBase::reconfigure(
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 }
 
-RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
+template <typename TraitsType>
+RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     RouterID routerID,
     ClientID clientID,
     AdminDistance adminDistanceFromClientID,
-    const std::vector<UnicastRoute>& toAdd,
-    const std::vector<IpPrefix>& toDelete,
+    const std::vector<typename TraitsType::ThriftRoute>& toAdd,
+    const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
     FibUpdateFunction fibUpdateCallback,
@@ -381,48 +445,24 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   Timer updateTimer(&duration);
   std::exception_ptr updateException;
   auto updateFn = [&]() {
-    std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
+    std::vector<typename TraitsType::RibRoute> toAddRoutes;
     toAddRoutes.reserve(toAdd.size());
 
     try {
       std::for_each(
           toAdd.begin(),
           toAdd.end(),
-          [clientID, adminDistanceFromClientID, &stats, &toAddRoutes](
-              const auto& route) {
-            auto network =
-                facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
-            auto mask =
-                static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
-            std::optional<RouteCounterID> counterID;
-            if (route.counterID_ref().has_value()) {
-              counterID = route.counterID_ref().value();
-            }
-            if (network.isV4()) {
-              ++stats.v4RoutesAdded;
-            } else {
-              ++stats.v6RoutesAdded;
-            }
+          [adminDistanceFromClientID, &stats, &toAddRoutes](const auto& route) {
             toAddRoutes.push_back(
-                {{network, mask},
-                 RouteNextHopEntry::from(
-                     route, adminDistanceFromClientID, counterID)});
+                TraitsType::ToAddFn(route, adminDistanceFromClientID, stats));
           });
-      std::vector<folly::CIDRNetwork> toDelPrefixes;
+      std::vector<typename TraitsType::RibRouteId> toDelPrefixes;
       toDelPrefixes.reserve(toDelete.size());
       std::for_each(
           toDelete.begin(),
           toDelete.end(),
           [&stats, &toDelPrefixes](const auto& prefix) {
-            auto network = facebook::network::toIPAddress(*prefix.ip_ref());
-            auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
-
-            if (network.isV4()) {
-              ++stats.v4RoutesDeleted;
-            } else {
-              ++stats.v6RoutesDeleted;
-            }
-            toDelPrefixes.push_back({network, mask});
+            toDelPrefixes.push_back(TraitsType::ToDelFn(prefix, stats));
           });
 
       ribTables_.update(
@@ -564,6 +604,50 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     }
   }
   return routeDetails;
+}
+
+RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
+    RouterID routerID,
+    ClientID clientID,
+    AdminDistance adminDistanceFromClientID,
+    const std::vector<UnicastRoute>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    bool resetClientsRoutes,
+    folly::StringPiece updateType,
+    FibUpdateFunction fibUpdateCallback,
+    void* cookie) {
+  return updateImpl<RibIpRouteUpdate>(
+      routerID,
+      clientID,
+      adminDistanceFromClientID,
+      toAdd,
+      toDelete,
+      resetClientsRoutes,
+      updateType,
+      fibUpdateCallback,
+      cookie);
+}
+
+RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
+    RouterID routerID,
+    ClientID clientID,
+    AdminDistance adminDistanceFromClientID,
+    const std::vector<MplsRoute>& toAdd,
+    const std::vector<MplsLabel>& toDelete,
+    bool resetClientsRoutes,
+    folly::StringPiece updateType,
+    FibUpdateFunction fibUpdateCallback,
+    void* cookie) {
+  return updateImpl<RibMplsRouteUpdate>(
+      routerID,
+      clientID,
+      adminDistanceFromClientID,
+      toAdd,
+      toDelete,
+      resetClientsRoutes,
+      updateType,
+      fibUpdateCallback,
+      cookie);
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>>

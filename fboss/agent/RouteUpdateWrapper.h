@@ -100,6 +100,7 @@ class RouteUpdateWrapper {
     return rib_;
   }
   void printStats(const UpdateStatistics& stats) const;
+  void printMplsStats(const UpdateStatistics& stats) const;
   void programStandAloneRib(const SyncFibFor& syncFibFor);
   virtual void updateStats(const UpdateStatistics& stats) = 0;
   virtual AdminDistance clientIdToAdminDistance(ClientID clientID) const = 0;

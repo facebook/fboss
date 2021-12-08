@@ -127,6 +127,12 @@ void RouteUpdateWrapper::printStats(const UpdateStatistics& stats) const {
              << stats.duration.count() << " us ";
 }
 
+void RouteUpdateWrapper::printMplsStats(const UpdateStatistics& stats) const {
+  XLOG(DBG0) << " Mpls Routes added: " << stats.mplsRoutesAdded
+             << " Mpls Routes deleted: " << stats.mplsRoutesDeleted
+             << " Duration " << stats.duration.count() << " us ";
+}
+
 void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
   if (configRoutes_) {
     getRib()->reconfigure(
@@ -151,6 +157,20 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         fibUpdateCookie_);
     printStats(stats);
     updateStats(stats);
+  }
+  // update MPLS routes
+  for (auto& [ridClientId, addDelRoutes] : ribMplsRoutesToAddDel_) {
+    auto stats = getRib()->update(
+        ridClientId.first,
+        ridClientId.second,
+        clientIdToAdminDistance(ridClientId.second),
+        addDelRoutes.toAdd,
+        addDelRoutes.toDel,
+        syncFibFor.find(ridClientId) != syncFibFor.end(),
+        "MPLS RIB update",
+        *fibUpdateFn_,
+        fibUpdateCookie_);
+    printMplsStats(stats);
   }
 }
 

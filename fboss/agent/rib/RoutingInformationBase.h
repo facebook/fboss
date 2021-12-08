@@ -42,12 +42,13 @@ using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
  */
 class RibRouteTables {
  public:
+  template <typename RouteType, typename RouteIdType>
   void update(
       RouterID routerID,
       ClientID clientID,
       AdminDistance adminDistanceFromClientID,
-      const std::vector<RibRouteUpdater::RouteEntry>& toAddRoutes,
-      const std::vector<folly::CIDRNetwork>& toDelPrefixes,
+      const std::vector<RouteType>& toAddRoutes,
+      const std::vector<RouteIdType>& toDelPrefixes,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       const FibUpdateFunction& fibUpdateCallback,
@@ -165,6 +166,8 @@ class RoutingInformationBase {
     std::size_t v4RoutesDeleted{0};
     std::size_t v6RoutesAdded{0};
     std::size_t v6RoutesDeleted{0};
+    std::size_t mplsRoutesAdded{0};
+    std::size_t mplsRoutesDeleted{0};
     std::chrono::microseconds duration{0};
   };
 
@@ -197,6 +200,17 @@ class RoutingInformationBase {
       AdminDistance adminDistanceFromClientID,
       const std::vector<UnicastRoute>& toAdd,
       const std::vector<IpPrefix>& toDelete,
+      bool resetClientsRoutes,
+      folly::StringPiece updateType,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
+
+  UpdateStatistics update(
+      RouterID routerID,
+      ClientID clientID,
+      AdminDistance adminDistanceFromClientID,
+      const std::vector<MplsRoute>& toAdd,
+      const std::vector<MplsLabel>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       FibUpdateFunction fibUpdateCallback,
@@ -291,6 +305,18 @@ class RoutingInformationBase {
       std::optional<cfg::AclLookupClass> classId,
       void* cookie,
       bool async);
+
+  template <typename TraitsType>
+  UpdateStatistics updateImpl(
+      RouterID routerID,
+      ClientID clientID,
+      AdminDistance adminDistanceFromClientID,
+      const std::vector<typename TraitsType::ThriftRoute>& toAdd,
+      const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
+      bool resetClientsRoutes,
+      folly::StringPiece updateType,
+      FibUpdateFunction fibUpdateCallback,
+      void* cookie);
 
   std::unique_ptr<std::thread> ribUpdateThread_;
   folly::EventBase ribUpdateEventBase_;

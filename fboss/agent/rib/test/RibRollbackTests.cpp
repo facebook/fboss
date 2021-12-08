@@ -100,7 +100,7 @@ class RibRollbackTest : public ::testing::Test {
         kRid,
         kBgpClient,
         kBgpDistance,
-        {},
+        std::vector<UnicastRoute>{},
         {},
         false,
         "empty update",
