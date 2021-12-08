@@ -125,6 +125,20 @@ std::vector<MplsRoute> getTestRoutes(int base, int count) {
   return routes;
 }
 
+std::unique_ptr<UnicastRoute> makeUnicastRoute(
+    std::string prefix,
+    int prefixLen,
+    std::string nxtHop,
+    AdminDistance distance) {
+  auto nr = std::make_unique<UnicastRoute>();
+  nr->dest_ref()->ip_ref() = network::toBinaryAddress(folly::IPAddress(prefix));
+  nr->dest_ref()->prefixLength_ref() = prefixLen;
+  nr->nextHopAddrs_ref()->push_back(
+      network::toBinaryAddress(folly::IPAddress(nxtHop)));
+  nr->adminDistance_ref() = distance;
+  return nr;
+}
+
 } // namespace util
 
 } // namespace facebook::fboss

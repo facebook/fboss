@@ -36,6 +36,11 @@ LabelNextHopEntry getPopLabelNextHopEntry(
     std::vector<folly::IPAddress> addrs = {});
 
 std::vector<MplsRoute> getTestRoutes(int base = 0, int count = 4);
+std::unique_ptr<UnicastRoute> makeUnicastRoute(
+    std::string prefix,
+    int prefixLen,
+    std::string nxtHop,
+    AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE);
 
 } // namespace util
 

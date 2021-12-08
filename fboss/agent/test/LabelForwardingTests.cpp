@@ -78,6 +78,61 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
   }
 }
 
+TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
+  FLAGS_mpls_rib = true;
+  auto clientAdmin = this->sw->clientIdToAdminDistance((int)ClientID::OPENR);
+  MplsRoute mplsRoute;
+  mplsRoute.topLabel_ref() = 10010;
+
+  std::vector<folly::IPAddress> connectedIps{
+      folly::IPAddress("10.0.0.101"),
+      folly::IPAddress("10.0.55.101"),
+  };
+  std::vector<folly::IPAddress> recursiveIps{
+      folly::IPAddress("11.0.0.1"),
+      folly::IPAddress("11.0.1.1"),
+  };
+
+  for (int i = 0; i < 2; i++) {
+    this->thriftHandler->addUnicastRoute(
+        (int)ClientID::OPENR,
+        util::makeUnicastRoute(
+            recursiveIps[i].str(), 24, connectedIps[i].str(), clientAdmin));
+  }
+
+  for (auto i = 0; i < 2; i++) {
+    NextHopThrift nexthop;
+
+    nexthop.mplsAction_ref() = MplsAction();
+    if (i % 2) {
+      nexthop.mplsAction_ref()->action_ref() = MplsActionCode::PHP;
+    } else {
+      nexthop.mplsAction_ref()->action_ref() = MplsActionCode::SWAP;
+      nexthop.mplsAction_ref()->swapLabel_ref() = 10011;
+    }
+    nexthop.address_ref()->addr_ref()->append(
+        reinterpret_cast<const char*>(recursiveIps[i].bytes()),
+        folly::IPAddressV4::byteCount());
+    mplsRoute.nextHops_ref()->emplace_back(std::move(nexthop));
+  }
+
+  auto routes = std::make_unique<std::vector<MplsRoute>>();
+  routes->push_back(mplsRoute);
+  this->thriftHandler->addMplsRoutes(
+      static_cast<int>(ClientID::OPENR), std::move(routes));
+  waitForStateUpdates(this->sw);
+  auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+  const auto& labelFibEntry =
+      labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
+  EXPECT_NE(nullptr, labelFibEntry);
+  auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
+  EXPECT_EQ(nexthops.size(), 2);
+  auto idx = 0;
+  for (const auto& nhop : nexthops) {
+    EXPECT_EQ(nhop.addr(), connectedIps[idx++]);
+  }
+}
+
 TEST_P(LabelForwardingTest, deleteMplsRoutes) {
   FLAGS_mpls_rib = GetParam();
   std::array<ClientID, 2> clients{
