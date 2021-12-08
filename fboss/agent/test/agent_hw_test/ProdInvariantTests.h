@@ -11,10 +11,16 @@ class ProdInvariantTest : public ProdAgentTests {
   void setupConfigFlag() override;
   cfg::SwitchConfig initialConfig();
   void verifyCopp();
+  void verifyLoadBalancing();
 
  private:
+  std::vector<PortID> getEcmpPortIds();
   void sendTraffic();
+  PortID getDownlinkPort();
   void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
+  std::vector<PortDescriptor> ecmpPorts_{};
+  std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports);
 };
 
 int ProdInvariantTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);

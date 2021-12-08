@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
@@ -36,14 +37,12 @@ void ProdInvariantTest::setupAgentTestEcmp(
     ports.insert(ecmpPort);
   });
 
-  auto macIntf = utility::getInterfaceMac(
-      sw()->getState(), (*sw()->getState()->getVlans()->begin())->getID());
   sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-    utility::EcmpSetupTargetedPorts6 ecmp6(state, macIntf);
+    utility::EcmpSetupTargetedPorts6 ecmp6(state);
     return ecmp6.resolveNextHops(state, ports);
   });
 
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), macIntf);
+  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ports);
@@ -55,11 +54,10 @@ void ProdInvariantTest::SetUp() {
       utility::getAllUplinkDownlinkPorts(
           platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
           .first;
-  std::vector<PortDescriptor> ecmpPorts;
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
-    ecmpPorts.push_back(PortDescriptor(uplinkPort));
+    ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
-  setupAgentTestEcmp(ecmpPorts);
+  setupAgentTestEcmp(ecmpPorts_);
   XLOG(INFO) << "ProdInvariantTest setup done";
 }
 
@@ -95,15 +93,73 @@ void ProdInvariantTest::setupConfigFlag() {
   platform()->reloadConfig();
 }
 
-void ProdInvariantTest::verifyCopp() {
+void ProdInvariantTest::sendTraffic() {
+  auto mac = utility::getInterfaceMac(
+      sw()->getState(), (*sw()->getState()->getVlans()->begin())->getID());
+  utility::pumpTraffic(
+      true,
+      sw()->getHw(),
+      mac,
+      (*sw()->getState()->getVlans()->begin())->getID(),
+      getDownlinkPort());
+}
+
+PortID ProdInvariantTest::getDownlinkPort() {
+  // pick the first downlink in the list
   auto downlinkPort = utility::getAllUplinkDownlinkPorts(
                           sw()->getHw(), initialConfig(), kEcmpWidth, false)
                           .second[0];
+  return downlinkPort;
+}
+
+std::map<PortID, HwPortStats> ProdInvariantTest::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  std::map<PortID, HwPortStats> portIdStatsMap;
+  auto portNameStatsMap = sw()->getHw()->getPortStats();
+  for (auto [portName, stats] : portNameStatsMap) {
+    auto portId = sw()->getState()->getPorts()->getPort(portName)->getID();
+    if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
+      continue;
+    }
+    portIdStatsMap.emplace((PortID)portId, stats);
+  }
+  return portIdStatsMap;
+}
+
+std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
+  std::vector<PortID> ecmpPortIds{};
+  for (auto portDesc : ecmpPorts_) {
+    EXPECT_TRUE(portDesc.isPhysicalPort());
+    auto portId = portDesc.phyPortID();
+    ecmpPortIds.emplace_back(portId);
+  }
+  return ecmpPortIds;
+}
+
+void ProdInvariantTest::verifyLoadBalancing() {
+  sendTraffic();
+  auto getPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+
+  bool loadBalanced = false;
+  loadBalanced = utility::isLoadBalanced(
+      ecmpPorts_,
+      std::vector<NextHopWeight>(kEcmpWidth, 1),
+      getPortStatsFn,
+      25);
+  EXPECT_TRUE(loadBalanced);
+  XLOG(INFO) << "Verify loadbalancing done";
+}
+
+void ProdInvariantTest::verifyCopp() {
   utility::verifyCoppInvariantHelper(
       sw()->getHw(),
       sw()->getPlatform()->getAsic(),
       sw()->getState(),
-      downlinkPort);
+      getDownlinkPort());
+  XLOG(INFO) << "Verify COPP done";
 }
 
 int ProdInvariantTestMain(
@@ -117,7 +173,10 @@ int ProdInvariantTestMain(
 
 TEST_F(ProdInvariantTest, verifyCopp) {
   auto setup = [&]() {};
-  auto verify = [&]() { verifyCopp(); };
+  auto verify = [&]() {
+    verifyCopp();
+    verifyLoadBalancing();
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
