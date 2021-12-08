@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include "fboss/agent/ThriftHandler.h"
@@ -12,7 +13,7 @@ using namespace ::testing;
 
 namespace facebook::fboss {
 
-class LabelForwardingTest : public ::testing::Test {
+class LabelForwardingTest : public ::testing::TestWithParam<bool> {
  public:
   void SetUp() override {
     // Setup a default state object
@@ -42,7 +43,8 @@ class LabelForwardingTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
 
-TEST_F(LabelForwardingTest, addMplsRoutes) {
+TEST_P(LabelForwardingTest, addMplsRoutes) {
+  FLAGS_mpls_rib = GetParam();
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -76,7 +78,8 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
   }
 }
 
-TEST_F(LabelForwardingTest, deleteMplsRoutes) {
+TEST_P(LabelForwardingTest, deleteMplsRoutes) {
+  FLAGS_mpls_rib = GetParam();
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -131,7 +134,8 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
   }
 }
 
-TEST_F(LabelForwardingTest, syncMplsFib) {
+TEST_P(LabelForwardingTest, syncMplsFib) {
+  FLAGS_mpls_rib = GetParam();
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -205,7 +209,8 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
   }
 }
 
-TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
+TEST_P(LabelForwardingTest, getMplsRouteTableByClient) {
+  FLAGS_mpls_rib = GetParam();
   std::array<ClientID, 2> clients{
       ClientID::OPENR,
       ClientID::BGPD,
@@ -250,7 +255,8 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
   }
 }
 
-TEST_F(LabelForwardingTest, unresolvedNextHops) {
+TEST_P(LabelForwardingTest, unresolvedNextHops) {
+  FLAGS_mpls_rib = GetParam();
   std::vector<MplsRoute> mplsRoutes;
   std::vector<MplsActionCode> actions{
       MplsActionCode::SWAP,
@@ -298,8 +304,9 @@ TEST_F(LabelForwardingTest, unresolvedNextHops) {
         labelFibEntry->getEntryForClient(ClientID::OPENR);
 
     EXPECT_NE(nullptr, labelFibEntryForClient);
-    auto nexthops = labelFibEntryForClient->getNextHopSet();
-    EXPECT_EQ(nexthops.size(), 4);
+    auto clientNexthops = labelFibEntryForClient->getNextHopSet();
+    EXPECT_EQ(clientNexthops.size(), 4);
+    auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
     for (auto nexthop : nexthops) {
       // no unresolved next hops , all are resolved
       EXPECT_TRUE(nexthop.isResolved());
@@ -331,7 +338,8 @@ TEST_F(LabelForwardingTest, unresolvedNextHops) {
   }
 }
 
-TEST_F(LabelForwardingTest, invalidUnresolvedNextHops) {
+TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
+  FLAGS_mpls_rib = GetParam();
   MplsRoute mplsRoute;
   *mplsRoute.topLabel_ref() = 10010;
   std::vector<folly::IPAddress> ips{
@@ -352,10 +360,23 @@ TEST_F(LabelForwardingTest, invalidUnresolvedNextHops) {
 
   auto routes = std::make_unique<std::vector<MplsRoute>>();
   routes->push_back(mplsRoute);
-  EXPECT_THROW(
-      this->thriftHandler->addMplsRoutes(
-          static_cast<int>(ClientID::OPENR), std::move(routes)),
-      FbossError);
+  // With RIB, the route will get resolved over 2 valid nhs.
+  if (FLAGS_mpls_rib) {
+    this->thriftHandler->addMplsRoutes(
+        static_cast<int>(ClientID::OPENR), std::move(routes));
+    waitForStateUpdates(this->sw);
+    auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+    const auto& labelFibEntry =
+        labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
+    EXPECT_NE(nullptr, labelFibEntry);
+    auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
+    EXPECT_EQ(nexthops.size(), 2);
+  } else {
+    EXPECT_THROW(
+        this->thriftHandler->addMplsRoutes(
+            static_cast<int>(ClientID::OPENR), std::move(routes)),
+        FbossError);
+  }
 }
 
 TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
@@ -410,7 +431,8 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
       FbossError);
 }
 
-TEST_F(LabelForwardingTest, popAndLookUp) {
+TEST_P(LabelForwardingTest, popAndLookUp) {
+  FLAGS_mpls_rib = GetParam();
   MplsRoute mplsRoute0;
   *mplsRoute0.topLabel_ref() = 10010;
   folly::IPAddress ips0{"::"};
@@ -458,5 +480,10 @@ TEST_F(LabelForwardingTest, popAndLookUpInvalid) {
           static_cast<int>(ClientID::OPENR), std::move(routes0)),
       FbossError);
 }
+
+INSTANTIATE_TEST_CASE_P(
+    LabelForwardingTest,
+    LabelForwardingTest,
+    ::testing::Bool());
 
 } // namespace facebook::fboss
