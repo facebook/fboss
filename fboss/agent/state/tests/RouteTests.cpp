@@ -207,6 +207,28 @@ TEST(Route, serializeRoute) {
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
 }
 
+TEST(Route, serializeMplsRoute) {
+  ClientID clientId = ClientID(1);
+  auto nxtHops = makeNextHops(
+      {"10.10.10.10", "11.11.11.11"},
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
+  Route<LabelID> rt(LabelID(100));
+  rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
+
+  // to folly dynamic
+  folly::dynamic obj = rt.toFollyDynamic();
+  // to string
+  folly::json::serialization_opts serOpts;
+  serOpts.allow_non_string_keys = true;
+  std::string json = folly::json::serialize(obj, serOpts);
+  // back to folly dynamic
+  folly::dynamic obj2 = folly::parseJson(json, serOpts);
+  // back to Route object
+  auto rt2 = Route<LabelID>::fromFollyDynamic(obj2);
+  ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
+  EXPECT_EQ(rt2->getID().label, 100);
+}
+
 // Serialization/deseralization of Routes with counterID
 TEST(Route, serializeRouteCounterID) {
   ClientID clientId = ClientID(1);

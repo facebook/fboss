@@ -37,10 +37,13 @@ constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 
 namespace {
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
+RouteNextHopSet makeNextHops(
+    std::vector<std::string> ipsAsStrings,
+    std::optional<LabelForwardingAction> mplsAction = std::nullopt) {
   RouteNextHopSet nhops;
   for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT));
+    nhops.emplace(
+        UnresolvedNextHop(IPAddress(ipAsString), ECMP_WEIGHT, mplsAction));
   }
   return nhops;
 }
@@ -57,6 +60,22 @@ void EXPECT_ROUTES_MATCH(
     auto iterB = routesB->exactMatch(prefixA.network, prefixA.mask);
     ASSERT_NE(routesB->end(), iterB);
     auto routeB = iterB->value();
+
+    EXPECT_TRUE(routeB->isSame(routeA.get()));
+  }
+}
+
+void EXPECT_MPLS_ROUTES_MATCH(
+    const LabelToRouteMap* routesA,
+    const LabelToRouteMap* routesB) {
+  EXPECT_EQ(routesA->size(), routesB->size());
+  for (const auto& entryA : *routesA) {
+    auto routeA = entryA.second;
+    auto labelA = routeA->prefix().label;
+
+    auto iterB = routesB->find(labelA);
+    ASSERT_NE(routesB->end(), iterB);
+    auto routeB = iterB->second;
 
     EXPECT_TRUE(routeB->isSame(routeA.get()));
   }
@@ -101,6 +120,7 @@ TEST(Route, removeRoutesForClient) {
 TEST(Route, serializeRouteTable) {
   IPv4NetworkToRouteMap v4Routes;
   IPv6NetworkToRouteMap v6Routes;
+  LabelToRouteMap mplsRoutes;
 
   // 2 different nexthops
   RouteNextHopSet nhop1 = makeNextHops({"1.1.1.10"}); // resolved by intf 1
@@ -114,7 +134,7 @@ TEST(Route, serializeRouteTable) {
   std::optional<RouteCounterID> counterID1("route.counter.0");
   std::optional<RouteCounterID> counterID2("route.counter.1");
 
-  RibRouteUpdater u2(&v4Routes, &v6Routes);
+  RibRouteUpdater u2(&v4Routes, &v6Routes, &mplsRoutes);
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
@@ -149,6 +169,31 @@ TEST(Route, serializeRouteTable) {
   auto newV6Routes = NetworkToRouteMap<folly::IPAddressV6>::fromFollyDynamic(
       deserializedAsObjectV6);
   EXPECT_ROUTES_MATCH(origV6Routes, &newV6Routes);
+
+  RouteNextHopSet mplsNhop1 = makeNextHops(
+      {"1.1.1.10"},
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
+  RouteNextHopSet mplsNhop2 = makeNextHops(
+      {"2.2.2.10"},
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
+  u2.update<RibRouteUpdater::MplsRouteEntry, LabelID>(
+      kClientA,
+      {
+          {LabelID(100), RouteNextHopEntry(mplsNhop1, kDistance)},
+          {LabelID(101), RouteNextHopEntry(mplsNhop2, kDistance)},
+      },
+      {},
+      false);
+
+  auto origMplsRoutes = &mplsRoutes;
+  auto serializedAsObjectMpls = origMplsRoutes->toFollyDynamic();
+  auto serializedAsJsonMpls =
+      folly::json::serialize(serializedAsObjectMpls, serOpts);
+  auto deserializedAsObjectMpls =
+      folly::parseJson(serializedAsJsonMpls, serOpts);
+  auto newMplsRoutes =
+      NetworkToRouteMap<LabelID>::fromFollyDynamic(deserializedAsObjectMpls);
+  EXPECT_MPLS_ROUTES_MATCH(origMplsRoutes, &newMplsRoutes);
 }
 
 } // namespace facebook::fboss

@@ -250,7 +250,9 @@ std::string fbossHexDump(folly::ByteRange buf);
 std::string fbossHexDump(folly::StringPiece buf);
 std::string fbossHexDump(const std::string& buf);
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs);
+RouteNextHopSet makeNextHops(
+    std::vector<std::string> ipStrs,
+    std::optional<LabelForwardingAction> mplsAction = std::nullopt);
 
 template <typename AddrT>
 inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {

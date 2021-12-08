@@ -539,10 +539,12 @@ void RxPacketMatcher::DescribeNegationTo(std::ostream* os) const {
   *os << "not " << name_;
 }
 
-RouteNextHopSet makeNextHops(std::vector<std::string> ipStrs) {
+RouteNextHopSet makeNextHops(
+    std::vector<std::string> ipStrs,
+    std::optional<LabelForwardingAction> mplsAction) {
   RouteNextHopSet nhops;
   for (const std::string& ip : ipStrs) {
-    nhops.emplace(UnresolvedNextHop(IPAddress(ip), ECMP_WEIGHT));
+    nhops.emplace(UnresolvedNextHop(IPAddress(ip), ECMP_WEIGHT, mplsAction));
   }
   return nhops;
 }
