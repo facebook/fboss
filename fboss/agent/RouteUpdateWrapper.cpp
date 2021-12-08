@@ -70,14 +70,34 @@ void RouteUpdateWrapper::delRoute(
       std::move(pfx));
 }
 
-void RouteUpdateWrapper::program(const SyncFibFor& syncFibFor) {
-  for (const auto& ridAndClient : syncFibFor) {
-    if (ribRoutesToAddDel_.find(ridAndClient) == ribRoutesToAddDel_.end()) {
-      ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
+void RouteUpdateWrapper::addRoute(ClientID clientId, const MplsRoute& route) {
+  ribMplsRoutesToAddDel_[{RouterID(0), clientId}].toAdd.emplace_back(route);
+}
+
+void RouteUpdateWrapper::delRoute(MplsLabel label, ClientID clientId) {
+  ribMplsRoutesToAddDel_[std::make_pair(RouterID(0), clientId)]
+      .toDel.emplace_back(label);
+}
+
+void RouteUpdateWrapper::program(const SyncFibInfo& syncFibInfo) {
+  if (syncFibInfo.isSyncFibIP()) {
+    for (const auto& ridAndClient : syncFibInfo.ridAndClients) {
+      if (ribRoutesToAddDel_.find(ridAndClient) == ribRoutesToAddDel_.end()) {
+        ribRoutesToAddDel_[ridAndClient] = AddDelRoutes{};
+      }
     }
   }
-  programStandAloneRib(syncFibFor);
+  if (syncFibInfo.isSyncFibMpls()) {
+    for (const auto& ridAndClient : syncFibInfo.ridAndClients) {
+      if (ribMplsRoutesToAddDel_.find(ridAndClient) ==
+          ribMplsRoutesToAddDel_.end()) {
+        ribMplsRoutesToAddDel_[ridAndClient] = AddDelMplsRoutes{};
+      }
+    }
+  }
+  programStandAloneRib(syncFibInfo.ridAndClients);
   ribRoutesToAddDel_.clear();
+  ribMplsRoutesToAddDel_.clear();
   configRoutes_.reset();
 }
 

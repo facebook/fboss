@@ -135,7 +135,9 @@ void routeAddDelBenchmarker(bool measureAdd) {
               [&updater, kRid](const auto& route) {
                 updater.addRoute(kRid, ClientID::BGPD, route);
               });
-          updater.program({{kRid, ClientID::BGPD}});
+          updater.program(
+              {{{kRid, ClientID::BGPD}},
+               RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
         };
     // Sync fib with same set of routes
     syncFib(allThriftRoutes);

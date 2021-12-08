@@ -765,7 +765,8 @@ void ThriftHandler::updateUnicastRoutesImpl(
     syncFibs.insert({routerID, clientID});
   }
   try {
-    updater.program(syncFibs);
+    updater.program(
+        {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
   } catch (const FbossHwUpdateError& ex) {
     translateToFibError(ex);
   }

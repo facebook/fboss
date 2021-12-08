@@ -190,7 +190,8 @@ void programRoutes(
   if (syncFib) {
     syncFibFor.insert({vrfZero, client});
   }
-  routeUpdater.program(syncFibFor);
+  routeUpdater.program(
+      {syncFibFor, RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
 }
 void programRoutes(
     SwSwitch* sw,

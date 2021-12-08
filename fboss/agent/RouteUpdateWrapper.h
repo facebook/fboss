@@ -29,6 +29,10 @@ class RouteUpdateWrapper {
     std::vector<UnicastRoute> toAdd;
     std::vector<IpPrefix> toDel;
   };
+  struct AddDelMplsRoutes {
+    std::vector<MplsRoute> toAdd;
+    std::vector<MplsLabel> toDel;
+  };
 
  public:
   using PrefixToInterfaceIDAndIP = boost::container::
@@ -45,6 +49,17 @@ class RouteUpdateWrapper {
   };
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
+  struct SyncFibInfo {
+    enum SyncFibType { IP_ONLY, MPLS_ONLY, ALL };
+    SyncFibFor ridAndClients;
+    SyncFibType type;
+    bool isSyncFibMpls() const {
+      return (type == MPLS_ONLY || type == ALL);
+    }
+    bool isSyncFibIP() const {
+      return (type == IP_ONLY || type == ALL);
+    }
+  };
   virtual ~RouteUpdateWrapper() = default;
   using UpdateStatistics = RoutingInformationBase::UpdateStatistics;
   void addRoute(
@@ -55,6 +70,7 @@ class RouteUpdateWrapper {
       RouteNextHopEntry entry);
 
   void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
+  void addRoute(ClientID clientId, const MplsRoute& route);
   void delRoute(
       RouterID id,
       const folly::IPAddress& network,
@@ -62,6 +78,7 @@ class RouteUpdateWrapper {
       ClientID clientId);
 
   void delRoute(RouterID id, const IpPrefix& pfx, ClientID clientId);
+  void delRoute(MplsLabel label, ClientID clientId);
   void setRoutesToConfig(
       const RouterIDAndNetworkToInterfaceRoutes&
           _configRouterIDToInterfaceRoutes,
@@ -70,7 +87,7 @@ class RouteUpdateWrapper {
       const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToNull,
       const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToCpu,
       const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes);
-  void program(const SyncFibFor& syncFibFor = {});
+  void program(const SyncFibInfo& syncFibInfo = {});
   void programMinAlpmState();
   void programClassID(
       RouterID rid,
@@ -102,6 +119,8 @@ class RouteUpdateWrapper {
   RouteUpdateWrapper& operator=(RouteUpdateWrapper&&) = default;
   std::unordered_map<std::pair<RouterID, ClientID>, AddDelRoutes>
       ribRoutesToAddDel_;
+  std::unordered_map<std::pair<RouterID, ClientID>, AddDelMplsRoutes>
+      ribMplsRoutesToAddDel_;
   RoutingInformationBase* rib_{nullptr};
   std::optional<FibUpdateFunction> fibUpdateFn_;
   void* fibUpdateCookie_{nullptr};

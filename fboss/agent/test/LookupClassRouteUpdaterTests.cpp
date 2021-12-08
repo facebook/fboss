@@ -825,7 +825,9 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithSyncFib) {
       ClientID::BGPD,
       RouteNextHopEntry(nexthops, AdminDistance::EBGP));
   // SyncFib for BGP
-  updater.program({{this->kRid(), ClientID::BGPD}});
+  updater.program(
+      {{{this->kRid(), ClientID::BGPD}},
+       RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
   waitForStateUpdates(this->sw_);
   // ClassID should be unchanged
   this->verifyClassIDHelper(
