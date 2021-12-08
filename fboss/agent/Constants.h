@@ -43,6 +43,7 @@ inline constexpr folly::StringPiece kPrefix{"prefix"};
 inline constexpr folly::StringPiece kRib{"rib"};
 inline constexpr folly::StringPiece kRibV4{"ribV4"};
 inline constexpr folly::StringPiece kRibV6{"ribV6"};
+inline constexpr folly::StringPiece kRibMpls{"ribMpls"};
 inline constexpr folly::StringPiece kRouterId{"routerId"};
 inline constexpr folly::StringPiece kStack{"stack"};
 inline constexpr folly::StringPiece kSwSwitch{"swSwitch"};

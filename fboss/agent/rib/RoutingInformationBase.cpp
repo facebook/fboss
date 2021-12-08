@@ -17,6 +17,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -534,6 +535,8 @@ folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
         routeTable.second.v4NetworkToRoute.toFollyDynamic(filter);
     rib[routerIdStr][kRibV6] =
         routeTable.second.v6NetworkToRoute.toFollyDynamic(filter);
+    rib[routerIdStr][kRibMpls] =
+        routeTable.second.labelToRoute.toFollyDynamic(filter);
   }
 
   return rib;
@@ -550,8 +553,8 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
         vrf,
         RouteTable{
             IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(
-                routeTable.second[kRibV6])}));
+            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
+            LabelToRouteMap::fromFollyDynamic(routeTable.second[kRibMpls])}));
   }
 
   if (fibs) {
