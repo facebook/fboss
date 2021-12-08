@@ -269,10 +269,12 @@ void SaiSwitchManager::programLagLoadBalancerParams(
 
 void SaiSwitchManager::addOrUpdateLagLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
+#if !defined(SAI_VERSION_6_0_0_11_ODP)
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_LAG_HASH)) {
     XLOG(WARN) << "Skip programming SAI_LAG_HASH, feature not supported ";
     return;
   }
+#endif
   programLagLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
   if (newLb->getIPv4Fields().size()) {

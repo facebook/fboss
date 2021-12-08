@@ -175,10 +175,19 @@ TEST_F(HwHashPolarizationTests, fullXfullHash) {
 }
 
 TEST_F(HwHashPolarizationTests, fullXHalfHash) {
-  runTest(
-      utility::getEcmpFullHashConfig(getPlatform()),
-      utility::getEcmpHalfHashConfig(getPlatform()),
-      false /*expect polarization*/);
+  auto firstHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
+  firstHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
+  firstHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("fe:bd:67:0e:09:db"));
+
+  auto secondHashes = utility::getEcmpHalfTrunkFullHashConfig(getPlatform());
+  secondHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+  secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
+
+  runTest(firstHashes, secondHashes, false /*expect polarization*/);
 }
 
 TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
