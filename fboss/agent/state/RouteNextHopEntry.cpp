@@ -496,6 +496,18 @@ RouteNextHopEntry RouteNextHopEntry::from(
       RouteForwardAction::TO_CPU, adminDistance, counterID);
 }
 
+RouteNextHopEntry RouteNextHopEntry::from(
+    const facebook::fboss::MplsRoute& route,
+    AdminDistance defaultAdminDistance,
+    std::optional<RouteCounterID> counterID) {
+  RouteNextHopSet nexthops = util::toRouteNextHopSet(*route.nextHops_ref());
+  auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
+  if (nexthops.size()) {
+    return {std::move(nexthops), adminDistance, counterID};
+  }
+  return {RouteForwardAction::TO_CPU, adminDistance, counterID};
+}
+
 RouteNextHopEntry RouteNextHopEntry::createDrop(AdminDistance adminDistance) {
   return RouteNextHopEntry(RouteForwardAction::DROP, adminDistance);
 }

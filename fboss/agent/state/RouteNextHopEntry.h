@@ -107,6 +107,10 @@ class RouteNextHopEntry {
       const facebook::fboss::UnicastRoute& route,
       AdminDistance defaultAdminDistance,
       std::optional<RouteCounterID> counterID);
+  static RouteNextHopEntry from(
+      const facebook::fboss::MplsRoute& route,
+      AdminDistance defaultAdminDistance,
+      std::optional<RouteCounterID> counterID);
   static facebook::fboss::RouteNextHopEntry createDrop(
       AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
   static facebook::fboss::RouteNextHopEntry createToCpu(
