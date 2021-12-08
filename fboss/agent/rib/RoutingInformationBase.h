@@ -32,6 +32,7 @@ using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& labelToRoute,
     void* cookie)>;
 
 /*

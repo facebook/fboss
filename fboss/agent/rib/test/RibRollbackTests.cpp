@@ -47,6 +47,7 @@ class FailSomeUpdates {
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      const LabelToRouteMap& labelToRoute,
       void* cookie) {
     if (toFail_.find(++cnt_) != toFail_.end()) {
       auto curSwitchStatePtr =
@@ -57,11 +58,12 @@ class FailSomeUpdates {
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
+          labelToRoute,
           static_cast<void*>(&desiredState));
       throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
     return ribToSwitchStateUpdate(
-        vrf, v4NetworkToRoute, v6NetworkToRoute, cookie);
+        vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute, cookie);
   }
 
  private:

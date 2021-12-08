@@ -18,6 +18,7 @@ std::shared_ptr<facebook::fboss::SwitchState> ribToSwitchStateUpdate(
     facebook::fboss::RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& /* labelToRoute */,
     void* cookie) {
   ForwardingInformationBaseUpdater fibUpdater(
       vrf, v4NetworkToRoute, v6NetworkToRoute);
@@ -33,6 +34,7 @@ std::shared_ptr<facebook::fboss::SwitchState> noopFibUpdate(
     facebook::fboss::RouterID /*vrf*/,
     const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
     const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
+    const LabelToRouteMap& /*labelToRoute*/,
     void* /*cookie*/) {
   return nullptr;
 }

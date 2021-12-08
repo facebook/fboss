@@ -22,11 +22,13 @@ std::shared_ptr<SwitchState> ribToSwitchStateUpdate(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& labelToRoute,
     void* cookie);
 
 std::shared_ptr<SwitchState> noopFibUpdate(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& labelToRoute,
     void* cookie);
 } // namespace facebook::fboss

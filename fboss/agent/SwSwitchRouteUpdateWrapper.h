@@ -20,6 +20,7 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie);
 
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
