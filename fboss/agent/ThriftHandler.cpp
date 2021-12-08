@@ -1960,6 +1960,9 @@ void ThriftHandler::addMplsRoutes(
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
+  if (FLAGS_mpls_rib) {
+    return addMplsRibRoutes(clientId, std::move(mplsRoutes), false /* sync */);
+  }
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -2067,12 +2070,40 @@ void ThriftHandler::addMplsRoutesImpl(
   }
 }
 
+void ThriftHandler::addMplsRibRoutes(
+    int16_t clientId,
+    std::unique_ptr<std::vector<MplsRoute>> mplsRoutes,
+    bool sync) const {
+  auto updater = sw_->getRouteUpdater();
+  auto clientID = ClientID(clientId);
+  for (const auto& route : *mplsRoutes) {
+    int topLabel = *route.topLabel_ref();
+    if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
+      throw FbossError("invalid value for label ", topLabel);
+    }
+    updater.addRoute(clientID, route);
+  }
+  RouteUpdateWrapper::SyncFibFor syncFibs;
+  if (sync) {
+    syncFibs.insert({RouterID(0), clientID});
+  }
+  try {
+    updater.program(
+        {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::MPLS_ONLY});
+  } catch (const FbossHwUpdateError& ex) {
+    translateToFibError(ex);
+  }
+}
+
 void ThriftHandler::deleteMplsRoutes(
     int16_t clientId,
-    std::unique_ptr<std::vector<int32_t>> topLabels) {
+    std::unique_ptr<std::vector<MplsLabel>> topLabels) {
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
+  if (FLAGS_mpls_rib) {
+    return deleteMplsRibRoutes(clientId, std::move(topLabels));
+  }
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -2089,11 +2120,33 @@ void ThriftHandler::deleteMplsRoutes(
   sw_->updateStateBlocking("deleteMplsRoutes", updateFn);
 }
 
+void ThriftHandler::deleteMplsRibRoutes(
+    int16_t clientId,
+    std::unique_ptr<std::vector<MplsLabel>> topLabels) const {
+  auto updater = sw_->getRouteUpdater();
+  auto clientID = ClientID(clientId);
+  for (const auto& label : *topLabels) {
+    if (label > mpls_constants::MAX_MPLS_LABEL_) {
+      throw FbossError("invalid value for label ", label);
+    }
+    updater.delRoute(MplsLabel(label), clientID);
+  }
+  try {
+    updater.program();
+  } catch (const FbossHwUpdateError& ex) {
+    translateToFibError(ex);
+  }
+  return;
+}
+
 void ThriftHandler::syncMplsFib(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  if (FLAGS_mpls_rib) {
+    return addMplsRibRoutes(clientId, std::move(mplsRoutes), true /* sync */);
+  }
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();

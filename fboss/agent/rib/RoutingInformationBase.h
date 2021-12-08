@@ -22,6 +22,8 @@
 #include <thread>
 #include <vector>
 
+DECLARE_bool(mpls_rib);
+
 namespace facebook::fboss {
 class SwitchState;
 class ForwardingInformationBaseMap;

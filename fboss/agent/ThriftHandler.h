@@ -348,6 +348,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::shared_ptr<SwitchState>* state,
       ClientID clientId,
       const std::vector<MplsRoute>& mplsRoutes) const;
+  void addMplsRibRoutes(
+      int16_t clientId,
+      std::unique_ptr<std::vector<MplsRoute>> mplsRoutes,
+      bool sync) const;
+  void deleteMplsRibRoutes(
+      int16_t clientId,
+      std::unique_ptr<std::vector<MplsLabel>> mplsRoutes) const;
   void getPortStatusImpl(
       std::map<int32_t, PortStatus>& statusMap,
       const std::unique_ptr<std::vector<int32_t>>& ports) const;
