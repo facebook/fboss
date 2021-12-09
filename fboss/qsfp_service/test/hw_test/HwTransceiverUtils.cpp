@@ -24,32 +24,46 @@ void verifyTransceiverSettings(
     XLOG(INFO) << " Skip verifying: " << id << ", not present";
     return;
   }
+
   XLOG(INFO) << " Verifying: " << id;
   // Only testing QSFP transceivers right now
   EXPECT_TRUE(
       *transceiver.transceiver_ref() == TransceiverType::QSFP ||
       *transceiver.transceiver_ref() == TransceiverType::SFP);
+
   auto settings = apache::thrift::can_throw(*transceiver.settings_ref());
-  if (*transceiver.transceiver_ref() == TransceiverType::QSFP) {
-    // Disable low power mode
-    EXPECT_TRUE(
-        *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
-        *settings.powerControl_ref() == PowerControlState::HIGH_POWER_OVERRIDE);
-    EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
-    EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+
+  if (TransmitterTechnology::COPPER ==
+      *(transceiver.cable_ref().value_or({}).transmitterTech_ref())) {
+    XLOG(INFO) << " Skip verifying power, CDR, squelch, and media lane Tx: "
+               << id << ", for copper cable";
+  } else {
+    if (*transceiver.transceiver_ref() == TransceiverType::QSFP) {
+      // Disable low power mode
+      EXPECT_TRUE(
+          *settings.powerControl_ref() == PowerControlState::POWER_OVERRIDE ||
+          *settings.powerControl_ref() ==
+              PowerControlState::HIGH_POWER_OVERRIDE);
+      EXPECT_EQ(*settings.cdrTx_ref(), FeatureState::ENABLED);
+      EXPECT_EQ(*settings.cdrRx_ref(), FeatureState::ENABLED);
+
+      for (auto& mediaLane :
+           apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
+        EXPECT_FALSE(mediaLane.txSquelch_ref().value());
+      }
+
+      for (auto& hostLane :
+           apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
+        EXPECT_FALSE(hostLane.rxSquelch_ref().value());
+      }
+    }
+
     for (auto& mediaLane :
          apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
-      EXPECT_FALSE(mediaLane.txSquelch_ref().value());
-    }
-    for (auto& hostLane :
-         apache::thrift::can_throw(*settings.hostLaneSettings_ref())) {
-      EXPECT_FALSE(hostLane.rxSquelch_ref().value());
+      EXPECT_FALSE(mediaLane.txDisable_ref().value());
     }
   }
-  for (auto& mediaLane :
-       apache::thrift::can_throw(*settings.mediaLaneSettings_ref())) {
-    EXPECT_FALSE(mediaLane.txDisable_ref().value());
-  }
+
   auto mgmtInterface = apache::thrift::can_throw(
       *transceiver.transceiverManagementInterface_ref());
   EXPECT_TRUE(
@@ -114,6 +128,15 @@ void verifyTransceiverSettings(
         EXPECT_TRUE(
             *mediaId.code_ref() == MediaInterfaceCode::FR4_400G ||
             *mediaId.code_ref() == MediaInterfaceCode::LR4_400G_10KM);
+      }
+      break;
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
+      EXPECT_EQ(
+          TransmitterTechnology::COPPER,
+          *(transceiver.cable_ref().value_or({}).transmitterTech_ref()));
+
+      for (const auto& mediaId : mediaInterfaces) {
+        EXPECT_TRUE(*mediaId.code_ref() == MediaInterfaceCode::CR4_100G);
       }
       break;
     default:
