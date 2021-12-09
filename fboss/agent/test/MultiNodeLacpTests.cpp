@@ -101,14 +101,16 @@ class MultiNodeLacpTest : public MultiNodeTest {
   template <typename AddrT>
   std::vector<AddrT> getNeighborIpAddrs() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      return {AddrT(isDUT() ? "1::1" : "1::")};
+      return {AddrT(isDUT() ? "1::1" : "1::"), AddrT(isDUT() ? "2::1" : "2::")};
     } else {
-      return {AddrT(isDUT() ? "1.0.0.2" : "1.0.0.1")};
+      return {
+          AddrT(isDUT() ? "1.0.0.2" : "1.0.0.1"),
+          AddrT(isDUT() ? "2.0.0.2" : "2.0.0.1")};
     }
   }
 
   std::vector<AggregatePortID> getAggPorts() const {
-    return {AggregatePortID(kBaseAggId)};
+    return {AggregatePortID(kBaseAggId), AggregatePortID(kBaseAggId + 1)};
   }
 
   // Waits for Aggregate port to be up
@@ -316,6 +318,14 @@ TEST_F(MultiNodeLacpTest, LacpWarmBoootIsHitless) {
     if (platform()->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
       assertNoInDiscards();
     }
+    auto ecmpSizeInSw = getAggPorts().size();
+    EXPECT_EQ(
+        utility::getEcmpSizeInHw(
+            sw()->getHw(),
+            {folly::IPAddress("::"), 0},
+            RouterID(0),
+            ecmpSizeInSw),
+        ecmpSizeInSw);
     for (const auto& aggId : getAggPorts()) {
       const auto countInSw = sw()->getState()
                                  ->getAggregatePorts()

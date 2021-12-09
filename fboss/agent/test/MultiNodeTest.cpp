@@ -129,8 +129,8 @@ bool MultiNodeTest::isDUT() const {
 }
 
 std::vector<PortID> MultiNodeTest::testPorts() const {
-  if (testPorts_.size() >= 2) {
-    return std::vector<PortID>(testPorts_.begin(), testPorts_.begin() + 2);
+  if (!testPorts_.empty()) {
+    return testPorts_;
   }
   return {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)};
 }
