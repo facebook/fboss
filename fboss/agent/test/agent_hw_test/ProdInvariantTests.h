@@ -12,6 +12,7 @@ class ProdInvariantTest : public ProdAgentTests {
   cfg::SwitchConfig initialConfig();
   void verifyCopp();
   void verifyLoadBalancing();
+  void verifyDscpToQueueMapping();
 
  private:
   std::vector<PortID> getEcmpPortIds();

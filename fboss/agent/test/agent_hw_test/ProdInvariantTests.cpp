@@ -171,12 +171,48 @@ int ProdInvariantTestMain(
   return RUN_ALL_TESTS();
 }
 
-TEST_F(ProdInvariantTest, verifyCopp) {
+TEST_F(ProdInvariantTest, verifyInvariants) {
   auto setup = [&]() {};
   auto verify = [&]() {
     verifyCopp();
     verifyLoadBalancing();
+    verifyDscpToQueueMapping();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+void ProdInvariantTest::verifyDscpToQueueMapping() {
+  if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
+      platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false);
+
+  // pick the first one
+  auto downlinkPortId = uplinkDownlinkPorts.second[0];
+  // gather all uplink + downlink ports
+  std::vector<PortID> portIds = uplinkDownlinkPorts.first;
+  for (auto it = uplinkDownlinkPorts.second.begin();
+       it != uplinkDownlinkPorts.second.end();
+       ++it) {
+    portIds.push_back(*it);
+  }
+
+  auto getPortStatsFn = [&]() -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+
+  auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+      q2dscpMap,
+      sw()->getHw(),
+      sw()->getState(),
+      getPortStatsFn,
+      getEcmpPortIds(),
+      downlinkPortId));
+
+  XLOG(INFO) << "Verify DSCP to Queue mapping done";
+}
+
 } // namespace facebook::fboss
