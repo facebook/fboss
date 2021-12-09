@@ -491,9 +491,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
-  if (addedAclEntry->getSrcPort() &&
-      platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+  if (addedAclEntry->getSrcPort()) {
     if (addedAclEntry->getSrcPort().value() !=
         cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
       auto portHandle = managerTable_->portManager().getPortHandle(
@@ -854,6 +852,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() ||
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
+  if (fieldSrcPort.has_value()) {
+    matcherIsValid &= platform_->getAsic()->isSupported(
+        HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
+  }
   auto actionIsValid =
       (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
        aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
