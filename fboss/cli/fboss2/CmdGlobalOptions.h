@@ -92,6 +92,10 @@ class CmdGlobalOptions {
     return rackmonThriftPort_;
   }
 
+  int getSensorServiceThriftPort() const {
+    return sensorServiceThriftPort_;
+  }
+
   int getBmcHttpPort() const {
     return bmcHttpPort_;
   }
@@ -126,6 +130,7 @@ class CmdGlobalOptions {
   int mkaThriftPort_{5920};
   int bmcHttpPort_{8080};
   int rackmonThriftPort_{7910};
+  int sensorServiceThriftPort_{7001};
   std::string color_{"yes"};
 };
 
