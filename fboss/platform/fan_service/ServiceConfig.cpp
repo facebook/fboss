@@ -323,6 +323,24 @@ void ServiceConfig::parseFansChapter(folly::dynamic value) {
           case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm:
             newFan.rpmAccess = parseAccessMethod(value);
             break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed:
+            newFan.led = parseAccessMethod(value);
+            break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal:
+            newFan.fanGoodLedVal = static_cast<unsigned>(value.asInt());
+            break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal:
+            newFan.fanFailLedVal = static_cast<unsigned>(value.asInt());
+            break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence:
+            newFan.presence = parseAccessMethod(value);
+            break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal:
+            newFan.fanPresentVal = static_cast<unsigned>(value.asInt());
+            break;
+          case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal:
+            newFan.fanMissingVal = static_cast<unsigned>(value.asInt());
+            break;
           default:
             XLOG(ERR) << "Invalid Key in Fan Chapter Config : " << key;
             facebook::fboss::FbossError(
@@ -518,6 +536,17 @@ void ServiceConfig::prepareDict() {
   configDict_["fans"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFans;
   configDict_["pwm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPwm;
   configDict_["rpm"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanRpm;
+  configDict_["led"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanLed;
+  configDict_["fan_good_led_val"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanGoodLedVal;
+  configDict_["fan_fail_led_val"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanFailLedVal;
+  configDict_["presence"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresence;
+  configDict_["fan_present_val"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanPresentVal;
+  configDict_["fan_missing_val"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgFanMissingVal;
   configDict_["source"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource;
   configDict_["sysfs"] =

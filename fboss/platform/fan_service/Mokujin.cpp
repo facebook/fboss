@@ -86,13 +86,28 @@ int Mokujin::emergencyShutdown(
   oFs_ << std::to_string(currentTimeStampSec_) << "::"
        << "SYSTEM"
        << "::"
-       << "Emergency Shutdown Sequence Executed";
+       << "Emergency Shutdown Sequence Executed" << std::endl;
   return rc;
 }
 
-bool Mokujin::setFanPwmSysfs(std::string path, int pwm) {
+float Mokujin::readSysfs(std::string path) const {
+  float retVal = 0;
+
+  auto it = simulatedSensorRead_.find(path);
+  if (it != simulatedSensorRead_.end()) {
+    auto rawVal = it->second;
+    retVal = static_cast<float>(rawVal);
+  } else {
+    throw facebook::fboss::FbossError(
+        "Mokujin :: sysfs entry not found : ", path);
+  }
+  return retVal;
+}
+
+bool Mokujin::writeSysfs(std::string path, int value) {
   oFs_ << std::to_string(currentTimeStampSec_) << "::" << path << "::"
-       << "Set to " << std::to_string(pwm);
+       << "Set to " << std::to_string(value) << std::endl;
+  updateSimulationData(path, static_cast<float>(value));
   return true;
 }
 
@@ -100,21 +115,23 @@ uint64_t Mokujin::getCurrentTime() const {
   return currentTimeStampSec_;
 }
 
-bool Mokujin::setFanPwmShell(
+bool Mokujin::setFanShell(
     std::string command,
+    std::string keySymbol,
     std::string fanName,
     int pwm) {
   std::string pwmStr = std::to_string(pwm);
   command = replaceAllString(command, "_NAME_", fanName);
-  command = replaceAllString(command, "_PWM_", pwmStr);
+  command = replaceAllString(command, keySymbol, pwmStr);
   oFs_ << std::to_string(currentTimeStampSec_) << "::" << fanName
-       << "::" << command;
+       << "::" << command << std::endl;
   return true;
 }
 
 int Mokujin::getNextEventTime() {
   return nextEventTimeSec_;
 }
+
 bool Mokujin::hasAnyMoreEvent(uint64_t timeInSec) {
   if (nextEventTimeSec_ <= timeInSec)
     return true;

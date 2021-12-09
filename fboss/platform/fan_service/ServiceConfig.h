@@ -47,10 +47,12 @@ class FanStatus {
   float currentPwm;
   bool fanFailed;
   bool fanAccessLost;
+  bool firstTimeLedAccess;
   uint64_t timeStamp;
   FanStatus() {
     fanFailed = false;
     fanAccessLost = false;
+    firstTimeLedAccess = true;
     currentPwm = 0;
   }
 };
@@ -64,6 +66,12 @@ class Fan {
   std::string rpmSensorName;
   fan_config_structs::AccessMethod pwm;
   fan_config_structs::AccessMethod rpmAccess;
+  fan_config_structs::AccessMethod led;
+  fan_config_structs::AccessMethod presence;
+  unsigned int fanGoodLedVal;
+  unsigned int fanFailLedVal;
+  unsigned int fanPresentVal;
+  unsigned int fanMissingVal;
   unsigned int pwmMin;
   unsigned int pwmMax;
   FanStatus fanStatus;
@@ -72,6 +80,10 @@ class Fan {
   Fan() {
     pwmMin = 0;
     pwmMax = 255;
+    led.path_ref() = "";
+    presence.path_ref() = "";
+    fanGoodLedVal = 0;
+    fanFailLedVal = 0;
     fanFailThresholdInSec = 300;
   }
 };

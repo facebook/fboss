@@ -176,17 +176,27 @@ float Bsp::readSysfs(std::string path) const {
   return retVal;
 }
 
-bool Bsp::setFanPwmSysfs(std::string path, int pwm) {
-  std::string pwmStr = std::to_string(pwm);
+bool Bsp::writeSysfs(std::string path, int value) {
+  std::string valueStr = std::to_string(value);
   bool success = true;
   try {
     std::ofstream out(path);
-    out << pwmStr;
+    out << valueStr;
     out.close();
   } catch (std::exception& e) {
     success = false;
   }
   return success;
+}
+
+bool Bsp::setFanPwmSysfs(std::string path, int pwm) {
+  // Run the common sysfs access function
+  return writeSysfs(path, pwm);
+}
+
+bool Bsp::setFanLedSysfs(std::string path, int pwm) {
+  // Run the common sysfs access function
+  return writeSysfs(path, pwm);
 }
 
 std::string Bsp::replaceAllString(
@@ -203,14 +213,30 @@ std::string Bsp::replaceAllString(
   return retVal;
 }
 
-bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
+bool Bsp::setFanShell(
+    std::string command,
+    std::string keySymbol,
+    std::string fanName,
+    int pwm) {
   std::string pwmStr = std::to_string(pwm);
   command = replaceAllString(command, "_NAME_", fanName);
-  command = replaceAllString(command, "_PWM_", pwmStr);
+  // keySymbol here is what we will replace with the actual value
+  // (from the fan_service config file.)
+  command = replaceAllString(command, keySymbol, pwmStr);
   const char* charCmd = command.c_str();
   int retVal = system(charCmd);
   // Return if this command execution was successful
   return (retVal == 0);
+}
+
+bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
+  // Call the common function with _PWM_ as the token to replace
+  return setFanShell(command, "_PWM_", fanName, pwm);
+}
+
+bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
+  // Call the common function with _VALUE_ as the token to replace
+  return setFanShell(command, "_VALUE_", fanName, value);
 }
 
 } // namespace facebook::fboss::platform

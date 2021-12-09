@@ -173,23 +173,70 @@
   },
   "fans" : {
     "fan_1" : {
+      "rpm" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_rpm"
+      },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1"
-      }
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_pwm"
+      },
+      "presence" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_presence"
+      },
+      "fan_present_val" : 1,
+      "fan_missing_val" : 0,
+      "led" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_led"
+      },
+      "fan_good_led_val" : 1,
+      "fan_fail_led_val" : 0
     },
     "fan_2" : {
-      "pwm" : {
-        "source" : "util",
-        "path" : "fan_util --set --name:_NAME_ --value:_PWM_"
-      }
-
-    },
-    "fan_3" : {
+      "rpm" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_rpm"
+      },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3"
-      }
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_pwm"
+      },
+      "presence" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_presence"
+      },
+      "fan_present_val" : 1,
+      "fan_missing_val" : 0,
+      "led" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_led"
+      },
+      "fan_good_led_val" : 1,
+      "fan_fail_led_val" : 0
+    },
+    "fan_3" : {
+      "rpm" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_rpm"
+      },
+      "pwm" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_pwm"
+      },
+      "presence" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_presence"
+      },
+      "fan_present_val" : 1,
+      "fan_missing_val" : 0,
+      "led" : {
+        "source" : "sysfs",
+        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_led"
+      },
+      "fan_good_led_val" : 1,
+      "fan_fail_led_val" : 0
     }
   },
   "zones": {

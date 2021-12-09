@@ -40,14 +40,16 @@ class Bsp {
       std::shared_ptr<ServiceConfig> pServiceConfig,
       bool enable);
   // setFanPwm... : Fan pwm set function. Used by Control Logic Class
-  virtual bool setFanPwmSysfs(std::string path, int pwm);
-  virtual bool
-  setFanPwmShell(std::string command, std::string fanName, int pwm);
+  bool setFanPwmSysfs(std::string path, int pwm);
+  bool setFanPwmShell(std::string command, std::string fanName, int pwm);
+  // setFanLed... : Fan pwm set function. Used by Control Logic Class
+  bool setFanLedSysfs(std::string path, int pwm);
+  bool setFanLedShell(std::string command, std::string fanName, int pwm);
   // Other public functions that cannot be overridden
   virtual uint64_t getCurrentTime() const;
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
-  float readSysfs(std::string path) const;
+  virtual float readSysfs(std::string path) const;
 
  protected:
   // replaceAllString : String replace helper function
@@ -64,6 +66,14 @@ class Bsp {
   // Private Attributes
   int sensordThriftPort_{7001};
   bool initialSensorDataRead_{false};
+
+  // Low level access function for setting PWM and LED value
+  virtual bool writeSysfs(std::string path, int value);
+  virtual bool setFanShell(
+      std::string command,
+      std::string valueSymbol,
+      std::string fanName,
+      int pwm);
 
   // Private Methods
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs

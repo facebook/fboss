@@ -21,9 +21,6 @@ class Mokujin : public Bsp {
   int emergencyShutdown(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       bool enable) override;
-  bool setFanPwmSysfs(std::string path, int pwm) override;
-  bool setFanPwmShell(std::string command, std::string fanName, int pwm)
-      override;
   uint64_t getCurrentTime() const override;
 
   // The following public methods are used by Fan Service to interact with
@@ -39,6 +36,7 @@ class Mokujin : public Bsp {
   void updateSimulationData(std::string key, float value);
   void closeFiles();
   void openIOFiles(std::string iFileName, std::string oFileName);
+  float readSysfs(std::string path) const override;
 
  private:
   // Attributes, mostly for keeping the state of the simulation
@@ -55,5 +53,11 @@ class Mokujin : public Bsp {
   bool nextEventDeadSensor_{false};
   std::ofstream oFs_;
   bool oFOpen_{false};
+  bool writeSysfs(std::string path, int value) override;
+  bool setFanShell(
+      std::string command,
+      std::string keySymbol,
+      std::string fanName,
+      int pwm) override;
 };
 } // namespace facebook::fboss::platform

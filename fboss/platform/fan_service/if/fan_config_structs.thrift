@@ -63,6 +63,12 @@ enum FsvcConfigDictIndex {
   kFsvcCfgSensorIncrpidKp = 55,
   kFsvcCfgSensorIncrpidKi = 56,
   kFsvcCfgSensorIncrpidKd = 57,
+  kFsvcCfgFanLed = 58,
+  kFsvcCfgFanGoodLedVal = 59,
+  kFsvcCfgFanFailLedVal = 60,
+  kFsvcCfgFanPresence = 61,
+  kFsvcCfgFanPresentVal = 62,
+  kFsvcCfgFanMissingVal = 63,
 }
 
 enum ZoneType {
