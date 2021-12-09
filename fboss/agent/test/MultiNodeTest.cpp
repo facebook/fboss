@@ -31,10 +31,6 @@ DEFINE_string(
     "multinode test remote switch name");
 DECLARE_bool(run_forever);
 DECLARE_bool(nodeZ);
-
-DEFINE_int32(multiNodeTestPort1, 0, "multinode test port 1");
-DEFINE_int32(multiNodeTestPort2, 0, "multinode test port 2");
-
 DEFINE_string(
     multiNodeTestPorts,
     "",
@@ -129,10 +125,7 @@ bool MultiNodeTest::isDUT() const {
 }
 
 std::vector<PortID> MultiNodeTest::testPorts() const {
-  if (!testPorts_.empty()) {
-    return testPorts_;
-  }
-  return {PortID(FLAGS_multiNodeTestPort1), PortID(FLAGS_multiNodeTestPort2)};
+  return testPorts_;
 }
 
 std::vector<std::string> MultiNodeTest::testPortNames() const {
