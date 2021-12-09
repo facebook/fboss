@@ -15,9 +15,11 @@ struct Sensor {
   /* Overwrite data source, e.g. "lmsensor", "sysfs", "mock" */
   5: string sourceOverride;
   /* Max threshold */
-  6: float maxVal = -65535.0;
+  6: float maxVal = 65535.0;
   /* Min threshold */
   7: float minVal = -65535.0;
+  /* Scaling factor, e.g. actual_value = read_value * scale */
+  8: float scale = 1.0;
 }
 
 /**

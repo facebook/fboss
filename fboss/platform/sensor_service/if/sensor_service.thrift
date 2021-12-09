@@ -4,7 +4,6 @@ namespace py neteng.fboss.platform.sensor_service
 namespace py3 neteng.fboss.platform.sensor_service
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 
-include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 
@@ -30,7 +29,7 @@ struct SensorReadResponse {
   2: list<SensorData> sensorData;
 }
 
-service SensorServiceThrift extends fb303.FacebookService {
+service SensorServiceThrift {
   SensorReadResponse getSensorValuesByNames(
     1: list<string> sensorNames,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
