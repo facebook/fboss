@@ -93,76 +93,91 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       programRoutes<folly::IPAddressV6>();
     };
     auto verify = [this, firstHashes, secondHashes, expectPolarization]() {
-      auto ecmpPorts = getEcmpPorts();
-      auto firstVlan = utility::firstVlanID(getProgrammedState());
-      auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
-      auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
-      {
-        HwTestPacketTrapEntry trapPkts(
-            getHwSwitch(),
-            std::set<PortID>{
-                ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
-        // Set first hash
-        applyNewState(utility::addLoadBalancers(
-            getPlatform(), getProgrammedState(), firstHashes));
-
-        for (auto isV6 : {true, false}) {
-          utility::pumpTraffic(
-              isV6,
-              getHwSwitch(),
-              mac,
-              firstVlan,
-              masterLogicalPortIds()[kEcmpWidth]);
-        }
-      } // stop capture
-
-      auto firstHashPortStats =
-          getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
-      XLOG(INFO) << " Num captured packets: " << pktsReceived_.rlock()->size();
-      // Set second hash
-      applyNewState(utility::addLoadBalancers(
-          getPlatform(), getProgrammedState(), secondHashes));
-      auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
-        return utility::makeUDPTxPacket(
-            getHwSwitch(),
-            firstVlan,
-            srcMac,
-            mac,
-            ipPayload.header().srcAddr,
-            ipPayload.header().dstAddr,
-            ipPayload.payload()->header().srcPort,
-            ipPayload.payload()->header().dstPort);
-      };
+      runFirstHash(firstHashes);
       auto ethFrames = pktsReceived_.rlock();
-      for (auto& ethFrame : *ethFrames) {
-        std::unique_ptr<TxPacket> pkt;
-        auto srcMac = ethFrame.header().srcAddr;
-        if (ethFrame.header().etherType ==
-            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
-          pkt = makeTxPacket(srcMac, *ethFrame.v4PayLoad());
-        } else if (
-            ethFrame.header().etherType ==
-            static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
-          pkt = makeTxPacket(srcMac, *ethFrame.v6PayLoad());
-        } else {
-          XLOG(FATAL) << " Unexpected packet received, etherType: "
-                      << static_cast<int>(ethFrame.header().etherType);
-        }
-        getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(pkt), masterLogicalPortIds()[kEcmpWidth]);
-      }
-      auto secondHashPortStats =
-          getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
-      EXPECT_EQ(
-          utility::isLoadBalanced(
-              getStatsDelta(firstHashPortStats, secondHashPortStats),
-              kMaxDeviation),
-          !expectPolarization);
+      runSecondHash(*ethFrames, secondHashes, expectPolarization);
     };
 
     verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void runFirstHash(const std::vector<cfg::LoadBalancer>& firstHashes) {
+    auto ecmpPorts = getEcmpPorts();
+    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
+    auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
+    {
+      HwTestPacketTrapEntry trapPkts(
+          getHwSwitch(),
+          std::set<PortID>{
+              ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
+      // Set first hash
+      applyNewState(utility::addLoadBalancers(
+          getPlatform(), getProgrammedState(), firstHashes));
+
+      for (auto isV6 : {true, false}) {
+        utility::pumpTraffic(
+            isV6,
+            getHwSwitch(),
+            mac,
+            firstVlan,
+            masterLogicalPortIds()[kEcmpWidth]);
+      }
+    } // stop capture
+
+    auto firstHashPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
+    EXPECT_TRUE(utility::isLoadBalanced(
+        getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
+  }
+
+  void runSecondHash(
+      const std::vector<utility::EthFrame>& rxPackets,
+      const std::vector<cfg::LoadBalancer>& secondHashes,
+      bool expectPolarization) {
+    XLOG(INFO) << " Num captured packets: " << rxPackets.size();
+    auto ecmpPorts = getEcmpPorts();
+    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
+    auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
+
+    // Set second hash
+    applyNewState(utility::addLoadBalancers(
+        getPlatform(), getProgrammedState(), secondHashes));
+    auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
+      return utility::makeUDPTxPacket(
+          getHwSwitch(),
+          firstVlan,
+          srcMac,
+          mac,
+          ipPayload.header().srcAddr,
+          ipPayload.header().dstAddr,
+          ipPayload.payload()->header().srcPort,
+          ipPayload.payload()->header().dstPort);
+    };
+    for (auto& ethFrame : rxPackets) {
+      std::unique_ptr<TxPacket> pkt;
+      auto srcMac = ethFrame.header().srcAddr;
+      if (ethFrame.header().etherType ==
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+        pkt = makeTxPacket(srcMac, *ethFrame.v4PayLoad());
+      } else if (
+          ethFrame.header().etherType ==
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+        pkt = makeTxPacket(srcMac, *ethFrame.v6PayLoad());
+      } else {
+        XLOG(FATAL) << " Unexpected packet received, etherType: "
+                    << static_cast<int>(ethFrame.header().etherType);
+      }
+      getHwSwitch()->sendPacketOutOfPortSync(
+          std::move(pkt), masterLogicalPortIds()[kEcmpWidth]);
+    }
+    auto secondHashPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
+    EXPECT_EQ(
+        utility::isLoadBalanced(
+            getStatsDelta(preTestStats, secondHashPortStats), kMaxDeviation),
+        !expectPolarization);
   }
 
  private:
