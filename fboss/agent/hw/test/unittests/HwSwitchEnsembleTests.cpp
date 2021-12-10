@@ -30,6 +30,9 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
   uint64_t getSwitchId() const override {
     return 0;
   }
+  bool isSai() const override {
+    return false;
+  }
 
   void runDiagCommand(const std::string& /*input*/, std::string& /*output*/)
       override {}

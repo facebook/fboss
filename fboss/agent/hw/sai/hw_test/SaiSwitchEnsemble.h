@@ -63,6 +63,10 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) override;
   void gracefulExit() override;
 
+  bool isSai() const override {
+    return true;
+  }
+
  private:
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());

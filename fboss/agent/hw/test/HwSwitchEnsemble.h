@@ -212,6 +212,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::vector<PortID>& disabled,
       const int totalLinkCount);
 
+  virtual bool isSai() const = 0;
+
  protected:
   /*
    * Setup ensemble

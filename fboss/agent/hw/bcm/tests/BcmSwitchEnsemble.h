@@ -65,6 +65,10 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
       std::vector<PortID>& disabled,
       const int totalLinktCount) override;
 
+  bool isSai() const override {
+    return false;
+  }
+
  private:
   std::unique_ptr<std::thread> setupThrift() override {
     return createThriftThread(getHwSwitch());
