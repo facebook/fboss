@@ -4,6 +4,17 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
+#define ASIC_TYPE_LIST      \
+  {                         \
+      ASIC_TYPE_FAKE,       \
+      ASIC_TYPE_MOCK,       \
+      ASIC_TYPE_TRIDENT2,   \
+      ASIC_TYPE_TOMAHAWK,   \
+      ASIC_TYPE_TOMAHAWK3,  \
+      ASIC_TYPE_TOMAHAWK4,  \
+      ASIC_TYPE_TAJO,       \
+      ASIC_TYPE_ELBERT_8DD, \
+  };
 
 class HwAsic {
  public:
@@ -90,19 +101,7 @@ class HwAsic {
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
   };
 
-  enum class AsicType {
-    ASIC_TYPE_FAKE,
-    ASIC_TYPE_MOCK,
-
-    ASIC_TYPE_TRIDENT2,
-    ASIC_TYPE_TOMAHAWK,
-    ASIC_TYPE_TOMAHAWK3,
-    ASIC_TYPE_TOMAHAWK4,
-
-    ASIC_TYPE_TAJO,
-
-    ASIC_TYPE_ELBERT_8DD,
-  };
+  enum class AsicType ASIC_TYPE_LIST;
 
   enum class AsicMode {
     ASIC_MODE_SIM,
@@ -176,6 +175,8 @@ class HwAsic {
   virtual uint32_t getSflowShimHeaderSize() const = 0;
 
   virtual std::optional<uint32_t> getPortSerdesPreemphasis() const = 0;
+
+  static std::vector<AsicType> getAllHwAsicList();
 };
 
 } // namespace facebook::fboss

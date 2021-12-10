@@ -14,9 +14,14 @@ DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
 namespace {
 constexpr auto kDefaultACLGroupID = 128;
 constexpr auto kDefaultDropEgressID = 100000;
+enum IntAsicType ASIC_TYPE_LIST;
+std::vector<IntAsicType> getAsicTypeIntList() {
+  return ASIC_TYPE_LIST;
+}
 } // namespace
 
 namespace facebook::fboss {
+
 /*
  * Default Content Aware Processor group ID for ACLs
  */
@@ -37,5 +42,14 @@ int HwAsic::getStationID(int intfID) const {
 
 int HwAsic::getDefaultDropEgressID() const {
   return kDefaultDropEgressID;
+}
+
+std::vector<HwAsic::AsicType> HwAsic::getAllHwAsicList() {
+  std::vector<HwAsic::AsicType> result{};
+  for (int asic : getAsicTypeIntList()) {
+    HwAsic::AsicType asicType = static_cast<HwAsic::AsicType>(asic);
+    result.push_back(asicType);
+  }
+  return result;
 }
 } // namespace facebook::fboss

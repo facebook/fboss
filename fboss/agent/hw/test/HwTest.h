@@ -158,6 +158,8 @@ class HwTest : public ::testing::Test,
     ecmp.programRoutes(getRouteUpdater(), width);
   }
 
+  std::vector<HwAsic::AsicType> getOtherAsicTypes() const;
+
  private:
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,

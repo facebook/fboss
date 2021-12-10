@@ -184,4 +184,18 @@ std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> HwTest::getRouteUpdater() {
   return std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
       getHwSwitchEnsemble()->getRouteUpdater());
 }
+
+std::vector<HwAsic::AsicType> HwTest::getOtherAsicTypes() const {
+  auto asicList = HwAsic::getAllHwAsicList();
+  auto myAsic = hwSwitchEnsemble_->getPlatform()->getAsic()->getAsicType();
+
+  asicList.erase(
+      std::remove_if(
+          std::begin(asicList),
+          std::end(asicList),
+          [myAsic](auto asic) { return asic == myAsic; }),
+      std::end(asicList));
+
+  return asicList;
+}
 } // namespace facebook::fboss
