@@ -12,6 +12,7 @@
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <folly/Singleton.h>
 #include <stdexcept>
@@ -46,7 +47,11 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
     subCmd->callback(*handler);
 
     auto& args = CmdArgsLists::getInstance()->refAt(depth);
-    if (cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
+    if (cmd.argType ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST) {
+      subCmd->add_option("communities", args, "BGP community(s)");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST) {

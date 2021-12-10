@@ -17,6 +17,7 @@ namespace facebook::fboss::utils {
 
 enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_NONE = 0,
+  OBJECT_ARG_TYPE_ID_COMMUNITY_LIST,
   OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
   OBJECT_ARG_TYPE_ID_PORT_LIST,
