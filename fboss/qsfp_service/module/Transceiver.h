@@ -119,6 +119,12 @@ class Transceiver {
   virtual SignalFlags readAndClearCachedSignalFlags() = 0;
 
   /*
+   * return the cached Module Status and clear it after the read like an clear
+   * on read register.
+   */
+  virtual ModuleStatus readAndClearCachedModuleStatus() = 0;
+
+  /*
    * return the cached media lane signals and clear it after the read like an
    * clear on read register.
    */

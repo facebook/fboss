@@ -331,6 +331,13 @@ class CmisModule : public QsfpModule {
   bool verifyEepromChecksum(int pageId);
 
   /*
+   * Reads the CMIS standard L-Module State Changed latched register
+   * (Will be 1 on first read after a state change, and will read 0 on
+   * subsequent reads)
+   */
+  bool getModuleStateChanged();
+
+  /*
    * ApplicationCode to ApplicationCodeSel mapping.
    */
   std::map<uint8_t, ApplicationAdvertisingField> moduleCapabilities_;

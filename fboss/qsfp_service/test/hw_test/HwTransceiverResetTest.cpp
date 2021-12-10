@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+#include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -107,6 +108,112 @@ TEST_F(HwTest, resetTranscieverAndDetectPresence) {
       EXPECT_EQ(
           *idAndTransceiver.second.settings_ref()->powerControl_ref(),
           *titr->second.settings_ref()->powerControl_ref());
+    }
+  }
+}
+
+TEST_F(HwTest, resetTranscieverAndDetectStateChanged) {
+  auto portMap = std::make_unique<WedgeManager::PortMap>();
+  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
+  auto& swConfig = *agentConfig->thrift.sw();
+  for (auto& port : *swConfig.ports()) {
+    if (*port.state() != cfg::PortState::ENABLED) {
+      continue;
+    }
+    auto portId = *port.logicalID();
+    portMap->emplace(
+        portId, utility::getPortStatus(PortID(portId), getHwQsfpEnsemble()));
+  }
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceivers;
+  std::map<int32_t, ModuleStatus> moduleStatuses;
+  wedgeManager->syncPorts(transceivers, std::move(portMap));
+
+  auto expectedIds =
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+
+  // clear existing module status flags
+  wedgeManager->getAndClearTransceiversModuleStatus(
+      moduleStatuses,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+  auto transceiverIds = refreshTransceiversWithRetry();
+  EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedIds));
+
+  transceivers.clear();
+  wedgeManager->getTransceiversInfo(
+      transceivers,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+  // get the module status flags from the previous refresh
+  moduleStatuses.clear();
+  wedgeManager->getAndClearTransceiversModuleStatus(
+      moduleStatuses,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+
+  // Validate that cmisStateChanged is 0 before running the test
+  // TODO: also add check for SFF modules' PowerControl field
+  for (auto idAndTransceiver : transceivers) {
+    if (*idAndTransceiver.second.present()) {
+      auto mgmtInterface =
+          idAndTransceiver.second.transceiverManagementInterface();
+      CHECK(mgmtInterface);
+      if (*mgmtInterface == TransceiverManagementInterface::SFF ||
+          *mgmtInterface == TransceiverManagementInterface::SFF8472) {
+      } else if (*mgmtInterface == TransceiverManagementInterface::CMIS) {
+        auto status = moduleStatuses[idAndTransceiver.first];
+        auto stateChanged = status.cmisStateChanged();
+        CHECK(stateChanged);
+        EXPECT_FALSE(*stateChanged);
+      } else {
+        throw FbossError(
+            "Invalid transceiver type: ",
+            apache::thrift::util::enumNameSafe(*mgmtInterface));
+      }
+    }
+  }
+
+  // Reset all transceivers
+  for (auto idAndTransceiver : transceivers) {
+    wedgeManager->triggerQsfpHardReset(idAndTransceiver.first);
+  }
+  // Clear reset on all transceivers
+  wedgeManager->clearAllTransceiverReset();
+  refreshTransceiversWithRetry();
+
+  std::map<int32_t, TransceiverInfo> transceiversAfterReset;
+  wedgeManager->getTransceiversInfo(
+      transceiversAfterReset,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+  moduleStatuses.clear();
+  wedgeManager->getAndClearTransceiversModuleStatus(
+      moduleStatuses,
+      std::make_unique<std::vector<int32_t>>(
+          utility::legacyTransceiverIds(expectedIds)));
+
+  // Check that CMIS modules have cmisStateChanged flag set after reset
+  // TODO: also add check for SFF modules' PowerControl field
+  for (auto idAndTransceiver : transceivers) {
+    if (*idAndTransceiver.second.present()) {
+      auto titr = transceiversAfterReset.find(idAndTransceiver.first);
+      EXPECT_TRUE(titr != transceiversAfterReset.end());
+      auto mgmtInterface = titr->second.transceiverManagementInterface();
+      CHECK(mgmtInterface);
+      if (*mgmtInterface == TransceiverManagementInterface::SFF ||
+          *mgmtInterface == TransceiverManagementInterface::SFF8472) {
+      } else if (*mgmtInterface == TransceiverManagementInterface::CMIS) {
+        auto status = moduleStatuses[idAndTransceiver.first];
+        auto stateChanged = status.cmisStateChanged();
+        CHECK(stateChanged);
+        EXPECT_TRUE(*stateChanged)
+            << " Failed comparison for transceiver " << idAndTransceiver.first;
+      } else {
+        throw FbossError(
+            "Invalid transceiver type: ",
+            apache::thrift::util::enumNameSafe(*mgmtInterface));
+      }
     }
   }
 }

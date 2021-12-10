@@ -420,6 +420,8 @@ void WedgeManager::syncPorts(
   }
 }
 
+// NOTE: this may refresh transceivers multiple times if they're newly plugged
+//  in, as refresh() is called both via updateTransceiverMap and futureRefresh
 std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   std::vector<TransceiverID> transceiverIds;
   try {
@@ -763,6 +765,29 @@ void WedgeManager::triggerVdmStatsCapture(std::vector<int32_t>& ids) {
                   << TransceiverID(i) << " message: " << e.what();
         continue;
       }
+    }
+  }
+}
+
+void WedgeManager::getAndClearTransceiversModuleStatus(
+    std::map<int32_t, ModuleStatus>& moduleStatusMap,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  XLOG(INFO) << "getAndClearTransceiversModuleStatus, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
+  }
+
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
+      moduleStatusMap[i] = it->second->readAndClearCachedModuleStatus();
     }
   }
 }

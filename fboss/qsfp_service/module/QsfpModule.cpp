@@ -204,7 +204,7 @@ bool QsfpModule::detectPresenceLocked() {
   return currentQsfpStatus;
 }
 
-void QsfpModule::updateCachedTransceiverInfoLocked() {
+void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   TransceiverInfo info;
   auto channel_count = numMediaLanes();
   info.present_ref() = present_;
@@ -251,7 +251,14 @@ void QsfpModule::updateCachedTransceiverInfoLocked() {
     info.transceiverManagementInterface_ref() = managementInterface();
 
     info.identifier_ref() = getIdentifier();
-    info.status_ref() = getModuleStatus();
+    auto currentStatus = getModuleStatus();
+    if (currentStatus.cmisStateChanged() || moduleStatus.cmisStateChanged()) {
+      currentStatus.cmisStateChanged() = (currentStatus.cmisStateChanged() &&
+                                          *currentStatus.cmisStateChanged()) ||
+          (moduleStatus.cmisStateChanged() && *moduleStatus.cmisStateChanged());
+    }
+    info.status() = currentStatus;
+    cacheStatusFlags(currentStatus);
 
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch
@@ -374,6 +381,15 @@ void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
       *signalflag.txLol_ref() | *signalFlagCache_.txLol_ref();
   signalFlagCache_.rxLol_ref() =
       *signalflag.rxLol_ref() | *signalFlagCache_.rxLol_ref();
+}
+
+void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {
+  if (moduleStatusCache_.cmisStateChanged() && status.cmisStateChanged()) {
+    moduleStatusCache_.cmisStateChanged() =
+        *status.cmisStateChanged() | *moduleStatusCache_.cmisStateChanged();
+  } else {
+    moduleStatusCache_.cmisStateChanged().copy_from(status.cmisStateChanged());
+  }
 }
 
 void QsfpModule::cacheMediaLaneSignals(
@@ -510,6 +526,7 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
 }
 
 void QsfpModule::refreshLocked() {
+  ModuleStatus moduleStatus;
   detectPresenceLocked();
 
   bool newTransceiverDetected = false;
@@ -532,6 +549,10 @@ void QsfpModule::refreshLocked() {
     // make sure data is up to date before trying to customize.
     ensureOutOfReset();
     updateQsfpData(true);
+    // copy the clear-on-read register immediately in case we do another call to
+    // updateQsfpData later
+    moduleStatus.cmisStateChanged().copy_from(
+        getModuleStatus().cmisStateChanged());
   }
 
   if (newTransceiverDetected) {
@@ -569,9 +590,14 @@ void QsfpModule::refreshLocked() {
     // number of writable fields on other qsfp pages, but we don't
     // currently use them.
     updateQsfpData(false);
+    if (getModuleStatus().cmisStateChanged_ref()) {
+      moduleStatus.cmisStateChanged() = (moduleStatus.cmisStateChanged() &&
+                                         *moduleStatus.cmisStateChanged()) ||
+          *getModuleStatus().cmisStateChanged_ref();
+    }
   }
 
-  updateCachedTransceiverInfoLocked();
+  updateCachedTransceiverInfoLocked(moduleStatus);
 }
 
 bool QsfpModule::shouldRemediate() {
@@ -775,6 +801,17 @@ QsfpModule::readAndClearCachedMediaLaneSignals() {
     signal.second.txFault_ref() = false;
   }
   return mediaSignals;
+}
+
+ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  // Store the cached data before clearing it.
+  ModuleStatus moduleStatus(moduleStatusCache_);
+
+  // Clear the cached data after read.
+  moduleStatusCache_ = ModuleStatus();
+
+  return moduleStatus;
 }
 
 /*
@@ -1084,7 +1121,7 @@ void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
       // Since we're touching the transceiver, we need to update the cached
       // transceiver info
       updateQsfpData(false);
-      updateCachedTransceiverInfoLocked();
+      updateCachedTransceiverInfoLocked({});
     }
   };
 

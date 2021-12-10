@@ -199,6 +199,12 @@ class QsfpModule : public Transceiver {
   std::map<int, MediaLaneSignals> readAndClearCachedMediaLaneSignals() override;
 
   /*
+   * return the cached module status and clear it after the read like an clear
+   * on read register.
+   */
+  ModuleStatus readAndClearCachedModuleStatus() override;
+
+  /*
    * Returns the number of host lanes. Should be overridden by the appropriate
    * module's subclass
    */
@@ -514,10 +520,11 @@ class QsfpModule : public Transceiver {
   cfg::PortSpeed getPortSpeed() const;
 
   /*
-   * Perform logic OR operation to signal flags in order to cache them
+   * Perform logic OR operation to flags in order to cache them
    * for ODS to report.
    */
   void cacheSignalFlags(const SignalFlags& signalflag);
+  void cacheStatusFlags(const ModuleStatus& status);
 
   virtual void latchAndReadVdmDataLocked() override {}
 
@@ -548,6 +555,7 @@ class QsfpModule : public Transceiver {
   // have a cache to store the collected data in ODS reporting frequency.
   SignalFlags signalFlagCache_;
   std::map<int, MediaLaneSignals> mediaSignalsCache_;
+  ModuleStatus moduleStatusCache_;
 
   std::atomic_bool captureVdmStats_{false};
 
@@ -557,7 +565,7 @@ class QsfpModule : public Transceiver {
   QsfpModule& operator=(QsfpModule const&) = delete;
 
   void refreshLocked();
-  void updateCachedTransceiverInfoLocked();
+  void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_

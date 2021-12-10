@@ -327,6 +327,7 @@ struct ModuleStatus {
   2: optional bool interruptL;
   3: optional CmisModuleState cmisModuleState;
   4: optional FirmwareStatus fwStatus;
+  5: optional bool cmisStateChanged;
 }
 
 struct TransceiverInfo {

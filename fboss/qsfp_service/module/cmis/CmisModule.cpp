@@ -489,6 +489,7 @@ ModuleStatus CmisModule::getModuleStatus() {
   moduleStatus.cmisModuleState_ref() =
       (CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1);
   moduleStatus.fwStatus_ref() = getFwStatus();
+  moduleStatus.cmisStateChanged_ref() = getModuleStateChanged();
   return moduleStatus;
 }
 
@@ -2275,6 +2276,10 @@ void CmisModule::triggerVdmStatsCapture() {
       "triggerVdmStatsCapture for module {}", qsfpImpl_->getName());
 
   captureVdmStats_ = true;
+}
+
+bool CmisModule::getModuleStateChanged() {
+  return getSettingsValue(CmisField::MODULE_FLAG, MODULE_STATE_CHANGED_MASK);
 }
 
 } // namespace fboss
