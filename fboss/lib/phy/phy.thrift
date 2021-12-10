@@ -292,9 +292,9 @@ struct EyeInfo {
 struct LaneInfo {
   1: i16 lane;
   2: optional bool signalDetectLive;
-  3: optional bool signalDetectLatched;
+  3: optional bool signalDetectChanged;
   4: optional bool cdrLockLive;
-  5: optional bool cdrLockLatched;
+  5: optional bool cdrLockChanged;
   7: TxSettings txSettings;
   8: optional list<EyeInfo> eyes;
   9: optional float snr;
