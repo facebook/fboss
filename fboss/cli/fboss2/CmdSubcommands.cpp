@@ -25,6 +25,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"show", "Show object info"},
       {"clear", "Clear object info"},
       {"create", "Create object"},
+      {"set", "Set object"},
   };
 
   return supportedVerbs;
@@ -50,6 +51,9 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
     if (cmd.argType ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST) {
       subCmd->add_option("communities", args, "BGP community(s)");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL) {
+      subCmd->add_option("level", args, "Debug level");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
       subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
