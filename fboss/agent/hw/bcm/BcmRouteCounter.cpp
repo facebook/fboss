@@ -138,7 +138,20 @@ folly::dynamic BcmRouteCounterTable::toFollyDynamic() const {
   }
   folly::dynamic routeCounterInfo = folly::dynamic::object;
   routeCounterInfo[kRouteCounterIDs] = std::move(routeCounterIDs);
-  routeCounterInfo[kGlobalModeId] = std::to_string(globalIngressModeId_);
+  int modeId = globalIngressModeId_;
+  /*
+    If global mode id is not valid, check whether warmboot cache
+    has an entry that needs to be saved. This scenario can happen
+    when there are two back to back warmboots and routes with counters
+    are withdrawn in between.
+  */
+  if (modeId == STAT_MODEID_INVALID) {
+    int idFromWBCache = hw_->getWarmBootCache()->getRouteCounterModeId();
+    if (idFromWBCache != STAT_MODEID_INVALID) {
+      modeId = idFromWBCache;
+    }
+  }
+  routeCounterInfo[kGlobalModeId] = std::to_string(modeId);
   return routeCounterInfo;
 }
 
