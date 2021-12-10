@@ -331,10 +331,13 @@ class TransceiverManager {
   void triggerAgentConfigChangeEvent(
       const std::vector<TransceiverID>& transceivers);
 
-  // Update the cached PortStatus of TransceiverToPortInfo for the specified
-  // transceiver list
-  void updateTransceiverPortStatus(
-      const std::vector<TransceiverID>& transceivers) noexcept;
+  // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
+  // getPortStatus() results
+  void updateTransceiverPortStatus() noexcept;
+
+  std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
+
+  std::vector<TransceiverID> getPresentTransceivers() const;
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,
