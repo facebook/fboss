@@ -57,6 +57,9 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST) {
       subCmd->add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
     } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST) {
+      subCmd->add_option("peerID", args, "BGP remote peer ID (int)");
+    } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
       subCmd->add_option("ports", args, "Port(s)");
     } else if (

@@ -22,6 +22,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
   OBJECT_ARG_TYPE_ID_PORT_LIST,
   OBJECT_ARG_TYPE_ID_MESSAGE,
+  OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
 };
 
 const folly::IPAddress getIPFromHost(const std::string& hostname);
