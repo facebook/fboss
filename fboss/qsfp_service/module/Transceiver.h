@@ -127,6 +127,8 @@ class Transceiver {
 
   virtual void triggerVdmStatsCapture() = 0;
 
+  virtual void publishSnapshots() = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

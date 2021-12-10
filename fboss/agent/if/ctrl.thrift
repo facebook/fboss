@@ -1175,6 +1175,10 @@ service FbossCtrl extends fb303.FacebookService {
   void setNeighborsToBlock(
     1: list<switch_config.Neighbor> neighborsToBlock,
   ) throws (1: fboss.FbossBaseError error);
+
+  void publishLinkSnapshots(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

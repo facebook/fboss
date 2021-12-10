@@ -858,31 +858,17 @@ void WedgeManager::programXphyPort(
   }
 
   // Get the transceiver id for the given port id
-  auto platformPortEntry = platformMapping_->getPlatformPorts().find(portId);
-  if (platformPortEntry == platformMapping_->getPlatformPorts().end()) {
-    throw FbossError(
-        "Can't find the platform port entry in platform mapping for port:",
-        portId);
-  }
-  auto tcvrID = utility::getTransceiverId(
-      platformPortEntry->second, platformMapping_->getChips());
-  if (!tcvrID) {
-    throw FbossError(
-        "Can't find the transceiver id in platform mapping for port:", portId);
-  }
-  if (!isValidTransceiver(*tcvrID)) {
-    throw FbossError("Port:", portId, " has invalid transceiver id:", *tcvrID);
-  }
+  auto tcvrID = getTransceiverID(portId);
 
   std::optional<TransceiverInfo> itTcvr;
   auto lockedTransceivers = transceivers_.rlock();
-  if (auto it = lockedTransceivers->find(*tcvrID);
+  if (auto it = lockedTransceivers->find(tcvrID);
       it != lockedTransceivers->end()) {
     itTcvr = it->second->getTransceiverInfo();
   } else {
     XLOG(WARNING) << "Port:" << portId
                   << " doesn't have transceiver info for transceiver id:"
-                  << *tcvrID;
+                  << tcvrID;
   }
   phyManager_->programOnePort(portId, portProfileId, itTcvr);
 }
@@ -1026,6 +1012,45 @@ bool WedgeManager::getSdkState(std::string filename) const {
     return false;
   }
   return phyManager_->getSdkState(filename);
+}
+
+void WedgeManager::publishTransceiverSnapshots(std::string portName) {
+  auto portID = portNameToPortID_.find(portName);
+  if (portID == portNameToPortID_.end()) {
+    throw FbossError("Failed to find port ID for portName ", portName);
+  }
+
+  auto tcvrID = getTransceiverID(portID->second);
+
+  auto lockedTransceivers = transceivers_.wlock();
+  if (auto it = lockedTransceivers->find(tcvrID);
+      it != lockedTransceivers->end()) {
+    it->second->publishSnapshots();
+  } else {
+    throw FbossError(
+        "Unable to find transceiver for port: ",
+        portID->second,
+        " tcvr: ",
+        tcvrID);
+  }
+}
+
+TransceiverID WedgeManager::getTransceiverID(PortID portID) {
+  auto swPortInfo = portToSwPortInfo_.find(portID);
+  if (swPortInfo == portToSwPortInfo_.end()) {
+    throw FbossError("Failed to find SwPortInfo for port ID ", portID);
+  }
+
+  auto tcvrID = swPortInfo->second.tcvrID;
+  if (!tcvrID.has_value()) {
+    throw FbossError("No transceiverID in SwPortInfo for port ", portID);
+  }
+
+  if (!isValidTransceiver(*tcvrID)) {
+    throw FbossError("Port:", portID, " has invalid transceiver id:", *tcvrID);
+  }
+
+  return *tcvrID;
 }
 } // namespace fboss
 } // namespace facebook

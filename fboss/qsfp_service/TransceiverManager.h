@@ -209,6 +209,8 @@ class TransceiverManager {
 
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
+  virtual void publishTransceiverSnapshots(std::string portName) = 0;
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -248,6 +250,15 @@ class TransceiverManager {
   std::unique_ptr<QsfpConfig> qsfpConfig_;
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
+
+  // Use the following map to cache the static mapping so that we don't have
+  // to search from PlatformMapping again and again
+  std::unordered_map<std::string, PortID> portNameToPortID_;
+  struct SwPortInfo {
+    std::optional<TransceiverID> tcvrID;
+    std::string name;
+  };
+  std::unordered_map<PortID, SwPortInfo> portToSwPortInfo_;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -368,15 +379,6 @@ class TransceiverManager {
    * iphy port profile change, and we should then issue a port re-programming
    */
   int64_t lastConfigAppliedInMs_{0};
-
-  // Use the following map to cache the static mapping so that we don't have
-  // to search from PlatformMapping again and again
-  std::unordered_map<std::string, PortID> portNameToPortID_;
-  struct SwPortInfo {
-    std::optional<TransceiverID> tcvrID;
-    std::string name;
-  };
-  std::unordered_map<PortID, SwPortInfo> portToSwPortInfo_;
 };
 } // namespace fboss
 } // namespace facebook

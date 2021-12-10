@@ -196,6 +196,14 @@ bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
   return manager_->getSdkState(*fileName);
 }
 
+void QsfpServiceHandler::publishLinkSnapshots(
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  for (const auto& portName : *portNames) {
+    manager_->publishTransceiverSnapshots(portName);
+  }
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(

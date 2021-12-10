@@ -343,6 +343,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void setNeighborsToBlock(
       std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) override;
 
+  void publishLinkSnapshots(
+      std::unique_ptr<std::vector<std::string>> portNames) override;
+
  protected:
   void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,

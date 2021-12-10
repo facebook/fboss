@@ -424,8 +424,7 @@ void QsfpModule::transceiverPortsChanged(
     }
 
     if (anyStateChanged) {
-      snapshots_.wlock()->publishAllSnapshots();
-      snapshots_.wlock()->publishFutureSnapshots(kNumCachedSnapshots);
+      publishSnapshots();
     }
 
     // update the present_ field (and will set dirty_ if presence change
@@ -1100,5 +1099,11 @@ void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
         .get();
   }
 }
+
+void QsfpModule::publishSnapshots() {
+  snapshots_.wlock()->publishAllSnapshots();
+  snapshots_.wlock()->publishFutureSnapshots(kNumCachedSnapshots);
+}
+
 } // namespace fboss
 } // namespace facebook

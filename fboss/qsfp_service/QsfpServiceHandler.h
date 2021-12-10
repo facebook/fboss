@@ -100,6 +100,9 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
   bool getSdkState(std::unique_ptr<std::string> fileName) override;
 
+  void publishLinkSnapshots(
+      std::unique_ptr<std::vector<std::string>> portNames) override;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,

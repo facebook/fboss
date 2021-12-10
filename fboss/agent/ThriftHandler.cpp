@@ -53,6 +53,7 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/lib/LogThriftCall.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/PhyInterfaceHandler.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/IPAddressV4.h>
@@ -2286,6 +2287,18 @@ void ThriftHandler::setNeighborsToBlock(
         newSwitchSettings->setBlockNeighbors(blockNeighbors);
         return newState;
       });
+}
+
+void ThriftHandler::publishLinkSnapshots(
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  for (const auto& portName : *portNames) {
+    auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(portName);
+    sw_->publishPhyInfoSnapshots(portID);
+    if (auto phyIntfHandler = sw_->getPlatform()->getPhyInterfaceHandler()) {
+      phyIntfHandler->publishSnapshots(portID);
+    }
+  }
 }
 
 } // namespace facebook::fboss

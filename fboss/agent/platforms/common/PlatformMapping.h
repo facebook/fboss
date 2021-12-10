@@ -132,6 +132,9 @@ class PlatformMapping {
       int32_t port,
       std::vector<cfg::PlatformPortConfigOverride> overrides);
 
+  // Converts port name -> logical portID
+  const PortID getPortID(const std::string& portName) const;
+
   /*
    * Some platforms need customize their raw override factor generated from
    * Transceiver or Chip to match their PlatformMapping PortConfigOverrides

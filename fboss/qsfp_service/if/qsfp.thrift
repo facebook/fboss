@@ -105,6 +105,10 @@ service QsfpService extends fb303.FacebookService {
 
   bool getSdkState(1: string fileName) throws (1: fboss.FbossBaseError error);
 
+  void publishLinkSnapshots(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,

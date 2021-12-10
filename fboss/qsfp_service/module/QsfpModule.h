@@ -243,6 +243,8 @@ class QsfpModule : public Transceiver {
 
   virtual void triggerVdmStatsCapture() override {}
 
+  void publishSnapshots() override;
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 

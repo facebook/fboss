@@ -141,6 +141,12 @@ class PhyInterfaceHandler {
    */
   virtual phy::PhyIDInfo getPhyIDInfo(GlobalXphyID xphyID) = 0;
 
+  // Dumps the PhyInfo snapshots for a given port.
+  // Does nothing on platforms without xphys or platforms that control xphys in
+  // the qsfp service. (Will be removed once all platforms handle xphys in the
+  // qsfp service)
+  virtual void publishSnapshots(PortID /* portID */) {}
+
  protected:
   std::vector<LaneID> getSideLanes(
       const phy::PhyPortConfig& config,

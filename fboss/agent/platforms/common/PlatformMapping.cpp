@@ -556,6 +556,15 @@ void PlatformMapping::mergePortConfigOverrides(
   }
 }
 
+const PortID PlatformMapping::getPortID(const std::string& portName) const {
+  for (const auto& platPortEntry : platformPorts_) {
+    if (*platPortEntry.second.mapping()->name() == portName) {
+      return PortID(*platPortEntry.second.mapping()->id());
+    }
+  }
+  throw FbossError("No PlatformPortEntry found for portName: ", portName);
+}
+
 const cfg::PlatformPortConfig& PlatformMapping::getPlatformPortConfig(
     PortID id,
     cfg::PortProfileID profileID) const {
