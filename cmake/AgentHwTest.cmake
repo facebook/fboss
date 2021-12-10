@@ -176,6 +176,12 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp,
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp,
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp,
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp,
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp,
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp,
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
