@@ -560,7 +560,6 @@ void configurePortGroup(
                     << "Doesn't support speed " << static_cast<int>(speed)
                     << ", disabling it instead";
       // Port doesn't support this speed, just disable it.
-      cfgPort->speed_ref() = cfg::PortSpeed::DEFAULT;
       cfgPort->state_ref() = cfg::PortState::DISABLED;
       continue;
     }
@@ -606,7 +605,6 @@ void configurePortProfile(
                     << apache::thrift::util::enumNameSafe(profileID)
                     << ", disabling it instead";
       // Port doesn't support this speed, just disable it.
-      cfgPort->speed_ref() = cfg::PortSpeed::DEFAULT;
       cfgPort->state_ref() = cfg::PortState::DISABLED;
       continue;
     }
