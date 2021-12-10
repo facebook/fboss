@@ -178,6 +178,14 @@ class SaiAclTableManager {
   bool areQualifiersSupportedInDefaultAclTable(
       const std::set<cfg::AclTableQualifier>& qualifiers) const;
 
+  size_t aclEntryCount(const std::string& aclTableName) const {
+    auto* table = getAclTableHandle(aclTableName);
+    if (!table) {
+      return 0;
+    }
+    return table->aclTableMembers.size();
+  }
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

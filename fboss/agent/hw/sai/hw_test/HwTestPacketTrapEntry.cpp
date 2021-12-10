@@ -37,9 +37,10 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<PortID>& ports)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority = 1;
+  int priority =
+      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
   for (auto port : ports) {
-    auto aclEntry = getTrapAclEntry(true, port, std::nullopt, priority++);
+    auto aclEntry = getTrapAclEntry(true, port, std::nullopt, ++priority);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
         aclEntry, kAclTable1);
     aclEntries_.push_back(aclEntry);
@@ -51,9 +52,10 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<folly::CIDRNetwork>& dstPrefixes)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority = 1;
+  int priority =
+      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
   for (const auto& dstPrefix : dstPrefixes) {
-    auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, priority++);
+    auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, ++priority);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
         aclEntry, kAclTable1);
     aclEntries_.push_back(aclEntry);
