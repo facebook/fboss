@@ -2,6 +2,7 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+#include "fboss/util/QsfpUtilTx.h"
 #include "fboss/util/wedge_qsfp_util.h"
 #include "folly/gen/Base.h"
 
@@ -214,6 +215,11 @@ int main(int argc, char* argv[]) {
     return doBatchOps(bus.get(), ports, FLAGS_batchfile, evb);
   }
 
+  if (FLAGS_tx_disable || FLAGS_tx_enable) {
+    QsfpUtilTx txCtrl(bus.get(), ports, evb);
+    return txCtrl.setTxDisable();
+  }
+
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
     if (FLAGS_clear_low_power && overrideLowPower(bus.get(), portNum, false)) {
@@ -221,18 +227,6 @@ int main(int argc, char* argv[]) {
     }
     if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, true)) {
       printf("QSFP %d: set low power flags\n", portNum);
-    }
-    if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, true)) {
-      printf(
-          "QSFP %d: disabled TX on %s channels\n",
-          portNum,
-          (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
-    }
-    if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, false)) {
-      printf(
-          "QSFP %d: enabled TX on %s channels\n",
-          portNum,
-          (FLAGS_channel >= 1 && FLAGS_channel <= 8) ? "some" : "all");
     }
 
     if (FLAGS_set_40g && rateSelect(bus.get(), portNum, 0x0)) {

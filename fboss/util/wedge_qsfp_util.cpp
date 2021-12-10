@@ -341,8 +341,36 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
 }
 
 /*
- * This function returns the module type whether it is CMIS or SFF type
- * by reading the register 0 from module
+ * This function returns the transceiver management interface
+ * based on the module type
+ */
+TransceiverManagementInterface getTransceiverManagementInterface(
+    const uint8_t moduleId,
+    const unsigned int oneBasedPort) {
+  if (moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
+    return TransceiverManagementInterface::CMIS;
+  } else if (
+      moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
+    return TransceiverManagementInterface::SFF;
+  } else if (
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
+    return TransceiverManagementInterface::SFF8472;
+  } else {
+    XLOG(ERR) << fmt::format(
+        "QSFP {:d}: Unrecognized module type = {:d}", oneBasedPort, moduleId);
+  }
+
+  return TransceiverManagementInterface::NONE;
+}
+
+/*
+ * This function returns the transceiver management interface
+ * by reading the register 0 directly from module
  */
 TransceiverManagementInterface getModuleType(
     TransceiverI2CApi* bus,
@@ -359,19 +387,44 @@ TransceiverManagementInterface getModuleType(
     }
   }
 
-  if (moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
-    return TransceiverManagementInterface::CMIS;
-  } else if (
-      moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
-    return TransceiverManagementInterface::SFF;
-  } else {
-    return TransceiverManagementInterface::NONE;
+  return getTransceiverManagementInterface(moduleId, port);
+}
+
+/*
+ * This function returns the transceiver management interfaces
+ * by reading the register 0 indirectly from modules. If there is an error,
+ * this function returns an empty interface map.
+ */
+std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
+    const std::vector<unsigned int>& ports,
+    folly::EventBase& evb) {
+  std::map<int32_t, TransceiverManagementInterface> moduleTypes;
+  const int offset = 0;
+  const int length = 1;
+  const int page = 0;
+  std::vector<int32_t> idx =
+      zeroBasedPortIds(const_cast<std::vector<unsigned int>&>(ports));
+  std::map<int32_t, ReadResponse> readResp =
+      doReadRegViaService(idx, offset, length, page, evb);
+
+  if (readResp.empty()) {
+    XLOG(ERR) << "Indirect read error in getting module type";
+    return moduleTypes;
   }
+
+  for (const auto& response : readResp) {
+    const auto moduleId = *(response.second.data_ref()->data());
+    const TransceiverManagementInterface modType =
+        getTransceiverManagementInterface(moduleId, response.first + 1);
+
+    if (modType == TransceiverManagementInterface::NONE) {
+      return std::map<int32_t, TransceiverManagementInterface>();
+    } else {
+      moduleTypes[response.first] = modType;
+    }
+  }
+
+  return moduleTypes;
 }
 
 bool flipModuleUpperPage(
@@ -524,84 +577,6 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
-/*
- * This function disables the optics lane TX which brings down the port. The
- * TX Disable will cause LOS at the link partner and Remote Fault at this end.
- */
-bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
-  std::array<uint8_t, 1> buf;
-
-  // Get module type CMIS or SFF
-  auto moduleType = getModuleType(bus, port);
-
-  if (moduleType == TransceiverManagementInterface::SFF) {
-    // For SFF module, the page 0 reg 86 controls TX_DISABLE for 4 lanes
-    try {
-      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, &buf[0]);
-
-      if (FLAGS_channel >= 1 && FLAGS_channel <= 4) {
-        // Disable/enable a particular channel in module
-        if (disable) {
-          buf[0] |= (1 << (FLAGS_channel - 1));
-        } else {
-          buf[0] &= ~(1 << (FLAGS_channel - 1));
-        }
-      } else {
-        // Disable/enable all the 4 channels for SFF
-        buf[0] = disable ? 0xf : 0x0;
-      }
-
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, &buf[0]);
-    } catch (const I2cError& ex) {
-      fprintf(stderr, "QSFP %d: unwritable or write error\n", port);
-      return false;
-    }
-  } else if (moduleType == TransceiverManagementInterface::CMIS) {
-    // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
-    uint8_t savedPage, moduleControlPage = 0x10;
-
-    try {
-      // Save current page
-      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
-      // Write page 10 reg 130
-      bus->moduleWrite(
-          port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &moduleControlPage);
-      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
-
-      if (FLAGS_channel >= 1 && FLAGS_channel <= 8) {
-        // Disable/enable a particular channel in module
-        if (disable) {
-          buf[0] |= (1 << (FLAGS_channel - 1));
-        } else {
-          buf[0] &= ~(1 << (FLAGS_channel - 1));
-        }
-      } else {
-        // Disable/enable all the 8 channels
-        buf[0] = disable ? 0xff : 0x0;
-      }
-
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
-      // Restore current page
-      // Need a delay here otherwise certain modules
-      // fail to turn on the lasers
-      // sleep override
-      usleep(20 * 1000);
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
-    } catch (const I2cError& ex) {
-      fprintf(stderr, "QSFP %d: read/write error\n", port);
-      return false;
-    }
-  } else {
-    fprintf(
-        stderr,
-        "QSFP %d: Unrecognized transceiver management interface.\n",
-        port);
-    return false;
-  }
-
-  return true;
-}
-
 std::vector<int32_t> zeroBasedPortIds(std::vector<unsigned int>& ports) {
   std::vector<int32_t> idx;
   for (auto port : ports) {
@@ -633,8 +608,8 @@ void displayReadRegData(const uint8_t* buf, int offset, int length) {
   printf("\n");
 }
 
-void doReadRegViaService(
-    std::vector<int32_t>& ports,
+std::map<int32_t, ReadResponse> doReadRegViaService(
+    const std::vector<int32_t>& ports,
     int offset,
     int length,
     int page,
@@ -658,6 +633,7 @@ void doReadRegViaService(
       auto data = iterator.second.data_ref()->data();
       if (iterator.second.data_ref()->length() < length) {
         fprintf(stderr, "QSFP %d: fail to read module\n", iterator.first + 1);
+        return std::map<int32_t, ReadResponse>();
       } else {
         displayReadRegData(data, offset, iterator.second.data_ref()->length());
       }
@@ -665,7 +641,10 @@ void doReadRegViaService(
   } catch (const std::exception& ex) {
     fprintf(
         stderr, "error reading register from qsfp_service: %s\n", ex.what());
+    return std::map<int32_t, ReadResponse>();
   }
+
+  return response;
 }
 
 void doReadRegDirect(
@@ -734,12 +713,13 @@ void doWriteRegDirect(
   printf("QSFP %d: successfully write 0x%02x to %d.\n", port, value, offset);
 }
 
-void doWriteRegViaService(
-    std::vector<int32_t>& ports,
+bool doWriteRegViaService(
+    const std::vector<int32_t>& ports,
     int offset,
     int page,
     uint8_t value,
     folly::EventBase& evb) {
+  bool retVal = true;
   auto client = getQsfpClient(evb);
   WriteRequest request;
   TransceiverIOParameters param;
@@ -762,14 +742,17 @@ void doWriteRegViaService(
             value,
             offset);
       } else {
+        retVal = false;
         fprintf(
             stderr, "QSFP %d: not present or unwritable\n", iterator.first + 1);
       }
     }
   } catch (const std::exception& ex) {
     fprintf(stderr, "error writing register via qsfp_service: %s\n", ex.what());
-    return;
+    retVal = false;
   }
+
+  return retVal;
 }
 
 int doWriteReg(

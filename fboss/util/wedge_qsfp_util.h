@@ -82,9 +82,18 @@ TransceiverManagementInterface getModuleType(
     TransceiverI2CApi* bus,
     unsigned int port);
 
-bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable);
+std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
+    const std::vector<unsigned int>& ports,
+    folly::EventBase& evb);
 
 std::vector<int32_t> zeroBasedPortIds(std::vector<unsigned int>& ports);
+
+std::map<int32_t, ReadResponse> doReadRegViaService(
+    const std::vector<int32_t>& ports,
+    int offset,
+    int length,
+    int page,
+    folly::EventBase& evb);
 
 int doReadReg(
     TransceiverI2CApi* bus,
@@ -92,6 +101,13 @@ int doReadReg(
     int offset,
     int length,
     int page,
+    folly::EventBase& evb);
+
+bool doWriteRegViaService(
+    const std::vector<int32_t>& ports,
+    int offset,
+    int page,
+    uint8_t value,
     folly::EventBase& evb);
 
 int doWriteReg(
