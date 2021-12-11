@@ -31,7 +31,7 @@ class TransceiverManager;
 enum class TransceiverStateMachineEvent {
   DETECT_TRANSCEIVER,
   RESET_TRANSCEIVER,
-  OPTICS_REMOVED,
+  REMOVE_TRANSCEIVER,
   READ_EEPROM,
   ALL_PORTS_DOWN,
   PORT_UP,
@@ -124,6 +124,7 @@ BOOST_MSM_EUML_EVENT(RESET_TO_NOT_PRESENT)
 // Reset to discover doesn't need another present detection or eeprom read
 // Usually uses on a present transceiver
 BOOST_MSM_EUML_EVENT(RESET_TO_DISCOVERED)
+BOOST_MSM_EUML_EVENT(REMOVE_TRANSCEIVER)
 
 // Module State Machine Actions
 template <class State>
@@ -236,12 +237,24 @@ bool operator()(
   }
 }
 };
+
+BOOST_MSM_EUML_ACTION(areAllPortsDown) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  return fsm.get_attribute(transceiverMgrPtr)->areAllPortsDown(tcvrID);
+}
+};
 // clang-format on
 
 // Transceiver State Machine State transition table
 // clang-format off
 BOOST_MSM_EUML_TRANSITION_TABLE((
-//  Start                  + Event               [Guard]              / Action          == Next
+//  Start                  + Event                  [Guard]              / Action          == Next
 // +-------------------------------------------------------------------------------------------------------------+
     NOT_PRESENT            + DETECT_TRANSCEIVER                          / logStateChanged == PRESENT,
     PRESENT                + READ_EEPROM                                 / logStateChanged == DISCOVERED,
@@ -271,7 +284,15 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     XPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
     IPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
     DISCOVERED             + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    PRESENT                + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT
+    PRESENT                + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
+    // Remove transceiver only if all ports are down
+    ACTIVE                 + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    INACTIVE               + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    DISCOVERED             + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
+    PRESENT                + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

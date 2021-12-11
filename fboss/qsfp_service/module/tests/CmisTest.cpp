@@ -381,7 +381,7 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
   qsfpMod->stateUpdate(TransceiverStateMachineEvent::READ_EEPROM);
   qsfpMod->refresh();
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   int CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
   EXPECT_EQ(qsfpMod->portStateMachines_.size(), 0);
@@ -394,7 +394,7 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->portStateMachines_[1].process_event(MODULE_PORT_EVENT_AGENT_PORT_UP);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 4);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 
@@ -409,7 +409,7 @@ TEST(CmisTest, testOpticsRemoval) {
   qsfpMod->stateUpdate(TransceiverStateMachineEvent::TRIGGER_UPGRADE);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 5);
-  qsfpMod->stateUpdate(TransceiverStateMachineEvent::OPTICS_REMOVED);
+  qsfpMod->stateUpdate(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }

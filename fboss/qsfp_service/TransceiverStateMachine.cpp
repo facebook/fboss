@@ -19,8 +19,8 @@ std::string getTransceiverStateMachineEventName(
   switch (event) {
     case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
       return "DETECT_TRANSCEIVER";
-    case TransceiverStateMachineEvent::OPTICS_REMOVED:
-      return "OPTICS_REMOVED";
+    case TransceiverStateMachineEvent::REMOVE_TRANSCEIVER:
+      return "REMOVE_TRANSCEIVER";
     case TransceiverStateMachineEvent::RESET_TRANSCEIVER:
       return "RESET_TRANSCEIVER";
     case TransceiverStateMachineEvent::READ_EEPROM:

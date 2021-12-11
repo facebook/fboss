@@ -800,5 +800,26 @@ void TransceiverManager::setOverrideAgentPortStatusForTesting(
     }
   }
 }
+
+bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
+  auto portToPortInfoIt = tcvrToPortInfo_.find(id);
+  if (portToPortInfoIt == tcvrToPortInfo_.end()) {
+    XLOG(WARN) << "Can't find Transceiver:" << id
+               << " in cached tcvrToPortInfo_";
+    return false;
+  }
+  auto portToPortInfoWithLock = portToPortInfoIt->second->rlock();
+  for (const auto& [portID, portInfo] : *portToPortInfoWithLock) {
+    if (!portInfo.status.has_value()) {
+      // If no status set, assume ports are up so we won't trigger any
+      // disruptive event
+      return false;
+    }
+    if (*portInfo.status->up_ref()) {
+      return false;
+    }
+  }
+  return true;
+}
 } // namespace fboss
 } // namespace facebook

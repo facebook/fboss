@@ -213,4 +213,25 @@ TEST_F(
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(
+    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
+    CheckTransceiverRemoved) {
+  auto verify = [this]() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    wedgeMgr->setOverrideAgentPortStatusForTesting(
+        false /* up */, true /* enabled */);
+    wedgeMgr->refreshStateMachines();
+    // Reset all present transceivers
+    for (auto tcvrID : getPresentTransceivers()) {
+      wedgeMgr->triggerQsfpHardReset(tcvrID);
+      auto curState = wedgeMgr->getCurrentState(tcvrID);
+      EXPECT_EQ(curState, TransceiverStateMachineState::NOT_PRESENT)
+          << "Transceiver:" << tcvrID
+          << " doesn't have expected state=NOT_PRESENT but actual state="
+          << apache::thrift::util::enumNameSafe(curState);
+    }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss

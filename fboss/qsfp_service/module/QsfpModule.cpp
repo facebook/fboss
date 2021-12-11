@@ -114,7 +114,7 @@ QsfpModule::QsfpModule(
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_REMOVED);
+  stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
 }
 
 /*
@@ -542,7 +542,7 @@ void QsfpModule::refreshLocked() {
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    stateUpdateLocked(TransceiverStateMachineEvent::OPTICS_REMOVED);
+    stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   }
 
   if (dirty_) {
@@ -1037,7 +1037,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
         return;
-      case TransceiverStateMachineEvent::OPTICS_REMOVED:
+      case TransceiverStateMachineEvent::REMOVE_TRANSCEIVER:
         moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
         return;
       case TransceiverStateMachineEvent::RESET_TRANSCEIVER:
