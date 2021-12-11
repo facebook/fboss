@@ -135,6 +135,12 @@ class Transceiver {
 
   virtual void publishSnapshots() = 0;
 
+  /*
+   * Try to remediate such Transceiver if needed.
+   * Return true means remediation is needed.
+   */
+  virtual bool tryRemediate() = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

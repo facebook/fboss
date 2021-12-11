@@ -412,6 +412,7 @@ void QsfpModule::cacheMediaLaneSignals(
 
 void QsfpModule::transceiverPortsChanged(
     const std::map<uint32_t, PortStatus>& ports) {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto transceiverPortsChangedHandler = [&ports, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     // List of ports inside this module whose operation status has changed
@@ -504,6 +505,7 @@ void QsfpModule::refresh() {
 }
 
 folly::Future<folly::Unit> QsfpModule::futureRefresh() {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
     try {
@@ -567,10 +569,7 @@ void QsfpModule::refreshLocked() {
 
     // New state machine will remdiate transceiver in the REMEDIATE_TRANSCEIVER
     // event
-    if (shouldRemediate()) {
-      remediateFlakyTransceiver();
-      ++numRemediation_;
-    }
+    tryRemediateLocked();
   }
 
   TransceiverSettings settings = getTransceiverSettingsInfo();
@@ -672,6 +671,7 @@ std::optional<TransceiverStats> QsfpModule::getTransceiverStats() {
 
 folly::Future<std::pair<int32_t, std::unique_ptr<IOBuf>>>
 QsfpModule::futureReadTransceiver(TransceiverIOParameters param) {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   auto id = getID();
   if (!i2cEvb) {
@@ -726,6 +726,7 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
 folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     TransceiverIOParameters param,
     uint8_t data) {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   auto id = getID();
   if (!i2cEvb) {
@@ -1110,7 +1111,7 @@ MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
 }
 
 void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
-  // Always use i2cEvb to program transceivers
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto programTcvrFunc = [speed, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
@@ -1142,5 +1143,35 @@ void QsfpModule::publishSnapshots() {
   snapshots_.wlock()->publishFutureSnapshots(kNumCachedSnapshots);
 }
 
+bool QsfpModule::tryRemediate() {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
+  auto remediateTcvrFunc = [this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    return tryRemediateLocked();
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    return remediateTcvrFunc();
+  } else {
+    bool didRemediate = false;
+    via(i2cEvb)
+        .thenValue([&didRemediate, remediateTcvrFunc](auto&&) mutable {
+          didRemediate = remediateTcvrFunc();
+        })
+        .get();
+    return didRemediate;
+  }
+}
+
+bool QsfpModule::tryRemediateLocked() {
+  if (shouldRemediate()) {
+    remediateFlakyTransceiver();
+    ++numRemediation_;
+    return true;
+  }
+  return false;
+}
 } // namespace fboss
 } // namespace facebook

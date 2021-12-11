@@ -495,6 +495,20 @@ void TransceiverManager::programTransceiver(TransceiverID id) {
              << " with speed=" << apache::thrift::util::enumNameSafe(speed);
 }
 
+bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Skip remediating Transceiver=" << id
+               << ". Transeciver is not present";
+    return false;
+  }
+  bool didRemediate = tcvrIt->second->tryRemediate();
+  XLOG_IF(INFO, didRemediate)
+      << "Remediated Transceiver for Transceiver=" << id;
+  return didRemediate;
+}
+
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   if (!FLAGS_use_new_state_machine) {
     return;

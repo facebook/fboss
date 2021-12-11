@@ -198,7 +198,9 @@ class TransceiverManager {
   void programTransceiver(TransceiverID id);
 
   bool areAllPortsDown(TransceiverID id) const noexcept;
-  // ========== Public functions for TransceiverStateMachine ==========
+
+  bool tryRemediateTransceiver(TransceiverID id);
+  // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status
   struct TransceiverPortInfo {

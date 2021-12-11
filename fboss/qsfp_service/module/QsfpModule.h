@@ -251,6 +251,12 @@ class QsfpModule : public Transceiver {
 
   void publishSnapshots() override;
 
+  /*
+   * Try to remediate such Transceiver if needed.
+   * Return true means remediation is needed.
+   */
+  bool tryRemediate() override;
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
@@ -566,6 +572,12 @@ class QsfpModule : public Transceiver {
 
   void refreshLocked();
   void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
+
+  /*
+   * Try to remediate such Transceiver if needed.
+   * Return true means remediation is needed.
+   */
+  bool tryRemediateLocked();
   /*
    * Perform a raw register read on the transceiver
    * This must be called with a lock held on qsfpModuleMutex_
