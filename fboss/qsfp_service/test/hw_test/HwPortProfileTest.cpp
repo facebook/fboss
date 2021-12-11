@@ -60,7 +60,8 @@ class HwPortProfileTest : public HwTest {
     XLOG(INFO) << " Will verify transceiver settings for : "
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
-      utility::verifyTransceiverSettings(idAndTransceiver.second, Profile);
+      utility::HwTransceiverUtils::verifyTransceiverSettings(
+          idAndTransceiver.second, Profile);
     }
   }
 

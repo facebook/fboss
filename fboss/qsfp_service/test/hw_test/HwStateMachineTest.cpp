@@ -157,7 +157,7 @@ TEST_F(
           // programming, we might need to combine the speeds of all flex
           // port to program such transceiver.
           if (programmedPortToPortInfo.size() == 1) {
-            utility::verifyTransceiverSettings(
+            utility::HwTransceiverUtils::verifyTransceiverSettings(
                 transceiver, programmedPortToPortInfo.begin()->second.profile);
           }
         }

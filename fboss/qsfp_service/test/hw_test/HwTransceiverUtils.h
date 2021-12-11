@@ -15,8 +15,33 @@
 
 namespace facebook::fboss::utility {
 
-void verifyTransceiverSettings(
-    const TransceiverInfo& transceiver,
-    cfg::PortProfileID profile);
+class HwTransceiverUtils {
+ public:
+  static void verifyTransceiverSettings(
+      const TransceiverInfo& transceiver,
+      cfg::PortProfileID profile);
+
+ private:
+  static void verifyOpticsSettings(const TransceiverInfo& transceiver);
+  static void verifyMediaInterfaceCompliance(
+      const TransceiverInfo& transceiver,
+      cfg::PortProfileID profile);
+  static void verify10gProfile(
+      const TransceiverInfo& transceiver,
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verify100gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verify200gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verify400gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verifyCopper100gProfile(
+      const TransceiverInfo& transceiver,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
+};
 
 } // namespace facebook::fboss::utility
