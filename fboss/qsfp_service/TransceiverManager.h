@@ -204,6 +204,9 @@ class TransceiverManager {
   std::unordered_map<PortID, cfg::PortProfileID>
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
 
+  // TEST ONLY
+  void setOverrideAgentPortStatusForTesting(bool up, bool enabled);
+
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.
   TransceiverInfo getTransceiverInfo(TransceiverID id);
@@ -342,6 +345,10 @@ class TransceiverManager {
   std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 
   std::vector<TransceiverID> getPresentTransceivers() const;
+
+  // TEST ONLY
+  // This private map is an override of agent getPortStatus()
+  std::map<int32_t, PortStatus> overrideAgentPortStatusForTesting_;
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,

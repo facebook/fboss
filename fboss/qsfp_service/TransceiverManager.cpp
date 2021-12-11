@@ -498,7 +498,13 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
     // We have retry mechanism to handle failure. No crash here
     XLOG(WARN) << "Failed to call wedge_agent getPortStatus(). "
                << folly::exceptionStr(ex);
-    return;
+    if (overrideAgentPortStatusForTesting_.empty()) {
+      return;
+    } else {
+      XLOG(WARN) << "[TEST ONLY] Use overrideAgentPortStatusForTesting_ "
+                 << "for wedge_agent getPortStatus()";
+      newPortToPortStatus = overrideAgentPortStatusForTesting_;
+    }
   }
 
   int numResetToDiscovered{0}, numResetToNotPresent{0}, numPortStatusChanged{0};
@@ -758,6 +764,23 @@ std::vector<TransceiverID> TransceiverManager::getPresentTransceivers() const {
     presentTcvrs.push_back(tcvrIt.first);
   }
   return presentTcvrs;
+}
+
+void TransceiverManager::setOverrideAgentPortStatusForTesting(
+    bool up,
+    bool enabled) {
+  // Use overrideTcvrToPortAndProfileForTest_ to prepare
+  // overrideAgentPortStatusForTesting_
+  overrideAgentPortStatusForTesting_.clear();
+  for (const auto& it : overrideTcvrToPortAndProfileForTest_) {
+    for (const auto& [portID, profileID] : it.second) {
+      PortStatus status;
+      status.enabled_ref() = enabled;
+      status.up_ref() = up;
+      status.profileID_ref() = apache::thrift::util::enumNameSafe(profileID);
+      overrideAgentPortStatusForTesting_.emplace(portID, std::move(status));
+    }
+  }
 }
 } // namespace fboss
 } // namespace facebook

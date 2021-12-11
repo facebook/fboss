@@ -93,12 +93,10 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
  public:
   HwStateMachineTestWithOverrideTcvrToPortAndProfile()
       : HwStateMachineTest(true /* setupOverrideTcvrToPortAndProfile */) {}
-};
 
-TEST_F(
-    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckPortsProgrammed) {
-  auto setup = [this]() {
+  void SetUp() override {
+    HwStateMachineTest::SetUp();
+
     // Due to some platforms are easy to have i2c issue that cause the current
     // refresh work perfectly. Adding enough retries to make sure that we at
     // least can secure TRANSCEIVER_PROGRAMMED after 10 times.
@@ -114,8 +112,16 @@ TEST_F(
       return true;
     };
     // Retry 10 times until all state machine reach TRANSCEIVER_PROGRAMMED
-    checkWithRetry(refreshStateMachinesTillTcvrProgrammed);
-  };
+    checkWithRetry(
+        refreshStateMachinesTillTcvrProgrammed,
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */);
+  }
+};
+
+TEST_F(
+    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
+    CheckPortsProgrammed) {
   auto verify = [this]() {
     auto checkTransceiverProgrammed = [this](const std::vector<TransceiverID>&
                                                  tcvrs) {
@@ -167,13 +173,44 @@ TEST_F(
     checkTransceiverProgrammed(getPresentTransceivers());
     checkTransceiverProgrammed(getAbsentTransceivers());
   };
-  // Because state machine is not warmboot-able, which means we have to rebuild
-  // the state machine from init state for each transceiver every time
-  // qsfp_service restarts, no matter coldboot or warmboot.
-  // So we only need to very non-warmboot case here.
-  // For verifying warmboot ability of each component(iphy/xphy/tcvr)
-  // programming, we already have other tests to cover, like HwPortProfileTest.
-  setup();
-  verify();
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(
+    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
+    CheckPortStatusUpdated) {
+  auto verify = [this]() {
+    auto checkTransceiverActiveState =
+        [this](bool up, TransceiverStateMachineState expectedState) {
+          auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+          wedgeMgr->setOverrideAgentPortStatusForTesting(
+              up, true /* enabled */);
+          wedgeMgr->refreshStateMachines();
+          for (auto id : getPresentTransceivers()) {
+            auto curState = wedgeMgr->getCurrentState(id);
+            if (wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty()) {
+              // If iphy port and profile is empty, it means the ports are
+              // disabled. We treat such port to be always INACTIVE
+              EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
+                  << "Transceiver:" << id
+                  << " doesn't have expected state=INACTIVE but actual state="
+                  << apache::thrift::util::enumNameSafe(curState);
+            } else {
+              EXPECT_EQ(curState, expectedState)
+                  << "Transceiver:" << id << " doesn't have expected state="
+                  << apache::thrift::util::enumNameSafe(expectedState)
+                  << " but actual state="
+                  << apache::thrift::util::enumNameSafe(curState);
+            }
+          }
+        };
+    // First set all ports up
+    checkTransceiverActiveState(true, TransceiverStateMachineState::ACTIVE);
+    // Then set all ports down
+    checkTransceiverActiveState(false, TransceiverStateMachineState::INACTIVE);
+    // Finally set all ports up again
+    checkTransceiverActiveState(true, TransceiverStateMachineState::ACTIVE);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss
