@@ -165,11 +165,13 @@ void TransceiverManager::threadLoop(
   eventBase->loopForever();
 }
 
-void TransceiverManager::updateState(
+void TransceiverManager::updateStateBlocking(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
-  auto update = std::make_unique<TransceiverStateMachineUpdate>(id, event);
-  updateState(std::move(update));
+  auto result = updateStateBlockingWithoutWait(id, event);
+  if (result) {
+    result->wait();
+  }
 }
 
 std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
@@ -179,16 +181,19 @@ TransceiverManager::updateStateBlockingWithoutWait(
   auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
   auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
       id, event, result);
-  updateState(std::move(update));
-  return result;
+  if (updateState(std::move(update))) {
+    // Only return blocking result if the update has been added in queue
+    return result;
+  }
+  return nullptr;
 }
 
-void TransceiverManager::updateState(
+bool TransceiverManager::updateState(
     std::unique_ptr<TransceiverStateMachineUpdate> update) {
   if (isExiting_) {
     XLOG(WARN) << "Skipped queueing update:" << update->getName()
                << ", since exit already started";
-    return;
+    return false;
   }
   {
     std::unique_lock guard(pendingUpdatesLock_);
@@ -199,6 +204,7 @@ void TransceiverManager::updateState(
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
   updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+  return true;
 }
 
 void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
@@ -317,20 +323,26 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
     }
     auto tcvrID = stateMachine.first;
     if (needProgramIphy) {
-      programmedTcvrs.push_back(tcvrID);
-      ++numProgramIphy;
-      results.push_back(updateStateBlockingWithoutWait(
-          tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY));
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY)) {
+        programmedTcvrs.push_back(tcvrID);
+        ++numProgramIphy;
+        results.push_back(result);
+      }
     } else if (needProgramXphy && phyManager_ != nullptr) {
-      programmedTcvrs.push_back(tcvrID);
-      ++numProgramXphy;
-      results.push_back(updateStateBlockingWithoutWait(
-          tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY));
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY)) {
+        programmedTcvrs.push_back(tcvrID);
+        ++numProgramXphy;
+        results.push_back(result);
+      }
     } else if (needProgramTcvr) {
-      programmedTcvrs.push_back(tcvrID);
-      ++numProgramTcvr;
-      results.push_back(updateStateBlockingWithoutWait(
-          tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER));
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER)) {
+        programmedTcvrs.push_back(tcvrID);
+        ++numProgramTcvr;
+        results.push_back(result);
+      }
     }
   }
   waitForAllBlockingStateUpdateDone(results);
@@ -603,7 +615,9 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
     }
 
     if (event.has_value()) {
-      results.push_back(updateStateBlockingWithoutWait(tcvrID, *event));
+      if (auto result = updateStateBlockingWithoutWait(tcvrID, *event)) {
+        results.push_back(result);
+      }
     }
   }
   waitForAllBlockingStateUpdateDone(results);
@@ -684,13 +698,17 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
     auto tcvrID = stateMachine.first;
     if (std::find(transceivers.begin(), transceivers.end(), tcvrID) !=
         transceivers.end()) {
-      ++numResetToDiscovered;
-      results.push_back(updateStateBlockingWithoutWait(
-          tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED));
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED)) {
+        ++numResetToDiscovered;
+        results.push_back(result);
+      }
     } else {
-      ++numResetToNotPresent;
-      results.push_back(updateStateBlockingWithoutWait(
-          tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT));
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT)) {
+        ++numResetToNotPresent;
+        results.push_back(result);
+      }
     }
   }
   waitForAllBlockingStateUpdateDone(results);

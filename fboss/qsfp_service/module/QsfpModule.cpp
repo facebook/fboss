@@ -1030,7 +1030,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   // Use this function to gate whether we should use the old state machine or
   // the new design with the StateUpdate list
   if (FLAGS_use_new_state_machine) {
-    transceiverManager_->updateState(getID(), event);
+    transceiverManager_->updateStateBlocking(getID(), event);
   } else {
     // Fall back to use the legacy logic
     switch (event) {

@@ -173,7 +173,12 @@ class TransceiverManager {
   // returns empty string when there is no name found
   const std::string getPortName(TransceiverID tcvrId) const;
 
-  void updateState(TransceiverID id, TransceiverStateMachineEvent event);
+  // Since all the transceiver events need to have a proper order for the
+  // correct port programming, we should always wait for the update results
+  // before moving on to the next operations.
+  void updateStateBlocking(
+      TransceiverID id,
+      TransceiverStateMachineEvent event);
   std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
   updateStateBlockingWithoutWait(
       TransceiverID id,
@@ -325,7 +330,17 @@ class TransceiverManager {
   void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
-  void updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
+  /**
+   * Schedule an update to the switch state.
+   *
+   *  @param  update
+              The update to be enqueued
+   *  @return bool whether the update was queued or not
+   * This schedules the specified TransceiverStateMachineUpdate to be invoked
+   * in the update thread in order to update the TransceiverStateMachine.
+   *
+   */
+  bool updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
