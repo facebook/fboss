@@ -133,9 +133,9 @@ const std::vector<UnresolvedNextHop>& RouteDistributionGenerator::getNhops()
     return nhops;
   }
   EcmpSetupAnyNPorts<AddrT> ecmpHelper(startingState_, routerId_);
+  CHECK(ecmpWidth_ <= ecmpHelper.getNextHops().size());
   for (auto i = 0; i < ecmpWidth_; ++i) {
-    nhops.emplace_back(UnresolvedNextHop(
-        folly::IPAddress(ecmpHelper.nhop(i).ip), ECMP_WEIGHT));
+    nhops.emplace_back(folly::IPAddress(ecmpHelper.nhop(i).ip), ECMP_WEIGHT);
   }
   return nhops;
 }

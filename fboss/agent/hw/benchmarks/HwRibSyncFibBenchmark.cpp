@@ -27,8 +27,7 @@ BENCHMARK(RibSyncFibBenchmark) {
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
-  utility::THAlpmRouteScaleGenerator gen(
-      ensemble->getProgrammedState(), true, 50000);
+  utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState(), 50000);
   const auto& routeChunks = gen.getThriftRoutes();
   CHECK_EQ(1, routeChunks.size());
   // Create a dummy rib since we don't want to go through
