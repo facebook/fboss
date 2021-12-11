@@ -28,31 +28,6 @@ using namespace boost::msm::back;
 
 class TransceiverManager;
 
-enum class TransceiverStateMachineEvent {
-  DETECT_TRANSCEIVER,
-  RESET_TRANSCEIVER,
-  REMOVE_TRANSCEIVER,
-  READ_EEPROM,
-  ALL_PORTS_DOWN,
-  PORT_UP,
-  // NOTE: Such event is never invoked in our code yet
-  TRIGGER_UPGRADE,
-  // NOTE: Such event is never invoked in our code yet
-  FORCED_UPGRADE,
-  AGENT_SYNC_TIMEOUT,
-  BRINGUP_DONE,
-  REMEDIATE_DONE,
-  // The following events are only used in the new state machine
-  PROGRAM_IPHY,
-  PROGRAM_XPHY,
-  PROGRAM_TRANSCEIVER,
-  RESET_TO_DISCOVERED,
-  RESET_TO_NOT_PRESENT,
-};
-
-std::string getTransceiverStateMachineEventName(
-    TransceiverStateMachineEvent event);
-
 /*
  * Convert current_state() return int value to TransceiverStateMachineState
  * enum. Every state is an int value assigned in the order the states have been

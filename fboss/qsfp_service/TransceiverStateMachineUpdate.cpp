@@ -24,7 +24,7 @@ TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
       name_(fmt::format(
           "[Transceiver: {}, Event:{}]",
           id,
-          getTransceiverStateMachineEventName(event))) {}
+          apache::thrift::util::enumNameSafe(event))) {}
 
 void TransceiverStateMachineUpdate::applyUpdate(
     state_machine<TransceiverStateMachine>& curState) {
