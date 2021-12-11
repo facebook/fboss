@@ -1073,6 +1073,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
       case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
       case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
+      case TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER:
         throw FbossError(
             "Only new state machine can support TransceiverStateMachineEvent: ",
             apache::thrift::util::enumNameSafe(event));

@@ -100,6 +100,9 @@ BOOST_MSM_EUML_EVENT(RESET_TO_NOT_PRESENT)
 // Usually uses on a present transceiver
 BOOST_MSM_EUML_EVENT(RESET_TO_DISCOVERED)
 BOOST_MSM_EUML_EVENT(REMOVE_TRANSCEIVER)
+// Remediate transceiver will reset back to XPHY_PORTS_PROGRAMMED so that we'll
+// trigger a `PROGRAM_TRANSCEIVER` later
+BOOST_MSM_EUML_EVENT(REMEDIATE_TRANSCEIVER)
 
 // Module State Machine Actions
 template <class State>
@@ -224,50 +227,78 @@ bool operator()(
   return fsm.get_attribute(transceiverMgrPtr)->areAllPortsDown(tcvrID);
 }
 };
+
+BOOST_MSM_EUML_ACTION(tryRemediateTransceiver) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  try {
+    bool remediationDone =
+      fsm.get_attribute(transceiverMgrPtr)->tryRemediateTransceiver(tcvrID);
+    if (remediationDone) {
+      // If remediation is done, we need to reprogram the transceiver
+      fsm.get_attribute(isTransceiverProgrammed) = false;
+    }
+    return remediationDone;
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "[Transceiver:" << tcvrID
+               << "] tryRemediateTransceiver failed:"
+               << folly::exceptionStr(ex);
+    return false;
+  }
+}
+};
 // clang-format on
 
 // Transceiver State Machine State transition table
 // clang-format off
 BOOST_MSM_EUML_TRANSITION_TABLE((
-//  Start                  + Event                  [Guard]              / Action          == Next
+//  Start                  + Event                  [Guard]                    / Action          == Next
 // +-------------------------------------------------------------------------------------------------------------+
-    NOT_PRESENT            + DETECT_TRANSCEIVER                          / logStateChanged == PRESENT,
-    PRESENT                + READ_EEPROM                                 / logStateChanged == DISCOVERED,
+    NOT_PRESENT            + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    PRESENT                + READ_EEPROM                                       / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call port program in case optic is actually
     // inserted but just can't read the present state
-    NOT_PRESENT            + PROGRAM_IPHY           [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
-    DISCOVERED             + PROGRAM_IPHY           [programIphyPorts]   / logStateChanged == IPHY_PORTS_PROGRAMMED,
-    IPHY_PORTS_PROGRAMMED  + PROGRAM_XPHY           [programXphyPorts]   / logStateChanged == XPHY_PORTS_PROGRAMMED,
+    NOT_PRESENT            + PROGRAM_IPHY           [programIphyPorts]         / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    DISCOVERED             + PROGRAM_IPHY           [programIphyPorts]         / logStateChanged == IPHY_PORTS_PROGRAMMED,
+    IPHY_PORTS_PROGRAMMED  + PROGRAM_XPHY           [programXphyPorts]         / logStateChanged == XPHY_PORTS_PROGRAMMED,
     // For non-xphy platform, we will program tcvr after programming iphy ports
-    IPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED,
-    XPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver] / logStateChanged == TRANSCEIVER_PROGRAMMED,
+    IPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver]       / logStateChanged == TRANSCEIVER_PROGRAMMED,
+    XPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver]       / logStateChanged == TRANSCEIVER_PROGRAMMED,
     // Only trigger port status events after TRANSCEIVER_PROGRAMMED
-    TRANSCEIVER_PROGRAMMED + PORT_UP                                     / logStateChanged == ACTIVE,
-    TRANSCEIVER_PROGRAMMED + ALL_PORTS_DOWN                              / logStateChanged == INACTIVE,
-    ACTIVE                 + ALL_PORTS_DOWN                              / logStateChanged == INACTIVE,
-    INACTIVE               + PORT_UP                                     / logStateChanged == ACTIVE,
+    TRANSCEIVER_PROGRAMMED + PORT_UP                                           / logStateChanged == ACTIVE,
+    TRANSCEIVER_PROGRAMMED + ALL_PORTS_DOWN                                    / logStateChanged == INACTIVE,
+    ACTIVE                 + ALL_PORTS_DOWN                                    / logStateChanged == INACTIVE,
+    INACTIVE               + PORT_UP                                           / logStateChanged == ACTIVE,
     // Flip all stable states back to DISCOVERED state for RESET_TO_DISCOVERED event. This is for present transceivers
-    ACTIVE                 + RESET_TO_DISCOVERED                         / logStateChanged == DISCOVERED,
-    INACTIVE               + RESET_TO_DISCOVERED                         / logStateChanged == DISCOVERED,
-    TRANSCEIVER_PROGRAMMED + RESET_TO_DISCOVERED                         / logStateChanged == DISCOVERED,
-    XPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                         / logStateChanged == DISCOVERED,
-    IPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                         / logStateChanged == DISCOVERED,
+    ACTIVE                 + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
+    INACTIVE               + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
+    TRANSCEIVER_PROGRAMMED + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
+    XPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
+    IPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
     // Flip all states back to NOT_PRESENT state for RESET_TO_NOT_PRESENT event
-    ACTIVE                 + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    INACTIVE               + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    TRANSCEIVER_PROGRAMMED + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    XPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    IPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    DISCOVERED             + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
-    PRESENT                + RESET_TO_NOT_PRESENT                        / logStateChanged == NOT_PRESENT,
+    ACTIVE                 + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    INACTIVE               + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    TRANSCEIVER_PROGRAMMED + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    XPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    IPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    DISCOVERED             + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
+    PRESENT                + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     // Remove transceiver only if all ports are down
-    ACTIVE                 + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    INACTIVE               + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    DISCOVERED             + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT,
-    PRESENT                + REMOVE_TRANSCEIVER     [areAllPortsDown]    / logStateChanged == NOT_PRESENT
+    ACTIVE                 + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    INACTIVE               + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    DISCOVERED             + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    PRESENT                + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    // Only remediate transciever if all ports are down
+    INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

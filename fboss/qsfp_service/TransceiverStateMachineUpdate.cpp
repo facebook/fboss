@@ -59,6 +59,9 @@ void TransceiverStateMachineUpdate::applyUpdate(
     case TransceiverStateMachineEvent::REMOVE_TRANSCEIVER:
       curState.process_event(REMOVE_TRANSCEIVER);
       return;
+    case TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER:
+      curState.process_event(REMEDIATE_TRANSCEIVER);
+      return;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
   }

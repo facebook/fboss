@@ -365,6 +365,10 @@ class TransceiverManager {
 
   std::vector<TransceiverID> getPresentTransceivers() const;
 
+  // Check whether the specified stableTcvrs need remediation and then trigger
+  // the remediation events to remediate such transceivers.
+  void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
+
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
   std::map<int32_t, PortStatus> overrideAgentPortStatusForTesting_;

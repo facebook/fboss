@@ -664,7 +664,7 @@ void TransceiverManager::refreshStateMachines() {
     // Step4: Once the transceivers are detected, trigger programming events
     const auto& programmedTcvrs = triggerProgrammingEvents();
 
-    // TODO(joseph5wu) Step5: Remediate inactive transceivers
+    // Step5: Remediate inactive transceivers
     // Only need to remediate ports which are not recently finished
     // programming. Because if they only finished early stage programming like
     // iphy without programming xphy or tcvr, the ports of such transceiver
@@ -676,6 +676,7 @@ void TransceiverManager::refreshStateMachines() {
         stableTcvrs.push_back(tcvrID);
       }
     }
+    triggerRemediateEvents(stableTcvrs);
   }
 }
 
@@ -834,6 +835,49 @@ bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
     }
   }
   return true;
+}
+
+void TransceiverManager::triggerRemediateEvents(
+    const std::vector<TransceiverID>& stableTcvrs) {
+  if (stableTcvrs.empty()) {
+    return;
+  }
+  BlockingStateUpdateResultList results;
+  for (auto tcvrID : stableTcvrs) {
+    // For stabled transceivers, we check whether the current state machine
+    // state is INACTIVE, which means all the ports are down for such
+    // Transceiver, so that it's safe to call remediate
+    auto curState = getCurrentState(tcvrID);
+    if (curState != TransceiverStateMachineState::INACTIVE) {
+      continue;
+    }
+    const auto& programmedPortToPortInfo =
+        getProgrammedIphyPortToPortInfo(tcvrID);
+    if (programmedPortToPortInfo.empty()) {
+      // This is due to the iphy ports are disabled. So no need to remediate
+      continue;
+    }
+    // Then check whether we should remediate so that we don't have to create
+    // too many unnecessary state machine update
+    auto lockedTransceivers = transceivers_.rlock();
+    auto tcvrIt = lockedTransceivers->find(tcvrID);
+    if (tcvrIt == lockedTransceivers->end()) {
+      XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
+                 << ". Transeciver is not present";
+      continue;
+    }
+    if (!tcvrIt->second->shouldRemediate()) {
+      continue;
+    }
+    if (auto result = updateStateBlockingWithoutWait(
+            tcvrID, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER)) {
+      results.push_back(result);
+    }
+  }
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG_IF(INFO, !results.empty())
+      << "triggerRemediateEvents has " << results.size()
+      << " transceivers kicked off remediation";
 }
 } // namespace fboss
 } // namespace facebook

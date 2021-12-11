@@ -141,6 +141,8 @@ class Transceiver {
    */
   virtual bool tryRemediate() = 0;
 
+  virtual bool shouldRemediate() = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

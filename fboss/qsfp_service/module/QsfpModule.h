@@ -257,6 +257,8 @@ class QsfpModule : public Transceiver {
    */
   bool tryRemediate() override;
 
+  bool shouldRemediate() override;
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
@@ -455,8 +457,6 @@ class QsfpModule : public Transceiver {
    * byte range of the SFF spec.
    */
   virtual double getQsfpDACLength() const = 0;
-
-  virtual bool shouldRemediate();
 
   /*
    * Put logic here that should only be run on ports that have been
