@@ -114,6 +114,13 @@ const std::shared_ptr<AclEntry> createMacsecRxDefaultAclEntry(
   } else {
     entry->setActionType(cfg::AclActionType::PERMIT);
   }
+
+  // Add traffic counter for packet hitting default ACL
+  auto counter = cfg::TrafficCounter();
+  counter.name_ref() =
+      folly::to<std::string>(entryName, ".", priority, ".defaultAcl.packets");
+  counter.types_ref() = {cfg::CounterType::PACKETS};
+  macsecAction.setTrafficCounter(counter);
   entry->setAclAction(macsecAction);
 
   return entry;
