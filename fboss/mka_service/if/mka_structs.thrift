@@ -187,6 +187,12 @@ struct MacsecSaStats {
   13: i64 inOkPkts;
 }
 
+struct MacsecAclStats {
+  1: i64 defaultAclStats;
+  2: optional i64 controlAclStats;
+  3: optional i64 flowAclStats;
+}
+
 enum MKACipherSuite {
   GCM_AES_128 = 0,
   GCM_AES_256 = 1,

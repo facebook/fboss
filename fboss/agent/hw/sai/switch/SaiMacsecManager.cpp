@@ -1270,9 +1270,11 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
               "ACL entry does not exist for priority {:d}", prio);
           return 0;
         };
+        auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
         XLOG(DBG5) << folly::sformat(
-            "ACL counter Macsec default = {:d}",
-            getAclCounter(kMacsecDefaultAclPriority));
+            "ACL counter Macsec default = {:d}", defaultAclCount);
+        auto& macsecAclStats = *macsecStats.ingressAclStats_ref();
+        macsecAclStats.defaultAclStats_ref() = defaultAclCount;
       }
     }
   }
