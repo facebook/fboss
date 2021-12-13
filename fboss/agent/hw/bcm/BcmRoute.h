@@ -83,7 +83,7 @@ class BcmRoute {
       nextHopHostReference_; // reference to nexthops
   std::shared_ptr<BcmHostIf> hostRouteEntry_; // for host routes
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
-  std::shared_ptr<BcmRouteCounter> counterIDReference_;
+  std::shared_ptr<BcmRouteCounterBase> counterIDReference_;
 };
 
 /**

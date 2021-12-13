@@ -142,6 +142,8 @@ class BcmStatUpdater {
 
   /* Route stats */
   uint64_t getRouteTrafficStats(BcmRouteCounterID id);
+  uint64_t getBcmRouteTrafficStats(BcmRouteCounterID id);
+  uint64_t getBcmFlexRouteTrafficStats(BcmRouteCounterID id);
   struct BcmRouteCounterActionDescriptor {
     BcmRouteCounterActionDescriptor(
         BcmRouteCounterID ID,

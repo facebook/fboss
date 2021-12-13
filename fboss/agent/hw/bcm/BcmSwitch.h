@@ -65,7 +65,7 @@ class BcmNextHopTable;
 class BcmPortTable;
 class BcmQosPolicyTable;
 class BcmRouteTable;
-class BcmRouteCounterTable;
+class BcmRouteCounterTableBase;
 class BcmRxPacket;
 class BcmStatUpdater;
 class BcmSwitchEventCallback;
@@ -174,9 +174,9 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmRouteTable* writableRouteTable() const = 0;
 
-  virtual const BcmRouteCounterTable* routeCounterTable() const = 0;
+  virtual const BcmRouteCounterTableBase* routeCounterTable() const = 0;
 
-  virtual BcmRouteCounterTable* writableRouteCounterTable() const = 0;
+  virtual BcmRouteCounterTableBase* writableRouteCounterTable() const = 0;
 
   virtual const BcmMirrorTable* getBcmMirrorTable() const = 0;
 
@@ -421,11 +421,11 @@ class BcmSwitch : public BcmSwitchIf {
     return routeTable_.get();
   }
 
-  const BcmRouteCounterTable* routeCounterTable() const override {
+  const BcmRouteCounterTableBase* routeCounterTable() const override {
     return routeCounterTable_.get();
   }
 
-  BcmRouteCounterTable* writableRouteCounterTable() const override {
+  BcmRouteCounterTableBase* writableRouteCounterTable() const override {
     return routeCounterTable_.get();
   }
 
@@ -999,7 +999,7 @@ class BcmSwitch : public BcmSwitchIf {
       mplsNextHopTable_;
   std::unique_ptr<BcmMultiPathNextHopTable> multiPathNextHopTable_;
   std::unique_ptr<BcmLabelMap> labelMap_;
-  std::unique_ptr<BcmRouteCounterTable> routeCounterTable_;
+  std::unique_ptr<BcmRouteCounterTableBase> routeCounterTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;
   std::unique_ptr<BcmQosPolicyTable> qosPolicyTable_;
   std::unique_ptr<BcmAclTable> aclTable_;

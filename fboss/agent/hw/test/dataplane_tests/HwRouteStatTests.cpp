@@ -162,12 +162,23 @@ TEST_F(HwRouteStatTest, CounterModify) {
   auto setup = [=]() {
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID1);
+    addRoute(
+        kAddr2, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
   };
   auto verify = [=]() {
     auto countBefore = utility::getRouteStat(getHwSwitch(), kCounterID1);
     sendL3Packet(kAddr1, masterLogicalPortIds()[1]);
     auto countAfter = utility::getRouteStat(getHwSwitch(), kCounterID1);
     EXPECT_EQ(countAfter - countBefore, 1);
+
+    // modify the route - no change to counter id
+    addRoute(
+        kAddr1, 120, PortDescriptor(masterLogicalPortIds()[1]), kCounterID1);
+    countBefore = utility::getRouteStat(getHwSwitch(), kCounterID1);
+    sendL3Packet(kAddr1, masterLogicalPortIds()[1]);
+    countAfter = utility::getRouteStat(getHwSwitch(), kCounterID1);
+    EXPECT_EQ(countAfter - countBefore, 1);
+
     // modify the counter id
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
@@ -177,15 +188,21 @@ TEST_F(HwRouteStatTest, CounterModify) {
     EXPECT_EQ(countAfter - countBefore, 1);
 
     // counter id changing from valid to null
+    countBefore = utility::getRouteStat(getHwSwitch(), kCounterID2);
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), std::nullopt);
     // This pkt wont be counted
     sendL3Packet(kAddr1, masterLogicalPortIds()[1]);
+    countAfter = utility::getRouteStat(getHwSwitch(), kCounterID2);
+    EXPECT_EQ(countAfter - countBefore, 0);
+
     // counter id changing from null to valid
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
+    countBefore = utility::getRouteStat(getHwSwitch(), kCounterID2);
     sendL3Packet(kAddr1, masterLogicalPortIds()[1]);
-    EXPECT_EQ(utility::getRouteStat(getHwSwitch(), kCounterID2), 1);
+    countAfter = utility::getRouteStat(getHwSwitch(), kCounterID2);
+    EXPECT_EQ(countAfter - countBefore, 1);
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID1);
   };

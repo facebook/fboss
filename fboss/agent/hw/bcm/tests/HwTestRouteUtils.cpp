@@ -12,10 +12,12 @@
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
+#include <bcm/flexctr.h>
 #include <bcm/l3.h>
 }
 
@@ -52,14 +54,38 @@ uint64_t getBcmRouteCounter(
   bcm_stat_value_t routeCounter;
   auto unit = bcmSwitch->getUnit();
   CHECK(bcmSwitch->routeCounterTable()->getHwCounterID(id).has_value());
-  auto counterId = *bcmSwitch->routeCounterTable()->getHwCounterID(id);
-  CHECK_EQ(
-      bcm_stat_flex_counter_sync_get(
-          unit, counterId, bcmStatFlexStatPackets, 1, &entry, &routeCounter),
-      0);
-  XLOG(DBG2) << "Route counter id: " << counterId
-             << " pkts: " << COMPILER_64_LO(routeCounter.packets64);
-  return COMPILER_64_LO(routeCounter.packets64);
+  auto hwCounterId = *bcmSwitch->routeCounterTable()->getHwCounterID(id);
+  auto counterIndex = hwCounterId.getHwId();
+  if (bcmSwitch->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_FLEX_COUNTERS)) {
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+    uint32 counterOffset = hwCounterId.getHwOffset();
+    bcm_flexctr_counter_value_t counterValue;
+    CHECK_EQ(
+        bcm_flexctr_stat_sync_get(
+            unit, counterIndex, 1, &counterOffset, &counterValue),
+        0);
+    XLOG(DBG2) << "Route counter id: " << hwCounterId.str()
+               << " offset: " << counterIndex
+               << " pkts: " << COMPILER_64_LO(counterValue.value[0]);
+    return COMPILER_64_LO(counterValue.value[0]);
+#else
+    return 0;
+#endif
+  } else {
+    CHECK_EQ(
+        bcm_stat_flex_counter_sync_get(
+            unit,
+            counterIndex,
+            bcmStatFlexStatPackets,
+            1,
+            &entry,
+            &routeCounter),
+        0);
+    XLOG(DBG2) << "Route counter id: " << hwCounterId.str()
+               << " pkts: " << COMPILER_64_LO(routeCounter.packets64);
+    return COMPILER_64_LO(routeCounter.packets64);
+  }
 }
 
 bool isEgressToIp(

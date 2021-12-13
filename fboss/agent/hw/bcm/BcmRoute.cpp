@@ -43,6 +43,44 @@ inline uint32_t getBcmRouteFlags(uint32_t l3Flags) {
   return (l3Flags & ~(BCM_L3_HIT | BCM_L3_HIT_CLEAR));
 }
 
+void attachRouteStat(
+    int unit,
+    bcm_l3_route_t* rt,
+    const folly::IPAddress& prefix,
+    std::optional<facebook::fboss::BcmRouteCounterID>& newCounterID,
+    std::optional<facebook::fboss::BcmRouteCounterID>& oldCounterID,
+    bool isFlexCounterSupported) {
+  if (newCounterID == oldCounterID) {
+    return;
+  }
+  if (oldCounterID.has_value()) {
+    auto rc = bcm_l3_route_stat_detach(unit, rt);
+    bcmCheckError(rc, "failed to detach stat from route ", prefix);
+  }
+  if (newCounterID.has_value()) {
+    auto rc =
+        bcm_l3_route_stat_attach(unit, rt, newCounterID.value().getHwId());
+    bcmCheckError(
+        rc,
+        "failed to attach stat to route ",
+        prefix,
+        " counter ",
+        (*newCounterID).str());
+    if (isFlexCounterSupported) {
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+      auto rc = bcm_l3_route_flexctr_object_set(
+          unit, rt, newCounterID.value().getHwOffset());
+      bcmCheckError(
+          rc,
+          "failed to set flexctr index for ",
+          prefix,
+          " counter ",
+          (*newCounterID).str());
+#endif
+    }
+  }
+}
+
 void initL3RouteFromArgs(
     bcm_l3_route_t* rt,
     bcm_vrf_t vrf,
@@ -80,6 +118,7 @@ void programLpmRoute(
     bool isMultipath,
     bool discard,
     bool replace,
+    bool isFlexCounterSupported,
     std::optional<facebook::fboss::BcmRouteCounterID> counterID = std::nullopt,
     std::optional<facebook::fboss::BcmRouteCounterID> oldCounterID =
         std::nullopt) {
@@ -118,11 +157,18 @@ void programLpmRoute(
       // if route flags changed during warmboot, check whether
       // the route has counter id. set old counter id here
       // so that rest of the logic follows correctly.
-      facebook::fboss::BcmRouteCounterID existingID;
-      auto rc =
-          bcm_l3_route_stat_id_get(unit, &rt, bcmL3RouteInPackets, &existingID);
+      uint32_t hwCounterIndex;
+      uint32_t hwCounterOffset{0};
+      auto rc = bcm_l3_route_stat_id_get(
+          unit, &rt, bcmL3RouteInPackets, &hwCounterIndex);
       if (rc == BCM_E_NONE) {
-        oldCounterID.emplace(existingID);
+        if (isFlexCounterSupported) {
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+          rc = bcm_l3_route_flexctr_object_get(unit, &rt, &hwCounterOffset);
+#endif
+        }
+        oldCounterID.emplace(facebook::fboss::BcmRouteCounterID(
+            hwCounterIndex, hwCounterOffset));
       }
       addRoute = true;
     } else {
@@ -151,26 +197,16 @@ void programLpmRoute(
         replace,
         " in cache: ",
         cachedRoute.has_value());
-    if (oldCounterID.has_value() && (oldCounterID != counterID)) {
-      rc = bcm_l3_route_stat_detach(unit, &rt);
-      bcmCheckError(rc, "failed to detach stat from route ", prefix);
-    }
-    if (counterID.has_value() && (counterID != oldCounterID)) {
-      rc = bcm_l3_route_stat_attach(unit, &rt, *counterID);
-      bcmCheckError(
-          rc,
-          "failed to attach stat to route ",
-          prefix,
-          " counter ",
-          *counterID);
-    }
+
+    attachRouteStat(
+        unit, &rt, prefix, counterID, oldCounterID, isFlexCounterSupported);
+
     XLOG(DBG3) << "created a route entry for " << prefix.str() << "/"
                << static_cast<int>(prefixLength) << " @egress " << egressId
                << " class id "
                << (classID.has_value() ? static_cast<int>(classID.value()) : 0)
                << " counter id "
-               << (counterID.has_value() ? static_cast<int>(counterID.value())
-                                         : -1);
+               << (counterID.has_value() ? counterID.value().str() : "null");
   }
 }
 
@@ -230,9 +266,12 @@ bool BcmRoute::canUseHostTable() const {
 void BcmRoute::program(
     const RouteNextHopEntry& fwd,
     std::optional<cfg::AclLookupClass> classID) {
-  auto routeCounterID = fwd.getCounterID();
+  // Route counters cannot be shared between v4 and v6 on Tomahawk4
+  // and needs to be pre allocated. We support only v6 route counters
+  // to reduce scale.
+  auto routeCounterID = prefix_.isV6() ? fwd.getCounterID() : std::nullopt;
   std::optional<BcmRouteCounterID> counterID;
-  std::shared_ptr<BcmRouteCounter> counterIDReference{nullptr};
+  std::shared_ptr<BcmRouteCounterBase> counterIDReference{nullptr};
   if (routeCounterID.has_value()) {
     counterIDReference =
         hw_->writableRouteCounterTable()->referenceOrEmplaceCounterID(
@@ -311,6 +350,8 @@ void BcmRoute::program(
       auto cachedRoute = routeCitr != warmBootCache->vrfAndPrefix2Route_end()
           ? std::make_optional(routeCitr->second)
           : std::nullopt;
+      auto isFlexCounterSupported = hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_FLEX_COUNTERS);
       programLpmRoute(
           hw_->getUnit(),
           vrf_,
@@ -322,6 +363,7 @@ void BcmRoute::program(
           fwd.getNextHopSet().size() > 1,
           fwd.getAction() == RouteForwardAction::DROP,
           added_,
+          isFlexCounterSupported,
           counterID,
           oldCounterID);
       if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
@@ -403,8 +445,9 @@ void BcmHostRoute::addToBcmHw(bool isMultipath, bool replace) {
       (cfg::AclLookupClass)getLookupClassId(),
       cachedRoute,
       isMultipath,
-      false,
-      replace);
+      false, /* discard */
+      replace,
+      false /* Flexcounter */);
   if (routeCitr != warmBootCache->vrfAndPrefix2Route_end()) {
     warmBootCache->programmed(routeCitr);
   }

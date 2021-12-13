@@ -205,7 +205,7 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   }
   warmBootCache[kTrunks] = std::move(trunks);
 
-  warmBootCache[BcmRouteCounterTable::kRouteCounters] =
+  warmBootCache[BcmRouteCounterTableBase::kRouteCounters] =
       hw_->routeCounterTable()->toFollyDynamic();
 
   return warmBootCache;
@@ -265,19 +265,38 @@ void BcmWarmBootCache::populateFromWarmBootState(
     }
   }
 
-  if (wbCache.find(BcmRouteCounterTable::kRouteCounters) !=
+  if (wbCache.find(BcmRouteCounterTableBase::kRouteCounters) !=
       wbCache.items().end()) {
-    auto& routeCounterInfo = wbCache[BcmRouteCounterTable::kRouteCounters];
-    routeCounterModeId_ =
-        routeCounterInfo[BcmRouteCounterTable::kGlobalModeId].asInt();
-    XLOG(DBG2) << "Found route counter mode id " << routeCounterModeId_;
+    auto& routeCounterInfo = wbCache[BcmRouteCounterTableBase::kRouteCounters];
+    if (routeCounterInfo.find(BcmRouteCounterTable::kGlobalModeId) !=
+        routeCounterInfo.items().end()) {
+      routeCounterModeId_ =
+          routeCounterInfo[BcmRouteCounterTable::kGlobalModeId].asInt();
+      XLOG(DBG2) << "Found route counter mode id " << routeCounterModeId_;
+    }
+    if (routeCounterInfo.find(BcmRouteFlexCounterTable::kFlexCounterActionV6) !=
+        routeCounterInfo.items().end()) {
+      v6FlexCounterAction_ =
+          routeCounterInfo[BcmRouteFlexCounterTable::kFlexCounterActionV6]
+              .asInt();
+      XLOG(DBG2) << "Found v6 route flex counter action id "
+                 << v6FlexCounterAction_;
+    }
     auto& routeCounterIDs =
-        routeCounterInfo[BcmRouteCounterTable::kRouteCounterIDs];
+        routeCounterInfo[BcmRouteCounterTableBase::kRouteCounterIDs];
     for (const auto& e : routeCounterIDs.items()) {
-      routeCounterIDs_[e.first.asString()] = e.second.asInt();
+      auto counterId = e.second;
+      if (counterId.type() == folly::dynamic::Type::OBJECT) {
+        routeCounterIDs_[e.first.asString()] =
+            BcmRouteCounterID::fromFollyDynamic(counterId);
+      } else {
+        routeCounterIDs_[e.first.asString()] =
+            BcmRouteCounterID(counterId.asInt(), 0);
+      }
     }
     for (const auto& e : routeCounterIDs_) {
-      XLOG(DBG2) << "Route counter id " << e.first << " Hwid " << e.second;
+      XLOG(DBG2) << "Found route counter id " << e.first << " Hwid "
+                 << e.second.str();
     }
   }
 

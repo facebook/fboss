@@ -344,7 +344,13 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       mplsNextHopTable_(new BcmMplsNextHopTable(this)),
       multiPathNextHopTable_(new BcmMultiPathNextHopTable(this)),
       labelMap_(new BcmLabelMap(this)),
-      routeCounterTable_(new BcmRouteCounterTable(this)),
+      routeCounterTable_(
+          getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::ROUTE_FLEX_COUNTERS)
+              ? static_cast<BcmRouteCounterTableBase*>(
+                    new BcmRouteFlexCounterTable(this))
+              : static_cast<BcmRouteCounterTableBase*>(
+                    new BcmRouteCounterTable(this))),
       routeTable_(new BcmRouteTable(this)),
       qosPolicyTable_(new BcmQosPolicyTable(this)),
       aclTable_(new BcmAclTable(this)),

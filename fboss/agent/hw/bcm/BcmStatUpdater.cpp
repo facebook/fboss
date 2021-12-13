@@ -29,6 +29,7 @@
 
 extern "C" {
 #include <bcm/field.h>
+#include <bcm/flexctr.h>
 }
 
 namespace {
@@ -154,13 +155,52 @@ void BcmStatUpdater::updateRouteCounters() {
   }
 }
 
-uint64_t BcmStatUpdater::getRouteTrafficStats(BcmRouteCounterID id) {
+uint64_t BcmStatUpdater::getBcmFlexRouteTrafficStats(
+    BcmRouteCounterID routeCounterId) {
+  uint64_t byteCounterValue{0};
+  uint32 counterOffset = routeCounterId.getHwOffset();
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+  bcm_flexctr_counter_value_t counterValue{};
+  auto rc = bcm_flexctr_stat_get(
+      hw_->getUnit(),
+      routeCounterId.getHwId(),
+      1,
+      &counterOffset,
+      &counterValue);
+  if (!rc) {
+    // pkt byte is at offset 1
+    byteCounterValue = counterValue.value[1];
+  } else {
+    XLOG(DBG3) << "Failed to read route counter " << routeCounterId.str()
+               << " rc: " << rc;
+  }
+#endif
+  return byteCounterValue;
+}
+
+uint64_t BcmStatUpdater::getBcmRouteTrafficStats(
+    BcmRouteCounterID routeCounterId) {
   uint32 entry = 0;
-  bcm_stat_value_t routeCounter;
+  bcm_stat_value_t routeCounter{};
   auto rc = bcm_stat_flex_counter_get(
-      hw_->getUnit(), id, bcmStatFlexStatBytes, 1, &entry, &routeCounter);
+      hw_->getUnit(),
+      routeCounterId.getHwId(),
+      bcmStatFlexStatBytes,
+      1,
+      &entry,
+      &routeCounter);
   // SDK returns error if counter is not attached to any route
   return rc ? 0 : routeCounter.bytes;
+}
+
+uint64_t BcmStatUpdater::getRouteTrafficStats(
+    BcmRouteCounterID routeCounterId) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ROUTE_FLEX_COUNTERS)) {
+    return getBcmFlexRouteTrafficStats(routeCounterId);
+  } else {
+    return getBcmRouteTrafficStats(routeCounterId);
+  }
 }
 
 void BcmStatUpdater::refreshRouteCounters() {
@@ -179,7 +219,7 @@ void BcmStatUpdater::refreshRouteCounters() {
     auto itr = lockedRouteCounters->find(id);
     if (addCounter) {
       if (itr != lockedRouteCounters->end()) {
-        throw FbossError("Duplicate Route stat, id=", id);
+        throw FbossError("Duplicate Route stat ", id.str());
       } else {
         lockedRouteCounters->operator[](id) =
             std::make_unique<MonotonicCounter>(
@@ -189,7 +229,7 @@ void BcmStatUpdater::refreshRouteCounters() {
       if (itr != lockedRouteCounters->end()) {
         lockedRouteCounters->erase(itr++);
       } else {
-        throw FbossError("Cannot find Route stat, id=", id);
+        throw FbossError("Cannot find Route stat ", id.str());
       }
     }
     toBeProcessedRouteCounters_.pop();

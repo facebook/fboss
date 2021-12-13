@@ -124,14 +124,16 @@ TEST_F(HwRouteCounterOverflowTest, overflowRouteCounters) {
   const RouterID kRid(0);
   auto counterID1 = std::optional<RouteCounterID>("route.counter.0");
   auto counterID2 = std::optional<RouteCounterID>("route.counter.1");
+  // Add some V6 prefixes with a counterID
   updater.programRoutes(
       kRid,
       ClientID::BGPD,
       utility::RouteDistributionGenerator(
           getProgrammedState(), {{64, 5}}, {}, 4000, 4)
           .getThriftRoutes(counterID1));
+  // Add another set of V6 prefixes with a second counterID
   routeChunks = utility::RouteDistributionGenerator(
-                    getProgrammedState(), {}, {{24, 5}}, 4000, 4)
+                    getProgrammedState(), {{120, 5}}, {}, 4000, 4)
                     .getThriftRoutes(counterID2);
 
   {

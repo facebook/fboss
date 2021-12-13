@@ -63,6 +63,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
+    case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
@@ -101,7 +102,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-    case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:

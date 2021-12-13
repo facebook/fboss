@@ -615,6 +615,10 @@ class BcmWarmBootCache {
     return routeCounterModeId_;
   }
 
+  int getRouteCounterV6FlexActionId() const {
+    return v6FlexCounterAction_;
+  }
+
   RouteCounterIDMapItr findRouteCounterID(RouteCounterID counterID) const {
     return routeCounterIDs_.find(counterID);
   }
@@ -721,6 +725,7 @@ class BcmWarmBootCache {
 
   RouteCounterIDMap routeCounterIDs_;
   int routeCounterModeId_{-1};
+  int v6FlexCounterAction_{0};
 };
 
 } // namespace facebook::fboss
