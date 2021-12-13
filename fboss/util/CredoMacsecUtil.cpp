@@ -115,6 +115,12 @@ void printFlowStatsHelper(
   }
 }
 
+void printAclStatsHelper(MacsecAclStats& aclStats, std::string portName) {
+  printf("Printing ACL stats for %s\n", portName.c_str());
+  printf("Direction: %s\n", "ingress");
+  printf("  defaultAclStats: %ld\n", aclStats.defaultAclStats_ref().value());
+}
+
 } // namespace
 
 namespace facebook {
@@ -161,6 +167,7 @@ DEFINE_bool(
     get_sa_stats,
     false,
     "Get SA stats, use with --port --ingress/--egress");
+DEFINE_bool(get_acl_stats, false, "Get Macsec ACL stats, use with --port");
 DEFINE_bool(
     get_allport_stats,
     false,
@@ -559,6 +566,26 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 }
 
+void CredoMacsecUtil::getAclStats(QsfpServiceAsyncClient* fbMacsecHandler) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+
+  std::map<std::string, MacsecStats> allportStats;
+  fbMacsecHandler->sync_getAllMacsecPortStats(allportStats, true);
+
+  auto portMacsecStatsItr = allportStats.find(FLAGS_port);
+  if (portMacsecStatsItr == allportStats.end()) {
+    printf("Wrong port name specified: %s\n", FLAGS_port.c_str());
+    return;
+  }
+
+  auto& portMacsecStats = portMacsecStatsItr->second;
+  auto& aclStats = portMacsecStats.ingressAclStats_ref().value();
+  printAclStatsHelper(aclStats, FLAGS_port);
+}
+
 void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   std::map<std::string, MacsecStats> allportStats;
 
@@ -595,6 +622,8 @@ void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
          portStatsItr.second.txSecureAssociationStats_ref().value()) {
       printSaStatsHelper(saStatsItr.saStats_ref().value(), portName, false);
     }
+    printAclStatsHelper(
+        portStatsItr.second.ingressAclStats_ref().value(), portName);
     printf("\n");
   }
 }

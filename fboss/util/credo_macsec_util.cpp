@@ -62,6 +62,10 @@ int main(int argc, char* argv[]) {
     macsec.getSaStats(client.get());
     return 0;
   }
+  if (FLAGS_get_acl_stats) {
+    macsec.getAclStats(client.get());
+    return 0;
+  }
   if (FLAGS_get_allport_stats) {
     macsec.getAllPortStats(client.get());
     return 0;

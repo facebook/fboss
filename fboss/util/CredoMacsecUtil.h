@@ -24,6 +24,7 @@ DECLARE_bool(ingress);
 DECLARE_bool(egress);
 DECLARE_bool(get_flow_stats);
 DECLARE_bool(get_sa_stats);
+DECLARE_bool(get_acl_stats);
 DECLARE_bool(get_allport_stats);
 DECLARE_bool(get_sdk_state);
 DECLARE_string(filename);
@@ -52,6 +53,7 @@ class CredoMacsecUtil {
   void getPortStats(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getFlowStats(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getSaStats(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
+  void getAclStats(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void deleteAllSc(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void getAllPortStats(
       facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
