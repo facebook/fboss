@@ -1351,4 +1351,37 @@ TYPED_TEST(HwCoppTest, Ttl1PacketToLowPriQ) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
+  auto setup = [=]() { this->setup(); };
+
+  auto verify = [=]() {
+    std::array<folly::IPAddress, 2> randomSrcIP{
+        folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
+    std::array<std::pair<int, int>, 2> dhcpPortPairs{
+        std::make_pair(67, 68), std::make_pair(546, 547)};
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        auto l4SrcPort =
+            j == 0 ? dhcpPortPairs[i].first : dhcpPortPairs[i].second;
+        auto l4DstPort =
+            j == 0 ? dhcpPortPairs[i].second : dhcpPortPairs[i].first;
+        this->sendUdpPktAndVerify(
+            utility::kCoppMidPriQueueId,
+            randomSrcIP[i],
+            l4SrcPort,
+            l4DstPort,
+            1 /* send pkt count */,
+            1 /* expected rx count */,
+            255 /* TTL */,
+            true /* send out of port */);
+        XLOG(DBG0) << "Sending packet with src port " << l4SrcPort
+                   << " dst port " << l4DstPort << " IP: " << randomSrcIP[i];
+      }
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
