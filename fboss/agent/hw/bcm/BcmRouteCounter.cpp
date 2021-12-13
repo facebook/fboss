@@ -189,7 +189,10 @@ folly::dynamic BcmRouteCounterTable::toFollyDynamic() const {
   folly::dynamic routeCounterIDs = folly::dynamic::object;
   for (const auto entry : counterIDs_) {
     auto counter = entry.second.lock();
-    routeCounterIDs[entry.first] = counter->getHwCounterID().toFollyDynamic();
+    // Temporarly store TH3 counter id in old format so that warmboot
+    // downgrades to old image works. This can be removed once
+    // code that understands new format is deployed everywhere
+    routeCounterIDs[entry.first] = counter->getHwCounterID().getHwId();
   }
   folly::dynamic routeCounterInfo = folly::dynamic::object;
   routeCounterInfo[kRouteCounterIDs] = std::move(routeCounterIDs);
@@ -270,8 +273,17 @@ folly::dynamic BcmRouteFlexCounterTable::toFollyDynamic() const {
   }
   folly::dynamic routeCounterInfo = folly::dynamic::object;
   routeCounterInfo[kRouteCounterIDs] = std::move(routeCounterIDs);
-  routeCounterInfo[kFlexCounterActionV6] =
-      std::to_string(v6FlexCounterAction->getActionId());
+
+  auto actionId = v6FlexCounterAction->getActionId();
+  if (!actionId) {
+    // Check whether warmboot cache has a valid action id
+    auto idFromWBCache =
+        hw_->getWarmBootCache()->getRouteCounterV6FlexActionId();
+    if (idFromWBCache) {
+      actionId = idFromWBCache;
+    }
+  }
+  routeCounterInfo[kFlexCounterActionV6] = std::to_string(actionId);
   return routeCounterInfo;
 }
 
