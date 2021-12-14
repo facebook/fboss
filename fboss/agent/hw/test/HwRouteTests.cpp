@@ -10,15 +10,23 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "folly/IPAddressV4.h"
+#include "folly/IPAddressV6.h"
 
 #include <string>
 
@@ -40,6 +48,10 @@ class HwRouteTest : public HwLinkStateDependentTest {
          masterLogicalPortIds()[2],
          masterLogicalPortIds()[3]},
         cfg::PortLoopbackMode::MAC);
+  }
+
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
 
   RouterID kRouterID() const {
@@ -75,6 +87,15 @@ class HwRouteTest : public HwLinkStateDependentTest {
               folly::IPAddressV6{"2803:6080:d038:3065::"}, 64}};
 
       return routePrefixes;
+    }
+  }
+
+  RoutePrefix<AddrT> kDefaultPrefix() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"0.0.0.0"}, 0};
+
+    } else {
+      return RoutePrefix<folly::IPAddressV6>{folly::IPAddressV6{"::"}, 0};
     }
   }
 
@@ -418,6 +439,74 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
         {1001, 1002},
         1);
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwRouteTest, VerifyRouting) {
+  if (this->getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_FAKE ||
+      this->getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_MOCK) {
+    GTEST_SKIP();
+    return;
+  }
+  using AddrT = typename TestFixture::Type;
+  auto constexpr isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  auto ports = this->portDescs();
+  auto setup = [=]() {
+    this->applyNewConfig(this->initialConfig());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    this->applyNewState(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), {ports[0]}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdater(), {ports[0]}, {this->kDefaultPrefix()});
+  };
+  auto verify = [=]() {
+    auto vlanId = utility::firstVlanID(this->initialConfig());
+    auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
+
+    auto v4TxPkt = utility::makeUDPTxPacket(
+        this->getHwSwitch(),
+        vlanId,
+        intfMac,
+        intfMac,
+        folly::IPAddressV4("101.0.0.1"),
+        folly::IPAddressV4("201.0.0.1"),
+        1234,
+        4321,
+        0,
+        255);
+
+    auto v6TxPkt = utility::makeUDPTxPacket(
+        this->getHwSwitch(),
+        vlanId,
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("101::1"),
+        folly::IPAddressV6("201::1"),
+        1234,
+        4321,
+        0,
+        255);
+
+    auto ensemble = this->getHwSwitchEnsemble();
+    auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
+    auto entry = std::make_unique<HwTestPacketTrapEntry>(
+        ensemble->getHwSwitch(), ports[0].phyPortID());
+    if (isV4) {
+      this->getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(v4TxPkt), ports[1].phyPortID());
+
+    } else {
+      this->getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(v6TxPkt), ports[1].phyPortID());
+    }
+
+    auto frameRx = snooper->waitForPacket(1);
+    ASSERT_TRUE(frameRx.has_value());
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
