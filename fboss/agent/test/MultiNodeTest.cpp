@@ -12,7 +12,6 @@
 #include <gflags/gflags.h>
 
 #include "common/network/NetworkUtil.h"
-#include "common/strings/StringUtil.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -66,8 +65,8 @@ void MultiNodeTest::parseTestPorts(std::string portList) {
     std::vector<std::string> strs;
     folly::split(',', portList, strs, true);
     for (const auto& str : strs) {
-      uint32_t portId;
-      if (strings::parseUInt32(str, &portId)) {
+      uint32_t portId = folly::to<uint32_t>(str);
+      if (portId) {
         testPorts_.emplace_back(portId);
       }
     }
