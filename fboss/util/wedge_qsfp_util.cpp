@@ -1487,6 +1487,11 @@ void printSff8472DetailService(
         "    Transceiver Identifier: %s\n",
         apache::thrift::util::enumNameSafe(*identifier).c_str());
   }
+  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+    printf(
+        "    StateMachine State: %s\n",
+        apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
+  }
 
   printManagementInterface(
       transceiverInfo, "    Transceiver Management Interface: %s\n");
@@ -1534,6 +1539,11 @@ void printSffDetailService(
     printf(
         "    Extended Specification Compliance Code: %s\n",
         apache::thrift::util::enumNameSafe(*(ext)).c_str());
+  }
+  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+    printf(
+        "    StateMachine State: %s\n",
+        apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
 
   printManagementInterface(
@@ -1810,6 +1820,11 @@ void printCmisDetailService(
         apache::thrift::util::enumNameSafe(
             *(moduleStatus->cmisModuleState_ref()))
             .c_str());
+  }
+  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+    printf(
+        "    StateMachine State: %s\n",
+        apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
   if (auto mediaInterfaceId = settings.mediaInterface_ref()) {
     printf(
