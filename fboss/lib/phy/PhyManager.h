@@ -192,6 +192,12 @@ class PhyManager {
   void updateXphyInfo(PortID portID, const phy::PhyInfo& phyInfo);
   std::optional<phy::PhyInfo> getXphyInfo(PortID portID) const;
 
+  // returns the default TX settings for phy ports on the given phy.
+  // for most platforms we can just leave this as null
+  virtual std::optional<phy::TxSettings> getDefaultTxSettings() {
+    return std::nullopt;
+  }
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead

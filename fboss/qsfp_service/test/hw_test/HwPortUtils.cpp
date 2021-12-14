@@ -26,15 +26,31 @@
 
 namespace facebook::fboss::utility {
 
+void fillDefaultTxSettings(PhyManager* phyManager, phy::PhyPortConfig& config) {
+  auto fillSide = [&phyManager](auto&& phySideConfig) {
+    for (auto& [_, laneConfig] : phySideConfig.lanes) {
+      if (!laneConfig.tx) {
+        laneConfig.tx = phyManager->getDefaultTxSettings();
+      }
+    }
+  };
+  fillSide(config.config.system);
+  fillSide(config.config.line);
+}
+
 void verifyPhyPortConfig(
     PortID portID,
     PhyManager* phyManager,
     const phy::PhyPortConfig& expectedConfig) {
+  phy::PhyPortConfig filledConfig = expectedConfig;
+  // fill default TX settings in the expectedConfig
+  fillDefaultTxSettings(phyManager, filledConfig);
+
   // Now fetch the config actually programmed to the xphy
   const auto& actualPortConfig = phyManager->getHwPhyPortConfig(portID);
 
   // Check speed
-  EXPECT_EQ(expectedConfig.profile.speed, actualPortConfig.profile.speed);
+  EXPECT_EQ(filledConfig.profile.speed, actualPortConfig.profile.speed);
   // Check ProfileSideConfig. Due to we couldn't fetch all the config yet.
   // Just check the attribures we can get
   auto checkProfileSideConfig = [&](const phy::ProfileSideConfig& expected,
@@ -51,16 +67,19 @@ void verifyPhyPortConfig(
     }
   };
   checkProfileSideConfig(
-      expectedConfig.profile.system, actualPortConfig.profile.system);
+      filledConfig.profile.system, actualPortConfig.profile.system);
   checkProfileSideConfig(
-      expectedConfig.profile.line, actualPortConfig.profile.line);
+      filledConfig.profile.line, actualPortConfig.profile.line);
 
   // Currently we don't return tx_settings for Elbert system yet.
   // Only check phy::ExternalPhyConfig when the actual config exists
   const auto& actualSysLanesConf = actualPortConfig.config.system.lanes;
   const auto& acutualLineLanesConf = actualPortConfig.config.line.lanes;
   if (!actualSysLanesConf.empty() && !acutualLineLanesConf.empty()) {
-    EXPECT_EQ(expectedConfig.config, actualPortConfig.config);
+    EXPECT_EQ(filledConfig.config, actualPortConfig.config)
+        << " Mismatch between expected and actual port config.\nExpected "
+        << filledConfig.config.toDynamic()
+        << "\n Actual: " << actualPortConfig.config.toDynamic();
   } else {
     XLOG(DBG2) << "Actuall hardware config doesn't have ExternalPhyConfig";
   }
