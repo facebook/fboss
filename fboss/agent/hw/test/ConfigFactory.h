@@ -29,14 +29,14 @@ class HwSwitchEnsemble;
 namespace facebook::fboss::utility {
 
 /*
- * Use vlan 1000, as the base vlan for ports in configs generated here.
+ * Use vlan 2000, as the base vlan for ports in configs generated here.
  * Anything except 0, 1 would actually work fine. 0 because
  * its reserved, and 1 because BRCM uses that as default VLAN.
  * So for example if we use VLAN 1, BRCM will also add cpu port to
  * that vlan along with our configured ports. This causes unnecessary
  * confusion for our tests.
  */
-auto constexpr kBaseVlanId = 1000;
+auto constexpr kBaseVlanId = 2000;
 /*
  * Default VLAN
  */

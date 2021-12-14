@@ -713,7 +713,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       uplinkMasterPorts,
       lbMode,
       interfaceHasSubnet,
-      true,
+      true /*setInterfaceMac*/,
       kUplinkBaseVlanId);
   for (auto portId : uplinkMasterPorts) {
     utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);

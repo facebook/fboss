@@ -26,9 +26,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
   void SetUp() override {
     MultiNodeTest::SetUp();
     if (isDUT()) {
-      // TOOD - call verify reachability once configs are
-      // fixed to generate the right intf IPs
-      // verifyReachability();
+      verifyReachability();
     }
     auto addRoute = [this](auto ip, const auto& nhops) {
       auto updater = sw()->getRouteUpdater();
