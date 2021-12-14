@@ -14,8 +14,6 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-DECLARE_bool(override_cmis_tx_setting);
-
 namespace facebook {
 namespace fboss {
 

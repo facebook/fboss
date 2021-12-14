@@ -17,11 +17,6 @@
 
 #include "fboss/agent/FbossError.h"
 
-DEFINE_bool(
-    override_cmis_tx_setting,
-    false,
-    "Flag to turn on new GB line tx setting for cmis module running in 100G");
-
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);
