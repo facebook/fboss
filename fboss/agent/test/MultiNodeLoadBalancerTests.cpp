@@ -141,7 +141,10 @@ TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
       facebook::fboss::utility::pumpTraffic(
           isV6, sw()->getHw(), localMac, vlan);
     }
-    // TODO - verify LB
+    // Let all packets get through
+    sleep(5);
+    EXPECT_TRUE(utility::isLoadBalanced(
+        getPortStats(testPortNames()), 25 /*max deviation*/));
   };
   verifyAcrossWarmBoots(verify);
 }
