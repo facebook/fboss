@@ -180,6 +180,9 @@ class PortDetailsCmd(cmds.FbossCmd):
                             attrs.append(
                                 "{}={}".format("maxThresh", linear.maximumLength)
                             )
+                            attrs.append(
+                                "{}={}".format("probability", linear.probability)
+                            )
 
                             print("{:<41}{}".format("", ",".join(attrs)))
 
