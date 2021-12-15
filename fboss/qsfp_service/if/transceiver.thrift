@@ -53,6 +53,12 @@ struct GlobalSensors {
   2: Sensor vcc;
 }
 
+/*
+ * Sensor data for individual channels of a module. Pl note that Rx/Tx power
+ * values are the real values in mW read from optics whereas the dBm values
+ * are converted value from mW. Generally dBm = 10log(mW) and in case mW is
+ * less than 0.01mW then we use dBm as -40
+ */
 struct ChannelSensors {
   1: Sensor rxPwr;
   2: Sensor txBias;

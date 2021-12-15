@@ -610,8 +610,8 @@ class PortStatusDetailCmd(object):
             self._transceiver.append(tid)
 
     def _mw_to_dbm(self, mw):
-        if mw == 0:
-            return -45.0
+        if mw <= 0.01:
+            return -40.0
         else:
             return 10 * log10(mw)
 
