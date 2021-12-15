@@ -31,6 +31,8 @@ target_link_libraries(platform
   qsfp_cpp2
   Folly::folly
   wedge_led_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(bcm_led_utils

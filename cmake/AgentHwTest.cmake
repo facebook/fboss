@@ -23,6 +23,8 @@ add_library(hw_test_main
 target_link_libraries(hw_test_main
   fboss_init
   Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(hw_packet_utils
@@ -47,6 +49,8 @@ target_link_libraries(hw_copp_utils
   Folly::folly
   resourcelibutil
   switch_config_cpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(hw_olympic_qos_utils
@@ -176,12 +180,13 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp,
-  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp,
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp,
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp,
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp,
-  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp,
+  # TODO: Compile takes too long. Commenting until addressing it
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
+  # fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
@@ -255,6 +260,8 @@ target_link_libraries(hw_switch_test
   trunk_utils
   Folly::folly
   validated_shell_commands_cpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(hw_pfc_utils
@@ -263,6 +270,8 @@ add_library(hw_pfc_utils
 
 target_link_libraries(hw_pfc_utils
   hw_switch_ensemble
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(prod_config_factory
@@ -276,6 +285,8 @@ target_link_libraries(prod_config_factory
   hw_queue_per_host_utils
   load_balancer_utils
   hw_pfc_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(hw_queue_per_host_utils
@@ -288,4 +299,6 @@ target_link_libraries(hw_queue_per_host_utils
   fboss_types
   hw_switch
   switch_config_cpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )

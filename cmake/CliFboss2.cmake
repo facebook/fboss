@@ -108,7 +108,6 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/utils/oss/CLIParserUtils.cpp
   fboss/cli/fboss2/options/SSLPolicy.h
-  ${RE2}
 )
 
 target_link_libraries(fboss2
@@ -130,6 +129,7 @@ target_link_libraries(fboss2
   show_interface_errors
   show_interface_counters
   show_interface_counters_mka
+  ${RE2}
 )
 
 add_library(tabulate

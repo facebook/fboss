@@ -92,6 +92,9 @@ target_link_libraries(agent_test_lib
   fboss_agent
   qsfp_cpp2
   qsfp_service_client
+  fboss_config_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 add_library(multinode_tests

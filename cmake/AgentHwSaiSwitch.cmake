@@ -80,6 +80,8 @@ target_link_libraries(sai_switch
   sai_store
   ref_map
   Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
   -Wl,--unresolved-symbols=report-all
 )
 

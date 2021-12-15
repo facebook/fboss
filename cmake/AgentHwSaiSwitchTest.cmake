@@ -48,6 +48,8 @@ target_link_libraries(manager_test_base
   sai_switch
   fake_sai
   Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
 
 set_target_properties(manager_test_base PROPERTIES COMPILE_FLAGS
