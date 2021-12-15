@@ -1319,6 +1319,7 @@ void SaiSwitch::packetRxCallback(
     const sai_attribute_t* attr_list) {
   std::optional<PortSaiId> portSaiIdOpt;
   std::optional<LagSaiId> lagSaiIdOpt;
+  std::optional<HostifTrapSaiId> hostifTrapSaiIdOpt;
   for (uint32_t index = 0; index < attr_count; index++) {
     switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
@@ -1328,46 +1329,68 @@ void SaiSwitch::packetRxCallback(
         lagSaiIdOpt = attr_list[index].value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
+        hostifTrapSaiIdOpt = attr_list[index].value.oid;
         break;
       default:
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  if (!portSaiIdOpt) {
+
+  /*
+   * for Tajo, the TTL 1 processing is done at egress and hence the
+   * packet received to CPU does not carry source port attribute. Hence
+   * set the source port as 0 and derive the vlan tag from the packet
+   * and send it to sw switch for processing.
+   */
+  bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
+      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO &&
+      isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
+
+  if (!portSaiIdOpt && !allowMissingSrcPort) {
     XLOG(ERR)
         << "discarded a packet with missing SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT.";
     return;
   }
-  auto iter = concurrentIndices_->memberPort2AggregatePortIds.find(
-      portSaiIdOpt.value());
 
-  if (iter != concurrentIndices_->memberPort2AggregatePortIds.end()) {
-    // hack if SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG is not set on packet on lag!
-    // if port belongs to some aggregate port, process packet as if coming
-    // from lag.
-    auto [portSaiId, aggregatePortId] = *iter;
-    std::ignore = portSaiId;
-    for (auto entry : concurrentIndices_->aggregatePortIds) {
-      auto [lagSaiId, swLagId] = entry;
-      if (swLagId == aggregatePortId) {
-        lagSaiIdOpt = lagSaiId;
-        break;
+  if (portSaiIdOpt.has_value()) {
+    auto iter = concurrentIndices_->memberPort2AggregatePortIds.find(
+        portSaiIdOpt.value());
+
+    if (iter != concurrentIndices_->memberPort2AggregatePortIds.end()) {
+      // hack if SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG is not set on packet on lag!
+      // if port belongs to some aggregate port, process packet as if coming
+      // from lag.
+      auto [portSaiId, aggregatePortId] = *iter;
+      std::ignore = portSaiId;
+      for (auto entry : concurrentIndices_->aggregatePortIds) {
+        auto [lagSaiId, swLagId] = entry;
+        if (swLagId == aggregatePortId) {
+          lagSaiIdOpt = lagSaiId;
+          break;
+        }
       }
     }
   }
 
+  auto portSaiId = portSaiIdOpt.has_value() ? portSaiIdOpt.value()
+                                            : PortSaiId(SAI_NULL_OBJECT_ID);
   if (!lagSaiIdOpt) {
-    packetRxCallbackPort(buffer_size, buffer, portSaiIdOpt.value());
+    packetRxCallbackPort(buffer_size, buffer, portSaiId, allowMissingSrcPort);
   } else {
     packetRxCallbackLag(
-        buffer_size, buffer, lagSaiIdOpt.value(), portSaiIdOpt.value());
+        buffer_size,
+        buffer,
+        lagSaiIdOpt.value(),
+        portSaiId,
+        allowMissingSrcPort);
   }
 }
 
 void SaiSwitch::packetRxCallbackPort(
     sai_size_t buffer_size,
     const void* buffer,
-    PortSaiId portSaiId) {
+    PortSaiId portSaiId,
+    bool allowMissingSrcPort) {
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket =
@@ -1390,7 +1413,8 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (portSaiId == getCPUPortSaiId()) {
+  if (portSaiId == getCPUPortSaiId() ||
+      (allowMissingSrcPort && portItr == concurrentIndices_->portIds.cend())) {
     folly::io::Cursor cursor(rxPacket->buf());
     EthHdr ethHdr{cursor};
     auto vlanTags = ethHdr.getVlanTags();
@@ -1436,7 +1460,8 @@ void SaiSwitch::packetRxCallbackLag(
     sai_size_t buffer_size,
     const void* buffer,
     LagSaiId lagSaiId,
-    PortSaiId portSaiId) {
+    PortSaiId portSaiId,
+    bool allowMissingSrcPort) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
@@ -1464,7 +1489,7 @@ void SaiSwitch::packetRxCallbackLag(
   rxPacket->setSrcVlan(swVlanId);
 
   auto swPortItr = concurrentIndices_->portIds.find(portSaiId);
-  if (swPortItr == concurrentIndices_->portIds.cend()) {
+  if (swPortItr == concurrentIndices_->portIds.cend() && !allowMissingSrcPort) {
     XLOG(ERR) << "RX packet for lag has invalid port : 0x" << std::hex
               << portSaiId;
     return;
@@ -1867,9 +1892,9 @@ void SaiSwitch::fdbEventCallback(
    * them in the fdb bottom half thread.
    * 2) Create a temporary struct FdbEventNotificationData which is a subset
    * of sai_fdb_event_notification_data_t. This will be used to store only the
-   * necessary attributes and pass it on to fdb bottom half thread.
-   * 3) Avoid creating temporary structs and create L2Entry which can be sent to
-   * sw switch. The problem with this approach is we need to hold the sai switch
+   * necessary attributes and pass it on to fdb bottom half thread. 3) Avoid
+   * creating temporary structs and create L2Entry which can be sent to sw
+   * switch. The problem with this approach is we need to hold the sai switch
    * mutex in the callback thread. Also, this can cause deadlock when we used
    * the bridge port id to fetch the port id from the SDK. Going with option 2
    * for fdb event notifications.

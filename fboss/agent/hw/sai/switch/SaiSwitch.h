@@ -387,13 +387,15 @@ class SaiSwitch : public HwSwitch {
   void packetRxCallbackPort(
       sai_size_t buffer_size,
       const void* buffer,
-      PortSaiId inPort);
+      PortSaiId inPort,
+      bool allowMissingSrcPort);
 
   void packetRxCallbackLag(
       sai_size_t buffer_size,
       const void* buffer,
       LagSaiId inAggPort,
-      PortSaiId inPort);
+      PortSaiId inPort,
+      bool allowMissingSrcPort);
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
