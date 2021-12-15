@@ -1,12 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/init/Init.h>
+#include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <string.h>
 #include <sysexits.h>
 #include <iostream>
 #include <memory>
+#include "common/fbwhoami/FbWhoAmI.h"
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 
@@ -14,9 +16,16 @@ using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 
 std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
-  // ToDo: use class PlatformProductInfo to get platform information
-  // and pickup the right weutil class accordingly
-  return std::make_unique<WeutilDarwin>();
+  // Get the model name from FbWhoAmI instead of from class PlatformProductInfo
+  // to omit catching initialization issues
+  auto modelName = facebook::FbWhoAmI::getModelName();
+  if (modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0) {
+    return std::make_unique<WeutilDarwin>();
+  }
+
+  XLOG(INFO) << "The platform (" << modelName << ") is not supported"
+             << std::endl;
+  return nullptr;
 }
 
 /*
