@@ -22,11 +22,15 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(getAsic());
-    std::remove(
+    auto dhcpRxReason = ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId);
+    auto dhcpRxReasonIter = std::find(
         rxReasonListWithoutDHCP.begin(),
         rxReasonListWithoutDHCP.end(),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId));
+        dhcpRxReason);
+    if (dhcpRxReasonIter != rxReasonListWithoutDHCP.end()) {
+      rxReasonListWithoutDHCP.erase(dhcpRxReasonIter);
+    }
     cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
         rxReasonListWithoutDHCP;
     return cfg;
