@@ -9,6 +9,8 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
+#include "common/process/Process.h"
+
 using namespace ::testing;
 using namespace facebook::fboss;
 
@@ -113,4 +115,38 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
           RouterID(0),
           ecmpSizeInSw),
       ecmpSizeInSw);
+}
+
+TEST_F(LinkTest, opticsTxDisableEnable) {
+  auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
+  EXPECT_FALSE(opticalPorts.empty())
+      << "opticsTxDisableEnable: Did not detect any optical transceivers";
+
+  if (!opticalPorts.empty()) {
+    std::string resultStr;
+    std::string errStr;
+    opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
+    const std::string txDisableCmd = opticalPortNames + "--tx-disable";
+
+    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
+               << txDisableCmd;
+    CHECK(facebook::process::Process::execShellCmd(
+        txDisableCmd, &resultStr, &errStr));
+    XLOG(INFO) << fmt::format(
+        "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go down...",
+        txDisableCmd);
+    EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, false));
+    XLOG(INFO) << "opticsTxDisableEnable: link Tx disabled";
+
+    const std::string txEnableCmd = opticalPortNames + "--tx-enable";
+    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
+               << txEnableCmd;
+    CHECK(facebook::process::Process::execShellCmd(
+        txEnableCmd, &resultStr, &errStr));
+    XLOG(INFO) << fmt::format(
+        "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go up...",
+        txEnableCmd);
+    EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
+    XLOG(INFO) << "opticsTxDisableEnable: links are up";
+  }
 }

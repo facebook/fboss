@@ -17,6 +17,7 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
 
@@ -94,6 +95,35 @@ void LinkTest::initializeCabledPorts() {
       }
     }
   }
+}
+
+std::tuple<std::vector<PortID>, std::string>
+LinkTest::getOpticalCabledPortsAndNames() const {
+  std::string opticalPortNames;
+  std::vector<PortID> opticalPorts;
+
+  for (const auto& port : getCabledPorts()) {
+    auto portName = getPortName(port);
+    auto trcvId = platform()->getPlatformPort(port)->getTransceiverID().value();
+    std::optional<TransceiverInfo> trcvInfo =
+        platform()->getQsfpCache()->getIf(trcvId);
+
+    if (trcvInfo) {
+      if (TransmitterTechnology::OPTICAL ==
+          *(trcvInfo->cable_ref().value_or({}).transmitterTech_ref())) {
+        opticalPorts.push_back(port);
+        opticalPortNames += portName + " ";
+      } else {
+        XLOG(INFO) << "Transceiver: " << trcvId + 1 << ", " << portName
+                   << ", is not optics, skip it";
+      }
+    } else {
+      XLOG(INFO) << "TransceiverInfo of transceiver: " << trcvId + 1 << ", "
+                 << portName << ", is not present, skip it";
+    }
+  }
+
+  return {opticalPorts, opticalPortNames};
 }
 
 const std::vector<PortID>& LinkTest::getCabledPorts() const {

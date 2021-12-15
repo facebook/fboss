@@ -38,6 +38,13 @@ class LinkTest : public AgentTest {
    * Get pairs of ports connected to each other
    */
   std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
+
+  /*
+   * Return plugged in optical transceivers and their names.
+   */
+  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames()
+      const;
+
   /*
    * Ports where we expect optics to be plugged in.
    * In link tests this information is conveyed in config via non
@@ -83,6 +90,7 @@ class LinkTest : public AgentTest {
       utility::EcmpSetupTargetedPorts6& ecmp6);
   void setupFlags() const override;
   void initializeCabledPorts();
+
   std::vector<PortID> cabledPorts_;
   std::set<TransceiverID> cabledTransceivers_;
 };
