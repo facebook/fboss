@@ -50,9 +50,6 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
     fragmentOffset = (static_cast<uint16_t>(buf[6] & 0x1F) << 8) |
         static_cast<uint16_t>(buf[7]);
     ttl = buf[8];
-    if (ttl == 0) {
-      throw HdrParseError("IPv4: TTL == 0");
-    }
     protocol = buf[9];
     csum =
         (static_cast<uint16_t>(buf[10]) << 8) | static_cast<uint16_t>(buf[11]);

@@ -193,7 +193,10 @@ TEST(IPv6HdrTest, cursor_data_constructor_bad_version) {
   EXPECT_THROW({ IPv6Hdr ipv6Hdr(cursor); }, HdrParseError);
 }
 
-TEST(IPv6HdrTest, cursor_data_constructor_zero_hop_limit) {
+TEST(IPv6HdrTest, cursor_data_constructor_allow_zero_hop_limit) {
+  /*
+   * Packets with NH limit as 0 is valid for TAJO platform
+   */
   auto pkt = MockRxPacket::fromHex(
       // IPv6 Header
       "6" // VERSION: 6
@@ -209,7 +212,8 @@ TEST(IPv6HdrTest, cursor_data_constructor_zero_hop_limit) {
       "26 20 00 00 1c fe fa ce"
       "b0 0c 00 00 00 00 00 04");
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({ IPv6Hdr ipv6Hdr(cursor); }, HdrParseError);
+  IPv6Hdr ipv6Hdr(cursor);
+  EXPECT_EQ(ipv6Hdr.hopLimit, 0);
 }
 
 TEST(IPv6HdrTest, assignment_operator) {

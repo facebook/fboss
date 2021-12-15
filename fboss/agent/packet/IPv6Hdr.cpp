@@ -12,6 +12,7 @@
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 #include <folly/lang/Bits.h>
+#include <folly/logging/xlog.h>
 #include <sstream>
 #include <stdexcept>
 #include "fboss/agent/packet/PktUtil.h"
@@ -40,9 +41,6 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
     payloadLength = cursor.readBE<uint16_t>();
     nextHeader = cursor.read<uint8_t>();
     hopLimit = cursor.read<uint8_t>();
-    if (hopLimit == 0) {
-      throw HdrParseError("IPv6: Hop Limit == 0");
-    }
     srcAddr = PktUtil::readIPv6(&cursor);
     dstAddr = PktUtil::readIPv6(&cursor);
   } catch (const std::out_of_range& e) {

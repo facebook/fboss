@@ -249,7 +249,10 @@ TEST(IPv4HdrTest, cursor_data_constructor_bad_length) {
   EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
 }
 
-TEST(IPv4HdrTest, cursor_data_constructor_zero_ttl) {
+TEST(IPv4HdrTest, cursor_data_constructor_allow_zero_ttl) {
+  /*
+   * Packets with TTL as 0 is valid for TAJO platform
+   */
   auto pkt = MockRxPacket::fromHex(
       // IPv4 Header
       "4" // version: 4
@@ -265,7 +268,8 @@ TEST(IPv4HdrTest, cursor_data_constructor_zero_ttl) {
       "0a 00 00 01" // Destination Address: 10.0.0.1
   );
   Cursor cursor(pkt->buf());
-  EXPECT_THROW({ IPv4Hdr ipv4Hdr(cursor); }, HdrParseError);
+  IPv4Hdr ipv4Hdr(cursor);
+  EXPECT_EQ(ipv4Hdr.ttl, 0);
 }
 
 TEST(IPv4HdrTest, write_to_buffer) {
