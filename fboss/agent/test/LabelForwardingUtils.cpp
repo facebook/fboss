@@ -115,6 +115,10 @@ MplsRoute getMplsRoute(MplsLabel label, AdminDistance distance) {
   return route;
 }
 
+void modifyMplsRoute(MplsRoute& route, int index) {
+  route.nextHops_ref()->emplace_back(getSwapNextHopThrift(index));
+}
+
 std::vector<MplsRoute> getTestRoutes(int base, int count) {
   // TODO - put this in resource generator
   std::vector<MplsRoute> routes;

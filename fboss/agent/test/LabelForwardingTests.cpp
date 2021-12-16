@@ -78,6 +78,59 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
   }
 }
 
+TEST_P(LabelForwardingTest, modifyMplsRoutes) {
+  FLAGS_mpls_rib = GetParam();
+  std::array<ClientID, 2> clients{
+      ClientID::OPENR,
+      ClientID::BGPD,
+  };
+  std::array<std::vector<MplsRoute>, 2> routes{
+      util::getTestRoutes(0, 4),
+      util::getTestRoutes(4, 4),
+  };
+
+  for (auto i = 0; i < 2; i++) {
+    this->thriftHandler->addMplsRoutes(
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(routes[i]));
+  }
+
+  auto verifyMplsRoutes = [&]() {
+    waitForStateUpdates(this->sw);
+    auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
+
+    for (auto i = 0; i < 2; i++) {
+      for (const auto& route : routes[i]) {
+        const auto& labelFibEntry =
+            labelFib->getLabelForwardingEntry(*route.topLabel_ref());
+        const auto* labelFibEntryForClient =
+            labelFibEntry->getEntryForClient(clients[i]);
+
+        EXPECT_NE(nullptr, labelFibEntryForClient);
+        EXPECT_EQ(
+            util::toRouteNextHopSet(*route.nextHops_ref()),
+            labelFibEntryForClient->getNextHopSet());
+      }
+    }
+  };
+
+  verifyMplsRoutes();
+
+  // modify the old routes
+  for (auto i = 0; i < 2; i++) {
+    for (auto& route : routes[i]) {
+      util::modifyMplsRoute(route);
+    }
+  }
+
+  // update the old routes in RIB
+  for (auto i = 0; i < 2; i++) {
+    this->thriftHandler->addMplsRoutes(
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(routes[i]));
+  }
+  verifyMplsRoutes();
+}
 TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   FLAGS_mpls_rib = true;
   auto clientAdmin = this->sw->clientIdToAdminDistance((int)ClientID::OPENR);

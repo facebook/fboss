@@ -42,6 +42,8 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string nxtHop,
     AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE);
 
+void modifyMplsRoute(MplsRoute& route, int index = 5);
+
 } // namespace util
 
 } // namespace facebook::fboss
