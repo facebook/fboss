@@ -282,6 +282,18 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       }
     };
 
+    auto printAclStats = [&out](const auto& modelIntfMKAStats) {
+      const auto& inStats = *modelIntfMKAStats.ingressAclStats_ref();
+
+      Table table;
+      table.setHeader({"Counter Name", "IN", "OUT"});
+      table.addRow(
+          {"DefaultAclPackets",
+           std::to_string(*inStats.defaultAclStats_ref()),
+           "0"});
+      out << table << std::endl;
+    };
+
     for (auto& m : model.get_intfMKAStats()) {
       out << "Port: " << m.first << std::endl;
       out << std::string(20, '=') << std::endl;
@@ -292,6 +304,8 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       printFlowStatsMap(m.second);
       // Print SA stats
       printSaStatsMap(m.second);
+      // Print ACL stats
+      printAclStats(m.second);
     }
   }
 };
