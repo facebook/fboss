@@ -2,7 +2,14 @@ import typing as t
 from datetime import datetime, timedelta
 
 import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
-from fboss.lib.link_snapshots.snapshot_lib import SNAPSHOT_FORMAT, Backend
+from fboss.lib.link_snapshots.snapshot_lib import (
+    SNAPSHOT_FORMAT,
+    Backend,
+    AGENT_CURRENT_LOG,
+    AGENT_ARCHIVE_FMT,
+    QSFP_ARCHIVE_FMT,
+    QSFP_CURRENT_LOG,
+)
 from later.unittest.mock import AsyncContextManager, AsyncMock, patch
 from libfb.py.asyncio.await_utils import await_sync
 from libfb.py.asyncio.unittest import TestCase
@@ -60,7 +67,7 @@ class SnapshotLibTest(TestCase):
         self.snapshot_lines = self.mock_snapshots()
         self.unprocessed_snapshots = "\n".join(self.snapshot_lines)
 
-        self.mock_job_result = remcmd_types.JobResult(
+        self.mock_grep_result = remcmd_types.JobResult(
             status=remcmd_types.JobStatus.FINISHED,
             results=[
                 remcmd_types.TaskResult(
@@ -77,11 +84,64 @@ class SnapshotLibTest(TestCase):
             tasks_unknown=0,
         )
 
+        # mock the logfile listing
+        agent_timestamps: t.List[datetime] = [
+            datetime(year=2021, month=1, day=1, hour=0),
+            datetime(year=2021, month=1, day=2, hour=0),
+            datetime(year=2021, month=1, day=3, hour=0),
+            datetime(year=2021, month=1, day=4, hour=0),
+        ]
+        qsfp_timestamps: t.List[datetime] = [
+            datetime(year=2021, month=1, day=1, hour=12),
+            datetime(year=2021, month=1, day=2, hour=12),
+            datetime(year=2021, month=1, day=3, hour=12),
+            datetime(year=2021, month=1, day=4, hour=12),
+        ]
+        files = [
+            AGENT_ARCHIVE_FMT.format(dt.strftime("%Y%m%d%H%M"))
+            for dt in agent_timestamps
+        ] + [
+            QSFP_ARCHIVE_FMT.format(dt.strftime("%Y%m%d%H%M")) for dt in qsfp_timestamps
+        ]
+
+        self.mock_ls_result = remcmd_types.JobResult(
+            status=remcmd_types.JobStatus.FINISHED,
+            results=[
+                remcmd_types.TaskResult(
+                    stderr="task results test stderr",
+                    stdout="\n".join(files),
+                    exit_code=0,
+                    status=remcmd_types.TaskStatus.FINISHED,
+                )
+            ],
+            tasks_failed=0,
+            tasks_succeeded=0,
+            tasks_remaining=0,
+            tasks_total=1,
+            tasks_unknown=0,
+        )
+
         # mock Scuba
         self.rfe_client = AsyncMock()
         self.rfe_client.querySQL.return_value = rfe.SQLQueryResult(
             value=[[snapshot_line] for snapshot_line in self.snapshot_lines]
         )
+
+    # Snapshot_lib makes two ssh calls, one to list the logfiles, one to
+    # fetch the snapshots from the logs. We need to have different mock output
+    # depending on the command
+    def mocked_ssh(
+        self, client_id: str, shell_cmd: t.Optional[str], **kwargs
+    ) -> remcmd_types.JobResult:
+        if shell_cmd is None:
+            raise Exception("mocked_ssh expects shell_cmd, was None")
+
+        if "ls " in shell_cmd:
+            return self.mock_ls_result
+        elif "grep" in shell_cmd:
+            return self.mock_grep_result
+        else:
+            raise Exception("Unhandled command in mocked ssh: ", shell_cmd)
 
     def mock_snapshots(self) -> t.List[str]:
         mock_snapshots = []
@@ -147,7 +207,7 @@ class SnapshotLibTest(TestCase):
         self.assertEqual(len(tcvr_snapshots), NUM_SNAPSHOTS)
 
         # test ssh
-        mock_ssh_collection.return_value = self.mock_job_result
+        mock_ssh_collection.side_effect = self.mocked_ssh
 
         snapshot_collection = await self.client.fetch_recent_snapshots(
             HOSTNAME, PORT_NAME, backend=Backend.SSH
@@ -181,7 +241,7 @@ class SnapshotLibTest(TestCase):
 
     @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
     async def test_fetch_snapshots_around_time_onbox(self, mock_ssh_collection) -> None:
-        mock_ssh_collection.return_value = self.mock_job_result
+        mock_ssh_collection.side_effect = self.mocked_ssh
 
         res = await self.client.fetch_snapshots_around_time(
             HOSTNAME, PORT_NAME, datetime.now(), backend=Backend.SSH
@@ -211,3 +271,82 @@ class SnapshotLibTest(TestCase):
             backend=Backend.SCUBA,
         )
         self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
+
+    # Test that we only grep the files that could possibly contain the timespan
+    # we're querying.
+    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
+    async def test_log_timespan_filtering(self, mock_ssh_cmd) -> None:
+        mock_ssh_cmd.side_effect = self.mocked_ssh
+
+        # before the earliest timestamp, should only return first agent and qsfp archive logs
+        res = await self.client.get_logfiles_in_timeframe(
+            HOSTNAME,
+            datetime(year=2020, month=12, day=20),
+            datetime(year=2020, month=12, day=25),
+        )
+        self.assertEqual(
+            res,
+            [
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101010000.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101011200.gz",
+            ],
+        )
+
+        # after last archive timestamp, should only return current logs
+        res = await self.client.get_logfiles_in_timeframe(
+            HOSTNAME,
+            datetime(year=2021, month=1, day=4, hour=15),
+            datetime(year=2021, month=1, day=4, hour=16),
+        )
+        self.assertEqual(res, [AGENT_CURRENT_LOG, QSFP_CURRENT_LOG])
+
+        # before 1/2 but after 1/1 agent file, and before 1/1 qsfp file
+        res = await self.client.get_logfiles_in_timeframe(
+            HOSTNAME,
+            datetime(year=2021, month=1, day=1, hour=5),
+            datetime(year=2021, month=1, day=1, hour=6),
+        )
+        self.assertEqual(
+            res,
+            [
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101020000.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101011200.gz",
+            ],
+        )
+
+        # should return all files up until agent 1/2 and qsfp 1/1
+        res = await self.client.get_logfiles_in_timeframe(
+            HOSTNAME,
+            datetime(year=2020, month=12, day=31, hour=0),
+            datetime(year=2021, month=1, day=1, hour=6),
+        )
+        self.assertEqual(
+            res,
+            [
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101010000.gz",
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101020000.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101011200.gz",
+            ],
+        )
+
+        # should contain all of the logs
+        res = await self.client.get_logfiles_in_timeframe(
+            HOSTNAME,
+            datetime(year=2020, month=12, day=31, hour=0),
+            datetime(year=2021, month=1, day=6, hour=0),
+        )
+        self.assertEqual(
+            res,
+            [
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101010000.gz",
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101020000.gz",
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101030000.gz",
+                "/var/facebook/logs/fboss/archive/wedge_agent.log-202101040000.gz",
+                AGENT_CURRENT_LOG,
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101011200.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101021200.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101031200.gz",
+                "/var/facebook/logs/fboss/archive/qsfp_service.log-202101041200.gz",
+                QSFP_CURRENT_LOG,
+            ],
+        )

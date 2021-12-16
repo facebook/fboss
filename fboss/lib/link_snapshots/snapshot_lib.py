@@ -41,10 +41,25 @@ SNAPSHOT_REGEX = (
     .format(r".*", r"eth\d+/\d+/\d+", r"(.*)")
 )
 
-DEFAULT_TIME_RANGE = timedelta(hours=1)
+DEFAULT_TIME_RANGE = timedelta(minutes=1)
 FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS = 45
-FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' /var/facebook/logs/fboss/archive/network_events.log-*.gz /var/facebook/logs/network_events.log | grep {} | grep -v sshd"
+FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' {} | grep {} | grep -v sshd"
 BYTES_STDOUT_LIMIT = 20000000
+
+ARCHIVE_PATH = "/var/facebook/logs/fboss/archive/"
+
+AGENT_ARCHIVE_FMT = ARCHIVE_PATH + "wedge_agent.log-{}.gz"
+AGENT_ARCHIVE_PATTERN = AGENT_ARCHIVE_FMT.format("*")
+AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
+
+QSFP_ARCHIVE_FMT = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
+QSFP_ARCHIVE_PATTERN = QSFP_ARCHIVE_FMT.format("*")
+QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qfsp_service.log"
+
+FILENAME_REGEX = (
+    ARCHIVE_PATH
+    + r"(?:wedge_agent|qsfp_service).log-(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d).gz"
+)
 
 
 class Backend(enum.Enum):
@@ -102,6 +117,96 @@ class SnapshotClient:
     def __init__(self, user):
         self._user = user
 
+    async def run_ssh_cmd(self, hostname: str, cmd: str):
+        job_result = await simple_run(
+            "ngt_link_triage",
+            hosts=[hostname],
+            shell_cmd=cmd,
+            timeout=FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS,
+            raise_ex=False,
+            run_as="netops",
+            stdout_max_bytes=BYTES_STDOUT_LIMIT,
+        )
+        print("Running cmd:", cmd)
+        if not job_result.results:
+            raise Exception(
+                f"No job results to compile snapshot,  Status: {job_result.status} Fails: {job_result.tasks_failed} Unknown: {job_result.tasks_unknown}"
+            )
+        output = job_result.results[0]
+        stdout = output.stdout.strip()
+
+        if output.exit_code:
+            raise Exception(
+                f"Fetch snapshot command exited with error code {output.exit_code}.\nStderr: {output.stderr}\nRemCmd Exception: {output.ex}"
+            )
+        return stdout
+
+    async def get_logfiles_in_timeframe(
+        self, hostname: str, time_start: datetime, time_end: datetime
+    ) -> t.List[str]:
+        # returns the mapping of timestamp -> logfile
+        def parse_timestamps(filenames: t.List[str]) -> t.List[t.Tuple[float, str]]:
+            timestamps: t.List[t.Tuple[float, str]] = []
+            for filename in filenames:
+                match = re.fullmatch(FILENAME_REGEX, filename)
+                if match is None:
+                    raise Exception(
+                        "File has invalid timestamp format\nFile name was: {}".format(
+                            filename
+                        )
+                    )
+                else:
+                    dt = datetime(
+                        year=int(match.group(1)),
+                        month=int(match.group(2)),
+                        day=int(match.group(3)),
+                        hour=int(match.group(4)),
+                        minute=int(match.group(5)),
+                    )
+                    timestamps.append((dt.timestamp(), filename))
+            return timestamps
+
+        # Filter which logfiles could possibly contain the given timeframe.
+        def filter_by_timestamp(
+            log_timestamps: t.List[t.Tuple[float, str]], current_log: str
+        ) -> t.List[str]:
+            possible_logfiles: t.List[str] = []
+            timestamp: float = 0
+            for timestamp, filename in log_timestamps:
+                # get all log files ending between the ranges, along with the first one after time_end
+                if (
+                    time_start.timestamp() <= timestamp <= time_end.timestamp()
+                    or timestamp >= time_end.timestamp()
+                ):
+                    possible_logfiles.append(filename)
+                if timestamp >= time_end.timestamp():
+                    break
+
+            if time_end.timestamp() >= log_timestamps[-1][0]:
+                possible_logfiles.append(current_log)
+
+            return possible_logfiles
+
+        logfiles = (
+            (
+                await self.run_ssh_cmd(
+                    hostname, f"ls {AGENT_ARCHIVE_PATTERN} {QSFP_ARCHIVE_PATTERN}"
+                )
+            )
+            .strip()
+            .split("\n")
+        )
+
+        log_timestamps = parse_timestamps(logfiles)
+
+        return filter_by_timestamp(
+            [(ts, log) for ts, log in log_timestamps if "wedge_agent" in log],
+            AGENT_CURRENT_LOG,
+        ) + filter_by_timestamp(
+            [(ts, log) for ts, log in log_timestamps if "qsfp_service" in log],
+            QSFP_CURRENT_LOG,
+        )
+
     # fetches snapshots within the past 3 hours
     async def fetch_recent_snapshots(
         self,
@@ -114,7 +219,7 @@ class SnapshotClient:
         )
 
     # Fetch the snapshots posted between (timestamp - time_delta) and (timestamp + time_delta)
-    # Note that this filters based on the time that the snapshot was posted,
+    # Note that for scuba this filters based on the time that the snapshot was posted,
     #   and not the time that the snapshot was collected
     async def fetch_snapshots_around_time(
         self,
@@ -149,8 +254,6 @@ class SnapshotClient:
                 f"Invalid backend passed to fetch_snapshots_in_timespan: {str(backend)}"
             )
 
-    # TODO(ccpowers): We can remove this once Scuba resolves their issue
-    # with OOM errors (T102995533 and T102701121)
     async def fetch_snapshots_in_timespan_via_ssh(
         self,
         hostname: str,
@@ -158,30 +261,13 @@ class SnapshotClient:
         time_start: datetime,
         time_end: datetime,
     ) -> SnapshotCollection:
-        cmd = FETCH_SNAPSHOT_LOG_COMMAND.format(port_name)
-
-        job_result = await simple_run(
-            "ngt_link_triage",
-            hosts=[hostname],
-            shell_cmd=cmd,
-            timeout=FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS,
-            raise_ex=False,
-            run_as="netops",
-            stdout_max_bytes=BYTES_STDOUT_LIMIT,
+        possible_logfiles: t.List[str] = await self.get_logfiles_in_timeframe(
+            hostname, time_start, time_end
         )
-        print("Running cmd:", cmd)
-        if not job_result.results:
-            raise Exception(
-                f"No job results to compile snapshot,  Status: {job_result.status} Fails: {job_result.tasks_failed} Unknown: {job_result.tasks_unknown}"
-            )
-        output = job_result.results[0]
-        stdout = output.stdout.strip()
+        cmd = FETCH_SNAPSHOT_LOG_COMMAND.format(" ".join(possible_logfiles), port_name)
 
-        if output.exit_code:
-            raise Exception(
-                f"Fetch snapshot command exited with error code {output.exit_code}.\nStderr: {output.stderr}\nRemCmd Exception: {output.ex}"
-            )
-        collection = await self.process_snapshot_lines(stdout.split("\n"))
+        output = (await self.run_ssh_cmd(hostname, cmd)).strip()
+        collection = await self.process_snapshot_lines(output.split("\n"))
 
         iphy, xphy, tcvr = collection.unpack()
         iphy = filter_timeseries(iphy, time_start, time_end)
@@ -253,8 +339,5 @@ class SnapshotClient:
         return SnapshotCollection(iphy_snapshots, xphy_snapshots, tcvr_snapshots)
 
 
-# TODO(ccpowers): We might need to support a different FBID for the service
-# once it's called from the NGT workflow like in D30830986
-# We can see if this is necessary once we start filling in the decision tree
 async def get_client() -> SnapshotClient:
     return SnapshotClient(get_current_unix_user_fbid() or NGT_SERVICE_FBID)
