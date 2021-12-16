@@ -646,6 +646,18 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
+  /*
+   * Add/update mirrors before processing ACL, as ACLs with action
+   * INGRESS/EGRESS Mirror rely on the Mirror being created.
+   */
+  processDelta(
+      delta.getMirrorsDelta(),
+      managerTable_->mirrorManager(),
+      lockPolicy,
+      &SaiMirrorManager::changeMirror,
+      &SaiMirrorManager::addMirror,
+      &SaiMirrorManager::removeMirror);
+
   if (FLAGS_enable_acl_table_group &&
       platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES)) {
     processDelta(
@@ -730,14 +742,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
 
   // Process link state change delta and update the LED status
   processLinkStateChangeDelta(delta, lockPolicy);
-
-  processDelta(
-      delta.getMirrorsDelta(),
-      managerTable_->mirrorManager(),
-      lockPolicy,
-      &SaiMirrorManager::changeMirror,
-      &SaiMirrorManager::addMirror,
-      &SaiMirrorManager::removeMirror);
 
   return delta.newState();
 }
