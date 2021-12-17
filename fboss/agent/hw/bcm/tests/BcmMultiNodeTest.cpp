@@ -12,6 +12,11 @@
 #include "fboss/agent/test/MultiNodeTest.h"
 
 int main(int argc, char* argv[]) {
+  // temporarly set pktio to false to prevent crash in shutdown path
+  std::vector<const char*> newArgv(argv, argv + argc);
+  newArgv.push_back("--use_pktio=false");
+  newArgv.push_back("nullptr");
+  argc++;
   return facebook::fboss::mulitNodeTestMain(
-      argc, argv, facebook::fboss::initWedgePlatform);
+      argc, (char**)newArgv.data(), facebook::fboss::initWedgePlatform);
 }
