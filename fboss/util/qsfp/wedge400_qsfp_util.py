@@ -4,6 +4,7 @@ optics modules can be enabled/disabled through the controlling FPGA using this
 utility
 """
 
+import argparse
 import mmap
 import subprocess
 from ctypes import c_uint32
@@ -62,3 +63,28 @@ class FpgaDevice:
             self.memStart1[offset] = regVal
         else:
             self.memStart2[offset] = regVal
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--info", action="store_true", default=False)
+    ap.add_argument("--enable", action="store_true", default=False)
+    ap.add_argument("--disable", action="store_true", default=False)
+
+    args = ap.parse_args()
+    fpga = FpgaDevice()
+
+    if args.info:
+        regVal = fpga.read_fpga(0, 0x0070)
+        print("Fpga1 Qsfp reset bitmap:", hex(regVal))
+        regVal = fpga.read_fpga(0, 0x0078)
+        print("Fpga1 Qsfp Low Power bitmap:", hex(regVal))
+
+        regVal = fpga.read_fpga(1, 0x0070)
+        print("Fpga2 Qsfp reset bitmap:", hex(regVal))
+        regVal = fpga.read_fpga(1, 0x0078)
+        print("Fpga2 Qsfp Low Power bitmap:", hex(regVal))
+
+
+if __name__ == "__main__":
+    main()
