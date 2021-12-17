@@ -58,6 +58,7 @@ enum class CmisField {
   LENGTH_OM3,
   LENGTH_OM2,
   VDM_DIAG_SUPPORT,
+  TX_BIAS_MULTIPLIER,
   TX_SIG_INT_CONT_AD,
   RX_SIG_INT_CONT_AD,
   CDB_SUPPORT,
@@ -205,6 +206,7 @@ enum FieldMasks : uint8_t {
   LOOPBACK_LINE_SUPPORT_MASK = 0x06,
   PRBS_SYS_SUPPRT_MASK = 0x0f,
   PRBS_LINE_SUPPRT_MASK = 0xf0,
+  TX_BIAS_MULTIPLIER_MASK = 0x18,
 };
 
 enum DeviceTechnology : uint8_t {
@@ -255,6 +257,9 @@ class CmisFieldInfo {
   static CmisFieldInfo getCmisFieldAddress(
       const CmisFieldMap& map,
       CmisField field);
+
+  // Get Tx Bias current multiplier
+  static uint8_t getTxBiasMultiplier(const uint8_t data);
 };
 
 // Store multipliers for various conversion functions:

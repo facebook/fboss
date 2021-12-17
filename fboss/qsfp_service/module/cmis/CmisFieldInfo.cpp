@@ -93,5 +93,19 @@ CmisFieldInfo CmisFieldInfo::getCmisFieldAddress(
   return info->second;
 }
 
+uint8_t CmisFieldInfo::getTxBiasMultiplier(const uint8_t data) {
+  uint8_t multiplier = (data & FieldMasks::TX_BIAS_MULTIPLIER_MASK) >> 3;
+  switch (multiplier) {
+    case 0:
+      return 1;
+    case 1:
+      return 2;
+    case 2:
+      return 4;
+    default:
+      return 1;
+  }
+  return 1;
+}
 } // namespace fboss
 } // namespace facebook
