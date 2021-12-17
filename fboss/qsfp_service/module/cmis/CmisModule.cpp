@@ -519,6 +519,23 @@ ThresholdLevels CmisModule::getThresholdValues(
   thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
   thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
 
+  // For Tx Bias threshold, take care of multiplier
+  if (field == CmisField::TX_BIAS_THRESH) {
+    getQsfpFieldAddress(
+        CmisField::TX_BIAS_MULTIPLIER, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    auto biasMultiplier = CmisFieldInfo::getTxBiasMultiplier(data[0]);
+
+    thresh.alarm_ref()->high_ref() =
+        thresh.alarm_ref()->high_ref().value() * biasMultiplier;
+    thresh.alarm_ref()->low_ref() =
+        thresh.alarm_ref()->low_ref().value() * biasMultiplier;
+    thresh.warn_ref()->high_ref() =
+        thresh.warn_ref()->high_ref().value() * biasMultiplier;
+    thresh.warn_ref()->low_ref() =
+        thresh.warn_ref()->low_ref().value() * biasMultiplier;
+  }
+
   return thresh;
 }
 
@@ -926,12 +943,18 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   }
   CHECK_GE(length, 0);
 
+  // For Tx bias, take care of multiplier
+  getQsfpFieldAddress(
+      CmisField::TX_BIAS_MULTIPLIER, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  auto biasMultiplier = CmisFieldInfo::getTxBiasMultiplier(data[0]);
+
   getQsfpFieldAddress(CmisField::CHANNEL_TX_BIAS, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
     channel.sensors_ref()->txBias_ref()->value_ref() =
-        CmisFieldInfo::getTxBias(value);
+        CmisFieldInfo::getTxBias(value) * biasMultiplier;
     data += 2;
     length--;
   }
