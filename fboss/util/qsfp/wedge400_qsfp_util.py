@@ -8,10 +8,17 @@ import argparse
 import mmap
 import subprocess
 from ctypes import c_uint32
+from time import sleep
+
+
+"""
+Class to provide FPGA related operations to manage the QSFP module
+"""
 
 
 class FpgaDevice:
     def __init__(self):
+        # Find the FPGA devices on PCI bus, get the bus info of all devices
         pciBusStr = subprocess.check_output(
             "lspci -d 1d9b:7012 | sed -e 's/ .*//'", shell=True, text=True
         )
@@ -74,16 +81,43 @@ def main() -> None:
     args = ap.parse_args()
     fpga = FpgaDevice()
 
-    if args.info:
-        regVal = fpga.read_fpga(0, 0x0070)
-        print("Fpga1 Qsfp reset bitmap:", hex(regVal))
-        regVal = fpga.read_fpga(0, 0x0078)
-        print("Fpga1 Qsfp Low Power bitmap:", hex(regVal))
+    def print_qsfp_reset(fpga_id):
+        regVal = fpga.read_fpga(fpga_id, 0x0070)
+        print("Fpga", fpga_id + 1, "Qsfp reset bitmap:", hex(regVal))
 
-        regVal = fpga.read_fpga(1, 0x0070)
-        print("Fpga2 Qsfp reset bitmap:", hex(regVal))
-        regVal = fpga.read_fpga(1, 0x0078)
-        print("Fpga2 Qsfp Low Power bitmap:", hex(regVal))
+    def print_qsfp_lp(fpga_id):
+        regVal = fpga.read_fpga(fpga_id, 0x0078)
+        print("Fpga", fpga_id + 1, "Qsfp Low Power bitmap:", hex(regVal))
+
+    if args.info:
+        print_qsfp_reset(0)
+        print_qsfp_lp(0)
+
+        print_qsfp_reset(1)
+        print_qsfp_lp(1)
+
+    if args.enable:
+        print("Enabling all ports on this switch")
+        fpga.write_fpga(0, 0x0070, 0x0)
+        sleep(2)
+        print_qsfp_reset(0)
+        fpga.write_fpga(0, 0x0078, 0x0)
+        sleep(2)
+        print_qsfp_lp(0)
+
+        fpga.write_fpga(1, 0x0070, 0x0)
+        sleep(2)
+        print_qsfp_reset(1)
+        fpga.write_fpga(1, 0x0078, 0x0)
+        sleep(2)
+        print_qsfp_lp(1)
+
+    if args.disable:
+        print("Disabling all ports on this switch")
+        fpga.write_fpga(0, 0x0070, 0xFFFFFF)
+        print_qsfp_reset(0)
+        fpga.write_fpga(1, 0x0070, 0xFFFFFF)
+        print_qsfp_reset(1)
 
 
 if __name__ == "__main__":
