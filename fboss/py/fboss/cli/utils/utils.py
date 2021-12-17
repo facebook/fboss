@@ -13,6 +13,7 @@ import socket
 import sys
 import typing as t
 from collections import defaultdict
+from functools import wraps
 from typing import DefaultDict, Dict, List, Tuple
 
 from facebook.network.Address.ttypes import BinaryAddress
@@ -32,10 +33,14 @@ KEYWORD_CONFIG = "config"
 KEYWORD_CONFIG_SHOW = "show"
 KEYWORD_CONFIG_RELOAD = "reload"
 
+TTY_RED = "\033[31m"
+TTY_GREEN = "\033[32m"
+TTY_RESET = "\033[m"
+
 
 def get_colors() -> Tuple[str, str, str]:
     if sys.stdout.isatty():
-        return ("\033[31m", "\033[32m", "\033[m")
+        return (TTY_RED, TTY_GREEN, TTY_RESET)
     return ("", "", "")
 
 
@@ -308,3 +313,34 @@ def nexthop_to_str(
     if via_str:
         via_str = f" dev {via_str.strip()}"
     return f"{ip_ntop(nh.addr)}{via_str}{weight_str}{label_str}"
+
+
+fboss2_warning = f"""
+============================================================================
+{TTY_RED}DEPRECATION WARNING{TTY_RESET}
+This command is now deprecated in favor of `fboss2 {{fboss2_cmd}}`.
+Please try to migrate to the new CLI if possible. Undoubtably there
+may still be missing features / bugs in the new CLI, please use
+`fboss2 rage <msg>` to provide feedback so we can fix these issues.
+Post in the FBOSS2 WP Group or contact fboss2_cli oncall for questions. {{notes}}
+============================================================================
+"""
+# Decorator that will output a deprecation warning when a command is run
+def fboss2_deprecate(fboss2_cmd: str, notes=""):
+    def dec(func: t.Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if sys.stdout.isatty():
+                extra_notes = f"\nNote: {notes}" if notes else ""
+                print(
+                    fboss2_warning.format(
+                        fboss2_cmd=fboss2_cmd,
+                        notes=extra_notes,
+                    ),
+                    file=sys.stderr,
+                )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return dec
