@@ -286,6 +286,17 @@ class Platform {
 
   virtual PhyInterfaceHandler* getPhyInterfaceHandler() = 0;
 
+  virtual uint64_t getIntrCount() {
+    return 0;
+  }
+  virtual uint64_t getIntrTimeoutCount() {
+    return 0;
+  }
+  virtual void setIntrTimeout([[maybe_unused]] int intrTimeout) {}
+  virtual uint64_t getIntrTimeout() {
+    return 0;
+  }
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
