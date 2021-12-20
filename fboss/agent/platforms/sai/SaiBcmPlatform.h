@@ -36,6 +36,7 @@ class SaiBcmPlatform : public SaiHwPlatform {
   }
   const char* getHwConfigValue(const std::string& key) const;
   virtual uint32_t numLanesPerCore() const = 0;
+  virtual uint32_t numCellsAvailable() const = 0;
 
  protected:
   void initWedgeLED(int led, folly::ByteRange range);

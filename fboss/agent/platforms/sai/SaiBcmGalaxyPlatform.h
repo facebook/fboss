@@ -25,6 +25,17 @@ class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
   uint32_t numLanesPerCore() const override {
     return 4;
   }
+
+  uint32_t numCellsAvailable() const override {
+    auto constexpr kPerXpeCellsAvailable = 0x436e;
+    auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;
+    if (getHwConfigValue("buf.mqueue.guarantee.0") &&
+        getHwConfigValue("mmu_config_override")) {
+      return kPerXpeCellsAvailableOptimized;
+    }
+    return kPerXpeCellsAvailable;
+  }
+
   void initLEDs() override;
 };
 

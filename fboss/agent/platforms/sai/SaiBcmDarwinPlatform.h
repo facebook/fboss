@@ -26,6 +26,10 @@ class SaiBcmDarwinPlatform : public SaiBcmPlatform {
     return 8;
   }
 
+  uint32_t numCellsAvailable() const override {
+    return 130665;
+  }
+
   bool isSerdesApiSupported() const override {
     return true;
   }

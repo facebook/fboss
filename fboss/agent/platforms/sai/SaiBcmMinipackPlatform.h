@@ -26,6 +26,11 @@ class SaiBcmMinipackPlatform : public SaiBcmPlatform {
   uint32_t numLanesPerCore() const override {
     return 8;
   }
+
+  uint32_t numCellsAvailable() const override {
+    return 127977;
+  }
+
   void initLEDs() override;
 
  private:

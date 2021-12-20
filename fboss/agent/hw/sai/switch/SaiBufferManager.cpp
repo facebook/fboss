@@ -108,26 +108,21 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
       return asic->getMMUSizeBytes();
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
-      auto constexpr kPerXpeCellsAvailable = 0x436e;
-      auto constexpr kPerXpeCellsAvailableOptimized = 0x454A;
       auto constexpr kNumXpes = 4;
-      auto perXpeCells = kPerXpeCellsAvailable;
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      if (saiBcmPlatform->getHwConfigValue("buf.mqueue.guarantee.0") &&
-          saiBcmPlatform->getHwConfigValue("mmu_config_override")) {
-        // MMU optimized, more cells available
-        perXpeCells = kPerXpeCellsAvailableOptimized;
-      }
+      auto perXpeCells = saiBcmPlatform->numCellsAvailable();
       return perXpeCells * kNumXpes *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2: {
-      auto constexpr kCellsAvailable = 0xbd0f;
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
           static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
     }
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3: {
-      auto constexpr kCellsAvailable = 0x1fca9;
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }

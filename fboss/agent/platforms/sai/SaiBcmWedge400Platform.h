@@ -25,6 +25,10 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
     return 8;
   }
 
+  uint32_t numCellsAvailable() const override {
+    return 130217;
+  }
+
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {
         FlexPortMode::FOURX10G,
