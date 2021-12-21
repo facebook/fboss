@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/platform/rackmon/if/gen-cpp2/RackmonCtrl.h"
 
 #include <memory>
@@ -19,28 +18,42 @@
 
 namespace facebook::fboss::platform::rackmon {
 
-class ThriftHandler : virtual public RackmonCtrlSvIf,
-                      public fb303::FacebookBase2 {
+class ThriftHandler : virtual public RackmonCtrlSvIf {
  public:
-  ThriftHandler() : FacebookBase2("Rackmon") {}
+  ThriftHandler() {}
 
-  void getPsuDevices(std::vector<rackmon::PsuDevice>& /*psuDevices*/) override {
-    // TODO
-  }
-  void rawModbusCmd(
-      rackmon::ModbusResponse& /*_return*/,
-      std::unique_ptr<rackmon::ModbusRequest> /*req*/) override {
+  void listModbusDevices(
+      std::vector<rackmon::ModbusDeviceInfo>& /* devices */) override {
     // TODO
   }
 
-  void configRackmond(
-      rackmon::RackmonResponse& /*_return*/,
-      rackmon::RackmonRequestType /*req*/) override {
+  void getMonitorData(
+      std::vector<rackmon::RackmonMonitorData>& /* data */) override {
     // TODO
   }
 
-  void getPlsStatus(std::map<std::string, int32_t>& /*_return*/) override {
+  void readHoldingRegisters(
+      rackmon::ReadWordRegistersResponse& /* response */,
+      std::unique_ptr<rackmon::ReadWordRegistersRequest> /* request */)
+      override {
     // TODO
+  }
+
+  rackmon::RackmonStatusCode writeSingleRegister(
+      std::unique_ptr<rackmon::WriteSingleRegisterRequest> /* request */)
+      override {
+    // TODO
+    return rackmon::RackmonStatusCode::SUCCESS;
+  }
+
+  void getPowerLossSiren(rackmon::PowerLossSiren& /* plsStatus */) override {
+    // TODO
+  }
+
+  rackmon::RackmonStatusCode controlRackmond(
+      rackmon::RackmonControlRequest /* request */) override {
+    // TODO
+    return rackmon::RackmonStatusCode::SUCCESS;
   }
 };
 } // namespace facebook::fboss::platform::rackmon
