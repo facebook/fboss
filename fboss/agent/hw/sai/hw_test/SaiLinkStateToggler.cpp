@@ -33,7 +33,7 @@ void SaiLinkStateToggler::setPortPreemphasis(
 
   auto portSaiId = portHandle->port->adapterKey();
   auto serDesAttributes = portManager.serdesAttributesFromSwPinConfigs(
-      portSaiId, port->getPinConfigs());
+      portSaiId, port->getPinConfigs(), portHandle->serdes);
 
   std::get<std::optional<SaiPortSerdesTraits::Attributes::Preemphasis>>(
       serDesAttributes) =

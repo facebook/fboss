@@ -805,7 +805,7 @@ void SaiPortManager::programSerdes(
 
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPinConfigs(
-          saiPort->adapterKey(), swPort->getPinConfigs());
+          saiPort->adapterKey(), swPort->getPinConfigs(), serdes);
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -829,7 +829,8 @@ void SaiPortManager::programSerdes(
 SaiPortSerdesTraits::CreateAttributes
 SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
-    const std::vector<phy::PinConfig>& pinConfigs) {
+    const std::vector<phy::PinConfig>& pinConfigs,
+    const std::shared_ptr<SaiPortSerdes>& serdes) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -898,6 +899,50 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   if (numExpectedRxLanes) {
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
+
+    /*
+     * TODO (srikrishnagopu) : Remove after rolling out AFE TRIM (S249471)
+     * Coldboot. The DspMode and AfeTrim values provided by vendor are swapped
+     * (incorrect) for 25G serdes. With this diff stack (D31939792), it is
+     * rectified but this cannot be rolled out during warmboot since this will
+     * cause port flaps.
+     *
+     * Hence, swap the values back if its a warmboot. As we are scheduling
+     * coldboots for AFE TRIM SEV S249471, utilize this to propogate the correct
+     * values.
+     *
+     * This will help us carry on the warmboot upgrades on 400C devices while
+     * we wait on coldboots to happen over a period of 3 months.
+     *
+     * --------------------------------------------------------------------
+     *               | PIN DSP | PIN AFE | STORE DSP | STORE AFE | ACTION |
+     * --------------------------------------------------------------------
+     * WB before CB  |    7    |    4    |     4     |     7     |  SWAP  |
+     * --------------------------------------------------------------------
+     *       CB      |    7    |    4    |     -     |     -     |  SKIP  |
+     * --------------------------------------------------------------------
+     * WB after CB   |    7    |    4    |     7     |     4     |  SKIP  |
+     * --------------------------------------------------------------------
+     */
+    if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT &&
+        platform_->getAsic()->getAsicType() ==
+            HwAsic::AsicType::ASIC_TYPE_TAJO &&
+        serdes) {
+      auto rxDspModeFromStore = std::get<std::optional<std::decay_t<decltype(
+          SaiPortSerdesTraits::Attributes::RxDspMode{})>>>(
+          serdes->attributes());
+      auto rxAfeTrimFromStore = std::get<std::optional<std::decay_t<decltype(
+          SaiPortSerdesTraits::Attributes::RxAfeTrim{})>>>(
+          serdes->attributes());
+      if (!rxDspMode.empty() && !rxAfeTrim.empty() &&
+          rxDspModeFromStore.has_value() && rxAfeTrimFromStore.has_value() &&
+          !rxDspModeFromStore.value().value().empty() &&
+          !rxAfeTrimFromStore.value().value().empty() && rxDspMode[0] == 7 &&
+          rxAfeTrim[0] == 4 && rxDspModeFromStore.value().value()[0] == 4 &&
+          rxAfeTrimFromStore.value().value()[0] == 7) {
+        rxDspMode.swap(rxAfeTrim);
+      }
+    }
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxDspMode{}, rxDspMode);
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxAfeTrim{}, rxAfeTrim);
     setTxRxAttr(

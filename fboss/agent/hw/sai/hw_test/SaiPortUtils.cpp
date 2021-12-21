@@ -209,7 +209,9 @@ void verifyTxSettting(
   // Prepare expected SaiPortSerdesTraits::CreateAttributes
   SaiPortSerdesTraits::CreateAttributes expectedTx =
       saiSwitch->managerTable()->portManager().serdesAttributesFromSwPinConfigs(
-          saiPortHandle->port->adapterKey(), expectedPinConfigs);
+          saiPortHandle->port->adapterKey(),
+          expectedPinConfigs,
+          saiPortHandle->serdes);
 
   auto serdes = saiPortHandle->serdes;
 
@@ -305,7 +307,7 @@ void verifyRxSettting(
   // Prepare expected SaiPortSerdesTraits::CreateAttributes
   SaiPortSerdesTraits::CreateAttributes expectedSerdes =
       saiSwitch->managerTable()->portManager().serdesAttributesFromSwPinConfigs(
-          saiPortHandle->port->adapterKey(), expectedPinConfigs);
+          saiPortHandle->port->adapterKey(), expectedPinConfigs, serdes);
 
   auto& portApi = SaiApiTable::getInstance()->portApi();
   if (auto expectedRxCtlCode =
