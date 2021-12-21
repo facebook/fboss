@@ -369,9 +369,16 @@ void SaiSwitchManager::setIngressAcl() {
   auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
                                  .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
                                  ->aclTableGroup;
-  XLOG(INFO) << "Set ingress ACL; " << aclTableGroupHandle->adapterKey();
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::IngressAcl{
-      aclTableGroupHandle->adapterKey()});
+  setIngressAcl(aclTableGroupHandle->adapterKey());
+}
+
+void SaiSwitchManager::setIngressAcl(sai_object_id_t id) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
+    return;
+  }
+  XLOG(INFO) << "Set ingress ACL; " << id;
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::IngressAcl{id});
 }
 
 void SaiSwitchManager::resetIngressAcl() {

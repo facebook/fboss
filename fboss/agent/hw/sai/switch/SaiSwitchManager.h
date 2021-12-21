@@ -56,6 +56,7 @@ class SaiSwitchManager {
   void gracefulExit();
 
   void setIngressAcl();
+  void setIngressAcl(sai_object_id_t id);
   void resetIngressAcl();
 
   void setTamObject(std::vector<sai_object_id_t> tamObject);
