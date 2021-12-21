@@ -6,7 +6,6 @@
 #include <glog/logging.h>
 #include <string.h>
 #include <sysexits.h>
-#include <iostream>
 #include <memory>
 #include "common/fbwhoami/FbWhoAmI.h"
 #include "fboss/platform/helpers/Utils.h"
@@ -14,6 +13,8 @@
 
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
+
+DEFINE_bool(json, false, "output in JSON format");
 
 std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
   // Get the model name from FbWhoAmI instead of from class PlatformProductInfo
@@ -38,7 +39,11 @@ int main(int argc, char* argv[]) {
 
   std::unique_ptr<WeutilInterface> weutilInstance = get_plat_weutil();
   if (weutilInstance) {
-    weutilInstance->printInfo();
+    if (FLAGS_json) {
+      weutilInstance->printInfoJson();
+    } else {
+      weutilInstance->printInfo();
+    }
   } else {
     showDeviceInfo();
   }

@@ -8,6 +8,7 @@ class WeutilDarwin : public WeutilInterface {
  public:
   WeutilDarwin();
   void printInfo() override;
+  void printInfoJson() override;
 };
 
 } // namespace facebook::fboss::platform

@@ -4,6 +4,7 @@
 #include <fboss/platform/helpers/Utils.h>
 #include <folly/Conv.h>
 #include <folly/Format.h>
+#include <folly/json.h>
 #include <filesystem>
 #include <iostream>
 #include <unordered_map>
@@ -114,6 +115,25 @@ void WeutilDarwin::printInfo() {
                 << std::endl;
     }
   }
+}
+
+void WeutilDarwin::printInfoJson() {
+  PrefdlBase prefdl(kPredfl);
+  folly::dynamic wedgeInfo = folly::dynamic::object;
+  folly::dynamic wedgeInfoContent = folly::dynamic::object;
+
+  wedgeInfo["Actions"] = folly::dynamic::array();
+  wedgeInfo["Resources"] = folly::dynamic::array();
+  wedgeInfo["Information"] = folly::dynamic::object;
+
+  for (auto item : weFields_) {
+    if (item.first != "Wedge EEPROM") {
+      auto it = kMapping.find(item.first);
+      wedgeInfo["Information"][item.first] =
+          (it == kMapping.end() ? item.second : prefdl.getField(it->second));
+    }
+  }
+  std::cout << folly::toPrettyJson(wedgeInfo);
 }
 
 } // namespace facebook::fboss::platform

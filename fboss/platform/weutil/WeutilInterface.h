@@ -9,6 +9,7 @@ class WeutilInterface {
  public:
   WeutilInterface() {}
   virtual void printInfo() = 0;
+  virtual void printInfoJson() = 0;
   virtual ~WeutilInterface() = default;
 
  protected:
