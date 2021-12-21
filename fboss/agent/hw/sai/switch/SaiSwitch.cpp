@@ -1351,7 +1351,7 @@ void SaiSwitch::packetRxCallback(
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {
-    XLOG(ERR)
+    XLOG(DBG)
         << "discarded a packet with missing SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT.";
     return;
   }
