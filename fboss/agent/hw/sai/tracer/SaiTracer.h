@@ -12,11 +12,15 @@
 #include <map>
 #include <memory>
 #include <tuple>
+#include <typeindex>
 
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 #include <folly/File.h>
+#include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 #include <folly/String.h>
 #include <folly/Synchronized.h>
 #include <gflags/gflags.h>
@@ -27,7 +31,14 @@ extern "C" {
 
 DECLARE_bool(enable_replayer);
 DECLARE_bool(enable_packet_log);
-DECLARE_bool(explicit_attr_name);
+
+using PrimitiveFunction = std::string (*)(const sai_attribute_t*, int);
+using AttributeFunction =
+    void (*)(const sai_attribute_t*, int, std::vector<std::string>&);
+using ListFunction =
+    void (*)(const sai_attribute_t*, int, uint32_t, std::vector<std::string>&);
+
+#define TYPE_INDEX(type) std::type_index(typeid(type)).hash_code()
 
 namespace facebook::fboss {
 
@@ -177,6 +188,32 @@ class SaiTracer {
   sai_wred_api_t* wredApi_;
 
   std::map<sai_api_t, std::string> init_api_;
+
+  std::unordered_map<std::size_t, PrimitiveFunction> primitiveFuncMap_{
+      {TYPE_INDEX(sai_object_id_t), &oidAttr},
+      {TYPE_INDEX(bool), &boolAttr},
+      {TYPE_INDEX(sai_uint8_t), &u8Attr},
+      {TYPE_INDEX(sai_int8_t), &s8Attr},
+      {TYPE_INDEX(sai_uint16_t), &u16Attr},
+      {TYPE_INDEX(sai_uint32_t), &u32Attr},
+      {TYPE_INDEX(sai_int32_t), &s32Attr},
+      {TYPE_INDEX(sai_uint64_t), &u64Attr},
+  };
+
+  // TODO(zecheng): charDataAttr and acl entry attributes
+  std::unordered_map<std::size_t, AttributeFunction> attributeFuncMap_{
+      {TYPE_INDEX(sai_u32_range_t), &u32RangeAttr},
+      {TYPE_INDEX(sai_s32_range_t), &s32RangeAttr},
+      {TYPE_INDEX(folly::MacAddress), &macAddressAttr},
+      {TYPE_INDEX(folly::IPAddress), &ipAttr},
+  };
+
+  std::unordered_map<std::size_t, ListFunction> listFuncMap_{
+      {TYPE_INDEX(std::vector<sai_object_id_t>), &oidListAttr},
+      {TYPE_INDEX(std::vector<sai_uint32_t>), &u32ListAttr},
+      {TYPE_INDEX(std::vector<sai_int32_t>), &s32ListAttr},
+      {TYPE_INDEX(std::vector<sai_qos_map_t>), &qosMapListAttr},
+  };
 
  private:
   // Helper methods for variables and attribute list
@@ -460,8 +497,6 @@ class SaiTracer {
             obj_type##_id, attr_count, attr_list);           \
   }
 
-#define TYPE_INDEX(type) std::type_index(typeid(type)).hash_code()
-
 #define SAI_ATTR_MAP(obj_type, attr_name)                                   \
   {                                                                         \
     facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
@@ -471,40 +506,52 @@ class SaiTracer {
                            attr_name::ExtractSelectionType))                \
   }
 
-#define SET_SAI_ATTRIBUTES(obj_type)                                           \
-  void set##obj_type##Attributes(                                              \
-      const sai_attribute_t* attr_list,                                        \
-      uint32_t attr_count,                                                     \
-      std::vector<std::string>& attrLines) {                                   \
-    uint32_t listCount = 0;                                                    \
-                                                                               \
-    for (int i = 0; i < attr_count; ++i) {                                     \
-      auto valuePair = _##obj_type##Map[attr_list[i].id];                      \
-      auto attrName = valuePair.first;                                         \
-      auto typeIndex = valuePair.second;                                       \
-      if (FLAGS_explicit_attr_name) {                                          \
-        attrLines.push_back(to<std::string>(                                   \
-            "//s_a[", i, "].id=", attrNameToEnum(#obj_type, attrName)));       \
-      }                                                                        \
-      if (typeIndex == TYPE_INDEX(sai_int32_t)) {                              \
-        attrLines.push_back(s32Attr(attr_list, i));                            \
-      } else if (typeIndex == TYPE_INDEX(sai_uint32_t)) {                      \
-        attrLines.push_back(u32Attr(attr_list, i));                            \
-      } else if (typeIndex == TYPE_INDEX(sai_uint64_t)) {                      \
-        attrLines.push_back(u64Attr(attr_list, i));                            \
-      } else if (typeIndex == TYPE_INDEX(sai_object_id_t)) {                   \
-        attrLines.push_back(oidAttr(attr_list, i));                            \
-      } else if (typeIndex == TYPE_INDEX(std::vector<sai_int32_t>)) {          \
-        s32ListAttr(attr_list, i, listCount++, attrLines);                     \
-      } else if (typeIndex == TYPE_INDEX(std::vector<sai_object_id_t>)) {      \
-        oidListAttr(attr_list, i, listCount++, attrLines);                     \
-      } else if (typeIndex == TYPE_INDEX(bool)) {                              \
-        attrLines.push_back(boolAttr(attr_list, i));                           \
-      } else {                                                                 \
-        XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
-                   << attrName << " in Sai Replayer";                          \
-      }                                                                        \
-    }                                                                          \
+#define SET_SAI_ATTRIBUTES(obj_type)                                         \
+  void set##obj_type##Attributes(                                            \
+      const sai_attribute_t* attr_list,                                      \
+      uint32_t attr_count,                                                   \
+      std::vector<std::string>& attrLines) {                                 \
+    uint32_t listCount = 0;                                                  \
+                                                                             \
+    for (int i = 0; i < attr_count; ++i) {                                   \
+      auto iter = _##obj_type##Map.find(attr_list[i].id);                    \
+      if (iter != _##obj_type##Map.end()) {                                  \
+        auto attrName = _##obj_type##Map[attr_list[i].id].first;             \
+        auto typeIndex = _##obj_type##Map[attr_list[i].id].second;           \
+        attrLines.push_back(to<std::string>("// ", attrName));               \
+        auto primitiveFuncMatch =                                            \
+            SaiTracer::getInstance()->primitiveFuncMap_.find(typeIndex);     \
+        if (primitiveFuncMatch !=                                            \
+            SaiTracer::getInstance()->primitiveFuncMap_.end()) {             \
+          attrLines.push_back((*primitiveFuncMatch->second)(attr_list, i));  \
+          continue;                                                          \
+        }                                                                    \
+        auto attributeFuncMatch =                                            \
+            SaiTracer::getInstance()->attributeFuncMap_.find(typeIndex);     \
+        if (attributeFuncMatch !=                                            \
+            SaiTracer::getInstance()->attributeFuncMap_.end()) {             \
+          (*attributeFuncMatch->second)(attr_list, i, attrLines);            \
+          continue;                                                          \
+        }                                                                    \
+        auto listFuncMatch =                                                 \
+            SaiTracer::getInstance()->listFuncMap_.find(typeIndex);          \
+        if (listFuncMatch != SaiTracer::getInstance()->listFuncMap_.end()) { \
+          (*listFuncMatch->second)(attr_list, i, listCount++, attrLines);    \
+          continue;                                                          \
+        }                                                                    \
+      }                                                                      \
+      /* For attributes cannot handled by the aboved method */               \
+      switch (attr_list[i].id) {                                             \
+        case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:                           \
+        case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:                             \
+          s8ListAttr(attr_list, i, listCount++, attrLines, true);            \
+          break;                                                             \
+        default:                                                             \
+          XLOG(WARN) << "Unsupported object type " << #obj_type              \
+                     << " attribute " << attr_list[i].id                     \
+                     << " in Sai Replayer";                                  \
+      }                                                                      \
+    }                                                                        \
   }
 
 } // namespace facebook::fboss
