@@ -182,6 +182,20 @@ class SaiObjectStore {
     }
   }
 
+  // must be invoked during warm boot only, before entry has been warm booted.
+  // this is needed for updating of acl table schema, this requires removing all
+  // acl entries and putting it back.
+  template <typename T = SaiObjectTraits>
+  void addWarmbootHandle(
+      const typename T::AdapterHostKey& adapterHostKey,
+      const typename T::CreateAttributes& attributes) {
+    auto itr = warmBootHandles_.find(adapterHostKey);
+    CHECK(itr == warmBootHandles_.end());
+    auto object = std::make_shared<ObjectType>(
+        ObjectType(adapterHostKey, attributes, switchId_.value()));
+    warmBootHandles_.emplace(adapterHostKey, object);
+  }
+
   std::shared_ptr<ObjectType> setObject(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
       const typename SaiObjectTraits::CreateAttributes& attributes,
