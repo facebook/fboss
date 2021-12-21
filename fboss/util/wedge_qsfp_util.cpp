@@ -355,6 +355,8 @@ TransceiverManagementInterface getTransceiverManagementInterface(
       moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
+      moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
     return TransceiverManagementInterface::SFF;
   } else if (
