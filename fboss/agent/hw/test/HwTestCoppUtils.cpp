@@ -211,6 +211,17 @@ void setDefaultCpuTrafficPolicyConfig(
         *cpuAcls[i].first.name_ref();
     *trafficConfig.matchToAction_ref()[i].action_ref() = cpuAcls[i].second;
   }
+
+  if (config.cpuTrafficPolicy_ref() &&
+      config.cpuTrafficPolicy_ref()->trafficPolicy_ref() &&
+      config.cpuTrafficPolicy_ref()
+          ->trafficPolicy_ref()
+          ->defaultQosPolicy_ref()) {
+    trafficConfig.defaultQosPolicy_ref() = *config.cpuTrafficPolicy_ref()
+                                                ->trafficPolicy_ref()
+                                                ->defaultQosPolicy_ref();
+  }
+
   cpuConfig.trafficPolicy_ref() = trafficConfig;
   auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);
   if (rxReasonToQueues.size()) {

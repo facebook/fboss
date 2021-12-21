@@ -65,6 +65,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    utility::addOlympicQosMaps(cfg);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
