@@ -59,6 +59,55 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap{
     SAI_ATTR_MAP(AclCounter, CounterBytes),
 };
 
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableGroupMap{
+    SAI_ATTR_MAP(AclTableGroup, Stage),
+    SAI_ATTR_MAP(AclTableGroup, BindPointTypeList),
+    SAI_ATTR_MAP(AclTableGroup, Type),
+    SAI_ATTR_MAP(AclTableGroup, MemberList),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableGroupMemberMap{
+    SAI_ATTR_MAP(AclTableGroupMember, TableGroupId),
+    SAI_ATTR_MAP(AclTableGroupMember, TableId),
+    SAI_ATTR_MAP(AclTableGroupMember, Priority),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
+    SAI_ATTR_MAP(AclEntry, TableId),
+    SAI_ATTR_MAP(AclEntry, Priority),
+    SAI_ATTR_MAP(AclEntry, FieldSrcIpV6),
+    SAI_ATTR_MAP(AclEntry, FieldDstIpV6),
+    SAI_ATTR_MAP(AclEntry, FieldSrcIpV4),
+    SAI_ATTR_MAP(AclEntry, FieldDstIpV4),
+    SAI_ATTR_MAP(AclEntry, FieldSrcPort),
+    SAI_ATTR_MAP(AclEntry, FieldOutPort),
+    SAI_ATTR_MAP(AclEntry, FieldL4SrcPort),
+    SAI_ATTR_MAP(AclEntry, FieldL4DstPort),
+    SAI_ATTR_MAP(AclEntry, FieldIpProtocol),
+    SAI_ATTR_MAP(AclEntry, FieldTcpFlags),
+    SAI_ATTR_MAP(AclEntry, FieldIpFrag),
+    SAI_ATTR_MAP(AclEntry, FieldIcmpV4Type),
+    SAI_ATTR_MAP(AclEntry, FieldIcmpV4Code),
+    SAI_ATTR_MAP(AclEntry, FieldIcmpV6Type),
+    SAI_ATTR_MAP(AclEntry, FieldIcmpV6Code),
+    SAI_ATTR_MAP(AclEntry, FieldDscp),
+    SAI_ATTR_MAP(AclEntry, FieldDstMac),
+    SAI_ATTR_MAP(AclEntry, FieldIpType),
+    SAI_ATTR_MAP(AclEntry, FieldTtl),
+    SAI_ATTR_MAP(AclEntry, FieldFdbDstUserMeta),
+    SAI_ATTR_MAP(AclEntry, FieldRouteDstUserMeta),
+    SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclEntry, FieldEthertype),
+    SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
+    SAI_ATTR_MAP(AclEntry, ActionPacketAction),
+    SAI_ATTR_MAP(AclEntry, ActionCounter),
+    SAI_ATTR_MAP(AclEntry, ActionSetTC),
+    SAI_ATTR_MAP(AclEntry, ActionSetDSCP),
+    SAI_ATTR_MAP(AclEntry, ActionMirrorIngress),
+    SAI_ATTR_MAP(AclEntry, ActionMirrorEgress),
+    SAI_ATTR_MAP(AclEntry, ActionMacsecFlow),
+};
+
 } // namespace
 
 namespace facebook::fboss {
@@ -171,119 +220,8 @@ sai_acl_api_t* wrappedAclApi() {
 
 SET_SAI_ATTRIBUTES(AclCounter)
 SET_SAI_ATTRIBUTES(AclTable)
-
-void setAclEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_ENTRY_ATTR_TABLE_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_ACL_ENTRY_ATTR_PRIORITY:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
-      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
-        aclEntryFieldIpV6Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP:
-      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
-        aclEntryFieldIpV4Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT:
-      case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
-      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
-        aclEntryFieldSaiObjectIdAttr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
-        aclEntryActionSaiObjectIdAttr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
-      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
-        aclEntryActionSaiObjectIdListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
-      case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
-      case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
-        aclEntryFieldU32Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
-        aclEntryActionU32Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
-      case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
-        aclEntryFieldU16Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
-      case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_TYPE:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_CODE:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
-      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE:
-      case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
-      case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
-        aclEntryFieldU8Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
-      case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
-        aclEntryActionU8Attr(attr_list, i, attrLines);
-        break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
-        aclEntryFieldMacAttr(attr_list, i, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setAclTableGroupAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_TABLE_GROUP_ATTR_ACL_STAGE:
-      case SAI_ACL_TABLE_GROUP_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_ACL_TABLE_GROUP_ATTR_ACL_BIND_POINT_TYPE_LIST:
-        s32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_ACL_TABLE_GROUP_ATTR_MEMBER_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setAclTableGroupMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_ID:
-      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_GROUP_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(AclEntry)
+SET_SAI_ATTRIBUTES(AclTableGroup)
+SET_SAI_ATTRIBUTES(AclTableGroupMember)
 
 } // namespace facebook::fboss

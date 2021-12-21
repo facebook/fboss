@@ -16,6 +16,7 @@
 
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 #include <folly/File.h>
@@ -200,12 +201,24 @@ class SaiTracer {
       {TYPE_INDEX(sai_uint64_t), &u64Attr},
   };
 
-  // TODO(zecheng): charDataAttr and acl entry attributes
+  // TODO(zecheng): charDataAttr
   std::unordered_map<std::size_t, AttributeFunction> attributeFuncMap_{
       {TYPE_INDEX(sai_u32_range_t), &u32RangeAttr},
       {TYPE_INDEX(sai_s32_range_t), &s32RangeAttr},
       {TYPE_INDEX(folly::MacAddress), &macAddressAttr},
       {TYPE_INDEX(folly::IPAddress), &ipAttr},
+      /* Acl Entry attributes */
+      {TYPE_INDEX(AclEntryFieldSaiObjectIdT), &aclEntryFieldSaiObjectIdAttr},
+      {TYPE_INDEX(AclEntryFieldIpV6), &aclEntryFieldIpV6Attr},
+      {TYPE_INDEX(AclEntryFieldIpV4), &aclEntryFieldIpV4Attr},
+      {TYPE_INDEX(AclEntryActionSaiObjectIdT), &aclEntryActionSaiObjectIdAttr},
+      {TYPE_INDEX(AclEntryFieldU32), &aclEntryFieldU32Attr},
+      {TYPE_INDEX(AclEntryActionU32), &aclEntryActionU32Attr},
+      {TYPE_INDEX(AclEntryFieldU16), &aclEntryFieldU16Attr},
+      {TYPE_INDEX(AclEntryFieldU8), &aclEntryFieldU8Attr},
+      {TYPE_INDEX(AclEntryActionU8), &aclEntryActionU8Attr},
+      {TYPE_INDEX(AclEntryFieldMac), &aclEntryFieldMacAttr},
+
   };
 
   std::unordered_map<std::size_t, ListFunction> listFuncMap_{
@@ -213,6 +226,9 @@ class SaiTracer {
       {TYPE_INDEX(std::vector<sai_uint32_t>), &u32ListAttr},
       {TYPE_INDEX(std::vector<sai_int32_t>), &s32ListAttr},
       {TYPE_INDEX(std::vector<sai_qos_map_t>), &qosMapListAttr},
+      {TYPE_INDEX(AclEntryActionSaiObjectIdList),
+       &aclEntryActionSaiObjectIdListAttr},
+
   };
 
  private:
