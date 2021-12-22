@@ -791,7 +791,10 @@ void CmisModule::getApplicationCapabilities() {
     }
 
     XLOG(DBG3) << folly::sformat(
-        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
+        "Port {:s} Adding module capability: {:#x} at position {:d}",
+        qsfpImpl_->getName(),
+        data[1],
+        i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
     applicationAdvertisingField.moduleMediaInterface = data[1];
@@ -1703,11 +1706,15 @@ bool CmisModule::checkLaneConfigError() {
     if (allStatusAvailable) {
       break;
     } else if (retryCount) {
-      XLOG(INFO) << "Some lane status not available so trying again";
+      XLOG(INFO) << folly::sformat(
+          "Port {:s} Some lane status not available so trying again",
+          qsfpImpl_->getName());
       /* sleep override */
       usleep(kUsecBetweenLaneInit);
     } else {
-      XLOG(INFO) << "Some lane status not available even after retry";
+      XLOG(INFO) << folly::sformat(
+          "Port {:s} Some lane status not available even after retry",
+          qsfpImpl_->getName());
     }
   };
 
