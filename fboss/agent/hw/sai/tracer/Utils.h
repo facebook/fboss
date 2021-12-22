@@ -9,7 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include <string>
+#include <vector>
 
 extern "C" {
 #include <sai.h>

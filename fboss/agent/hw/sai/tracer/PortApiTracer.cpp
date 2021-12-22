@@ -8,9 +8,66 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include <typeindex>
+#include <utility>
+
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
+  SAI_ATTR_MAP(Port, HwLaneList), SAI_ATTR_MAP(Port, Speed),
+      SAI_ATTR_MAP(Port, AdminState), SAI_ATTR_MAP(Port, FecMode),
+      SAI_ATTR_MAP(Port, OperStatus), SAI_ATTR_MAP(Port, InternalLoopbackMode),
+      SAI_ATTR_MAP(Port, MediaType), SAI_ATTR_MAP(Port, GlobalFlowControlMode),
+      SAI_ATTR_MAP(Port, PortVlanId), SAI_ATTR_MAP(Port, Mtu),
+      SAI_ATTR_MAP(Port, QosDscpToTcMap), SAI_ATTR_MAP(Port, QosTcToQueueMap),
+      SAI_ATTR_MAP(Port, DisableTtlDecrement),
+      SAI_ATTR_MAP(Port, QosNumberOfQueues), SAI_ATTR_MAP(Port, QosQueueList),
+      SAI_ATTR_MAP(Port, Type), SAI_ATTR_MAP(Port, InterfaceType),
+      SAI_ATTR_MAP(Port, PktTxEnable), SAI_ATTR_MAP(Port, SerdesId),
+      SAI_ATTR_MAP(Port, IngressMirrorSession),
+      SAI_ATTR_MAP(Port, EgressMirrorSession),
+      SAI_ATTR_MAP(Port, IngressSamplePacketEnable),
+      SAI_ATTR_MAP(Port, EgressSamplePacketEnable),
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      SAI_ATTR_MAP(Port, IngressSampleMirrorSession),
+      SAI_ATTR_MAP(Port, EgressSampleMirrorSession),
+#endif
+      SAI_ATTR_MAP(Port, PrbsPolynomial), SAI_ATTR_MAP(Port, PrbsConfig),
+      SAI_ATTR_MAP(Port, IngressMacSecAcl), SAI_ATTR_MAP(Port, EgressMacSecAcl),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
+    SAI_ATTR_MAP(PortSerdes, PortId),
+    SAI_ATTR_MAP(PortSerdes, Preemphasis),
+    SAI_ATTR_MAP(PortSerdes, IDriver),
+    SAI_ATTR_MAP(PortSerdes, TxFirPre1),
+    SAI_ATTR_MAP(PortSerdes, TxFirPre2),
+    SAI_ATTR_MAP(PortSerdes, TxFirMain),
+    SAI_ATTR_MAP(PortSerdes, TxFirPost1),
+    SAI_ATTR_MAP(PortSerdes, TxFirPost2),
+    SAI_ATTR_MAP(PortSerdes, TxFirPost3),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _PortConnectorMap{
+    SAI_ATTR_MAP(PortConnector, LineSidePortId),
+    SAI_ATTR_MAP(PortConnector, SystemSidePortId),
+};
+
+void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP(Port, SystemPortId)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxCtleCode)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxDspMode)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxAfeTrim)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxAcCouplingByPass)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxAfeAdaptiveEnable)
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -116,6 +173,7 @@ sai_status_t wrap_clear_port_pool_stats(
 }
 
 sai_port_api_t* wrappedPortApi() {
+  handleExtensionAttributes();
   static sai_port_api_t portWrappers;
 
   portWrappers.create_port = &wrap_create_port;
@@ -139,149 +197,8 @@ sai_port_api_t* wrappedPortApi() {
   return &portWrappers;
 }
 
-void setPortAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_PORT_ATTR_ADMIN_STATE:
-      case SAI_PORT_ATTR_PKT_TX_ENABLE:
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
-#else
-      case SAI_PORT_ATTR_DECREMENT_TTL:
-#endif
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_PORT_ATTR_HW_LANE_LIST:
-      case SAI_PORT_ATTR_SERDES_PREEMPHASIS:
-        u32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_PORT_ATTR_SPEED:
-      case SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES:
-      case SAI_PORT_ATTR_MTU:
-      case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_PORT_ATTR_QOS_QUEUE_LIST:
-      case SAI_PORT_ATTR_EGRESS_MIRROR_SESSION:
-      case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION:
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION:
-      case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION:
-#endif
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_PORT_ATTR_TYPE:
-      case SAI_PORT_ATTR_FEC_MODE:
-      case SAI_PORT_ATTR_OPER_STATUS:
-      case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
-      case SAI_PORT_ATTR_MEDIA_TYPE:
-      case SAI_PORT_ATTR_INTERFACE_TYPE:
-      case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
-      case SAI_PORT_ATTR_PRBS_CONFIG:
-      case SAI_PORT_ATTR_PTP_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_PORT_ATTR_PORT_VLAN_ID:
-        attrLines.push_back(u16Attr(attr_list, i));
-        break;
-      case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
-      case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
-      case SAI_PORT_ATTR_PORT_SERDES_ID:
-      case SAI_PORT_ATTR_EGRESS_MACSEC_ACL:
-      case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
-      case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
-      case SAI_PORT_ATTR_INGRESS_SAMPLEPACKET_ENABLE:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        // Handle extension attributes
-        auto systemPortId = facebook::fboss::SaiPortTraits::Attributes::
-            SystemPortId::optionalExtensionAttributeId();
-        if (systemPortId.has_value() &&
-            attr_list[i].id == systemPortId.value()) {
-          attrLines.push_back(u16Attr(attr_list, i));
-        }
-        break;
-    }
-  }
-}
-
-void setPortSerdesAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-  std::unordered_set<sai_attr_id_t> s32ExtensionAttr;
-  auto rxCtleCodeId = facebook::fboss::SaiPortSerdesTraits::Attributes::
-      RxCtleCode::optionalExtensionAttributeId();
-  auto rxDspModeId = facebook::fboss::SaiPortSerdesTraits::Attributes::
-      RxDspMode::optionalExtensionAttributeId();
-  auto rxAfeTrimId = facebook::fboss::SaiPortSerdesTraits::Attributes::
-      RxAfeTrim::optionalExtensionAttributeId();
-  auto rxAcCouplingByPassId = facebook::fboss::SaiPortSerdesTraits::Attributes::
-      RxAcCouplingByPass::optionalExtensionAttributeId();
-  auto rxAfeAdaptiveEnableId = facebook::fboss::SaiPortSerdesTraits::
-      Attributes::RxAfeAdaptiveEnable::optionalExtensionAttributeId();
-  if (rxCtleCodeId.has_value()) {
-    s32ExtensionAttr.insert(rxCtleCodeId.value());
-  }
-  if (rxDspModeId.has_value()) {
-    s32ExtensionAttr.insert(rxDspModeId.value());
-  }
-  if (rxAfeTrimId.has_value()) {
-    s32ExtensionAttr.insert(rxAfeTrimId.value());
-  }
-  if (rxAcCouplingByPassId.has_value()) {
-    s32ExtensionAttr.insert(rxAcCouplingByPassId.value());
-  }
-  if (rxAfeAdaptiveEnableId.has_value()) {
-    s32ExtensionAttr.insert(rxAfeAdaptiveEnableId.value());
-  }
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_PORT_SERDES_ATTR_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_PORT_SERDES_ATTR_PREEMPHASIS:
-      case SAI_PORT_SERDES_ATTR_IDRIVER:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
-      case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
-        u32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      default:
-        // Handle extension attributes
-        if (s32ExtensionAttr.find(attr_list[i].id) != s32ExtensionAttr.end()) {
-          s32ListAttr(attr_list, i, listCount++, attrLines);
-        }
-        break;
-    }
-  }
-}
-
-void setPortConnectorAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_PORT_CONNECTOR_ATTR_LINE_SIDE_PORT_ID:
-      case SAI_PORT_CONNECTOR_ATTR_SYSTEM_SIDE_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Port)
+SET_SAI_ATTRIBUTES(PortSerdes)
+SET_SAI_ATTRIBUTES(PortConnector)
 
 } // namespace facebook::fboss

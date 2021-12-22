@@ -10,6 +10,7 @@
 
 #include <iomanip>
 
+#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;

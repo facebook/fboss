@@ -192,6 +192,7 @@ class SaiTracer {
 
   std::unordered_map<std::size_t, PrimitiveFunction> primitiveFuncMap_{
       {TYPE_INDEX(sai_object_id_t), &oidAttr},
+      {TYPE_INDEX(SaiObjectIdT), &oidAttr},
       {TYPE_INDEX(bool), &boolAttr},
       {TYPE_INDEX(sai_uint8_t), &u8Attr},
       {TYPE_INDEX(sai_int8_t), &s8Attr},
@@ -520,6 +521,19 @@ class SaiTracer {
             #attr_name,                                                     \
             TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
                            attr_name::ExtractSelectionType))                \
+  }
+
+#define SAI_EXT_ATTR_MAP(obj_type, attr_name)                               \
+  if (facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::       \
+          AttributeId()()                                                   \
+              .has_value()) {                                               \
+    _##obj_type##Map[facebook::fboss::Sai##obj_type##Traits::Attributes::   \
+                         attr_name::AttributeId()()                         \
+                             .value()] =                                    \
+        std::make_pair(                                                     \
+            #attr_name,                                                     \
+            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
+                           attr_name::ExtractSelectionType));               \
   }
 
 #define SET_SAI_ATTRIBUTES(obj_type)                                         \
