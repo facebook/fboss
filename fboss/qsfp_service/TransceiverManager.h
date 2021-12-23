@@ -214,7 +214,10 @@ class TransceiverManager {
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
 
   // TEST ONLY
-  void setOverrideAgentPortStatusForTesting(bool up, bool enabled);
+  void setOverrideAgentPortStatusForTesting(
+      bool up,
+      bool enabled,
+      bool clearOnly = false);
 
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.

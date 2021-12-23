@@ -562,23 +562,21 @@ void QsfpModule::refreshLocked() {
     stateUpdateLocked(TransceiverStateMachineEvent::READ_EEPROM);
   }
 
-  if (customizeWanted && !FLAGS_use_new_state_machine) {
-    // New state machine will customize transceiver in the PROGRAM_TRANSCEIVER
-    // event
-    customizeTransceiverLocked(getPortSpeed());
+  // The following should be deprecated after switching to use new state machine
+  if (!FLAGS_use_new_state_machine) {
+    if (customizeWanted) {
+      customizeTransceiverLocked(getPortSpeed());
 
-    // New state machine will remdiate transceiver in the REMEDIATE_TRANSCEIVER
-    // event
-    tryRemediateLocked();
-  }
+      tryRemediateLocked();
+    }
 
-  TransceiverSettings settings = getTransceiverSettingsInfo();
-
-  // We found that some module did not enable Rx output squelch by default,
-  // which introduced some difficulty to bring link back up when flapped.
-  // Here we ensure that Rx output squelch is always enabled.
-  if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
-    ensureRxOutputSquelchEnabled(*hostLaneSettings);
+    TransceiverSettings settings = getTransceiverSettingsInfo();
+    // We found that some module did not enable Rx output squelch by default,
+    // which introduced some difficulty to bring link back up when flapped.
+    // Here we ensure that Rx output squelch is always enabled.
+    if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
+      ensureRxOutputSquelchEnabled(*hostLaneSettings);
+    }
   }
 
   if (customizeWanted || willRefresh) {
@@ -1120,6 +1118,15 @@ void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
       // See CmisModule::configureModule(). Need to clean it up in the future.
       configureModule();
       customizeTransceiverLocked(speed);
+
+      TransceiverSettings settings = getTransceiverSettingsInfo();
+      // We found that some module did not enable Rx output squelch by default,
+      // which introduced some difficulty to bring link back up when flapped.
+      // Here we ensure that Rx output squelch is always enabled.
+      if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
+        ensureRxOutputSquelchEnabled(*hostLaneSettings);
+      }
+
       // Since we're touching the transceiver, we need to update the cached
       // transceiver info
       updateQsfpData(false);

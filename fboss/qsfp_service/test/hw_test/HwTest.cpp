@@ -42,6 +42,11 @@ void HwTest::SetUp() {
   if (useNewStateMachine_) {
     gflags::SetCommandLineOptionWithMode(
         "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
+    // Change the default remediation interval to 0 to avoid waiting
+    gflags::SetCommandLineOptionWithMode(
+        "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
   // This is used to set up the override TransceiveToPortAndProfile so that we
   // don't have to rely on wedge_agent::programInternalPhyPorts() in our

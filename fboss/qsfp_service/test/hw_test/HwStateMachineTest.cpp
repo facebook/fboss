@@ -97,13 +97,25 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
   void SetUp() override {
     HwStateMachineTest::SetUp();
 
-    // Due to some platforms are easy to have i2c issue that cause the current
-    // refresh work perfectly. Adding enough retries to make sure that we at
-    // least can secure TRANSCEIVER_PROGRAMMED after 10 times.
-    auto refreshStateMachinesTillTcvrProgrammed = [this]() {
+    waitTillTcvrProgrammed(getPresentTransceivers());
+
+    // Set pause remdiation so it won't trigger remediation
+    setPauseRemediation(true);
+  }
+
+  void setPauseRemediation(bool paused) {
+    getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
+        paused ? 600 : 0);
+  }
+
+  void waitTillTcvrProgrammed(const std::vector<TransceiverID>& tcvrs) {
+    // Due to some platforms are easy to have i2c issue which causes the current
+    // refresh not work as expected. Adding enough retries to make sure that we
+    // at least can secure TRANSCEIVER_PROGRAMMED after 10 times.
+    auto refreshStateMachinesTillTcvrProgrammed = [this, &tcvrs]() {
       auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
       wedgeMgr->refreshStateMachines();
-      for (auto id : getPresentTransceivers()) {
+      for (auto id : tcvrs) {
         auto curState = wedgeMgr->getCurrentState(id);
         if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
           return false;
@@ -111,7 +123,7 @@ class HwStateMachineTestWithOverrideTcvrToPortAndProfile
       }
       return true;
     };
-    // Retry 10 times until all state machine reach TRANSCEIVER_PROGRAMMED
+    // Retry 10 times until all state machines reach TRANSCEIVER_PROGRAMMED
     checkWithRetry(
         refreshStateMachinesTillTcvrProgrammed,
         10 /* retries */,
@@ -231,6 +243,138 @@ TEST_F(
           << " doesn't have expected state=NOT_PRESENT but actual state="
           << apache::thrift::util::enumNameSafe(curState);
     }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(
+    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
+    CheckTransceiverRemediated) {
+  auto verify = [this]() {
+    std::set<TransceiverID> enabledTcvrs;
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    wedgeMgr->setOverrideAgentPortStatusForTesting(
+        true /* up */, true /* enabled */);
+    // Remove pause remediation
+    setPauseRemediation(false);
+    wedgeMgr->refreshStateMachines();
+    for (auto id : getPresentTransceivers()) {
+      auto curState = wedgeMgr->getCurrentState(id);
+      bool isEnabled = !wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty();
+      auto expectedState = isEnabled ? TransceiverStateMachineState::ACTIVE
+                                     : TransceiverStateMachineState::INACTIVE;
+      if (isEnabled) {
+        enabledTcvrs.insert(id);
+      }
+      EXPECT_EQ(curState, expectedState)
+          << "Transceiver:" << id << " doesn't have expected state="
+          << apache::thrift::util::enumNameSafe(expectedState)
+          << " but actual state="
+          << apache::thrift::util::enumNameSafe(curState);
+    }
+
+    // Now set all ports down to trigger remediation
+    wedgeMgr->setOverrideAgentPortStatusForTesting(
+        false /* up */, true /* enabled */);
+    // Make sure all enabled transceiver should go through:
+    // XPHY_PORTS_PROGRAMMED -> TRANSCEIVER_PROGRAMMED
+    std::unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
+        expectedStates;
+    for (auto id : getPresentTransceivers()) {
+      std::queue<TransceiverStateMachineState> tcvrExpectedStates;
+      // Only care enabled ports
+      if (enabledTcvrs.find(id) != enabledTcvrs.end()) {
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+      }
+      expectedStates.emplace(id, std::move(tcvrExpectedStates));
+    }
+
+    auto meetAllExpectedState =
+        [](WedgeManager* wedgeMgr,
+           TransceiverID id,
+           TransceiverStateMachineState curState,
+           std::queue<TransceiverStateMachineState>& tcvrExpectedStates) {
+          // Check whether current state matches the head of the expected state
+          // queue
+          if (tcvrExpectedStates.empty()) {
+            // Already meet all expected states.
+            return true;
+          } else if (curState == tcvrExpectedStates.front()) {
+            tcvrExpectedStates.pop();
+            if (curState ==
+                TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED) {
+              // TODO(joseph5wu) Add check to ensure the module remediation did
+              // happen
+              const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
+              auto mgmtInterface = apache::thrift::can_throw(
+                  *transceiver.transceiverManagementInterface_ref());
+              if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+                // CMIS will hard reset the module in
+                // remediateFlakyTransceiver() Without clear hard reset, we
+                // won't be able to detect such transceiver
+              } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
+                // SFF will trigger tx enable and then reset low power mode.
+              }
+            } else if (
+                curState ==
+                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+              // Just finished transceiver programming
+              // Only care enabled ports
+              const auto programmedPortToPortInfo =
+                  wedgeMgr->getProgrammedIphyPortToPortInfo(id);
+              if (programmedPortToPortInfo.size() == 1) {
+                utility::HwTransceiverUtils::verifyTransceiverSettings(
+                    wedgeMgr->getTransceiverInfo(id),
+                    programmedPortToPortInfo.begin()->second.profile);
+              }
+            }
+            return tcvrExpectedStates.empty();
+          }
+          XLOG(WARN) << "Transceiver:" << id << " doesn't have expected state="
+                     << apache::thrift::util::enumNameSafe(
+                            tcvrExpectedStates.front())
+                     << " but actual state="
+                     << apache::thrift::util::enumNameSafe(curState);
+          return false;
+        };
+
+    // Due to some platforms are easy to have i2c issue which causes the current
+    // refresh not work as expected. Adding enough retries to make sure that we
+    // at least can meet all `expectedStates` after 10 times.
+    auto refreshStateMachinesTillMeetAllStates = [this,
+                                                  wedgeMgr,
+                                                  &expectedStates,
+                                                  &meetAllExpectedState]() {
+      wedgeMgr->refreshStateMachines();
+      int numFailedTransceivers = 0;
+      for (auto id : getPresentTransceivers()) {
+        auto curState = wedgeMgr->getCurrentState(id);
+        auto tcvrExpectedStates = expectedStates.find(id);
+        // Only enabled transceivers are in expectedStates
+        // Disabled ports should stay INACTIVE without remediation
+        if (tcvrExpectedStates == expectedStates.end()) {
+          EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
+              << "Transceiver:" << id << " doesn't have expected state=INACTIVE"
+              << " but actual state="
+              << apache::thrift::util::enumNameSafe(curState);
+        } else if (!meetAllExpectedState(
+                       wedgeMgr, id, curState, tcvrExpectedStates->second)) {
+          ++numFailedTransceivers;
+        }
+      }
+      XLOG_IF(WARN, numFailedTransceivers)
+          << numFailedTransceivers
+          << " transceivers don't meet the expected state";
+      return numFailedTransceivers == 0;
+    };
+    // Retry 10 times until all state machines reach expected states
+    checkWithRetry(
+        refreshStateMachinesTillMeetAllStates,
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

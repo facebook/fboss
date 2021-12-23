@@ -801,10 +801,14 @@ std::vector<TransceiverID> TransceiverManager::getPresentTransceivers() const {
 
 void TransceiverManager::setOverrideAgentPortStatusForTesting(
     bool up,
-    bool enabled) {
+    bool enabled,
+    bool clearOnly) {
   // Use overrideTcvrToPortAndProfileForTest_ to prepare
   // overrideAgentPortStatusForTesting_
   overrideAgentPortStatusForTesting_.clear();
+  if (clearOnly) {
+    return;
+  }
   for (const auto& it : overrideTcvrToPortAndProfileForTest_) {
     for (const auto& [portID, profileID] : it.second) {
       PortStatus status;
