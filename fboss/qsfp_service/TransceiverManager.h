@@ -241,6 +241,12 @@ class TransceiverManager {
     phyManager_ = std::move(phyManager);
   }
 
+  // Update the cached PortStatus of TransceiverToPortInfo based on the input
+  // This will only change the active state of the state machine.
+  void updateTransceiverActiveState(
+      const std::set<TransceiverID>& tcvrs,
+      const std::map<int32_t, PortStatus>& portStatus) noexcept;
+
   // An override of programmed iphy ports.
   // Due to hw_test won't be able to get wedge_agent running, this override
   // map will mimic the return of programmed iphy ports based on transceiver.

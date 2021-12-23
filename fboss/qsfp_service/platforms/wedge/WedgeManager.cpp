@@ -378,44 +378,76 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
-  auto groups = folly::gen::from(*ports) |
-      folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
-                  return item.second.transceiverIdx_ref();
-                }) |
-      folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
-                  return *item.second.transceiverIdx_ref()
-                              .value_unchecked()
-                              .transceiverId_ref();
-                }) |
-      folly::gen::as<std::vector>();
-
-  auto lockedTransceivers = transceivers_.rlock();
-  auto lockedPorts = ports_.wlock();
-  for (auto& group : groups) {
-    int32_t transceiverIdx = group.key();
-    auto tcvrID = TransceiverID(transceiverIdx);
-    XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
-    if (!isValidTransceiver(transceiverIdx)) {
-      continue;
-    }
-
-    // Update the PortStatus map in WedgeManager.
-    for (auto portStatus : group.values()) {
-      lockedPorts->at(tcvrID)[portStatus.first] = portStatus.second;
-    }
-
-    if (auto it = lockedTransceivers->find(tcvrID);
-        it != lockedTransceivers->end()) {
-      try {
-        auto transceiver = it->second.get();
-        transceiver->transceiverPortsChanged(lockedPorts->at(tcvrID));
-        info[transceiverIdx] = transceiver->getTransceiverInfo();
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << transceiverIdx
-                  << ": Error calling syncPorts(): " << ex.what();
+  // With the new state machine, we don't need to rely on this function to
+  // update the ports_(Port status map). But because we're still on the process
+  // of moving the trigger of publishing link snapshots from services to the
+  // nmt. We need to make sure whether there's a link change, qsfp_service
+  // will be still able to publish these snapshots.
+  // TODO(joseph5wu) Eventually we don't need to have wedge_agent to syncPorts
+  // with qsfp_service when we fully switch to use new state machine and also
+  // removing the publishing snapshots logic from qsfp_services
+  if (FLAGS_use_new_state_machine) {
+    std::set<TransceiverID> tcvrIDs;
+    for (const auto& [portID, portStatus] : *ports) {
+      if (auto tcvrIdx = portStatus.transceiverIdx_ref()) {
+        tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId_ref()));
       }
-    } else {
-      XLOG(ERR) << "Syncing ports to a transceiver that is not present.";
+    }
+    // Update Transceiver active state
+    updateTransceiverActiveState(tcvrIDs, *ports);
+    // Only fetch the transceivers for the input ports
+    for (auto tcvrID : tcvrIDs) {
+      auto lockedTransceivers = transceivers_.rlock();
+      if (auto it = lockedTransceivers->find(tcvrID);
+          it != lockedTransceivers->end()) {
+        try {
+          info[tcvrID] = it->second->getTransceiverInfo();
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Transceiver " << tcvrID
+                    << ": Error calling getTransceiverInfo(): " << ex.what();
+        }
+      }
+    }
+  } else {
+    auto groups = folly::gen::from(*ports) |
+        folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
+                    return item.second.transceiverIdx_ref();
+                  }) |
+        folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
+                    return *item.second.transceiverIdx_ref()
+                                .value_unchecked()
+                                .transceiverId_ref();
+                  }) |
+        folly::gen::as<std::vector>();
+
+    auto lockedTransceivers = transceivers_.rlock();
+    auto lockedPorts = ports_.wlock();
+    for (auto& group : groups) {
+      int32_t transceiverIdx = group.key();
+      auto tcvrID = TransceiverID(transceiverIdx);
+      XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
+      if (!isValidTransceiver(transceiverIdx)) {
+        continue;
+      }
+
+      // Update the PortStatus map in WedgeManager.
+      for (auto portStatus : group.values()) {
+        lockedPorts->at(tcvrID)[portStatus.first] = portStatus.second;
+      }
+
+      if (auto it = lockedTransceivers->find(tcvrID);
+          it != lockedTransceivers->end()) {
+        try {
+          auto transceiver = it->second.get();
+          transceiver->transceiverPortsChanged(lockedPorts->at(tcvrID));
+          info[transceiverIdx] = transceiver->getTransceiverInfo();
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Transceiver " << transceiverIdx
+                    << ": Error calling syncPorts(): " << ex.what();
+        }
+      } else {
+        XLOG(ERR) << "Syncing ports to a transceiver that is not present.";
+      }
     }
   }
 }

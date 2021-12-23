@@ -9,6 +9,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 using namespace std::chrono;
 
@@ -562,11 +563,15 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
   const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
   for (auto& [tcvrID, portToPortInfo] : tcvrToPortInfo_) {
+    bool portStatusChanged = false;
     bool anyPortUp = false;
     bool isTcvrPresent =
         (std::find(
              presentTransceivers.begin(), presentTransceivers.end(), tcvrID) !=
          presentTransceivers.end());
+    bool isTcvrJustProgrammed =
+        (getCurrentState(tcvrID) ==
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
     std::optional<TransceiverStateMachineEvent> event;
     { // lock block for portToPortInfo
       auto portToPortInfoWithLock = portToPortInfo->wlock();
@@ -607,38 +612,36 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
             } else {
               // Both agent and cache here have such port, update the cached
               // status
+              if (!cachedPortInfoIt->second.status ||
+                  *cachedPortInfoIt->second.status->up_ref() !=
+                      *portStatusIt->second.up_ref()) {
+                portStatusChanged = true;
+              }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
           }
         }
       }
-    } // lock block for portToPortInfo
-
-    // If event is not set, it means not reset event is needed, now check
-    // whether we need port status event.
-    if (!event.has_value()) {
-      auto curState = getCurrentState(tcvrID);
-      if (curState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-        ++numPortStatusChanged;
+      // If event is not set, it means not reset event is needed, now check
+      // whether we need port status event.
+      // Make sure we update active state for a transceiver which just finished
+      // programming
+      if (!event && (portStatusChanged || isTcvrJustProgrammed)) {
         event.emplace(
             anyPortUp ? TransceiverStateMachineEvent::PORT_UP
                       : TransceiverStateMachineEvent::ALL_PORTS_DOWN);
-      } else if (
-          curState == TransceiverStateMachineState::ACTIVE && !anyPortUp) {
         ++numPortStatusChanged;
-        event.emplace(TransceiverStateMachineEvent::ALL_PORTS_DOWN);
-      } else if (
-          curState == TransceiverStateMachineState::INACTIVE && anyPortUp) {
-        ++numPortStatusChanged;
-        event.emplace(TransceiverStateMachineEvent::PORT_UP);
       }
-    }
 
-    if (event.has_value()) {
-      if (auto result = updateStateBlockingWithoutWait(tcvrID, *event)) {
-        results.push_back(result);
+      // Make sure the port event will be added to the update queue under the
+      // lock of portToPortInfo, so that it will make sure the cached status
+      // and the state machine will be in sync
+      if (event.has_value()) {
+        if (auto result = updateStateBlockingWithoutWait(tcvrID, *event)) {
+          results.push_back(result);
+        }
       }
-    }
+    } // lock block for portToPortInfo
   }
   waitForAllBlockingStateUpdateDone(results);
   XLOG_IF(
@@ -650,6 +653,66 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       << numPortStatusChanged
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
+}
+
+void TransceiverManager::updateTransceiverActiveState(
+    const std::set<TransceiverID>& tcvrs,
+    const std::map<int32_t, PortStatus>& portStatus) noexcept {
+  int numPortStatusChanged{0};
+  BlockingStateUpdateResultList results;
+  for (auto tcvrID : tcvrs) {
+    auto tcvrToPortInfoIt = tcvrToPortInfo_.find(tcvrID);
+    if (tcvrToPortInfoIt == tcvrToPortInfo_.end()) {
+      XLOG(WARN) << "Unrecoginized Transceiver:" << tcvrID
+                 << ", skip updateTransceiverActiveState()";
+      continue;
+    }
+    XLOG(INFO) << "Syncing ports of transceiver " << tcvrID;
+    bool portStatusChanged = false;
+    bool anyPortUp = false;
+    { // lock block for portToPortInfo
+      auto portToPortInfoWithLock = tcvrToPortInfoIt->second->wlock();
+      for (auto& [portID, tcvrPortInfo] : *portToPortInfoWithLock) {
+        // Check whether there's a new port status for such port
+        auto portStatusIt = portStatus.find(portID);
+        // If port doesn't need to be updated, use the current cached status to
+        // indicate whether we need a state update
+        if (portStatusIt == portStatus.end()) {
+          if (tcvrPortInfo.status) {
+            anyPortUp = anyPortUp || *tcvrPortInfo.status->up_ref();
+          }
+        } else {
+          // Only care about enabled port status
+          if (*portStatusIt->second.enabled_ref()) {
+            anyPortUp = anyPortUp || *portStatusIt->second.up_ref();
+            if (!tcvrPortInfo.status ||
+                *tcvrPortInfo.status->up_ref() !=
+                    *portStatusIt->second.up_ref()) {
+              portStatusChanged = true;
+            }
+            // And also update the cached port status
+            tcvrPortInfo.status = portStatusIt->second;
+          }
+        }
+      }
+
+      // Make sure the port event will be added to the update queue under the
+      // lock of portToPortInfo, so that it will make sure the cached status
+      // and the state machine will be in sync
+      if (portStatusChanged) {
+        auto event = anyPortUp ? TransceiverStateMachineEvent::PORT_UP
+                               : TransceiverStateMachineEvent::ALL_PORTS_DOWN;
+        ++numPortStatusChanged;
+        if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
+          results.push_back(result);
+        }
+      }
+    } // lock block for portToPortInfo
+  }
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG_IF(DBG2, numPortStatusChanged > 0)
+      << "updateTransceiverActiveState has " << numPortStatusChanged
+      << " transceivers need to update port status.";
 }
 
 void TransceiverManager::refreshStateMachines() {
