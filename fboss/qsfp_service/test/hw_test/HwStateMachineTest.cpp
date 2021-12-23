@@ -11,6 +11,7 @@
 
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
@@ -298,6 +299,13 @@ TEST_F(
       std::queue<TransceiverStateMachineState> tcvrExpectedStates;
       // Only care enabled ports
       if (enabledTcvrs.find(id) != enabledTcvrs.end()) {
+        // Miniphoton doesn't support remediation
+        const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
+        if (transceiver.vendor_ref() &&
+            *transceiver.vendor_ref()->partNumber_ref() ==
+                QsfpModule::kMiniphotonPartNumber) {
+          continue;
+        }
         tcvrExpectedStates.push(
             TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
         tcvrExpectedStates.push(

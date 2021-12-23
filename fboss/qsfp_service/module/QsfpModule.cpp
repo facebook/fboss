@@ -54,8 +54,6 @@ namespace fboss {
 static constexpr int kStateMachineAgentPortSyncupTimeout = 120;
 // Module State machine optics remediation/bringup interval (seconds)
 static constexpr int kStateMachineOpticsRemediateInterval = 30;
-// Miniphoton module part number
-static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
 
 TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
