@@ -17,7 +17,21 @@
 
 namespace facebook::fboss {
 
-template <phy::Side Side, int32_t Polynominal>
+namespace {
+static const std::unordered_map<
+    PlatformMode,
+    std::unordered_map<phy::IpModulation, std::vector<int32_t>>>
+    kSupportedPolynominal = {
+        {PlatformMode::MINIPACK,
+         {{phy::IpModulation::NRZ, {7, 9, 10, 11, 13, 15, 20, 23, 31, 49, 58}},
+          {phy::IpModulation::PAM4,
+           {7, 9, 10, 11, 13, 15, 20, 23, 31, 49, 58}}}},
+        {PlatformMode::YAMP,
+         {{{phy::IpModulation::NRZ, {9, 15, 23, 31}},
+           {phy::IpModulation::PAM4, {9, 13, 15, 31}}}}}};
+}
+
+template <phy::Side Side, phy::IpModulation Modulation>
 class HwPortPrbsTest : public HwExternalPhyPortTest {
  public:
   const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
@@ -29,47 +43,21 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
 
   std::vector<std::pair<PortID, cfg::PortProfileID>> findAvailableXphyPorts()
       override {
-    auto platformMode =
-        getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
-    if (platformMode != PlatformMode::YAMP) {
-      return HwExternalPhyPortTest::findAvailableXphyPorts();
-    }
-    // YAMP can only support 5 different Polynominals
-    // PAM4: 9/13/15/31
-    // NRZ:  9/15/23/31
-    // We need to filter the port based on the profile and
-    // the required polynominal value
+    std::vector<std::pair<PortID, cfg::PortProfileID>> filteredPorts;
     const auto& origAvailablePorts =
         HwExternalPhyPortTest::findAvailableXphyPorts();
-    std::vector<std::pair<PortID, cfg::PortProfileID>> filteredPorts;
     for (const auto& [port, profile] : origAvailablePorts) {
-      switch (Polynominal) {
-        // Both modes can support 9/15/31
-        case 9:
-        case 15:
-        case 31:
-          filteredPorts.push_back(std::make_pair(port, profile));
-          break;
-        case 13:
-        case 23: {
-          const auto& expectedPhyPortConfig =
-              getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
-                  port, profile, std::nullopt);
-          auto ipModulation =
-              (Side == phy::Side::SYSTEM
-                   ? *expectedPhyPortConfig.profile.system.modulation_ref()
-                   : *expectedPhyPortConfig.profile.line.modulation_ref());
-          if (Polynominal == 13 && ipModulation == phy::IpModulation::PAM4) {
-            filteredPorts.push_back(std::make_pair(port, profile));
-          }
-          if (Polynominal == 23 && ipModulation == phy::IpModulation::NRZ) {
-            filteredPorts.push_back(std::make_pair(port, profile));
-          }
-          break;
-        }
-        default:
-          throw FbossError("YAMP can't supoort Polynominal=", Polynominal);
+      const auto& expectedPhyPortConfig =
+          getHwQsfpEnsemble()->getPhyManager()->getDesiredPhyPortConfig(
+              port, profile, std::nullopt);
+      auto ipModulation =
+          (Side == phy::Side::SYSTEM
+               ? *expectedPhyPortConfig.profile.system.modulation_ref()
+               : *expectedPhyPortConfig.profile.line.modulation_ref());
+      if (ipModulation != Modulation) {
+        continue;
       }
+      filteredPorts.push_back(std::make_pair(port, profile));
     }
     CHECK(!filteredPorts.empty())
         << "Can't find xphy ports to support features:" << neededFeatureNames();
@@ -80,32 +68,73 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
   void runTest(bool enable) {
     // Find any available xphy port
     const auto& availableXphyPorts = findAvailableXphyPorts();
-    auto setup = [this, enable, &availableXphyPorts]() {
-      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-      for (const auto& [port, profile] : availableXphyPorts) {
+
+    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto platformMode = wedgeManager->getPlatformMode();
+    auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformMode);
+    if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
+      throw FbossError(
+          "Platform:",
+          platformMode,
+          " doesn't have supoorted polynominal list");
+    }
+
+    auto polynominalList = ipModToPolynominalListIt->second.find(Modulation);
+    if (polynominalList == ipModToPolynominalListIt->second.end()) {
+      throw FbossError(
+          "IpModulation:",
+          apache::thrift::util::enumNameSafe(Modulation),
+          " doesn't have supoorted polynominal list");
+    }
+
+    // Make sure we assign one poly value to one port
+    std::unordered_map<PortID, std::pair<cfg::PortProfileID, int32_t>>
+        portToProfileAndPoly;
+    if (availableXphyPorts.size() >= polynominalList->second.size()) {
+      for (int i = 0; i < polynominalList->second.size(); i++) {
+        const auto& portToProfile = availableXphyPorts[i];
+        portToProfileAndPoly.emplace(
+            portToProfile.first,
+            std::make_pair(portToProfile.second, polynominalList->second[i]));
+      }
+    } else {
+      throw FbossError(
+          "Not enough available ports(",
+          availableXphyPorts.size(),
+          ") to support all polynominals(",
+          polynominalList->second.size(),
+          ")");
+    }
+
+    auto setup = [wedgeManager, enable, &portToProfileAndPoly]() {
+      for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
+        XLOG(INFO) << "About to set port:" << port << ", profile:"
+                   << apache::thrift::util::enumNameSafe(profileAndPoly.first)
+                   << ", side:" << apache::thrift::util::enumNameSafe(Side)
+                   << ", polynominal=" << profileAndPoly.second
+                   << ", enabled=" << (enable ? "true" : "false");
         // First program the xphy port
-        wedgeManager->programXphyPort(port, profile);
+        wedgeManager->programXphyPort(port, profileAndPoly.first);
 
         // Then try to program xphy prbs
         phy::PortPrbsState prbs;
         prbs.enabled_ref() = enable;
-        prbs.polynominal_ref() = Polynominal;
+        prbs.polynominal_ref() = profileAndPoly.second;
         wedgeManager->programXphyPortPrbs(port, Side, prbs);
       }
     };
 
-    auto verify = [&]() {
+    auto verify = [wedgeManager, enable, &portToProfileAndPoly]() {
+      auto* phyManager = wedgeManager->getPhyManager();
       // Verify all programmed xphy prbs matching with the desired values
-      for (const auto& [port, _] : availableXphyPorts) {
-        auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+      for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
         const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);
         EXPECT_EQ(*hwPrbs.enabled_ref(), enable)
             << "Port:" << port << " has undesired prbs enable state";
-        EXPECT_EQ(*hwPrbs.polynominal_ref(), Polynominal)
+        EXPECT_EQ(*hwPrbs.polynominal_ref(), profileAndPoly.second)
             << "Port:" << port << " has undesired prbs polynominal";
 
         // Verify prbs stats collection is enabled or not
-        auto* phyManager = wedgeManager->getPhyManager();
         const auto& prbsStats = phyManager->getPortPrbsStats(port, Side);
         if (enable) {
           const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
@@ -126,69 +155,29 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
   }
 };
 
-#define TEST_NAME(SIDE, POLYNOMINAL, ENABLE) \
-  BOOST_PP_CAT(                              \
-      HwPortPrbsTest, BOOST_PP_CAT(SIDE, BOOST_PP_CAT(POLYNOMINAL, ENABLE)))
+#define TEST_NAME(SIDE, MODULATION, ENABLE) \
+  BOOST_PP_CAT(                             \
+      BOOST_PP_CAT(HwPortPrbsTest, _),      \
+      BOOST_PP_CAT(                         \
+          BOOST_PP_CAT(SIDE, _),            \
+          BOOST_PP_CAT(BOOST_PP_CAT(MODULATION, _), ENABLE)))
 
-#define TEST_SET_PRBS(SIDE, POLYNOMINAL, ENABLE)                \
-  struct TEST_NAME(SIDE, POLYNOMINAL, ENABLE)                   \
-      : public HwPortPrbsTest<phy::Side::SIDE, POLYNOMINAL> {}; \
-  TEST_F(TEST_NAME(SIDE, POLYNOMINAL, ENABLE), SetPrbs) {       \
-    runTest(ENABLE);                                            \
+#define TEST_SET_PRBS(SIDE, MODULATION, ENABLE)          \
+  struct TEST_NAME(SIDE, MODULATION, ENABLE)             \
+      : public HwPortPrbsTest<                           \
+            phy::Side::SIDE,                             \
+            phy::IpModulation::MODULATION> {};           \
+  TEST_F(TEST_NAME(SIDE, MODULATION, ENABLE), SetPrbs) { \
+    runTest(ENABLE);                                     \
   }
 
-TEST_SET_PRBS(SYSTEM, 7, true);
-TEST_SET_PRBS(LINE, 7, true);
-TEST_SET_PRBS(SYSTEM, 7, false);
-TEST_SET_PRBS(LINE, 7, false);
+TEST_SET_PRBS(SYSTEM, NRZ, true);
+TEST_SET_PRBS(LINE, NRZ, true);
+TEST_SET_PRBS(SYSTEM, NRZ, false);
+TEST_SET_PRBS(LINE, NRZ, false);
 
-TEST_SET_PRBS(SYSTEM, 9, true);
-TEST_SET_PRBS(LINE, 9, true);
-TEST_SET_PRBS(SYSTEM, 9, false);
-TEST_SET_PRBS(LINE, 9, false);
-
-TEST_SET_PRBS(SYSTEM, 10, true);
-TEST_SET_PRBS(LINE, 10, true);
-TEST_SET_PRBS(SYSTEM, 10, false);
-TEST_SET_PRBS(LINE, 10, false);
-
-TEST_SET_PRBS(SYSTEM, 11, true);
-TEST_SET_PRBS(LINE, 11, true);
-TEST_SET_PRBS(SYSTEM, 11, false);
-TEST_SET_PRBS(LINE, 11, false);
-
-TEST_SET_PRBS(SYSTEM, 13, true);
-TEST_SET_PRBS(LINE, 13, true);
-TEST_SET_PRBS(SYSTEM, 13, false);
-TEST_SET_PRBS(LINE, 13, false);
-
-TEST_SET_PRBS(SYSTEM, 15, true);
-TEST_SET_PRBS(LINE, 15, true);
-TEST_SET_PRBS(SYSTEM, 15, false);
-TEST_SET_PRBS(LINE, 15, false);
-
-TEST_SET_PRBS(SYSTEM, 20, true);
-TEST_SET_PRBS(LINE, 20, true);
-TEST_SET_PRBS(SYSTEM, 20, false);
-TEST_SET_PRBS(LINE, 20, false);
-
-TEST_SET_PRBS(SYSTEM, 23, true);
-TEST_SET_PRBS(LINE, 23, true);
-TEST_SET_PRBS(SYSTEM, 23, false);
-TEST_SET_PRBS(LINE, 23, false);
-
-TEST_SET_PRBS(SYSTEM, 31, true);
-TEST_SET_PRBS(LINE, 31, true);
-TEST_SET_PRBS(SYSTEM, 31, false);
-TEST_SET_PRBS(LINE, 31, false);
-
-TEST_SET_PRBS(SYSTEM, 49, true);
-TEST_SET_PRBS(LINE, 49, true);
-TEST_SET_PRBS(SYSTEM, 49, false);
-TEST_SET_PRBS(LINE, 49, false);
-
-TEST_SET_PRBS(SYSTEM, 58, true);
-TEST_SET_PRBS(LINE, 58, true);
-TEST_SET_PRBS(SYSTEM, 58, false);
-TEST_SET_PRBS(LINE, 58, false);
+TEST_SET_PRBS(SYSTEM, PAM4, true);
+TEST_SET_PRBS(LINE, PAM4, true);
+TEST_SET_PRBS(SYSTEM, PAM4, false);
+TEST_SET_PRBS(LINE, PAM4, false);
 } // namespace facebook::fboss
