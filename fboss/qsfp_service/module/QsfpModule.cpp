@@ -298,6 +298,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 }
 
 bool QsfpModule::safeToCustomize() const {
+  // This function is no longer needed with the new state machine implementation
+  if (FLAGS_use_new_state_machine) {
+    return false;
+  }
+
   if (ports_.size() < portsPerTransceiver_) {
     XLOG(DBG1) << "Not all ports present in transceiver " << getID()
                << " (expected=" << portsPerTransceiver_
@@ -328,6 +333,10 @@ bool QsfpModule::safeToCustomize() const {
 }
 
 bool QsfpModule::customizationWanted(time_t cooldown) const {
+  // This function is no longer needed with the new state machine implementation
+  if (FLAGS_use_new_state_machine) {
+    return false;
+  }
   if (needsCustomization_) {
     return true;
   }

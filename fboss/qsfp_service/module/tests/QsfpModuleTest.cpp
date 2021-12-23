@@ -71,9 +71,9 @@ class QsfpModuleTest : public ::testing::Test {
         "");
   }
 
-  std::unique_ptr<MockSffModule> qsfp_;
   NiceMock<MockTransceiverImpl>* transImpl_;
   std::unique_ptr<MockWedgeManager> wedgeManager_;
+  std::unique_ptr<MockSffModule> qsfp_;
 };
 
 TEST_F(QsfpModuleTest, setRateSelect) {
@@ -393,6 +393,30 @@ TEST_F(QsfpModuleTest, portsChangedNotDirtyNotSafeToCustomize) {
   });
 
   // one up port should prevent customization on future refresh calls
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->refresh();
+  qsfp_->refresh();
+}
+
+TEST_F(QsfpModuleTest, portsChangedWithNewStateMachineNotSafeToCustomize) {
+  // refresh, which should set module dirty_ = false
+  qsfp_->refresh();
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  qsfp_->transceiverPortsChanged({
+      {1, portStatus(true, false)},
+      {2, portStatus(true, false)},
+      {3, portStatus(true, false)},
+      {4, portStatus(true, false)},
+  });
+
+  gflags::SetCommandLineOptionWithMode(
+      "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
+
+  // Even with interval of 0 and all ports down, because it's using new state
+  // machine, we won't trigger customization at all.
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
   qsfp_->refresh();
   qsfp_->refresh();

@@ -495,8 +495,15 @@ class QsfpModule : public Transceiver {
       std::vector<MediaInterfaceId>& mediaInterface) = 0;
 
   /*
-   * Determine if it is safe to customize the ports based on the
-   * status of our member ports.
+   * TODO(joseph5wu) To be deprecated
+   * New Port Programming with the new state machine will customize on
+   * PROGRAM_TRANSCEIVER event, which has better control of the port programming
+   * order. While current customizing transceiver logic is embedded in
+   * refresh(), therefore, it needs to check port status to decide whether it's
+   * safe to customize. Will deprecate such function once we fully migrate to
+   * use the new port programming.
+   * Determine if it is safe to customize the ports based on the status of our
+   * member ports.
    */
   bool safeToCustomize() const;
 
@@ -556,8 +563,6 @@ class QsfpModule : public Transceiver {
   void setLegacyModuleStateMachineCmisModuleReady(bool isReady);
   bool getLegacyModuleStateMachineCmisModuleReady() const;
 
-  std::map<uint32_t, PortStatus> ports_;
-  unsigned int portsPerTransceiver_{0};
   unsigned int moduleResetCounter_{0};
 
   // Due to the mismatch of ODS reporting frequency and the interval of us
@@ -617,6 +622,13 @@ class QsfpModule : public Transceiver {
 
   // Module State Machine for this QsfpModule object
   msm::back::state_machine<moduleStateMachine> moduleStateMachine_;
+
+  // TODO(joseph5wu) With the new state machine, we don't need to use these
+  // private port related members to check whether ports on such transceiver
+  // are in ACTIVE or INACTIVE state. Instead, we will just leave the state
+  // machine to handle the state.
+  std::map<uint32_t, PortStatus> ports_;
+  unsigned int portsPerTransceiver_{0};
 };
 } // namespace fboss
 } // namespace facebook

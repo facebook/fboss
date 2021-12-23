@@ -106,7 +106,7 @@ class CmisModule : public QsfpModule {
    * Default speed is set to DEFAULT - this will prevent any speed specific
    * settings from being applied
    */
-  virtual void customizeTransceiverLocked(
+  void customizeTransceiverLocked(
       cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT) override;
   /*
    * Based on identifier, sets whether the upper memory of the module is flat or

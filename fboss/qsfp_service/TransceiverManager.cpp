@@ -196,6 +196,11 @@ bool TransceiverManager::updateState(
                << ", since exit already started";
     return false;
   }
+  if (!updateEventBase_) {
+    XLOG(WARN) << "Skipped queueing update:" << update->getName()
+               << ", since updateEventBase_ is not created yet";
+    return false;
+  }
   {
     std::unique_lock guard(pendingUpdatesLock_);
     pendingUpdates_.push_back(*update.release());
