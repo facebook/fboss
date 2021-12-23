@@ -102,7 +102,7 @@ QsfpModule::QsfpModule(
               ? std::set<std::string>()
               : transceiverManager_->getPortNames(getID()))),
       portsPerTransceiver_(portsPerTransceiver) {
-  lastDownTime_ = std::time(nullptr);
+  markLastDownTime();
 
   // Keeping the QsfpModule object raw pointer inside the Module State Machine
   // as an FSM attribute. This will be used when FSM invokes the state
@@ -452,7 +452,7 @@ void QsfpModule::transceiverPortsChanged(
       needsCustomization_ = true;
       // safetocustomize helped confirmed that no port was up for this
       // transceiver. Record the time for future references.
-      lastDownTime_ = std::time(nullptr);
+      markLastDownTime();
     }
 
     if (dirty_) {
@@ -1180,6 +1180,10 @@ bool QsfpModule::tryRemediateLocked() {
     return true;
   }
   return false;
+}
+
+void QsfpModule::markLastDownTime() {
+  lastDownTime_ = std::time(nullptr);
 }
 } // namespace fboss
 } // namespace facebook

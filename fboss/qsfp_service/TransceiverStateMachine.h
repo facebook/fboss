@@ -48,6 +48,12 @@ TransceiverStateMachineState getStateByOrder(int currentStateOrder);
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isIphyProgrammed)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isXphyProgrammed)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isTransceiverProgrammed)
+// Use this bool value to gate whether we need to update the last down time
+// so that we'll remediate the transceiver accordingly. Right now, we only
+// need to update the lastDownTime_ of such Transceiver:
+// 1) First time when we transfer from TRANSCEIVER_PROGRAMMED to INACTIVE
+// 2) Every time when we transfer from ACTIVE to INACTIVE
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needMarkLastDownTime)
 
 // Module State Machine needs to trigger iphy/xphy/transceiver programming.
 // Instead of adding a lot of complicated logic here, we can use
@@ -71,6 +77,46 @@ void operator()(
   fsm.get_attribute(isIphyProgrammed) = false;
   fsm.get_attribute(isXphyProgrammed) = false;
   fsm.get_attribute(isTransceiverProgrammed) = false;
+  fsm.get_attribute(needMarkLastDownTime) = true;
+}
+};
+
+BOOST_MSM_EUML_ACTION(markLastDownTime) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  if (!fsm.get_attribute(needMarkLastDownTime)) {
+    return;
+  }
+  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+             << ". Need to mark lastDownTime to current";
+  fsm.get_attribute(transceiverMgrPtr)->markLastDownTime(tcvrID);
+  // Change needMarkLastDownTime false so that if there's not actual port up
+  // during the two INACTIVE states, we don't have to update lastDownTime.
+  // Because remediation needs to change the state back to
+  // TRANSCEIVER_PROGRAMMED and it might be still not able to bring up the port
+  // and the state will be in the INACTIVE again, we don't want to update the
+  // lastDownTime to the new one since the port is still down during this
+  // remediation
+  fsm.get_attribute(needMarkLastDownTime) = false;
+}
+};
+
+BOOST_MSM_EUML_ACTION(activeStateEntry) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+             << ". Update needMarkLastDownTime to true";
+  fsm.get_attribute(needMarkLastDownTime) = true;
 }
 };
 // clang-format on
@@ -82,8 +128,8 @@ BOOST_MSM_EUML_STATE((resetProgrammingAttributes), DISCOVERED)
 BOOST_MSM_EUML_STATE((), IPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), XPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), TRANSCEIVER_PROGRAMMED)
-BOOST_MSM_EUML_STATE((), ACTIVE)
-BOOST_MSM_EUML_STATE((), INACTIVE)
+BOOST_MSM_EUML_STATE((activeStateEntry), ACTIVE)
+BOOST_MSM_EUML_STATE((markLastDownTime), INACTIVE)
 BOOST_MSM_EUML_STATE((), UPGRADING)
 
 // Transceiver State Machine Events
@@ -311,7 +357,7 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      no_action,
      attributes_ << isIphyProgrammed << isXphyProgrammed
                  << isTransceiverProgrammed << transceiverMgrPtr
-                 << transceiverID),
+                 << transceiverID << needMarkLastDownTime),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

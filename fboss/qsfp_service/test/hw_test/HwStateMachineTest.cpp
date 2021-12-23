@@ -192,8 +192,10 @@ TEST_F(
     HwStateMachineTestWithOverrideTcvrToPortAndProfile,
     CheckPortStatusUpdated) {
   auto verify = [this]() {
+    std::unordered_map<TransceiverID, time_t> lastDownTimes;
     auto checkTransceiverActiveState =
-        [this](bool up, TransceiverStateMachineState expectedState) {
+        [this, &lastDownTimes](
+            bool up, TransceiverStateMachineState expectedState) {
           auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
           wedgeMgr->setOverrideAgentPortStatusForTesting(
               up, true /* enabled */);
@@ -213,6 +215,16 @@ TEST_F(
                   << apache::thrift::util::enumNameSafe(expectedState)
                   << " but actual state="
                   << apache::thrift::util::enumNameSafe(curState);
+              // Make sure if lastDownTimes has such transceiver, we compare the
+              // new lastDownTime for such Transceiver with the value in the map
+              // to make sure we'll get new lastDownTime
+              if (curState == TransceiverStateMachineState::INACTIVE) {
+                auto newDownTime = wedgeMgr->getLastDownTime(id);
+                if (lastDownTimes.find(id) != lastDownTimes.end()) {
+                  EXPECT_GT(newDownTime, lastDownTimes[id]);
+                }
+                lastDownTimes[id] = newDownTime;
+              }
             }
           }
         };
@@ -220,8 +232,10 @@ TEST_F(
     checkTransceiverActiveState(true, TransceiverStateMachineState::ACTIVE);
     // Then set all ports down
     checkTransceiverActiveState(false, TransceiverStateMachineState::INACTIVE);
-    // Finally set all ports up again
+    // Set all ports up again
     checkTransceiverActiveState(true, TransceiverStateMachineState::ACTIVE);
+    // Finally set all ports down to see whether lastDownTime got updated
+    checkTransceiverActiveState(false, TransceiverStateMachineState::INACTIVE);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

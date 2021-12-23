@@ -2,6 +2,7 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -882,6 +883,27 @@ void TransceiverManager::triggerRemediateEvents(
   XLOG_IF(INFO, !results.empty())
       << "triggerRemediateEvents has " << results.size()
       << " transceivers kicked off remediation";
+}
+
+void TransceiverManager::markLastDownTime(TransceiverID id) noexcept {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Skip markLastDownTime for Transceiver=" << id
+               << ". Transeciver is not present";
+    return;
+  }
+  tcvrIt->second->markLastDownTime();
+}
+
+time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    throw FbossError(
+        "Can't find Transceiver=", id, ". Transceiver is not present");
+  }
+  return tcvrIt->second->getLastDownTime();
 }
 } // namespace fboss
 } // namespace facebook

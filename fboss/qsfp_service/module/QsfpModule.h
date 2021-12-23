@@ -259,6 +259,12 @@ class QsfpModule : public Transceiver {
 
   bool shouldRemediate() override;
 
+  void markLastDownTime() override;
+
+  time_t getLastDownTime() const override {
+    return lastDownTime_;
+  }
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 

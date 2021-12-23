@@ -143,6 +143,10 @@ class Transceiver {
 
   virtual bool shouldRemediate() = 0;
 
+  virtual void markLastDownTime() = 0;
+
+  virtual time_t getLastDownTime() const = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

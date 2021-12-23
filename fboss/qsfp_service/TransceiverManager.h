@@ -200,6 +200,8 @@ class TransceiverManager {
   bool areAllPortsDown(TransceiverID id) const noexcept;
 
   bool tryRemediateTransceiver(TransceiverID id);
+
+  void markLastDownTime(TransceiverID id) noexcept;
   // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status
@@ -229,6 +231,8 @@ class TransceiverManager {
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
   virtual void publishTransceiverSnapshots(std::string portName) = 0;
+
+  time_t getLastDownTime(TransceiverID id) const;
 
  protected:
   virtual void loadConfig() = 0;
