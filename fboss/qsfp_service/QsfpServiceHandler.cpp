@@ -200,7 +200,7 @@ void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);
   for (const auto& portName : *portNames) {
-    manager_->publishTransceiverSnapshots(portName);
+    manager_->publishLinkSnapshots(portName);
   }
 }
 

@@ -616,6 +616,12 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                   *cachedPortInfoIt->second.status->up_ref() !=
                       *portStatusIt->second.up_ref()) {
                 portStatusChanged = true;
+                try {
+                  publishLinkSnapshots(portID);
+                } catch (const std::exception& ex) {
+                  XLOG(ERR) << "Port " << portID
+                            << " failed publishLinkSnapshpts(): " << ex.what();
+                }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
@@ -624,8 +630,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       }
       // If event is not set, it means not reset event is needed, now check
       // whether we need port status event.
-      // Make sure we update active state for a transceiver which just finished
-      // programming
+      // Make sure we update active state for a transceiver which just
+      // finished programming
       if (!event && (portStatusChanged || isTcvrJustProgrammed)) {
         event.emplace(
             anyPortUp ? TransceiverStateMachineEvent::PORT_UP
@@ -675,8 +681,8 @@ void TransceiverManager::updateTransceiverActiveState(
       for (auto& [portID, tcvrPortInfo] : *portToPortInfoWithLock) {
         // Check whether there's a new port status for such port
         auto portStatusIt = portStatus.find(portID);
-        // If port doesn't need to be updated, use the current cached status to
-        // indicate whether we need a state update
+        // If port doesn't need to be updated, use the current cached status
+        // to indicate whether we need a state update
         if (portStatusIt == portStatus.end()) {
           if (tcvrPortInfo.status) {
             anyPortUp = anyPortUp || *tcvrPortInfo.status->up_ref();
@@ -689,6 +695,12 @@ void TransceiverManager::updateTransceiverActiveState(
                 *tcvrPortInfo.status->up_ref() !=
                     *portStatusIt->second.up_ref()) {
               portStatusChanged = true;
+              try {
+                publishLinkSnapshots(portID);
+              } catch (const std::exception& ex) {
+                XLOG(ERR) << "Port " << portID
+                          << " failed publishLinkSnapshpts(): " << ex.what();
+              }
             }
             // And also update the cached port status
             tcvrPortInfo.status = portStatusIt->second;
@@ -972,6 +984,39 @@ time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
         "Can't find Transceiver=", id, ". Transceiver is not present");
   }
   return tcvrIt->second->getLastDownTime();
+}
+
+void TransceiverManager::publishLinkSnapshots(std::string portName) {
+  auto portIDOpt = getPortIDByPortName(portName);
+  if (!portIDOpt) {
+    throw FbossError(
+        "Unrecoginized portName:", portName, ", can't find port id");
+  }
+  publishLinkSnapshots(*portIDOpt);
+}
+
+void TransceiverManager::publishLinkSnapshots(PortID portID) {
+  // Publish xphy snapshots if there's a phyManager and xphy ports
+  if (phyManager_) {
+    phyManager_->publishXphyInfoSnapshots(portID);
+  }
+  // Publish transceiver snapshots if there's a transceiver
+  if (auto tcvrIDOpt = getTransceiverID(portID)) {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);
+        tcvrIt != lockedTransceivers->end()) {
+      tcvrIt->second->publishSnapshots();
+    }
+  }
+}
+
+std::optional<TransceiverID> TransceiverManager::getTransceiverID(
+    PortID portID) {
+  auto swPortInfo = portToSwPortInfo_.find(portID);
+  if (swPortInfo == portToSwPortInfo_.end()) {
+    throw FbossError("Failed to find SwPortInfo for port ID ", portID);
+  }
+  return swPortInfo->second.tcvrID;
 }
 } // namespace fboss
 } // namespace facebook

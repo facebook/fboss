@@ -230,7 +230,7 @@ class TransceiverManager {
 
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
-  virtual void publishTransceiverSnapshots(std::string portName) = 0;
+  void publishLinkSnapshots(std::string portName);
 
   time_t getLastDownTime(TransceiverID id) const;
 
@@ -246,6 +246,10 @@ class TransceiverManager {
   void updateTransceiverActiveState(
       const std::set<TransceiverID>& tcvrs,
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
+
+  void publishLinkSnapshots(PortID portID);
+
+  std::optional<TransceiverID> getTransceiverID(PortID id);
 
   // An override of programmed iphy ports.
   // Due to hw_test won't be able to get wedge_agent running, this override

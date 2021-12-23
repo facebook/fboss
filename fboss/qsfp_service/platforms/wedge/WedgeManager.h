@@ -168,8 +168,6 @@ class WedgeManager : public TransceiverManager {
 
   void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
 
-  virtual void publishTransceiverSnapshots(std::string portName) override;
-
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
@@ -200,8 +198,6 @@ class WedgeManager : public TransceiverManager {
   void triggerQsfpHardResetLocked(
       int idx,
       LockedTransceiversPtr& lockedTransceivers);
-
-  TransceiverID getTransceiverID(PortID portID);
 
   bool forceColdBoot_{false};
   folly::dynamic qsfpServiceState_;
