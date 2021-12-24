@@ -2254,6 +2254,9 @@ void CmisModule::latchAndReadVdmDataLocked() {
       "latchAndReadVdmDataLocked for module {}", qsfpImpl_->getName());
 
   // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
+  uint8_t page = 0x2f;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
   getQsfpFieldAddress(
       CmisField::VDM_LATCH_REQUEST, dataAddress, offset, length);
   uint8_t latchRequest;
@@ -2270,7 +2273,7 @@ void CmisModule::latchAndReadVdmDataLocked() {
   usleep(kUsecVdmLatchHold);
 
   // Read data for publishing to ODS
-  uint8_t page = 0x24;
+  page = 0x24;
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
   qsfpImpl_->readTransceiver(
@@ -2283,6 +2286,9 @@ void CmisModule::latchAndReadVdmDataLocked() {
       TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
+  page = 0x2f;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
   // Release the latch to resume VDM data collection
   qsfpImpl_->writeTransceiver(
