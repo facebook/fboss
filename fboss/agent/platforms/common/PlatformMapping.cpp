@@ -304,7 +304,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
         getPlatformPortConfig(portID.value(), profileID);
     const auto& iphyCfg = *platformPortConfig.pins_ref()->iphy_ref();
     // Check whether there's an override
-    for (const auto portConfigOverride : portConfigOverrides_) {
+    for (const auto& portConfigOverride : portConfigOverrides_) {
       if (!portConfigOverride.pins_ref().has_value()) {
         // The override is not about Iphy pin configs. Skip
         continue;
@@ -348,7 +348,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     // otherwise, we just need to return iphy config directly
     return iphyCfg;
   } else {
-    for (const auto portConfigOverride : portConfigOverrides_) {
+    for (const auto& portConfigOverride : portConfigOverrides_) {
       if (!portConfigOverride.pins_ref().has_value()) {
         // The override is not about Iphy pin configs. Skip
         continue;
@@ -397,7 +397,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortXphySidePinConfigs(
   }
   const auto& xphySideCfg = xphySideOptional.value();
   // Check whether there's an override
-  for (const auto portConfigOverride : portConfigOverrides_) {
+  for (const auto& portConfigOverride : portConfigOverrides_) {
     if (!portConfigOverride.pins_ref().has_value()) {
       // The override is not about pin configs. Skip
       continue;
@@ -464,7 +464,7 @@ phy::PortPinConfig PlatformMapping::getPortXphyPinConfig(
 const std::optional<phy::PortProfileConfig>
 PlatformMapping::getPortProfileConfig(
     PlatformPortProfileConfigMatcher profileMatcher) const {
-  for (const auto portConfigOverride : portConfigOverrides_) {
+  for (const auto& portConfigOverride : portConfigOverrides_) {
     if (!portConfigOverride.portProfileConfig_ref().has_value()) {
       // The override is not about portProfileConfig. Skip
       continue;
