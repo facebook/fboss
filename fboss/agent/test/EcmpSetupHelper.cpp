@@ -52,7 +52,7 @@ flat_map<PortDescriptor, VlanID> computePortDesc2Vlan(
   for (const auto& port : *inputState->getPorts().get()) {
     portIds.insert(port->getID());
   }
-  for (const auto portId : portIds) {
+  for (const auto& portId : portIds) {
     PortDescriptor portDesc = PortDescriptor(portId);
     auto aggId = getAggPortID(inputState, portId);
     if (aggId) {
@@ -71,7 +71,7 @@ flat_map<VlanID, folly::CIDRNetwork> computeVlan2Subnet(
     bool v6) {
   boost::container::flat_map<VlanID, folly::CIDRNetwork> vlan2Network;
   for (const auto& intf : *inputState->getInterfaces().get()) {
-    for (const auto cidrStr : intf->getAddresses()) {
+    for (const auto& cidrStr : intf->getAddresses()) {
       auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
       if (!v6 && subnet.first.isV4()) {
         vlan2Network[intf->getVlanID()] = subnet;
