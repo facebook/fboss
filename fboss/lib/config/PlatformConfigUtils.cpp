@@ -85,7 +85,7 @@ std::vector<Pin> getPinsByChipType(
     DataPlanePhyChipType type) {
   // First get all the expected chip type into a map to make search easier
   std::map<std::string, DataPlanePhyChip> filteredChips;
-  for (const auto itChip : chipsMap) {
+  for (const auto& itChip : chipsMap) {
     if (*itChip.second.type_ref() == type) {
       filteredChips[itChip.first] = itChip.second;
     }
