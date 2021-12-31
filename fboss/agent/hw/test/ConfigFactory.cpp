@@ -113,7 +113,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     const auto& ports = group.second;
     // Find the safe profile to satisfy all the ports in the group
     std::set<cfg::PortProfileID> safeProfiles;
-    for (const auto portID : ports) {
+    for (const auto& portID : ports) {
       for (const auto& profile :
            *plarformEntries.at(portID).supportedProfiles_ref()) {
         if (auto subsumedPorts = profile.second.subsumedPorts_ref();
@@ -174,7 +174,7 @@ void securePortsInConfig(
   // important, we also need to make sure these ports using a safe PortProfileID
   std::map<PortID, std::vector<PortID>> groupPortsByControllingPort;
   const auto& plarformEntries = platform->getPlatformPorts();
-  for (const auto portID : ports) {
+  for (const auto& portID : ports) {
     if (const auto& entry = plarformEntries.find(portID);
         entry != plarformEntries.end()) {
       auto controllingPort =
