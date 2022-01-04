@@ -15,6 +15,13 @@
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 
+#include "common/services/cpp/AclCheckerModule.h"
+#include "common/services/cpp/BuildModule.h"
+#include "common/services/cpp/Fb303Module.h"
+#include "common/services/cpp/ServiceFrameworkLight.h"
+#include "common/services/cpp/ThriftAclCheckerModuleConfig.h"
+#include "common/services/cpp/ThriftStatsModule.h"
+
 DEFINE_int32(thrift_port, 7001, "Port for the thrift service");
 
 DEFINE_string(
@@ -43,4 +50,26 @@ setupThrift() {
 
   return {server, handler};
 }
+
+void runServer(
+    std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
+    SensorServiceThriftHandler* handler) {
+  facebook::services::ServiceFrameworkLight service("Sensor Service");
+  thriftServer->setAllowPlaintextOnLoopback(true);
+  service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
+  service.addModule(
+      facebook::services::BuildModule::kModuleName,
+      new facebook::services::BuildModule(&service));
+  service.addModule(
+      facebook::services::ThriftStatsModule::kModuleName,
+      new facebook::services::ThriftStatsModule(&service));
+  service.addModule(
+      facebook::services::Fb303Module::kModuleName,
+      new facebook::services::Fb303Module(&service));
+  service.addModule(
+      facebook::services::AclCheckerModule::kModuleName,
+      new facebook::services::AclCheckerModule(&service));
+  service.go();
+}
+
 } // namespace facebook::fboss::platform::sensor_service

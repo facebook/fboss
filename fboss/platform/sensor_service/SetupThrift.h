@@ -22,4 +22,8 @@ std::pair<
     std::shared_ptr<apache::thrift::ThriftServer>,
     std::shared_ptr<SensorServiceThriftHandler>>
 setupThrift();
+
+void runServer(
+    std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
+    SensorServiceThriftHandler* handler);
 } // namespace facebook::fboss::platform::sensor_service
