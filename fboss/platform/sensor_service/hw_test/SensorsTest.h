@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
 
 namespace facebook::services {
 class ServiceFrameworkLight;
@@ -30,6 +31,7 @@ class SensorsTest : public ::testing::Test {
   void TearDown() override;
 
  protected:
+  SensorReadResponse getSensors(const std::vector<std::string>& sensors);
   SensorServiceImpl* getService();
   std::unique_ptr<services::ServiceFrameworkLight> service_;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;

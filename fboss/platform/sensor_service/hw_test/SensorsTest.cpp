@@ -10,6 +10,7 @@
 
 #include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
 
+#include <folly/experimental/coro/BlockingWait.h>
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
 #include "common/services/cpp/ServiceFrameworkLight.h"
@@ -36,6 +37,12 @@ void SensorsTest::TearDown() {
   thriftHandler_.reset();
 }
 
+SensorReadResponse SensorsTest::getSensors(
+    const std::vector<std::string>& sensors) {
+  return *(folly::coro::blockingWait(thriftHandler_->co_getSensorValuesByNames(
+      std::make_unique<std::vector<std::string>>(sensors))));
+}
+
 SensorServiceImpl* SensorsTest::getService() {
   return thriftHandler_->getServiceImpl();
 }
@@ -45,10 +52,10 @@ TEST_F(SensorsTest, getAllSensors) {
 }
 
 TEST_F(SensorsTest, getBogusSensor) {
-  EXPECT_EQ(getService()->getSensorData("bogusSensor_foo"), std::nullopt);
+  EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData_ref()->size(), 0);
 }
 
 TEST_F(SensorsTest, getSomeSensors) {
-  EXPECT_NE(getService()->getSensorData("PCH_TEMP"), std::nullopt);
+  EXPECT_EQ(getSensors({"PCH_TEMP"}).sensorData_ref()->size(), 1);
 }
 } // namespace facebook::fboss::platform::sensor_service
