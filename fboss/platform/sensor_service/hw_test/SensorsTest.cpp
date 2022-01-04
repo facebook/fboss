@@ -12,6 +12,7 @@
 
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
+#include "common/services/cpp/ServiceFrameworkLight.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
@@ -22,8 +23,11 @@ SensorsTest::~SensorsTest() {}
 
 void SensorsTest::SetUp() {
   std::tie(thriftServer_, thriftHandler_) = setupThrift();
+  service_ =
+      std::make_unique<services::ServiceFrameworkLight>("Sensor service test");
 }
 void SensorsTest::TearDown() {
+  service_.reset();
   thriftServer_.reset();
   thriftHandler_.reset();
 }

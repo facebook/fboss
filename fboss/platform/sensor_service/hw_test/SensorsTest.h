@@ -13,6 +13,9 @@
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
+namespace facebook::services {
+class ServiceFrameworkLight;
+}
 namespace apache::thrift {
 class ThriftServer;
 }
@@ -28,6 +31,7 @@ class SensorsTest : public ::testing::Test {
 
  protected:
   SensorServiceImpl* getService();
+  std::unique_ptr<services::ServiceFrameworkLight> service_;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
   std::shared_ptr<SensorServiceThriftHandler> thriftHandler_;
 };
