@@ -16,7 +16,6 @@
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
-//#include "fboss/platform/sensor_service/SensorStatsPublisher.h"
 
 using namespace facebook;
 using namespace facebook::services;
@@ -31,19 +30,9 @@ DEFINE_string(
     "Platform Sensor Configuration File Path, e.g. /etc/sensor_service/darwin_sensor_config.json");
 
 DEFINE_uint32(
-    ods_pub_interval,
-    15,
-    "Interval for streaming sensor data to ODS, default is 15s");
-
-DEFINE_uint32(
     sensor_fetch_interval,
     5,
     "The interval between each sensor data fetch");
-
-DEFINE_string(
-    ods_tier,
-    "ods_router.script",
-    "ODS Tier, default is ods_router.script");
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
