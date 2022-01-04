@@ -25,4 +25,9 @@ TEST_F(SensorsTest, getAllSensors) {
   sensorServiceImpl_->fetchSensorData();
   sensorServiceImpl_->getAllSensorData();
 }
+
+TEST_F(SensorsTest, getBogusSensor) {
+  sensorServiceImpl_->fetchSensorData();
+  EXPECT_EQ(sensorServiceImpl_->getSensorData("bogusSensor_foo"), std::nullopt);
+}
 } // namespace facebook::fboss::platform::sensor_service
