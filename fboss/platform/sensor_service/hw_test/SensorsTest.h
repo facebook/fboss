@@ -13,16 +13,22 @@
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
+namespace apache::thrift {
+class ThriftServer;
+}
 namespace facebook::fboss::platform::sensor_service {
+
+class SensorServiceThriftHandler;
 
 class SensorsTest : public ::testing::Test {
  public:
+  ~SensorsTest() override;
   void SetUp() override;
-  void TearDown() override {
-    sensorServiceImpl_.reset();
-  }
+  void TearDown() override;
 
  protected:
-  std::unique_ptr<SensorServiceImpl> sensorServiceImpl_;
+  SensorServiceImpl* getService();
+  std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
+  std::shared_ptr<SensorServiceThriftHandler> thriftHandler_;
 };
 } // namespace facebook::fboss::platform::sensor_service

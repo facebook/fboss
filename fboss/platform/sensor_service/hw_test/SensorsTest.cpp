@@ -10,29 +10,37 @@
 
 #include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
 
-DEFINE_string(
-    config,
-    "/etc/sensor_service/darwin_sensor_config.json",
-    "Platform Sensor Configuration File Path, e.g. /etc/sensor_service/darwin_sensor_config.json");
+#include "thrift/lib/cpp2/server/ThriftServer.h"
+
+#include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
+#include "fboss/platform/sensor_service/SetupThrift.h"
 
 namespace facebook::fboss::platform::sensor_service {
 
+SensorsTest::~SensorsTest() {}
+
 void SensorsTest::SetUp() {
-  sensorServiceImpl_ = std::make_unique<SensorServiceImpl>(FLAGS_config);
+  std::tie(thriftServer_, thriftHandler_) = setupThrift();
+}
+void SensorsTest::TearDown() {
+  thriftServer_.reset();
+  thriftHandler_.reset();
+}
+
+SensorServiceImpl* SensorsTest::getService() {
+  return thriftHandler_->getServiceImpl();
 }
 
 TEST_F(SensorsTest, getAllSensors) {
-  sensorServiceImpl_->fetchSensorData();
-  sensorServiceImpl_->getAllSensorData();
+  getService()->getAllSensorData();
 }
 
 TEST_F(SensorsTest, getBogusSensor) {
-  sensorServiceImpl_->fetchSensorData();
-  EXPECT_EQ(sensorServiceImpl_->getSensorData("bogusSensor_foo"), std::nullopt);
+  EXPECT_EQ(getService()->getSensorData("bogusSensor_foo"), std::nullopt);
 }
 
 TEST_F(SensorsTest, getSomeSensors) {
-  sensorServiceImpl_->fetchSensorData();
-  EXPECT_NE(sensorServiceImpl_->getSensorData("PCH_TEMP"), std::nullopt);
+  EXPECT_NE(getService()->getSensorData("PCH_TEMP"), std::nullopt);
 }
 } // namespace facebook::fboss::platform::sensor_service
