@@ -11,12 +11,14 @@
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include <folly/logging/xlog.h>
 #include "common/time/Time.h"
+#include "fboss/lib/LogThriftCall.h"
 
 namespace facebook::fboss::platform::sensor_service {
 
 folly::coro::Task<std::unique_ptr<SensorReadResponse>>
 SensorServiceThriftHandler::co_getSensorValuesByNames(
     std::unique_ptr<std::vector<std::string>> request) {
+  auto log = LOG_THRIFT_CALL(DBG1);
   auto response = std::make_unique<SensorReadResponse>();
 
   response->timeStamp_ref() = facebook::WallClockUtil::NowInSecFast();
@@ -33,7 +35,6 @@ SensorServiceThriftHandler::co_getSensorValuesByNames(
         sa.value_ref() = *sensor->value_ref();
         sa.timeStamp_ref() = *sensor->timeStamp_ref();
         v.push_back(sa);
-        XLOG(INFO) << "INSIDE THRIFT HANDLER, received " << it;
       }
     }
     response->sensorData_ref() = v;
@@ -50,6 +51,7 @@ SensorServiceThriftHandler::co_getSensorValuesByNames(
 folly::coro::Task<std::unique_ptr<SensorReadResponse>>
 SensorServiceThriftHandler::co_getSensorValuesByFruTypes(
     std::unique_ptr<std::vector<FruType>> request) {
+  auto log = LOG_THRIFT_CALL(DBG1);
   auto response = std::make_unique<SensorReadResponse>();
   // ToDo: implement here
   co_return response;

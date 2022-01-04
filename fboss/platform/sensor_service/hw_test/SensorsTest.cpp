@@ -58,4 +58,13 @@ TEST_F(SensorsTest, getBogusSensor) {
 TEST_F(SensorsTest, getSomeSensors) {
   EXPECT_EQ(getSensors({"PCH_TEMP"}).sensorData_ref()->size(), 1);
 }
+
+TEST_F(SensorsTest, getSensorsByFruTypes) {
+  std::vector<FruType> fruTypes{FruType::ALL};
+  auto response =
+      *(folly::coro::blockingWait(thriftHandler_->co_getSensorValuesByFruTypes(
+          std::make_unique<std::vector<FruType>>(fruTypes))));
+  // TODO assert for non empty response once this thrift API is implemented
+  EXPECT_EQ(response.sensorData_ref()->size(), 0);
+}
 } // namespace facebook::fboss::platform::sensor_service
