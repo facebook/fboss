@@ -25,8 +25,12 @@ void SensorsTest::SetUp() {
   std::tie(thriftServer_, thriftHandler_) = setupThrift();
   service_ =
       std::make_unique<services::ServiceFrameworkLight>("Sensor service test");
+  runServer(
+      *service_, thriftServer_, thriftHandler_.get(), false /*loop forever*/);
 }
 void SensorsTest::TearDown() {
+  service_->stop();
+  service_->waitForStop();
   service_.reset();
   thriftServer_.reset();
   thriftHandler_.reset();

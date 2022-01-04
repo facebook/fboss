@@ -54,7 +54,8 @@ setupThrift() {
 void runServer(
     facebook::services::ServiceFrameworkLight& service,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    SensorServiceThriftHandler* handler) {
+    SensorServiceThriftHandler* handler,
+    bool loopForever) {
   thriftServer->setAllowPlaintextOnLoopback(true);
   service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
   service.addModule(
@@ -69,7 +70,7 @@ void runServer(
   service.addModule(
       facebook::services::AclCheckerModule::kModuleName,
       new facebook::services::AclCheckerModule(&service));
-  service.go();
+  service.go(loopForever);
 }
 
 } // namespace facebook::fboss::platform::sensor_service

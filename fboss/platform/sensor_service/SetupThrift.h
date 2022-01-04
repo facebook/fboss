@@ -29,5 +29,6 @@ setupThrift();
 void runServer(
     facebook::services::ServiceFrameworkLight& service,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    SensorServiceThriftHandler* handler);
+    SensorServiceThriftHandler* handler,
+    bool loopForever = true);
 } // namespace facebook::fboss::platform::sensor_service
