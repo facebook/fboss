@@ -39,12 +39,10 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 // runServer : a helper function to run Sensor Service as Thrift Server.
 int runServer(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<
-        facebook::fboss::platform::sensor_service::SensorServiceThriftHandler>
-        handler) {
+    SensorServiceThriftHandler* handler) {
   facebook::services::ServiceFrameworkLight service("Sensor Service");
   thriftServer->setAllowPlaintextOnLoopback(true);
-  service.addThriftService(thriftServer, handler.get(), FLAGS_thrift_port);
+  service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
   service.addModule(
       facebook::services::BuildModule::kModuleName,
       new facebook::services::BuildModule(&service));
@@ -96,7 +94,7 @@ int main(int argc, char** argv) {
   scheduler.start();
 
   // Finally, run the Thrift server
-  int rc = runServer(server, handler);
+  int rc = runServer(server, handler.get());
 
   return rc;
 }
