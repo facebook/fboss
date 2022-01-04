@@ -56,7 +56,19 @@ TEST_F(SensorsTest, getBogusSensor) {
 }
 
 TEST_F(SensorsTest, getSomeSensors) {
-  EXPECT_EQ(getSensors({"PCH_TEMP"}).sensorData_ref()->size(), 1);
+  auto response1 = getSensors({"PCH_TEMP"});
+  EXPECT_EQ(response1.sensorData_ref()->size(), 1);
+  // Burn a second
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // Refresh sensors
+  getService()->fetchSensorData();
+  auto response2 = getSensors({"PCH_TEMP"});
+  EXPECT_EQ(response2.sensorData_ref()->size(), 1);
+  // Response2 sensor collection time stamp should be later
+  EXPECT_GT(response2.timeStamp_ref(), response1.timeStamp_ref());
+  EXPECT_GT(
+      response2.sensorData_ref()->begin()->timeStamp_ref(),
+      response1.sensorData_ref()->begin()->timeStamp_ref());
 }
 
 TEST_F(SensorsTest, getSensorsByFruTypes) {
