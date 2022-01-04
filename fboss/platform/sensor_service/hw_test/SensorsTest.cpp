@@ -11,6 +11,7 @@
 #include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
 
 #include <folly/experimental/coro/BlockingWait.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
 #include "common/services/cpp/ServiceFrameworkLight.h"
@@ -78,5 +79,17 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
           std::make_unique<std::vector<FruType>>(fruTypes))));
   // TODO assert for non empty response once this thrift API is implemented
   EXPECT_EQ(response.sensorData_ref()->size(), 0);
+}
+
+TEST_F(SensorsTest, testThrift) {
+  folly::SocketAddress addr("::1", 7001);
+  auto socket = folly::AsyncSocket::newSocket(
+      folly::EventBaseManager::get()->getEventBase(), addr, 5000);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  auto client = SensorServiceThriftAsyncClient(std::move(channel));
+  SensorReadResponse response;
+  client.sync_getSensorValuesByNames(response, {"PCH_TEMP"});
+  EXPECT_EQ(response.sensorData_ref()->size(), 1);
 }
 } // namespace facebook::fboss::platform::sensor_service
