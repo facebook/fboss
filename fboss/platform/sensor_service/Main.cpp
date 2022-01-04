@@ -17,7 +17,6 @@ using namespace facebook::services;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::sensor_service;
 
-DECLARE_int32(thrift_port);
 DEFINE_uint32(
     sensor_fetch_interval,
     5,
