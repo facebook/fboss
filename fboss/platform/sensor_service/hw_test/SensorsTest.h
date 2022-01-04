@@ -18,6 +18,9 @@ namespace facebook::fboss::platform::sensor_service {
 class SensorsTest : public ::testing::Test {
  public:
   void SetUp() override;
+  void TearDown() override {
+    sensorServiceImpl_.reset();
+  }
 
  protected:
   std::unique_ptr<SensorServiceImpl> sensorServiceImpl_;
