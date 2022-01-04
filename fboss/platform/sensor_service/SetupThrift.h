@@ -11,6 +11,9 @@
 #pragma once
 #include <memory>
 
+namespace facebook::services {
+class ServiceFrameworkLight;
+}
 namespace apache::thrift {
 class ThriftServer;
 }
@@ -24,6 +27,7 @@ std::pair<
 setupThrift();
 
 void runServer(
+    facebook::services::ServiceFrameworkLight& service,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
     SensorServiceThriftHandler* handler);
 } // namespace facebook::fboss::platform::sensor_service

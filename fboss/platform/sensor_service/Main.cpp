@@ -8,6 +8,7 @@
 #include <folly/logging/Init.h>
 
 #include "common/services/cpp/BuildValues.h"
+#include "common/services/cpp/ServiceFrameworkLight.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
 
@@ -49,8 +50,9 @@ int main(int argc, char** argv) {
 
   scheduler.start();
 
+  facebook::services::ServiceFrameworkLight service("Sensor Service");
   // Finally, run the Thrift server
-  runServer(server, handler.get());
+  runServer(service, server, handler.get());
 
   return 0;
 }

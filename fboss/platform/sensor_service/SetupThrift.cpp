@@ -52,9 +52,9 @@ setupThrift() {
 }
 
 void runServer(
+    facebook::services::ServiceFrameworkLight& service,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
     SensorServiceThriftHandler* handler) {
-  facebook::services::ServiceFrameworkLight service("Sensor Service");
   thriftServer->setAllowPlaintextOnLoopback(true);
   service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
   service.addModule(
