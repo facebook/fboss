@@ -14,21 +14,15 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
-#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
+#include "fboss/platform/sensor_service/SetupThrift.h"
 
 using namespace facebook;
 using namespace facebook::services;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::sensor_service;
 
-DEFINE_int32(thrift_port, 7001, "Port for the thrift service");
-
-DEFINE_string(
-    config_path,
-    "/etc/sensor_service/darwin_sensor_config.json",
-    "Platform Sensor Configuration File Path, e.g. /etc/sensor_service/darwin_sensor_config.json");
-
+DECLARE_int32(thrift_port);
 DEFINE_uint32(
     sensor_fetch_interval,
     5,
@@ -70,24 +64,15 @@ int main(int argc, char** argv) {
   services::BuildValues::setExportedValues();
   fb303::registerFollyLoggingOptionHandlers();
 
-  // Init SensorService
-  std::shared_ptr<SensorServiceImpl> sensorService =
-      std::make_shared<SensorServiceImpl>(FLAGS_config_path);
-
-  // Fetch sensor data once to warmup
-  sensorService->fetchSensorData();
-
   // Setup thrift handler and server
-  auto handler = std::make_shared<SensorServiceThriftHandler>(sensorService);
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  server->setPort(FLAGS_thrift_port);
-  server->setInterface(handler);
+  auto [server, handler] = setupThrift();
 
   folly::FunctionScheduler scheduler;
 
   // To fetch sensor data at define cadence
+  auto sensorService = handler->getServiceImpl();
   scheduler.addFunction(
-      [&sensorService]() { sensorService->fetchSensorData(); },
+      [sensorService]() { sensorService->fetchSensorData(); },
       std::chrono::seconds(FLAGS_sensor_fetch_interval),
       "fetchSensorData");
 

@@ -33,6 +33,10 @@ class SensorServiceThriftHandler : public SensorServiceThriftSvIf {
   co_getSensorValuesByFruTypes(
       std::unique_ptr<std::vector<FruType>> request) override;
 
+  SensorServiceImpl* getServiceImpl() {
+    return sensorService_.get();
+  }
+
  private:
   std::shared_ptr<SensorServiceImpl> sensorService_;
 };
