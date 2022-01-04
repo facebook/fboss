@@ -197,7 +197,7 @@ void NeighborUpdater::aggregatePortChanged(
    Flush them when LACP is established
    */
   if (!oldAggPort->isUp() && newAggPort->isUp()) {
-    for (const auto subPort : newAggPort->sortedSubports()) {
+    for (const auto& subPort : newAggPort->sortedSubports()) {
       portFlushEntries(PortDescriptor(subPort.portID));
     }
   }
