@@ -20,4 +20,9 @@ namespace facebook::fboss::platform::sensor_service {
 void SensorsTest::SetUp() {
   sensorServiceImpl_ = std::make_unique<SensorServiceImpl>(FLAGS_config);
 }
+
+TEST_F(SensorsTest, getAllSensors) {
+  sensorServiceImpl_->fetchSensorData();
+  sensorServiceImpl_->getAllSensorData();
+}
 } // namespace facebook::fboss::platform::sensor_service
