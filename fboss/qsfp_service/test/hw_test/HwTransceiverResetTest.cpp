@@ -12,12 +12,14 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+#include <folly/logging/xlog.h>
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
-#include <folly/logging/xlog.h>
+constexpr static auto kMaxRefreshesForReadyState = 5;
 
 namespace facebook::fboss {
 
@@ -132,7 +134,32 @@ TEST_F(HwTest, resetTranscieverAndDetectStateChanged) {
   auto expectedIds =
       utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
 
-  // clear existing module status flags
+  auto cmisModulesReady = [this, &transceivers, &wedgeManager, &expectedIds]() {
+    auto allCmisModulesReady = true;
+    refreshTransceiversWithRetry();
+    transceivers.clear();
+    wedgeManager->getTransceiversInfo(
+        transceivers,
+        std::make_unique<std::vector<int32_t>>(
+            utility::legacyTransceiverIds(expectedIds)));
+    for (auto idAndTransceiver : transceivers) {
+      if (*idAndTransceiver.second.present()) {
+        auto mgmtInterface =
+            idAndTransceiver.second.transceiverManagementInterface();
+        CHECK(mgmtInterface);
+        if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+          auto state = idAndTransceiver.second.status()->cmisModuleState();
+          CHECK(state);
+          allCmisModulesReady &= (state == CmisModuleState::READY);
+        }
+      }
+    }
+    return allCmisModulesReady;
+  };
+
+  checkWithRetry(cmisModulesReady, kMaxRefreshesForReadyState);
+
+  // clear existing module status flags from previous refreshes
   wedgeManager->getAndClearTransceiversModuleStatus(
       moduleStatuses,
       std::make_unique<std::vector<int32_t>>(
@@ -165,7 +192,8 @@ TEST_F(HwTest, resetTranscieverAndDetectStateChanged) {
         auto status = moduleStatuses[idAndTransceiver.first];
         auto stateChanged = status.cmisStateChanged();
         CHECK(stateChanged);
-        EXPECT_FALSE(*stateChanged);
+        EXPECT_FALSE(*stateChanged)
+            << "Wrong stateChanged on module " << idAndTransceiver.first;
       } else {
         throw FbossError(
             "Invalid transceiver type: ",
