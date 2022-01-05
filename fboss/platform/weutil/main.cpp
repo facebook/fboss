@@ -15,11 +15,20 @@ using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 
 DEFINE_bool(json, false, "output in JSON format");
+DEFINE_string(platform, "", "Specify Platform name, e.g. Darwin, etc.");
 
 std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
-  // Get the model name from FbWhoAmI instead of from class PlatformProductInfo
-  // to omit catching initialization issues
-  auto modelName = facebook::FbWhoAmI::getModelName();
+  std::string modelName;
+
+  if (!FLAGS_platform.empty()) {
+    modelName = FLAGS_platform;
+  } else {
+    // Get the model name from FbWhoAmI instead of from class
+    // PlatformProductInfo
+    // to omit catching initialization issues
+    modelName = facebook::FbWhoAmI::getModelName();
+  }
+
   if (modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0) {
     return std::make_unique<WeutilDarwin>();
   }
