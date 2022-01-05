@@ -55,10 +55,10 @@ class QsfpModuleError : public std::exception {
  */
 class QsfpModule : public Transceiver {
  public:
-  static constexpr auto kNumCachedSnapshots = 10;
+  static constexpr auto kSnapshotIntervalSeconds = 10;
   // Miniphoton module part number
   static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
-  using TransceiverSnapshotCache = SnapshotManager<kNumCachedSnapshots>;
+  using TransceiverSnapshotCache = SnapshotManager<kSnapshotIntervalSeconds>;
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   explicit QsfpModule(

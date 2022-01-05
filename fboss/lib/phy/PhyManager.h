@@ -25,6 +25,7 @@ class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
 class TransceiverInfo;
+template <size_t intervalSeconds>
 class PhySnapshotManager;
 
 class PhyManager {
@@ -336,7 +337,10 @@ class PhyManager {
   // multi-threading accessing the cache info.
   const PortToCacheInfo portToCacheInfo_;
 
-  std::unique_ptr<PhySnapshotManager> xphySnapshotManager_;
+  static constexpr auto kXphySnapshotIntervalSeconds = 60;
+
+  std::unique_ptr<PhySnapshotManager<kXphySnapshotIntervalSeconds>>
+      xphySnapshotManager_;
 };
 
 } // namespace fboss

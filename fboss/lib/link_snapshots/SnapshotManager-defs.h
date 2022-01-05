@@ -15,12 +15,14 @@ namespace facebook::fboss {
 
 using namespace std::chrono;
 
-template <size_t length>
-SnapshotManager<length>::SnapshotManager(std::set<std::string> portNames)
+template <size_t intervalSeconds, size_t timespanSeconds>
+SnapshotManager<intervalSeconds, timespanSeconds>::SnapshotManager(
+    std::set<std::string> portNames)
     : portNames_(portNames) {}
 
-template <size_t length>
-void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
+template <size_t intervalSeconds, size_t timespanSeconds>
+void SnapshotManager<intervalSeconds, timespanSeconds>::addSnapshot(
+    LinkSnapshot val) {
   auto snapshot = SnapshotWrapper(val);
   buf_.write(snapshot);
 
@@ -32,21 +34,24 @@ void SnapshotManager<length>::addSnapshot(LinkSnapshot val) {
   }
 }
 
-template <size_t length>
-const RingBuffer<SnapshotWrapper, length>&
-SnapshotManager<length>::getSnapshots() const {
+template <size_t intervalSeconds, size_t timespanSeconds>
+const RingBuffer<
+    SnapshotWrapper,
+    SnapshotManager<intervalSeconds, timespanSeconds>::length>&
+SnapshotManager<intervalSeconds, timespanSeconds>::getSnapshots() const {
   return buf_;
 }
 
-template <size_t length>
-void SnapshotManager<length>::publishAllSnapshots() {
+template <size_t intervalSeconds, size_t timespanSeconds>
+void SnapshotManager<intervalSeconds, timespanSeconds>::publishAllSnapshots() {
   for (auto& snapshot : buf_) {
     snapshot.publish(portNames_);
   }
 }
 
-template <size_t length>
-void SnapshotManager<length>::publishFutureSnapshots(int numToPublish) {
+template <size_t intervalSeconds, size_t timespanSeconds>
+void SnapshotManager<intervalSeconds, timespanSeconds>::publishFutureSnapshots(
+    int numToPublish) {
   numSnapshotsToPublish_ = numToPublish;
 }
 } // namespace facebook::fboss

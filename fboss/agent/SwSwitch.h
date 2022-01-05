@@ -60,6 +60,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
+template <size_t interval>
 class PhySnapshotManager;
 class LookupClassUpdater;
 class LookupClassRouteUpdater;
@@ -957,7 +958,10 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
 #endif
 
-  std::unique_ptr<PhySnapshotManager> phySnapshotManager_;
+  static constexpr auto kIphySnapshotIntervalSeconds = 1;
+
+  std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
+      phySnapshotManager_;
 
   std::chrono::milliseconds lastConfigAppliedInMs_{0};
 };

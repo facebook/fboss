@@ -35,7 +35,7 @@
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
-#include "fboss/agent/PhySnapshotManager.h"
+#include "fboss/agent/PhySnapshotManager-defs.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
@@ -194,7 +194,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
-      phySnapshotManager_(new PhySnapshotManager()) {
+      phySnapshotManager_(
+          new PhySnapshotManager<kIphySnapshotIntervalSeconds>()) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());

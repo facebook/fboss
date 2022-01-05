@@ -8,13 +8,14 @@
 
 namespace facebook::fboss {
 
+// intervalSeconds is the interval between Phy stat collections
+template <size_t intervalSeconds>
 class PhySnapshotManager {
-  static constexpr auto kNumCachedSnapshots = 20;
-  using PhySnapshotCache = SnapshotManager<kNumCachedSnapshots>;
-  using SnapshotMapRLockedPtr =
-      folly::Synchronized<std::map<PortID, PhySnapshotCache>>::ConstRLockedPtr;
-  using SnapshotMapWLockedPtr =
-      folly::Synchronized<std::map<PortID, PhySnapshotCache>>::WLockedPtr;
+  using PhySnapshotCache = SnapshotManager<intervalSeconds>;
+  using SnapshotMapRLockedPtr = typename folly::Synchronized<
+      std::map<PortID, PhySnapshotCache>>::ConstRLockedPtr;
+  using SnapshotMapWLockedPtr = typename folly::Synchronized<
+      std::map<PortID, PhySnapshotCache>>::WLockedPtr;
 
  public:
   void updatePhyInfo(PortID portID, const phy::PhyInfo& phyInfo);

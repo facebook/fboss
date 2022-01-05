@@ -3,7 +3,7 @@
 #include "fboss/lib/phy/PhyManager.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/PhySnapshotManager.h"
+#include "fboss/agent/PhySnapshotManager-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
@@ -64,8 +64,9 @@ cfg::PortProfileID getProfileIDBySpeed(
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
       portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
-      xphySnapshotManager_(new PhySnapshotManager()) {}
-
+      xphySnapshotManager_(
+          std::make_unique<
+              PhySnapshotManager<kXphySnapshotIntervalSeconds>>()) {}
 PhyManager::~PhyManager() {}
 
 PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(

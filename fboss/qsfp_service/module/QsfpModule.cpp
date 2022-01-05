@@ -1156,7 +1156,7 @@ void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
 void QsfpModule::publishSnapshots() {
   auto snapshotsLocked = snapshots_.wlock();
   snapshotsLocked->publishAllSnapshots();
-  snapshotsLocked->publishFutureSnapshots(kNumCachedSnapshots);
+  snapshotsLocked->publishFutureSnapshots();
 }
 
 bool QsfpModule::tryRemediate() {

@@ -650,7 +650,6 @@ if (NOT SAI_ONLY)
       fboss/agent/packet/TCPHeader.cpp
       fboss/agent/packet/UDPHeader.cpp
       fboss/agent/packet/MPLSHdr.cpp
-      fboss/agent/PhySnapshotManager.cpp
       fboss/agent/Platform.cpp
       fboss/agent/PlatformPort.cpp
       fboss/agent/platforms/common/PlatformProductInfo.cpp

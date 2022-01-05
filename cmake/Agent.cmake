@@ -130,7 +130,6 @@ add_library(core
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
-  fboss/agent/PhySnapshotManager.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
