@@ -30,6 +30,7 @@
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
 #endif
+#include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
@@ -195,7 +196,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(
-          new PhySnapshotManager<kIphySnapshotIntervalSeconds>()) {
+          new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
+      aclNexthopHandler_(new AclNexthopHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());

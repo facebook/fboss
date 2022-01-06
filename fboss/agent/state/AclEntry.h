@@ -370,6 +370,8 @@ class AclEntry
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
 
+  AclEntry* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT::ThriftyBaseT;

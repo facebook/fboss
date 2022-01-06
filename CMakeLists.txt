@@ -465,6 +465,7 @@ if (NOT SAI_ONLY)
   )
 
   add_library(fboss_agent STATIC
+      fboss/agent/AclNexthopHandler.cpp
       fboss/agent/AgentConfig.cpp
       fboss/agent/AggregatePortStats.cpp
       fboss/agent/AlpmUtils.cpp

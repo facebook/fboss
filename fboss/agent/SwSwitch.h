@@ -62,6 +62,7 @@ class TunManager;
 class MirrorManager;
 template <size_t interval>
 class PhySnapshotManager;
+class AclNexthopHandler;
 class LookupClassUpdater;
 class LookupClassRouteUpdater;
 class MacTableManager;
@@ -962,6 +963,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;
+  std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
 
   std::chrono::milliseconds lastConfigAppliedInMs_{0};
 };

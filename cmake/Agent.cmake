@@ -100,6 +100,7 @@ target_link_libraries(fboss_types
 )
 
 add_library(core
+  fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp

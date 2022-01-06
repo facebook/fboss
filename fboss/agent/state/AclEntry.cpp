@@ -12,8 +12,10 @@
 #include <folly/MacAddress.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "folly/IPAddress.h"
 
 using apache::thrift::TEnumTraits;
@@ -626,6 +628,19 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
     qualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
   }
   return qualifiers;
+}
+
+AclEntry* AclEntry::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  AclMap* acls = (*state)->getAcls()->modify(state);
+  auto newEntry = clone();
+  auto* ptr = newEntry.get();
+  acls->updateNode(std::move(newEntry));
+  return ptr;
 }
 
 AclEntry::AclEntry(int priority, const std::string& name)
