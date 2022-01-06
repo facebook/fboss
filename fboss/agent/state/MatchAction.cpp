@@ -81,7 +81,8 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
     auto redirectAction = RedirectToNextHopAction();
     redirectAction.first = redirectToNextHop->get_action();
     for (const auto& nh : redirectToNextHop->get_resolvedNexthops()) {
-      redirectAction.second.insert(util::fromThrift(nh));
+      redirectAction.second.insert(
+          util::fromThrift(nh, true /* allowV6NonLinkLocal */));
     }
     matchAction.redirectToNextHop_ = redirectAction;
   }
@@ -227,7 +228,8 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
       NextHopThrift nh;
       apache::thrift::SimpleJSONSerializer::deserialize<NextHopThrift>(
           folly::toJson(nhValue), nh);
-      resolvedNhops.insert(util::fromThrift(nh));
+      resolvedNhops.insert(
+          util::fromThrift(nh, true /* allowV6NonLinkLocal */));
     }
     matchAction.setRedirectToNextHop(
         std::make_pair(redirectToNextHop, resolvedNhops));

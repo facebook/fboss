@@ -210,7 +210,7 @@ class UnresolvedNextHop {
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
 
 namespace util {
-NextHop fromThrift(const NextHopThrift& nht);
+NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal = false);
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
 } // namespace util
 

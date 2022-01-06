@@ -9,14 +9,20 @@
  */
 #pragma once
 
+extern "C" {
+#include <bcm/types.h>
+}
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook::fboss {
 
 class BcmSwitch;
 class AclEntry;
+class BcmMultiPathNextHop;
 enum class MirrorAction;
 enum class MirrorDirection;
 
@@ -45,6 +51,7 @@ class BcmAclEntry {
       const std::shared_ptr<AclEntry>& acl);
   std::optional<std::string> getIngressAclMirror();
   std::optional<std::string> getEgressAclMirror();
+  const std::string& getID() const;
 
   void applyMirrorAction(
       const std::string& mirrorName,
@@ -56,11 +63,16 @@ class BcmAclEntry {
   void createAclQualifiers();
   void createAclActions();
   void createAclStat();
+  void applyRedirectToNextHopAction(
+      const RouteNextHopSet& nexthops,
+      bool isWarmBoot,
+      bcm_vrf_t vrf = 0);
 
   BcmSwitch* hw_;
   int gid_;
   std::shared_ptr<AclEntry> acl_;
   BcmAclEntryHandle handle_;
+  std::shared_ptr<BcmMultiPathNextHop> redirectNexthop_;
 };
 
 } // namespace facebook::fboss

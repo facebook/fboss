@@ -380,6 +380,14 @@ void BcmSwitch::resetTables() {
   unregisterCallbacks();
   labelMap_.reset();
   routeTable_.reset();
+  // ACL entries now may hold reference to multi path nexthop.
+  // So release ACLs before any nexthop related tables:
+  // l3 nexthop table
+  // mpls nexthop table
+  // host table
+  // multi path nexthop table
+  aclTable_->releaseAcls();
+  aclTable_.reset();
   l3NextHopTable_.reset();
   mplsNextHopTable_.reset();
   // Release host entries before reseting switch's host table
@@ -399,8 +407,6 @@ void BcmSwitch::resetTables() {
   toCPUEgress_.reset();
   portTable_.reset();
   qosPolicyTable_.reset();
-  aclTable_->releaseAcls();
-  aclTable_.reset();
   mirrorTable_.reset();
   trunkTable_.reset();
   controlPlane_.reset();

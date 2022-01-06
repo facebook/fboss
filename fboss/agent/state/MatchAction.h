@@ -114,7 +114,7 @@ class MatchAction {
     toCpuAction_ = toCpuAction;
   }
 
-  std::optional<RedirectToNextHopAction> getRedirectToNextHop() const {
+  const std::optional<RedirectToNextHopAction>& getRedirectToNextHop() const {
     return redirectToNextHop_;
   }
 

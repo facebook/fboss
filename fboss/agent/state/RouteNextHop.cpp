@@ -19,7 +19,7 @@
 namespace facebook::fboss {
 
 namespace util {
-NextHop fromThrift(const NextHopThrift& nht) {
+NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   std::optional<LabelForwardingAction> action = std::nullopt;
   if (nht.mplsAction_ref()) {
     action =
@@ -31,7 +31,8 @@ NextHop fromThrift(const NextHopThrift& nht) {
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address_ref()->get_ifName() and v6LinkLocal) {
+  if (nht.address_ref()->get_ifName() and
+      (v6LinkLocal or allowV6NonLinkLocal)) {
     InterfaceID intfID =
         util::getIDFromTunIntfName(*(nht.address_ref()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);

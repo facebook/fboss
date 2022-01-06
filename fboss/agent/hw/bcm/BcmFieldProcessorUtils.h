@@ -254,11 +254,19 @@ bool isBcmRangeStateSame(
     const std::string& aclMsg);
 
 bool isActionStateSame(
+    const BcmSwitch* hw,
     int unit,
     bcm_field_entry_t entry,
     const std::shared_ptr<AclEntry>& acl,
     const std::string& aclMsg,
     const BcmAclActionParameters& data);
+
+bool isRedirectToNextHopStateSame(
+    const BcmSwitch* hw,
+    uint32_t egressId,
+    const std::optional<MatchAction>& swAction,
+    const std::string& aclMsg,
+    const RouterID& routerId = RouterID(0));
 
 template <typename Func>
 bool isBcmIp6QualFieldStateSame(

@@ -11,6 +11,7 @@
 #include "BcmFieldProcessorUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
@@ -55,6 +56,36 @@ std::vector<bcm_field_group_t> fpGroupsConfigured(int unit) {
   std::vector<bcm_field_group_t> gids;
   bcm_field_group_traverse(unit, collect_fp_group_ids, &gids);
   return gids;
+}
+
+bool isRedirectToNextHopStateSame(
+    const BcmSwitch* hw,
+    uint32_t egressId,
+    const std::optional<MatchAction>& swAction,
+    const std::string& aclMsg,
+    const RouterID& routerId) {
+  if (!swAction || !swAction.value().getRedirectToNextHop()) {
+    XLOG(ERR) << aclMsg
+              << " has redirect to nexthops action in h/w but not in s/w";
+    return false;
+  }
+  const auto& resolvedNexthops =
+      swAction.value().getRedirectToNextHop().value().second;
+  bcm_if_t expectedEgressId;
+  if (resolvedNexthops.size() > 0) {
+    std::shared_ptr<BcmMultiPathNextHop> multipathNh =
+        hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
+            BcmMultiPathNextHopKey(routerId, resolvedNexthops));
+    expectedEgressId = multipathNh->getEgressId();
+  } else {
+    expectedEgressId = hw->getDropEgressId();
+  }
+  if (egressId != static_cast<uint32_t>(expectedEgressId)) {
+    XLOG(ERR) << aclMsg << " redirect nexthop egressId mismatched. SW expected="
+              << expectedEgressId << " HW value=" << egressId;
+    return false;
+  }
+  return true;
 }
 
 bool isSendToQueueStateSame(
@@ -129,19 +160,21 @@ bool isMirrorActionSame(
 }
 
 bool isActionStateSame(
+    const BcmSwitch* hw,
     int unit,
     bcm_field_entry_t entry,
     const std::shared_ptr<AclEntry>& acl,
     const std::string& aclMsg,
     const BcmAclActionParameters& data) {
   // first we need to get all actions of current acl entry
-  std::array<bcm_field_action_t, 6> supportedActions = {
+  std::array<bcm_field_action_t, 7> supportedActions = {
       bcmFieldActionDrop,
       bcmFieldActionCosQNew,
       bcmFieldActionCosQCpuNew,
       bcmFieldActionDscpNew,
       bcmFieldActionMirrorIngress,
-      bcmFieldActionMirrorEgress};
+      bcmFieldActionMirrorEgress,
+      bcmFieldActionL3Switch};
   boost::container::flat_map<bcm_field_action_t, std::pair<uint32_t, uint32_t>>
       bcmActions;
   for (auto action : supportedActions) {
@@ -168,6 +201,9 @@ bool isActionStateSame(
       expectedAC += 1;
     }
     if (acl->getAclAction().value().getEgressMirror()) {
+      expectedAC += 1;
+    }
+    if (acl->getAclAction().value().getRedirectToNextHop()) {
       expectedAC += 1;
     }
   }
@@ -222,6 +258,10 @@ bool isActionStateSame(
                      acl->getAclAction(),
                      data.mirrors.egressMirrorHandle.value(),
                      aclMsg);
+        break;
+      case bcmFieldActionL3Switch:
+        isSame = isRedirectToNextHopStateSame(
+            hw, param0, acl->getAclAction(), aclMsg);
         break;
       default:
         throw FbossError("Unknown action=", action->first);

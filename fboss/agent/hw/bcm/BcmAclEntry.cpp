@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
+#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -343,6 +344,31 @@ void BcmAclEntry::createAclActions() {
       createAclStat();
     }
     applyAclMirrorAction(this, action);
+    if (action.value().getRedirectToNextHop().has_value()) {
+      applyRedirectToNextHopAction(
+          action.value().getRedirectToNextHop().value().second,
+          false /* isWarmBoot */);
+    }
+  }
+}
+
+void BcmAclEntry::applyRedirectToNextHopAction(
+    const RouteNextHopSet& nexthops,
+    bool isWarmBoot,
+    bcm_vrf_t vrf) {
+  bcm_if_t egressId;
+  if (nexthops.size() > 0) {
+    redirectNexthop_ =
+        hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
+            BcmMultiPathNextHopKey(vrf, nexthops));
+    egressId = redirectNexthop_->getEgressId();
+  } else {
+    egressId = hw_->getDropEgressId();
+  }
+  if (!isWarmBoot) {
+    int rv = bcm_field_action_add(
+        hw_->getUnit(), handle_, bcmFieldActionL3Switch, egressId, 0);
+    bcmCheckError(rv, "Failed to add L3 redirect action");
   }
 }
 
@@ -398,6 +424,13 @@ BcmAclEntry::BcmAclEntry(
   auto warmbootItr = warmBootCache->findAcl(acl_->getPriority());
   if (warmbootItr != warmBootCache->priority2BcmAclEntryHandle_end()) {
     handle_ = warmbootItr->second;
+    const auto& action = acl_->getAclAction();
+    if (action.has_value() and
+        action.value().getRedirectToNextHop().has_value()) {
+      applyRedirectToNextHopAction(
+          action.value().getRedirectToNextHop().value().second,
+          true /* isWarmBoot */);
+    }
     // check whether acl in S/W and H/W in sync
     CHECK(BcmAclEntry::isStateSame(hw_, gid_, handle_, acl_))
         << "Warmboot ACL doesn't match the one from H/W";
@@ -407,7 +440,7 @@ BcmAclEntry::BcmAclEntry(
      * destination descriptors which are also claimed from warmboot cache.  this
      * is unlike other acl entry actions.
      */
-    applyAclMirrorAction(this, acl_->getAclAction());
+    applyAclMirrorAction(this, action);
     warmBootCache->programmed(warmbootItr);
   } else {
     createNewAclEntry();
@@ -483,7 +516,7 @@ bool BcmAclEntry::isStateSame(
 
   // check action type
   isSame &= isActionStateSame(
-      hw->getUnit(), handle, acl, aclMsg, getAclActionParameters(hw, acl));
+      hw, hw->getUnit(), handle, acl, aclMsg, getAclActionParameters(hw, acl));
 
   // check ip addresses
   isSame &= isBcmIp6QualFieldStateSame(
@@ -771,6 +804,10 @@ std::optional<std::string> BcmAclEntry::getIngressAclMirror() {
 std::optional<std::string> BcmAclEntry::getEgressAclMirror() {
   return acl_->getAclAction() ? acl_->getAclAction()->getEgressMirror()
                               : std::nullopt;
+}
+
+const std::string& BcmAclEntry::getID() const {
+  return acl_->getID();
 }
 
 void BcmAclEntry::applyMirrorAction(
