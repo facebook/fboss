@@ -551,6 +551,12 @@ struct MacsecFlowAction {
   2: MacsecFlowPacketAction action;
 }
 
+// Redirect packet to a different nexthop
+struct RedirectToNextHopAction {
+  // NextHop IP addresses
+  1: list<string> nexthops;
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue;
   2: optional PacketCounterMatchAction packetCounter_DEPRECATED;
@@ -560,6 +566,7 @@ struct MatchAction {
   6: optional string counter;
   7: optional ToCpuAction toCpuAction;
   8: optional MacsecFlowAction macsecFlow;
+  9: optional RedirectToNextHopAction redirectToNextHop;
 }
 
 struct MatchToAction {

@@ -2181,6 +2181,11 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
         if (auto toCpuAction = mta.action_ref()->toCpuAction_ref()) {
           matchAction.setToCpuAction(*toCpuAction);
         }
+        if (auto redirectToNextHop =
+                mta.action_ref()->redirectToNextHop_ref()) {
+          matchAction.setRedirectToNextHop(
+              std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
+        }
 
         auto acl = updateAcl(
             aclStage,

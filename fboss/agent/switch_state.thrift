@@ -8,6 +8,7 @@ namespace cpp2 facebook.fboss.state
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/agent/if/common.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -104,6 +105,11 @@ struct SendToQueue {
   2: bool sendToCPU;
 }
 
+struct RedirectToNextHopAction {
+  1: switch_config.RedirectToNextHopAction action;
+  2: list<common.NextHopThrift> resolvedNexthops;
+}
+
 struct MatchAction {
   1: optional SendToQueue sendToQueue;
   2: optional switch_config.TrafficCounter trafficCounter;
@@ -112,6 +118,7 @@ struct MatchAction {
   5: optional string egressMirror;
   6: optional switch_config.ToCpuAction toCpuAction;
   7: optional switch_config.MacsecFlowAction macsecFlow;
+  8: optional RedirectToNextHopAction redirectToNextHop;
 }
 
 struct AclEntryFields {

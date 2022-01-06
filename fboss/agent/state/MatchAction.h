@@ -15,6 +15,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook::fboss {
 
@@ -29,6 +30,9 @@ class MatchAction {
   using SendToQueue = std::pair<cfg::QueueMatchAction, bool>;
   using SetDscp = cfg::SetDscpMatchAction;
   using MacsecFlow = cfg::MacsecFlowAction;
+  using NextHopSet = RouteNextHopEntry::NextHopSet;
+  using RedirectToNextHopAction =
+      std::pair<cfg::RedirectToNextHopAction, NextHopSet>;
 
   MatchAction() {}
 
@@ -39,7 +43,8 @@ class MatchAction {
         ingressMirror_(action.ingressMirror_),
         egressMirror_(action.egressMirror_),
         toCpuAction_(action.toCpuAction_),
-        macsecFlow_(action.macsecFlow_) {}
+        macsecFlow_(action.macsecFlow_),
+        redirectToNextHop_(action.redirectToNextHop_) {}
 
   std::optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
@@ -109,6 +114,14 @@ class MatchAction {
     toCpuAction_ = toCpuAction;
   }
 
+  std::optional<RedirectToNextHopAction> getRedirectToNextHop() const {
+    return redirectToNextHop_;
+  }
+
+  void setRedirectToNextHop(const RedirectToNextHopAction& redirectToNextHop) {
+    redirectToNextHop_ = redirectToNextHop;
+  }
+
   bool operator==(const MatchAction& action) const {
     return std::tie(
                sendToQueue_,
@@ -117,7 +130,8 @@ class MatchAction {
                trafficCounter_,
                setDscp_,
                toCpuAction_,
-               macsecFlow_) ==
+               macsecFlow_,
+               redirectToNextHop_) ==
         std::tie(
                action.sendToQueue_,
                action.ingressMirror_,
@@ -125,7 +139,8 @@ class MatchAction {
                action.trafficCounter_,
                action.setDscp_,
                action.toCpuAction_,
-               action.macsecFlow_);
+               action.macsecFlow_,
+               action.redirectToNextHop_);
   }
 
   MatchAction& operator=(const MatchAction& action) {
@@ -136,7 +151,8 @@ class MatchAction {
         trafficCounter_,
         setDscp_,
         toCpuAction_,
-        macsecFlow_) =
+        macsecFlow_,
+        redirectToNextHop_) =
         std::tie(
             action.sendToQueue_,
             action.ingressMirror_,
@@ -144,7 +160,8 @@ class MatchAction {
             action.trafficCounter_,
             action.setDscp_,
             action.toCpuAction_,
-            action.macsecFlow_);
+            action.macsecFlow_,
+            action.redirectToNextHop_);
     return *this;
   }
 
@@ -164,6 +181,7 @@ class MatchAction {
   std::optional<std::string> egressMirror_{std::nullopt};
   std::optional<cfg::ToCpuAction> toCpuAction_{std::nullopt};
   std::optional<MacsecFlow> macsecFlow_{std::nullopt};
+  std::optional<RedirectToNextHopAction> redirectToNextHop_{std::nullopt};
 };
 
 } // namespace facebook::fboss

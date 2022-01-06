@@ -23,6 +23,9 @@ constexpr auto kCounter = "counter";
 constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
 constexpr auto kToCpuAction = "cpuAction";
+constexpr auto kNexthops = "nexthops";
+constexpr auto kResolvedNexthops = "resolvedNexthops";
+constexpr auto kRedirectToNextHop = "redirectToNextHop";
 
 // These names match the thrift definition in switch_config.thrift
 constexpr auto kThriftSendToQueue = "sendToQueue";
@@ -49,6 +52,14 @@ state::MatchAction MatchAction::toThrift() const {
   matchAction.egressMirror_ref().from_optional(egressMirror_);
   matchAction.toCpuAction_ref().from_optional(toCpuAction_);
   matchAction.macsecFlow_ref().from_optional(macsecFlow_);
+  if (redirectToNextHop_.has_value()) {
+    auto redirectToNextHop = state::RedirectToNextHopAction();
+    redirectToNextHop.action_ref() = redirectToNextHop_->first;
+    for (const auto& nh : redirectToNextHop_->second) {
+      redirectToNextHop.resolvedNexthops_ref()->push_back(nh.toThrift());
+    }
+    matchAction.redirectToNextHop_ref() = redirectToNextHop;
+  }
   return matchAction;
 }
 
@@ -66,6 +77,14 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   matchAction.egressMirror_ = ma.egressMirror_ref().to_optional();
   matchAction.toCpuAction_ = ma.toCpuAction_ref().to_optional();
   matchAction.macsecFlow_ = ma.macsecFlow_ref().to_optional();
+  if (auto redirectToNextHop = ma.redirectToNextHop_ref()) {
+    auto redirectAction = RedirectToNextHopAction();
+    redirectAction.first = redirectToNextHop->get_action();
+    for (const auto& nh : redirectToNextHop->get_resolvedNexthops()) {
+      redirectAction.second.insert(util::fromThrift(nh));
+    }
+    matchAction.redirectToNextHop_ = redirectAction;
+  }
   return matchAction;
 }
 
@@ -128,6 +147,24 @@ folly::dynamic MatchAction::toFollyDynamic() const {
   if (toCpuAction_) {
     matchAction[kToCpuAction] = static_cast<int>(toCpuAction_.value());
   }
+  if (redirectToNextHop_) {
+    matchAction[kRedirectToNextHop] = folly::dynamic::object;
+    matchAction[kRedirectToNextHop][kThriftAction] = folly::dynamic::object;
+    matchAction[kRedirectToNextHop][kThriftAction][kNexthops] =
+        folly::dynamic::array;
+    for (const auto& nexthop :
+         *redirectToNextHop_.value().first.nexthops_ref()) {
+      matchAction[kRedirectToNextHop][kThriftAction][kNexthops].push_back(
+          nexthop);
+    }
+    folly::dynamic nhops = folly::dynamic::array;
+    for (const auto& nh : redirectToNextHop_.value().second) {
+      std::string nhJson;
+      apache::thrift::SimpleJSONSerializer::serialize(nh.toThrift(), &nhJson);
+      nhops.push_back(folly::parseJson(nhJson));
+    }
+    matchAction[kRedirectToNextHop][kResolvedNexthops] = nhops;
+  }
   return matchAction;
 }
 
@@ -176,6 +213,24 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   if (actionJson.find(kToCpuAction) != actionJson.items().end()) {
     matchAction.setToCpuAction(
         static_cast<cfg::ToCpuAction>(actionJson[kToCpuAction].asInt()));
+  }
+  if (actionJson.find(kRedirectToNextHop) != actionJson.items().end()) {
+    auto redirectToNextHop = cfg::RedirectToNextHopAction();
+    redirectToNextHop.nexthops_ref()->clear();
+    for (const auto& nh :
+         actionJson[kRedirectToNextHop][kThriftAction][kNexthops]) {
+      redirectToNextHop.nexthops_ref()->push_back(nh.asString());
+    }
+    auto resolvedNhops = NextHopSet();
+    for (const auto& nhValue :
+         actionJson[kRedirectToNextHop][kResolvedNexthops]) {
+      NextHopThrift nh;
+      apache::thrift::SimpleJSONSerializer::deserialize<NextHopThrift>(
+          folly::toJson(nhValue), nh);
+      resolvedNhops.insert(util::fromThrift(nh));
+    }
+    matchAction.setRedirectToNextHop(
+        std::make_pair(redirectToNextHop, resolvedNhops));
   }
   return matchAction;
 }
