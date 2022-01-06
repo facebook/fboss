@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
+using facebook::fboss::InterfaceID;
 using folly::MacAddress;
 using std::make_pair;
 using std::make_shared;
@@ -483,6 +484,97 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getSendToQueue());
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(*aclAction.getSendToQueue().value().first.queueId_ref(), 3);
+}
+
+TEST(Acl, SerializeRedirectToNextHop) {
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  MatchAction action = MatchAction();
+  auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+  std::vector<std::string> nexthops = {
+      "2401:db00:e112:9103:1028::1b",
+      "fe80:db00:e112:9103:2028::1b",
+      "10.0.0.1",
+      "10.0.0.2"};
+  for (auto nh : nexthops) {
+    cfgRedirectToNextHop.nexthops_ref()->push_back(nh);
+  }
+  auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+  redirectToNextHop.first = cfgRedirectToNextHop;
+
+  // Only nexthops with V6 link local (fe80 subnet) address can be treated as
+  // ResolvedNextHops
+  std::vector<folly::IPAddress> nhAddrs = {
+      folly::IPAddress("fe80:db00:e113:9103:1028::1b"),
+      folly::IPAddress("fe80:db00:e113:9103:1028::1c"),
+      folly::IPAddress("2401:db00:e112:9103:1028::1b"),
+      folly::IPAddress("100.0.0.1"),
+      folly::IPAddress("100.0.0.2")};
+  auto nhset = MatchAction::NextHopSet();
+
+  auto setNhAddrs = [](MatchAction::NextHopSet& nhset,
+                       std::vector<folly::IPAddress>& nhAddrs) {
+    int intfID = 0;
+    int weight = 100;
+    for (auto nhAddr : nhAddrs) {
+      if (nhAddr.isV6() and nhAddr.isLinkLocal()) {
+        nhset.insert(ResolvedNextHop(nhAddr, InterfaceID(intfID), weight));
+        ++intfID;
+      } else {
+        nhset.insert(UnresolvedNextHop(nhAddr, weight));
+      }
+      ++weight;
+    }
+  };
+  setNhAddrs(nhset, nhAddrs);
+
+  redirectToNextHop.second = nhset;
+  action.setRedirectToNextHop(redirectToNextHop);
+  entry->setAclAction(action);
+
+  auto verifyEntries = [](AclEntry& entry,
+                          std::vector<std::string>& nexthops,
+                          MatchAction::NextHopSet& nhset) {
+    auto serialized = entry.toFollyDynamic();
+    auto entryBack = AclEntry::fromFollyDynamic(serialized);
+    EXPECT_TRUE(entry == *entryBack);
+    validateThriftyMigration(entry);
+    auto aclAction = entryBack->getAclAction().value();
+    auto newRedirectToNextHop = aclAction.getRedirectToNextHop().value();
+    int i = 0;
+    for (const auto& nh : *newRedirectToNextHop.first.nexthops_ref()) {
+      EXPECT_EQ(nh, nexthops[i]);
+      ++i;
+    }
+    EXPECT_EQ(nhset, newRedirectToNextHop.second);
+  };
+  verifyEntries(*entry, nexthops, nhset);
+
+  // Update nexthops
+  nexthops.pop_back();
+  nexthops.push_back("1000:db00:e112:9103:1028::1b");
+  nexthops.push_back("10.0.0.3");
+  redirectToNextHop.first.nexthops_ref()->clear();
+  for (auto nh : nexthops) {
+    redirectToNextHop.first.nexthops_ref()->push_back(nh);
+  }
+  action.setRedirectToNextHop(redirectToNextHop);
+  entry->setAclAction(action);
+
+  verifyEntries(*entry, nexthops, nhset);
+
+  nhAddrs.pop_back();
+  nhAddrs.pop_back();
+  nhAddrs.push_back(folly::IPAddress("fe80:db00:e113:9103:1028::2a"));
+  nhAddrs.push_back(folly::IPAddress("100.0.0.3"));
+  nhset = MatchAction::NextHopSet();
+  setNhAddrs(nhset, nhAddrs);
+
+  // Update resoved nexthops
+  redirectToNextHop.second = nhset;
+  action.setRedirectToNextHop(redirectToNextHop);
+  entry->setAclAction(action);
+
+  verifyEntries(*entry, nexthops, nhset);
 }
 
 TEST(Acl, SerializePacketCounter) {
