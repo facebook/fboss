@@ -22,6 +22,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwTestPortUtils.cpp
   fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
+  fboss/agent/hw/bcm/tests/BcmAclNexthopTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp
   fboss/agent/hw/bcm/tests/BcmAddDelEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmBstStatsMgrTest.cpp
