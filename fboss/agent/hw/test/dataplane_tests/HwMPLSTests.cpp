@@ -35,6 +35,8 @@
 namespace {
 const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
+const int kAclStartPriority = 100000;
+const std::string kAclName = "acl0";
 using TestTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // namespace
@@ -100,6 +102,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     std::vector<PortID> ports = {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
+        masterLogicalPortIds()[2],
     };
     auto config = utility::onePortPerVlanConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
@@ -107,6 +110,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     if constexpr (std::is_same_v<PortType, AggregatePortID>) {
       utility::addAggPort(1, {masterLogicalPortIds()[0]}, &config);
       utility::addAggPort(2, {masterLogicalPortIds()[1]}, &config);
+      utility::addAggPort(3, {masterLogicalPortIds()[2]}, &config);
     }
     cfg::QosMap qosMap;
     for (auto tc = 0; tc < 8; tc++) {
@@ -300,6 +304,58 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     XLOG(DBG0) << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void getNexthops(
+      const std::vector<std::pair<PortDescriptor, InterfaceID>>& portIntfs,
+      const std::vector<LabelForwardingAction::LabelStack>& stacks,
+      RouteNextHopSet& nhops) {
+    int idx = 0;
+    for (auto portIntf : portIntfs) {
+      nhops.emplace(ResolvedNextHop(
+          ecmpHelper_->ip(portIntf.first),
+          portIntf.second,
+          UCMP_DEFAULT_WEIGHT,
+          LabelForwardingAction(
+              LabelForwardingAction::LabelForwardingType::PUSH,
+              stacks[idx++])));
+    }
+  }
+
+  void addRedirectToNexthopAcl(
+      const std::string& aclName,
+      uint32_t ingressVlanId,
+      const std::string& dstPrefix,
+      const std::vector<std::string>& redirectNexthopIps,
+      const std::vector<std::pair<PortDescriptor, InterfaceID>>& portIntfs,
+      const std::vector<LabelForwardingAction::LabelStack>& stacks) {
+    RouteNextHopSet recursiveNexthops;
+    getNexthops(portIntfs, stacks, recursiveNexthops);
+    boost::container::flat_set<PortDescriptor> ports;
+    for (auto portIntf : portIntfs) {
+      ports.emplace(portIntf.first);
+    }
+    std::shared_ptr<SwitchState> newState;
+    if (ports.size() > 0) {
+      newState = ecmpHelper_->resolveNextHops(getProgrammedState(), ports);
+    } else {
+      newState = getProgrammedState()->clone();
+    }
+    auto newAcl = std::make_shared<AclEntry>(kAclStartPriority, aclName);
+    newAcl->setDstIp(folly::IPAddress::tryCreateNetwork(dstPrefix).value());
+    newAcl->setVlanID(ingressVlanId);
+    auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
+    for (auto nhIp : redirectNexthopIps) {
+      cfgRedirectToNextHop.nexthops_ref()->push_back(nhIp);
+    }
+    auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
+    redirectToNextHop.first = cfgRedirectToNextHop;
+    redirectToNextHop.second = recursiveNexthops;
+    MatchAction action = MatchAction();
+    action.setRedirectToNextHop(redirectToNextHop);
+    newAcl->setAclAction(action);
+    newState->addAcl(newAcl);
+    applyNewState(newState);
   }
 
   void setup() {
@@ -556,4 +612,182 @@ TYPED_TEST(HwMPLSTest, ExpiringTTL) {
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 1 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 1
+    uint32_t ingressVlan = utility::kBaseVlanId + 1;
+    auto config = this->initialConfig();
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces_ref()[0].intfID_ref()))};
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
+  };
+  auto verify = [=]() {
+    // Use different labels from that of the rib route to verify that the
+    // redirect ACL is in effect
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{202, 5, 0, 254},
+        MPLSHdr::Label{201, 5, 1, 254},
+    });
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(
+        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalPortIds()[1],
+        DSCP(16));
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
+  // Packets must be dropped if  there are no resolved nexthops
+  // in the redirect ACL entry
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 1 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 1
+    uint32_t ingressVlan = utility::kBaseVlanId + 1;
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs;
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {});
+  };
+  auto verify = [=]() {
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalPortIds()[1],
+        DSCP(16));
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    // Packet drop expected
+    EXPECT_EQ(outPktsAfter, outPktsBefore);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verfiy that redirect does not happen when ACL qualifiers do not match
+TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    this->addRoute(
+        folly::IPAddressV6(dstIp),
+        mask,
+        this->getPortDescriptor(0),
+        {101, 102});
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    auto config = this->initialConfig();
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces_ref()[0].intfID_ref()))};
+    // Use VLAN ID qualifier value that does not match the actual
+    // ingress vlan.
+    uint32_t ingressVlan = utility::kBaseVlanId + 100;
+    this->addRedirectToNexthopAcl(
+        kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
+  };
+  auto verify = [=]() {
+    auto expectedMplsHdr = MPLSHdr({
+        MPLSHdr::Label{102, 5, 0, 254},
+        MPLSHdr::Label{101, 5, 1, 254},
+    });
+    // Since ACL qualifiers do not match packet fields, packet must
+    // exit via RIB route nexthops
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(
+        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    auto outPktsBefore = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalPortIds()[1],
+        DSCP(16));
+    auto outPktsAfter = getPortOutPkts(
+        this->getLatestPortStats(this->masterLogicalPortIds()[0]));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test ACL redirect to an ECMP nexthop
+TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    std::string dstIp{"2401::201:ab00"};
+    uint8_t mask = 120;
+    std::string dstPrefix{fmt::format("{}/{}", dstIp, mask)};
+    // We are using port 2 as ingress port. Which has ingress vlan_id
+    // kBaseVlanId + 2
+    uint32_t ingressVlan = utility::kBaseVlanId + 2;
+    auto config = this->initialConfig();
+    std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
+        std::make_pair(
+            this->getPortDescriptor(0),
+            InterfaceID(*config.interfaces_ref()[0].intfID_ref())),
+        std::make_pair(
+            this->getPortDescriptor(1),
+            InterfaceID(*config.interfaces_ref()[1].intfID_ref())),
+    };
+    this->addRedirectToNexthopAcl(
+        kAclName,
+        ingressVlan,
+        dstPrefix,
+        {"1000::1"},
+        portIntfs,
+        {{201, 202}, {301, 302}});
+  };
+  auto verify = [=]() {
+    std::vector<PortID> ports{
+        this->masterLogicalPortIds()[0], this->masterLogicalPortIds()[1]};
+    auto outPktsBefore = getPortOutPkts(this->getLatestPortStats(ports));
+    this->sendL3Packet(
+        folly::IPAddressV6("2401::201:ab01"),
+        this->masterLogicalPortIds()[2],
+        DSCP(16));
+    auto outPktsAfter = getPortOutPkts(this->getLatestPortStats(ports));
+    EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
