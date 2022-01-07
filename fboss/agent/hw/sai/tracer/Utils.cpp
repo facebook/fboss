@@ -474,8 +474,11 @@ void charDataAttr(
     vector<string>& attrLines) {
   string prefix = to<string>("s_a[", i, "].value.");
   for (int j = 0; j < 32; ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "chardata[", j, "]=", attr_list[i].value.chardata[j]));
+    std::ostringstream outStringStream;
+    SaiTracer::getInstance()->printHex(
+        outStringStream, attr_list[i].value.chardata[j]);
+    attrLines.push_back(
+        to<string>(prefix, "chardata[", j, "]=", outStringStream.str()));
   }
 }
 

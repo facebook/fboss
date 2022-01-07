@@ -8,8 +8,28 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _LagMap{
+    SAI_ATTR_MAP(Lag, PortList),
+    SAI_ATTR_MAP(Lag, Label),
+    SAI_ATTR_MAP(Lag, PortVlanId),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _LagMemberMap{
+    SAI_ATTR_MAP(LagMember, LagId),
+    SAI_ATTR_MAP(LagMember, PortId),
+    SAI_ATTR_MAP(LagMember, EgressDisable),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -38,86 +58,7 @@ sai_lag_api_t* wrappedLagApi() {
   return &lagWrappers;
 }
 
-void setLagAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      // Attribute(s) with SAI type sai_object_list_t
-      case SAI_LAG_ATTR_PORT_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-
-      // Attribute(s) with SAI type sai_object_id_t
-      case SAI_LAG_ATTR_INGRESS_ACL:
-      case SAI_LAG_ATTR_EGRESS_ACL:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-
-      // Attribute(s) with SAI type sai_uint16_t
-      case SAI_LAG_ATTR_PORT_VLAN_ID:
-      case SAI_LAG_ATTR_TPID:
-        attrLines.push_back(u16Attr(attr_list, i));
-        break;
-
-      // Attribute(s) with SAI type sai_uint8_t
-      case SAI_LAG_ATTR_DEFAULT_VLAN_PRIORITY:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-
-      // Attribute(s) with SAI type bool
-      case SAI_LAG_ATTR_DROP_UNTAGGED:
-      case SAI_LAG_ATTR_DROP_TAGGED:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-
-      // Attribute(s) with SAI type sai_uint32_t
-      case SAI_LAG_ATTR_SYSTEM_PORT_AGGREGATE_ID:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-        // Attribute(s) with SAI type char[32]
-#ifdef IS_OSS
-      case SAI_LAG_ATTR_END:
-#else
-      case SAI_LAG_ATTR_LABEL:
-#endif
-        charDataAttr(attr_list, i, attrLines);
-        break;
-#endif
-
-      default:
-        break;
-    }
-  }
-}
-
-void setLagMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      // Attribute(s) with SAI type sai_object_id_t
-      case SAI_LAG_MEMBER_ATTR_LAG_ID:
-      case SAI_LAG_MEMBER_ATTR_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-
-      // Attribute(s) with SAI type bool
-      case SAI_LAG_MEMBER_ATTR_EGRESS_DISABLE:
-      case SAI_LAG_MEMBER_ATTR_INGRESS_DISABLE:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Lag)
+SET_SAI_ATTRIBUTES(LagMember)
 
 } // namespace facebook::fboss

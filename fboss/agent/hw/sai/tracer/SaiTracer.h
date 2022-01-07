@@ -202,7 +202,6 @@ class SaiTracer {
       {TYPE_INDEX(sai_uint64_t), &u64Attr},
   };
 
-  // TODO(zecheng): charDataAttr
   std::unordered_map<std::size_t, AttributeFunction> attributeFuncMap_{
       {TYPE_INDEX(sai_u32_range_t), &u32RangeAttr},
       {TYPE_INDEX(sai_s32_range_t), &s32RangeAttr},
@@ -572,9 +571,12 @@ class SaiTracer {
       }                                                                      \
       /* For attributes cannot handled by the aboved method */               \
       switch (attr_list[i].id) {                                             \
-        case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:                           \
-        case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:                             \
+        case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO: /* 113 */                 \
+        case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME: /* 114 */                   \
           s8ListAttr(attr_list, i, listCount++, attrLines, true);            \
+          break;                                                             \
+        case SAI_LAG_ATTR_LABEL: /* 9 */                                     \
+          charDataAttr(attr_list, i, attrLines);                             \
           break;                                                             \
         default:                                                             \
           XLOG(WARN) << "Unsupported object type " << #obj_type              \
