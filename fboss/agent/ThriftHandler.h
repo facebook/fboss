@@ -179,14 +179,15 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<TransceiverInfo> transceiver,
       bool force) override;
 
-  void clearPortPrbsStats(int32_t portId, PrbsComponent component) override;
+  void clearPortPrbsStats(int32_t portId, phy::PrbsComponent component)
+      override;
   void getPortPrbsStats(
-      PrbsStats& prbsStats,
+      phy::PrbsStats& prbsStats,
       int32_t portId,
-      PrbsComponent component) override;
+      phy::PrbsComponent component) override;
   void setPortPrbs(
       int32_t portId,
-      PrbsComponent component,
+      phy::PrbsComponent component,
       bool enable,
       int32_t polynominal) override;
   void getInterfaceDetail(

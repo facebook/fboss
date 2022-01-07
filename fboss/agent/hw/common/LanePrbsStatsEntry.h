@@ -82,8 +82,8 @@ class LanePrbsStatsEntry {
     timeLastCollect_ = now;
   }
 
-  PrbsLaneStats getPrbsLaneStats() const {
-    PrbsLaneStats prbsLaneStats = PrbsLaneStats();
+  phy::PrbsLaneStats getPrbsLaneStats() const {
+    phy::PrbsLaneStats prbsLaneStats = phy::PrbsLaneStats();
     steady_clock::time_point now = steady_clock::now();
     *prbsLaneStats.laneId_ref() = laneId_;
     *prbsLaneStats.locked_ref() = locked_;

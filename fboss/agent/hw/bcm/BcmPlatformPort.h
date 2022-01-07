@@ -59,8 +59,9 @@ class BcmPlatformPort : public PlatformPort {
 
   virtual void updateStats() {}
 
-  virtual std::vector<PrbsLaneStats> getGearboxPrbsStats(phy::Side /* side */) {
-    return std::vector<PrbsLaneStats>();
+  virtual std::vector<phy::PrbsLaneStats> getGearboxPrbsStats(
+      phy::Side /* side */) {
+    return std::vector<phy::PrbsLaneStats>();
   }
   virtual void clearGearboxPrbsStats(phy::Side /* side */) {}
 

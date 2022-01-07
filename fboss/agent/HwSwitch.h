@@ -296,15 +296,16 @@ class HwSwitch {
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
 
-  virtual std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t /*portId*/) {
-    return std::vector<PrbsLaneStats>();
+  virtual std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
+      int32_t /*portId*/) {
+    return std::vector<phy::PrbsLaneStats>();
   }
   virtual void clearPortAsicPrbsStats(int32_t /*portId*/) {}
 
-  virtual std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
+  virtual std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
       int32_t /*portId*/,
       phy::Side /* side */) {
-    return std::vector<PrbsLaneStats>();
+    return std::vector<phy::PrbsLaneStats>();
   }
   virtual void clearPortGearboxPrbsStats(
       int32_t /*portId*/,

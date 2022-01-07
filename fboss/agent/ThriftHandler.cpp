@@ -1116,16 +1116,17 @@ void ThriftHandler::getPortStatus(
 
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
-    PrbsComponent component) {
+    phy::PrbsComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  if (component == PrbsComponent::ASIC) {
+  if (component == phy::PrbsComponent::ASIC) {
     sw_->clearPortAsicPrbsStats(portId);
   } else if (
-      component == PrbsComponent::GB_SYSTEM ||
-      component == PrbsComponent::GB_LINE) {
-    phy::Side side = (component == PrbsComponent::GB_SYSTEM) ? phy::Side::SYSTEM
-                                                             : phy::Side::LINE;
+      component == phy::PrbsComponent::GB_SYSTEM ||
+      component == phy::PrbsComponent::GB_LINE) {
+    phy::Side side = (component == phy::PrbsComponent::GB_SYSTEM)
+        ? phy::Side::SYSTEM
+        : phy::Side::LINE;
     sw_->clearPortGearboxPrbsStats(portId, side);
   } else {
     XLOG(INFO) << "Unrecognized component to ClearPortPrbsStats: "
@@ -1134,27 +1135,28 @@ void ThriftHandler::clearPortPrbsStats(
 }
 
 void ThriftHandler::getPortPrbsStats(
-    PrbsStats& prbsStats,
+    phy::PrbsStats& prbsStats,
     int32_t portId,
-    PrbsComponent component) {
+    phy::PrbsComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  if (component == PrbsComponent::ASIC) {
+  if (component == phy::PrbsComponent::ASIC) {
     auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
-    *prbsStats.portId_ref() = portId;
-    *prbsStats.component_ref() = PrbsComponent::ASIC;
+    prbsStats.portId_ref() = portId;
+    prbsStats.component_ref() = phy::PrbsComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {
       prbsStats.laneStats_ref()->push_back(lane);
     }
   } else if (
-      component == PrbsComponent::GB_SYSTEM ||
-      component == PrbsComponent::GB_LINE) {
-    phy::Side side = (component == PrbsComponent::GB_SYSTEM) ? phy::Side::SYSTEM
-                                                             : phy::Side::LINE;
+      component == phy::PrbsComponent::GB_SYSTEM ||
+      component == phy::PrbsComponent::GB_LINE) {
+    phy::Side side = (component == phy::PrbsComponent::GB_SYSTEM)
+        ? phy::Side::SYSTEM
+        : phy::Side::LINE;
     auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
-    *prbsStats.portId_ref() = portId;
-    *prbsStats.component_ref() = component;
+    prbsStats.portId_ref() = portId;
+    prbsStats.component_ref() = component;
     for (const auto& lane : gearboxPrbsStats) {
       prbsStats.laneStats_ref()->push_back(lane);
     }
@@ -1166,7 +1168,7 @@ void ThriftHandler::getPortPrbsStats(
 
 void ThriftHandler::setPortPrbs(
     int32_t portNum,
-    PrbsComponent component,
+    phy::PrbsComponent component,
     bool enable,
     int32_t polynominal) {
   auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
@@ -1181,7 +1183,7 @@ void ThriftHandler::setPortPrbs(
   *newPrbsState.enabled_ref() = enable;
   *newPrbsState.polynominal_ref() = polynominal;
 
-  if (component == PrbsComponent::ASIC) {
+  if (component == phy::PrbsComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);
@@ -1189,7 +1191,7 @@ void ThriftHandler::setPortPrbs(
       return newState;
     };
     sw_->updateStateBlocking("set port asic prbs", updateFn);
-  } else if (component == PrbsComponent::GB_SYSTEM) {
+  } else if (component == phy::PrbsComponent::GB_SYSTEM) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);
@@ -1197,7 +1199,7 @@ void ThriftHandler::setPortPrbs(
       return newState;
     };
     sw_->updateStateBlocking("set port gearbox system side prbs", updateFn);
-  } else if (component == PrbsComponent::GB_LINE) {
+  } else if (component == phy::PrbsComponent::GB_LINE) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);

@@ -404,28 +404,6 @@ struct PortStatus {
   6: string profileID;
 }
 
-enum PrbsComponent {
-  ASIC = 0,
-  GB_SYSTEM = 1,
-  GB_LINE = 2,
-}
-
-struct PrbsLaneStats {
-  1: i32 laneId;
-  2: bool locked;
-  3: double ber;
-  4: double maxBer;
-  5: i32 numLossOfLock;
-  6: i32 timeSinceLastLocked;
-  7: i32 timeSinceLastClear;
-}
-
-struct PrbsStats {
-  1: i32 portId;
-  2: PrbsComponent component;
-  3: list<PrbsLaneStats> laneStats;
-}
-
 enum CaptureDirection {
   CAPTURE_ONLY_RX = 0,
   CAPTURE_ONLY_TX = 1,
@@ -870,7 +848,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    */
   void setPortPrbs(
     1: i32 portId,
-    2: PrbsComponent component,
+    2: phy.PrbsComponent component,
     3: bool enable,
     4: i32 polynominal,
   ) throws (1: fboss.FbossBaseError error);
@@ -879,9 +857,10 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get the PRBS stats on a port. Useful when debugging a link
    * down or flapping issue.
    */
-  PrbsStats getPortPrbsStats(1: i32 portId, 2: PrbsComponent component) throws (
-    1: fboss.FbossBaseError error,
-  );
+  phy.PrbsStats getPortPrbsStats(
+    1: i32 portId,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Clear the PRBS stats counter on a port. Useful when debugging a link
@@ -895,9 +874,10 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * 6. locked status not changed
    * 7. timeLastCollect not changed
    */
-  void clearPortPrbsStats(1: i32 portId, 2: PrbsComponent component) throws (
-    1: fboss.FbossBaseError error,
-  );
+  void clearPortPrbsStats(
+    1: i32 portId,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Return info related to the port including name, description, speed,

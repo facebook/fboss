@@ -32,7 +32,8 @@ from fboss.cli.commands.commands import FlushType
 from fboss.cli.utils.click_utils import AliasedGroup
 from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from fboss.fb_thrift_clients import FbossAgentClient
-from neteng.fboss.ctrl.ttypes import HwObjectType, PortLedExternalState, PrbsComponent
+from neteng.fboss.ctrl.ttypes import HwObjectType, PortLedExternalState
+from neteng.fboss.phy.ttypes import PrbsComponent
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException

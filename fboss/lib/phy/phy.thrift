@@ -251,6 +251,28 @@ struct PortPrbsState {
   2: i32 polynominal;
 }
 
+enum PrbsComponent {
+  ASIC = 0,
+  GB_SYSTEM = 1,
+  GB_LINE = 2,
+}
+
+struct PrbsLaneStats {
+  1: i32 laneId;
+  2: bool locked;
+  3: double ber;
+  4: double maxBer;
+  5: i32 numLossOfLock;
+  6: i32 timeSinceLastLocked;
+  7: i32 timeSinceLastClear;
+}
+
+struct PrbsStats {
+  1: i32 portId;
+  2: PrbsComponent component;
+  3: list<PrbsLaneStats> laneStats;
+}
+
 // structs for Phy(both IPHY and XPHY) diagnostic info
 struct PhyInfo {
   1: DataPlanePhyChip phyChip;

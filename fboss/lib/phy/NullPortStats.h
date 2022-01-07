@@ -27,7 +27,8 @@ class NullPortStats : public ExternalPhyPortStatsUtils {
   explicit NullPortStats(std::string prefix)
       : ExternalPhyPortStatsUtils(prefix) {}
 
-  std::vector<PrbsLaneStats> getPrbsStats(phy::Side /* side */) const override {
+  std::vector<phy::PrbsLaneStats> getPrbsStats(
+      phy::Side /* side */) const override {
     return {};
   }
 

@@ -165,7 +165,9 @@ class PhyManager {
 
   phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side);
 
-  std::vector<PrbsLaneStats> getPortPrbsStats(PortID portID, phy::Side side);
+  std::vector<phy::PrbsLaneStats> getPortPrbsStats(
+      PortID portID,
+      phy::Side side);
   void clearPortPrbsStats(PortID portID, phy::Side side);
   std::vector<PortID> getPortsSupportingFeature(
       phy::ExternalPhy::Feature feature) const;

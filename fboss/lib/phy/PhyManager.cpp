@@ -298,7 +298,7 @@ phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
   return xphy->getPortPrbs(side, sideLanes);
 }
 
-std::vector<PrbsLaneStats> PhyManager::getPortPrbsStats(
+std::vector<phy::PrbsLaneStats> PhyManager::getPortPrbsStats(
     PortID portID,
     phy::Side side) {
   const auto& rLockedCache = getRLockedCache(portID);

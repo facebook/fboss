@@ -539,10 +539,10 @@ class BcmSwitch : public BcmSwitchIf {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
-  std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId) override;
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(int32_t portId) override;
   void clearPortAsicPrbsStats(int32_t portId) override;
 
-  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
+  std::vector<phy::PrbsLaneStats> getPortGearboxPrbsStats(
       int32_t portId,
       phy::Side side) override;
   void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
