@@ -33,6 +33,7 @@ namespace {
 folly::IPAddressV6 kAddr1{"2401::201:ab00"};
 folly::IPAddressV6 kAddr2{"2401::201:ac00"};
 folly::IPAddressV6 kAddr3{"2401::201:ad00"};
+folly::IPAddressV4 kAddr4{"10.10.10.10"};
 std::optional<facebook::fboss::RouteCounterID> kCounterID1("route.counter.0");
 std::optional<facebook::fboss::RouteCounterID> kCounterID2("route.counter.1");
 std::optional<facebook::fboss::RouteCounterID> kCounterID3("route.counter.2");
@@ -44,7 +45,9 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
  protected:
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
-    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+    ecmpHelper6_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState(), RouterID(0));
+    ecmpHelper4_ = std::make_unique<utility::EcmpSetupTargetedPorts4>(
         getProgrammedState(), RouterID(0));
   }
 
@@ -64,29 +67,37 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
   }
 
   void addRoute(
-      folly::IPAddressV6 prefix,
+      folly::IPAddress prefix,
       uint8_t mask,
       PortDescriptor port,
       std::optional<RouteCounterID> counterID) {
-    applyNewState(ecmpHelper_->resolveNextHops(
+    applyNewState(ecmpHelper6_->resolveNextHops(
         getProgrammedState(),
         {
             port,
         }));
 
-    ecmpHelper_->programRoutes(
-        getRouteUpdater(),
-        {port},
-        {RoutePrefixV6{prefix, mask}},
-        {},
-        counterID);
+    if (prefix.isV6()) {
+      ecmpHelper6_->programRoutes(
+          getRouteUpdater(),
+          {port},
+          {RoutePrefixV6{prefix.asV6(), mask}},
+          {},
+          counterID);
+    } else {
+      ecmpHelper4_->programRoutes(
+          getRouteUpdater(),
+          {port},
+          {RoutePrefixV4{prefix.asV4(), mask}},
+          {},
+          counterID);
+    }
   }
 
   void sendL3Packet(
       folly::IPAddressV6 dst,
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
-    CHECK(ecmpHelper_);
     auto vlanId = utility::firstVlanID(initialConfig());
     // construct eth hdr
     const auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -114,7 +125,8 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
         HwAsic::Feature::ROUTE_COUNTERS);
   }
 
-  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper6_;
+  std::unique_ptr<utility::EcmpSetupTargetedPorts4> ecmpHelper4_;
 };
 
 TEST_F(HwRouteStatTest, RouteEntryTest) {
@@ -128,6 +140,8 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
         kAddr2, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
     addRoute(
         kAddr3, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
+    addRoute(
+        kAddr4, 24, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
   };
   auto verify = [=]() {
     // verify unique counters

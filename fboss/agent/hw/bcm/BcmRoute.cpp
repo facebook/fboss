@@ -142,34 +142,37 @@ void programLpmRoute(
     // Lambda to compare if the routes are equivalent and thus we need to
     // do nothing
     auto equivalent = [=](const bcm_l3_route_t& newRoute,
-                          const bcm_l3_route_t& existingRoute) {
+                          const auto& newCounterID,
+                          const bcm_l3_route_t& existingRoute,
+                          const auto& oldCounterID) {
       // Compare flags (primarily MULTIPATH vs non MULTIPATH
       // and egress id.
       return getBcmRouteFlags(existingRoute.l3a_flags) ==
           getBcmRouteFlags(newRoute.l3a_flags) &&
-          existingRoute.l3a_intf == newRoute.l3a_intf;
+          existingRoute.l3a_intf == newRoute.l3a_intf &&
+          newCounterID == oldCounterID;
     };
-    if (!equivalent(rt, cachedRoute.value())) {
+    // if route flags changed during warmboot, check whether
+    // the route has counter id. set old counter id here
+    // so that rest of the logic follows correctly.
+    uint32_t hwCounterIndex;
+    uint32_t hwCounterOffset{0};
+    auto rc = bcm_l3_route_stat_id_get(
+        unit, &rt, bcmL3RouteInPackets, &hwCounterIndex);
+    if (rc == BCM_E_NONE) {
+      if (isFlexCounterSupported) {
+#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
+        rc = bcm_l3_route_flexctr_object_get(unit, &rt, &hwCounterOffset);
+#endif
+      }
+      oldCounterID.emplace(
+          facebook::fboss::BcmRouteCounterID(hwCounterIndex, hwCounterOffset));
+    }
+    if (!equivalent(rt, counterID, cachedRoute.value(), oldCounterID)) {
       XLOG(DBG3) << "Updating route for : " << prefix << "/"
                  << static_cast<int>(prefixLength) << " in vrf : " << vrf;
       // This is a change
       rt.l3a_flags |= BCM_L3_REPLACE;
-      // if route flags changed during warmboot, check whether
-      // the route has counter id. set old counter id here
-      // so that rest of the logic follows correctly.
-      uint32_t hwCounterIndex;
-      uint32_t hwCounterOffset{0};
-      auto rc = bcm_l3_route_stat_id_get(
-          unit, &rt, bcmL3RouteInPackets, &hwCounterIndex);
-      if (rc == BCM_E_NONE) {
-        if (isFlexCounterSupported) {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
-          rc = bcm_l3_route_flexctr_object_get(unit, &rt, &hwCounterOffset);
-#endif
-        }
-        oldCounterID.emplace(facebook::fboss::BcmRouteCounterID(
-            hwCounterIndex, hwCounterOffset));
-      }
       addRoute = true;
     } else {
       XLOG(DBG3) << " Route for : " << prefix << "/"
