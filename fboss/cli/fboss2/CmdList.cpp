@@ -44,7 +44,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "lldp",
-       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show LLDPinformation",
        commandHandler<CmdShowLldp>},
 

@@ -73,6 +73,7 @@ class CmdShowLldpTestFixture : public testing::Test {
  public:
   std::vector<fboss::LinkNeighborThrift> lldpEntries;
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+  std::vector<std::string> queriedIfs;
   folly::IPAddressV4 hostIp;
 
   void SetUp() override {
@@ -84,7 +85,7 @@ class CmdShowLldpTestFixture : public testing::Test {
 
 TEST_F(CmdShowLldpTestFixture, createModel) {
   auto cmd = CmdShowLldp();
-  auto model = cmd.createModel(lldpEntries, portEntries);
+  auto model = cmd.createModel(lldpEntries, portEntries, queriedIfs);
   auto entries = model.get_lldpEntries();
 
   EXPECT_EQ(entries.size(), 3);
@@ -104,7 +105,7 @@ TEST_F(CmdShowLldpTestFixture, createModel) {
 
 TEST_F(CmdShowLldpTestFixture, printOutput) {
   auto cmd = CmdShowLldp();
-  auto model = cmd.createModel(lldpEntries, portEntries);
+  auto model = cmd.createModel(lldpEntries, portEntries, queriedIfs);
 
   std::stringstream ss;
   cmd.printOutput(model, ss);

@@ -13,11 +13,13 @@
 #include <boost/algorithm/string.hpp>
 #include <re2/re2.h>
 #include <string>
+#include <unordered_set>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/lldp/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
+#include "folly/container/Access.h"
 
 namespace facebook::fboss {
 
@@ -25,8 +27,8 @@ using utils::Table;
 
 struct CmdShowLldpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+  using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowLldpModel;
 };
 
@@ -34,7 +36,9 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
  public:
   using RetType = CmdShowLldpTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const std::vector<std::string>& queriedIfs) {
     std::vector<facebook::fboss::LinkNeighborThrift> entries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
@@ -45,7 +49,7 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
 
     client->sync_getAllPortInfo(portEntries);
 
-    return createModel(entries, portEntries);
+    return createModel(entries, portEntries, queriedIfs);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -169,7 +173,13 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     // different format
     if (results.size() <= 1) {
       boost::split(results, portDescription, [](char c) { return c == '.'; });
-      // Finally, if it's an RSW we need to handle that differently
+
+      // Depending on which tier the peer is, we need to grab the specific
+      // fields to make a useable hostname
+      const RE2 ssw_regex(".*ssw.*");
+      if (RE2::FullMatch(portDescription, ssw_regex)) {
+        return results[1] + "." + results[2];
+      }
       const RE2 fsw_regex("^fsw.*");
       if (RE2::FullMatch(portDescription, fsw_regex)) {
         return results[0] + "." + results[1];
@@ -180,30 +190,36 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
 
   RetType createModel(
       std::vector<facebook::fboss::LinkNeighborThrift> lldpEntries,
-      std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries) {
+      std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
+      const std::vector<std::string>& queriedIfs) {
     RetType model;
+
+    std::unordered_set<std::string> queriedSet(
+        queriedIfs.begin(), queriedIfs.end());
 
     for (const auto& entry : lldpEntries) {
       cli::LldpEntry lldpDetails;
 
       const auto portInfo = getPortInfo(entry.get_localPort(), portEntries);
-      const auto operState = portInfo.get_operState();
+      if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
+        const auto operState = portInfo.get_operState();
 
-      const auto expected_peer =
-          extractExpectedPort(portInfo.get_description());
+        const auto expected_peer =
+            extractExpectedPort(portInfo.get_description());
 
-      lldpDetails.localPort_ref() = *entry.get_localPortName();
-      lldpDetails.systemName_ref() = entry.get_systemName()
-          ? *entry.get_systemName()
-          : entry.get_printableChassisId();
-      lldpDetails.remotePort_ref() = entry.get_printablePortId();
-      lldpDetails.remotePlatform_ref() = *entry.get_systemDescription();
-      lldpDetails.remotePortDescription_ref() = portInfo.get_description();
-      lldpDetails.status_ref() =
-          (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-      lldpDetails.expectedPeer_ref() = expected_peer;
+        lldpDetails.localPort_ref() = *entry.get_localPortName();
+        lldpDetails.systemName_ref() = entry.get_systemName()
+            ? *entry.get_systemName()
+            : entry.get_printableChassisId();
+        lldpDetails.remotePort_ref() = entry.get_printablePortId();
+        lldpDetails.remotePlatform_ref() = *entry.get_systemDescription();
+        lldpDetails.remotePortDescription_ref() = portInfo.get_description();
+        lldpDetails.status_ref() =
+            (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
+        lldpDetails.expectedPeer_ref() = expected_peer;
 
-      model.lldpEntries_ref()->push_back(lldpDetails);
+        model.lldpEntries_ref()->push_back(lldpDetails);
+      }
     }
 
     std::sort(
