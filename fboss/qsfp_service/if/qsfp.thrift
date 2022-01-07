@@ -13,7 +13,7 @@ include "fboss/mka_service/if/mka_structs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/lib/phy/phy.thrift"
 
-service QsfpService extends fb303.FacebookService {
+service QsfpService extends phy.FbossCommonPhyCtrl {
   transceiver.TransceiverType getType(1: i32 idx);
 
   /*
@@ -104,10 +104,6 @@ service QsfpService extends fb303.FacebookService {
   ) throws (1: fboss.FbossBaseError error);
 
   bool getSdkState(1: string fileName) throws (1: fboss.FbossBaseError error);
-
-  void publishLinkSnapshots(1: list<string> portNames) throws (
-    1: fboss.FbossBaseError error,
-  );
 
   bool sakInstallRx(
     1: mka_structs.MKASak sak,

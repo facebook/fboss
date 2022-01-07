@@ -10,6 +10,8 @@ namespace php fboss_phy
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "common/fb303/if/fb303.thrift"
+include "fboss/agent/if/fboss.thrift"
 
 enum IpModulation {
   NRZ = 1,
@@ -312,4 +314,16 @@ struct RsInfo {
 union LinkSnapshot {
   1: transceiver.TransceiverInfo transceiverInfo;
   2: PhyInfo phyInfo;
+}
+
+/*
+ * This includes all the APIs that are common for internal PHYs (iphy),
+ * external PHYs (xphy) and Optics. Any APIs that are specific to
+ * iphy or xphy or optics should go to their respective interfaces
+ * (FbossCtrl service for iphy and QsfpService for xphy and optics)
+*/
+service FbossCommonPhyCtrl extends fb303.FacebookService {
+  void publishLinkSnapshots(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
 }

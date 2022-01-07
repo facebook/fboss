@@ -612,7 +612,7 @@ exception FbossFibUpdateError {
   4: list<mpls.MplsLabel> failedDeleteMplsLabels;
 }
 
-service FbossCtrl extends fb303.FacebookService {
+service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
    * thread-local stats to the global state.  This way the next getCounters()
@@ -1175,10 +1175,6 @@ service FbossCtrl extends fb303.FacebookService {
   void setNeighborsToBlock(
     1: list<switch_config.Neighbor> neighborsToBlock,
   ) throws (1: fboss.FbossBaseError error);
-
-  void publishLinkSnapshots(1: list<string> portNames) throws (
-    1: fboss.FbossBaseError error,
-  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
