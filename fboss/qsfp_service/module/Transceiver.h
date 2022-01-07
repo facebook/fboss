@@ -143,6 +143,16 @@ class Transceiver {
 
   virtual bool shouldRemediate() = 0;
 
+  /*
+   * Return true if such Transceiver can support remediation.
+   * Different from shouldRemediate(), which will also check whether there's
+   * a recent remediation and will returl false if the remediation interval
+   * time is not up yet.
+   * While this function is based on whether the Transceiver can support
+   * remediation from HW perspective.
+   */
+  virtual bool supportRemediate() = 0;
+
   virtual void markLastDownTime() = 0;
 
   virtual time_t getLastDownTime() const = 0;

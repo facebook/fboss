@@ -605,13 +605,7 @@ void QsfpModule::refreshLocked() {
 }
 
 bool QsfpModule::shouldRemediate() {
-  // Since Miniphton module is always showing as present and four ports
-  // sharing a single optical module. Doing remediation on one port will
-  // have side effect on the neighbor port as well. So we don't do
-  // remediation as suggested by our HW optic team.
-  const auto& cachedTcvrInfo = getTransceiverInfo();
-  if (cachedTcvrInfo.vendor_ref().has_value() &&
-      *cachedTcvrInfo.vendor_ref()->partNumber_ref() == kMiniphotonPartNumber) {
+  if (!supportRemediate()) {
     return false;
   }
 

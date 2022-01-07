@@ -292,6 +292,10 @@ class CmisModule : public QsfpModule {
    */
   void latchAndReadVdmDataLocked() override;
 
+  bool supportRemediate() override {
+    return true;
+  }
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;

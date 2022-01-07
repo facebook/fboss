@@ -516,6 +516,17 @@ bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
   return didRemediate;
 }
 
+bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Transceiver=" << id
+               << " is not present and can't support remediate";
+    return false;
+  }
+  return tcvrIt->second->supportRemediate();
+}
+
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   if (!FLAGS_use_new_state_machine) {
     return;

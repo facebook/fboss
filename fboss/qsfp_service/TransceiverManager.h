@@ -201,6 +201,8 @@ class TransceiverManager {
 
   bool tryRemediateTransceiver(TransceiverID id);
 
+  bool supportRemediateTransceiver(TransceiverID id);
+
   void markLastDownTime(TransceiverID id) noexcept;
   // ========== Public functions fo TransceiverStateMachine ==========
 

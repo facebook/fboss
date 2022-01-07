@@ -299,11 +299,7 @@ TEST_F(
       std::queue<TransceiverStateMachineState> tcvrExpectedStates;
       // Only care enabled ports
       if (enabledTcvrs.find(id) != enabledTcvrs.end()) {
-        // Miniphoton doesn't support remediation
-        const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
-        if (transceiver.vendor_ref() &&
-            *transceiver.vendor_ref()->partNumber_ref() ==
-                QsfpModule::kMiniphotonPartNumber) {
+        if (!wedgeMgr->supportRemediateTransceiver(id)) {
           continue;
         }
         tcvrExpectedStates.push(

@@ -1363,5 +1363,24 @@ bool SffModule::verifyEepromChecksum(int pageId) {
   return true;
 }
 
+bool SffModule::supportRemediate() {
+  // Since Miniphton module is always showing as present and four ports
+  // sharing a single optical module. Doing remediation on one port will
+  // have side effect on the neighbor port as well. So we don't do
+  // remediation as suggested by our HW optic team.
+  const auto& cachedTcvrInfo = getTransceiverInfo();
+  if (cachedTcvrInfo.vendor_ref().has_value() &&
+      *cachedTcvrInfo.vendor_ref()->partNumber_ref() == kMiniphotonPartNumber) {
+    return false;
+  } else if (
+      cachedTcvrInfo.cable_ref() &&
+      *cachedTcvrInfo.cable_ref()->transmitterTech_ref() ==
+          TransmitterTechnology::COPPER) {
+    return false;
+  }
+
+  return true;
+}
+
 } // namespace fboss
 } // namespace facebook
