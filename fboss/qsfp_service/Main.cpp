@@ -36,14 +36,7 @@ void initFlagDefaults(int argc, char** argv) {
   // one pass over flags, but don't clear argc/argv. We only do this
   // to extract the 'qsfp_config' arg.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
-  auto qsfpConfig = QsfpConfig::fromDefaultFile();
-  for (auto item : *qsfpConfig->thrift.defaultCommandLineArgs_ref()) {
-    // logging not initialized yet, need to use std::cerr
-    std::cerr << "Overriding default flag from config: " << item.first.c_str()
-              << "=" << item.second.c_str() << std::endl;
-    gflags::SetCommandLineOptionWithMode(
-        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
-  }
+  initFlagDefaultsFromQsfpConfig();
 }
 
 int main(int argc, char** argv) {

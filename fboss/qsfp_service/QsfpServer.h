@@ -24,4 +24,6 @@ setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager);
 int doServerLoop(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
     std::shared_ptr<QsfpServiceHandler> handler);
+
+void initFlagDefaultsFromQsfpConfig();
 } // namespace facebook::fboss

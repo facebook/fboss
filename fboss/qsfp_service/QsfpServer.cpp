@@ -25,4 +25,15 @@ setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager) {
   server->setInterface(handler);
   return std::make_pair(server, handler);
 }
+
+void initFlagDefaultsFromQsfpConfig() {
+  auto qsfpConfig = QsfpConfig::fromDefaultFile();
+  for (auto item : *qsfpConfig->thrift.defaultCommandLineArgs_ref()) {
+    // logging not initialized yet, need to use std::cerr
+    std::cerr << "Overriding default flag from config: " << item.first.c_str()
+              << "=" << item.second.c_str() << std::endl;
+    gflags::SetCommandLineOptionWithMode(
+        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
+  }
+}
 } // namespace facebook::fboss

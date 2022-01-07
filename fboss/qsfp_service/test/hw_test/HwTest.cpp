@@ -15,6 +15,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
@@ -31,6 +32,9 @@ HwTest::HwTest(bool useNewStateMachine, bool setupOverrideTcvrToPortAndProfile)
       setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
 
 void HwTest::SetUp() {
+  // First use QsfpConfig to init default command line arguments
+  initFlagDefaultsFromQsfpConfig();
+
   // Set initializing pim xphys to 1 so we always initialize xphy chips
   gflags::SetCommandLineOptionWithMode(
       "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
