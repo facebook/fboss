@@ -149,8 +149,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       // There can be delay before stats are synced.
       // So, add retries to avoid flakiness.
-      EXPECT_TRUE(
-          getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          countIncremented, 20, std::chrono::milliseconds(200)));
     };
 
     verifyAcrossWarmBoots(setup, verify);
