@@ -27,6 +27,7 @@
 #include <thread>
 
 DECLARE_int32(update_watermark_stats_interval_s);
+DECLARE_bool(force_recreate_acl_tables);
 
 namespace facebook::fboss {
 

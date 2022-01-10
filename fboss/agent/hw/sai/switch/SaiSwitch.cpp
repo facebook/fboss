@@ -93,6 +93,11 @@ DEFINE_bool(
 
 DECLARE_bool(enable_acl_table_group);
 
+DEFINE_bool(
+    force_recreate_acl_tables,
+    false,
+    "force recreate acl tables during warmboot.");
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
