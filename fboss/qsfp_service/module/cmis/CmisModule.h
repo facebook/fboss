@@ -296,6 +296,12 @@ class CmisModule : public QsfpModule {
     return true;
   }
 
+  /*
+   * Set the PRBS Generator and Checker on a module for the desired side (Line
+   * or System side)
+   */
+  bool setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;

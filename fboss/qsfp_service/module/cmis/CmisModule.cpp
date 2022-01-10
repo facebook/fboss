@@ -2319,5 +2319,11 @@ bool CmisModule::getModuleStateChanged() {
   return getSettingsValue(CmisField::MODULE_FLAG, MODULE_STATE_CHANGED_MASK);
 }
 
+bool CmisModule::setPortPrbs(
+    phy::Side /* side */,
+    const phy::PortPrbsState& /* prbs */) {
+  return false;
+}
+
 } // namespace fboss
 } // namespace facebook

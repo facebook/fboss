@@ -225,6 +225,14 @@ class QsfpModule : public Transceiver {
     return diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref();
   }
 
+  bool isPrbsSupported(phy::Side side) const {
+    return (side == phy::Side::LINE)
+        ? (diagsCapability_.has_value() &&
+           *diagsCapability_.value().prbsLine_ref())
+        : (diagsCapability_.has_value() &&
+           *diagsCapability_.value().prbsSystem_ref());
+  }
+
   std::optional<DiagsCapability> moduleDiagsCapabilityGet() const {
     return diagsCapability_;
   }
@@ -265,6 +273,12 @@ class QsfpModule : public Transceiver {
 
   time_t getLastDownTime() const override {
     return lastDownTime_;
+  }
+
+  virtual bool setPortPrbs(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */) {
+    return false;
   }
 
  protected:
