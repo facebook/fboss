@@ -338,15 +338,6 @@ class SwSwitch : public HwSwitch::Callback {
   void initialConfigApplied(
       const std::chrono::steady_clock::time_point& startTime);
   /*
-   * Publish all thread-local stats to the main fb303::fbData singleton,
-   * so they will be visible via fb303 thrift calls.
-   *
-   * This method should be called once per second.  It can be called from any
-   * thread.
-   */
-  void publishStats();
-
-  /*
    * Get the SwitchStats for the current thread.
    *
    * This object should only be used from the current thread.  It should never
