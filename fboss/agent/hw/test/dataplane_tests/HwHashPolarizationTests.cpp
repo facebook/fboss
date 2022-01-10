@@ -20,6 +20,8 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/hw/test/HwHashPolarizationTestUtils.h"
+
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -218,6 +220,60 @@ TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
+}
+
+template <HwAsic::AsicType kAsic, bool kSai>
+struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
+  bool isAsic() {
+    return getHwSwitchEnsemble()->getPlatform()->getAsic()->getAsicType() ==
+        kAsic;
+  }
+  bool shouldRunTest() {
+    // run test only if underlying ASIC and SAI mode matches
+    return isAsic() && getHwSwitchEnsemble()->isSai() == kSai;
+  }
+  void runTest(HwAsic::AsicType type, bool sai) {
+    if (!shouldRunTest()) {
+      GTEST_SKIP();
+      return;
+    }
+    auto setup = [this]() {
+      programRoutes<folly::IPAddressV4>();
+      programRoutes<folly::IPAddressV6>();
+    };
+    auto verify = [=]() {
+      auto secondHashes =
+          utility::getEcmpFullTrunkFullHashConfig(getPlatform());
+      secondHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+          LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+      secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+          LoadBalancerID::AGGREGATE_PORT,
+          folly::MacAddress("9a:5d:82:09:3a:d9"));
+      auto frames = getFullHashedPackets(type, sai);
+      runSecondHash(*frames, secondHashes, false);
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+struct HwHashPolarizationTestForTD2 : HwHashPolarizationTestForAsic<
+                                          HwAsic::AsicType::ASIC_TYPE_TRIDENT2,
+                                          false> {};
+
+TEST_F(HwHashPolarizationTestForTD2, With_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+}
+
+TEST_F(HwHashPolarizationTestForTD2, With_SAI_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+}
+
+TEST_F(HwHashPolarizationTestForTD2, With_SAI_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+}
+
+TEST_F(HwHashPolarizationTestForTD2, With_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 } // namespace facebook::fboss
