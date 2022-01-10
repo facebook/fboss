@@ -276,4 +276,25 @@ TEST_F(HwHashPolarizationTestForTD2, With_TH) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
+struct HwHashPolarizationTestForSAITD2
+    : HwHashPolarizationTestForAsic<
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2,
+          true> {};
+
+TEST_F(HwHashPolarizationTestForSAITD2, With_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+}
+
+TEST_F(HwHashPolarizationTestForSAITD2, With_SAI_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+}
+
+TEST_F(HwHashPolarizationTestForSAITD2, With_SAI_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+}
+
+TEST_F(HwHashPolarizationTestForSAITD2, With_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+}
+
 } // namespace facebook::fboss
