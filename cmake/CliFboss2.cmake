@@ -67,6 +67,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_interface_traffic
+  fboss/cli/fboss2/commands/show/interface/traffic/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_interface_counters_mka
   fboss/cli/fboss2/commands/show/interface/counters/mka/model.thrift
   OPTIONS
@@ -93,6 +100,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
+  fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
@@ -130,6 +138,7 @@ target_link_libraries(fboss2
   show_interface_errors
   show_interface_counters
   show_interface_counters_mka
+  show_interface_traffic
   ${RE2}
 )
 

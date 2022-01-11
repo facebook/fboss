@@ -20,6 +20,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
@@ -92,6 +93,11 @@ const CommandTree& kCommandTree() {
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Flap Counters",
             commandHandler<CmdShowInterfaceFlaps>},
+
+           {"traffic",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+            "Show Interace Traffic",
+            commandHandler<CmdShowInterfaceTraffic>},
        }},
       {"show",
        "transceiver",
