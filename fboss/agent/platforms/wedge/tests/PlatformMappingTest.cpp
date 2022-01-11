@@ -11,7 +11,6 @@
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
@@ -24,6 +23,7 @@
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/fuji/Fuji16QPimPlatformMapping.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>

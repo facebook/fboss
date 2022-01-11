@@ -12,7 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"

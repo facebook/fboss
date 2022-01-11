@@ -11,8 +11,8 @@
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

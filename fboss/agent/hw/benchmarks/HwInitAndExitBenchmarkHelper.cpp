@@ -20,10 +20,10 @@
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

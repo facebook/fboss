@@ -12,7 +12,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 namespace facebook::fboss::utility {
 

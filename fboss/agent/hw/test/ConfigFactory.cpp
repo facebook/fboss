@@ -14,10 +14,10 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>

@@ -11,7 +11,7 @@
 #pragma once
 #include <cstdint>
 #include <utility>
-#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 namespace facebook::fboss {
 

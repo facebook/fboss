@@ -8,7 +8,7 @@
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/TransceiverManager.h"

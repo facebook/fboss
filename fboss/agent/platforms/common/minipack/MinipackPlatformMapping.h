@@ -10,7 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 namespace facebook {
 namespace fboss {

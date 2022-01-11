@@ -12,11 +12,11 @@
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <folly/IPAddress.h>
 #include <map>
