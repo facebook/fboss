@@ -5,6 +5,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 
 #include <folly/io/Cursor.h>
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -58,6 +59,8 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
         return nullptr;
     }
   }
+  XLOG(FATAL) << " Should never get here";
+  return nullptr;
 }
 
 } // namespace facebook::fboss

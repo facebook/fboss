@@ -42,17 +42,6 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     folly::io::Cursor cursor{pkt->buf()};
     pktsReceived_.wlock()->emplace_back(utility::EthFrame{cursor});
   }
-  template <typename AddrT>
-  void programRoutes() {
-    auto ecmpPorts = getEcmpPorts();
-    boost::container::flat_set<PortDescriptor> ports;
-    std::for_each(ecmpPorts.begin(), ecmpPorts.end(), [&ports](auto ecmpPort) {
-      ports.insert(PortDescriptor{ecmpPort});
-    });
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
-    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
-    ecmpHelper.programRoutes(getRouteUpdater(), ports);
-  }
   std::vector<PortID> getEcmpPorts() const {
     auto masterLogicalPorts = masterLogicalPortIds();
     return {
@@ -77,6 +66,17 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
   }
 
  protected:
+  template <typename AddrT>
+  void programRoutes() {
+    auto ecmpPorts = getEcmpPorts();
+    boost::container::flat_set<PortDescriptor> ports;
+    std::for_each(ecmpPorts.begin(), ecmpPorts.end(), [&ports](auto ecmpPort) {
+      ports.insert(PortDescriptor{ecmpPort});
+    });
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
+    ecmpHelper.programRoutes(getRouteUpdater(), ports);
+  }
   void runTest(
       const cfg::LoadBalancer& firstHash,
       const cfg::LoadBalancer& secondHash,
