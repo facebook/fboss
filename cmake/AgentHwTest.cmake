@@ -181,12 +181,14 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
   # TODO: Compile takes too long. Commenting until addressing it
+  # fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
+  # fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
@@ -195,7 +197,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwDscpQueueMappingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwJumboFramesTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInDiscardCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
