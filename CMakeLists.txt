@@ -244,6 +244,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   phy_cpp2
   fboss/lib/phy/phy.thrift
+  SERVICES
+    FbossCommonPhyCtrl
   OPTIONS
     json
   DEPENDS
@@ -296,6 +298,7 @@ add_fbthrift_cpp_library(
     platform_config_cpp2
     transceiver_cpp2
     common_cpp2
+    phy_cpp2
   OPTIONS
     json
 )

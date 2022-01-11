@@ -116,6 +116,7 @@ target_link_libraries(fboss2
   fb303_cpp2
   ctrl_cpp2
   qsfp_cpp2
+  phy_cpp2
   hardware_stats_cpp2
   mka_structs_cpp2
   Folly::folly
