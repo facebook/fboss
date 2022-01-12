@@ -70,9 +70,15 @@ void HwTest::SetUp() {
       "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
   // Do an initial refresh so that the customization is done before the test
-  // starts. It also takes ~5 seconds sometimes for the CMIS modules to be
+  // starts.
+  if (FLAGS_use_new_state_machine) {
+    waitTillCabledTcvrProgrammed();
+  } else {
+    refreshTransceiversWithRetry();
+  }
+
+  // It also takes ~5 seconds sometimes for the CMIS modules to be
   // functional after a data path deinit, that can happen in the customize call
-  refreshTransceiversWithRetry();
   if (!didWarmBoot()) {
     // Warmboot shouldn't configure the transceiver again so we shouldn't
     // require a wait here
@@ -154,5 +160,40 @@ std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
   checkWithRetry(refresh, numRetries);
 
   return transceiverIds;
+}
+
+// This function is only used if new port programming feature is enabled
+// We will wait till all the cabled transceivers reach the
+// TRANSCEIVER_PROGRAMMED state by retrying `numRetries` times of
+// TransceiverManager::refreshStateMachines()
+void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
+  // First get all expected transceivers based on cabled ports from agent.conf
+  auto agentConfig = ensemble_->getWedgeManager()->getAgentConfig();
+  const auto& expectedIds =
+      utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
+
+  // Due to some platforms are easy to have i2c issue which causes the current
+  // refresh not work as expected. Adding enough retries to make sure that we
+  // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.
+  auto refreshStateMachinesTillTcvrProgrammed = [this, &expectedIds]() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    wedgeMgr->refreshStateMachines();
+    for (auto id : expectedIds) {
+      auto curState = wedgeMgr->getCurrentState(id);
+      // Statemachine can support transceiver programming (iphy/xphy/tcvr) when
+      // `setupOverrideTcvrToPortAndProfile_` is true.
+      if (setupOverrideTcvrToPortAndProfile_ &&
+          curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Retry until all state machines reach TRANSCEIVER_PROGRAMMED
+  checkWithRetry(
+      refreshStateMachinesTillTcvrProgrammed,
+      numRetries /* retries */,
+      std::chrono::milliseconds(5000) /* msBetweenRetry */);
 }
 } // namespace facebook::fboss

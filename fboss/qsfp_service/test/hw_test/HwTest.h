@@ -25,7 +25,7 @@ class HwTest : public ::testing::Test {
  public:
   explicit HwTest(
       bool useNewStateMachine = false,
-      bool setupOverrideTcvrToPortAndProfile = false);
+      bool setupOverrideTcvrToPortAndProfile = true);
   ~HwTest() override = default;
 
   HwQsfpEnsemble* getHwQsfpEnsemble() {
@@ -52,6 +52,12 @@ class HwTest : public ::testing::Test {
   }
 
   std::vector<TransceiverID> refreshTransceiversWithRetry(int numRetries = 3);
+
+  // This function is only used if new port programming feature is enabled
+  // We will wait till all the cabled transceivers reach the
+  // TRANSCEIVER_PROGRAMMED state by retrying `numRetries` times of
+  // TransceiverManager::refreshStateMachines()
+  void waitTillCabledTcvrProgrammed(int numRetries = 10);
 
  private:
   bool didWarmBoot() const;

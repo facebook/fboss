@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 class HwStateMachineTest : public HwTest {
  public:
-  HwStateMachineTest(bool setupOverrideTcvrToPortAndProfile = false)
+  HwStateMachineTest(bool setupOverrideTcvrToPortAndProfile = true)
       : HwTest(true, setupOverrideTcvrToPortAndProfile) {}
 
   void SetUp() override {
@@ -47,6 +47,9 @@ class HwStateMachineTest : public HwTest {
     }
     XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
                << ", absent:" << absentTransceivers_.size() << "]";
+
+    // Set pause remdiation so it won't trigger remediation
+    setPauseRemediation(true);
   }
 
   const std::vector<TransceiverID>& getPresentTransceivers() const {
@@ -54,6 +57,10 @@ class HwStateMachineTest : public HwTest {
   }
   const std::vector<TransceiverID>& getAbsentTransceivers() const {
     return absentTransceivers_;
+  }
+  void setPauseRemediation(bool paused) {
+    getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
+        paused ? 600 : 0);
   }
 
  private:
@@ -65,7 +72,23 @@ class HwStateMachineTest : public HwTest {
   std::vector<TransceiverID> absentTransceivers_;
 };
 
-TEST_F(HwStateMachineTest, CheckOpticsDetection) {
+// With HwTest::waitTillCabledTcvrProgrammed() being called in HwTest::SetUp(),
+// all transceivers' state machine will reach programmed state eventually.
+// But we also want to verify the early state if qsfp_service can't call
+// iphy programming from wedge_agent.
+class HwStateMachineTestWithoutIphyProgramming : public HwStateMachineTest {
+ public:
+  HwStateMachineTestWithoutIphyProgramming() : HwStateMachineTest(false) {}
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  HwStateMachineTestWithoutIphyProgramming(
+      HwStateMachineTestWithoutIphyProgramming const&) = delete;
+  HwStateMachineTestWithoutIphyProgramming& operator=(
+      HwStateMachineTestWithoutIphyProgramming const&) = delete;
+};
+
+TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
   auto verify = [&]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     // Default HwTest::Setup() already has a refresh, so all present
@@ -89,52 +112,7 @@ TEST_F(HwStateMachineTest, CheckOpticsDetection) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-class HwStateMachineTestWithOverrideTcvrToPortAndProfile
-    : public HwStateMachineTest {
- public:
-  HwStateMachineTestWithOverrideTcvrToPortAndProfile()
-      : HwStateMachineTest(true /* setupOverrideTcvrToPortAndProfile */) {}
-
-  void SetUp() override {
-    HwStateMachineTest::SetUp();
-
-    waitTillTcvrProgrammed(getPresentTransceivers());
-
-    // Set pause remdiation so it won't trigger remediation
-    setPauseRemediation(true);
-  }
-
-  void setPauseRemediation(bool paused) {
-    getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
-        paused ? 600 : 0);
-  }
-
-  void waitTillTcvrProgrammed(const std::vector<TransceiverID>& tcvrs) {
-    // Due to some platforms are easy to have i2c issue which causes the current
-    // refresh not work as expected. Adding enough retries to make sure that we
-    // at least can secure TRANSCEIVER_PROGRAMMED after 10 times.
-    auto refreshStateMachinesTillTcvrProgrammed = [this, &tcvrs]() {
-      auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-      wedgeMgr->refreshStateMachines();
-      for (auto id : tcvrs) {
-        auto curState = wedgeMgr->getCurrentState(id);
-        if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-          return false;
-        }
-      }
-      return true;
-    };
-    // Retry 10 times until all state machines reach TRANSCEIVER_PROGRAMMED
-    checkWithRetry(
-        refreshStateMachinesTillTcvrProgrammed,
-        10 /* retries */,
-        std::chrono::milliseconds(10000) /* msBetweenRetry */);
-  }
-};
-
-TEST_F(
-    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckPortsProgrammed) {
+TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
   auto verify = [this]() {
     auto checkTransceiverProgrammed = [this](const std::vector<TransceiverID>&
                                                  tcvrs) {
@@ -189,9 +167,7 @@ TEST_F(
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(
-    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckPortStatusUpdated) {
+TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
   auto verify = [this]() {
     std::unordered_map<TransceiverID, time_t> lastDownTimes;
     auto checkTransceiverActiveState =
@@ -241,9 +217,7 @@ TEST_F(
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(
-    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckTransceiverRemoved) {
+TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     wedgeMgr->setOverrideAgentPortStatusForTesting(
@@ -262,9 +236,7 @@ TEST_F(
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(
-    HwStateMachineTestWithOverrideTcvrToPortAndProfile,
-    CheckTransceiverRemediated) {
+TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
   auto verify = [this]() {
     std::set<TransceiverID> enabledTcvrs;
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
