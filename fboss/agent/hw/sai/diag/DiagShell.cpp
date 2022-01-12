@@ -155,6 +155,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::LASSEN:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
@@ -358,6 +359,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::LASSEN:
       return folly::to<std::string>("print('", UUID, "')\n");
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
@@ -399,6 +401,7 @@ std::string& DiagCmdServer::cleanUpOutput(
       return output;
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::LASSEN:
       return output;
     case PlatformMode::CLOUDRIPPER:
       throw FbossError("Shell not supported for cloud ripper platform");

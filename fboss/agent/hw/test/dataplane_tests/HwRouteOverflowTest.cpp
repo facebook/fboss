@@ -72,6 +72,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::LASSEN:
       XLOG(WARNING) << " No overflow test for 400C yet";
       break;
     case PlatformMode::FUJI:
