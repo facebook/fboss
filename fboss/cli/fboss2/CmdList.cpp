@@ -10,8 +10,10 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
+#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -116,6 +118,20 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
        "Clear NDP information",
        commandHandler<CmdClearNdp>},
+
+      {
+          "clear",
+          "interface",
+          "Clear Interface Information",
+          {
+              {
+                  "counters",
+                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+                  "Clear Interface Counters",
+                  commandHandler<CmdClearInterfaceCounters>,
+              },
+          },
+      },
   };
   return root;
 }

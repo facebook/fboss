@@ -12,6 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -108,6 +109,8 @@ template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
+template void
+CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
 
 static bool hasRun = false;
 

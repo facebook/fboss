@@ -85,6 +85,7 @@ find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
+  fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
