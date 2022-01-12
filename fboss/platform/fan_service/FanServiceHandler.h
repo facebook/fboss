@@ -7,7 +7,8 @@
 #include "fboss/platform/fan_service/FanService.h"
 
 namespace facebook::fboss::platform {
-class FanServiceHandler : public facebook::fb303::FacebookBase2 {
+class FanServiceHandler
+    : public ::facebook::fb303::FacebookBase2DeprecationMigration {
  public:
   FanServiceHandler(std::unique_ptr<FanService> fanService);
   // Make compiler happy

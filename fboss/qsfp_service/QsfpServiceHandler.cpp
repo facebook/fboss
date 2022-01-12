@@ -39,7 +39,7 @@ static void valid(const Type& val) {
 QsfpServiceHandler::QsfpServiceHandler(
     std::unique_ptr<TransceiverManager> manager,
     std::shared_ptr<mka::MacsecHandler> handler)
-    : FacebookBase2("QsfpService"),
+    : ::facebook::fb303::FacebookBase2DeprecationMigration("QsfpService"),
       manager_(std::move(manager)),
       macsecHandler_(handler) {
   XLOG(INFO) << "FbossPhyMacsecService inside QsfpServiceHandler Started";

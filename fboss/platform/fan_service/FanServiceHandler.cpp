@@ -10,7 +10,8 @@ facebook::fb303::cpp2::fb_status FanServiceHandler::getStatus() {
 }
 
 FanServiceHandler::FanServiceHandler(std::unique_ptr<FanService> fanService)
-    : FacebookBase2("FanService"), service_(std::move(fanService)) {
+    : ::facebook::fb303::FacebookBase2DeprecationMigration("FanService"),
+      service_(std::move(fanService)) {
   XLOG(INFO) << "FanServiceHandler Started";
 }
 } // namespace facebook::fboss::platform

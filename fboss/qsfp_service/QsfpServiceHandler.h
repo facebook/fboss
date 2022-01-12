@@ -18,8 +18,9 @@ DECLARE_int32(phy_service_macsec_port);
 namespace facebook {
 namespace fboss {
 
-class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
-                           public facebook::fb303::FacebookBase2 {
+class QsfpServiceHandler
+    : public facebook::fboss::QsfpServiceSvIf,
+      public ::facebook::fb303::FacebookBase2DeprecationMigration {
  public:
   QsfpServiceHandler(
       std::unique_ptr<TransceiverManager> manager,
