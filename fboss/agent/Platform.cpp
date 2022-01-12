@@ -13,7 +13,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <folly/logging/xlog.h>
 #include <string>

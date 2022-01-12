@@ -13,13 +13,13 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatform.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatform.h"
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Platform.h"
 #include "fboss/agent/platforms/wedge/wedge40/FakeWedge40Platform.h"
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40Platform.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 

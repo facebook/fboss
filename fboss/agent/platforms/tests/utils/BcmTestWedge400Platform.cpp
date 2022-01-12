@@ -8,9 +8,9 @@
  *
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge400Platform.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge400Port.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 

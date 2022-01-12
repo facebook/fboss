@@ -418,7 +418,7 @@ enable_testing()
 if (NOT SAI_ONLY)
   add_executable(wedge_agent
       fboss/agent/platforms/wedge/WedgePlatform.cpp
-      fboss/agent/platforms/common/PlatformProductInfo.cpp
+      fboss/lib/platforms/PlatformProductInfo.cpp
       fboss/agent/platforms/wedge/WedgePort.cpp
       fboss/agent/platforms/wedge/wedge_agent.cpp
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
@@ -656,8 +656,8 @@ if (NOT SAI_ONLY)
       fboss/agent/packet/MPLSHdr.cpp
       fboss/agent/Platform.cpp
       fboss/agent/PlatformPort.cpp
-      fboss/agent/platforms/common/PlatformProductInfo.cpp
-      fboss/agent/platforms/common/oss/PlatformProductInfo.cpp
+      fboss/lib/platforms/PlatformProductInfo.cpp
+      fboss/lib/platforms/oss/PlatformProductInfo.cpp
       fboss/agent/platforms/wedge/wedge_agent.cpp
       fboss/agent/platforms/wedge/WedgePlatform.cpp
       fboss/agent/platforms/wedge/WedgePort.cpp

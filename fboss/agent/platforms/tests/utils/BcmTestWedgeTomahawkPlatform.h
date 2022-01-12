@@ -11,7 +11,7 @@
 
 #include "fboss/agent/platforms/tests/utils/BcmTestWedgePlatform.h"
 
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 

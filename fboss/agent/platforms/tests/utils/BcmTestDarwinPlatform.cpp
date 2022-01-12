@@ -8,9 +8,9 @@
  *
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestDarwinPlatform.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestDarwinPort.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 

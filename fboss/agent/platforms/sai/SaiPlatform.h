@@ -14,10 +14,10 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/lib/phy/PhyInterfaceHandler.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"

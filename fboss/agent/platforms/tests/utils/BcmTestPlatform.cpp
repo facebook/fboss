@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 

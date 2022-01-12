@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook {
 namespace fboss {

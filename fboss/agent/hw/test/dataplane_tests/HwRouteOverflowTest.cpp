@@ -11,8 +11,8 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwOverflowTest.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 

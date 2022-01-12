@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPlatform.h"
 
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
 #include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"

@@ -12,9 +12,9 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/FakeBcmTestPort.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace {
 std::vector<int> getControllingPortIDs() {

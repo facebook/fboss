@@ -12,11 +12,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Port.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 

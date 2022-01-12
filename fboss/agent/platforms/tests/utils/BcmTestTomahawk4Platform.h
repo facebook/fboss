@@ -12,7 +12,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestWedgePlatform.h"
 
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 

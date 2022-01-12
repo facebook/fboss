@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/sim/SimPlatformMapping.h"
 #include "fboss/agent/hw/sim/SimPlatformPort.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <folly/Memory.h>
 

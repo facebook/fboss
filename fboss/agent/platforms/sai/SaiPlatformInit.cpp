@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <memory>
 
