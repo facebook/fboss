@@ -55,8 +55,6 @@ class SensorServiceImpl {
   std::vector<SensorData> getAllSensorData();
   void fetchSensorData();
 
-  virtual ~SensorServiceImpl() = default;
-
  private:
   // Sensor config file full path
   std::string confFileName_{};
