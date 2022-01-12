@@ -224,6 +224,10 @@ class SaiAclTableManager {
       MirrorAction action,
       const std::optional<std::string>& mirrorId);
 
+  void recreateAclTable(
+      std::shared_ptr<SaiAclTable>& exisitingTable,
+      const SaiAclTableTraits::CreateAttributes& attributes);
+
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

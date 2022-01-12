@@ -19,12 +19,14 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/MacAddress.h>
 #include <chrono>
+#include <memory>
 
 using namespace std::chrono;
 
@@ -113,8 +115,20 @@ AclTableSaiId SaiAclTableManager::addAclTable(
       aclTableCreateAttributes(saiAclStage, addedAclTable);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
-
-  auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
+  std::shared_ptr<SaiAclTable> saiAclTable{};
+  if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+    if (auto existingAclTable = aclTableStore.get(adapterHostKey)) {
+      if (attributes != existingAclTable->attributes() ||
+          FLAGS_force_recreate_acl_tables) {
+        auto key = existingAclTable->adapterHostKey();
+        auto attrs = existingAclTable->attributes();
+        existingAclTable = aclTableStore.setObject(key, attrs);
+        recreateAclTable(existingAclTable, attributes);
+      }
+      saiAclTable = std::move(existingAclTable);
+    }
+  }
+  saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
   auto aclTableHandle = std::make_unique<SaiAclTableHandle>();
   aclTableHandle->aclTable = saiAclTable;
   auto [it, inserted] =
@@ -1301,5 +1315,86 @@ bool SaiAclTableManager::areQualifiersSupported(
 bool SaiAclTableManager::areQualifiersSupportedInDefaultAclTable(
     const std::set<cfg::AclTableQualifier>& qualifiers) const {
   return areQualifiersSupported(kAclTable1, qualifiers);
+}
+
+void SaiAclTableManager::recreateAclTable(
+    std::shared_ptr<SaiAclTable>& aclTable,
+    const SaiAclTableTraits::CreateAttributes& newAttributes) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_ACL_TABLE_UPDATE)) {
+    XLOG(WARNING) << "feature to update acl table is not supported";
+    return;
+  }
+  XLOG(INFO) << "refreshing acl table schema";
+  auto adapterHostKey = aclTable->adapterHostKey();
+  auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
+
+  std::map<
+      SaiAclEntryTraits::AdapterHostKey,
+      SaiAclEntryTraits::CreateAttributes>
+      entries{};
+  // remove acl entries from acl table, retain their attributes
+  for (const auto& entry : aclEntryStore) {
+    auto key = entry.second.lock()->adapterHostKey();
+    if (std::get<SaiAclEntryTraits::Attributes::TableId>(key) !=
+        static_cast<sai_object_id_t>(aclTable->adapterKey())) {
+      continue;
+    }
+    auto value = entry.second.lock()->attributes();
+    auto aclEntry = aclEntryStore.setObject(key, value);
+    entries.emplace(key, value);
+    aclEntry.reset();
+  }
+  // remove group member and acl table, since store holds only weak ptr after
+  // setObject is invoked, clearing returned shared ptr is enough to destroy SAI
+  // object and call SAI remove API.
+  std::shared_ptr<SaiAclTableGroupMember> groupMember{};
+  SaiAclTableGroupMemberTraits::AdapterHostKey memberAdapterHostKey{};
+  SaiAclTableGroupMemberTraits::CreateAttributes memberAttrs{};
+  auto& aclGroupMemberStore = saiStore_->get<SaiAclTableGroupMemberTraits>();
+  sai_object_id_t aclTableGroupId{};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    for (auto entry : aclGroupMemberStore) {
+      auto member = entry.second.lock();
+      auto key = member->adapterHostKey();
+      auto attrs = member->attributes();
+      if (std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(attrs) !=
+          static_cast<sai_object_id_t>(aclTable->adapterKey())) {
+        continue;
+      }
+      groupMember = aclGroupMemberStore.setObject(key, attrs);
+      memberAdapterHostKey = groupMember->adapterHostKey();
+      memberAttrs = groupMember->attributes();
+      break;
+    }
+    aclTableGroupId =
+        std::get<SaiAclTableGroupMemberTraits::Attributes::TableGroupId>(
+            memberAttrs)
+            .value();
+    managerTable_->switchManager().resetIngressAcl();
+    // reset group member
+    groupMember.reset();
+  }
+  // remove acl table
+  aclTable.reset();
+
+  // update acl table
+  auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
+  aclTable = aclTableStore.setObject(adapterHostKey, newAttributes);
+  // restore acl table group member
+
+  sai_object_id_t tableId = aclTable->adapterKey();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+    std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(
+        memberAdapterHostKey) = tableId;
+    std::get<SaiAclTableGroupMemberTraits::Attributes::TableId>(memberAttrs) =
+        tableId;
+    aclGroupMemberStore.addWarmbootHandle(memberAdapterHostKey, memberAttrs);
+    managerTable_->switchManager().setIngressAcl(aclTableGroupId);
+  }
+  // skip recreating acl entries as acl entry information is lost.
+  // this happens because SAI API layer returns default values for unset ACL
+  // entry attributes. some of the attributes may be unsupported in sdk or could
+  // stretch the key width beyind what's supported.
 }
 } // namespace facebook::fboss
