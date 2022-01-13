@@ -13,6 +13,7 @@
 #include "common/stats/ThreadCachedServiceData.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 using namespace ::testing;
 using namespace facebook;
@@ -24,18 +25,26 @@ class PortStatsTest : public LinkTest {
   using XphyPortStats =
       std::unordered_map<std::string, std::unordered_map<std::string, int64_t>>;
 
-  std::optional<XphyPortStats> getXphyPortStats(bool logErrors = false);
+  std::optional<XphyPortStats> getXphyPortStats();
   void verifyXphyPortStats(
       const XphyPortStats& before,
       const XphyPortStats& after);
 };
 
-std::optional<PortStatsTest::XphyPortStats> PortStatsTest::getXphyPortStats(
-    bool fatalErrors) {
+std::optional<PortStatsTest::XphyPortStats> PortStatsTest::getXphyPortStats() {
+  std::map<std::string, int64_t> currentCounters;
+  // With the new port programming, xphy will be totally moved to qsfp_service,
+  // therefore, we use counters from qsfp_service to collect xphy related
+  // counters
+  if (FLAGS_skip_xphy_programming) {
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getCounters(currentCounters);
+  } else {
+    tcData().publishStats();
+    tcData().getCounters(currentCounters);
+  }
+
   XphyPortStats portStats;
-
-  tcData().publishStats();
-
   for (const auto& port : getCabledPorts()) {
     auto portName = getPortName(port);
     auto result = portStats.try_emplace(portName);
@@ -47,14 +56,12 @@ std::optional<PortStatsTest::XphyPortStats> PortStatsTest::getXphyPortStats(
         auto counterName = folly::to<std::string>(side, ".", stat, ".sum");
         auto fullCounterName =
             folly::to<std::string>(portName, ".xphy.", counterName);
-        if (!tcData().hasCounter(fullCounterName)) {
-          if (fatalErrors) {
-            EXPECT_TRUE(tcData().hasCounter(fullCounterName))
-                << fullCounterName << " absent";
-          }
+        const auto& counterIt = currentCounters.find(fullCounterName);
+        if (counterIt == currentCounters.end()) {
+          XLOG(WARN) << fullCounterName << " doesn't exist in counter list";
           return std::nullopt;
         }
-        portStat[counterName] = tcData().getCounter(fullCounterName);
+        portStat[counterName] = counterIt->second;
       }
     }
   }
@@ -88,23 +95,19 @@ void PortStatsTest::verifyXphyPortStats(
 
 TEST_F(PortStatsTest, xphySanity) {
   std::optional<PortStatsTest::XphyPortStats> portStatsBefore;
-  try {
-    checkWithRetry(
-        [this, &portStatsBefore] {
-          return (portStatsBefore = getXphyPortStats());
-        },
-        kMaxNumXphyInfoCollectionCheck /* retries */,
-        kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
-  } catch (const FbossError&) {
-    // one last try with full logging
-    portStatsBefore = getXphyPortStats(true);
-    ASSERT_TRUE(portStatsBefore.has_value())
-        << "Never has complete xphy port stats";
-  }
+  // Stat collection might need some time to get the first stats after ports
+  // are up. Use retry to get the first stats
+  checkWithRetry(
+      [this, &portStatsBefore] {
+        return (portStatsBefore = getXphyPortStats());
+      },
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
+      "Never has complete xphy port stats" /* condition failed log */);
 
-  // sleep override
+  // sleep override to wait for the second stats to be ready
   std::this_thread::sleep_for(std::chrono::seconds(
       kSecondsBetweenXphyInfoCollectionCheck * kMaxNumXphyInfoCollectionCheck));
 
-  verifyXphyPortStats(*portStatsBefore, *getXphyPortStats(true));
+  verifyXphyPortStats(*portStatsBefore, *getXphyPortStats());
 }
