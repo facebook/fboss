@@ -244,7 +244,9 @@ class PhyManager {
     return getExternalPhy(lockedCache->xphyID);
   }
 
-  void setPortToPortCacheInfoLocked(
+  // Return true if the new portConfig is different from the cache
+  // Otherwise return false when there're speed/profile/lane changes
+  bool setPortToPortCacheInfoLocked(
       const PortCacheWLockedPtr& lockedCache,
       PortID portID,
       cfg::PortProfileID profileID,

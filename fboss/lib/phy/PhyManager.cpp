@@ -168,9 +168,10 @@ void PhyManager::programOnePort(
   xphy->programOnePort(desiredPhyPortConfig);
 
   // Once the port is programmed successfully, update the portToCacheInfo_
-  setPortToPortCacheInfoLocked(
+  bool isChanged = setPortToPortCacheInfoLocked(
       wLockedCache, portId, portProfileId, desiredPhyPortConfig);
-  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+  // Only reset phy port stats when there're changes on the xphy ports
+  if (isChanged && xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
     setPortToExternalPhyPortStatsLocked(
         wLockedCache, createExternalPhyPortStats(PortID(portId)));
   }
@@ -204,14 +205,20 @@ void PhyManager::setupPimEventMultiThreading(PimID pimID) {
   pimToThread_.emplace(pimID, std::make_unique<PimEventMultiThreading>(pimID));
 }
 
-void PhyManager::setPortToPortCacheInfoLocked(
+bool PhyManager::setPortToPortCacheInfoLocked(
     const PortCacheWLockedPtr& lockedCache,
     PortID portID,
     cfg::PortProfileID profileID,
     const phy::PhyPortConfig& portConfig) {
-  // Always update profile/speed
-  lockedCache->profile = profileID;
-  lockedCache->speed = portConfig.profile.speed;
+  bool isChanged = false;
+  if (lockedCache->profile != profileID) {
+    lockedCache->profile = profileID;
+    isChanged = true;
+  }
+  if (lockedCache->speed != portConfig.profile.speed) {
+    lockedCache->speed = portConfig.profile.speed;
+    isChanged = true;
+  }
 
   // Check whether there's a systemLanes and lineLanes cache already
   const auto& systemLanesConfig = portConfig.config.system.lanes;
@@ -241,7 +248,7 @@ void PhyManager::setPortToPortCacheInfoLocked(
     }
   }
   if (matched) {
-    return;
+    return isChanged;
   }
   // Now reset the cached lane info if there's no match
   lockedCache->systemLanes.clear();
@@ -252,6 +259,8 @@ void PhyManager::setPortToPortCacheInfoLocked(
   for (const auto& it : portConfig.config.line.lanes) {
     lockedCache->lineLanes.push_back(it.first);
   }
+  // There's lane change
+  return true;
 }
 
 void PhyManager::setPortPrbs(

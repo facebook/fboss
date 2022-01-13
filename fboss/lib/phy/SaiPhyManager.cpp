@@ -350,9 +350,11 @@ void SaiPhyManager::programOnePort(
           updateFn);
 
   // Once the port is programmed successfully, update the portToCacheInfo_
-  setPortToPortCacheInfoLocked(
+  bool isChanged = setPortToPortCacheInfoLocked(
       wLockedCache, portId, portProfileId, desiredPhyPortConfig);
-  if (getExternalPhyLocked(wLockedCache)
+  // Only reset phy port stats when there're changes on the xphy ports
+  if (isChanged &&
+      getExternalPhyLocked(wLockedCache)
           ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
     setPortToExternalPhyPortStatsLocked(
         wLockedCache, createExternalPhyPortStats(PortID(portId)));
