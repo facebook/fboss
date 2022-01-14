@@ -61,6 +61,7 @@ target_link_libraries(sai_platform
   darwin_platform_mapping
   wedge400_platform_mapping
   wedge400c_platform_mapping
+  lassen_platform_mapping
   wedge400c_ebb_lab_platform_mapping
   qsfp_cache
   wedge_led_utils
