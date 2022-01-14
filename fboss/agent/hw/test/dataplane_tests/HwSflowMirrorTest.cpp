@@ -57,7 +57,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
   }
 
-  PortID getSlfowPacketSrcPort(const std::vector<uint8_t>& sflowPayload) {
+  PortID getSflowPacketSrcPort(const std::vector<uint8_t>& sflowPayload) {
     /*
      * sflow shim format for Tajo:
      *
@@ -320,7 +320,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
             4 /* vlan tag is absent in mirrored packet */);
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
 
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
+    EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -361,7 +361,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
         capturedPkt->length() - capturedHdrSize,
         216); /* TODO: confirm length in CS00010399535 and CS00012130950  */
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
+    EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -403,7 +403,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
         capturedPkt->length() - capturedHdrSize,
         216); /* TODO: confirm length in CS00010399535 and CS00012130950 */
     auto payload = capturedPkt->v6PayLoad()->payload()->payload();
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
+    EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -461,7 +461,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
         capturedPkt->length() - capturedHdrSize,
         216); /* TODO: confirm length in CS00010399535 and CS00012130950 */
     auto payload = capturedPkt->v6PayLoad()->payload()->payload();
-    EXPECT_EQ(getSlfowPacketSrcPort(payload), getPortsForSampling()[1]);
+    EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
