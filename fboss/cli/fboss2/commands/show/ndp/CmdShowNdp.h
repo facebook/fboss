@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <cstdint>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/ndp/gen-cpp2/model_types.h"
 
@@ -31,11 +33,13 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
       const HostInfo& hostInfo,
       const ObjectArgType& queriedNdpEntries) {
     std::vector<facebook::fboss::NdpEntryThrift> entries;
+    std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getNdpTable(entries);
-    return createModel(entries, queriedNdpEntries);
+    client->sync_getAllPortInfo(portEntries);
+    return createModel(entries, queriedNdpEntries, portEntries);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -45,7 +49,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         fmtString,
         "IP Address",
         "MAC Address",
-        "Port",
+        "Interface",
         "VLAN",
         "State",
         "TTL",
@@ -70,7 +74,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
 
   RetType createModel(
       std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
-      const ObjectArgType& queriedNdpEntries) {
+      const ObjectArgType& queriedNdpEntries,
+      std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedNdpEntries.begin(), queriedNdpEntries.end());
@@ -83,7 +88,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         cli::NdpEntry ndpDetails;
         ndpDetails.ip_ref() = ip.str();
         ndpDetails.mac_ref() = entry.get_mac();
-        ndpDetails.port_ref() = entry.get_port();
+        ndpDetails.port_ref() = portEntries[entry.get_port()].get_name();
         ndpDetails.vlanName_ref() = entry.get_vlanName();
         ndpDetails.vlanID_ref() = entry.get_vlanID();
         ndpDetails.state_ref() = entry.get_state();

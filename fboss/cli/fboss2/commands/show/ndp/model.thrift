@@ -7,7 +7,7 @@ struct ShowNdpModel {
 struct NdpEntry {
   1: string ip;
   2: string mac;
-  3: i32 port;
+  3: string port;
   4: string vlanName;
   5: i32 vlanID;
   6: string state;
