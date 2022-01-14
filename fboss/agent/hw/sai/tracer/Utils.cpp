@@ -421,6 +421,12 @@ void qosMapListAttr(
         j,
         "].key.color=(sai_packet_color_t)",
         attr_list[i].value.qosmap.list[j].key.color));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.mpls_exp=",
+        attr_list[i].value.qosmap.list[j].key.mpls_exp));
 
     // Value
     attrLines.push_back(to<string>(
@@ -465,6 +471,12 @@ void qosMapListAttr(
         j,
         "].value.color=(sai_packet_color_t)",
         attr_list[i].value.qosmap.list[j].value.color));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.mpls_exp=",
+        attr_list[i].value.qosmap.list[j].value.mpls_exp));
   }
 }
 
