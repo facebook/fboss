@@ -102,7 +102,7 @@ class Alarm {
   }
 };
 
-using opticThresholdTable = std::vector<std::pair<float, float> >;
+using opticThresholdTable = std::vector<std::pair<float, float>>;
 
 typedef enum {
   kRangeCheckActionNone,

@@ -21,7 +21,8 @@
 // Auto-generated Thrift inteface headerfile (by Buck)
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
-
+// Use QsfpCache library
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 // Facebook Service Router Headerfiles
 // - used when sending Thrift request to sensor_service
 #include "servicerouter/client/cpp2/ClientParams.h"
@@ -38,18 +39,25 @@
 #include <folly/io/async/SSLContext.h>
 #include <folly/system/Shell.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "security/ca/lib/certpathpicker/CertPathPicker.h"
 
 namespace facebook::fboss::platform {
 
 constexpr int kSensorSendTimeoutMs = 5000;
 constexpr int kSensorConnTimeoutMs = 2000;
+constexpr int kQsfpSendTimeoutMs = 5000;
+constexpr int kQsfpConnTimeoutMs = 2000;
 
 class Bsp {
  public:
   virtual ~Bsp();
   // getSensorData: Get sensor data from either cache or direct access
   virtual void getSensorData(
+      std::shared_ptr<ServiceConfig> pServiceConfig,
+      std::shared_ptr<SensorData> pSensorData);
+  // getOpticsData: Get Optics temperature data
+  virtual void getOpticsData(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData);
   // emergencyShutdown: function to shutdown the platform upon overheat
@@ -68,6 +76,8 @@ class Bsp {
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
   virtual float readSysfs(std::string path) const;
+  virtual bool initializeQsfpService();
+
   // Methods for send thrift request without using servicerouter
   static folly::Future<
       std::unique_ptr<facebook::fboss::platform::sensor_service::
@@ -83,17 +93,27 @@ class Bsp {
       std::string tgt) const;
   // This attribute is accessed by internal function and Mock class (Mokujin)
   void setEmergencyState(bool state);
+  std::shared_ptr<QsfpCache> qsfpCache_;
 
  private:
   int run(const std::string& cmd);
+  void getOpticsDataThrift(
+      Optic* opticsGroup,
+      std::shared_ptr<SensorData> pSensorData);
+  void getOpticsDataSysfs(
+      Optic* opticsGroup,
+      std::shared_ptr<SensorData> pSensorData);
   std::unique_ptr<std::thread> thread_{nullptr};
+  // For communicating with qsfp_service
   folly::EventBase evb_;
   // For communicating with sensor_service
   folly::EventBase evbSensor_;
   bool emergencyShutdownState_{false};
+  bool qsfpCacheInitialized_{false};
 
   // Private Attributes
   int sensordThriftPort_{7001};
+  int qsfpSvcThriftPort_{5910};
   bool initialSensorDataRead_{false};
 
   // Low level access function for setting PWM and LED value
@@ -124,6 +144,11 @@ class Bsp {
   void getSensorDataRest(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData);
+  void processOpticEntries(
+      Optic* opticsGroup,
+      std::shared_ptr<SensorData> pSensorData,
+      uint64_t& currentQsfpSvcTimestamp,
+      std::unordered_map<TransceiverID, TransceiverInfo> cacheTable,
+      OpticEntry* opticData);
 };
-
 } // namespace facebook::fboss::platform

@@ -56,6 +56,7 @@ void Bsp::getSensorData(
           pSensorData->updateEntryFloat(sensor->sensorName, readVal, nowSec);
         }
         break;
+      case fan_config_structs::SourceType::kSrcQsfpService:
       case fan_config_structs::SourceType::kSrcInvalid:
       default:
         throw facebook::fboss::FbossError(
@@ -126,6 +127,228 @@ int Bsp::kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig) {
   }
   return rc;
 }
+
+// This method processes one entry in the data array from
+// the thrift response, then push the data back to the
+// end of opticData array.
+void Bsp::processOpticEntries(
+    Optic* opticsGroup,
+    std::shared_ptr<SensorData> pSensorData,
+    uint64_t& currentQsfpSvcTimestamp,
+    std::unordered_map<TransceiverID, TransceiverInfo> cacheTable,
+    OpticEntry* opticData) {
+  std::pair<fan_config_structs::OpticTableType, float> prepData;
+  for (auto cacheEntry : cacheTable) {
+    int xvrId = static_cast<int>(cacheEntry.first);
+    TransceiverInfo& info = cacheEntry.second;
+    fan_config_structs::OpticTableType tableType =
+        fan_config_structs::OpticTableType::kOpticTableInval;
+    // Qsfp_service send the data as double, but fan service use float.
+    // So, cast the data to float
+    auto sensor = info.sensor_ref();
+    // If no sensor available for this transceiver, just skip
+    if (!sensor) {
+      XLOG(INFO) << "Skipping transceiver " << xvrId
+                 << ", as there is no global sensor entry.";
+      continue;
+    }
+    auto qsfpTimestampRef = info.timeCollected_ref();
+    if (!qsfpTimestampRef) {
+      auto timeStamp = apache::thrift::can_throw(*qsfpTimestampRef);
+      if (timeStamp > currentQsfpSvcTimestamp) {
+        currentQsfpSvcTimestamp = timeStamp;
+      }
+    }
+
+    float temp = static_cast<float>(*(sensor->temp_ref()->value_ref()));
+    // In the following two cases, do not process the entries and move on
+    // 1. temperature from QSFP service is 0.0 - meaning the port is
+    //    not populated in qsfp_service or read failure occured. So skip this.
+    // 2. Config file specified the port entries we care, but this port
+    //    does not belong to the ports we care.
+    if (((temp == 0.0)) ||
+        ((opticsGroup->instanceList.size() != 0) &&
+         (std::find(
+              opticsGroup->instanceList.begin(),
+              opticsGroup->instanceList.end(),
+              xvrId) != opticsGroup->instanceList.end()))) {
+      continue;
+    }
+
+    // Parse using the definition in qsfp_service/if/transceiver.thrift
+    // Detect the speed. If unknown, use the very first table.
+    // This field is optional. If missing, we use unknown.
+    MediaInterfaceCode mediaInterfaceCode = MediaInterfaceCode::UNKNOWN;
+    if (info.moduleMediaInterface_ref()) {
+      mediaInterfaceCode = *info.moduleMediaInterface_ref();
+    }
+    switch (mediaInterfaceCode) {
+      case MediaInterfaceCode::UNKNOWN:
+        // Use the first table's type for unknown/missing media type
+        assert(opticsGroup);
+        tableType = opticsGroup->tables[0].first;
+        break;
+      case MediaInterfaceCode::CWDM4_100G:
+      case MediaInterfaceCode::CR4_100G:
+      case MediaInterfaceCode::FR1_100G:
+        tableType = fan_config_structs::OpticTableType::kOpticTable100Generic;
+        break;
+      case MediaInterfaceCode::FR4_200G:
+        tableType = fan_config_structs::OpticTableType::kOpticTable200Generic;
+        break;
+      case MediaInterfaceCode::FR4_400G:
+      case MediaInterfaceCode::LR4_400G_10KM:
+        tableType = fan_config_structs::OpticTableType::kOpticTable400Generic;
+        break;
+      // No 800G optic yet
+      default:
+        int intVal = static_cast<int>(mediaInterfaceCode);
+        XLOG(ERR) << "Transceiver : " << xvrId
+                  << " Unsupported Media Type : " << intVal
+                  << "Ignoring this entry";
+        break;
+    }
+    prepData = {tableType, temp};
+    opticData->data.push_back(prepData);
+  }
+}
+
+void Bsp::getOpticsDataThrift(
+    Optic* opticsGroup,
+    std::shared_ptr<SensorData> pSensorData) {
+  bool thriftSuccess = false;
+  // Here, we don't really futureGet the transciver data,
+  // but use the cached value from the background thread.
+  // We use QsfpCache for this.
+  std::unordered_map<TransceiverID, TransceiverInfo> cacheTable;
+  uint64_t currentQsfpSvcTimestamp = 0;
+  try {
+    // QsfpCache runs a background thread to do the sync every
+    // 30 seconds. The following merely reads the cached data
+    // updated in the last sync attempt (thus returns very quickly.)
+    cacheTable = qsfpCache_->getAllTransceivers();
+    thriftSuccess = true;
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to read optics data from Qsfp for "
+              << opticsGroup->opticName;
+  }
+  // If thrift fails, just return without updating sensor data
+  // control logic will see that the timestamp did not change,
+  // and do the right error handling.
+  if (!thriftSuccess) {
+    return;
+  }
+
+  // If no entry, create one (unlike sensor entry,
+  // optic entiry needs to be created manually,
+  // as the data is vector of pairs)
+  if (!pSensorData->checkIfOpticEntryExists(opticsGroup->opticName)) {
+    std::vector<std::pair<fan_config_structs::OpticTableType, float>> empty;
+    pSensorData->setOpticEntry(opticsGroup->opticName, empty, getCurrentTime());
+  }
+  OpticEntry* opticData = pSensorData->getOpticEntry(opticsGroup->opticName);
+  // Clear any old data
+  opticData->data.clear();
+  // Parse the data
+  processOpticEntries(
+      opticsGroup, pSensorData, currentQsfpSvcTimestamp, cacheTable, opticData);
+
+  bool dataUpdated = true;
+  // Using the timestamp, check if the data is too old or not.
+  // QsfpService's cache is updated every 30 seconds. So we check
+  // both of the following, to see if this data is old data :
+  // 1. qsfpService timestamp is still old
+  // 2. fanService timestamp is more than 60 seconds ago
+  // If both condition meet, we can infer that we did not get
+  // any new data from qsfpService for more than 30 seconds :
+  // In this case, we consider the cache data is not meaningful.
+  if (currentQsfpSvcTimestamp == opticData->qsfpServiceTimeStamp) {
+    uint64_t now = getCurrentTime();
+    if (now > opticData->lastOpticsUpdateTimeInSec + 60) {
+      dataUpdated = false;
+    }
+  }
+
+  if (dataUpdated) {
+    // Take care of the rest of the meta data in the object
+    pSensorData->setLastQsfpSvcTime(getCurrentTime());
+    opticData->lastOpticsUpdateTimeInSec = getCurrentTime();
+    opticData->qsfpServiceTimeStamp = currentQsfpSvcTimestamp;
+    opticData->dataProcessTimeStamp = 0;
+    opticData->calculatedPwm = 0;
+  } else {
+    // After parsing, we realized that this data is same
+    // as previous data, according to the timestamp of the update.
+    // So we erase all the data, and do not update any meta data
+    opticData->data.clear();
+  }
+}
+
+void Bsp::getOpticsDataSysfs(
+    Optic* opticsGroup,
+    std::shared_ptr<SensorData> pSensorData) {
+  uint64_t nowSec;
+  float readVal;
+  bool readSuccessful;
+  // If we read the data from the sysfs, there is no way
+  // to detect the optics type. So we will use the first
+  // threshold table we can find (if ever.)
+  // Also we return the data as instance 0 (in the case
+  // of all) or the first instance in the instance list.
+  nowSec = facebook::WallClockUtil::NowInSecFast();
+  readSuccessful = false;
+  try {
+    readVal = getSensorDataSysfs(*opticsGroup->access.path_ref());
+    readSuccessful = true;
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup->access.path_ref();
+  }
+  if (readSuccessful) {
+    OpticEntry* opticData =
+        pSensorData->getOrCreateOpticEntry(opticsGroup->opticName);
+    // Use the very first table type to store the data, as we only have data,
+    // but without any table type.
+    fan_config_structs::OpticTableType firstTableType;
+    assert(opticsGroup);
+    firstTableType = opticsGroup->tables[0].first;
+    std::pair<fan_config_structs::OpticTableType, float> prepData = {
+        firstTableType, static_cast<float>(readVal)};
+    // Erase any old data, and store the new pair
+    opticData->data.clear();
+    opticData->data.push_back(prepData);
+    opticData->lastOpticsUpdateTimeInSec = getCurrentTime();
+    opticData->dataProcessTimeStamp = 0;
+    opticData->calculatedPwm = 0;
+  }
+}
+
+void Bsp::getOpticsData(
+    std::shared_ptr<ServiceConfig> pServiceConfig,
+    std::shared_ptr<SensorData> pSensorData) {
+  // Only sysfs is read one by one. For other type of read,
+  // we set the flags for each type, then read them in batch
+  for (auto opticsGroup = pServiceConfig->optics.begin();
+       opticsGroup != pServiceConfig->optics.end();
+       ++opticsGroup) {
+    switch (*opticsGroup->access.accessType_ref()) {
+      case fan_config_structs::SourceType::kSrcQsfpService:
+      case fan_config_structs::SourceType::kSrcThrift:
+        getOpticsDataThrift(&(*opticsGroup), pSensorData);
+        break;
+      case fan_config_structs::SourceType::kSrcSysfs:
+        getOpticsDataSysfs(&(*opticsGroup), pSensorData);
+        break;
+      case fan_config_structs::SourceType::kSrcRest:
+      case fan_config_structs::SourceType::kSrcUtil:
+      case fan_config_structs::SourceType::kSrcInvalid:
+        throw facebook::fboss::FbossError(
+            "Invalid way for fetching optics temperature!");
+        break;
+    }
+  }
+  return;
+}
+
 uint64_t Bsp::getCurrentTime() const {
   return facebook::WallClockUtil::NowInSecFast();
 }
@@ -279,6 +502,13 @@ bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
 bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
   // Call the common function with _VALUE_ as the token to replace
   return setFanShell(command, "_VALUE_", fanName, value);
+}
+
+bool Bsp::initializeQsfpService() {
+  qsfpCache_ = std::make_shared<QsfpCache>();
+  qsfpCache_->init(&evb_);
+  thread_.reset(new std::thread([=] { evb_.loopForever(); }));
+  return true;
 }
 
 folly::Future<std::unique_ptr<
