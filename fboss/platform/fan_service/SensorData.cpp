@@ -8,6 +8,13 @@
 
 namespace facebook::fboss::platform {
 
+void SensorData::setLastQsfpSvcTime(uint64_t t) {
+  lastSuccessfulQsfpServiceContact_ = t;
+}
+uint64_t SensorData::getLastQsfpSvcTime() {
+  return lastSuccessfulQsfpServiceContact_;
+}
+
 SensorEntry* SensorData::getOrCreateSensorEntry(const std::string& name) {
   bool entryExist = checkIfEntryExists(name);
   SensorEntry* pEntry;
@@ -15,6 +22,16 @@ SensorEntry* SensorData::getOrCreateSensorEntry(const std::string& name) {
     sensorEntry_[name] = SensorEntry();
   }
   pEntry = &sensorEntry_[name];
+  return pEntry;
+}
+
+OpticEntry* SensorData::getOrCreateOpticEntry(const std::string& name) {
+  bool entryExist = checkIfOpticEntryExists(name);
+  OpticEntry* pEntry;
+  if (!entryExist) {
+    opticEntry_[name] = OpticEntry();
+  }
+  pEntry = &opticEntry_[name];
   return pEntry;
 }
 
@@ -83,8 +100,45 @@ bool SensorData::checkIfEntryExists(const std::string& name) const {
   return (sensorEntry_.find(name) != sensorEntry_.end());
 }
 
+bool SensorData::checkIfOpticEntryExists(const std::string& name) const {
+  return (opticEntry_.find(name) != opticEntry_.end());
+}
+
 const SensorEntry* SensorData::getSensorEntry(const std::string& name) const {
   auto itr = sensorEntry_.find(name);
   return itr == sensorEntry_.end() ? nullptr : &(itr->second);
 }
+
+OpticEntry* SensorData::getOpticEntry(const std::string& name) const {
+  auto itr = opticEntry_.find(name);
+  return itr == opticEntry_.end() ? nullptr
+                                  : const_cast<OpticEntry*>(&(itr->second));
+}
+
+void SensorData::setOpticEntry(
+    const std::string& name,
+    std::vector<std::pair<fan_config_structs::OpticTableType, float>> input,
+    uint64_t timestamp) {
+  auto pEntry = getOrCreateOpticEntry(name);
+  pEntry->data = input;
+  pEntry->lastOpticsUpdateTimeInSec = timestamp;
+  pEntry->calculatedPwm = 0.0;
+  pEntry->dataProcessTimeStamp = 0;
+}
+
+void SensorData::setOpticsPwm(const std::string& name, int v) {
+  auto pEntry = getOpticEntry(name);
+  if (pEntry == nullptr) {
+    throw facebook::fboss::FbossError("Unable to find the optic data ", name);
+  }
+  pEntry->calculatedPwm = v;
+}
+int SensorData::getOpticsPwm(const std::string& name) {
+  auto entry = getOpticEntry(name);
+  if (entry == nullptr) {
+    throw facebook::fboss::FbossError("Unable to find the optic data ", name);
+  }
+  return entry->calculatedPwm;
+}
+
 } // namespace facebook::fboss::platform
