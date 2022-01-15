@@ -19,6 +19,7 @@
 #include "ServiceConfig.h"
 
 // Auto-generated Thrift inteface headerfile (by Buck)
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
 
 // Facebook Service Router Headerfiles
@@ -27,10 +28,25 @@
 #include "servicerouter/client/cpp2/ServiceRouter.h"
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
+
+// Includes for using raw thriftclient
+#include <folly/SocketAddress.h>
+#include <folly/Subprocess.h>
+#include <folly/futures/Future.h>
+#include <folly/io/async/AsyncSSLSocket.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/SSLContext.h>
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include "security/ca/lib/certpathpicker/CertPathPicker.h"
+
 namespace facebook::fboss::platform {
+
+constexpr int kSensorSendTimeoutMs = 5000;
+constexpr int kSensorConnTimeoutMs = 2000;
+
 class Bsp {
  public:
-  virtual ~Bsp() = default;
+  virtual ~Bsp();
   // getSensorData: Get sensor data from either cache or direct access
   virtual void getSensorData(
       std::shared_ptr<ServiceConfig> pServiceConfig,
@@ -50,6 +66,12 @@ class Bsp {
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
   virtual float readSysfs(std::string path) const;
+  // Methods for send thrift request without using servicerouter
+  static folly::Future<
+      std::unique_ptr<facebook::fboss::platform::sensor_service::
+                          SensorServiceThriftAsyncClient>>
+  createSensorServiceClient(folly::EventBase* eb);
+  static apache::thrift::RpcOptions getRpcOptions();
 
  protected:
   // replaceAllString : String replace helper function
@@ -61,6 +83,10 @@ class Bsp {
   void setEmergencyState(bool state);
 
  private:
+  std::unique_ptr<std::thread> thread_{nullptr};
+  folly::EventBase evb_;
+  // For communicating with sensor_service
+  folly::EventBase evbSensor_;
   bool emergencyShutdownState_{false};
 
   // Private Attributes
@@ -79,18 +105,22 @@ class Bsp {
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
   void getSensorDataThrift(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData) const;
+      std::shared_ptr<SensorData> pSensorData);
   void getSensorDataThriftWithSensorList(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData,
-      std::vector<std::string> sensorList) const;
+      std::vector<std::string> sensorList);
+  void getSensorDataFb303WithSensorList(
+      std::shared_ptr<ServiceConfig> pServiceConfig,
+      std::shared_ptr<SensorData> pSensorData,
+      std::vector<std::string> sensorList);
   void getSensorDataUtil(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData) const;
-  float getSensorDataSysfs(std::string path) const;
+      std::shared_ptr<SensorData> pSensorData);
+  float getSensorDataSysfs(std::string path);
   void getSensorDataRest(
       std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData) const;
+      std::shared_ptr<SensorData> pSensorData);
 };
 
 } // namespace facebook::fboss::platform

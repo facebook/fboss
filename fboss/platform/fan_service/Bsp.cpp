@@ -107,7 +107,7 @@ void Bsp::setEmergencyState(bool state) {
 
 void Bsp::getSensorDataThrift(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> pSensorData) const {
+    std::shared_ptr<SensorData> pSensorData) {
   // Simply call the helper fucntion with empty string vector.
   // (which means we want all sensor data)
   std::vector<std::string> emptyStrVec;
@@ -118,37 +118,43 @@ void Bsp::getSensorDataThrift(
 void Bsp::getSensorDataThriftWithSensorList(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> pSensorData,
-    std::vector<std::string> sensorList) const {
-  std::string ip = "::1";
-  auto params = facebook::servicerouter::ClientParams().setSingleHost(
-      ip, sensordThriftPort_);
-  auto client =
-      facebook::servicerouter::cpp2::getClientFactory()
-          .getSRClientUnique<facebook::fboss::platform::sensor_service::
-                                 SensorServiceThriftAsyncClient>("", params);
-
-  sensor_service::SensorReadResponse response;
-  client->sync_getSensorValuesByNames(response, sensorList);
-
-  auto responseSensorData = response.sensorData_ref();
-  for (auto& it : *responseSensorData) {
-    std::string key = *it.name_ref();
-    float value = *it.value_ref();
-    int64_t timeStamp = *it.timeStamp_ref();
-    pSensorData->updateEntryFloat(key, value, timeStamp);
-  }
+    std::vector<std::string> sensorList) {
+  Bsp::createSensorServiceClient(&evb_)
+      .thenValue([sensorList](auto&& client) {
+        // use empty list to fetch all transceivers
+        std::vector<int32_t> ids;
+        auto options = Bsp::getRpcOptions();
+        return client->future_getSensorValuesByNames(options, sensorList);
+      })
+      .wait()
+      .thenValue([pSensorData](auto&& response) mutable {
+        auto responseSensorData = response.sensorData_ref();
+        for (auto& it : *responseSensorData) {
+          std::string key = *it.name_ref();
+          float value = *it.value_ref();
+          int64_t timeStamp = *it.timeStamp_ref();
+          pSensorData->updateEntryFloat(key, value, timeStamp);
+          XLOG(INFO) << "Storing sensor " << key << " with value " << value
+                     << " timestamp : " << timeStamp;
+        }
+        XLOG(INFO) << "Got sensor data from sensor_service";
+      })
+      .thenError(folly::tag_t<std::exception>{}, [](const std::exception& e) {
+        XLOG(ERR) << "Exception talking to sensor_service" << e.what();
+      });
+  return;
 }
 
 void Bsp::getSensorDataRest(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> /*pSensorData*/) const {
+    std::shared_ptr<SensorData> /*pSensorData*/) {
   throw facebook::fboss::FbossError(
       "getSensorDataRest is NOT IMPLEMENTED YET!");
 }
 
 void Bsp::getSensorDataUtil(
     std::shared_ptr<ServiceConfig> pServiceConfig,
-    std::shared_ptr<SensorData> /*pSensorData*/) const {
+    std::shared_ptr<SensorData> /*pSensorData*/) {
   throw facebook::fboss::FbossError(
       "getSensorDataUtil is NOT IMPLEMENTED YET!");
 }
@@ -156,7 +162,7 @@ void Bsp::getSensorDataUtil(
 // Sysfs may fail, but fan_service should keep running even
 // after these failures. Therefore, in case of failure,
 // we just throw exception and let caller handle it.
-float Bsp::getSensorDataSysfs(std::string path) const {
+float Bsp::getSensorDataSysfs(std::string path) {
   return readSysfs(path);
 }
 
@@ -242,4 +248,55 @@ bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
   return setFanShell(command, "_VALUE_", fanName, value);
 }
 
+folly::Future<std::unique_ptr<
+    facebook::fboss::platform::sensor_service::SensorServiceThriftAsyncClient>>
+Bsp::createSensorServiceClient(folly::EventBase* eb) {
+  // SR relies on both configerator and smcc being up
+  // use raw thrift instead
+  auto createClient = [eb]() {
+    folly::SocketAddress sockAddr("::1", 5910);
+    // secure client
+    auto certKeyPair =
+        facebook::security::CertPathPicker::getClientCredentialPaths(true);
+    if (certKeyPair.first.empty() or certKeyPair.second.empty()) {
+      LOG(INFO) << "empty cert or key => cert: " << certKeyPair.first
+                << ", key: " << certKeyPair.second
+                << " Creating plain text client.";
+      auto socket =
+          folly::AsyncSocket::newSocket(eb, sockAddr, kSensorConnTimeoutMs);
+      socket->setSendTimeout(kSensorSendTimeoutMs);
+      auto channel =
+          apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
+      return std::make_unique<sensor_service::SensorServiceThriftAsyncClient>(
+          std::move(channel));
+    } else {
+      auto ctx = std::make_shared<folly::SSLContext>();
+      ctx->loadCertificate(certKeyPair.first.c_str());
+      ctx->loadPrivateKey(certKeyPair.second.c_str());
+
+      auto socket =
+          folly::AsyncSSLSocket::UniquePtr(new folly::AsyncSSLSocket(ctx, eb));
+      socket->setSendTimeout(kSensorSendTimeoutMs);
+      socket->connect(nullptr, sockAddr, kSensorConnTimeoutMs);
+      auto channel =
+          apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
+      return std::make_unique<sensor_service::SensorServiceThriftAsyncClient>(
+          std::move(channel));
+    }
+  };
+  return folly::via(eb, createClient);
+}
+
+apache::thrift::RpcOptions Bsp::getRpcOptions() {
+  apache::thrift::RpcOptions opts;
+  opts.setTimeout(std::chrono::milliseconds(kSensorSendTimeoutMs));
+  return opts;
+}
+
+Bsp::~Bsp() {
+  if (thread_) {
+    evb_.runInEventBaseThread([this] { evb_.terminateLoopSoon(); });
+    thread_->join();
+  }
+}
 } // namespace facebook::fboss::platform
