@@ -36,6 +36,7 @@
 #include <folly/io/async/AsyncSSLSocket.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/SSLContext.h>
+#include <folly/system/Shell.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "security/ca/lib/certpathpicker/CertPathPicker.h"
 
@@ -55,6 +56,7 @@ class Bsp {
   virtual int emergencyShutdown(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       bool enable);
+  int kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig);
   // setFanPwm... : Fan pwm set function. Used by Control Logic Class
   bool setFanPwmSysfs(std::string path, int pwm);
   bool setFanPwmShell(std::string command, std::string fanName, int pwm);
@@ -83,6 +85,7 @@ class Bsp {
   void setEmergencyState(bool state);
 
  private:
+  int run(const std::string& cmd);
   std::unique_ptr<std::thread> thread_{nullptr};
   folly::EventBase evb_;
   // For communicating with sensor_service

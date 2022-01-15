@@ -114,6 +114,8 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
     pControlLogic_->updateControl(pSensorData_);
   }
 
+  pBsp_->kickWatchdog(pConfig_);
+
   return rc;
 }
 
@@ -176,6 +178,14 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
       pControlLogic_->updateControl(pSensorData_);
       XLOG(INFO) << "Done adjusting fan speed";
     }
+
+    // We still need to emulate the watchdog,
+    // but kicking it every 5 seconds will fill up the simulation data
+    // with all the garbage outputs. So we do it only once per next
+    // event calculation (still too much. try not to use watchdog
+    // in simulation config, as it will generate too much bogus
+    // output)
+    pBsp_->kickWatchdog(pConfig_);
 
     // Figure out when is the next event,
     // so that we can jump to that time in the future.

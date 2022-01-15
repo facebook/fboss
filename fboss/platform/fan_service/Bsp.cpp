@@ -9,6 +9,15 @@
 
 namespace facebook::fboss::platform {
 
+int Bsp::run(const std::string& cmd) {
+  int rc = 0;
+  folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
+  auto result = p.communicate();
+  rc = p.wait().exitStatus();
+  XLOG(INFO) << "Command: " << cmd << " ret:" << rc;
+  return rc;
+}
+
 void Bsp::getSensorData(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> pSensorData) {
@@ -83,16 +92,40 @@ int Bsp::emergencyShutdown(
   int rc = 0;
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
-    if (pServiceConfig->getShutDownCommand() == "NOT_DEFINED")
+    if (pServiceConfig->getShutDownCommand() == "NOT_DEFINED") {
       facebook::fboss::FbossError(
           "Emergency Shutdown Was Called But Not Defined!");
-    else
-      std::system(pServiceConfig->getShutDownCommand().c_str());
+    } else {
+      rc = run(pServiceConfig->getShutDownCommand().c_str());
+    }
     setEmergencyState(enable);
   }
   return rc;
 }
 
+int Bsp::kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig) {
+  int rc = 0;
+  bool sysfsSuccess = false;
+  std::string cmdLine;
+  if (pServiceConfig->getWatchdogEnable()) {
+    auto access = pServiceConfig->getWatchdogAccess();
+    switch (*access.accessType_ref()) {
+      case fan_config_structs::SourceType::kSrcUtil:
+        cmdLine = *access.path_ref() + " " + pServiceConfig->getWatchdogValue();
+        rc = run(cmdLine.c_str());
+        break;
+      case fan_config_structs::SourceType::kSrcSysfs:
+        sysfsSuccess = writeSysfs(
+            *access.path_ref(), std::stoi(pServiceConfig->getWatchdogValue()));
+        rc = sysfsSuccess ? 0 : -1;
+        break;
+      default:
+        throw facebook::fboss::FbossError("Invalid watchdog access type!");
+        break;
+    }
+  }
+  return rc;
+}
 uint64_t Bsp::getCurrentTime() const {
   return facebook::WallClockUtil::NowInSecFast();
 }
@@ -233,7 +266,7 @@ bool Bsp::setFanShell(
   // (from the fan_service config file.)
   command = replaceAllString(command, keySymbol, pwmStr);
   const char* charCmd = command.c_str();
-  int retVal = system(charCmd);
+  int retVal = run(charCmd);
   // Return if this command execution was successful
   return (retVal == 0);
 }
