@@ -264,9 +264,11 @@ void ControlLogic::getSensorUpdate() {
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
           rawValue = pSensor_->getSensorDataInt(sensorItemName);
+          rawValue = rawValue / configSensorItem->scale;
           break;
         case SensorEntryType::kSensorEntryFloat:
           rawValue = pSensor_->getSensorDataFloat(sensorItemName);
+          rawValue = rawValue / configSensorItem->scale;
           break;
         default:
           facebook::fboss::FbossError(
