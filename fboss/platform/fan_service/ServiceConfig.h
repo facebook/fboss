@@ -102,6 +102,8 @@ class Alarm {
   }
 };
 
+using opticThresholdTable = std::vector<std::pair<float, float> >;
+
 typedef enum {
   kRangeCheckActionNone,
   kRangeCheckActionShutdown,
@@ -199,14 +201,30 @@ class Sensor {
   Alarm alarm;
   RangeCheck rangeCheck;
   fan_config_structs::SensorPwmCalcType calculationType;
+  float scale;
   IncrementPid incrementPid;
   FourCurves fourCurves;
   int sensorFailThresholdInSec;
   SensorReadCache processedData;
   Sensor() {
     sensorFailThresholdInSec = 300;
+    scale = 1.0;
     calculationType =
         fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable;
+  }
+};
+
+class Optic {
+ public:
+  std::string opticName;
+  fan_config_structs::AccessMethod access;
+  std::vector<int> instanceList;
+  fan_config_structs::OpticAggregationType aggregation;
+  std::vector<
+      std::pair<fan_config_structs::OpticTableType, opticThresholdTable>>
+      tables;
+  Optic() {
+    aggregation = fan_config_structs::OpticAggregationType::kOpticMax;
   }
 };
 
@@ -217,11 +235,15 @@ class ServiceConfig {
   //
   std::vector<Zone> zones;
   std::vector<Sensor> sensors;
+  std::vector<Optic> optics;
   std::vector<Fan> fans;
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadFan;
   // Number of broken fan required for pwm boost
   int pwmBoostOnDeadSensor;
+  // When no QSFP data present, after how many seconds
+  // boost mode starts. ( 0 = disable this feature)
+  int pwmBoostNoQsfpAfterInSec;
   // BSP Type
   fan_config_structs::BspType bspType;
 
@@ -239,6 +261,14 @@ class ServiceConfig {
   int getControlFrequency() const;
   int getPwmUpperThreshold() const;
   int getPwmLowerThreshold() const;
+  float getPwmTransitionValue() const;
+  bool getOdsStreamerEnable();
+  opticThresholdTable* FOLLY_NULLABLE getConfigOpticTable(
+      std::string name,
+      fan_config_structs::OpticTableType dataType);
+  bool getWatchdogEnable();
+  fan_config_structs::AccessMethod getWatchdogAccess();
+  std::string getWatchdogValue();
 
  private:
   //
@@ -251,6 +281,8 @@ class ServiceConfig {
   std::string shutDownCommand_;
   // % Fan Boost upon fan failure
   float pwmBoostValue_;
+  // % Pwm at fan_service start
+  float pwmTransitionValue_;
 
   // PWM Limit as percent
   int pwmUpperThreshold_;
@@ -261,7 +293,11 @@ class ServiceConfig {
   int controlFrequency_;
 
   // Eanble Watchdog
-  bool watchdog_;
+  bool watchdogEnable_;
+  fan_config_structs::AccessMethod watchdogAccess_;
+  std::string watchdogValue_;
+  // Ods Streaming
+  bool odsStreaming_;
   // TODO - just use thrift enum names
   std::unordered_map<std::string, fan_config_structs::FsvcConfigDictIndex>
       configDict_;
@@ -271,12 +307,16 @@ class ServiceConfig {
   //
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
+  std::vector<int> parseInstance(folly::dynamic value);
   Alarm parseAlarm(folly::dynamic value);
   RangeCheck parseRangeCheck(folly::dynamic value);
   void parseZonesChapter(folly::dynamic value);
   void parseFansChapter(folly::dynamic value);
   void parseSensorsChapter(folly::dynamic value);
+  void parseOpticsChapter(folly::dynamic values);
+  void parseWatchdogChapter(folly::dynamic values);
   void prepareDict();
   void parseBspType(std::string bspString);
+  std::vector<std::string> splitter(std::string str, char delimiter);
 };
 } // namespace facebook::fboss::platform

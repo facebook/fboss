@@ -22,9 +22,9 @@ enum FsvcConfigDictIndex {
   kFsvcCfgChapterZones = 14,
   kFsvcCfgZonesName = 15,
   kFsvcCfgZonesType = 16,
-  kFsvcCfgZonesTypeMax = 17,
-  kFsvcCfgZonesTypeMin = 18,
-  kFsvcCfgZonesTypeAvg = 19,
+  kFsvcCfgTypeMax = 17,
+  kFsvcCfgTypeMin = 18,
+  kFsvcCfgTypeAvg = 19,
   kFsvcCfgFans = 20,
   kFsvcCfgFanPwm = 21,
   kFsvcCfgFanRpm = 22,
@@ -69,6 +69,21 @@ enum FsvcConfigDictIndex {
   kFsvcCfgFanPresence = 61,
   kFsvcCfgFanPresentVal = 62,
   kFsvcCfgFanMissingVal = 63,
+  kFsvcCfgOptics = 64,
+  kFsvcCfgInstance = 65,
+  kFsvcCfgAggregation = 66,
+  kFsvcCfgSpeed100 = 67,
+  kFsvcCfgSpeed200 = 68,
+  kFsvcCfgSpeed400 = 69,
+  kFsvcCfgSpeed800 = 70,
+  kFsvcCfgSourceQsfpService = 71,
+  kFsvcCfgNoQsfpBoostInSec = 72,
+  kFsvcCfgPwmRangeMin = 73,
+  kFsvcCfgPwmRangeMax = 74,
+  kFsvcCfgPwmTransition = 75,
+  kFsvcCfgOdsStreamEnable = 76,
+  kFsvcCfgValue = 77,
+  kFsvcCfgScale = 78,
 }
 
 enum ZoneType {
@@ -78,12 +93,26 @@ enum ZoneType {
   kZoneInval = 3,
 }
 
+enum OpticAggregationType {
+  kOpticMax = 0,
+  kOpticInval = 1,
+}
+
+enum OpticTableType {
+  kOpticTable100Generic = 0,
+  kOpticTable200Generic = 1,
+  kOpticTable400Generic = 2,
+  kOpticTable800Generic = 3,
+  kOpticTableInval = 4,
+}
+
 enum SourceType {
   kSrcSysfs = 0,
   kSrcUtil = 1,
   kSrcThrift = 2,
   kSrcRest = 3,
   kSrcInvalid = 4,
+  kSrcQsfpService = 5,
 }
 
 struct AccessMethod {

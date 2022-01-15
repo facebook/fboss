@@ -5,6 +5,8 @@
 #include "fboss/platform/fan_service/FanService.h"
 
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
+// Additional FB helper funtion
+#include "common/time/Time.h"
 
 namespace facebook::fboss::platform {
 FanService::FanService(std::string configFileName) {

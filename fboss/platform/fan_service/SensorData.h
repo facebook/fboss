@@ -8,8 +8,6 @@
 // Standard C++ routines
 #include <unordered_map>
 #include <vector>
-// Additional FB helper funtion
-#include "common/time/Time.h"
 // We reuse the same facebook::fboss::FbossError
 // , for consistency
 #include "fboss/agent/FbossError.h"

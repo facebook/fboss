@@ -3,6 +3,8 @@
 // Implementation of SensorData class. Refer to .h file
 // for the functional description
 #include "fboss/platform/fan_service/SensorData.h"
+// Additional FB helper funtion
+#include "common/time/Time.h"
 
 namespace facebook::fboss::platform {
 
