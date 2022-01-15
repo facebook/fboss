@@ -1,12 +1,46 @@
 {
   "bsp" : "mokujin",
-  "watchdog" : true,
+  "watchdog" : {
+    "access" : {
+      "source" : "sysfs",
+      "path" : "/sys/bus/i2c/drivers/iob_cpld/watchdog"
+    },
+    "value" : 1
+  },
   "boost_on_dead_fan" : true,
   "boost_on_dead_sensor" : false,
+  "boost_on_no_qsfp_after" : 90,
   "pwm_boost_value" : 70,
   "pwm_percent_lower_limit" : 10,
   "pwm_percent_upper_limit" : 70,
   "shutdown_command" : "wedge_power reset -s",
+  "optics" : {
+    "qsfp_group_1" : {
+      "instance" : "all",
+      "aggregation" : "max",
+      "access" : {
+        "source" : "qsfp_service"
+      },
+      "speed_100" : [
+        [40,35],
+        [42,50],
+        [44,75],
+        [50,100]
+      ],
+      "speed_200" : [
+        [42,35],
+        [44,50],
+        [46,75],
+        [52,100]
+      ],
+      "speed_400" : [
+        [46,35],
+        [48,50],
+        [50,75],
+        [52,100]
+      ]
+    }
+  },
   "sensors" : {
     "test_sensor_1" : {
       "access" : {
@@ -244,21 +278,24 @@
       "zone_type" : "max",
       "sensors" : [
         "test_sensor_1",
-        "test_sensor_2"
+        "test_sensor_2",
+        "qsfp_group_1"
       ],
       "slope" : 3,
       "fans" : [
-        "fan1"
+        "fan_1",
+        "qsfp_group_1"
       ]
     },
     "center_zone" : {
       "zone_type" : "avg",
       "sensors" : [
-        "test_sensor_3"
+        "test_sensor_3",
+        "qsfp_group_1"
       ],
       "slope" : 3,
       "fans" : [
-        "fan2"
+        "fan_2"
       ]
     },
     "right_zone" : {
@@ -268,7 +305,7 @@
       ],
       "slope" : 3,
       "fans" : [
-        "fan3"
+        "fan_3"
       ]
     }
   }
