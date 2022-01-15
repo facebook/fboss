@@ -22,6 +22,9 @@ class Mokujin : public Bsp {
       std::shared_ptr<ServiceConfig> pServiceConfig,
       bool enable) override;
   uint64_t getCurrentTime() const override;
+  void getOpticsData(
+      std::shared_ptr<ServiceConfig> pServiceConfig,
+      std::shared_ptr<SensorData> pSensorData) override;
 
   // The following public methods are used by Fan Service to interact with
   // this Mock DSP, so that it will timewarp when there is no more current
@@ -37,6 +40,7 @@ class Mokujin : public Bsp {
   void closeFiles();
   void openIOFiles(std::string iFileName, std::string oFileName);
   float readSysfs(std::string path) const override;
+  bool initializeQsfpService() override;
 
  private:
   // Attributes, mostly for keeping the state of the simulation
@@ -59,5 +63,6 @@ class Mokujin : public Bsp {
       std::string keySymbol,
       std::string fanName,
       int pwm) override;
+  int run(const std::string& cmd) override;
 };
 } // namespace facebook::fboss::platform

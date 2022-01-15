@@ -111,6 +111,12 @@ bool Mokujin::writeSysfs(std::string path, int value) {
   return true;
 }
 
+int Mokujin::run(const std::string& cmd) {
+  oFs_ << std::to_string(currentTimeStampSec_) << ":: util :: " << cmd
+       << std::endl;
+  return 0;
+}
+
 uint64_t Mokujin::getCurrentTime() const {
   return currentTimeStampSec_;
 }
@@ -207,4 +213,44 @@ bool Mokujin::isEof() {
 bool Mokujin::bothFileOpen() {
   return (iFOpen_ && oFOpen_);
 }
+
+bool Mokujin::initializeQsfpService() {
+  // Do nothing in Mock. Just return success
+  return true;
+}
+
+void Mokujin::getOpticsData(
+    std::shared_ptr<ServiceConfig> pServiceConfig,
+    std::shared_ptr<SensorData> pSensorData) {
+  // Basically, for each qsfpgroup if <name>Speed and <name>Temp both exists,
+  // use this to fill up the table For each optics group, check if the key for
+  // table type and table temperature
+  for (auto opticGroup = pServiceConfig->optics.begin();
+       opticGroup != pServiceConfig->optics.end();
+       ++opticGroup) {
+    std::string opticTypeKey = opticGroup->opticName + "TYPE";
+    std::string opticTempKey = opticGroup->opticName + "TEMP";
+    // If both key exists, then fetch the value, otherwise, just move on.
+    if ((simulatedSensorRead_.find(opticTypeKey) !=
+         simulatedSensorRead_.end()) &&
+        (simulatedSensorRead_.find(opticTempKey) !=
+         simulatedSensorRead_.end())) {
+      int typeInt = static_cast<int>(simulatedSensorRead_[opticTypeKey]);
+      float value = simulatedSensorRead_[opticTempKey];
+      std::pair<fan_config_structs::OpticTableType, float> prepData = {
+          static_cast<fan_config_structs::OpticTableType>(typeInt), value};
+      // Add the data, and set the timestamp
+      pSensorData->setLastQsfpSvcTime(getCurrentTime());
+      OpticEntry* opticData =
+          pSensorData->getOrCreateOpticEntry(opticGroup->opticName);
+      opticData->data.clear();
+      opticData->data.push_back(prepData);
+      opticData->lastOpticsUpdateTimeInSec = getCurrentTime();
+      opticData->dataProcessTimeStamp = 0;
+      opticData->calculatedPwm = 0;
+    }
+  }
+  return;
+}
+
 } // namespace facebook::fboss::platform

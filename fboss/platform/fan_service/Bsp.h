@@ -96,7 +96,7 @@ class Bsp {
   std::shared_ptr<QsfpCache> qsfpCache_;
 
  private:
-  int run(const std::string& cmd);
+  virtual int run(const std::string& cmd);
   void getOpticsDataThrift(
       Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
