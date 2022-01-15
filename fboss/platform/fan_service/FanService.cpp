@@ -88,7 +88,7 @@ void FanService::kickstart() {
   pSensorData_ = std::make_shared<SensorData>();
 
   // Start ODS Streamer and attach sensors
-  setOdsStreamerEnable(true);
+  setOdsStreamerEnable(false);
   pOdsStreamer_ = std::make_shared<OdsStreamer>(odsTier_);
 
   // Start control logic, and attach bsp and sensors
@@ -155,7 +155,9 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
 }
 
 void FanService::publishToOds(folly::EventBase* evb) {
-  pOdsStreamer_->postData(evb, *pSensorData_);
+  if (pConfig_->getOdsStreamerEnable()) {
+    pOdsStreamer_->postData(evb, *pSensorData_);
+  }
 }
 
 int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
