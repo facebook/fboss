@@ -388,6 +388,63 @@ void ControlLogic::getSensorUpdate() {
   return;
 }
 
+void ControlLogic::getOpticsUpdate() {
+  // For all optics entry
+  // Read optics array and set calculated pwm
+  // No need to worry about timestamp, but update it anyway
+  for (auto optic = pConfig_->optics.begin(); optic != pConfig_->optics.end();
+       ++optic) {
+    XLOG(INFO) << "Control :: Optics Group Name : " << optic->opticName;
+    std::string opticName = optic->opticName;
+
+    if (!pSensor_->checkIfOpticEntryExists(opticName)) {
+      // No data found. Skip this config entry
+      continue;
+    } else {
+      auto opticData = pSensor_->getOpticEntry(opticName);
+      int pwmSoFar = 0;
+      int dataSize = 0;
+      if (opticData != nullptr) {
+        opticData->data.size();
+      }
+      if (dataSize == 0) {
+        // This data set is empty, already processed. Ignore.
+        continue;
+      } else {
+        for (auto dataPair = opticData->data.begin();
+             dataPair != opticData->data.end();
+             ++dataPair) {
+          auto dataType = dataPair->first;
+          auto value = dataPair->second;
+          int pwmForThis = 0;
+          auto tablePointer =
+              pConfig_->getConfigOpticTable(opticName, dataType);
+          // We have <type, value> pair. If we have table entry for this
+          // optics type, get the matching pwm value using the optics value
+          if (tablePointer != nullptr) {
+            // Start with the minumum, then continue the comparison
+            pwmForThis = (*tablePointer)[0].second;
+            for (auto tableEntry = tablePointer->begin();
+                 tableEntry != tablePointer->end();
+                 ++tableEntry) {
+              if (value > tableEntry->first) {
+                pwmForThis = tableEntry->second;
+              }
+            }
+          }
+          if (pwmForThis > pwmSoFar) {
+            pwmSoFar = pwmForThis;
+          }
+        }
+        opticData->calculatedPwm = pwmSoFar;
+        // As we consumed the data, clear the vector
+        opticData->data.clear();
+        opticData->dataProcessTimeStamp = opticData->lastOpticsUpdateTimeInSec;
+      }
+    }
+  }
+}
+
 Sensor* ControlLogic::findSensorConfig(std::string sensorName) {
   for (auto sensorConfig = pConfig_->sensors.begin();
        sensorConfig != pConfig_->sensors.end();
@@ -572,12 +629,22 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     XLOG(INFO) << "Zone : " << zone->zoneName;
     // First, calculate the pwm value for this zone
     auto zoneType = zone->type;
+    int totalPwmConsidered = 0;
     for (auto sensorName = zone->sensorNames.begin();
          sensorName != zone->sensorNames.end();
          sensorName++) {
       auto pSensorConfig_ = findSensorConfig(*sensorName);
-      if (pSensorConfig_ != NULL) {
-        float pwmForThisSensor = pSensorConfig_->processedData.targetPwmCache;
+      if ((pSensorConfig_ != nullptr) ||
+          (pSensor_->checkIfOpticEntryExists(*sensorName))) {
+        totalPwmConsidered++;
+        float pwmForThisSensor;
+        if (pSensorConfig_ != nullptr) {
+          // If this is a sensor name
+          pwmForThisSensor = pSensorConfig_->processedData.targetPwmCache;
+        } else {
+          // If this is an optics name
+          pwmForThisSensor = pSensor_->getOpticsPwm(*sensorName);
+        }
         switch (zoneType) {
           case fan_config_structs::ZoneType::kZoneMax:
             if (pwmSoFar < pwmForThisSensor) {
@@ -598,15 +665,14 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
                 "Undefined Zone Type for zone : ", zone->zoneName);
             break;
         }
-        XLOG(INFO) << "  Sensor " << pSensorConfig_->sensorName << " : "
-                   << pSensorConfig_->processedData.targetPwmCache
-                   << " Overall so far : " << pwmSoFar;
+        XLOG(INFO) << "  Sensor/Optic " << *sensorName << " : "
+                   << pwmForThisSensor << " Overall so far : " << pwmSoFar;
       }
-      if (zoneType == fan_config_structs::ZoneType::kZoneAvg) {
-        pwmSoFar /= (float)zone->sensorNames.size();
-      }
-      XLOG(INFO) << "  Final PWM : " << pwmSoFar;
     }
+    if (zoneType == fan_config_structs::ZoneType::kZoneAvg) {
+      pwmSoFar /= (float)totalPwmConsidered;
+    }
+    XLOG(INFO) << "  Final PWM : " << pwmSoFar;
     if (boostMode) {
       if (pwmSoFar < pConfig_->getPwmBoostValue()) {
         pwmSoFar = pConfig_->getPwmBoostValue();
@@ -618,11 +684,10 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
          sensorName != zone->sensorNames.end();
          sensorName++) {
       auto pSensorConfig_ = findSensorConfig(*sensorName);
-      if (pSensorConfig_ != NULL) {
+      if (pSensorConfig_ != nullptr) {
         pSensorConfig_->incrementPid.previousTargetPwm = pwmSoFar;
       }
     }
-
     // Secondly, set Zone pwm value to all the fans in the zone
     programFan(&(*zone), pwmSoFar);
   }
@@ -657,6 +722,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   numFanFailed_ = 0;
   numSensorFailed_ = 0;
   bool boostMode = false;
+  bool boost_due_to_no_qsfp = false;
 
   // If we have not yet successfully read so far,
   // it does not make sense to update fan PWM out of no data.
@@ -676,14 +742,30 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   XLOG(INFO) << "Control :: Reading Sensor Status and determine per sensor PWM";
   getSensorUpdate();
 
+  // Determine proposed pwm value by each optics read
+  XLOG(INFO) << "Control :: Checking optics temperature to get pwm";
+  getOpticsUpdate();
+
   // Check if we need to turn on boost mode
   XLOG(INFO) << "Control :: Failed Sensor : " << numFanFailed_
              << " Failed Sensor : " << numSensorFailed_;
+
+  uint64_t secondsSinceLastOpticsUpdate =
+      pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
+  if ((pConfig_->pwmBoostNoQsfpAfterInSec != 0) &&
+      (secondsSinceLastOpticsUpdate >= pConfig_->pwmBoostNoQsfpAfterInSec)) {
+    boost_due_to_no_qsfp = true;
+    XLOG(INFO) << "Control :: Boost mode condition for no optics update "
+               << secondsSinceLastOpticsUpdate << " > "
+               << pConfig_->pwmBoostNoQsfpAfterInSec;
+  }
+
   boostMode =
       (((pConfig_->pwmBoostOnDeadFan != 0) &&
         (numFanFailed_ >= pConfig_->pwmBoostOnDeadFan)) ||
        ((pConfig_->pwmBoostOnDeadSensor != 0) &&
-        (numSensorFailed_ >= pConfig_->pwmBoostOnDeadSensor)));
+        (numSensorFailed_ >= pConfig_->pwmBoostOnDeadSensor)) ||
+       boost_due_to_no_qsfp);
   XLOG(INFO) << "Control :: Boost mode " << (boostMode ? "On" : "Off");
   XLOG(INFO) << "Control :: Updating Zones with new Fan value";
 

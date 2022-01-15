@@ -84,8 +84,13 @@ void FanService::kickstart() {
   // Get the proper BSP object from BSP factory,
   // according to the parsed config, then run init routine.
   pBsp_ = BspFactory();
+  // Create and initialize QsfpCache object. This may take
+  // some time.
+  pBsp_->initializeQsfpService();
+
   // Initialize SensorData
   pSensorData_ = std::make_shared<SensorData>();
+  pSensorData_->setLastQsfpSvcTime(pBsp_->getCurrentTime());
 
   // Start ODS Streamer and attach sensors
   setOdsStreamerEnable(false);
@@ -213,6 +218,7 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
       lastControlExecutionTimeSec_ = currentTimeSec;
       XLOG(INFO) << "Time for running fan control logic";
       pControlLogic_->updateControl(pSensorData_);
+      pBsp_->getOpticsData(pConfig_, pSensorData_);
       XLOG(INFO) << "Done adjusting fan speed";
     }
 

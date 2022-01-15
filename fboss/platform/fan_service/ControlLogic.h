@@ -36,6 +36,7 @@ class ControlLogic {
   // Private Methods
   void getSensorUpdate();
   void getFanUpdate();
+  void getOpticsUpdate();
   void programFan(Zone* zone, float pwmSoFar);
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(Sensor* sensorItem);
