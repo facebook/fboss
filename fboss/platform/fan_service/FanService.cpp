@@ -98,14 +98,49 @@ void FanService::kickstart() {
 int FanService::controlFan(/*folly::EventBase* evb*/) {
   int rc = 0;
   bool hasSensorDataUpdate = false;
-  uint64_t currentTimeSec = facebook::WallClockUtil::NowInSecFast();
+  uint64_t currentTimeSec = pBsp_->getCurrentTime();
+  if (!transitionValueSet_) {
+    transitionValueSet_ = true;
+    XLOG(INFO)
+        << "Upon fan_service start up, program all fan pwm with transitional value of "
+        << pConfig_->getPwmTransitionValue();
+    pControlLogic_->setTransitionValue();
+  }
   // Update Sensor Value based according to fetch frequency
   if ((currentTimeSec - lastSensorFetchTimeSec_) >=
       pConfig_->getSensorFetchFrequency()) {
-    lastSensorFetchTimeSec_ = currentTimeSec;
+    bool sensorReadOK = false;
+    bool opticsReadOK = false;
+
     // Get the updated sensor data
-    pBsp_->getSensorData(pConfig_, pSensorData_);
-    hasSensorDataUpdate = true;
+    try {
+      pBsp_->getSensorData(pConfig_, pSensorData_);
+      sensorReadOK = true;
+      XLOG(INFO) << "Successfully fetched sensor data.";
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Failed to get sensor data with error : " << e.what();
+    }
+
+    // Also get the updated optics data
+    try {
+      // Get the updated optics data
+      pBsp_->getOpticsData(pConfig_, pSensorData_);
+      opticsReadOK = true;
+      XLOG(INFO) << "Successfully fetched optics data.";
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Failed to get optics data with error : " << e.what();
+    }
+    // If ANY of the two data read above pass, do the best effort
+    // to use the data for adjusting fan speed
+    if (sensorReadOK || opticsReadOK) {
+      hasSensorDataUpdate = true;
+    }
+    // If BOTH of the two data read above pass, then we consider
+    // that the sensor reading is successful. Otherwise, we will
+    // keep retrying.
+    if (sensorReadOK && opticsReadOK) {
+      lastSensorFetchTimeSec_ = currentTimeSec;
+    }
   }
   // Change Fan PWM as needed according to control execution frequency
   if ((currentTimeSec - lastControlExecutionTimeSec_) >=

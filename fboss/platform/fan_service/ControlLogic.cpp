@@ -231,9 +231,6 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
           "Invalid PWM Calculation Type for sensor", sensorItem->sensorName);
       break;
   }
-  XLOG(INFO) << "Value : " << sensorItem->processedData.targetPwmCache
-             << " Lower : " << pConfig_->getPwmLowerThreshold()
-             << " Upper : " << pConfig_->getPwmUpperThreshold();
   // No matter what, PWM should be within
   // predefined upper and lower thresholds
   if (sensorItem->processedData.targetPwmCache >
@@ -400,7 +397,7 @@ Sensor* ControlLogic::findSensorConfig(std::string sensorName) {
     }
   }
   facebook::fboss::FbossError("Enable to find sensorConfig : ", sensorName);
-  return NULL;
+  return nullptr;
 }
 
 bool ControlLogic::checkIfFanPresent(Fan* fan) {
@@ -454,6 +451,67 @@ bool ControlLogic::checkIfFanPresent(Fan* fan) {
     }
   }
   return false;
+}
+void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
+  for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
+    auto srcType = *fan->pwm.accessType_ref();
+    float pwmToProgram = 0;
+    float currentPwm = fan->fanStatus.currentPwm;
+    bool writeSuccess;
+    // If this fan does not belong to the current zone, do not do anything
+    if (std::find(zone->fanNames.begin(), zone->fanNames.end(), fan->fanName) ==
+        zone->fanNames.end()) {
+      continue;
+    }
+    if ((zone->slope == 0) || (currentPwm == 0)) {
+      pwmToProgram = pwmSoFar;
+    } else {
+      if (pwmSoFar > currentPwm) {
+        if ((pwmSoFar - currentPwm) > zone->slope) {
+          pwmToProgram = currentPwm + zone->slope;
+        } else {
+          pwmToProgram = pwmSoFar;
+        }
+      } else if (pwmSoFar < currentPwm) {
+        if ((currentPwm - pwmSoFar) > zone->slope) {
+          pwmToProgram = currentPwm - zone->slope;
+        } else {
+          pwmToProgram = pwmSoFar;
+        }
+      } else {
+        pwmToProgram = pwmSoFar;
+      }
+    }
+    int pwmInt =
+        (int)(((fan->pwmMax) - (fan->pwmMin)) * pwmToProgram / 100.0 + fan->pwmMin);
+    if (pwmInt < fan->pwmMin) {
+      pwmInt = fan->pwmMin;
+    } else if (pwmInt > fan->pwmMax) {
+      pwmInt = fan->pwmMax;
+    }
+    switch (srcType) {
+      case fan_config_structs::SourceType::kSrcSysfs:
+        writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwm.path_ref(), pwmInt);
+        if (!writeSuccess) {
+          setFanFailState(std::addressof(*fan), true);
+        }
+        break;
+      case fan_config_structs::SourceType::kSrcUtil:
+        writeSuccess =
+            pBsp_->setFanPwmShell(*fan->pwm.path_ref(), fan->fanName, pwmInt);
+        if (!writeSuccess) {
+          setFanFailState(std::addressof(*fan), true);
+        }
+        break;
+      case fan_config_structs::SourceType::kSrcThrift:
+      case fan_config_structs::SourceType::kSrcRest:
+      case fan_config_structs::SourceType::kSrcInvalid:
+      default:
+        facebook::fboss::FbossError(
+            "Unsupported PWM access type for : ", fan->fanName);
+    }
+    fan->fanStatus.currentPwm = pwmToProgram;
+  }
 }
 
 void ControlLogic::setFanFailState(Fan* fan, bool fanFailed) {
@@ -566,64 +624,33 @@ void ControlLogic::adjustZoneFans(bool boostMode) {
     }
 
     // Secondly, set Zone pwm value to all the fans in the zone
-    for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end();
-         ++fan) {
-      auto srcType = *fan->pwm.accessType_ref();
-      float pwmToProgram = 0;
-      float currentPwm = fan->fanStatus.currentPwm;
-      bool writeSuccess;
-      if ((zone->slope == 0) || (currentPwm == 0)) {
-        pwmToProgram = pwmSoFar;
-      } else {
-        if (pwmSoFar > currentPwm) {
-          if ((pwmSoFar - currentPwm) > zone->slope) {
-            pwmToProgram = currentPwm + zone->slope;
-          } else {
-            pwmToProgram = pwmSoFar;
-          }
-        } else if (pwmSoFar < currentPwm) {
-          if ((currentPwm - pwmSoFar) > zone->slope) {
-            pwmToProgram = currentPwm - zone->slope;
-          } else {
-            pwmToProgram = pwmSoFar;
-          }
-        } else {
-          pwmToProgram = pwmSoFar;
-        }
-      }
-      int pwmInt =
-          (int)(((fan->pwmMax) - (fan->pwmMin)) * pwmToProgram / 100.0 + fan->pwmMin);
-      if (pwmInt < fan->pwmMin) {
-        pwmInt = fan->pwmMin;
-      } else if (pwmInt > fan->pwmMax) {
-        pwmInt = fan->pwmMax;
-      }
-      switch (srcType) {
-        case fan_config_structs::SourceType::kSrcSysfs:
-          writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwm.path_ref(), pwmInt);
-          if (!writeSuccess) {
-            setFanFailState(std::addressof(*fan), true);
-          }
-          break;
-        case fan_config_structs::SourceType::kSrcUtil:
-          writeSuccess =
-              pBsp_->setFanPwmShell(*fan->pwm.path_ref(), fan->fanName, pwmInt);
-          if (!writeSuccess) {
-            setFanFailState(std::addressof(*fan), true);
-          }
-          break;
-        case fan_config_structs::SourceType::kSrcThrift:
-        case fan_config_structs::SourceType::kSrcRest:
-        case fan_config_structs::SourceType::kSrcInvalid:
-        default:
-          facebook::fboss::FbossError(
-              "Unsupported PWM access type for : ", fan->fanName);
-      }
-      fan->fanStatus.currentPwm = pwmToProgram;
-    }
+    programFan(&(*zone), pwmSoFar);
   }
 }
 
+void ControlLogic::setTransitionValue() {
+  for (auto zone = pConfig_->zones.begin(); zone != pConfig_->zones.end();
+       ++zone) {
+    for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end();
+         ++fan) {
+      // If this a fan belongs to the zone, then write the transitional value
+      if (std::find(
+              zone->fanNames.begin(), zone->fanNames.end(), fan->fanName) !=
+          zone->fanNames.end()) {
+        for (auto sensorName = zone->sensorNames.begin();
+             sensorName != zone->sensorNames.end();
+             sensorName++) {
+          auto pSensorConfig_ = findSensorConfig(*sensorName);
+          if (pSensorConfig_ != nullptr) {
+            pSensorConfig_->incrementPid.previousTargetPwm =
+                pConfig_->getPwmTransitionValue();
+          }
+        }
+        programFan(&(*zone), pConfig_->getPwmTransitionValue());
+      }
+    }
+  }
+}
 void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   pSensor_ = pS;
 

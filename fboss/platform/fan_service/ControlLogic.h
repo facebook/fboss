@@ -19,6 +19,7 @@ class ControlLogic {
   // updateControl : Main entry for the control logic to process sensor
   //                 readings and set PWM value accordingly
   void updateControl(std::shared_ptr<SensorData> pS);
+  void setTransitionValue();
 
  private:
   // Private Attributess :
@@ -35,6 +36,7 @@ class ControlLogic {
   // Private Methods
   void getSensorUpdate();
   void getFanUpdate();
+  void programFan(Zone* zone, float pwmSoFar);
   void adjustZoneFans(bool boostMode);
   void updateTargetPwm(Sensor* sensorItem);
   void setFanFailState(Fan* fan, bool fanFailed);

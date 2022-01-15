@@ -57,6 +57,8 @@ class FanService {
   std::shared_ptr<SensorData> pSensorData_;
   // Knob to enable ODS streamer. Default On.
   bool enableOdsStreamer_;
+  // Check if fan pwm was programmed with transitionValue yet.
+  bool transitionValueSet_;
   // Config File Name
   std::string cfgFile_;
   // ODS Tier to stream data
