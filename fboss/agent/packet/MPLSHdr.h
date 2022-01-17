@@ -3,6 +3,7 @@
 #pragma once
 
 #include <folly/io/Cursor.h>
+#include <optional>
 #include <vector>
 
 #include "fboss/agent/packet/Ethertype.h"
