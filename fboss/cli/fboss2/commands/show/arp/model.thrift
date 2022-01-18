@@ -12,4 +12,5 @@ struct ArpEntry {
   5: string state;
   6: i32 ttl;
   7: i32 classID;
+  8: string ifName;
 }

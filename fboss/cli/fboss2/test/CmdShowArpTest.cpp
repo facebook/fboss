@@ -4,7 +4,9 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
+#include <cstdint>
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_types.h"
@@ -51,13 +53,33 @@ std::vector<facebook::fboss::ArpEntryThrift> createArpEntries() {
   return entries;
 }
 
+std::map<int32_t, facebook::fboss::PortInfoThrift>
+createFakePortThriftEntries() {
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+
+  PortInfoThrift portEntry1;
+  portEntry1.portId_ref() = 102;
+  portEntry1.name_ref() = "eth1/1/1";
+
+  PortInfoThrift portEntry2;
+  portEntry2.portId_ref() = 106;
+  portEntry2.name_ref() = "eth2/1/1";
+
+  portEntries[portEntry1.get_portId()] = portEntry1;
+  portEntries[portEntry2.get_portId()] = portEntry2;
+
+  return portEntries;
+}
+
 class CmdShowArpTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<fboss::ArpEntryThrift> arpEntries;
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     arpEntries = createArpEntries();
+    portEntries = createFakePortThriftEntries();
   }
 };
 
@@ -84,14 +106,16 @@ TEST_F(CmdShowArpTestFixture, queryClient) {
 
 TEST_F(CmdShowArpTestFixture, printOutput) {
   auto cmd = CmdShowArp();
-  auto model = cmd.createModel(arpEntries);
+  auto model = cmd.createModel(arpEntries, portEntries);
 
   std::stringstream ss;
   cmd.printOutput(model, ss);
 
   std::string output = ss.str();
   std::string expectOutput =
-      "IP Address            MAC Address        Port        VLAN               State         TTL      CLASSID     \n10.120.64.2           44:4c:a8:e4:1c:3f  102         vlan4001 (4001)    REACHABLE     27198    0           \n10.121.64.2           44:4c:a8:e4:1b:f1  106         vlan4002 (4002)    REACHABLE     33730    0           \n\n";
+      "IP Address            MAC Address        Interface   VLAN               State         TTL      CLASSID     \n"
+      "10.120.64.2           44:4c:a8:e4:1c:3f  eth1/1/1    vlan4001 (4001)    REACHABLE     27198    0           \n"
+      "10.121.64.2           44:4c:a8:e4:1b:f1  eth2/1/1    vlan4002 (4002)    REACHABLE     33730    0           \n\n";
   EXPECT_EQ(output, expectOutput);
 }
 

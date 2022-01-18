@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <cstdint>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_types.h"
 
@@ -26,11 +28,13 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
  public:
   RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::ArpEntryThrift> entries;
+    std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getArpTable(entries);
-    return createModel(entries);
+    client->sync_getAllPortInfo(portEntries);
+    return createModel(entries, portEntries);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -40,7 +44,7 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
         fmtString,
         "IP Address",
         "MAC Address",
-        "Port",
+        "Interface",
         "VLAN",
         "State",
         "TTL",
@@ -51,7 +55,7 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
           fmtString,
           entry.get_ip(),
           entry.get_mac(),
-          entry.get_port(),
+          entry.get_ifName(),
           entry.get_vlan(),
           entry.get_state(),
           entry.get_ttl(),
@@ -60,7 +64,9 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
     out << std::endl;
   }
 
-  RetType createModel(std::vector<facebook::fboss::ArpEntryThrift> arpEntries) {
+  RetType createModel(
+      std::vector<facebook::fboss::ArpEntryThrift> arpEntries,
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries) {
     RetType model;
 
     for (const auto& entry : arpEntries) {
@@ -76,6 +82,7 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
       arpDetails.state_ref() = entry.get_state();
       arpDetails.ttl_ref() = entry.get_ttl();
       arpDetails.classID_ref() = entry.get_classID();
+      arpDetails.ifName_ref() = portEntries[entry.get_port()].get_name();
 
       model.arpEntries_ref()->push_back(arpDetails);
     }
