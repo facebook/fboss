@@ -10,16 +10,22 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/Table.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
 #include <fmt/core.h>
+#include <cstdint>
 
 namespace facebook::fboss {
+
+using utils::Table;
 
 struct CmdShowTransceiverTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -46,30 +52,26 @@ class CmdShowTransceiver
     auto transceiverEntries =
         queryTransceiverInfo(qsfpService.get(), portStatusEntries);
 
-    return createModel(portStatusEntries, transceiverEntries);
+    return createModel(portStatusEntries, transceiverEntries, portEntries);
   }
 
-  void printOutput(const RetType& model) {
-    std::string fmtString = "{:<8}{:<10}{:<15}{:<18}{:<20}{:<15}\n";
-    std::cout << fmt::format(
-        fmtString,
-        "Port",
-        "Status",
-        "Present",
-        "Vendor",
-        "Serial",
-        "Part Number");
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
+    Table outTable;
+
+    outTable.setHeader(
+        {"Interface", "Status", "Present", "Vendor", "Serial", "Part Number"});
 
     for (const auto& [portId, details] : model.get_transceivers()) {
-      std::cout << fmt::format(
-          fmtString,
-          portId,
-          details.get_isUp(),
-          details.get_isPresent(),
+      outTable.addRow({
+          details.get_name(),
+          (details.get_isUp()) ? "Up" : "Down",
+          (details.get_isPresent()) ? "Present" : "Absent",
           details.get_vendor(),
           details.get_serial(),
-          details.get_partNumber());
+          details.get_partNumber(),
+      });
     }
+    out << outTable << std::endl;
   }
 
  private:
@@ -124,12 +126,14 @@ class CmdShowTransceiver
 
   RetType createModel(
       std::map<int, PortStatus> portStatusEntries,
-      std::map<int, TransceiverInfo> transceiverEntries) const {
+      std::map<int, TransceiverInfo> transceiverEntries,
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries) const {
     RetType model;
 
     // TODO: sort here?
     for (const auto& [portId, portEntry] : portStatusEntries) {
       cli::TransceiverDetail details;
+      details.name_ref() = portEntries[portId].get_name();
       const auto transceiverId =
           portEntry.transceiverIdx_ref()->get_transceiverId();
       const auto& transceiver = transceiverEntries[transceiverId];
@@ -142,6 +146,7 @@ class CmdShowTransceiver
       }
       model.transceivers_ref()->emplace(portId, std::move(details));
     }
+
     return model;
   }
 };
