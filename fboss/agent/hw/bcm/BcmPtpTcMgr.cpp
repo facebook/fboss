@@ -31,6 +31,7 @@ int BcmPtpTcMgr::getTsBitModeArg(HwAsic::AsicType asicType) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
       return bcmTimesyncTimestampingMode32bit;
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       return bcmTimesyncTimestampingMode48bit;
     default:
       throw FbossError(
@@ -216,12 +217,13 @@ void BcmPtpTcMgr::disablePtpTc() {
         "Error in disabling TC correction for port ",
         port);
 
+    // Reset to whatever is default arg for the given asic/sdk
+    // For TH4 its 48-bit
+    static const int tsBitModeArg =
+        getTsBitModeArg(hw_->getPlatform()->getAsic()->getAsicType());
     BCM_CHECK_ERROR(
         bcm_switch_control_port_set(
-            unit,
-            port,
-            bcmSwitchTimesyncEgressTimestampingMode,
-            0 /* tsBitModeArg */),
+            unit, port, bcmSwitchTimesyncEgressTimestampingMode, tsBitModeArg),
         "Error in disabling TC egress timestamping mode for port ",
         port);
 

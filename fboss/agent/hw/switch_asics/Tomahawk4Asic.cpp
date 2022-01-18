@@ -67,6 +67,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
+    case HwAsic::Feature::PTP_TC:
+    case HwAsic::Feature::PTP_TC_PCS:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -88,10 +90,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
-    case HwAsic::Feature::PTP_TC: // TODO(rajukumarfb5368): enable after
-                                  // checking
-    case HwAsic::Feature::PTP_TC_PCS: // TODO(rajukumarfb5368): enable after
-                                      // checking
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
