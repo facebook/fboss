@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <stdexcept>
 #include <string>
 
 namespace facebook::fboss {
@@ -67,6 +68,8 @@ inline std::string toString(PlatformMode mode) {
     case PlatformMode::LASSEN:
       return "LASSEN";
   }
+  throw std::runtime_error("Unknown mode");
+  return "Unknown";
 }
 
 enum class ExternalPhyVersion : char {
