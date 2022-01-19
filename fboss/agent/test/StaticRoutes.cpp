@@ -11,6 +11,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
+#include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -34,7 +35,7 @@ using std::make_shared;
 
 auto kStaticClient = ClientID::STATIC_ROUTE;
 
-class StaticRouteTest : public ::testing::Test {
+class StaticRouteTest : public ::testing::TestWithParam<bool> {
   cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
     config.vlans_ref()->resize(1);
@@ -98,6 +99,40 @@ class StaticRouteTest : public ::testing::Test {
   std::shared_ptr<Route<AddrT>> findRoute(const RoutePrefix<AddrT>& nw) {
     return ::findRoute<AddrT>(
         RouterID(0), nw.toCidrNetwork(), this->sw_->getState());
+  }
+
+  static ConfigApplier getConfigApplier(
+      cfg::SwitchConfig& config,
+      IPv4NetworkToRouteMap* v4Table,
+      IPv6NetworkToRouteMap* v6Table,
+      LabelToRouteMap* labelTable) {
+    return ConfigApplier(
+        RouterID(0),
+        v4Table,
+        v6Table,
+        labelTable,
+        {},
+        folly::range(
+            config.staticRoutesToCPU_ref()->begin(),
+            config.staticRoutesToCPU_ref()->end()),
+        folly::range(
+            config.staticRoutesToNull_ref()->begin(),
+            config.staticRoutesToNull_ref()->end()),
+        folly::range(
+            config.staticRoutesWithNhops_ref()->begin(),
+            config.staticRoutesWithNhops_ref()->end()),
+        folly::range(
+            config.staticIp2MplsRoutes_ref()->begin(),
+            config.staticIp2MplsRoutes_ref()->end()),
+        folly::range(
+            config.staticMplsRoutesWithNhops_ref()->begin(),
+            config.staticMplsRoutesWithNhops_ref()->end()),
+        folly::range(
+            config.staticMplsRoutesToNull_ref()->begin(),
+            config.staticMplsRoutesToNull_ref()->end()),
+        folly::range(
+            config.staticMplsRoutesToCPU_ref()->begin(),
+            config.staticMplsRoutesToCPU_ref()->end()));
   }
 
  protected:
@@ -232,7 +267,8 @@ TEST_F(StaticRouteTest, configureUnconfigure) {
   EXPECT_EQ(1, v6Routes);
 }
 
-TEST(StaticRoutes, MplsStaticRoutes) {
+TEST_P(StaticRouteTest, MplsStaticRoutes) {
+  FLAGS_mpls_rib = GetParam();
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -245,9 +281,10 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   intfConfig->intfID_ref() = 1;
   intfConfig->vlanID_ref() = 1;
   intfConfig->mac_ref() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses_ref()->resize(2);
+  intfConfig->ipAddresses_ref()->resize(3);
   intfConfig->ipAddresses_ref()[0] = "10.0.0.0/24";
   intfConfig->ipAddresses_ref()[1] = "1::/64";
+  intfConfig->ipAddresses_ref()[2] = "2::/64";
 
   // try to set link local nhop without interface
   config0.staticMplsRoutesWithNhops_ref()->resize(1);
@@ -262,16 +299,34 @@ TEST(StaticRoutes, MplsStaticRoutes) {
       toBinaryAddress(folly::IPAddress("fe80:abcd:1234:dcab::1"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   RoutingInformationBase rib;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
-      FbossError);
+  if (FLAGS_mpls_rib) {
+    auto v4Table = IPv4NetworkToRouteMap();
+    auto v6Table = IPv6NetworkToRouteMap();
+    auto labelTable = LabelToRouteMap();
+    auto configApplier = StaticRouteTest::getConfigApplier(
+        config0, &v4Table, &v6Table, &labelTable);
+    EXPECT_THROW(configApplier.apply(), FbossError);
+  } else {
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
+        FbossError);
+  }
 
   // try to set non-link local without interface and unreachable via interface
-  nexthops[0].address_ref() = toBinaryAddress(folly::IPAddress("2::1"));
+  nexthops[0].address_ref() = toBinaryAddress(folly::IPAddress("3::1"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
-      FbossError);
+  if (!FLAGS_mpls_rib) {
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
+        FbossError);
+  } else {
+    auto stateV1 =
+        publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
+    auto entry =
+        stateV1->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+            100);
+    EXPECT_EQ(entry, nullptr);
+  }
 
   // setup link local with interface and non-link local without interface
   // reachable via interface
@@ -285,12 +340,25 @@ TEST(StaticRoutes, MplsStaticRoutes) {
   nexthops[1].address_ref() = toBinaryAddress(folly::IPAddress("1::10"));
   config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
   auto stateV1 = publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
+  auto entry =
+      stateV1->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+          100);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(entry->getForwardInfo().getNextHopSet().size(), 2);
 
   // setup non-link local with interface, still valid
   nexthops.resize(3);
   swap.swapLabel_ref() = 103;
   nexthops[2].mplsAction_ref() = swap;
-  nexthops[2].address_ref() = toBinaryAddress(folly::IPAddress("2::1"));
-  nexthops[0].address_ref()->ifName_ref() = *intfConfig->name_ref();
-  publishAndApplyConfig(stateV1, &config0, platform.get(), &rib);
+  nexthops[2].address_ref() = toBinaryAddress(folly::IPAddress("2::10"));
+  nexthops[2].address_ref()->ifName_ref() = *intfConfig->name_ref();
+  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config0, platform.get(), &rib);
+  entry =
+      stateV2->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+          100);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(entry->getForwardInfo().getNextHopSet().size(), 3);
 }
+
+INSTANTIATE_TEST_CASE_P(StaticRouteTest, StaticRouteTest, ::testing::Bool());
