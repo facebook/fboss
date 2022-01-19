@@ -120,26 +120,22 @@ class MplsRouteLogger : public RouteLoggerBase<LabelForwardingEntry> {
 
 class LabelsTracker {
  public:
-  static constexpr LabelForwardingEntry::Label kAll = -1;
-  using Label2Ids = boost::container::flat_map<
-      LabelForwardingEntry::Label,
-      boost::container::flat_set<std::string>>;
+  const static inline Label kAll{-1};
+  using Label2Ids = boost::container::
+      flat_map<Label, boost::container::flat_set<std::string>>;
 
-  using TrackedLabelsInfo = boost::container::flat_set<
-      std::pair<std::string, LabelForwardingEntry::Label>>;
+  using TrackedLabelsInfo =
+      boost::container::flat_set<std::pair<std::string, Label>>;
 
   LabelsTracker() {}
 
-  void track(LabelForwardingEntry::Label label, const std::string& identifier);
-  void untrack(
-      LabelForwardingEntry::Label label,
-      const std::string& identifier);
+  void track(Label label, const std::string& identifier);
+  void untrack(Label label, const std::string& identifier);
   void untrack(const std::string& identifier);
   TrackedLabelsInfo getTrackedLabelsInfo() const;
 
-  void getIdentifiersForLabel(
-      LabelForwardingEntry::Label label,
-      std::set<std::string>& identifiers) const;
+  void getIdentifiersForLabel(Label label, std::set<std::string>& identifiers)
+      const;
 
  private:
   Label2Ids label2Ids_;
@@ -171,12 +167,8 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
       uint8_t mask,
       const std::string& identifier);
   void stopLoggingForIdentifier(const std::string& identifier);
-  void startLoggingForLabel(
-      LabelForwardingEntry::Label label,
-      const std::string& identifier);
-  void stopLoggingForLabel(
-      LabelForwardingEntry::Label label,
-      const std::string& identifier);
+  void startLoggingForLabel(Label label, const std::string& identifier);
+  void stopLoggingForLabel(Label label, const std::string& identifier);
   void stopLabelLoggingForIdentifier(const std::string& identifier);
 
   std::vector<RouteUpdateLoggingInstance> getTrackedPrefixes() const;

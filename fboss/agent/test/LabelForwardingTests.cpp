@@ -178,7 +178,7 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   const auto& labelFibEntry =
       labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
   EXPECT_NE(nullptr, labelFibEntry);
-  auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
+  auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
   EXPECT_EQ(nexthops.size(), 2);
   auto idx = 0;
   for (const auto& nhop : nexthops) {
@@ -414,7 +414,7 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
     EXPECT_NE(nullptr, labelFibEntryForClient);
     auto clientNexthops = labelFibEntryForClient->getNextHopSet();
     EXPECT_EQ(clientNexthops.size(), 4);
-    auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
+    auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     for (auto nexthop : nexthops) {
       // no unresolved next hops , all are resolved
       EXPECT_TRUE(nexthop.isResolved());
@@ -477,7 +477,7 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
     const auto& labelFibEntry =
         labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
     EXPECT_NE(nullptr, labelFibEntry);
-    auto nexthops = labelFibEntry->getLabelNextHop().getNextHopSet();
+    auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     EXPECT_EQ(nexthops.size(), 2);
   } else {
     EXPECT_THROW(

@@ -148,22 +148,22 @@ template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix,
-    LabelForwardingEntry::Label label) {
+    Label label) {
   auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
   auto labelStack = nextHopApi.getAttribute(
       getNextHopSaiId<AddrT>(hwSwitch, prefix),
       SaiMplsNextHopTraits::Attributes::LabelStack{});
   EXPECT_GT(labelStack.size(), 0);
-  EXPECT_EQ(labelStack[0], label);
+  EXPECT_EQ(labelStack[0], static_cast<int32_t>(label.value()));
 }
 template void verifyLabeledNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV6>::Prefix prefix,
-    LabelForwardingEntry::Label label);
+    Label label);
 template void verifyLabeledNextHop<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV4>::Prefix prefix,
-    LabelForwardingEntry::Label label);
+    Label label);
 
 template <typename AddrT>
 void verifyLabeledNextHopWithStack(
@@ -391,10 +391,10 @@ void verifyMplsNexthop(
 template <typename AddrT>
 void verifyLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<AddrT>& nexthop) {
-  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
+  auto entry = getInSegEntryAdapterKey(hwSwitch, label.value());
   auto attrs = getInSegEntryAttributes(entry);
   auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
   EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
@@ -412,23 +412,23 @@ void verifyLabelSwitchAction(
 }
 template void verifyLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<folly::IPAddressV6>& nexthop);
 template void verifyLabelSwitchAction<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<folly::IPAddressV4>& nexthop);
 
 template <typename AddrT>
 void verifyMultiPathLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
   EXPECT_NE(action, LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
-  auto entry = getInSegEntryAdapterKey(hwSwitch, label);
+  auto entry = getInSegEntryAdapterKey(hwSwitch, label.value());
   auto attrs = getInSegEntryAttributes(entry);
   auto pktAction = std::get<SaiInSegTraits::Attributes::PacketAction>(attrs);
   EXPECT_EQ(pktAction, SAI_PACKET_ACTION_FORWARD);
@@ -448,12 +448,12 @@ void verifyMultiPathLabelSwitchAction(
 }
 template void verifyMultiPathLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<folly::IPAddressV6>>& nexthops);
 template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
 

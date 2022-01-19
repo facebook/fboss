@@ -32,9 +32,9 @@ void MPLSHandler::handleKnownLabel(
   auto entry = sw_->getState()
                    ->getLabelForwardingInformationBase()
                    ->getLabelForwardingEntry(topLabel.getLabelValue());
-  const auto& nexthop = entry->getLabelNextHop();
+  const auto& fwd = entry->getForwardInfo();
 
-  if (nexthop.getAction() == LabelNextHopEntry::Action::TO_CPU) {
+  if (fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
     return handleLabel2Me(std::move(pkt), header, cursor);
   }
   if (entry->isPopAndLookup()) {

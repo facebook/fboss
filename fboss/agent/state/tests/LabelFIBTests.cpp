@@ -27,7 +27,7 @@ void addOrUpdateEntryWithProgramLabel(
 
 void removeEntryWithUnprogramLabel(
     std::shared_ptr<SwitchState>* state,
-    LabelForwardingEntry::Label label,
+    Label label,
     ClientID client) {
   SwitchState::modify(state);
   (*state)->getLabelForwardingInformationBase()->unprogramLabel(
@@ -79,7 +79,7 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
 
   lFib->updateNode(entry);
   auto updatedEntry = lFib->getLabelForwardingEntry(5001);
-  for (const auto& nhop : updatedEntry->getLabelNextHop().getNextHopSet()) {
+  for (const auto& nhop : updatedEntry->getForwardInfo().getNextHopSet()) {
     ASSERT_TRUE(nhop.labelForwardingAction());
     EXPECT_EQ(
         nhop.labelForwardingAction()->type(),
@@ -108,12 +108,10 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
   auto generated =
       LabelForwardingInformationBase::fromFollyDynamic(lFib->toFollyDynamic());
 
-  EXPECT_EQ(
-      *lFib->getLabelForwardingEntry(5001),
-      *generated->getLabelForwardingEntry(5001));
-  EXPECT_EQ(
-      *lFib->getLabelForwardingEntry(5002),
-      *generated->getLabelForwardingEntry(5002));
+  EXPECT_TRUE(lFib->getLabelForwardingEntry(5001)->isSame(
+      generated->getLabelForwardingEntry(5001).get()));
+  EXPECT_TRUE(lFib->getLabelForwardingEntry(5002)->isSame(
+      generated->getLabelForwardingEntry(5002).get()));
 }
 
 TEST(LabelFIBTests, forEachAdded) {
@@ -138,7 +136,7 @@ TEST(LabelFIBTests, forEachAdded) {
       labelFibDelta,
       [=](const std::shared_ptr<LabelForwardingEntry>& addedEntry,
           const std::shared_ptr<LabelForwardingEntry> newEntry) {
-        EXPECT_EQ(*newEntry, *addedEntry);
+        EXPECT_TRUE(newEntry->isSame(addedEntry.get()));
       },
       entry);
 }
@@ -174,7 +172,7 @@ TEST(LabelFIBTests, forEachRemoved) {
       labelFibDelta,
       [=](const std::shared_ptr<LabelForwardingEntry>& removedEntry,
           const std::shared_ptr<LabelForwardingEntry> oldEntry) {
-        EXPECT_EQ(*oldEntry, *removedEntry);
+        EXPECT_TRUE(oldEntry->isSame(removedEntry.get()));
       },
       entry);
 }
@@ -218,8 +216,8 @@ TEST(LabelFIBTests, forEachChanged) {
           const std::shared_ptr<LabelForwardingEntry>& newEntry,
           const std::shared_ptr<LabelForwardingEntry>& removedEntry,
           const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
-        EXPECT_EQ(*oldEntry, *removedEntry);
-        EXPECT_EQ(*newEntry, *addedEntry);
+        EXPECT_TRUE(oldEntry->isSame(removedEntry.get()));
+        EXPECT_TRUE(newEntry->isSame(addedEntry.get()));
       },
       oldEntry,
       newEntry);
@@ -231,13 +229,14 @@ TEST(LabelFIBTests, programLabel) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd->setResolved(*entryToAdd->getBestEntry().second);
 
   addOrUpdateEntryWithProgramLabel(&stateA, ClientID::OPENR, entryToAdd.get());
   stateA->publish();
   auto entryAdded =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5001);
-  EXPECT_EQ(*entryAdded, *entryToAdd);
+  EXPECT_TRUE(entryAdded->isSame(entryToAdd.get()));
 }
 
 TEST(LabelFIBTests, updateLabel) {
@@ -273,10 +272,12 @@ TEST(LabelFIBTests, unprogramLabel) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5002->setResolved(*entryToAdd5002->getBestEntry().second);
 
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
@@ -290,7 +291,7 @@ TEST(LabelFIBTests, unprogramLabel) {
   auto entry5001 =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5001);
-  EXPECT_EQ(*entry5001, *entryToAdd5001);
+  EXPECT_TRUE(entry5001->isSame(entryToAdd5001.get()));
 
   auto entry5002 =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
@@ -304,14 +305,17 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5002->setResolved(*entryToAdd5002->getBestEntry().second);
   auto entryToAdd5003 = std::make_shared<LabelForwardingEntry>(
       5003,
       ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5003->setResolved(*entryToAdd5003->getBestEntry().second);
 
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
@@ -332,9 +336,9 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5003);
 
-  EXPECT_EQ(*entryToAdd5001, *entryAdded5001);
-  EXPECT_EQ(*entryToAdd5002, *entryAdded5002);
-  EXPECT_EQ(*entryToAdd5003, *entryAdded5003);
+  EXPECT_TRUE(entryToAdd5001->isSame(entryAdded5001.get()));
+  EXPECT_TRUE(entryToAdd5002->isSame(entryAdded5002.get()));
+  EXPECT_TRUE(entryToAdd5003->isSame(entryAdded5003.get()));
 
   SwitchState::modify(&stateA);
   stateA->getLabelForwardingInformationBase()->purgeEntriesForClient(
@@ -355,7 +359,7 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
   auto entry5003 =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5003);
-  EXPECT_EQ(*entryAdded5003, *entry5003);
+  EXPECT_TRUE(entryAdded5003->isSame(entry5003.get()));
 }
 
 TEST(LabelFIBTests, oneLabelManyClients) {
@@ -365,12 +369,14 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
   auto entryToAdd5002Bgp = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::STATIC_ROUTE));
+  entryToAdd5002Bgp->setResolved(*entryToAdd5002Bgp->getBestEntry().second);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::BGPD, entryToAdd5002Bgp.get());
   stateA->publish();
@@ -382,15 +388,16 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5002);
 
-  EXPECT_EQ(*entryToAdd5001, *entryAdded5001);
+  EXPECT_TRUE(entryToAdd5001->isSame(entryAdded5001.get()));
   EXPECT_EQ(
-      entryToAdd5002Bgp->getLabelNextHop(), entryAdded5002->getLabelNextHop());
+      entryToAdd5002Bgp->getForwardInfo(), entryAdded5002->getForwardInfo());
 
   // 2) now open r adds for 5002 (directly connected)
   auto entryToAdd5002Openr = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  entryToAdd5002Openr->setResolved(*entryToAdd5002Openr->getBestEntry().second);
   SwitchState::modify(&stateA);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5002Openr.get());
@@ -402,8 +409,7 @@ TEST(LabelFIBTests, oneLabelManyClients) {
 
   // 3) for 5002, now directly connected next hop is preferred
   EXPECT_EQ(
-      entryToAdd5002Openr->getLabelNextHop(),
-      entryAdded5002->getLabelNextHop());
+      entryToAdd5002Openr->getForwardInfo(), entryAdded5002->getForwardInfo());
 
   // 4) purge entries open-r for now
   SwitchState::modify(&stateA);
@@ -424,5 +430,5 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   ASSERT_NE(nullptr, entry5002);
 
   // 7) next hop for 5002 label is now the one informed by bgp
-  EXPECT_EQ(entryToAdd5002Bgp->getLabelNextHop(), entry5002->getLabelNextHop());
+  EXPECT_EQ(entryToAdd5002Bgp->getForwardInfo(), entry5002->getForwardInfo());
 }

@@ -75,25 +75,26 @@ class InSegEntryManagerTest : public ManagerTestBase {
 
   void addEntryToLabelForwardingInformationBase(
       LabelForwardingInformationBase* fib,
-      LabelForwardingEntry::Label label,
+      Label label,
       int nextHopBegin,
       int nextHopEnd,
       LabelForwardingAction::LabelForwardingType actionType) {
-    fib->addNode(std::make_shared<LabelForwardingEntry>(
+    auto node = std::make_shared<LabelForwardingEntry>(
         label,
         ClientID(ClientID::OPENR),
-        getLabelNextHopEntryWithNextHops(
-            nextHopBegin, nextHopEnd, actionType)));
+        getLabelNextHopEntryWithNextHops(nextHopBegin, nextHopEnd, actionType));
+    LabelForwardingInformationBase::resolve(node);
+    fib->addNode(node);
   }
 
   void removeEntryFromLabelForwardingInformationBase(
       LabelForwardingInformationBase* fib,
-      LabelForwardingEntry::Label label) {
+      Label label) {
     fib->removeNode(label);
   }
 
   void verifyLabelForwardingEntry(
-      LabelForwardingEntry::Label label,
+      Label label,
       int nextHopBegin,
       int nextHopEnd,
       LabelForwardingAction::LabelForwardingType type) {
@@ -104,7 +105,7 @@ class InSegEntryManagerTest : public ManagerTestBase {
     ASSERT_NE(inSegEntryHandle->nextHopGroupHandle(), nullptr);
 
     auto adapterKey = inSegEntryHandle->inSegEntry->adapterKey();
-    EXPECT_EQ(adapterKey.label(), label);
+    EXPECT_EQ(adapterKey.label(), static_cast<int32_t>(label.value()));
     auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
     EXPECT_EQ(adapterKey.switchId(), switchId);
 

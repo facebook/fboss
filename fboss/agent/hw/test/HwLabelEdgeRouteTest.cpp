@@ -44,8 +44,7 @@ struct TestParameters {
   PrefixT prefix; // prefix for route to remote dest
   AddrT nexthop; // next hop for that route
   const LabelForwardingAction::LabelStack* stack; // label stack to prefix
-  LabelForwardingEntry::Label
-      label; // labels advertised by "LDP" peer (OpenR adjacency)
+  Label label; // labels advertised by "LDP" peer (OpenR adjacency)
 };
 
 template <typename AddrT>
@@ -195,7 +194,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     return unLabeledPorts_;
   }
 
-  void verifyLabeledNextHop(PrefixT prefix, LabelForwardingEntry::Label label) {
+  void verifyLabeledNextHop(PrefixT prefix, Label label) {
     utility::verifyLabeledNextHop<AddrT>(getHwSwitch(), prefix, label);
   }
 
@@ -305,7 +304,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
         params.prefix.mask,
         params.nexthop); // unlabaled route from client
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -316,7 +316,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
           params.prefix.network,
           params.prefix.mask,
           port,
-          LabelForwardingAction::LabelStack{params.label},
+          LabelForwardingAction::LabelStack{params.label.value()},
           1);
     }
   };
@@ -346,7 +346,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
     this->programRoutes(
         params.nexthop,
         params.prefix.mask,
-        params.label); // apply adjacency label
+        params.label.value()); // apply adjacency label
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -356,7 +356,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
     // the bottom most label in route's label stack will be attached to egress
     LabelForwardingAction::LabelStack stack{
         params.stack->begin(), params.stack->begin() + maxSize - 1};
-    stack.push_back(params.label);
+    stack.push_back(params.label.value());
     this->verifyLabeledNextHopWithStack(params.prefix, stack);
 
     for (const auto& port : this->labeledEgressPorts()) {
@@ -386,7 +386,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, ExceedMaxLabels) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize));
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
   };
   EXPECT_THROW(setup(), FbossError);
 }
@@ -409,7 +410,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
         params.nexthop);
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -422,7 +424,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
     for (const auto labeledPort : this->labeledEgressPorts()) {
       auto itr =
           stacks.emplace(labeledPort, LabelForwardingAction::LabelStack{});
-      itr.first->second.push_back(params.label);
+      itr.first->second.push_back(params.label.value());
       this->verifyProgrammedStackOnPort(
           params.nexthop,
           params.prefix.network,
@@ -453,7 +455,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -462,7 +465,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
     for (auto labeledPort : this->labeledEgressPorts()) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
-      stack.push_back(params.label + i++);
+      stack.push_back(params.label.value() + i++);
       stacks.emplace(labeledPort, stack);
 
       this->verifyProgrammedStackOnPort(
@@ -493,7 +496,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  LabelForwardingEntry::Label tunnelLabel = 511;
+  Label tunnelLabel{511};
   auto setup = [=]() {
     for (auto i = 0; i < params.size(); i++) {
       this->setupL3Route(
@@ -507,7 +510,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
       this->programRoutes(
-          params[i].nexthop, params[i].prefix.mask, tunnelLabel);
+          params[i].nexthop, params[i].prefix.mask, tunnelLabel.value());
     }
     this->getProgrammedState();
   };
@@ -520,9 +523,9 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
         LabelForwardingAction::LabelStack stack;
         auto pushStack = LabelForwardingAction::LabelStack(
             params[i].stack->begin(), params[i].stack->begin() + maxSize - 1);
-        pushStack.push_back(localTunnelLabel);
+        pushStack.push_back(localTunnelLabel.value());
         stacks.emplace(labeledPort, pushStack);
-        localTunnelLabel += 1;
+        localTunnelLabel.label += 1;
       }
       this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
@@ -558,7 +561,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
       this->programRoutes(
-          params[i].nexthop, params[i].prefix.mask, params[i].label);
+          params[i].nexthop, params[i].prefix.mask, params[i].label.value());
     }
     this->getProgrammedState();
   };
@@ -569,7 +572,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
       for (auto labeledPort : this->labeledEgressPorts()) {
         auto pushStack = LabelForwardingAction::LabelStack(
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1);
-        pushStack.push_back(params[i].label + j);
+        pushStack.push_back(params[i].label.value() + j);
         this->verifyProgrammedStackOnPort(
             params[i].nexthop,
             params[i].prefix.network,
@@ -614,7 +617,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
     /* same next hop to 2 prefixes with different stacks */
     this->resolveLabeledNextHops(params[0].nexthop, params[0].prefix.mask);
     this->programRoutes(
-        params[0].nexthop, params[0].prefix.mask, params[0].label);
+        params[0].nexthop, params[0].prefix.mask, params[0].label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -625,7 +628,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
       for (auto labeledPort : this->labeledEgressPorts()) {
         LabelForwardingAction::LabelStack pushStack{
             params[i].stack->begin(), params[i].stack->begin() + maxSize - 1};
-        pushStack.push_back(params[0].label + j);
+        pushStack.push_back(params[0].label.value() + j);
 
         stacks.emplace(labeledPort, pushStack);
         j += 1;
@@ -650,14 +653,15 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
     for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
-      stack.push_back(params.label + i);
+      stack.push_back(params.label.value() + i);
       this->verifyLabeledMultiPathNextHopMemberWithStack(
           params.prefix, i, stack, false);
     }
@@ -679,7 +683,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
@@ -688,7 +693,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
     for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
-      stack.push_back(params.label + i);
+      stack.push_back(params.label.value() + i);
       this->verifyLabeledMultiPathNextHopMemberWithStack(
           params.prefix, i, stack, false);
     }
@@ -709,7 +714,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
@@ -726,7 +732,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
-        stack.push_back(params.label);
+        stack.push_back(params.label.value());
         this->verifyLabeledMultiPathNextHopMemberWithStack(
             params.prefix, i, stack, false);
       }
@@ -748,7 +754,8 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->programRoutes(params.nexthop, params.prefix.mask, params.label);
+    this->programRoutes(
+        params.nexthop, params.prefix.mask, params.label.value());
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
   };
@@ -763,7 +770,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
-        stack.push_back(params.label);
+        stack.push_back(params.label.value());
         // unresolved
         this->verifyLabeledMultiPathNextHopMemberWithStack(
             params.prefix, i, stack, false);
@@ -795,7 +802,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
               params[i].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
       this->programRoutes(
-          params[i].nexthop, params[i].prefix.mask, params[i].label);
+          params[i].nexthop, params[i].prefix.mask, params[i].label.value());
     }
     // update label stack for prefix of param 1
     this->setupL3Route(
@@ -814,7 +821,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
       for (auto labeledPort : this->labeledEgressPorts()) {
         LabelForwardingAction::LabelStack stack{
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
-        stack.push_back(params[i].label + j);
+        stack.push_back(params[i].label.value() + j);
         this->verifyProgrammedStackOnPort(
             params[i].nexthop,
             params[i].prefix.network,
@@ -853,7 +860,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
               params[i].stack->begin() + maxSize - 1));
       this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
       this->programRoutes(
-          params[i].nexthop, params[i].prefix.mask, params[i].label);
+          params[i].nexthop, params[i].prefix.mask, params[i].label.value());
     }
 
     //  update tunnel label for prefix 1
@@ -873,7 +880,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
       for (auto labeledPort : this->labeledEgressPorts()) {
         LabelForwardingAction::LabelStack stack{
             params[i].stack->begin(), params[i].stack->begin() + maxSize - 1};
-        stack.push_back(params[0].label + j);
+        stack.push_back(params[0].label.value() + j);
         stacks.emplace(labeledPort, stack);
         j++;
       }
@@ -912,7 +919,9 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
             params[0].stack->begin() + halfSize,
             params[0].stack->begin() + maxSize - 1));
     this->programRoutes(
-        params[1].nexthop, params[1].nexthop.bitCount(), params[1].label);
+        params[1].nexthop,
+        params[1].nexthop.bitCount(),
+        params[1].label.value());
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -921,7 +930,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
     for (auto labeledPort : this->labeledEgressPorts()) {
       LabelForwardingAction::LabelStack stack{
           params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
-      stack.push_back(params[1].label + j);
+      stack.push_back(params[1].label.value() + j);
       this->verifyProgrammedStackOnPort(
           params[1].nexthop,
           params[1].prefix.network,
@@ -968,7 +977,9 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
       this->resolveLabeledNextHops(
           params[i].nexthop, params[i].nexthop.bitCount());
       this->programRoutes(
-          params[i].nexthop, params[i].nexthop.bitCount(), params[0].label);
+          params[i].nexthop,
+          params[i].nexthop.bitCount(),
+          params[0].label.value());
     }
     this->getProgrammedState();
   };
@@ -979,7 +990,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
       for (auto labeledPort : this->labeledEgressPorts()) {
         LabelForwardingAction::LabelStack stack{
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
-        stack.push_back(params[0].label + j);
+        stack.push_back(params[0].label.value() + j);
 
         this->verifyProgrammedStackOnPort(
             params[i].nexthop,

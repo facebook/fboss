@@ -136,12 +136,13 @@ void reconstructRibFromFib(
   for (auto& route : *fib) {
     if constexpr (std::is_same_v<LabelID, AddressT>) {
       auto ribRoute =
-          std::make_shared<Route<AddressT>>(AddressT(route->getID()));
-      for (const auto& clientEntry : route->getLabelNextHopsByClient()) {
+          std::make_shared<Route<AddressT>>(AddressT(route->getID().value()));
+      for (const auto& clientEntry : route->getEntryForClients()) {
         ribRoute->update(clientEntry.first, clientEntry.second);
       }
-      ribRoute->setResolved(route->getLabelNextHop());
-      addrToRoute->insert(AddressT(route->getID()), std::move(ribRoute));
+      ribRoute->setResolved(route->getForwardInfo());
+      addrToRoute->insert(
+          AddressT(route->getID().value()), std::move(ribRoute));
     } else {
       addrToRoute->insert(route->prefix(), route);
     }

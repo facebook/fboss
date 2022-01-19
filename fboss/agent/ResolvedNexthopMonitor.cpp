@@ -104,12 +104,11 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
 
 bool ResolvedNexthopMonitor::skipLabelFibEntry(
     const std::shared_ptr<LabelForwardingEntry>& entry) const {
-  if (entry->getLabelNextHop().getAction() !=
+  if (entry->getForwardInfo().getAction() !=
       LabelNextHopEntry::Action::NEXTHOPS) {
     return true;
   }
-  auto nexthopByClient = entry->getLabelNextHopsByClient();
-  auto bestEntry = nexthopByClient.getBestEntry();
+  auto bestEntry = entry->getBestEntry();
   for (auto nhop : bestEntry.second->getNextHopSet()) {
     if (nhop.labelForwardingAction().has_value() &&
         nhop.labelForwardingAction()->type() ==
@@ -132,7 +131,7 @@ void ResolvedNexthopMonitor::processAddedLabelFibEntry(
   if (skipLabelFibEntry(addedEntry)) {
     return;
   }
-  const auto& fwd = addedEntry->getLabelNextHop();
+  const auto& fwd = addedEntry->getForwardInfo();
   for (auto nhop : fwd.normalizedNextHops()) {
     added_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }
@@ -143,7 +142,7 @@ void ResolvedNexthopMonitor::processRemovedLabelFibEntry(
   if (skipLabelFibEntry(removedEntry)) {
     return;
   }
-  const auto& fwd = removedEntry->getLabelNextHop();
+  const auto& fwd = removedEntry->getForwardInfo();
   for (auto nhop : fwd.normalizedNextHops()) {
     removed_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }

@@ -167,10 +167,10 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
     auto oldEntry = fib->getLabelForwardingEntryIf(label);
     auto labelEntry = std::make_shared<LabelForwardingEntry>(MplsLabel(label));
     for (const auto& ribEntry : ribRoute->getEntryForClients()) {
-      labelEntry->setEntryForClient(ribEntry.first, ribEntry.second);
+      labelEntry->update(ribEntry.first, ribEntry.second);
     }
-    labelEntry->setLabelNextHop(ribRoute->getForwardInfo());
-    if (!oldEntry || *oldEntry != *labelEntry) {
+    labelEntry->setResolved(ribRoute->getForwardInfo());
+    if (!oldEntry || !oldEntry->isSame(labelEntry.get())) {
       updated = true;
       if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
               ribRoute->getForwardInfo().getNextHopSet())) {

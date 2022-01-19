@@ -76,6 +76,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
     auto oldState = initState();
     auto newState = oldState->clone();
     for (auto& entry : entries_) {
+      LabelForwardingInformationBase::resolve(entry);
       addLabelForwardingEntry(&newState, entry);
     }
     applyNewState(newState);
@@ -93,16 +94,16 @@ class BcmLabelSwitchActionTest : public BcmTest {
       const std::shared_ptr<LabelForwardingEntry>& entry) {
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
-    info.label = entry->getID();
+    info.label = entry->getID().value();
     info.port = BCM_GPORT_INVALID;
     auto rv = bcm_mpls_tunnel_switch_get(getHwSwitch()->getUnit(), &info);
     ASSERT_EQ(rv, BCM_E_NONE);
-    EXPECT_EQ(info.label, entry->getID());
+    EXPECT_EQ(info.label, static_cast<int32_t>(entry->getID().value()));
     EXPECT_EQ(
         info.action,
         utility::getLabelSwitchAction(
-            entry->getLabelNextHop().getAction(),
-            entry->getLabelNextHop()
+            entry->getForwardInfo().getAction(),
+            entry->getForwardInfo()
                 .getNextHopSet()
                 .begin()
                 ->labelForwardingAction()
@@ -116,7 +117,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
       // for push & swap, use labeled egresses
       auto reference = getHwSwitch()->getMultiPathNextHopTable()->getNextHop(
           BcmMultiPathNextHopKey(
-              0, entry->getLabelNextHop().normalizedNextHops()));
+              0, entry->getForwardInfo().normalizedNextHops()));
       EXPECT_EQ(info.egress_if, reference->getEgressId());
     } else {
       // for php reuse L3 egresses
@@ -124,7 +125,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
           BcmMultiPathNextHopKey(
               0,
               utility::stripLabelForwarding(
-                  entry->getLabelNextHop().normalizedNextHops())));
+                  entry->getForwardInfo().normalizedNextHops())));
       EXPECT_EQ(info.egress_if, reference->getEgressId());
     }
   }
@@ -133,7 +134,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
       const std::shared_ptr<LabelForwardingEntry>& entry) {
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
-    info.label = entry->getID();
+    info.label = entry->getID().value();
     info.port = BCM_GPORT_INVALID;
     auto rv = bcm_mpls_tunnel_switch_get(getHwSwitch()->getUnit(), &info);
     ASSERT_EQ(rv, BCM_E_NOT_FOUND);
@@ -156,7 +157,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
       uint8_t mask,
       const LabelForwardingEntry& entry) {
     RouteNextHopSet nexthops;
-    for (const auto& nhop : entry.getLabelNextHop().getNextHopSet()) {
+    for (const auto& nhop : entry.getForwardInfo().getNextHopSet()) {
       nexthops.insert(UnresolvedNextHop(nhop.addr(), nhop.weight()));
     }
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();

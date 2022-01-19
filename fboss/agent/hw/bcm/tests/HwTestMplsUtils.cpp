@@ -62,21 +62,21 @@ template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix,
-    LabelForwardingEntry::Label label) {
+    Label label) {
   auto* bcmRoute = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
                        ->routeTable()
                        ->getBcmRoute(0, prefix.network, prefix.mask);
   auto egressId = bcmRoute->getEgressId();
-  utility::verifyLabeledEgress(egressId, label);
+  utility::verifyLabeledEgress(egressId, label.value());
 }
 template void verifyLabeledNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV6>::Prefix prefix,
-    LabelForwardingEntry::Label label);
+    Label label);
 template void verifyLabeledNextHop<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
     typename Route<folly::IPAddressV4>::Prefix prefix,
-    LabelForwardingEntry::Label label);
+    Label label);
 
 template <typename AddrT>
 void verifyLabeledNextHopWithStack(
@@ -231,12 +231,12 @@ template void verifyProgrammedStack<folly::IPAddressV4>(
 template <typename AddrT>
 void verifyLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<AddrT>& nexthop) {
   bcm_mpls_tunnel_switch_t info;
   bcm_mpls_tunnel_switch_t_init(&info);
-  info.label = label;
+  info.label = label.value();
   info.port = BCM_GPORT_INVALID;
   auto rv = bcm_mpls_tunnel_switch_get(
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit(),
@@ -297,12 +297,12 @@ void verifyLabelSwitchAction(
 }
 template void verifyLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<folly::IPAddressV6>& nexthop);
 template void verifyLabelSwitchAction<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<folly::IPAddressV4>& nexthop);
 
@@ -352,12 +352,12 @@ template void verifyLabeledMultiPath<folly::IPAddressV4>(
 template <typename AddrT>
 void verifyMultiPathLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
   bcm_mpls_tunnel_switch_t info;
   bcm_mpls_tunnel_switch_t_init(&info);
-  info.label = label;
+  info.label = label.value();
   info.port = BCM_GPORT_INVALID;
   auto rv = bcm_mpls_tunnel_switch_get(
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit(),
@@ -380,12 +380,12 @@ void verifyMultiPathLabelSwitchAction(
 }
 template void verifyMultiPathLabelSwitchAction<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<folly::IPAddressV6>>& nexthops);
 template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
 

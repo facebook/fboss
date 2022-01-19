@@ -278,13 +278,13 @@ void MplsRouteLogger::logRemovedRoute(
 }
 
 void RouteUpdateLogger::startLoggingForLabel(
-    LabelForwardingEntry::Label label,
+    Label label,
     const std::string& identifier) {
   labelTracker_.wlock()->track(label, identifier);
 }
 
 void RouteUpdateLogger::stopLoggingForLabel(
-    LabelForwardingEntry::Label label,
+    Label label,
     const std::string& identifier) {
   labelTracker_.wlock()->untrack(label, identifier);
 }
@@ -298,18 +298,14 @@ LabelsTracker::TrackedLabelsInfo RouteUpdateLogger::gettTrackedLabels() const {
   return labelTracker_.rlock()->getTrackedLabelsInfo();
 }
 
-void LabelsTracker::track(
-    LabelForwardingEntry::Label label,
-    const std::string& identifier) {
+void LabelsTracker::track(Label label, const std::string& identifier) {
   auto emplaced =
       label2Ids_.emplace(label, boost::container::flat_set<std::string>());
   auto itr = emplaced.first;
   itr->second.emplace(identifier);
 }
 
-void LabelsTracker::untrack(
-    LabelForwardingEntry::Label label,
-    const std::string& identifier) {
+void LabelsTracker::untrack(Label label, const std::string& identifier) {
   auto labelItr = label2Ids_.find(label);
   if (labelItr == label2Ids_.end()) {
     return;
@@ -347,7 +343,7 @@ LabelsTracker::TrackedLabelsInfo LabelsTracker::getTrackedLabelsInfo() const {
 }
 
 void LabelsTracker::getIdentifiersForLabel(
-    LabelForwardingEntry::Label label,
+    Label label,
     std::set<std::string>& identifiers) const {
   auto label2IdsItr = label2Ids_.find(label);
   if (label2IdsItr != label2Ids_.end()) {

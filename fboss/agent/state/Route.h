@@ -334,6 +334,15 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
     return RouteBase::getFields()->getEntryForClients();
   }
 
+  bool isPopAndLookup() const {
+    const auto& nexthops = RouteBase::getFields()->fwd.getNextHopSet();
+    if (nexthops.size() == 1) {
+      // there must be exactly one next hop for POP_AND_LOOKUP action
+      return nexthops.begin()->isPopAndLookup();
+    }
+    return false;
+  }
+
  private:
   // no copy or assign operator
   Route(const Route&) = delete;

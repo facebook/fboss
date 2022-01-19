@@ -13,7 +13,7 @@
 using namespace ::testing;
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
+const facebook::fboss::Label kTopLabel{1101};
 } // namespace
 
 namespace facebook::fboss {
@@ -39,7 +39,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
       LabelForwardingAction::LabelForwardingType labelAction) {
     config.staticMplsRoutesWithNhops_ref()->resize(1);
     auto& route = config.staticMplsRoutesWithNhops_ref()[0];
-    route.ingressLabel_ref() = kTopLabel;
+    route.ingressLabel_ref() = kTopLabel.value();
 
     auto helper = setupECMPHelper(kTopLabel, labelAction);
 
@@ -75,7 +75,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   }
 
   std::unique_ptr<EcmpSetupHelper> setupECMPHelper(
-      LabelForwardingEntry::Label topLabel,
+      Label topLabel,
       LabelForwardingAction::LabelForwardingType labelAction) {
     return std::make_unique<EcmpSetupHelper>(
         getProgrammedState(), topLabel, labelAction);

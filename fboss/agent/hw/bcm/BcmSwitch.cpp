@@ -1822,16 +1822,16 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
 
   forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),
-      [&](const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/,
-          const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+      [&](const std::shared_ptr<Route<LabelID>>& /*oldEntry*/,
+          const std::shared_ptr<Route<LabelID>>& newEntry) {
         // changed Fn
         isValid = isValid && isValidLabelForwardingEntry(newEntry.get());
       },
-      [&](const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+      [&](const std::shared_ptr<Route<LabelID>>& newEntry) {
         // added Fn
         isValid = isValid && isValidLabelForwardingEntry(newEntry.get());
       },
-      [](const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/) {
+      [](const std::shared_ptr<Route<LabelID>>& /*oldEntry*/) {
         // removed Fn
       });
 
@@ -2831,21 +2831,22 @@ void BcmSwitch::processChangedLabelForwardingInformationBase(
 }
 
 void BcmSwitch::processAddedLabelForwardingEntry(
-    const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
+    const std::shared_ptr<Route<LabelID>>& addedEntry) {
   writableLabelMap()->processAddedLabelSwitchAction(
-      addedEntry->getID(), addedEntry->getLabelNextHop());
+      addedEntry->getID().value(), addedEntry->getForwardInfo());
 }
 
 void BcmSwitch::processRemovedLabelForwardingEntry(
-    const std::shared_ptr<LabelForwardingEntry>& deletedEntry) {
-  writableLabelMap()->processRemovedLabelSwitchAction(deletedEntry->getID());
+    const std::shared_ptr<Route<LabelID>>& deletedEntry) {
+  writableLabelMap()->processRemovedLabelSwitchAction(
+      deletedEntry->getID().value());
 }
 
 void BcmSwitch::processChangedLabelForwardingEntry(
-    const std::shared_ptr<LabelForwardingEntry>& /*oldEntry*/,
-    const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+    const std::shared_ptr<Route<LabelID>>& /*oldEntry*/,
+    const std::shared_ptr<Route<LabelID>>& newEntry) {
   writableLabelMap()->processChangedLabelSwitchAction(
-      newEntry->getID(), newEntry->getLabelNextHop());
+      newEntry->getID().value(), newEntry->getForwardInfo());
 }
 
 void BcmSwitch::l2LearningCallback(
@@ -3326,10 +3327,9 @@ void BcmSwitch::forceLinkscanOn(bcm_pbmp_t ports) {
   bcmCheckError(rv, "failed initial scan of link status");
 }
 
-bool BcmSwitch::isValidLabelForwardingEntry(
-    const LabelForwardingEntry* entry) const {
+bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
   if (!isValidLabeledNextHopSet(
-          platform_, entry->getLabelNextHop().getNextHopSet())) {
+          platform_, entry->getForwardInfo().getNextHopSet())) {
     return false;
   }
 

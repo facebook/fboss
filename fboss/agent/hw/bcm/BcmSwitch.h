@@ -75,7 +75,6 @@ class BcmWarmBootCache;
 class BcmWarmBootHelper;
 class BcmRtag7LoadBalancer;
 class BcmSflowExporterTable;
-class LabelForwardingEntry;
 class LoadBalancer;
 class PacketTraceInfo;
 class SflowCollector;
@@ -737,14 +736,14 @@ class BcmSwitch : public BcmSwitchIf {
   void processMirrorChanges(const StateDelta& delta);
 
   void processAddedLabelForwardingEntry(
-      const std::shared_ptr<LabelForwardingEntry>& addedEntry);
+      const std::shared_ptr<Route<LabelID>>& addedEntry);
   void processRemovedLabelForwardingEntry(
-      const std::shared_ptr<LabelForwardingEntry>& deletedEntry);
+      const std::shared_ptr<Route<LabelID>>& deletedEntry);
   void processChangedLabelForwardingEntry(
-      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
-      const std::shared_ptr<LabelForwardingEntry>& newEntry);
+      const std::shared_ptr<Route<LabelID>>& oldEntry,
+      const std::shared_ptr<Route<LabelID>>& newEntry);
   void processChangedLabelForwardingInformationBase(const StateDelta& delta);
-  bool isValidLabelForwardingEntry(const LabelForwardingEntry* entry) const;
+  bool isValidLabelForwardingEntry(const Route<LabelID>* entry) const;
 
   void processSwitchSettingsChanged(const StateDelta& delta);
 

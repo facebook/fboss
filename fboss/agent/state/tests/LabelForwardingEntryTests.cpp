@@ -14,8 +14,8 @@ using namespace facebook::fboss;
 
 namespace {
 void testToAndFromDynamic(const std::shared_ptr<LabelForwardingEntry>& entry) {
-  EXPECT_EQ(
-      *entry, *LabelForwardingEntry::fromFollyDynamic(entry->toFollyDynamic()));
+  EXPECT_TRUE(LabelForwardingEntry::fromFollyDynamic(entry->toFollyDynamic())
+                  ->isSame(entry.get()));
 }
 
 } // namespace
@@ -144,25 +144,29 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
         clientID,
         clientNextHopsEntry[clientID](AdminDistance::DIRECTLY_CONNECTED));
   }
+  LabelForwardingInformationBase::resolve(entry);
 
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED),
-      entry->getLabelNextHop());
+      entry->getForwardInfo());
 
   entry->delEntryForClient(ClientID::OPENR);
+  LabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::BGPD](AdminDistance::DIRECTLY_CONNECTED),
-      entry->getLabelNextHop());
+      entry->getForwardInfo());
   entry->delEntryForClient(ClientID::BGPD);
+  LabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::STATIC_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
-      entry->getLabelNextHop());
+      entry->getForwardInfo());
   entry->delEntryForClient(ClientID::STATIC_ROUTE);
+  LabelForwardingInformationBase::resolve(entry);
   EXPECT_EQ(
       clientNextHopsEntry[ClientID::INTERFACE_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
-      entry->getLabelNextHop());
+      entry->getForwardInfo());
 }
 
 TEST(LabelForwardingEntryTests, modify) {
@@ -184,14 +188,19 @@ TEST(LabelForwardingEntryTests, modify) {
   EXPECT_EQ(true, publishedEntry->isPublished());
 
   auto newerState = newState->clone();
-  auto* modifiedEntry = publishedEntry->modify(&newerState);
+  auto* modifiedEntry =
+      publishedLfib->modifyLabelEntry(&newerState, publishedEntry);
   EXPECT_NE(newerState.get(), newState.get());
   EXPECT_NE(
       newerState->getLabelForwardingInformationBase().get(),
       publishedLfib.get());
   EXPECT_NE(modifiedEntry, publishedEntry.get());
 
-  EXPECT_EQ(modifiedEntry, modifiedEntry->modify(&newerState));
+  auto modifiedLfib = newerState->getLabelForwardingInformationBase();
+  EXPECT_EQ(
+      modifiedEntry,
+      modifiedLfib->modifyLabelEntry(
+          &newerState, modifiedLfib->getLabelForwardingEntryIf(5001)));
   EXPECT_EQ(false, newerState->isPublished());
   EXPECT_EQ(false, modifiedEntry->isPublished());
   EXPECT_EQ(
@@ -208,6 +217,7 @@ TEST(LabelForwardingEntryTests, HasLabelNextHop) {
       5001,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  const auto& nexthop = entry->getLabelNextHop();
+  LabelForwardingInformationBase::resolve(entry);
+  const auto& nexthop = entry->getForwardInfo();
   EXPECT_NE(nexthop.getNextHopSet().size(), 0);
 }

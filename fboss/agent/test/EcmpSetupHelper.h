@@ -217,7 +217,7 @@ class MplsEcmpSetupTargetedPorts
 
   explicit MplsEcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      LabelForwardingEntry::Label topLabel,
+      Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType)
       : topLabel_(topLabel), actionType_(actionType) {
     computeNextHops(inputState, std::nullopt);
@@ -238,7 +238,7 @@ class MplsEcmpSetupTargetedPorts
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac = std::nullopt) override;
 
-  LabelForwardingEntry::Label topLabel_;
+  Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;
 };
 
@@ -348,7 +348,7 @@ class MplsEcmpSetupAnyNPorts {
   using EcmpNextHopT = EcmpMplsNextHop<IPAddrT>;
   MplsEcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      LabelForwardingEntry::Label topLabel,
+      Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType)
       : mplsEcmpSetupTargetedPorts_(inputState, topLabel, actionType) {}
 

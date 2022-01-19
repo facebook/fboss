@@ -508,15 +508,18 @@ void translateToFibError(const FbossHwUpdateError& updError) {
   DeltaFunctions::forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),
       [&](const auto& removed, const auto& added) {
-        if (!(*added == *removed)) {
-          fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+        if (!(added->isSame(removed.get()))) {
+          fibError.failedAddUpdateMplsLabels_ref()->push_back(
+              added->getID().value());
         }
       },
       [&](const auto& added) {
-        fibError.failedAddUpdateMplsLabels_ref()->push_back(added->getID());
+        fibError.failedAddUpdateMplsLabels_ref()->push_back(
+            added->getID().value());
       },
       [&](const auto& removed) {
-        fibError.failedDeleteMplsLabels_ref()->push_back(removed->getID());
+        fibError.failedDeleteMplsLabels_ref()->push_back(
+            removed->getID().value());
       });
   throw fibError;
 }
@@ -1728,7 +1731,7 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
   for (const auto& tracked : routeUpdateLogger->gettTrackedLabels()) {
     MplsRouteUpdateLoggingInfo info;
     *info.identifier_ref() = tracked.first;
-    *info.label_ref() = tracked.second;
+    info.label_ref() = tracked.second.value();
     infos.push_back(info);
   }
 }
@@ -2192,7 +2195,7 @@ void ThriftHandler::getMplsRouteTableByClient(
       continue;
     }
     MplsRoute mplsRoute;
-    *mplsRoute.topLabel_ref() = entry->getID();
+    mplsRoute.topLabel_ref() = entry->getID().value();
     mplsRoute.adminDistance_ref() = labelNextHopEntry->getAdminDistance();
     *mplsRoute.nextHops_ref() =
         util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
@@ -2207,7 +2210,7 @@ void ThriftHandler::getAllMplsRouteDetails(
   const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     MplsRouteDetails details;
-    getMplsRouteDetails(details, entry->getID());
+    getMplsRouteDetails(details, entry->getID().label);
     mplsRouteDetails.push_back(details);
   }
 }
@@ -2220,10 +2223,9 @@ void ThriftHandler::getMplsRouteDetails(
   const auto entry = sw_->getState()
                          ->getLabelForwardingInformationBase()
                          ->getLabelForwardingEntry(topLabel);
-  *mplsRouteDetail.topLabel_ref() = entry->getID();
-  *mplsRouteDetail.nextHopMulti_ref() =
-      entry->getLabelNextHopsByClient().toThrift();
-  const auto& fwd = entry->getLabelNextHop();
+  mplsRouteDetail.topLabel_ref() = entry->getID().value();
+  mplsRouteDetail.nextHopMulti_ref() = entry->getEntryForClients().toThrift();
+  const auto& fwd = entry->getForwardInfo();
   for (const auto& nh : fwd.getNextHopSet()) {
     mplsRouteDetail.nextHops_ref()->push_back(nh.toThrift());
   }

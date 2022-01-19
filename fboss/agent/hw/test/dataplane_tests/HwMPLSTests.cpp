@@ -33,7 +33,7 @@
 #include <memory>
 
 namespace {
-const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
+const facebook::fboss::Label kTopLabel{1101};
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
 const int kAclStartPriority = 100000;
 const std::string kAclName = "acl0";
@@ -171,7 +171,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
   }
 
-  LabelForwardingEntry::Label programLabelSwap(PortDescriptor port) {
+  Label programLabelSwap(PortDescriptor port) {
     auto state = ecmpHelper_->resolveNextHops(
         getProgrammedState(),
         {
@@ -182,7 +182,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     return swapNextHop.action.swapWith().value();
   }
 
-  void programLabelPop(LabelForwardingEntry::Label label) {
+  void programLabelPop(Label label) {
     // program MPLS route to POP
     auto state = getProgrammedState();
     state = state->clone();
@@ -422,8 +422,8 @@ TYPED_TEST(HwMPLSTest, Swap) {
     this->programLabelSwap(this->getPortDescriptor(0));
   };
   auto verify = [=]() {
-    uint32_t expectedOutLabel =
-        utility::getLabelSwappedWithForTopLabel(this->getHwSwitch(), kTopLabel);
+    uint32_t expectedOutLabel = utility::getLabelSwappedWithForTopLabel(
+        this->getHwSwitch(), kTopLabel.value());
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });

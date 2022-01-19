@@ -62,8 +62,13 @@ struct Label {
   LabelID label;
   Label() : label(0) {}
   /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
+  /* implicit */ Label(MplsLabel labelVal) : label(labelVal) {}
   std::string str() const {
     return folly::to<std::string>(label);
+  }
+
+  LabelID value() const {
+    return label;
   }
 
   /*

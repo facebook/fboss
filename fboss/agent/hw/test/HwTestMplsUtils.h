@@ -31,7 +31,7 @@ template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
     typename Route<AddrT>::Prefix prefix,
-    LabelForwardingEntry::Label label);
+    Label label);
 
 template <typename AddrT>
 void verifyLabeledNextHopWithStack(
@@ -68,14 +68,14 @@ void verifyProgrammedStack(
 template <typename AddrT>
 void verifyLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const EcmpMplsNextHop<AddrT>& nexthop);
 
 template <typename AddrT>
 void verifyMultiPathLabelSwitchAction(
     const HwSwitch* hwSwitch,
-    const LabelForwardingEntry::Label label,
+    Label label,
     const LabelForwardingAction::LabelForwardingType action,
     const std::vector<EcmpMplsNextHop<AddrT>>& nexthops);
 

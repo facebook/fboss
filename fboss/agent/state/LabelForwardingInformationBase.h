@@ -7,14 +7,14 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Route.h"
 
 namespace facebook::fboss {
 
-typedef NodeMapTraits<MplsLabel, LabelForwardingEntry> LabelForwardingRoute;
+using LabelForwardingRoute = NodeMapTraits<Label, LabelForwardingEntry>;
 
 class LabelForwardingInformationBase
     : public NodeMapT<LabelForwardingInformationBase, LabelForwardingRoute> {
-  using Label = MplsLabel;
   using BaseT = NodeMapT<LabelForwardingInformationBase, LabelForwardingRoute>;
 
  public:
@@ -31,7 +31,14 @@ class LabelForwardingInformationBase
   static std::shared_ptr<LabelForwardingInformationBase> fromFollyDynamic(
       const folly::dynamic& json);
 
+  std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
+      std::shared_ptr<LabelForwardingEntry> entry);
+
   LabelForwardingInformationBase* modify(std::shared_ptr<SwitchState>* state);
+
+  LabelForwardingEntry* modifyLabelEntry(
+      std::shared_ptr<SwitchState>* state,
+      std::shared_ptr<LabelForwardingEntry> entry);
 
   LabelForwardingInformationBase* programLabel(
       std::shared_ptr<SwitchState>* state,
@@ -50,6 +57,11 @@ class LabelForwardingInformationBase
       ClientID client);
 
   static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
+
+  // Used for resolving route when mpls rib is not enabled
+  static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
+    entry->setResolved(*entry->getBestEntry().second);
+  }
 
  private:
   // Inherit the constructors required for clone()

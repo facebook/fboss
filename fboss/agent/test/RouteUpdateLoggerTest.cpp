@@ -152,19 +152,15 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     stopLogging(addr, mask, "");
   }
 
-  void startLogging(LabelForwardingEntry::Label label) {
+  void startLogging(Label label) {
     startLogging(label, "");
   }
 
-  void startLogging(
-      LabelForwardingEntry::Label label,
-      const std::string& identifier) {
+  void startLogging(Label label, const std::string& identifier) {
     routeUpdateLogger->startLoggingForLabel(label, identifier);
   }
 
-  void stopLogging(
-      LabelForwardingEntry::Label label,
-      const std::string& identifier) {
+  void stopLogging(Label label, const std::string& identifier) {
     routeUpdateLogger->stopLoggingForLabel(label, identifier);
   }
 
@@ -196,7 +192,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 
   std::shared_ptr<SwitchState> addLabel(
       const std::shared_ptr<SwitchState>& state,
-      LabelForwardingEntry::Label label,
+      Label label,
       ClientID client = ClientID::OPENR) {
     auto newState = state->clone();
     auto entry = std::make_shared<LabelForwardingEntry>(
@@ -213,7 +209,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 
   std::shared_ptr<SwitchState> removeLabel(
       const std::shared_ptr<SwitchState>& state,
-      LabelForwardingEntry::Label label,
+      Label label,
       ClientID client = ClientID::OPENR) {
     auto newState = state->clone();
     auto labelFib =

@@ -16,7 +16,6 @@
 
 namespace facebook::fboss {
 
-class LabelForwardingEntry;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
@@ -73,15 +72,15 @@ class SaiInSegEntryManager {
       const SaiPlatform* platform)
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-  SaiInSegEntryHandle* getInSegEntryHandle(LabelForwardingEntry::Label label);
+  SaiInSegEntryHandle* getInSegEntryHandle(Label label);
 
   void processAddedInSegEntry(
-      const std::shared_ptr<LabelForwardingEntry>& addedEntry);
+      const std::shared_ptr<Route<LabelID>>& addedEntry);
   void processChangedInSegEntry(
-      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
-      const std::shared_ptr<LabelForwardingEntry>& newEntry);
+      const std::shared_ptr<Route<LabelID>>& oldEntry,
+      const std::shared_ptr<Route<LabelID>>& newEntry);
   void processRemovedInSegEntry(
-      const std::shared_ptr<LabelForwardingEntry>& removedEntry);
+      const std::shared_ptr<Route<LabelID>>& removedEntry);
 
   std::shared_ptr<SaiObject<SaiInSegTraits>> getInSegObject(
       SaiInSegTraits::AdapterHostKey inSegKey);

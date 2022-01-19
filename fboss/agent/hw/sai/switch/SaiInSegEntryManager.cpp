@@ -18,7 +18,7 @@ RouterID kDefaultRouterID = RouterID(0);
 SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
     SaiManagerTable* managerTable,
     const std::shared_ptr<LabelForwardingEntry>& swLabelFibEntry) {
-  const auto& nexthops = swLabelFibEntry->getLabelNextHop().getNextHopSet();
+  const auto& nexthops = swLabelFibEntry->getForwardInfo().getNextHopSet();
   if (nexthops.size() > 0 &&
       nexthops.begin()->labelForwardingAction()->type() ==
           LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
@@ -39,7 +39,7 @@ SaiInSegEntryHandle::NextHopHandle getNextHopHandle(
   if (nexthops.size() == 1) {
     SaiInSegTraits::InSegEntry inSegEntry{
         managerTable->switchManager().getSwitchSaiId(),
-        static_cast<sai_label_id_t>(swLabelFibEntry->getID())};
+        static_cast<sai_label_id_t>(swLabelFibEntry->getID().value())};
     auto managedNextHop = managerTable->nextHopManager().addManagedSaiNextHop(
         folly::poly_cast<ResolvedNextHop>(*nexthops.begin()));
     if (auto* ipNextHop =
@@ -70,7 +70,7 @@ void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
   SaiInSegTraits::InSegEntry inSegEntry{
       managerTable_->switchManager().getSwitchSaiId(),
-      static_cast<sai_label_id_t>(addedEntry->getID())};
+      static_cast<sai_label_id_t>(addedEntry->getID().value())};
   if (saiInSegEntryTable_.find(inSegEntry) != saiInSegEntryTable_.end()) {
     throw FbossError(
         "label fib entry already exists for ", addedEntry->getID());
@@ -93,7 +93,7 @@ void SaiInSegEntryManager::processChangedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& newEntry) {
   SaiInSegTraits::InSegEntry inSegEntry{
       managerTable_->switchManager().getSwitchSaiId(),
-      static_cast<sai_label_id_t>(newEntry->getID())};
+      static_cast<sai_label_id_t>(newEntry->getID().value())};
   auto itr = saiInSegEntryTable_.find(inSegEntry);
   if (itr == saiInSegEntryTable_.end()) {
     throw FbossError(
@@ -111,7 +111,8 @@ void SaiInSegEntryManager::processChangedInSegEntry(
 void SaiInSegEntryManager::processRemovedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& removedEntry) {
   auto inSegEntry = SaiInSegTraits::InSegEntry(
-      managerTable_->switchManager().getSwitchSaiId(), removedEntry->getID());
+      managerTable_->switchManager().getSwitchSaiId(),
+      removedEntry->getID().value());
   auto itr = saiInSegEntryTable_.find(inSegEntry);
   if (itr == saiInSegEntryTable_.end()) {
     throw FbossError(
@@ -120,10 +121,9 @@ void SaiInSegEntryManager::processRemovedInSegEntry(
   saiInSegEntryTable_.erase(inSegEntry);
 }
 
-SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
-    LabelForwardingEntry::Label label) {
+SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(Label label) {
   auto inSegEntry = SaiInSegTraits::InSegEntry(
-      managerTable_->switchManager().getSwitchSaiId(), label);
+      managerTable_->switchManager().getSwitchSaiId(), label.label);
   auto itr = saiInSegEntryTable_.find(inSegEntry);
   if (itr == saiInSegEntryTable_.end()) {
     return nullptr;

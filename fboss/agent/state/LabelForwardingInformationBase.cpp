@@ -52,18 +52,20 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
   toAppend(nexthops, &nextHopsStr);
 
   if (!entry) {
-    XLOG(DBG2) << "programmed label:" << label << " nhops: " << nextHopsStr
-               << " nhop count:" << nexthopCount
+    XLOG(DBG2) << "programmed label:" << label.value()
+               << " nhops: " << nextHopsStr << " nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
-
-    writableLabelFib->addNode(std::make_shared<LabelForwardingEntry>(
-        label, client, LabelNextHopEntry(std::move(nexthops), distance)));
+    auto newEntry = std::make_shared<LabelForwardingEntry>(
+        label, client, LabelNextHopEntry(std::move(nexthops), distance));
+    resolve(newEntry);
+    writableLabelFib->addNode(newEntry);
   } else {
-    auto* entryToUpdate = entry->modify(state);
+    auto* entryToUpdate = modifyLabelEntry(state, entry);
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
-    XLOG(DBG2) << "updated label:" << label << " nhops: " << nextHopsStr
+    entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
+    XLOG(DBG2) << "updated label:" << label.value() << " nhops: " << nextHopsStr
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
@@ -80,18 +82,20 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
   if (!entry) {
     throw FbossError(
         "request to delete a label ",
-        label,
+        label.value(),
         " which does not exist in Label Information Base");
   }
-  auto* entryToUpdate = entry->modify(state);
+  auto* entryToUpdate = modifyLabelEntry(state, entry);
   entryToUpdate->delEntryForClient(client);
-  XLOG(DBG2) << "removed label:" << label
+  XLOG(DBG2) << "removed label:" << label.value()
              << " from label forwarding information base for client:"
              << static_cast<int>(client);
 
-  if (entryToUpdate->isEmpty()) {
-    XLOG(DBG2) << "Purging empty forwarding entry for label:" << label;
+  if (entryToUpdate->getEntryForClients().isEmpty()) {
+    XLOG(DBG2) << "Purging empty forwarding entry for label:" << label.label;
     writableLabelFib->removeNode(entry);
+  } else {
+    entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
   }
   return writableLabelFib;
 }
@@ -101,22 +105,23 @@ LabelForwardingInformationBase::purgeEntriesForClient(
     std::shared_ptr<SwitchState>* state,
     ClientID client) {
   auto* writableLabelFib = modify(state);
-
   auto iter = writableLabelFib->writableNodes().begin();
   while (iter != writableLabelFib->writableNodes().end()) {
-    if (iter->second->getEntryForClient(client)) {
-      auto* entry = iter->second->modify(state);
-      entry->delEntryForClient(client);
-      if (entry->isEmpty()) {
+    auto entry = iter->second;
+    if (entry->getEntryForClient(client)) {
+      auto entryToModify = modifyLabelEntry(state, entry);
+      entryToModify->delEntryForClient(client);
+      if (entryToModify->getEntryForClients().isEmpty()) {
         XLOG(DBG1) << "Purging empty forwarding entry for label:"
-                   << entry->getID();
+                   << entry->getID().label;
         iter = writableLabelFib->writableNodes().erase(iter);
         continue;
+      } else {
+        entryToModify->setResolved(*entryToModify->getBestEntry().second);
       }
     }
     ++iter;
   }
-
   return writableLabelFib;
 }
 
@@ -152,6 +157,28 @@ bool LabelForwardingInformationBase::isValidNextHopSet(
     }
   }
   return true;
+}
+
+std::shared_ptr<LabelForwardingEntry>
+LabelForwardingInformationBase::cloneLabelEntry(
+    std::shared_ptr<LabelForwardingEntry> entry) {
+  return entry->clone();
+}
+
+LabelForwardingEntry* LabelForwardingInformationBase::modifyLabelEntry(
+    std::shared_ptr<SwitchState>* state,
+    std::shared_ptr<LabelForwardingEntry> entry) {
+  if (!entry->isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return entry.get();
+  }
+
+  LabelForwardingInformationBase* labelFib =
+      (*state)->getLabelForwardingInformationBase()->modify(state);
+  auto newEntry = entry->clone();
+  auto* ptr = newEntry.get();
+  labelFib->updateNode(std::move(newEntry));
+  return ptr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(

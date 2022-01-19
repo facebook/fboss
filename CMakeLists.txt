@@ -703,7 +703,6 @@ if (NOT SAI_ONLY)
       fboss/agent/state/Interface.cpp
       fboss/agent/state/InterfaceMap.cpp
       fboss/agent/state/LabelForwardingAction.cpp
-      fboss/agent/state/LabelForwardingEntry.cpp
       fboss/agent/state/LabelForwardingInformationBase.cpp
       fboss/agent/state/LoadBalancer.cpp
       fboss/agent/state/LoadBalancerMap.cpp

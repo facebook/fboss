@@ -3338,16 +3338,20 @@ ThriftConfigApplier::updateStaticMplsRoutes(
     auto entry = labelFib->getLabelForwardingEntryIf(
         staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
-      labelFib->addNode(createLabelForwardingEntry(
+      auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::NEXTHOPS,
-          resolvedNextHops));
+          resolvedNextHops);
+      LabelForwardingInformationBase::resolve(node);
+      labelFib->addNode(node);
     } else {
-      entry = entry->clone();
-      entry->update(
+      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(
               LabelNextHopEntry::Action::NEXTHOPS, resolvedNextHops));
+      LabelForwardingInformationBase::resolve(entryToUpdate);
+      labelFib->updateNode(entryToUpdate);
     }
   }
 
@@ -3355,15 +3359,19 @@ ThriftConfigApplier::updateStaticMplsRoutes(
     auto entry = labelFib->getLabelForwardingEntryIf(
         staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
-      labelFib->addNode(createLabelForwardingEntry(
+      auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::DROP,
-          {}));
+          {});
+      LabelForwardingInformationBase::resolve(node);
+      labelFib->addNode(node);
     } else {
-      entry = entry->clone();
-      entry->update(
+      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(LabelNextHopEntry::Action::DROP, {}));
+      LabelForwardingInformationBase::resolve(entryToUpdate);
+      labelFib->updateNode(entryToUpdate);
     }
   }
 
@@ -3371,15 +3379,19 @@ ThriftConfigApplier::updateStaticMplsRoutes(
     auto entry = labelFib->getLabelForwardingEntryIf(
         staticMplsRouteEntry.get_ingressLabel());
     if (!entry) {
-      labelFib->addNode(createLabelForwardingEntry(
+      auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::TO_CPU,
-          {}));
+          {});
+      LabelForwardingInformationBase::resolve(node);
+      labelFib->addNode(node);
     } else {
-      entry = entry->clone();
-      entry->update(
+      auto entryToUpdate = labelFib->cloneLabelEntry(entry);
+      entryToUpdate->update(
           ClientID::STATIC_ROUTE,
           getStaticLabelNextHopEntry(LabelNextHopEntry::Action::TO_CPU, {}));
+      LabelForwardingInformationBase::resolve(entryToUpdate);
+      labelFib->updateNode(entryToUpdate);
     }
   }
   return labelFib;
