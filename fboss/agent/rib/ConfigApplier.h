@@ -43,16 +43,24 @@ class ConfigApplier {
       std::vector<cfg::StaticRouteWithNextHops>::const_iterator;
   using StaticIp2MplsRouteIterator =
       std::vector<cfg::StaticIp2MplsRoute>::const_iterator;
+  using StaticMplsRouteNoNextHopsIterator =
+      std::vector<cfg::StaticMplsRouteNoNextHops>::const_iterator;
+  using StaticMplsRouteWithNextHopsIterator =
+      std::vector<cfg::StaticMplsRouteWithNextHops>::const_iterator;
 
   ConfigApplier(
       RouterID vrf,
       IPv4NetworkToRouteMap* v4RouteTable,
       IPv6NetworkToRouteMap* v6RouteTable,
+      LabelToRouteMap* labelRouteTable,
       folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
       folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
       folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-      folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange);
+      folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange,
+      folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange,
+      folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange,
+      folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange);
 
   void apply();
 
@@ -60,11 +68,15 @@ class ConfigApplier {
   RouterID vrf_;
   IPv4NetworkToRouteMap* v4NetworkToRoute_;
   IPv6NetworkToRouteMap* v6NetworkToRoute_;
+  LabelToRouteMap* labelToRoute_;
   folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange_;
   folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange_;
   folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange_;
   folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange_;
   folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange_;
+  folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange_;
+  folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange_;
+  folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange_;
 };
 
 } // namespace facebook::fboss

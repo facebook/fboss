@@ -544,6 +544,16 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
+RouteNextHopEntry RouteNextHopEntry::fromStaticMplsRoute(
+    const cfg::StaticMplsRouteWithNextHops& route) {
+  RouteNextHopSet nhops;
+
+  for (auto& nexthop : *route.nexthops_ref()) {
+    nhops.emplace(util::fromThrift(nexthop));
+  }
+  return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
+}
+
 bool RouteNextHopEntry::isUcmp(const NextHopSet& nhopSet) {
   return totalWeight(nhopSet) != nhopSet.size();
 }

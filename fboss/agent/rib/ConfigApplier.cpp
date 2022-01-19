@@ -21,25 +21,34 @@ ConfigApplier::ConfigApplier(
     RouterID vrf,
     IPv4NetworkToRouteMap* v4NetworkToRoute,
     IPv6NetworkToRouteMap* v6NetworkToRoute,
+    LabelToRouteMap* labelToRoute,
     folly::Range<DirectlyConnectedRouteIterator> directlyConnectedRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticCpuRouteRange,
     folly::Range<StaticRouteNoNextHopsIterator> staticDropRouteRange,
     folly::Range<StaticRouteWithNextHopsIterator> staticRouteRange,
-    folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange)
+    folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange,
+    folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange,
+    folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange,
+    folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
+      labelToRoute_(labelToRoute),
       directlyConnectedRouteRange_(directlyConnectedRouteRange),
       staticCpuRouteRange_(staticCpuRouteRange),
       staticDropRouteRange_(staticDropRouteRange),
       staticRouteRange_(staticRouteRange),
-      staticIp2MplsRouteRange_(staticIp2MplsRouteRange) {
+      staticIp2MplsRouteRange_(staticIp2MplsRouteRange),
+      staticMplsRouteRange_(staticMplsRouteRange),
+      staticMplsDropRouteRange_(staticMplsDropRouteRange),
+      staticMplsCpuRouteRange_(staticMplsCpuRouteRange) {
   CHECK_NOTNULL(v4NetworkToRoute_);
   CHECK_NOTNULL(v6NetworkToRoute_);
+  CHECK_NOTNULL(labelToRoute_);
 }
 
 void ConfigApplier::apply() {
-  RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_);
+  RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_, labelToRoute_);
 
   // Update static routes
   std::vector<RibRouteUpdater::RouteEntry> staticRoutes;
@@ -96,6 +105,32 @@ void ConfigApplier::apply() {
       {ClientID::STATIC_ROUTE,
        ClientID::LINKLOCAL_ROUTE,
        ClientID::INTERFACE_ROUTE});
+
+  if (FLAGS_mpls_rib) {
+    // Update static mpls routes
+    std::vector<RibRouteUpdater::MplsRouteEntry> staticMplsRoutes;
+    staticMplsRoutes.reserve(
+        staticMplsCpuRouteRange_.size() + staticMplsDropRouteRange_.size() +
+        staticMplsRouteRange_.size());
+    auto fillInStaticMplsRoutes =
+        [&staticMplsRoutes](const auto& routeRange, const auto& nhopFn) {
+          for (const auto& staticRoute : routeRange) {
+            staticMplsRoutes.push_back(
+                {LabelID(staticRoute.get_ingressLabel()), nhopFn(staticRoute)});
+          }
+        };
+    fillInStaticMplsRoutes(staticMplsCpuRouteRange_, [](const auto& /*route*/) {
+      return RouteNextHopEntry::createToCpu();
+    });
+    fillInStaticMplsRoutes(
+        staticMplsDropRouteRange_,
+        [](const auto& /*route*/) { return RouteNextHopEntry::createDrop(); });
+    fillInStaticMplsRoutes(staticMplsRouteRange_, [](const auto& route) {
+      return RouteNextHopEntry::fromStaticMplsRoute(route);
+    });
+    updater.update(
+        ClientID::STATIC_ROUTE, staticMplsRoutes, std::vector<LabelID>(), true);
+  }
 }
 
 } // namespace facebook::fboss

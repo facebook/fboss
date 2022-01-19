@@ -164,11 +164,9 @@ void RibRouteTables::reconfigure(
     const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
     const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
     const std::vector<cfg::StaticMplsRouteWithNextHops>&
-    /* staticMplsRoutesWithNextHops */,
-    const std::vector<
-        cfg::StaticMplsRouteNoNextHops>& /* staticMplsRoutesToNull */,
-    const std::vector<
-        cfg::StaticMplsRouteNoNextHops>& /* staticMplsRoutesToCpu */,
+        staticMplsRoutesWithNextHops,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
     FibUpdateFunction updateFibCallback,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
@@ -191,36 +189,43 @@ void RibRouteTables::reconfigure(
 
   std::vector<RouterID> existingVrfs = getVrfList();
 
-  auto configureRoutesForVrf =
-      [&](RouterID vrf, const PrefixToInterfaceIDAndIP& interfaceRoutes) {
-        // A ConfigApplier object should be independent of the VRF whose
-        // routes it is processing. However, because interface and static
-        // routes for _all_ VRFs are passed to ConfigApplier, the vrf
-        // argument is needed to identify the subset of those routes which
-        // should be processed.
+  auto configureRoutesForVrf = [&](RouterID vrf,
+                                   const PrefixToInterfaceIDAndIP&
+                                       interfaceRoutes) {
+    // A ConfigApplier object should be independent of the VRF whose
+    // routes it is processing. However, because interface and static
+    // routes for _all_ VRFs are passed to ConfigApplier, the vrf
+    // argument is needed to identify the subset of those routes which
+    // should be processed.
 
-        // ConfigApplier can be made independent of the VRF whose routes it
-        // is processing by the use of boost::filter_iterator.
-        updateRib(vrf, [&](auto& routeTable) {
-          ConfigApplier configApplier(
-              vrf,
-              &(routeTable.v4NetworkToRoute),
-              &(routeTable.v6NetworkToRoute),
-              folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
-              folly::range(
-                  staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
-              folly::range(
-                  staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
-              folly::range(
-                  staticRoutesWithNextHops.cbegin(),
-                  staticRoutesWithNextHops.cend()),
-              folly::range(
-                  staticIp2MplsRoutes.cbegin(), staticIp2MplsRoutes.cend()));
-          // Apply config
-          configApplier.apply();
-        });
-        updateFib(vrf, updateFibCallback, cookie);
-      };
+    // ConfigApplier can be made independent of the VRF whose routes it
+    // is processing by the use of boost::filter_iterator.
+    updateRib(vrf, [&](auto& routeTable) {
+      ConfigApplier configApplier(
+          vrf,
+          &(routeTable.v4NetworkToRoute),
+          &(routeTable.v6NetworkToRoute),
+          &(routeTable.labelToRoute),
+          folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
+          folly::range(staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
+          folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
+          folly::range(
+              staticRoutesWithNextHops.cbegin(),
+              staticRoutesWithNextHops.cend()),
+          folly::range(
+              staticIp2MplsRoutes.cbegin(), staticIp2MplsRoutes.cend()),
+          folly::range(
+              staticMplsRoutesWithNextHops.cbegin(),
+              staticMplsRoutesWithNextHops.cend()),
+          folly::range(
+              staticMplsRoutesToNull.cbegin(), staticMplsRoutesToNull.cend()),
+          folly::range(
+              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()));
+      // Apply config
+      configApplier.apply();
+    });
+    updateFib(vrf, updateFibCallback, cookie);
+  };
   // Because of this sequential loop over each VRF, config application scales
   // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
   // architecture in the future, this slow-down can be avoided by

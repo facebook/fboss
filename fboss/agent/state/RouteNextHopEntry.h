@@ -119,6 +119,8 @@ class RouteNextHopEntry {
       const cfg::StaticRouteWithNextHops& route);
   static facebook::fboss::RouteNextHopEntry fromStaticIp2MplsRoute(
       const cfg::StaticIp2MplsRoute& route);
+  static facebook::fboss::RouteNextHopEntry fromStaticMplsRoute(
+      const cfg::StaticMplsRouteWithNextHops& route);
   static bool isUcmp(const NextHopSet& nhopSet);
   static void normalizeNextHopWeightsToMaxPaths(
       std::vector<uint64_t>& nhWeights,
