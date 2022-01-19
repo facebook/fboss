@@ -1710,40 +1710,35 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
-  /* TODO: this hack is required, sending packet out of port with with
-  pipeline bypass, doesn't cause vlan tag stripping. fix this once a pipeline
-  bypass with vlan stripping is available. */
+  /* Strip vlan tag with pipeline bypass, for all asic types. */
   getSwitchStats()->txSent();
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT)) {
-    folly::io::Cursor cursor(pkt->buf());
-    EthHdr ethHdr{cursor};
-    if (!ethHdr.getVlanTags().empty()) {
-      CHECK_EQ(ethHdr.getVlanTags().size(), 1)
-          << "found more than one vlan tags while sending packet";
-      /* hack to strip vlans as pipeline bypass doesn't handle this */
-      cursor.reset(pkt->buf());
-      XLOG(DBG5) << "strip vlan for packet";
-      XLOG(DBG5) << PktUtil::hexDump(cursor);
+  folly::io::Cursor cursor(pkt->buf());
+  EthHdr ethHdr{cursor};
+  if (!ethHdr.getVlanTags().empty()) {
+    CHECK_EQ(ethHdr.getVlanTags().size(), 1)
+        << "found more than one vlan tags while sending packet";
+    /* Strip vlans as pipeline bypass doesn't handle this */
+    cursor.reset(pkt->buf());
+    XLOG(DBG5) << "strip vlan for packet";
+    XLOG(DBG5) << PktUtil::hexDump(cursor);
 
-      constexpr auto kVlanTagSize = 4;
-      auto ethPayload = pkt->buf()->clone();
-      // trim DA(6), SA(6) & vlan (4)
-      ethPayload->trimStart(
-          folly::MacAddress::SIZE + folly::MacAddress::SIZE + kVlanTagSize);
+    constexpr auto kVlanTagSize = 4;
+    auto ethPayload = pkt->buf()->clone();
+    // trim DA(6), SA(6) & vlan (4)
+    ethPayload->trimStart(
+        folly::MacAddress::SIZE + folly::MacAddress::SIZE + kVlanTagSize);
 
-      // trim rest of packet except DA(6), SA(6)
-      auto totalLength = pkt->buf()->length();
-      pkt->buf()->trimEnd(
-          totalLength - folly::MacAddress::SIZE - folly::MacAddress::SIZE);
+    // trim rest of packet except DA(6), SA(6)
+    auto totalLength = pkt->buf()->length();
+    pkt->buf()->trimEnd(
+        totalLength - folly::MacAddress::SIZE - folly::MacAddress::SIZE);
 
-      // append to trimmed ethernet header remaining payload
-      pkt->buf()->appendChain(std::move(ethPayload));
-      pkt->buf()->coalesce();
-      cursor.reset(pkt->buf());
-      XLOG(DBG5) << "stripped vlan, new packet";
-      XLOG(DBG5) << PktUtil::hexDump(cursor);
-    }
+    // append to trimmed ethernet header remaining payload
+    pkt->buf()->appendChain(std::move(ethPayload));
+    pkt->buf()->coalesce();
+    cursor.reset(pkt->buf());
+    XLOG(DBG5) << "stripped vlan, new packet";
+    XLOG(DBG5) << PktUtil::hexDump(cursor);
   }
 
   SaiHostifApiPacket txPacket{

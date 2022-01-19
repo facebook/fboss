@@ -7,8 +7,8 @@ namespace facebook::fboss {
 bool TajoAsic::isSupported(Feature feature) const {
   switch (feature) {
     /*
-     * Except TX_VLAN_STRIPPING_ON_PORT, none of the other features are
-     * verified on the asic. Marking them as true for now but need to revisit
+     * None of the features are verified on the asic.
+     * Marking them as true for now but need to revisit
      * this as we verify the features.
      */
     case HwAsic::Feature::SPAN:
@@ -19,7 +19,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
-    case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:

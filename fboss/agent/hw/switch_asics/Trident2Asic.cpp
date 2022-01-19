@@ -39,7 +39,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
-    case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

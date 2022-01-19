@@ -56,7 +56,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PORT_TX_DISABLE:
-    case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
