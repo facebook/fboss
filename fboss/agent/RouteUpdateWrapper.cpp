@@ -193,12 +193,19 @@ void RouteUpdateWrapper::setRoutesToConfig(
     const std::vector<cfg::StaticRouteWithNextHops>& _staticRoutesWithNextHops,
     const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToNull,
     const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToCpu,
-    const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes) {
+    const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes,
+    const std::vector<cfg::StaticMplsRouteWithNextHops>&
+        _staticMplsRoutesWithNextHops,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToNull,
+    const std::vector<cfg::StaticMplsRouteNoNextHops>& _staticMplsRoutesToCpu) {
   configRoutes_ = std::make_unique<ConfigRoutes>(ConfigRoutes{
       _configRouterIDToInterfaceRoutes,
       _staticRoutesWithNextHops,
       _staticRoutesToNull,
       _staticRoutesToCpu,
-      _staticIp2MplsRoutes});
+      _staticIp2MplsRoutes,
+      _staticMplsRoutesWithNextHops,
+      _staticMplsRoutesToNull,
+      _staticMplsRoutesToCpu});
 }
 } // namespace facebook::fboss

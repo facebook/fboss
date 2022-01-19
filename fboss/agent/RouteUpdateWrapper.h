@@ -46,6 +46,9 @@ class RouteUpdateWrapper {
     std::vector<cfg::StaticRouteNoNextHops> staticRoutesToNull;
     std::vector<cfg::StaticRouteNoNextHops> staticRoutesToCpu;
     std::vector<cfg::StaticIp2MplsRoute> staticIp2MplsRoutes;
+    std::vector<cfg::StaticMplsRouteWithNextHops> staticMplsRoutesWithNextHops;
+    std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToNull;
+    std::vector<cfg::StaticMplsRouteNoNextHops> staticMplsRoutesToCpu;
   };
   using RouterIDAndClient = std::pair<RouterID, ClientID>;
   using SyncFibFor = std::unordered_set<RouterIDAndClient>;
@@ -86,7 +89,13 @@ class RouteUpdateWrapper {
           _staticRoutesWithNextHops,
       const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToNull,
       const std::vector<cfg::StaticRouteNoNextHops>& _staticRoutesToCpu,
-      const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes);
+      const std::vector<cfg::StaticIp2MplsRoute>& _staticIp2MplsRoutes,
+      const std::vector<cfg::StaticMplsRouteWithNextHops>&
+          _staticMplsRoutesWithNextHops,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>&
+          _staticMplsRoutesToNull,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>&
+          _staticMplsRoutesToCpu);
   void program(const SyncFibInfo& syncFibInfo = {});
   void programMinAlpmState();
   void programClassID(

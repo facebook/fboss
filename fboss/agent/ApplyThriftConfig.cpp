@@ -499,7 +499,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticRoutesWithNhops_ref(),
         *cfg_->staticRoutesToNull_ref(),
         *cfg_->staticRoutesToCPU_ref(),
-        *cfg_->staticIp2MplsRoutes_ref());
+        *cfg_->staticIp2MplsRoutes_ref(),
+        *cfg_->staticMplsRoutesWithNhops_ref(),
+        *cfg_->staticMplsRoutesToNull_ref(),
+        *cfg_->staticMplsRoutesToCPU_ref());
   } else if (rib_) {
     auto newFibs = updateForwardingInformationBaseContainers();
     if (newFibs) {
