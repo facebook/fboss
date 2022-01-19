@@ -61,6 +61,24 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::1/64";
   config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "3::1";
 
+  config.staticMplsRoutesWithNhops_ref()->resize(2);
+  config.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = 100;
+  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()[0].address_ref() =
+      facebook::network::toBinaryAddress(folly::IPAddress("2::2"));
+  MplsAction swap;
+  swap.action_ref() = MplsActionCode::SWAP;
+  swap.swapLabel_ref() = 101;
+  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()[0].mplsAction_ref() =
+      swap;
+  // Unresolved route
+  config.staticMplsRoutesWithNhops_ref()[1].ingressLabel_ref() = 101;
+  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()[0].address_ref() =
+      facebook::network::toBinaryAddress(folly::IPAddress("3::2"));
+  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()[0].mplsAction_ref() =
+      swap;
+
   return config;
 }
 bool ribEqual(
@@ -72,6 +90,7 @@ bool ribEqual(
 class RibSerializationTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_mpls_rib = true;
     auto emptyState = std::make_shared<SwitchState>();
     auto platform = createMockPlatform();
     auto config = interfaceAndStaticRoutesWithNextHopsConfig();
@@ -112,6 +131,7 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFib));
   EXPECT_TRUE(ribEqual(*deserializedRibEmptyFib, *deserializedRibNoFib));
   EXPECT_EQ(2, deserializedRibEmptyFib->getRouteTableDetails(kRid0).size());
+  EXPECT_EQ(1, deserializedRibEmptyFib->getMplsRouteTableDetails().size());
 
   auto deserializedRibWithFib = RoutingInformationBase::fromFollyDynamic(
       rib.unresolvedRoutesFollyDynamic(),
@@ -119,4 +139,5 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
       curState->getLabelForwardingInformationBase());
   EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFib));
   EXPECT_EQ(8, deserializedRibWithFib->getRouteTableDetails(kRid0).size());
+  EXPECT_EQ(2, deserializedRibWithFib->getMplsRouteTableDetails().size());
 }
