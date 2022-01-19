@@ -26,8 +26,8 @@ DEFINE_int32(thrift_port, 7001, "Port for the thrift service");
 
 DEFINE_string(
     config_path,
-    "/etc/sensor_service/darwin_sensor_config.json",
-    "Platform Sensor Configuration File Path, e.g. /etc/sensor_service/darwin_sensor_config.json");
+    "",
+    "Optional platform Sensor Configuration File Path. If empty we pick the platform default config");
 
 namespace facebook::fboss::platform::sensor_service {
 

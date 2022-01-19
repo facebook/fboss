@@ -15,14 +15,12 @@
 
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/facebook/GetSensorConfig.h"
 
 #include "common/fbwhoami/FbWhoAmI.h"
 #include "common/time/Time.h"
 
 namespace {
-// Sensor conf file should be <platform>_sensor_config.json by default
-const std::string kConfDir = "/etc/sensor_service/";
-const std::string kSensorConfPostfix = "_sensor_config.json";
 
 // The following are keys in sensor conf file
 const std::string kSourceLmsensor = "lmsensor";
@@ -38,47 +36,43 @@ namespace facebook::fboss::platform::sensor_service {
 using namespace facebook::fboss::platform::helpers;
 
 void SensorServiceImpl::init() {
+  std::string sensorConfJson;
   // Check if conf file name is set, if not, set the default name
-  if (confFileName_ == "") {
-    std::string modelName = FbWhoAmI::getModelName();
-    confFileName_ =
-        folly::to<std::string>(kConfDir, modelName, kSensorConfPostfix);
+  if (confFileName_.empty()) {
+    sensorConfJson = getPlatformConfig();
+  } else if (!folly::readFile(confFileName_.c_str(), sensorConfJson)) {
+    throw std::runtime_error(
+        "Can not find sensor config file: " + confFileName_);
   }
 
   // Clear everything before init
   sensorNameMap_.clear();
   sensorTable_.sensorMapList_ref()->clear();
 
-  std::string sensorConfJson;
   // folly::dynamic sensorConf;
 
-  if (folly::readFile(confFileName_.c_str(), sensorConfJson)) {
-    apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-        sensorConfJson, sensorTable_);
+  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
+      sensorConfJson, sensorTable_);
 
-    XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-        sensorTable_);
+  XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      sensorTable_);
 
-    if (sensorTable_.source_ref() == kSourceMock) {
-      sensorSource_ = SensorSource::MOCK;
-    } else if (sensorTable_.source_ref() == kSourceLmsensor) {
-      sensorSource_ = SensorSource::LMSENSOR;
-    } else if (sensorTable_.source_ref() == kSourceSysfs) {
-      sensorSource_ = SensorSource::SYSFS;
-    } else {
-      throw std::runtime_error(folly::to<std::string>(
-          "Invalid source in ",
-          confFileName_,
-          " : ",
-          *sensorTable_.source_ref()));
-    }
-
-    for (auto& sensor : *sensorTable_.sensorMapList_ref()) {
-      sensorNameMap_[*sensor.second.path_ref()] = sensor.first;
-    }
+  if (sensorTable_.source_ref() == kSourceMock) {
+    sensorSource_ = SensorSource::MOCK;
+  } else if (sensorTable_.source_ref() == kSourceLmsensor) {
+    sensorSource_ = SensorSource::LMSENSOR;
+  } else if (sensorTable_.source_ref() == kSourceSysfs) {
+    sensorSource_ = SensorSource::SYSFS;
   } else {
-    throw std::runtime_error(
-        "Can not find sensor config file: " + confFileName_);
+    throw std::runtime_error(folly::to<std::string>(
+        "Invalid source in ",
+        confFileName_,
+        " : ",
+        *sensorTable_.source_ref()));
+  }
+
+  for (auto& sensor : *sensorTable_.sensorMapList_ref()) {
+    sensorNameMap_[*sensor.second.path_ref()] = sensor.first;
   }
 
   for (auto& pair : *sensorTable_.sensorMapList_ref()) {
