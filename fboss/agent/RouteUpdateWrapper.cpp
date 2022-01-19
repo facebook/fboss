@@ -141,6 +141,9 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         configRoutes_->staticRoutesToNull,
         configRoutes_->staticRoutesToCpu,
         configRoutes_->staticIp2MplsRoutes,
+        configRoutes_->staticMplsRoutesWithNextHops,
+        configRoutes_->staticMplsRoutesToNull,
+        configRoutes_->staticMplsRoutesToCpu,
         *fibUpdateFn_,
         fibUpdateCookie_);
   }

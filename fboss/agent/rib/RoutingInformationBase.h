@@ -82,6 +82,10 @@ class RibRouteTables {
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
       const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
+      const std::vector<cfg::StaticMplsRouteWithNextHops>&
+          staticMplsRoutesWithNextHops,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
   folly::dynamic toFollyDynamic() const;
@@ -238,6 +242,10 @@ class RoutingInformationBase {
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToNull,
       const std::vector<cfg::StaticRouteNoNextHops>& staticRoutesToCpu,
       const std::vector<cfg::StaticIp2MplsRoute>& staticIp2MplsRoutes,
+      const std::vector<cfg::StaticMplsRouteWithNextHops>&
+          staticMplsRoutesWithNextHops,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
+      const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 

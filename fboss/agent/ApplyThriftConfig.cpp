@@ -516,6 +516,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticRoutesToNull_ref(),
         *cfg_->staticRoutesToCPU_ref(),
         *cfg_->staticIp2MplsRoutes_ref(),
+        *cfg_->staticMplsRoutesWithNhops_ref(),
+        *cfg_->staticMplsRoutesToNull_ref(),
+        *cfg_->staticMplsRoutesToCPU_ref(),
         &updateFibFromConfig,
         static_cast<void*>(&new_));
   } else {
@@ -3291,6 +3294,9 @@ ThriftConfigApplier::updateStaticMplsRoutes(
         staticMplsRoutesWithNhops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCPU) {
+  if (FLAGS_mpls_rib) {
+    return nullptr;
+  }
   if (staticMplsRoutesWithNhops.empty() && staticMplsRoutesToNull.empty() &&
       staticMplsRoutesToCPU.empty()) {
     return nullptr;
