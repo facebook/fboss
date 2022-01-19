@@ -13,6 +13,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RouteUpdater.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
@@ -98,7 +99,8 @@ class RibRouteTables {
    */
   static RibRouteTables fromFollyDynamic(
       const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs);
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -281,7 +283,8 @@ class RoutingInformationBase {
    */
   static std::unique_ptr<RoutingInformationBase> fromFollyDynamic(
       const folly::dynamic& ribJson,
-      const std::shared_ptr<ForwardingInformationBaseMap>& fibs);
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);

@@ -10,6 +10,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -83,15 +84,17 @@ class RibSerializationTest : public ::testing::Test {
 };
 
 TEST_F(RibSerializationTest, fullRibSerDeser) {
-  auto deserializedRib =
-      RoutingInformationBase::fromFollyDynamic(rib.toFollyDynamic(), nullptr);
+  auto deserializedRib = RoutingInformationBase::fromFollyDynamic(
+      rib.toFollyDynamic(), nullptr, nullptr);
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
 }
 
 TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
   auto deserializedRib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(), curState->getFibs());
+      rib.unresolvedRoutesFollyDynamic(),
+      curState->getFibs(),
+      curState->getLabelForwardingInformationBase());
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
 }
@@ -99,10 +102,11 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   auto deserializedRibEmptyFib = RoutingInformationBase::fromFollyDynamic(
       rib.unresolvedRoutesFollyDynamic(),
-      std::make_shared<ForwardingInformationBaseMap>());
+      std::make_shared<ForwardingInformationBaseMap>(),
+      std::make_shared<LabelForwardingInformationBase>());
 
   auto deserializedRibNoFib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(), nullptr);
+      rib.unresolvedRoutesFollyDynamic(), nullptr, nullptr);
 
   EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFib));
   EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFib));
@@ -110,7 +114,9 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   EXPECT_EQ(2, deserializedRibEmptyFib->getRouteTableDetails(kRid0).size());
 
   auto deserializedRibWithFib = RoutingInformationBase::fromFollyDynamic(
-      rib.unresolvedRoutesFollyDynamic(), curState->getFibs());
+      rib.unresolvedRoutesFollyDynamic(),
+      curState->getFibs(),
+      curState->getLabelForwardingInformationBase());
   EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFib));
   EXPECT_EQ(8, deserializedRibWithFib->getRouteTableDetails(kRid0).size());
 }

@@ -920,7 +920,9 @@ HwInitResult BcmSwitch::init(
     getPlatform()->preWarmbootStateApplied();
     if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
       ret.rib = RoutingInformationBase::fromFollyDynamic(
-          switchStateJson[kRib], ret.switchState->getFibs());
+          switchStateJson[kRib],
+          ret.switchState->getFibs(),
+          ret.switchState->getLabelForwardingInformationBase());
     }
     stateChangedImpl(StateDelta(make_shared<SwitchState>(), ret.switchState));
     hostTable_->warmBootHostEntriesSynced();

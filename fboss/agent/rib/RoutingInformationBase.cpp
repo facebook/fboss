@@ -571,7 +571,8 @@ folly::dynamic RibRouteTables::toFollyDynamicImpl(const Filter& filter) const {
 
 RibRouteTables RibRouteTables::fromFollyDynamic(
     const folly::dynamic& ribJson,
-    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
   for (const auto& routeTable : ribJson.items()) {
@@ -611,6 +612,16 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
       auto& routeTables = (*lockedRouteTables)[fib->getID()];
       importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
       importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
+      auto mplsTable = &routeTables.labelToRoute;
+      if (FLAGS_mpls_rib && labelFib) {
+        for (const auto& route : *labelFib) {
+          auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
+          if (!inserted) {
+            itr->second = route;
+          }
+          DCHECK_EQ(mplsTable->find(route->getID().value())->second, route);
+        }
+      }
     }
   }
   return rib;
@@ -619,9 +630,10 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
 std::unique_ptr<RoutingInformationBase>
 RoutingInformationBase::fromFollyDynamic(
     const folly::dynamic& ribJson,
-    const std::shared_ptr<ForwardingInformationBaseMap>& fibs) {
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs);
+  rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs, labelFib);
   return rib;
 }
 

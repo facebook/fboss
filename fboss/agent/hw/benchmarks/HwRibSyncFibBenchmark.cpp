@@ -33,7 +33,7 @@ BENCHMARK(RibSyncFibBenchmark) {
   // Create a dummy rib since we don't want to go through
   // HwSwitchEnsemble and write to HW
   auto rib = RoutingInformationBase::fromFollyDynamic(
-      ensemble->getRib()->toFollyDynamic(), nullptr);
+      ensemble->getRib()->toFollyDynamic(), nullptr, nullptr);
   auto switchState = ensemble->getProgrammedState();
   rib->update(
       RouterID(0),
