@@ -134,18 +134,7 @@ void reconstructRibFromFib(
       });
   addrToRoute->clear();
   for (auto& route : *fib) {
-    if constexpr (std::is_same_v<LabelID, AddressT>) {
-      auto ribRoute =
-          std::make_shared<Route<AddressT>>(AddressT(route->getID().value()));
-      for (const auto& clientEntry : route->getEntryForClients()) {
-        ribRoute->update(clientEntry.first, clientEntry.second);
-      }
-      ribRoute->setResolved(route->getForwardInfo());
-      addrToRoute->insert(
-          AddressT(route->getID().value()), std::move(ribRoute));
-    } else {
-      addrToRoute->insert(route->prefix(), route);
-    }
+    addrToRoute->insert(route->prefix(), route);
   }
   // Copy unresolved routes
   std::for_each(

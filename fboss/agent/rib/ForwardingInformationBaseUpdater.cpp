@@ -164,20 +164,24 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
       // DROP to be resolved.
       continue;
     }
-    auto oldEntry = fib->getLabelForwardingEntryIf(label);
-    auto labelEntry = std::make_shared<LabelForwardingEntry>(MplsLabel(label));
-    for (const auto& ribEntry : ribRoute->getEntryForClients()) {
-      labelEntry->update(ribEntry.first, ribEntry.second);
-    }
-    labelEntry->setResolved(ribRoute->getForwardInfo());
-    if (!oldEntry || !oldEntry->isSame(labelEntry.get())) {
-      updated = true;
-      if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
-              ribRoute->getForwardInfo().getNextHopSet())) {
-        throw FbossError("invalid label next hop");
+    auto fibRoute = fib->getLabelForwardingEntryIf(label);
+    if (fibRoute) {
+      if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
+        // Pointer or contents are same, reuse existing route
+      } else {
+        fibRoute = ribRoute;
+        updated = true;
       }
+    } else {
+      fibRoute = ribRoute;
+      updated = true;
     }
-    newFib->addNode(labelEntry);
+    if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
+            ribRoute->getForwardInfo().getNextHopSet())) {
+      throw FbossError("invalid label next hop");
+    }
+    CHECK(fibRoute->isPublished());
+    newFib->addNode(fibRoute);
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
