@@ -63,10 +63,20 @@ class LabelForwardingInformationBase
     entry->setResolved(*entry->getBestEntry().second);
   }
 
+  // For backward compatibility with old format
+  static folly::dynamic toFollyDynamicOldFormat(
+      std::shared_ptr<LabelForwardingEntry> entry);
+  static std::shared_ptr<LabelForwardingEntry> labelEntryFromFollyDynamic(
+      folly::dynamic entry);
+
+  folly::dynamic toFollyDynamic() const override;
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;
   friend class CloneAllocator;
+  static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
+      folly::dynamic entry);
 };
 
 } // namespace facebook::fboss

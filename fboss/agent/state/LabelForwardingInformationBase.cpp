@@ -8,6 +8,12 @@
 
 namespace facebook::fboss {
 
+namespace {
+auto constexpr kIncomingLabel = "topLabel";
+auto constexpr kLabelNextHop = "labelNextHop";
+auto constexpr kLabelNextHopsByClient = "labelNextHopMulti";
+} // namespace
+
 LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 
 LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
@@ -23,6 +29,7 @@ LabelForwardingInformationBase::getLabelForwardingEntryIf(
   return getNodeIf(labelFib);
 }
 
+// Save entries in old format till code to parse new format is in prod
 std::shared_ptr<LabelForwardingInformationBase>
 LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
   auto labelFib = std::make_shared<LabelForwardingInformationBase>();
@@ -30,9 +37,52 @@ LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
     return labelFib;
   }
   for (const auto& entry : json[kEntries]) {
-    labelFib->addNode(LabelForwardingEntry::fromFollyDynamic(entry));
+    labelFib->addNode(labelEntryFromFollyDynamic(entry));
   }
   return labelFib;
+}
+
+folly::dynamic LabelForwardingInformationBase::toFollyDynamic() const {
+  folly::dynamic nodesJson = folly::dynamic::array;
+  for (const auto& node : *this) {
+    nodesJson.push_back(toFollyDynamicOldFormat(node));
+  }
+  folly::dynamic json = folly::dynamic::object;
+  json[kEntries] = std::move(nodesJson);
+  json[kExtraFields] = getExtraFields().toFollyDynamic();
+  return json;
+}
+
+std::shared_ptr<LabelForwardingEntry>
+LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+    folly::dynamic entry) {
+  if (entry.find(kIncomingLabel) != entry.items().end()) {
+    return fromFollyDynamicOldFormat(entry);
+  } else {
+    return LabelForwardingEntry::fromFollyDynamic(entry);
+  }
+}
+
+std::shared_ptr<LabelForwardingEntry>
+LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
+  auto topLabel = static_cast<MplsLabel>(json[kIncomingLabel].asInt());
+  auto entry = std::make_shared<LabelForwardingEntry>(topLabel);
+  auto labelNextHopsByClient =
+      LabelNextHopsByClient::fromFollyDynamic(json[kLabelNextHopsByClient]);
+  for (const auto& clientEntry : labelNextHopsByClient) {
+    entry->update(clientEntry.first, clientEntry.second);
+  }
+  entry->setResolved(LabelNextHopEntry::fromFollyDynamic(json[kLabelNextHop]));
+  return entry;
+}
+
+folly::dynamic LabelForwardingInformationBase::toFollyDynamicOldFormat(
+    std::shared_ptr<LabelForwardingEntry> entry) {
+  folly::dynamic json = folly::dynamic::object;
+  json[kIncomingLabel] = static_cast<int>(entry->getID().value());
+  json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamic();
+  json[kLabelNextHopsByClient] = entry->getEntryForClients().toFollyDynamic();
+  return json;
 }
 
 LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(

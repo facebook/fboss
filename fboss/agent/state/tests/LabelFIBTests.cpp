@@ -99,11 +99,14 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
   entry->update(
       ClientID::STATIC_ROUTE,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  lFib->resolve(entry);
 
-  lFib->addNode(std::make_shared<LabelForwardingEntry>(
+  auto phpEntry = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
-      util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
+      util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
+  lFib->resolve(phpEntry);
+  lFib->addNode(phpEntry);
 
   auto generated =
       LabelForwardingInformationBase::fromFollyDynamic(lFib->toFollyDynamic());
