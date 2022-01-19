@@ -920,13 +920,22 @@ void SwSwitch::handlePendingUpdates() {
       }
     }
   }
-
+  updatePtpTcCounter();
   // Notify all of the updates of success and delete them.
   while (!updates.empty()) {
     unique_ptr<StateUpdate> update(&updates.front());
     updates.pop_front();
     update->onSuccess();
   }
+}
+
+void SwSwitch::updatePtpTcCounter() {
+  // update fb303 counter to reflect current state of PTP
+  // should be invoked post update
+  auto switchSettings = getState()->getSwitchSettings();
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "ptp_tc_enabled",
+      switchSettings->isPtpTcEnable() ? 1 : 0);
 }
 
 void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
@@ -997,6 +1006,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   stats()->stateUpdate(duration);
+
   publishToFsdb(newAppliedState);
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return newAppliedState;

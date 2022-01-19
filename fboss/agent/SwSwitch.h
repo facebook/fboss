@@ -775,6 +775,7 @@ class SwSwitch : public HwSwitch::Callback {
   SwitchStats* createSwitchStats();
   void handlePacket(std::unique_ptr<RxPacket> pkt);
 
+  void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);
   void handlePendingUpdates();
   std::shared_ptr<SwitchState> applyUpdate(
