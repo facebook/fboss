@@ -2,6 +2,7 @@
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -41,6 +42,152 @@ TEST(LabelForwardingEntryTests, ToFromDynamic) {
   for (const auto& entry : entries) {
     testToAndFromDynamic(entry);
   }
+}
+
+TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
+  std::string jsonOldEntryType = R"(
+  {
+  "labelNextHop": {
+    "action": "Nexthops",
+    "adminDistance": 10,
+    "nexthops": [
+      {
+        "interface": 2002,
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      },
+      {
+        "interface": 2067,
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      },
+      {
+        "interface": 2095,
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      }
+    ]
+  },
+  "labelNextHopMulti": {
+    "786": {
+      "action": "Nexthops",
+      "adminDistance": 10,
+      "nexthops": [
+        {
+          "interface": 2002,
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
+        },
+        {
+          "interface": 2067,
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
+        },
+        {
+          "interface": 2095,
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
+        }
+      ]
+    }
+  },
+  "topLabel": 1001
+  })";
+  auto entry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+      folly::parseJson(jsonOldEntryType));
+  auto oldFormatJsonWritten =
+      LabelForwardingInformationBase::toFollyDynamicOldFormat(entry);
+  EXPECT_EQ(folly::parseJson(jsonOldEntryType), oldFormatJsonWritten);
+  std::string jsonNewEntryType = R"(
+  {
+  "forwardingInfo": {
+    "adminDistance": 10,
+    "nexthops": [
+      {
+        "interface": 2002,
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      },
+      {
+        "interface": 2067,
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      },
+      {
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "interface": 2095,
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      }
+    ],
+    "action": "Nexthops"
+  },
+  "flags": 2,
+  "prefix": {
+    "label": 1001
+  },
+  "rib": {
+    "786": {
+      "adminDistance": 10,
+      "action": "Nexthops",
+      "nexthops": [
+        {
+          "interface": 2002,
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "weight": "0",
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14"
+        },
+        {
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "interface": 2067,
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
+        },
+        {
+          "label_forwarding_action": {
+            "type": 2
+          },
+          "interface": 2095,
+          "weight": "0",
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14"
+        }
+      ]
+    }
+  }
+})";
+  auto newEntry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+      folly::parseJson(jsonNewEntryType));
+  EXPECT_TRUE(newEntry->isSame(entry.get()));
 }
 
 TEST(LabelForwardingEntryTests, getEntryForClient) {
