@@ -1033,6 +1033,17 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   }
 }
 
+void ThriftHandler::clearAllPortStats() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto allPorts = std::make_unique<std::vector<int32_t>>();
+  std::shared_ptr<SwitchState> swState = sw_->getState();
+  for (const auto& port : *(swState->getPorts())) {
+    allPorts->push_back(port->getID());
+  }
+  clearPortStats(std::move(allPorts));
+}
+
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);

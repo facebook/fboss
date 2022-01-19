@@ -893,6 +893,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /* clear stats for specified port(s) */
   void clearPortStats(1: list<i32> ports);
 
+  /* clears stats for all ports */
+  void clearAllPortStats();
+
   /* Legacy names for getPortInfo() and getAllPortInfo() */
   PortInfoThrift getPortStats(1: i32 portId) throws (
     1: fboss.FbossBaseError error,
