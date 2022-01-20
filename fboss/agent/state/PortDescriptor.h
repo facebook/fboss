@@ -36,6 +36,10 @@ class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
     }
   }
 
+  static PortDescriptor fromThrift(const cfg::PortDescriptor& portTh) {
+    return PortDescriptor(BaseT::fromThrift(portTh));
+  }
+
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
     return PortDescriptor(BaseT::fromFollyDynamic(descJSON));
   }

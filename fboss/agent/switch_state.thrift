@@ -151,6 +151,21 @@ struct AclEntryFields {
   26: optional i32 vlanID;
 }
 
+enum NeighborState {
+  Unverified = 0,
+  Pending = 1,
+  Reachable = 2,
+}
+
+struct NeighborEntryFields {
+  1: string ipaddress;
+  2: string mac;
+  3: switch_config.PortDescriptor portId;
+  4: i32 interfaceId;
+  5: NeighborState state;
+  6: optional switch_config.AclLookupClass classID;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
 }

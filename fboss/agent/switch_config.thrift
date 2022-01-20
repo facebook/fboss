@@ -14,6 +14,16 @@ include "fboss/agent/if/mpls.thrift"
 
 typedef i64 (cpp.type = "uint64_t") u64
 
+enum PortDescriptorType {
+  Physical = 0,
+  Aggregate = 1,
+}
+
+struct PortDescriptor {
+  1: i16 portId;
+  2: PortDescriptorType portType;
+}
+
 /**
  * Administrative port state. ie "should the port be enabled?"
  */

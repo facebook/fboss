@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
@@ -18,7 +19,7 @@
 namespace {
 constexpr auto kIpAddr = "ipaddress";
 constexpr auto kMac = "mac";
-constexpr auto kPort = "portId";
+constexpr auto kNeighborPort = "portId";
 constexpr auto kInterface = "interfaceId";
 constexpr auto kNeighborEntryState = "state";
 constexpr auto kClassID = "classID";
@@ -27,11 +28,11 @@ constexpr auto kClassID = "classID";
 namespace facebook::fboss {
 
 template <typename IPADDR>
-folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
+folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamicLegacy() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kIpAddr] = ip.str();
   entry[kMac] = mac.toString();
-  entry[kPort] = port.toFollyDynamic();
+  entry[kNeighborPort] = port.toFollyDynamic();
   entry[kInterface] = static_cast<uint32_t>(interfaceID);
   entry[kNeighborEntryState] = static_cast<int>(state);
   if (classID.has_value()) {
@@ -42,11 +43,11 @@ folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
 }
 
 template <typename IPADDR>
-NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
+NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(
     const folly::dynamic& entryJson) {
   IPADDR ip(entryJson[kIpAddr].stringPiece());
   folly::MacAddress mac(entryJson[kMac].stringPiece());
-  auto port = PortDescriptor::fromFollyDynamic(entryJson[kPort]);
+  auto port = PortDescriptor::fromFollyDynamic(entryJson[kNeighborPort]);
   InterfaceID intf(entryJson[kInterface].asInt());
   auto state = NeighborState(entryJson[kNeighborEntryState].asInt());
 

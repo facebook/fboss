@@ -40,6 +40,7 @@ TEST(ArpEntry, serialize) {
       MacAddress("01:01:01:01:01:01"),
       PortDescriptor(PortID(1)),
       InterfaceID(10));
+  validateThriftyMigration(*entry);
   serializeTest(*entry);
 }
 
@@ -49,6 +50,7 @@ TEST(NdpEntry, serialize) {
       MacAddress("01:01:01:01:01:01"),
       PortDescriptor(PortID(10)),
       InterfaceID(10));
+  validateThriftyMigration(*entry);
   serializeTest(*entry);
 }
 

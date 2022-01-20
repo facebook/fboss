@@ -89,6 +89,24 @@ class PortDescriptorTemplate {
     }
     XLOG(FATAL) << "Unknown port type";
   }
+
+  cfg::PortDescriptor toThrift() const {
+    cfg::PortDescriptor portTh;
+    portTh.portId_ref() = static_cast<int16_t>(asThriftPort());
+    portTh.portType_ref() = cfg::PortDescriptorType(type_);
+    return portTh;
+  }
+
+  static PortDescriptorTemplate fromThrift(const cfg::PortDescriptor& portTh) {
+    switch (portTh.get_portType()) {
+      case cfg::PortDescriptorType::Physical:
+        return PortDescriptorTemplate(PortIdType(portTh.get_portId()));
+      case cfg::PortDescriptorType::Aggregate:
+        return PortDescriptorTemplate(TrunkIdType(portTh.get_portId()));
+    }
+    XLOG(FATAL) << "Unknown port type";
+  }
+
   folly::dynamic toFollyDynamic() const {
     folly::dynamic entry = folly::dynamic::object;
     switch (type()) {
