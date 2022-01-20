@@ -101,8 +101,8 @@ struct AclEntryFields : public ThriftyFields {
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
 
-  folly::dynamic toFollyDynamic() const;
-  static AclEntryFields fromFollyDynamic(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static AclEntryFields fromFollyDynamicLegacy(const folly::dynamic& json);
 
   bool operator==(const AclEntryFields& acl) const {
     return priority == acl.priority && name == acl.name &&
@@ -157,16 +157,6 @@ class AclEntry
     : public ThriftyBaseT<state::AclEntryFields, AclEntry, AclEntryFields> {
  public:
   explicit AclEntry(int priority, const std::string& name);
-
-  static std::shared_ptr<AclEntry> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    const auto& fields = AclEntryFields::fromFollyDynamic(json);
-    return std::make_shared<AclEntry>(fields);
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return getFields()->toFollyDynamic();
-  }
 
   int getPriority() const {
     return getFields()->priority;

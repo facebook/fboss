@@ -227,7 +227,7 @@ void AclEntryFields::migrateFromThrifty(folly::dynamic& dyn) {
   }
 }
 
-folly::dynamic AclEntryFields::toFollyDynamic() const {
+folly::dynamic AclEntryFields::toFollyDynamicLegacy() const {
   folly::dynamic aclEntry = folly::dynamic::object;
   if (srcIp.first) {
     aclEntry[kSrcIp] = IPAddress::networkToString(srcIp);
@@ -328,7 +328,7 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   return aclEntry;
 }
 
-AclEntryFields AclEntryFields::fromFollyDynamic(
+AclEntryFields AclEntryFields::fromFollyDynamicLegacy(
     const folly::dynamic& aclEntryJson) {
   AclEntryFields aclEntry(
       aclEntryJson[kPriority].asInt(), aclEntryJson[kName].asString());

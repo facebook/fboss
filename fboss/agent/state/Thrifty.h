@@ -10,7 +10,6 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
-#include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
 
@@ -246,13 +245,10 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 //
 // TODO: in future, FieldsT and ThrifT should be one type
 //
-template <
-    typename ThriftT,
-    typename NodeT,
-    typename FieldsT,
-    typename =
-        std::enable_if_t<std::is_base_of_v<ThriftyFields, FieldsT>, void>>
+template <typename ThriftT, typename NodeT, typename FieldsT>
 class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
+  static_assert(std::is_base_of_v<ThriftyFields, FieldsT>);
+
  public:
   using NodeBaseT<NodeT, FieldsT>::NodeBaseT;
   using Fields = FieldsT;
@@ -294,6 +290,16 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
     auto dyn = folly::parseJson(this->str());
     FieldsT::migrateFromThrifty(dyn);
     return dyn;
+  }
+
+  // for testing purposes
+  folly::dynamic toFollyDynamicLegacy() const {
+    return this->getFields()->toFollyDynamicLegacy();
+  }
+
+  static std::shared_ptr<NodeT> fromFollyDynamicLegacy(
+      folly::dynamic const& dyn) {
+    return std::make_shared<NodeT>(FieldsT::fromFollyDynamicLegacy(dyn));
   }
 
   bool operator==(const ThriftyBaseT<ThriftT, NodeT, FieldsT>& rhs) const {
