@@ -16,10 +16,6 @@
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
-namespace {
-constexpr auto kNPending = "numPendingEntries";
-}
-
 namespace facebook::fboss {
 
 class SwitchState;
@@ -38,6 +34,23 @@ struct NeighborTableTraits {
   }
 };
 
+template <typename IPADDR, typename ENTRY>
+struct NeighborTableThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::NeighborEntryFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "ipaddress";
+    return _key;
+  }
+
+  static const KeyType convertKey(const IPADDR& key) {
+    return key.str();
+  }
+
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
+
 /*
  * A map of IP --> MAC for the IP addresses of other nodes on a VLAN.
  *
@@ -49,8 +62,10 @@ struct NeighborTableTraits {
  * allow us to perform cheaper copy-on-write updates.
  */
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
-class NeighborTable
-    : public NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> {
+class NeighborTable : public ThriftyNodeMapT<
+                          SUBCLASS,
+                          NeighborTableTraits<IPADDR, ENTRY>,
+                          NeighborTableThriftTraits<IPADDR, ENTRY>> {
  public:
   typedef IPADDR AddressType;
   typedef ENTRY Entry;
@@ -93,7 +108,11 @@ class NeighborTable
   void removeEntry(AddressType ip);
 
  private:
-  typedef NodeMapT<SUBCLASS, NeighborTableTraits<IPADDR, ENTRY>> Parent;
+  typedef ThriftyNodeMapT<
+      SUBCLASS,
+      NeighborTableTraits<IPADDR, ENTRY>,
+      NeighborTableThriftTraits<IPADDR, ENTRY>>
+      Parent;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;

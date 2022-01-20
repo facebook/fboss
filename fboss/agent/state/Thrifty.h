@@ -26,6 +26,17 @@ struct ThriftyNodeMapTraits : public NodeMapTraits<
     static const std::string _key = "id";
     return _key;
   }
+
+  // convert key from cpp version to one thrift will like
+  template <typename NodeKey>
+  static const KeyT convertKey(const NodeKey& key) {
+    return static_cast<KeyT>(key);
+  }
+
+  // parse dynamic key into thrift acceptable type
+  static const KeyT parseKey(const folly::dynamic& key) {
+    return key.asInt();
+  }
 };
 
 class ThriftyUtils {
@@ -136,18 +147,20 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       auto jsonStr = folly::toJson(val);
       auto inBuf =
           folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-      mapTh[key.asInt()] = apache::thrift::SimpleJSONSerializer::deserialize<
+      auto node = apache::thrift::SimpleJSONSerializer::deserialize<
           typename ThriftyTraitsT::Node>(folly::io::Cursor{&inBuf});
+      mapTh[ThriftyTraitsT::parseKey(key)] = node;
     }
     return fromThrift(mapTh);
   }
 
   typename ThriftyTraitsT::NodeContainer toThrift() const {
     typename ThriftyTraitsT::NodeContainer items;
-
+    // port getKey = PortID -> i16
+    // neighbor getKey = IPAddr -> str
     for (auto& node : *this) {
-      items[static_cast<typename ThriftyTraitsT::KeyType>(
-          TraitsT::getKey(node))] = node->getFields()->toThrift();
+      items[ThriftyTraitsT::convertKey(TraitsT::getKey(node))] =
+          node->getFields()->toThrift();
     }
 
     return items;

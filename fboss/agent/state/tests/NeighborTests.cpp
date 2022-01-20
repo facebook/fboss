@@ -54,6 +54,44 @@ TEST(NdpEntry, serialize) {
   serializeTest(*entry);
 }
 
+TEST(ArpTable, serialize) {
+  ArpTable table;
+  table.addEntry(
+      IPAddressV4("192.168.0.1"),
+      MacAddress("01:01:01:01:01:01"),
+      PortDescriptor(PortID(10)),
+      InterfaceID(10),
+      NeighborState::REACHABLE);
+  table.addEntry(
+      IPAddressV4("192.168.0.2"),
+      MacAddress("01:01:01:01:01:02"),
+      PortDescriptor(PortID(11)),
+      InterfaceID(11),
+      NeighborState::PENDING);
+
+  validateThriftyMigration(table);
+  serializeTest(table);
+}
+
+TEST(NdpTable, serialize) {
+  NdpTable table;
+  table.addEntry(
+      IPAddressV6("2401:db00:21:70cb:face:0:96:0"),
+      MacAddress("01:01:01:01:01:01"),
+      PortDescriptor(PortID(10)),
+      InterfaceID(10),
+      NeighborState::REACHABLE);
+  table.addEntry(
+      IPAddressV6("2401:db00:21:70cb:face:0:96:1"),
+      MacAddress("01:01:01:01:01:02"),
+      PortDescriptor(PortID(11)),
+      InterfaceID(11),
+      NeighborState::PENDING);
+
+  validateThriftyMigration(table);
+  serializeTest(table);
+}
+
 TEST(NeighborResponseEntry, serialize) {
   auto entry = std::make_unique<NeighborResponseEntry>(
       MacAddress("01:01:01:01:01:01"), InterfaceID(0));
