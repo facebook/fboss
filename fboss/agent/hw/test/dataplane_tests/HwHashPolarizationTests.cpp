@@ -276,6 +276,10 @@ TEST_F(HwHashPolarizationTestForTD2, With_TH) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
+TEST_F(HwHashPolarizationTestForTD2, With_TH3) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+}
+
 struct HwHashPolarizationTestForSAITD2
     : HwHashPolarizationTestForAsic<
           HwAsic::AsicType::ASIC_TYPE_TRIDENT2,
@@ -295,6 +299,10 @@ TEST_F(HwHashPolarizationTestForSAITD2, With_SAI_TH) {
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_TH) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+}
+
+TEST_F(HwHashPolarizationTestForSAITD2, With_TH3) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 struct HwHashPolarizationTestForTH : HwHashPolarizationTestForAsic<
@@ -317,6 +325,10 @@ TEST_F(HwHashPolarizationTestForTH, With_TD2) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
+TEST_F(HwHashPolarizationTestForTH, With_TH3) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+}
+
 struct HwHashPolarizationTestForSAITH
     : HwHashPolarizationTestForAsic<
           HwAsic::AsicType::ASIC_TYPE_TOMAHAWK,
@@ -337,4 +349,37 @@ TEST_F(HwHashPolarizationTestForSAITH, With_SAI_TD2) {
 TEST_F(HwHashPolarizationTestForSAITH, With_TD2) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
+
+TEST_F(HwHashPolarizationTestForSAITH, With_TH3) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+}
+
+struct HwHashPolarizationTestForTH3 : HwHashPolarizationTestForAsic<
+                                          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3,
+                                          false> {};
+
+TEST_F(HwHashPolarizationTestForTH3, With_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+}
+
+TEST_F(HwHashPolarizationTestForTH3, With_SAI_TH) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+}
+
+TEST_F(HwHashPolarizationTestForTH3, With_SAI_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+}
+
+TEST_F(HwHashPolarizationTestForTH3, With_TD2) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+}
+
+TEST_F(HwHashPolarizationTestForTH3, With_TH3) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+}
+
+TEST_F(HwHashPolarizationTestForTH3, With_TH4) {
+  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+}
+
 } // namespace facebook::fboss
