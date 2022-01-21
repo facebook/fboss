@@ -299,12 +299,12 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
   const auto& payloadBytes = payload.value();
   // EthHdr
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
-  // IPv4Hdr
+  // IPv4Hdr - total_length field includes the payload + UDP hdr + ip hdr
   IPv4Hdr ipHdr(
       srcIp,
       dstIp,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
-      payloadBytes.size());
+      payloadBytes.size() + UDPHeader::size());
   ipHdr.dscp = dscp;
   ipHdr.ttl = ttl;
   ipHdr.computeChecksum();
