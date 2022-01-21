@@ -7,34 +7,27 @@
 #include <string.h>
 #include <sysexits.h>
 #include <memory>
-#include "common/fbwhoami/FbWhoAmI.h"
+#include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
+using namespace facebook::fboss;
 
 DEFINE_bool(json, false, "output in JSON format");
-DEFINE_string(platform, "", "Specify Platform name, e.g. Darwin, etc.");
+DECLARE_string(fruid_filepath);
 
 std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
-  std::string modelName;
-
-  if (!FLAGS_platform.empty()) {
-    modelName = FLAGS_platform;
-  } else {
-    // Get the model name from FbWhoAmI instead of from class
-    // PlatformProductInfo
-    // to omit catching initialization issues
-    modelName = facebook::FbWhoAmI::getModelName();
-  }
-
-  if (modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0) {
+  PlatformProductInfo prodInfo(FLAGS_fruid_filepath);
+  prodInfo.initialize();
+  if (prodInfo.getMode() == PlatformMode::DARWIN) {
     return std::make_unique<WeutilDarwin>();
   }
 
-  XLOG(INFO) << "The platform (" << modelName << ") is not supported"
-             << std::endl;
+  XLOG(INFO) << "The platform (" << toString(prodInfo.getMode())
+             << ") is not supported" << std::endl;
   return nullptr;
 }
 
