@@ -195,27 +195,21 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::HOST_GEN_ENABLE, {CmisPages::PAGE13, 144, 1}},
     {CmisField::HOST_GEN_INV, {CmisPages::PAGE13, 145, 1}},
     {CmisField::HOST_GEN_PRE_FEC, {CmisPages::PAGE13, 147, 1}},
-    {CmisField::HOST_PATTERN_SELECT_LANE_2_1, {CmisPages::PAGE13, 148, 1}},
-    {CmisField::HOST_PATTERN_SELECT_LANE_4_3, {CmisPages::PAGE13, 149, 1}},
+    {CmisField::HOST_PATTERN_SELECT_LANE_8_1, {CmisPages::PAGE13, 148, 4}},
     {CmisField::MEDIA_GEN_ENABLE, {CmisPages::PAGE13, 152, 1}},
     {CmisField::MEDIA_GEN_INV, {CmisPages::PAGE13, 153, 1}},
     {CmisField::MEDIA_GEN_PRE_FEC, {CmisPages::PAGE13, 155, 1}},
-    {CmisField::MEDIA_PATTERN_SELECT_LANE_2_1, {CmisPages::PAGE13, 156, 1}},
-    {CmisField::MEDIA_PATTERN_SELECT_LANE_4_3, {CmisPages::PAGE13, 157, 1}},
+    {CmisField::MEDIA_PATTERN_SELECT_LANE_8_1, {CmisPages::PAGE13, 156, 4}},
     {CmisField::HOST_CHECKER_ENABLE, {CmisPages::PAGE13, 160, 1}},
     {CmisField::HOST_CHECKER_INV, {CmisPages::PAGE13, 161, 1}},
     {CmisField::HOST_CHECKER_POST_FEC, {CmisPages::PAGE13, 163, 1}},
-    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
-     {CmisPages::PAGE13, 164, 1}},
-    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
-     {CmisPages::PAGE13, 165, 1}},
+    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_1,
+     {CmisPages::PAGE13, 164, 4}},
     {CmisField::MEDIA_CHECKER_ENABLE, {CmisPages::PAGE13, 168, 1}},
     {CmisField::MEDIA_CHECKER_INV, {CmisPages::PAGE13, 169, 1}},
     {CmisField::MEDIA_CHECKER_POST_FEC, {CmisPages::PAGE13, 171, 1}},
-    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
-     {CmisPages::PAGE13, 172, 1}},
-    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
-     {CmisPages::PAGE13, 173, 1}},
+    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_1,
+     {CmisPages::PAGE13, 172, 4}},
     {CmisField::REF_CLK_CTRL, {CmisPages::PAGE13, 176, 1}},
     {CmisField::BER_CTRL, {CmisPages::PAGE13, 177, 1}},
     {CmisField::HOST_NEAR_LB_EN, {CmisPages::PAGE13, 180, 1}},
@@ -314,6 +308,15 @@ static std::map<int, checksumInfoStruct> checksumInfoCmis = {
      {kPage1CsumRangeStart, kPage1CsumRangeLength, CmisField::PAGE1_CSUM}},
     {CmisPages::PAGE02,
      {kPage2CsumRangeStart, kPage2CsumRangeLength, CmisField::PAGE2_CSUM}},
+};
+
+static std::map<uint32_t, uint32_t> prbsPatternMap = {
+    {7, 11},
+    {9, 9},
+    {13, 7},
+    {15, 5},
+    {23, 2},
+    {31, 0},
 };
 
 void getQsfpFieldAddress(
@@ -2319,11 +2322,106 @@ bool CmisModule::getModuleStateChanged() {
   return getSettingsValue(CmisField::MODULE_FLAG, MODULE_STATE_CHANGED_MASK);
 }
 
-bool CmisModule::setPortPrbs(
-    phy::Side /* side */,
-    const phy::PortPrbsState& /* prbs */) {
-  return false;
-}
+/*
+ * setPortPrbs
+ *
+ * This function starts or stops the PRBS generator and checker on a given side
+ * of optics (line side or host side). The PRBS is supported on new 200G and
+ * 400G CMIS optics.
+ */
+bool CmisModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
+  int offset, length, dataAddress;
 
+  // If PRBS is not supported then return
+  if (!isPrbsSupported(side)) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s} PRBS not supported on {:s} side",
+        qsfpImpl_->getName(),
+        (side == phy::Side::LINE ? "Line" : "System"));
+    return false;
+  }
+
+  // Return error for invalid PRBS polynominal
+  auto prbsPatternItr = prbsPatternMap.find(prbs.polynominal_ref().value());
+  if (prbsPatternItr == prbsPatternMap.end()) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s} PRBS Polynominal {:d} not supported",
+        qsfpImpl_->getName(),
+        prbs.polynominal_ref().value());
+    return false;
+  }
+
+  auto prbsPolynominal = prbsPatternItr->second;
+  auto start = prbs.enabled_ref().value();
+
+  // Set the page to 0x13 first
+  uint8_t page = 0x13;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+  // Step 1: Set the pattern for Generator (for starting case)
+  if (start) {
+    auto cmisRegister = (side == phy::Side::LINE)
+        ? CmisField::MEDIA_PATTERN_SELECT_LANE_8_1
+        : CmisField::HOST_PATTERN_SELECT_LANE_8_1;
+    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+
+    // There are 4 bytes, each contains pattern for 2 lanes
+    uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
+    for (int i = 0; i < length; i++) {
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset + i, 1, &patternVal);
+    }
+  }
+
+  // Step 2: Start/Stop the generator
+  uint8_t startLaneMask;
+  // Get the bitmask for Start/Stop of generator/checker on the given side
+  if (start) {
+    startLaneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
+                                              : ((1 << numHostLanes()) - 1);
+  } else {
+    startLaneMask = 0;
+  }
+
+  auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
+                                                : CmisField::HOST_GEN_ENABLE;
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, 1, &startLaneMask);
+
+  // Step 3: Set the pattern for Checker (for starting case)
+  if (start) {
+    cmisRegister = (side == phy::Side::LINE)
+        ? CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_1
+        : CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_1;
+    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+
+    // There are 4 bytes, each contains pattern for 2 lanes
+    uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
+    for (int i = 0; i < length; i++) {
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset + i, 1, &patternVal);
+    }
+  }
+
+  // Step 4: Start/Stop the checker
+  cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
+                                           : CmisField::HOST_CHECKER_ENABLE;
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, 1, &startLaneMask);
+
+  XLOG(INFO) << folly::sformat(
+      "PRBS on module {:s} side {:s} Lanemask {:#x} {:s}",
+      qsfpImpl_->getName(),
+      ((side == phy::Side::LINE) ? "Line" : "Host"),
+      startLaneMask,
+      (start ? "Started" : "Stopped"));
+
+  return true;
+}
 } // namespace fboss
 } // namespace facebook
