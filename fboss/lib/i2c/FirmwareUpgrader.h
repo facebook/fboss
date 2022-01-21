@@ -23,11 +23,16 @@ class CmisFirmwareUpgrader {
   // number string can be compared with modules's register page 1 byte 148-163
   static inline std::map<std::string, std::vector<std::string>> partNoMap{
       {"finisar-200g-fr4", {"FTCC1112E1PLL-FB"}},
-      {"finisar-400g-fr4", {"FTCD4313E2PCL   "}},
+      {"finisar-400g-fr4",
+       {"FTCD4313E2PCL   ",
+        "FTCD4313E2PCL-FB",
+        "FTCD4313E2PCLFB1",
+        "FTCD4313E2PCLFB2",
+        "FTCD4313E2PCLFB3"}},
       {"finisar-400g-lr4", {"FTCD4323E2PCL   "}},
       {"innolight-200g-fr4",
        {"T-FX4FNT-HFB    ", "T-FX4FNT-HFP    ", "T-FX4FNT-HFS    "}},
-      {"innolight-400g-fr4", {"T-DQ4CNT-NFB    "}},
+      {"innolight-400g-fr4", {"T-DQ4CNT-NFB    ", "T-DQ4CNT-NF2    "}},
   };
 
   // Constructor. The caller is responsible for interfacing with Firmware
