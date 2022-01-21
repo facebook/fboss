@@ -281,6 +281,10 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) {
+    return phy::PrbsStats{};
+  }
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 

@@ -225,7 +225,10 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     {CmisField::MEDIA_BERT_LOL, {CmisPages::PAGE13, 213, 1}},
     // Page 14h
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
-    {CmisField::HOST_LANE_CHECKER_LOL, {CmisPages::PAGE14, 138, 1}},
+    {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
+    {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
+    {CmisField::HOST_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 138, 1}},
+    {CmisField::MEDIA_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 139, 1}},
     {CmisField::HOST_BER, {CmisPages::PAGE14, 192, 16}},
     {CmisField::MEDIA_BER_HOST_SNR, {CmisPages::PAGE14, 208, 16}},
     {CmisField::MEDIA_SNR, {CmisPages::PAGE14, 240, 16}},
@@ -2423,5 +2426,54 @@ bool CmisModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
 
   return true;
 }
+
+/*
+ * getPortPrbsStats
+ *
+ * This function retrieves the PRBS stats for all the lanes in a module for the
+ * given side of optics (line side or host side). The PRBS checker lock and BER
+ * stats are returned.
+ */
+phy::PrbsStats CmisModule::getPortPrbsStats(phy::Side side) {
+  int offset, length, dataAddress;
+  phy::PrbsStats prbsStats;
+
+  // If PRBS is not supported then return
+  if (!isPrbsSupported(side)) {
+    XLOG(ERR) << folly::sformat(
+        "Module {:s} PRBS not supported on {:s} side",
+        qsfpImpl_->getName(),
+        (side == phy::Side::LINE ? "Line" : "System"));
+    return phy::PrbsStats{};
+  }
+
+  prbsStats.portId_ref() = qsfpImpl_->getNum();
+
+  // The PRBS information is in page 0x14 so set the page first
+  uint8_t page = 0x14;
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+  // Step1: Get the lane locked mask for PRBS checker
+  uint8_t checkerLockMask;
+  auto cmisRegister = (side == phy::Side::LINE)
+      ? CmisField::MEDIA_LANE_CHECKER_LOL_LATCH
+      : CmisField::HOST_LANE_CHECKER_LOL_LATCH;
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, 1, &checkerLockMask);
+
+  int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
+
+  for (auto laneId = 0; laneId < numLanes; laneId++) {
+    phy::PrbsLaneStats laneStats;
+    laneStats.laneId_ref() = laneId;
+    laneStats.locked_ref() = (checkerLockMask & (1 << laneId)) == 0;
+
+    prbsStats.laneStats_ref()->push_back(laneStats);
+  }
+  return prbsStats;
+}
+
 } // namespace fboss
 } // namespace facebook

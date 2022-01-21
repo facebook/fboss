@@ -302,6 +302,11 @@ class CmisModule : public QsfpModule {
    */
   bool setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) override;
 
+  /*
+   * Get the PRBS stats for a module
+   */
+  phy::PrbsStats getPortPrbsStats(phy::Side side) override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
