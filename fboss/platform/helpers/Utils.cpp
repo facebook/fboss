@@ -1,14 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/helpers/Utils.h"
 #include <fcntl.h>
-#include <glog/logging.h>
 #include <sys/mman.h>
 #include <iostream>
 #include <unordered_set>
 
 #include <folly/Subprocess.h>
-#include "common/fbwhoami/FbWhoAmI.h"
 
 namespace {
 constexpr uint32_t MAP_SIZE = 4096;
@@ -31,11 +28,6 @@ std::string execCommandImpl(const std::string& cmd, int* exitStatus) {
 }
 } // namespace
 namespace facebook::fboss::platform::helpers {
-
-void showDeviceInfo(void) {
-  LOG(INFO) << " Host: " << FbWhoAmI::getName()
-            << " model: " << FbWhoAmI::getModelName();
-}
 
 std::string execCommand(const std::string& cmd) {
   return execCommandImpl(cmd, nullptr);
