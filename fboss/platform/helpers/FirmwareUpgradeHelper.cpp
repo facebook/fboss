@@ -71,12 +71,6 @@ std::string toLower(std::string str) {
   return str;
 }
 
-int runCmd(const std::string& cmd) {
-  auto subProc = folly::Subprocess(folly::shellify(cmd));
-  auto ret = subProc.wait().exitStatus();
-  return ret;
-}
-
 void jamUpgrade(std::string fpga, std::string action, std::string fpgaFile) {
   if (action == "read") {
     std::cout << action << " not supported for " << fpga << std::endl;

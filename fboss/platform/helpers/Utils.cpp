@@ -2,10 +2,9 @@
 
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include <iostream>
 #include <unordered_set>
-
-#include <folly/Subprocess.h>
 
 namespace {
 constexpr uint32_t MAP_SIZE = 4096;
@@ -15,27 +14,8 @@ const std::unordered_set<std::string> kFlashType = {
     "MX25L12805D",
     "N25Q128..3E",
 };
-
-std::string execCommandImpl(const std::string& cmd, int* exitStatus) {
-  folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
-  auto result = p.communicate();
-  if (exitStatus) {
-    *exitStatus = p.wait().exitStatus();
-  } else {
-    p.waitChecked();
-  }
-  return result.first;
-}
 } // namespace
 namespace facebook::fboss::platform::helpers {
-
-std::string execCommand(const std::string& cmd) {
-  return execCommandImpl(cmd, nullptr);
-}
-
-std::string execCommandUnchecked(const std::string& cmd, int& exitStatus) {
-  return execCommandImpl(cmd, &exitStatus);
-}
 
 /*
  * mmap function to read memory mapped address

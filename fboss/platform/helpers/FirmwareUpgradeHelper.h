@@ -2,7 +2,6 @@
 
 #include <folly/String.h>
 #include <folly/Subprocess.h>
-#include <folly/system/Shell.h>
 #include <glog/logging.h>
 #include <stdint.h>
 #include <stdlib.h>
