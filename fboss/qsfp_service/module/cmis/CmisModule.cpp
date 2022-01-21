@@ -2463,12 +2463,38 @@ phy::PrbsStats CmisModule::getPortPrbsStats(phy::Side side) {
   qsfpImpl_->readTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, 1, &checkerLockMask);
 
+  // Step 2: Get BER values for all the lanes
   int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
 
+  // Step 2.a: Set the Diag Sel register to collect the BER values and wait
+  // for some time
+  getQsfpFieldAddress(CmisField::DIAG_SEL, dataAddress, offset, length);
+  uint8_t diagSel = 1; // Diag Sel 1 is to obtain BER values
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, 1, &diagSel);
+  /* sleep override */
+  usleep(kUsecBetweenLaneInit);
+
+  // Step 2.b: Read the BER values for all lanes
+  cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_BER_HOST_SNR
+                                           : CmisField::HOST_BER;
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+  std::array<uint8_t, 16> laneBerList;
+  qsfpImpl_->readTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, length, laneBerList.data());
+
+  // Step 3: Put all the lane info in return structure and return
   for (auto laneId = 0; laneId < numLanes; laneId++) {
     phy::PrbsLaneStats laneStats;
     laneStats.laneId_ref() = laneId;
+    // Put the lock value
     laneStats.locked_ref() = (checkerLockMask & (1 << laneId)) == 0;
+
+    // Put the BER value
+    uint8_t lsb, msb;
+    lsb = laneBerList.at(laneId * 2);
+    msb = laneBerList.at((laneId * 2) + 1);
+    laneStats.ber_ref() = QsfpModule::getBerFloatValue(lsb, msb);
 
     prbsStats.laneStats_ref()->push_back(laneStats);
   }

@@ -459,6 +459,11 @@ class QsfpModule : public Transceiver {
 
   double mwToDb(double value);
 
+  /*
+   * A utility function to return BER value in double format
+   */
+  static double getBerFloatValue(uint8_t lsb, uint8_t msb);
+
   virtual TransceiverModuleIdentifier getIdentifier() = 0;
   virtual ModuleStatus getModuleStatus() = 0;
   /*

@@ -1187,5 +1187,20 @@ bool QsfpModule::tryRemediateLocked() {
 void QsfpModule::markLastDownTime() {
   lastDownTime_ = std::time(nullptr);
 }
+
+/*
+ * getBerFloatValue
+ *
+ * A utility function to convert the 16 bit BER value from module register to
+ * the double value. This function is applicable to SFF as well as CMIS
+ */
+double QsfpModule::getBerFloatValue(uint8_t lsb, uint8_t msb) {
+  int exponent = (lsb >> 3) & 0x1f;
+  int mantissa = ((lsb & 0x7) << 8) | msb;
+
+  exponent -= 24;
+  double berVal = mantissa * exp10(exponent);
+  return berVal;
+}
 } // namespace fboss
 } // namespace facebook
