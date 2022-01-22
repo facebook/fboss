@@ -84,11 +84,12 @@ class LinkTest : public AgentTest {
       uint32_t retries,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
 
+  void setupFlags() const override;
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       utility::EcmpSetupTargetedPorts6& ecmp6);
-  void setupFlags() const override;
   void initializeCabledPorts();
 
   std::vector<PortID> cabledPorts_;
