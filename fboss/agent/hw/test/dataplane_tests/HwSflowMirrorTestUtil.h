@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include <chrono>
-#include <vector>
-
-#include <folly/IPAddress.h>
-#include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
 
 namespace facebook::fboss::utility {
@@ -22,7 +17,5 @@ struct SflowShimHeaderInfo {
   uint32_t srcPort;
   uint32_t dstPort;
 };
-
-SflowShimHeaderInfo parseSflowShim(folly::io::Cursor& cursor);
 SflowShimHeaderInfo parseSflowShim(folly::io::Cursor& cursor);
 } // namespace facebook::fboss::utility

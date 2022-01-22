@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTestUtil.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -15,6 +16,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -320,7 +322,28 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
             4 /* vlan tag is absent in mirrored packet */);
     auto payload = capturedPkt->v4PayLoad()->payload()->payload();
 
+    // Call parseSflowShim here. And verify
+    // 1. Src port is correct
+    // 2. Parser correctly identified whether the pkt is from TH3 or TH4.
+    // TODO(vsp): As we incorporate Cisco sFlow packet in parser, enhance this
+    // test case.
+    auto buf = folly::IOBuf::wrapBuffer(payload.data(), payload.size());
+    folly::io::Cursor cursor{buf.get()};
+    auto shim = utility::parseSflowShim(cursor);
+    XLOG(INFO) << fmt::format(
+        "srcPort = {}, dstPort = {}", shim.srcPort, shim.dstPort);
+    EXPECT_EQ(shim.srcPort, static_cast<uint32_t>(getPortsForSampling()[1]));
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
+
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      if (getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+        EXPECT_EQ(shim.asic, utility::SflowShimAsic::SFLOW_SHIM_ASIC_TH4);
+      } else {
+        EXPECT_EQ(shim.asic, utility::SflowShimAsic::SFLOW_SHIM_ASIC_TH3);
+      }
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
