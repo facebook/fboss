@@ -86,6 +86,10 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
           cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCPV6, kCoppMidPriQueueId),
   };
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP)) {

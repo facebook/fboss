@@ -42,14 +42,8 @@ TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
   auto verify = [=]() {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
-
-    auto rxReasonListWithDHCP = utility::getCoppRxReasonToQueues(getAsic());
-    rxReasonListWithDHCP.insert(
-        rxReasonListWithDHCP.begin(),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId));
     cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
-        rxReasonListWithDHCP;
+        utility::getCoppRxReasonToQueues(getAsic());
     applyNewConfig(cfg);
   };
   verifyAcrossWarmBoots(setup, verify);
