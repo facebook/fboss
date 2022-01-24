@@ -68,9 +68,12 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
   }
 
-  void sendUdpPkt(uint8_t dscpVal) {
+  void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
+    std::optional<std::vector<uint8_t>> payload = payloadLen
+        ? std::vector<uint8_t>(payloadLen, 0xff)
+        : std::optional<std::vector<uint8_t>>();
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
@@ -80,14 +83,16 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
         8001,
-        static_cast<uint8_t>((dscpVal << 2)));
+        static_cast<uint8_t>(dscpVal << 2),
+        255 /* Hop limit */,
+        payload);
 
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
   }
 
-  void sendUdpPkts(uint8_t dscpVal, int cnt = 256) {
+  void sendUdpPkts(uint8_t dscpVal, int cnt = 256, int payloadLen = 0) {
     for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal);
+      sendUdpPkt(dscpVal, payloadLen);
     }
   }
 
