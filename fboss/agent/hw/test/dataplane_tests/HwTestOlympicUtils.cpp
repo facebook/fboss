@@ -13,11 +13,11 @@
 
 namespace facebook::fboss::utility {
 
-cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
+cfg::ActiveQueueManagement kGetOlympicEcnConfig(int minLength, int maxLength) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength_ref() = 41600;
-  ecnLQCD.maximumLength_ref() = 41600;
+  ecnLQCD.minimumLength_ref() = minLength;
+  ecnLQCD.maximumLength_ref() = maxLength;
   ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
   ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
@@ -33,6 +33,54 @@ kGetWredConfig(int minLength, int maxLength, int probability) {
   wredAQM.detection_ref()->linear_ref() = wredLQCD;
   wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
+}
+
+void addQueueShaperConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minKbps,
+    const uint32_t maxKbps) {
+  cfg::Range kbpsRange;
+  kbpsRange.minimum_ref() = minKbps;
+  kbpsRange.maximum_ref() = maxKbps;
+  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
+  queue.portQueueRate_ref() = cfg::PortQueueRate();
+  queue.portQueueRate_ref()->kbitsPerSec_ref() = kbpsRange;
+}
+
+void addQueueBurstSizeConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minKbits,
+    const uint32_t maxKbits) {
+  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
+  queue.bandwidthBurstMinKbits_ref() = minKbits;
+  queue.bandwidthBurstMaxKbits_ref() = maxKbits;
+}
+
+void addQueueEcnConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minLen,
+    const uint32_t maxLen) {
+  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
+  if (!queue.aqms_ref().has_value()) {
+    queue.aqms_ref() = {};
+  }
+  queue.aqms_ref()->push_back(kGetOlympicEcnConfig(minLen, maxLen));
+}
+
+void addQueueWredConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minLen,
+    const uint32_t maxLen,
+    const int probability) {
+  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
+  if (!queue.aqms_ref().has_value()) {
+    queue.aqms_ref() = {};
+  }
+  queue.aqms_ref()->push_back(kGetWredConfig(minLen, maxLen, probability));
 }
 
 void addNetworkAIQueueConfig(

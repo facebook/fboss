@@ -93,10 +93,33 @@ void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg);
 
 const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp();
 const std::vector<int>& kOlympicAllSPQueueIds();
-cfg::ActiveQueueManagement kGetOlympicEcnConfig();
+cfg::ActiveQueueManagement kGetOlympicEcnConfig(
+    int minLength = 41600,
+    int maxLength = 41600);
 cfg::ActiveQueueManagement kGetWredConfig(
     int minLength = 41600,
     int maxLength = 41600,
     int probability = 100);
+void addQueueEcnConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minLen,
+    const uint32_t maxLen);
+void addQueueWredConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minLen,
+    const uint32_t maxLen,
+    const int probability);
+void addQueueShaperConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minKbps,
+    const uint32_t maxKbps);
+void addQueueBurstSizeConfig(
+    cfg::SwitchConfig* config,
+    const int queueId,
+    const uint32_t minKbits,
+    const uint32_t maxKbits);
 
 } // namespace facebook::fboss::utility
