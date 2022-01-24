@@ -59,7 +59,17 @@ class CmdShowTransceiver
     Table outTable;
 
     outTable.setHeader(
-        {"Interface", "Status", "Present", "Vendor", "Serial", "Part Number"});
+        {"Interface",
+         "Status",
+         "Present",
+         "Vendor",
+         "Serial",
+         "Part Number",
+         "Temperature (C)",
+         "Voltage (V)",
+         "Current (mA)",
+         "Tx Power (dBm)",
+         "Rx Power (dBm)"});
 
     for (const auto& [portId, details] : model.get_transceivers()) {
       outTable.addRow({
@@ -69,12 +79,23 @@ class CmdShowTransceiver
           details.get_vendor(),
           details.get_serial(),
           details.get_partNumber(),
+          fmt::format("{:.2f}", details.get_temperature()),
+          fmt::format("{:.2f}", details.get_voltage()),
+          listToString(details.get_currentMA()),
+          listToString(details.get_txPower()),
+          listToString(details.get_rxPower()),
       });
     }
     out << outTable << std::endl;
   }
 
  private:
+  // These power thresholds are ported directly from fb_toolkit.  Eventually
+  // they will be codified into a DNTT thrift service and we will be able to
+  // query threshold specs instead of hardcoding.
+  const double LOW_POWER_ERR = -9.00;
+  const double LOW_POWER_WARN = -7.00;
+
   std::map<int, PortInfoThrift> queryPortInfo(
       FbossCtrlAsyncClient* agent,
       const ObjectArgType& queriedPorts) const {
@@ -93,6 +114,26 @@ class CmdShowTransceiver
       }
     }
     return filteredPortEntries;
+  }
+
+  Table::StyledCell listToString(std::vector<double> listToPrint) {
+    std::string result;
+    Table::Style cellStyle = Table::Style::NONE;
+    for (size_t i = 0; i < listToPrint.size(); ++i) {
+      result += fmt::format("{:.2f}", listToPrint[i]) +
+          ((i != listToPrint.size() - 1) ? "," : "");
+
+      if (listToPrint[i] <= LOW_POWER_ERR)
+        cellStyle = Table::Style::ERROR;
+      else if (
+          listToPrint[i] > LOW_POWER_ERR && listToPrint[i] <= LOW_POWER_WARN &&
+          cellStyle != Table::Style::ERROR)
+        cellStyle = Table::Style::WARN;
+      else if (
+          listToPrint[i] > LOW_POWER_WARN && cellStyle == Table::Style::NONE)
+        cellStyle = Table::Style::GOOD;
+    }
+    return Table::StyledCell(result, cellStyle);
   }
 
   std::map<int, PortStatus> queryPortStatus(
@@ -143,6 +184,21 @@ class CmdShowTransceiver
         details.vendor_ref() = vendor->get_name();
         details.serial_ref() = vendor->get_serialNumber();
         details.partNumber_ref() = vendor->get_partNumber();
+        details.temperature_ref() =
+            transceiver.get_sensor()->get_temp().get_value();
+        details.voltage_ref() = transceiver.get_sensor()->get_vcc().get_value();
+
+        std::vector<double> current;
+        std::vector<double> txPower;
+        std::vector<double> rxPower;
+        for (const auto& channel : transceiver.get_channels()) {
+          current.push_back(channel.get_sensors().get_txBias().get_value());
+          txPower.push_back(channel.get_sensors().get_txPwrdBm()->get_value());
+          rxPower.push_back(channel.get_sensors().get_rxPwrdBm()->get_value());
+        }
+        details.currentMA_ref() = current;
+        details.txPower_ref() = txPower;
+        details.rxPower_ref() = rxPower;
       }
       model.transceivers_ref()->emplace(portId, std::move(details));
     }
