@@ -52,6 +52,13 @@ constexpr int kOlympicAllSPDefaultQueueId = kOlympicAllSPSilverQueueId;
 constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
 constexpr int kOlympicAllSPHighestQueueId = kOlympicAllSPNCQueueId;
 
+/* Queue config params */
+constexpr int kQueueConfigBurstSizeMinKb = 1;
+constexpr int kQueueConfigBurstSizeMaxKb = 224;
+constexpr int kQueueConfigAqmsEcnThresholdMinMax = 120000;
+constexpr int kQueueConfigAqmsWredThresholdMinMax = 660000;
+constexpr int kQueueConfigAqmsWredDropProbability = 100;
+
 /* network AI Qos queues*/
 constexpr int kNetworkAIMonitoringQueueId = 0;
 constexpr int kNetworkAIRdmaQueueId = 6;

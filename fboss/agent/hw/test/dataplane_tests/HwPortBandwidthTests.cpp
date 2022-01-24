@@ -208,6 +208,8 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
       const std::string& testType,
       uint8_t dscpVal,
       GetQueueOutCntT getQueueOutCntFunc);
+
+  void verifyQueueShaper();
 };
 
 template <typename GetQueueOutCntT>
@@ -281,6 +283,49 @@ void HwPortBandwidthTest::verifyRateDynamicChanges(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+void HwPortBandwidthTest::verifyQueueShaper() {
+  constexpr auto kMhnicPerHostBandwidthKbps{
+      static_cast<uint64_t>(cfg::PortSpeed::TWENTYFIVEG) * 1000};
+
+  auto setup = [=]() {
+    auto newCfg{initialConfig()};
+    utility::addQueueShaperConfig(
+        &newCfg, kQueueId0(), 0, kMhnicPerHostBandwidthKbps);
+    utility::addQueueBurstSizeConfig(
+        &newCfg,
+        kQueueId0(),
+        utility::kQueueConfigBurstSizeMinKb,
+        utility::kQueueConfigBurstSizeMaxKb);
+    utility::addQueueWredConfig(
+        &newCfg,
+        kQueueId0(),
+        utility::kQueueConfigAqmsWredThresholdMinMax,
+        utility::kQueueConfigAqmsWredThresholdMinMax,
+        utility::kQueueConfigAqmsWredDropProbability);
+    utility::addQueueEcnConfig(
+        &newCfg,
+        kQueueId0(),
+        utility::kQueueConfigAqmsEcnThresholdMinMax,
+        utility::kQueueConfigAqmsEcnThresholdMinMax);
+    applyNewConfig(newCfg);
+    setupHelper();
+  };
+
+  auto verify = [=]() {
+    constexpr auto kPayloadLength{1200};
+    constexpr auto kWaitTimeForSpecificRate{30};
+    auto pktsToSend =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    sendUdpPkts(kQueueId0Dscp(), pktsToSend, kPayloadLength);
+    EXPECT_NO_THROW(getHwSwitchEnsemble()->waitForSpecificRateOnPort(
+        masterLogicalPortIds()[0],
+        kMhnicPerHostBandwidthKbps * 1000, // BW in bps
+        kWaitTimeForSpecificRate));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwPortBandwidthTest, VerifyPps) {
   if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
     return;
@@ -329,4 +374,11 @@ TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
   verifyRateDynamicChanges("kbps", kQueueId1Dscp(), getKbits);
 }
 
+TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+
+  verifyQueueShaper();
+}
 } // namespace facebook::fboss
