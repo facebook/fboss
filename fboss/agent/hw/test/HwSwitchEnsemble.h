@@ -190,6 +190,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    */
   virtual void gracefulExit();
   void waitForLineRateOnPort(PortID port);
+  void waitForSpecificRateOnPort(
+      PortID port,
+      const uint64_t desiredBps,
+      int secondsToWaitPerIteration = 1);
   void ensureThrift();
 
   virtual void runDiagCommand(
@@ -238,6 +242,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void addOrUpdateCounter(const PortID& port, const bool deadlock);
   void clearPfcWatchdogCounter(const PortID& port, const bool deadlock);
   int readPfcWatchdogCounter(const PortID& port, const bool deadlock);
+  bool waitForRateOnPort(
+      PortID port,
+      uint64_t desiredBps,
+      int secondsToWaitPerIteration = 1);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;

@@ -409,10 +409,30 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->gracefulExit(switchState);
 }
 
-void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
-  auto portSpeedBps =
+/*
+ * Wait for traffic on port to reach specified rate. If the
+ * specified rate is reached, return true, else false.
+ */
+bool HwSwitchEnsemble::waitForRateOnPort(
+    PortID port,
+    const uint64_t desiredBps,
+    int secondsToWaitPerIteration) {
+  // Need to wait for atleast one second
+  if (secondsToWaitPerIteration < 1) {
+    secondsToWaitPerIteration = 1;
+    XLOG(WARNING) << "Setting wait time to 1 second for tests!";
+  }
+
+  const auto portSpeedBps =
       static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
       1000 * 1000;
+  if (desiredBps > portSpeedBps) {
+    // Cannot achieve higher than line rate
+    XLOG(ERR) << "Desired rate " << desiredBps << " bps is > port rate "
+              << portSpeedBps << " bps!!";
+    return false;
+  }
+
   auto retries = 5;
   while (retries--) {
     const auto prevPortStats = getLatestPortStats(port);
@@ -421,21 +441,52 @@ void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
         (*prevPortStats.outUnicastPkts__ref() +
          *prevPortStats.outMulticastPkts__ref() +
          *prevPortStats.outBroadcastPkts__ref());
-    sleep(1);
+
+    sleep(secondsToWaitPerIteration);
     const auto curPortStats = getLatestPortStats(port);
     auto curPortPackets =
         (*curPortStats.outUnicastPkts__ref() +
          *curPortStats.outMulticastPkts__ref() +
          *curPortStats.outBroadcastPkts__ref());
+
     // 20 bytes are consumed by ethernet preamble, start of frame and
     // interpacket gap. Account for that in linerate.
     auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
     auto curPortBytes = *curPortStats.outBytes__ref() + packetPaddingBytes;
-    if (((curPortBytes - prevPortBytes) * 8) >= portSpeedBps) {
-      return;
+    auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
+        secondsToWaitPerIteration;
+    if (rate >= desiredBps) {
+      XLOG(DBG0) << ": Current rate " << rate << " bps!";
+      return true;
+    } else {
+      XLOG(WARNING) << ": Current rate " << rate << " bps < expected rate "
+                    << desiredBps << " bps";
     }
   }
+  return false;
+}
+
+void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
+  const auto portSpeedBps =
+      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      1000 * 1000;
+  if (waitForRateOnPort(port, portSpeedBps)) {
+    // Traffic on port reached line rate!
+    return;
+  }
   throw FbossError("Line rate was never reached");
+}
+
+void HwSwitchEnsemble::waitForSpecificRateOnPort(
+    PortID port,
+    const uint64_t desiredBps,
+    int secondsToWaitPerIteration) {
+  if (waitForRateOnPort(port, desiredBps, secondsToWaitPerIteration)) {
+    // Traffic on port reached desired rate!
+    return;
+  }
+
+  throw FbossError("Desired rate ", desiredBps, " bps was never reached");
 }
 
 HwSwitchEnsemble::Features HwSwitchEnsemble::getAllFeatures() {
