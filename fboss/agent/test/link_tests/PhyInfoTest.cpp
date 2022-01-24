@@ -26,21 +26,37 @@ void validatePhyInfo(
   EXPECT_EQ(*curr.phyChip_ref()->type_ref(), chipType);
   EXPECT_EQ(*prev.phyChip_ref()->type_ref(), chipType);
   if (chipType == phy::DataPlanePhyChipType::IPHY) {
-    EXPECT_EQ(curr.linkState_ref().value_or({}), true);
-    EXPECT_EQ(prev.linkState_ref().value_or({}), true);
+    // both current and previous linkState should be true for iphy
+    if (auto linkState = prev.linkState_ref()) {
+      EXPECT_TRUE(*linkState);
+    } else {
+      throw FbossError("linkState of previous iphy info is not set");
+    }
+    if (auto linkState = curr.linkState_ref()) {
+      EXPECT_TRUE(*linkState);
+    } else {
+      throw FbossError("linkState of current iphy info is not set");
+    }
   }
-  // Assert that fec uncorrectable error count didn't increase
-  auto prevRsFecInfo =
-      prev.line_ref()->pcs_ref().value_or({}).rsFec_ref().value_or({});
-  auto currRsFecInfo =
-      curr.line_ref()->pcs_ref().value_or({}).rsFec_ref().value_or({});
-  // Expect 0 Uncorrected codewords and >=0 corrected codewords count
-  EXPECT_TRUE(
-      *prevRsFecInfo.uncorrectedCodewords_ref() ==
-      *currRsFecInfo.uncorrectedCodewords_ref());
-  EXPECT_TRUE(
-      *prevRsFecInfo.correctedCodewords_ref() <=
-      *currRsFecInfo.correctedCodewords_ref());
+
+  if (auto prevPcsInfo = prev.line_ref()->pcs_ref()) {
+    // If previous has pcs info, current should also have such info
+    EXPECT_TRUE(curr.line_ref()->pcs_ref());
+    if (auto prevRsFecInfo = prevPcsInfo->rsFec_ref()) {
+      EXPECT_TRUE(curr.line_ref()->pcs_ref()->rsFec_ref());
+      auto currRsFecInfo =
+          apache::thrift::can_throw(curr.line_ref()->pcs_ref()->rsFec_ref());
+      // Assert that fec uncorrectable error count didn't increase
+      EXPECT_EQ(
+          *prevRsFecInfo->uncorrectedCodewords_ref(),
+          *currRsFecInfo->uncorrectedCodewords_ref());
+
+      // Assert that fec correctable error count is the same or increased
+      EXPECT_LE(
+          *prevRsFecInfo->correctedCodewords_ref(),
+          *currRsFecInfo->correctedCodewords_ref());
+    }
+  }
 }
 
 // This function supports both using qsfp_service thrift api and
@@ -210,6 +226,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
 
   // Validate PhyInfo
   for (const auto& port : cabledPorts) {
+    XLOG(INFO) << "Verifying port:" << port;
     validatePhyInfo(
         phyInfoBefore[port],
         phyInfoAfter[port],
