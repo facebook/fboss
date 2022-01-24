@@ -85,6 +85,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400CPlatformMapping) {
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER,
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER,
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
       cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER,
