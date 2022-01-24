@@ -50,7 +50,13 @@ TEST_F(HwTest, i2cStressRead) {
       // transceiversInfo
       EXPECT_TRUE(currentResponse.find(tcvrId) != currentResponse.end());
       auto curr = currentResponse[tcvrId];
-      EXPECT_TRUE(*curr.valid_ref());
+      EXPECT_TRUE(*curr.valid_ref())
+          << "Invalid response on transceiver " << tcvrId;
+      if (!curr.get_valid()) {
+        // Don't access data if it's not valid.
+        continue;
+      }
+
       TransceiverModuleIdentifier identifier =
           static_cast<TransceiverModuleIdentifier>(*(curr.data_ref()->data()));
       EXPECT_EQ(
@@ -58,7 +64,9 @@ TEST_F(HwTest, i2cStressRead) {
       EXPECT_TRUE(identifier != TransceiverModuleIdentifier::UNKNOWN);
       if (iteration != 1) {
         auto prev = previousResponse[tcvrId];
-        EXPECT_EQ(*(prev.data_ref()->data()), *(curr.data_ref()->data()));
+        if (prev.get_valid()) {
+          EXPECT_EQ(*(prev.data_ref()->data()), *(curr.data_ref()->data()));
+        }
       }
     }
     previousResponse = currentResponse;
