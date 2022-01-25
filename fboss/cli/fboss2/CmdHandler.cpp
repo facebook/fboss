@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
@@ -111,6 +112,8 @@ template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 template void
 CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
+template void
+CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 
 static bool hasRun = false;
 
