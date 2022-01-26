@@ -28,11 +28,13 @@ add_library(python_repl
   fboss/agent/hw/sai/diag/oss/PythonRepl.cpp
 )
 
+target_include_directories(python_repl PRIVATE Python3::Python)
+
 target_link_libraries(python_repl
   error
   Folly::folly
-  ${PYTHON_3_7_6}
-  # ${PYTHON_3_7_6} requires forkpty and openpty provided by libutil.
+  Python3::Python
+  # Python3::Python requires forkpty and openpty provided by libutil.
   # It is reasonable to assume that /lib64/libutil.so is present and link with
   # it. In future, if needed, we could consider adding a manifest for it.
   util
