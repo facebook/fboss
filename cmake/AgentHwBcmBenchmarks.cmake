@@ -224,6 +224,7 @@ target_link_libraries(bcm_tx_slow_path_rate
   -Wl,--whole-archive
   bcm_switch_ensemble
   hw_tx_slow_path_rate
+  resourcelibutil
   -Wl,--no-whole-archive
 )
 

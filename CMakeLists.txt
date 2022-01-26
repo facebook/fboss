@@ -884,6 +884,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/qsfp_util_main.cpp
+      fboss/util/QsfpUtilTx.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
       fboss/lib/firmware_storage/FbossFirmware.cpp
       fboss/lib/firmware_storage/FbossFirmware.h

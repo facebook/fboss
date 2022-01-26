@@ -275,8 +275,11 @@ void QsfpUtilTx::setChannelDisable(
 
   if (FLAGS_channel >= 1 && FLAGS_channel <= maxChannels) {
     // Disable/enable a particular channel in module
-    data = disableTx_ ? data |= (1 << (FLAGS_channel - 1))
-                      : data &= ~(1 << (FLAGS_channel - 1));
+    if (disableTx_) {
+      data |= (1 << (FLAGS_channel - 1));
+    } else {
+      data &= ~(1 << (FLAGS_channel - 1));
+    }
   } else {
     // Disable/enable all channels
     data = disableTx_ ? channelMask : 0x0;
