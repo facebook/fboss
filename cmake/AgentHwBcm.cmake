@@ -118,6 +118,11 @@ set_target_properties(bcm PROPERTIES COMPILE_FLAGS
   "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
 )
 
+include_directories(
+    ${LIBGMOCK_INCLUDE_DIR}
+    ${GTEST_INCLUDE_DIRS}
+)
+
 add_library(config
   fboss/agent/hw/bcm/BcmConfig.cpp
   fboss/agent/hw/bcm/BcmYamlConfig.cpp

@@ -397,7 +397,7 @@ find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
 
 find_library(NETLINK3 nl-3)
-find_library(NETLINKROUTE3 libnl-route-3.a nl-route-3)
+find_library(NETLINKROUTE3 nl-route-3 libnl-route-3.a nl-route-3)
 
 find_library(CURL curl)
 find_path(CURL_INCLUDE_DIR NAMES curl/curl.h)
@@ -957,6 +957,7 @@ if (NOT SAI_ONLY)
   target_include_directories(agent_test
     PUBLIC
       ${LIBGMOCK_INCLUDE_DIR}
+      ${GTEST_INCLUDE_DIRS}
   )
 
   target_link_libraries(agent_test

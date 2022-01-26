@@ -74,6 +74,7 @@ target_compile_definitions(bcm_test
 target_include_directories(bcm_test
   PUBLIC
     ${LIBGMOCK_INCLUDE_DIR}
+    ${GTEST_INCLUDE_DIRS}
 )
 
 target_link_libraries(bcm_test
