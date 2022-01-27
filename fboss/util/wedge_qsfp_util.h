@@ -211,6 +211,8 @@ void doCdbCommand(TransceiverI2CApi* bus, unsigned int module);
 
 bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port);
 
+bool getEepromCsumStatus(const DOMDataUnion& domDataUnion);
+
 std::pair<std::unique_ptr<facebook::fboss::TransceiverI2CApi>, int>
 getTransceiverAPI();
 

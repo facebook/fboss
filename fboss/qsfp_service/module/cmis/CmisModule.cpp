@@ -2181,7 +2181,7 @@ bool CmisModule::verifyEepromChecksums() {
 }
 
 /*
- * verifyEepromChecksums
+ * verifyEepromChecksum
  *
  * This function verifies the module's eeprom register checksum for a given
  * page. The checksum is 8 bit sum of all the 8 bit values in range of

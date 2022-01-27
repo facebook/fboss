@@ -1562,6 +1562,11 @@ void printSffDetailService(
   if (auto cable = transceiverInfo.cable_ref()) {
     printCableInfo(*cable);
   }
+  if (transceiverInfo.eepromCsumValid_ref().has_value()) {
+    printf(
+        "  EEPROM Checksum: %s\n",
+        *transceiverInfo.eepromCsumValid_ref() ? "Valid" : "Invalid");
+  }
   printf("  Module Control:\n");
   printf(
       "    Rate Select: %s\n",
@@ -1596,6 +1601,9 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  ID: %#04x\n", lowerBuf[0]);
   printf("  Status: 0x%02x 0x%02x\n", lowerBuf[1], lowerBuf[2]);
   printf("  Module State: 0x%02x\n", lowerBuf[3]);
+  printf(
+      "  EEPROM Checksum: %s\n",
+      getEepromCsumStatus(domDataUnion) ? "Valid" : "Invalid");
 
   printf("  Interrupt Flags:\n");
   printf("    LOS: 0x%02x\n", lowerBuf[3]);
@@ -1852,6 +1860,11 @@ void printCmisDetailService(
   if (verbose) {
     printVerboseInfo(transceiverInfo);
   }
+  if (transceiverInfo.eepromCsumValid_ref().has_value()) {
+    printf(
+        "  EEPROM Checksum: %s\n",
+        *transceiverInfo.eepromCsumValid_ref() ? "Valid" : "Invalid");
+  }
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
@@ -1913,6 +1926,9 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Vendor Rev: %s\n", vendorRev.str().c_str());
   printf("  Vendor SN: %s\n", vendorSN.str().c_str());
   printf("  Date Code: %s\n", vendorDate.str().c_str());
+  printf(
+      "  EEPROM Checksum: %s\n",
+      getEepromCsumStatus(domDataUnion) ? "Valid" : "Invalid");
 
   auto temp = static_cast<int8_t>(lowerBuf[14]) + (lowerBuf[15] / 256.0);
   printf("  Temperature: %f C\n", temp);
@@ -2950,6 +2966,99 @@ bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
   findAndPrintVdmInfo(page21Buf, page25Buf);
 
   return true;
+}
+
+/*
+ * getEepromCsumStatus
+ *
+ * Print the EEPROM register checksum status. The checksum validation is
+ * done over page data obtained in DomDataUnion
+ */
+bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
+  uint8_t computedCsum, recordedCsum;
+  bool checkSumGood = true;
+
+  auto get8BitCsum = [](const IOBuf& buf, int start, int len) -> uint8_t {
+    if (start + len > buf.length()) {
+      throw FbossError("Wrong eeprom range specified for checksum");
+    }
+    auto data = buf.data() + start;
+    uint8_t sum = 0;
+    for (int i = 0; i < len; i++) {
+      sum += data[i];
+    }
+    return sum;
+  };
+
+  if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
+    Sff8636Data sffData = domDataUnion.get_sff8636();
+    auto page0IOBuf = sffData.page0_ref().value();
+    auto page0Buf = page0IOBuf.data();
+
+    // Page0: csum(Reg_128..190) => Reg_191)
+    computedCsum = get8BitCsum(page0IOBuf, 0, 63);
+    recordedCsum = page0Buf[63];
+    if (FLAGS_verbose) {
+      printf(
+          "    Page0 checksum = %s\n",
+          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+    }
+    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+
+    // Page0: csum(Reg_192..222) => Reg_223)
+    computedCsum = get8BitCsum(page0IOBuf, 64, 31);
+    recordedCsum = page0Buf[95];
+    if (FLAGS_verbose) {
+      printf(
+          "    Page0Ext checksum = %s\n",
+          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+    }
+    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+
+  } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
+    CmisData cmisData = domDataUnion.get_cmis();
+    auto page0IOBuf = cmisData.page0_ref().value();
+    auto page0Buf = page0IOBuf.data();
+    auto page01IOBuf = can_throw(cmisData.page01_ref()).value();
+    auto page01Buf = page01IOBuf.data();
+    auto page02IOBuf = can_throw(cmisData.page02_ref()).value();
+    auto page02Buf = page02IOBuf.data();
+
+    // Page0: csum(Reg_128..221) => Reg_222)
+    computedCsum = get8BitCsum(page0IOBuf, 0, 94);
+    recordedCsum = page0Buf[94];
+    if (FLAGS_verbose) {
+      printf(
+          "    Page0 checksum = %s\n",
+          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+    }
+    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+
+    // Page1: csum(Reg_130..254) => Reg_255)
+    computedCsum = get8BitCsum(page01IOBuf, 2, 125);
+    recordedCsum = page01Buf[127];
+    if (FLAGS_verbose) {
+      printf(
+          "    Page1 checksum = %s\n",
+          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+    }
+    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+
+    // Page2: csum(Reg_128..254) => Reg_255)
+    computedCsum = get8BitCsum(page02IOBuf, 0, 127);
+    recordedCsum = page02Buf[127];
+    if (FLAGS_verbose) {
+      printf(
+          "    Page2 checksum = %s\n",
+          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+    }
+    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+  } else {
+    fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
+    return false;
+  }
+
+  return checkSumGood;
 }
 
 } // namespace facebook::fboss
