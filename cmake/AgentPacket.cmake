@@ -18,6 +18,7 @@ add_library(packet
   fboss/agent/packet/PktUtil.cpp
   fboss/agent/packet/TCPHeader.cpp
   fboss/agent/packet/UDPHeader.cpp
+  fboss/agent/packet/TCPHeader.cpp
 )
 
 target_link_libraries(packet

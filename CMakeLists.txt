@@ -648,6 +648,7 @@ if (NOT SAI_ONLY)
       fboss/agent/packet/PktUtil.cpp
       fboss/agent/packet/SflowStructs.cpp
       fboss/agent/packet/TCPHeader.cpp
+      fboss/agent/packet/PTPHeader.cpp
       fboss/agent/packet/UDPHeader.cpp
       fboss/agent/packet/MPLSHdr.cpp
       fboss/agent/Platform.cpp
