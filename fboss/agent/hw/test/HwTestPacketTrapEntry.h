@@ -22,6 +22,8 @@ class HwTestPacketTrapEntry {
       : HwTestPacketTrapEntry(
             hwSwitch,
             std::set<folly::CIDRNetwork>({dstPrefix})) {}
+
+  HwTestPacketTrapEntry(HwSwitch* hwSwitch, const uint16_t l4DstPort);
   ~HwTestPacketTrapEntry();
 
  private:

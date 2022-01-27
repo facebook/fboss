@@ -38,6 +38,31 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     HwSwitch* hwSwitch,
+    const uint16_t l4DstPort)
+    : hwSwitch_(hwSwitch) {
+  auto unit = static_cast<facebook::fboss::BcmSwitch*>(hwSwitch_)->getUnit();
+  const bcm_field_group_t gid =
+      static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+          ->getPlatform()
+          ->getAsic()
+          ->getDefaultACLGroupID();
+  int priority = 1;
+  int entry;
+  auto rv = bcm_field_entry_create(unit, gid, &entry) ||
+      bcm_field_qualify_L4DstPort(unit, entry, l4DstPort, 0xffff) ||
+      bcm_field_action_add(unit, entry, bcmFieldActionCopyToCpu, 0, 0) ||
+      bcm_field_entry_prio_set(
+                unit, entry, utility::swPriorityToHwPriority(priority++)) ||
+      bcm_field_entry_install(unit, entry);
+  bcmCheckError(rv, "HwTestPacketTrapEntry creation failed");
+  entries_.push_back(entry);
+
+  XLOG(DBG2) << "Installed the copy to CPU acl in group " << (int)gid
+             << "for l4DstPort: " << l4DstPort;
+}
+
+HwTestPacketTrapEntry::HwTestPacketTrapEntry(
+    HwSwitch* hwSwitch,
     const std::set<folly::CIDRNetwork>& dstPrefixes)
     : hwSwitch_(hwSwitch) {
   auto unit = static_cast<facebook::fboss::BcmSwitch*>(hwSwitch_)->getUnit();

@@ -34,6 +34,30 @@ namespace facebook::fboss {
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     HwSwitch* hwSwitch,
+    const uint16_t l4DstPort)
+    : hwSwitch_(hwSwitch) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  int priority =
+      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
+
+  auto aclEntry = std::make_shared<AclEntry>(
+      priority, "AclEntry" + folly::to<std::string>(priority));
+  aclEntry->setL4DstPort(l4DstPort);
+  aclEntry->setActionType(cfg::AclActionType::PERMIT);
+  MatchAction matchAction;
+  cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
+  queueAction.queueId_ref() = 0;
+  matchAction.setSendToQueue(std::make_pair(queueAction, true));
+  matchAction.setToCpuAction(cfg::ToCpuAction::COPY);
+  aclEntry->setAclAction(matchAction);
+
+  saiSwitch->managerTable()->aclTableManager().addAclEntry(
+      aclEntry, kAclTable1);
+  aclEntries_.push_back(aclEntry);
+}
+
+HwTestPacketTrapEntry::HwTestPacketTrapEntry(
+    HwSwitch* hwSwitch,
     const std::set<PortID>& ports)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
