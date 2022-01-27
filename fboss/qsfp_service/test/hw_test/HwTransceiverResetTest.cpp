@@ -17,60 +17,17 @@
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverTest.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 constexpr static auto kMaxRefreshesForReadyState = 5;
 
 namespace facebook::fboss {
 
-class HwTransceiverTest : public HwTest {
+class HwTransceiverResetTest : public HwTransceiverTest {
  public:
-  void SetUp() override {
-    HwTest::SetUp();
-
-    auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
-    auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-    // Without new-port-programming enabled, we need to explicitly call
-    // syncPorts to trigger TransceiverManager to program transceivers to the
-    // correct mode
-    if (FLAGS_use_new_state_machine) {
-      // Mark port down to allow tcvr removal later when issuing hard reset
-      wedgeManager->setOverrideAgentPortStatusForTesting(
-          false /* up */, true /* enabled */);
-      wedgeManager->refreshStateMachines();
-      wedgeManager->setOverrideAgentPortStatusForTesting(
-          false /* up */, true /* enabled */, true /* clearOnly */);
-    } else {
-      auto portMap = std::make_unique<WedgeManager::PortMap>();
-      auto& swConfig = *agentConfig->thrift.sw_ref();
-      for (auto& port : *swConfig.ports_ref()) {
-        if (*port.state_ref() != cfg::PortState::ENABLED) {
-          continue;
-        }
-        auto portId = *port.logicalID_ref();
-        portMap->emplace(
-            portId,
-            utility::getPortStatus(PortID(portId), getHwQsfpEnsemble()));
-      }
-      std::map<int32_t, TransceiverInfo> transceivers;
-      wedgeManager->syncPorts(transceivers, std::move(portMap));
-    }
-
-    expectedTcvrs_ =
-        utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());
-    auto transceiverIds = refreshTransceiversWithRetry();
-    EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedTcvrs_));
-  }
-
-  const std::vector<TransceiverID>& getExpectedTransceivers() const {
-    return expectedTcvrs_;
-  }
-
-  std::unique_ptr<std::vector<int32_t>> getExpectedLegacyTransceiverIds()
-      const {
-    return std::make_unique<std::vector<int32_t>>(
-        utility::legacyTransceiverIds(expectedTcvrs_));
-  }
+  // Mark port down to allow tcvr removal later when issuing hard reset
+  HwTransceiverResetTest() : HwTransceiverTest(false) {}
 
   void resetAllTransceiversAndWaitForStable(
       const std::map<int32_t, TransceiverInfo>& transceivers) {
@@ -92,12 +49,9 @@ class HwTransceiverTest : public HwTest {
       refreshTransceiversWithRetry();
     }
   }
-
- private:
-  std::vector<TransceiverID> expectedTcvrs_;
 };
 
-TEST_F(HwTransceiverTest, resetTranscieverAndDetectPresence) {
+TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
@@ -157,7 +111,7 @@ TEST_F(HwTransceiverTest, resetTranscieverAndDetectPresence) {
   }
 }
 
-TEST_F(HwTransceiverTest, resetTranscieverAndDetectStateChanged) {
+TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   std::map<int32_t, TransceiverInfo> transceivers;
   std::map<int32_t, ModuleStatus> moduleStatuses;
 

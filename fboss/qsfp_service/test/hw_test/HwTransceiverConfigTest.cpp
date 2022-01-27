@@ -7,44 +7,24 @@
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverTest.h"
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, moduleConfigVerificationTest) {
-  auto portMap = std::make_unique<WedgeManager::PortMap>();
-  auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
-  auto qsfpConfig = getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig();
-  auto& swConfig = *agentConfig->thrift.sw_ref();
+class HwTransceiverConfigTest : public HwTransceiverTest {
+ public:
+  // Mark the port up to trigger module configuration
+  HwTransceiverConfigTest() : HwTransceiverTest(true) {}
+};
 
-  // Build port status' for syncPorts
-  for (auto& port : *swConfig.ports_ref()) {
-    if (*port.state_ref() != cfg::PortState::ENABLED) {
-      continue;
-    }
-    auto portId = *port.logicalID_ref();
-    auto portStatus =
-        utility::getPortStatus(PortID(portId), getHwQsfpEnsemble());
-    // Mark the port up to trigger module configuration
-    portStatus.up_ref() = true;
-    portMap->emplace(portId, portStatus);
-  }
+TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  std::map<int32_t, TransceiverInfo> transceivers;
-  wedgeManager->syncPorts(transceivers, std::move(portMap));
-
+  auto qsfpConfig = wedgeManager->getQsfpConfig();
   // After syncPorts, the module should have the expected configuration settings
   // programmed.
-  // Do a refresh and get the latest configured settings
-  refreshTransceiversWithRetry();
-  auto transceiverIds = std::make_unique<std::vector<int32_t>>();
-  std::for_each(
-      transceivers.begin(),
-      transceivers.end(),
-      [&transceiverIds](const auto& idAndInfo) {
-        transceiverIds->push_back(idAndInfo.first);
-      });
-  transceivers.clear();
-  wedgeManager->getTransceiversInfo(transceivers, std::move(transceiverIds));
+  std::map<int32_t, TransceiverInfo> transceivers;
+  wedgeManager->getTransceiversInfo(
+      transceivers, getExpectedLegacyTransceiverIds());
 
   // Validate settings in QSFP config
   for (const auto& tcvr : transceivers) {
