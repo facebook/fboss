@@ -3017,12 +3017,11 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
 
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
     CmisData cmisData = domDataUnion.get_cmis();
+    auto lowerPageBuf = cmisData.lower_ref()->data();
+    bool flatMem = ((lowerPageBuf[2] & 0x80) != 0);
+
     auto page0IOBuf = cmisData.page0_ref().value();
     auto page0Buf = page0IOBuf.data();
-    auto page01IOBuf = can_throw(cmisData.page01_ref()).value();
-    auto page01Buf = page01IOBuf.data();
-    auto page02IOBuf = can_throw(cmisData.page02_ref()).value();
-    auto page02Buf = page02IOBuf.data();
 
     // Page0: csum(Reg_128..221) => Reg_222)
     computedCsum = get8BitCsum(page0IOBuf, 0, 94);
@@ -3034,25 +3033,32 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
     }
     checkSumGood = checkSumGood && (computedCsum == recordedCsum);
 
-    // Page1: csum(Reg_130..254) => Reg_255)
-    computedCsum = get8BitCsum(page01IOBuf, 2, 125);
-    recordedCsum = page01Buf[127];
-    if (FLAGS_verbose) {
-      printf(
-          "    Page1 checksum = %s\n",
-          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
-    }
-    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+    if (!flatMem) {
+      auto page01IOBuf = can_throw(cmisData.page01_ref()).value();
+      auto page01Buf = page01IOBuf.data();
+      auto page02IOBuf = can_throw(cmisData.page02_ref()).value();
+      auto page02Buf = page02IOBuf.data();
 
-    // Page2: csum(Reg_128..254) => Reg_255)
-    computedCsum = get8BitCsum(page02IOBuf, 0, 127);
-    recordedCsum = page02Buf[127];
-    if (FLAGS_verbose) {
-      printf(
-          "    Page2 checksum = %s\n",
-          (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+      // Page1: csum(Reg_130..254) => Reg_255)
+      computedCsum = get8BitCsum(page01IOBuf, 2, 125);
+      recordedCsum = page01Buf[127];
+      if (FLAGS_verbose) {
+        printf(
+            "    Page1 checksum = %s\n",
+            (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+      }
+      checkSumGood = checkSumGood && (computedCsum == recordedCsum);
+
+      // Page2: csum(Reg_128..254) => Reg_255)
+      computedCsum = get8BitCsum(page02IOBuf, 0, 127);
+      recordedCsum = page02Buf[127];
+      if (FLAGS_verbose) {
+        printf(
+            "    Page2 checksum = %s\n",
+            (computedCsum == recordedCsum) ? "Valid" : "Invalid");
+      }
+      checkSumGood = checkSumGood && (computedCsum == recordedCsum);
     }
-    checkSumGood = checkSumGood && (computedCsum == recordedCsum);
   } else {
     fprintf(stderr, "Unrecognizable DOMDataUnion format.\n");
     return false;
