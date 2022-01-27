@@ -402,6 +402,8 @@ class BcmPort {
   // provided in linkscan callback
   folly::Synchronized<std::optional<phy::LinkFaultStatus>> cachedFaultStatus{
       std::nullopt};
+
+  std::atomic<int> numLanes_{0};
 };
 
 } // namespace facebook::fboss

@@ -57,6 +57,29 @@ void validatePhyInfo(
           *currRsFecInfo->correctedCodewords_ref());
     }
   }
+
+  // PMD checks
+  auto checkPmd = [](phy::PmdInfo pmdInfo) {
+    for (const auto& lane : *pmdInfo.lanes_ref()) {
+      if (auto cdrLiveStatus = lane.second.cdrLockLive_ref()) {
+        EXPECT_TRUE(*cdrLiveStatus);
+      }
+      // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
+      // sdk >= 6.5.24
+    }
+  };
+
+  checkPmd(prev.line_ref()->get_pmd());
+  checkPmd(curr.line_ref()->get_pmd());
+  if (chipType == phy::DataPlanePhyChipType::XPHY) {
+    if (auto sysInfo = prev.system_ref()) {
+      checkPmd(sysInfo->get_pmd());
+      EXPECT_TRUE(curr.system_ref());
+      checkPmd(apache::thrift::can_throw(curr.system_ref())->get_pmd());
+    }
+    // TODO: Expect system side info always on XPHY when every XPHY supports
+    // publishing phy infos
+  }
 }
 
 // This function supports both using qsfp_service thrift api and
