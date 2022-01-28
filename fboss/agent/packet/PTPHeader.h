@@ -21,6 +21,7 @@ class Cursor;
 } // namespace folly
 
 constexpr int PTP_DELAY_REQUEST_MSG_SIZE = 44;
+constexpr int PTP_UDP_EVENT_PORT = 319;
 
 namespace facebook::fboss {
 

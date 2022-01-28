@@ -261,6 +261,9 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
     uint8_t hopLimit,
     PTPMessageType ptpPktType);
 
+bool isPtpEventPacket(folly::io::Cursor& cursor);
+uint8_t getIpHopLimit(folly::io::Cursor& cursor);
+
 struct RandomNumberGenerator {
   RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)
       : generator(seed), distibution(begin, end) {}

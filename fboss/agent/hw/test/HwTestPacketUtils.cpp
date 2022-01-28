@@ -296,7 +296,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
     uint8_t hopLimit,
     PTPMessageType ptpPktType) {
   int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
-  const int ptpUdpPort = 319;
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
   // IPv6Hdr
   IPv6Hdr ipHdr(srcIp, dstIp);
@@ -305,7 +304,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
   ipHdr.payloadLength = UDPHeader::size() + payloadSize;
   ipHdr.hopLimit = hopLimit;
   // UDPHeader
-  UDPHeader udpHdr(ptpUdpPort, ptpUdpPort, UDPHeader::size() + payloadSize);
+  UDPHeader udpHdr(
+      PTP_UDP_EVENT_PORT, PTP_UDP_EVENT_PORT, UDPHeader::size() + payloadSize);
 
   return makePTPUDPTxPacket(hw, ethHdr, ipHdr, udpHdr, ptpPktType);
 }
@@ -774,6 +774,47 @@ void sendTcpPkts(
         payload);
     hwSwitch->sendPacketOutOfPortSync(std::move(txPacket), outPort);
   }
+}
+
+// parse the packet to evaluate if this is PTP packet or not
+bool isPtpEventPacket(folly::io::Cursor& cursor) {
+  EthHdr ethHdr(cursor);
+  if (ethHdr.etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    IPv6Hdr ipHdr(cursor);
+    if (ipHdr.nextHeader != static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+      return false;
+    }
+  } else if (
+      ethHdr.etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    IPv4Hdr ipHdr(cursor);
+    if (ipHdr.protocol != static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+      return false;
+    }
+  } else {
+    // packet doesn't have ipv6/ipv4 header
+    return false;
+  }
+
+  UDPHeader udpHdr;
+  udpHdr.parse(&cursor, nullptr);
+  if ((udpHdr.srcPort != PTP_UDP_EVENT_PORT) &&
+      (udpHdr.dstPort != PTP_UDP_EVENT_PORT)) {
+    return false;
+  }
+  return true;
+}
+
+uint8_t getIpHopLimit(folly::io::Cursor& cursor) {
+  EthHdr ethHdr(cursor);
+  if (ethHdr.etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    IPv6Hdr ipHdr(cursor);
+    return ipHdr.hopLimit;
+  } else if (
+      ethHdr.etherType == static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    IPv4Hdr ipHdr(cursor);
+    return ipHdr.ttl;
+  }
+  throw FbossError("Not a valid IP packet : ", ethHdr.etherType);
 }
 
 } // namespace facebook::fboss::utility
