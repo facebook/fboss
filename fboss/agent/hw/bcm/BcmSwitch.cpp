@@ -330,7 +330,7 @@ cfg::PortSpeed BcmSwitch::getPortMaxSpeed(PortID port) const {
 }
 
 BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
-    : BcmSwitchIf(platform->getAsic()->getVendor(), featuresDesired),
+    : BcmSwitchIf(featuresDesired),
       platform_(platform),
       mmuBufferBytes_(platform->getMMUBufferBytes()),
       mmuCellBytes_(platform->getMMUCellBytes()),

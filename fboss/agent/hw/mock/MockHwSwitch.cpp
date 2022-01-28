@@ -21,8 +21,7 @@ using ::testing::Return;
 
 namespace facebook::fboss {
 
-MockHwSwitch::MockHwSwitch(MockPlatform* platform)
-    : HwSwitch("mock"), platform_(platform) {
+MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
   // We need to delete the memory allocated by the packet. Ideally, we
   // could pass a smart pointer to these functions, but gmock does not
   // support move-only types and if we pass in a shared_ptr we cannot

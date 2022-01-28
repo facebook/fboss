@@ -17,6 +17,7 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/ThreadLocal.h>
 #include <optional>
 
 #include <memory>
@@ -119,11 +120,11 @@ class HwSwitch {
   };
 
   explicit HwSwitch(
-      const std::string& asicVendor,
       uint32_t featuresDesired =
           (FeaturesDesired::PACKET_RX_DESIRED |
-           FeaturesDesired::LINKSCAN_DESIRED));
-  virtual ~HwSwitch();
+           FeaturesDesired::LINKSCAN_DESIRED))
+      : featuresDesired_(featuresDesired) {}
+  virtual ~HwSwitch() {}
 
   virtual Platform* getPlatform() const = 0;
 
@@ -237,7 +238,9 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  void gracefulExit(folly::dynamic& switchState);
+  void gracefulExit(folly::dynamic& switchState) {
+    gracefulExitImpl(switchState);
+  }
 
   /*
    * Get Hw Switch state in a folly::dynamic
@@ -346,7 +349,10 @@ class HwSwitch {
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;
   HwSwitch& operator=(HwSwitch const&) = delete;
-  std::unique_ptr<HwSwitchStats> hwSwitchStats_;
+  // mutable to allow for lazy init from getter. This is needed to
+  // create the var in the thread local storage (TLS) of the calling
+  // thread and cannot be created up front.
+  mutable folly::ThreadLocalPtr<HwSwitchStats> hwSwitchStats_;
 };
 
 } // namespace facebook::fboss

@@ -41,20 +41,13 @@ std::string HwSwitch::getDebugDump() const {
   return out;
 }
 
-HwSwitch::HwSwitch(const std::string& asicVendor, uint32_t featuresDesired)
-    : featuresDesired_(featuresDesired),
-      hwSwitchStats_(std::make_unique<HwSwitchStats>(
-          fb303::ThreadCachedServiceData::get()->getThreadStats(),
-          asicVendor)) {}
-HwSwitch::~HwSwitch() {}
-
 HwSwitchStats* HwSwitch::getSwitchStats() const {
+  if (!hwSwitchStats_) {
+    hwSwitchStats_.reset(new HwSwitchStats(
+        fb303::ThreadCachedServiceData::get()->getThreadStats(),
+        getPlatform()->getAsic()->getVendor()));
+  }
   return hwSwitchStats_.get();
-}
-
-void HwSwitch::gracefulExit(folly::dynamic& switchState) {
-  gracefulExitImpl(switchState);
-  hwSwitchStats_.reset();
 }
 
 void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
