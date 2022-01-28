@@ -23,6 +23,8 @@ struct PcapPktInfo {
   std::string data;
 };
 
-std::vector<PcapPktInfo> readPcapFile(const char* path);
+std::vector<PcapPktInfo> readPcapFile(
+    const char* path,
+    bool throw_exception = true);
 
 } // namespace facebook::fboss

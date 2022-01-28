@@ -153,4 +153,18 @@ void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
   }
 }
 
+// routine as used in tests to verify if the pkt capture buffer
+// limit has been reached
+int PktCaptureManager::getCaptureCount(StringPiece name) {
+  std::lock_guard<std::mutex> g(mutex_);
+  auto nameStr = name.str();
+  auto it = activeCaptures_.find(nameStr);
+  if (it == activeCaptures_.end()) {
+    // no capture for this name
+    return 0;
+  }
+
+  PktCapture* capture = it->second.get();
+  return capture->getCaptureCount();
+}
 } // namespace facebook::fboss

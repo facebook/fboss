@@ -17,7 +17,7 @@ using std::vector;
 
 namespace facebook::fboss {
 
-vector<PcapPktInfo> readPcapFile(const char* path) {
+vector<PcapPktInfo> readPcapFile(const char* path, bool throw_exception) {
   char errbuf[PCAP_ERRBUF_SIZE]{0};
   pcap_t* pcap = pcap_open_offline(path, errbuf);
   if (pcap == nullptr) {
@@ -41,6 +41,9 @@ vector<PcapPktInfo> readPcapFile(const char* path) {
       // EOF
       break;
     } else if (rc <= 0) {
+      if (!throw_exception) {
+        break;
+      }
       throw FbossError("error reading from pcap file");
     }
 

@@ -74,6 +74,7 @@ class PktCapture {
 
   bool packetReceived(const RxPacket* pkt);
   bool packetSent(const TxPacket* pkt);
+  int getCaptureCount();
 
   std::string toString(bool withStats = false) const;
 

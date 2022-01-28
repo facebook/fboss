@@ -216,6 +216,10 @@ TEST(CaptureTest, FullCapture) {
   // Re-send the original packet now that the ARP table is populated.
   sw->packetReceived(ipPkt.clone());
 
+  EXPECT_EQ(mgr->getCaptureCount("test"), 4);
+  EXPECT_EQ(mgr->getCaptureCount("rx"), 3);
+  EXPECT_EQ(mgr->getCaptureCount("tx"), 1);
+
   // Stop the packet captures
   mgr->stopCapture("test");
   mgr->stopCapture("rx");

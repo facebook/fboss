@@ -75,6 +75,7 @@ class PktCaptureManager {
   }
 
   static void checkCaptureName(folly::StringPiece name);
+  int getCaptureCount(folly::StringPiece name);
 
  private:
   // Forbidden copy constructor and assignment operator

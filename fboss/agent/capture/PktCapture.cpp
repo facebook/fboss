@@ -75,4 +75,9 @@ std::string PktCapture::toString(bool withStats) const {
   }
   return ss.str();
 }
+
+int PktCapture::getCaptureCount() {
+  std::lock_guard<std::mutex> guard(writer_.mutex());
+  return (numPacketsSent_ + numPacketsReceived_);
+}
 } // namespace facebook::fboss
