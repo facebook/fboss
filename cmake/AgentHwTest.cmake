@@ -37,6 +37,7 @@ target_link_libraries(hw_packet_utils
   hw_switch_ensemble
   packet_factory
   Folly::folly
+  resourcelibutil
 )
 
 add_library(hw_copp_utils
