@@ -52,6 +52,11 @@ HwSwitchStats* HwSwitch::getSwitchStats() const {
   return hwSwitchStats_.get();
 }
 
+void HwSwitch::gracefulExit(folly::dynamic& switchState) {
+  gracefulExitImpl(switchState);
+  hwSwitchStats_.reset();
+}
+
 void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
   if (runState_ != newState) {
     switchRunStateChangedImpl(newState);
