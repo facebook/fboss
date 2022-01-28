@@ -74,4 +74,11 @@ void PTPHeader::write(folly::io::RWPrivateCursor* cursor) const {
   }
 }
 
+int PTPHeader::getPayloadSize(PTPMessageType ptpPktType) {
+  if (ptpPktType == PTPMessageType::PTP_DELAY_REQUEST) {
+    return PTP_DELAY_REQUEST_MSG_SIZE;
+  }
+  throw FbossError("Invalid ptpPktType: ", static_cast<uint8_t>(ptpPktType));
+}
+
 } // namespace facebook::fboss

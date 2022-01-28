@@ -50,6 +50,7 @@ struct PTPHeader {
         ptpVersion_(ptpVersion),
         ptpCorrectionField_(ptpCorrectionField) {}
 
+  static int getPayloadSize(PTPMessageType ptpPktType);
   void write(folly::io::RWPrivateCursor* cursor) const;
 
   explicit PTPHeader(folly::io::Cursor* cursor);

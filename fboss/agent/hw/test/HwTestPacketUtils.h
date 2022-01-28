@@ -26,6 +26,7 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/NDP.h"
+#include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -248,6 +249,17 @@ void sendTcpPkts(
     PortID outPort,
     uint8_t trafficClass = 0,
     std::optional<std::vector<uint8_t>> payload = std::nullopt);
+
+std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    PTPMessageType ptpPktType);
 
 struct RandomNumberGenerator {
   RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)

@@ -247,6 +247,69 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
   return txPacket;
 }
 
+template <typename IPHDR>
+std::unique_ptr<facebook::fboss::TxPacket> makePTPUDPTxPacket(
+    const HwSwitch* hw,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const UDPHeader& udpHdr,
+    PTPMessageType ptpPktType) {
+  int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
+  auto txPacket = hw->allocatePacket(
+      EthHdr::SIZE + ipHdr.size() + udpHdr.size() + payloadSize);
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+
+  // write UDP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(udpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.dstPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.length);
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  folly::io::Cursor payloadStart(rwCursor);
+  // PTPHeader
+  PTPHeader ptpHeader(
+      static_cast<uint8_t>(ptpPktType),
+      static_cast<uint8_t>(PTPVersion::PTP_V2));
+  ptpHeader.write(&rwCursor);
+  uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    PTPMessageType ptpPktType) {
+  int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
+  const int ptpUdpPort = 319;
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = UDPHeader::size() + payloadSize;
+  ipHdr.hopLimit = hopLimit;
+  // UDPHeader
+  UDPHeader udpHdr(ptpUdpPort, ptpUdpPort, UDPHeader::size() + payloadSize);
+
+  return makePTPUDPTxPacket(hw, ethHdr, ipHdr, udpHdr, ptpPktType);
+}
+
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
     VlanID vlan,
