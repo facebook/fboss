@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
-#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 
@@ -72,30 +71,26 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     }
   }
 
-  int64_t getParityErrorCount() const {
+  int64_t getCorrectedParityErrorCount() const {
     // Aggregate TL stats. In HwTests we don't start a TL aggregation thread.
     fb303::ThreadCachedServiceData::get()->publishStats();
-    return fb303::fbData->getCounter(
+    // We may not have set the counter yet, so use IfExists API
+    auto counterVal = fb303::fbData->getCounterIfExists(
         getAsic()->getVendor() + ".parity.corr.sum.60");
-  }
-  void verifyParityError() {
-    auto stats = getHwSwitchEnsemble()->getHwSwitch()->getSwitchStats();
-    EXPECT_GT(getParityErrorCount(), 0);
+    return counterVal ? *counterVal : 0;
   }
 };
 
 TEST_F(HwParityErrorTest, verifyParityError) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
   auto verify = [=]() {
-    auto ensemble = getHwSwitchEnsemble();
-    auto stats = ensemble->getHwSwitch()->getSwitchStats();
-    EXPECT_EQ(stats->getCorrParityErrorCount(), 0);
+    EXPECT_EQ(getCorrectedParityErrorCount(), 0);
     generateParityError();
     auto retries = 3;
-    while (retries-- && getParityErrorCount() == 0) {
+    while (retries-- && getCorrectedParityErrorCount() == 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
-    verifyParityError();
+    EXPECT_GT(getCorrectedParityErrorCount(), 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
