@@ -201,7 +201,7 @@ PortSaiId SaiSwitch::getCPUPortSaiId() const {
 }
 
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
-    : HwSwitch(featuresDesired),
+    : HwSwitch(platform->getAsic()->getVendor(), featuresDesired),
       platform_(platform),
       saiStore_(std::make_unique<SaiStore>()) {
   utilCreateDir(platform_->getVolatileStateDir());

@@ -118,12 +118,12 @@ class HwSwitch {
     TAM_EVENT_NOTIFY_DESIRED = 0x04,
   };
 
-  HwSwitch(
+  explicit HwSwitch(
+      const std::string& asicVendor,
       uint32_t featuresDesired =
           (FeaturesDesired::PACKET_RX_DESIRED |
-           FeaturesDesired::LINKSCAN_DESIRED))
-      : featuresDesired_(featuresDesired) {}
-  virtual ~HwSwitch() {}
+           FeaturesDesired::LINKSCAN_DESIRED));
+  virtual ~HwSwitch();
 
   virtual Platform* getPlatform() const = 0;
 
@@ -344,6 +344,7 @@ class HwSwitch {
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;
   HwSwitch& operator=(HwSwitch const&) = delete;
+  std::unique_ptr<HwSwitchStats> hwSwitchStats_;
 };
 
 } // namespace facebook::fboss

@@ -26,7 +26,7 @@ using std::string;
 namespace facebook::fboss {
 
 SimSwitch::SimSwitch(SimPlatform* platform, uint32_t numPorts)
-    : platform_(platform), numPorts_(numPorts) {}
+    : HwSwitch("sim"), platform_(platform), numPorts_(numPorts) {}
 
 HwInitResult SimSwitch::init(
     HwSwitch::Callback* callback,
