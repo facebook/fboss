@@ -6,6 +6,9 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 
+#include <fb303/ServiceData.h>
+#include <fb303/ThreadCachedServiceData.h>
+
 namespace facebook::fboss {
 
 class HwParityErrorTest : public HwLinkStateDependentTest {
@@ -69,9 +72,15 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     }
   }
 
+  int64_t getParityErrorCount() const {
+    // Aggregate TL stats. In HwTests we don't start a TL aggregation thread.
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    return fb303::fbData->getCounter(
+        getAsic()->getVendor() + ".parity.corr.sum.60");
+  }
   void verifyParityError() {
     auto stats = getHwSwitchEnsemble()->getHwSwitch()->getSwitchStats();
-    EXPECT_GT(stats->getCorrParityErrorCount(), 0);
+    EXPECT_GT(getParityErrorCount(), 0);
   }
 };
 
@@ -83,10 +92,8 @@ TEST_F(HwParityErrorTest, verifyParityError) {
     EXPECT_EQ(stats->getCorrParityErrorCount(), 0);
     generateParityError();
     auto retries = 3;
-    stats = ensemble->getHwSwitch()->getSwitchStats();
-    while (retries-- && stats->getCorrParityErrorCount() == 0) {
+    while (retries-- && getParityErrorCount() == 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      stats = ensemble->getHwSwitch()->getSwitchStats();
     }
     verifyParityError();
   };
