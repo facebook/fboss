@@ -104,7 +104,7 @@ class CmdShowInterfaceStatus
         ifStatus.vlan_ref() = portInfo.get_vlans()[0];
         ifStatus.speed_ref() =
             std::to_string(portInfo.get_speedMbps() / 1000) + "G";
-        if (const auto& vendor = transceiver.vendor_ref()) {
+        if (transceiver.get_vendor()) {
           ifStatus.vendor_ref() = transceiver.get_vendor()->get_name();
           ifStatus.mpn_ref() = transceiver.get_vendor()->get_partNumber();
         } else {

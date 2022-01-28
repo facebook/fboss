@@ -81,6 +81,13 @@ add_fbthrift_cpp_library(
   DEPENDS
     hardware_stats_cpp2
 )
+
+add_fbthrift_cpp_library(
+  show_interface_status
+  fboss/cli/fboss2/commands/show/interface/status/model.thrift
+  OPTIONS
+    json
+)
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -103,6 +110,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
   fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
+  fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/Main.cpp
@@ -140,6 +148,7 @@ target_link_libraries(fboss2
   show_interface_counters
   show_interface_counters_mka
   show_interface_traffic
+  show_interface_status
   ${RE2}
 )
 
