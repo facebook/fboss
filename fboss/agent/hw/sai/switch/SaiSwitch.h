@@ -105,8 +105,6 @@ class SaiSwitch : public HwSwitch {
 
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
 
-  void gracefulExit(folly::dynamic& switchState) override;
-
   folly::dynamic toFollyDynamic() const override;
 
   void exitFatal() const override;
@@ -190,6 +188,8 @@ class SaiSwitch : public HwSwitch {
       folly::MacAddress mac) const override;
 
  private:
+  void gracefulExitImpl(folly::dynamic& switchState) override;
+
   template <typename LockPolicyT>
   std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta,

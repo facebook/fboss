@@ -959,7 +959,7 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   fetchL2TableLocked(lock, l2Table);
 }
 
-void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
+void SaiSwitch::gracefulExitImpl(folly::dynamic& switchState) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   gracefulExitLocked(switchState, lock);
 }

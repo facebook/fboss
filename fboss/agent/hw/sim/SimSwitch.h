@@ -39,7 +39,6 @@ class SimSwitch : public HwSwitch {
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
-  void gracefulExit(folly::dynamic& /*switchState*/) override {}
 
   folly::dynamic toFollyDynamic() const override;
 
@@ -123,6 +122,8 @@ class SimSwitch : public HwSwitch {
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO
   void updateStatsImpl(SwitchStats* /*switchStats*/) override {}
+
+  void gracefulExitImpl(folly::dynamic& /*switchState*/) override {}
 
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;

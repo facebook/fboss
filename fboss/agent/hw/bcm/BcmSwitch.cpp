@@ -369,7 +369,7 @@ BcmSwitch::~BcmSwitch() {
   resetTables();
   if (unitObject_) {
     // In agent this would be done in the signal handler
-    // gracefulExit().  In bcm_tests there is no signal.
+    // gracefulExitImpl().  In bcm_tests there is no signal.
     // So if unitObject_ is still valid, destroy it.
     unitObject_.reset();
   }
@@ -482,7 +482,7 @@ void BcmSwitch::unregisterCallbacks() {
   }
 }
 
-void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
+void BcmSwitch::gracefulExitImpl(folly::dynamic& switchState) {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(INFO) << "[Exit] Starting BCM Switch graceful exit";
   // Ideally, preparePortsForGracefulExit() would run in update EVB of the

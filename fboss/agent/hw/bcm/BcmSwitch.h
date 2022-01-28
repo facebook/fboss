@@ -363,17 +363,6 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::shared_ptr<SwitchState> stateChangedTransaction(
       const StateDelta& delta) override;
-  /*
-   * gracefulExit performs the requisite cleanup
-   * for doing a warm boot next time around if
-   * supported. Also signal our ability to do a
-   * warm boot by creating warm boot file.
-   *
-   * Requires getting the lock since we don't want
-   * state changes while we are calling cleanup
-   * shutdown apis in the BCM sdk.
-   */
-  void gracefulExit(folly::dynamic& switchState) override;
 
   /*
    * BcmSwitch state as folly::dynamic
@@ -598,6 +587,17 @@ class BcmSwitch : public BcmSwitchIf {
   BcmSwitch(BcmSwitch const&) = delete;
   BcmSwitch& operator=(BcmSwitch const&) = delete;
 
+  /*
+   * gracefulExit performs the requisite cleanup
+   * for doing a warm boot next time around if
+   * supported. Also signal our ability to do a
+   * warm boot by creating warm boot file.
+   *
+   * Requires getting the lock since we don't want
+   * state changes while we are calling cleanup
+   * shutdown apis in the BCM sdk.
+   */
+  void gracefulExitImpl(folly::dynamic& switchState) override;
   /*
    * Handle SwitchRunState changes
    */

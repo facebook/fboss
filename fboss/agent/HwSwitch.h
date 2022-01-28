@@ -237,7 +237,9 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  virtual void gracefulExit(folly::dynamic& switchState) = 0;
+  void gracefulExit(folly::dynamic& switchState) {
+    gracefulExitImpl(switchState);
+  }
 
   /*
    * Get Hw Switch state in a folly::dynamic
@@ -337,6 +339,8 @@ class HwSwitch {
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
 
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
+
+  virtual void gracefulExitImpl(folly::dynamic& switchState) = 0;
 
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
