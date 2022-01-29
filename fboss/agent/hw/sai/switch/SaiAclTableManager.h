@@ -186,6 +186,16 @@ class SaiAclTableManager {
     return table->aclTableMembers.size();
   }
 
+  bool hasAclEntryWithPriority(
+      const std::string& aclTableName,
+      const int priority) const {
+    auto* table = getAclTableHandle(aclTableName);
+    if (!table) {
+      throw FbossError("ACL table ", aclTableName, " not found.");
+    }
+    return (getAclEntryHandle(table, priority) != nullptr);
+  }
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

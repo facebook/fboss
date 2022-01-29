@@ -32,6 +32,32 @@ std::shared_ptr<AclEntry> getTrapAclEntry(
 } // namespace
 namespace facebook::fboss {
 
+int getNextFreePriority(SaiSwitch* saiSwitch, const std::string& aclTableName) {
+  int offset = 0;
+  auto priority = static_cast<int>(
+      saiSwitch->managerTable()->aclTableManager().aclEntryCount(aclTableName));
+  auto kMaxPriorityOffset = 100;
+  /*
+   * Find an unused priority which is > than the number of entries in the
+   * ACL table. We expect the entries to have consecutive priorities and we
+   * should be able to find an unused priority around the number of ACL
+   * entries. However, keeping a max offset we should declare failure at
+   * as kMaxPriorityOffset.
+   */
+  while (saiSwitch->managerTable()->aclTableManager().hasAclEntryWithPriority(
+             aclTableName, priority + offset) &&
+         offset < kMaxPriorityOffset) {
+    offset++;
+  }
+  if (offset == kMaxPriorityOffset) {
+    throw FbossError(
+        "No free priority in the vicinity of the number of ACL table entries: ",
+        priority,
+        ". Unexpected!");
+  }
+  return priority + offset;
+}
+
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     HwSwitch* hwSwitch,
     const uint16_t l4DstPort)
@@ -61,10 +87,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<PortID>& ports)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority =
-      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
+  int priority = getNextFreePriority(saiSwitch, kAclTable1);
   for (auto port : ports) {
-    auto aclEntry = getTrapAclEntry(true, port, std::nullopt, ++priority);
+    auto aclEntry = getTrapAclEntry(true, port, std::nullopt, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
         aclEntry, kAclTable1);
     aclEntries_.push_back(aclEntry);
@@ -76,10 +101,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<folly::CIDRNetwork>& dstPrefixes)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority =
-      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
+  int priority = getNextFreePriority(saiSwitch, kAclTable1);
   for (const auto& dstPrefix : dstPrefixes) {
-    auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, ++priority);
+    auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
         aclEntry, kAclTable1);
     aclEntries_.push_back(aclEntry);
