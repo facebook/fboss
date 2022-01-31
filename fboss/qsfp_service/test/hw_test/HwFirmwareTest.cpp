@@ -38,8 +38,8 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       throw FbossError("No xphys to check FW version on");
     case PlatformMode::ELBERT:
       desiredFw.version_ref() = 1;
-      desiredFw.versionStr_ref() = "1.91";
-      desiredFw.minorVersion_ref() = 91;
+      desiredFw.versionStr_ref() = "1.93";
+      desiredFw.minorVersion_ref() = 93;
       break;
     case PlatformMode::FUJI:
       desiredFw.version_ref() = 0xD008;
