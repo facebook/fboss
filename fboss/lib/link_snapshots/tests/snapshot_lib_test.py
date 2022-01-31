@@ -184,7 +184,9 @@ class SnapshotLibTest(TestCase):
             )
             self.assertTrue(type(time) is int)
 
-    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
+    @patch(
+        "nettools.nowa.building_blocks.all.ngt.link_check.common.ssh_util.simple_run"
+    )
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
     async def test_fetch_recent_snapshots(
         self, mock_get_rfe_client, mock_ssh_collection
@@ -239,7 +241,9 @@ class SnapshotLibTest(TestCase):
         )
         self.assertEqual(type(res), snapshot_lib.SnapshotCollection)
 
-    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
+    @patch(
+        "nettools.nowa.building_blocks.all.ngt.link_check.common.ssh_util.simple_run"
+    )
     async def test_fetch_snapshots_around_time_onbox(self, mock_ssh_collection) -> None:
         mock_ssh_collection.side_effect = self.mocked_ssh
 
@@ -274,7 +278,9 @@ class SnapshotLibTest(TestCase):
 
     # Test that we only grep the files that could possibly contain the timespan
     # we're querying.
-    @patch("fboss.lib.link_snapshots.snapshot_lib.simple_run")
+    @patch(
+        "nettools.nowa.building_blocks.all.ngt.link_check.common.ssh_util.simple_run"
+    )
     async def test_log_timespan_filtering(self, mock_ssh_cmd) -> None:
         mock_ssh_cmd.side_effect = self.mocked_ssh
 

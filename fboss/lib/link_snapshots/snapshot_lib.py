@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import enum
+import logging
 import re
 import typing as t
 from datetime import datetime, timedelta
@@ -12,7 +13,7 @@ import MySQLdb
 from libfb.py.employee import get_current_unix_user_fbid
 from neteng.fboss.phy.phy.types import PhyInfo, LinkSnapshot
 from neteng.fboss.transceiver.types import TransceiverInfo
-from remcmd.simple.remremcmd import simple_run
+from nettools.nowa.building_blocks.all.ngt.link_check.common import ssh_util
 from rfe.client_py3 import get_client as get_rfe_client
 from rfe.RockfortExpress.types import QueryCommon
 from thrift.py3 import deserialize, Protocol
@@ -42,9 +43,7 @@ SNAPSHOT_REGEX = (
 )
 
 DEFAULT_TIME_RANGE = timedelta(minutes=1)
-FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS = 45
 FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' {} | grep {} | grep -v sshd"
-BYTES_STDOUT_LIMIT = 20000000
 
 ARCHIVE_PATH = "/var/facebook/logs/fboss/archive/"
 
@@ -60,6 +59,9 @@ FILENAME_REGEX = (
     ARCHIVE_PATH
     + r"(?:wedge_agent|qsfp_service).log-(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d).gz"
 )
+
+DEFAULT_LOGGER = logging.getLogger()
+DEFAULT_LOGGER.setLevel("INFO")
 
 
 class Backend(enum.Enum):
@@ -114,32 +116,9 @@ def filter_timeseries(
 
 
 class SnapshotClient:
-    def __init__(self, user):
+    def __init__(self, user: int, logger: logging.Logger = DEFAULT_LOGGER):
         self._user = user
-
-    async def run_ssh_cmd(self, hostname: str, cmd: str):
-        job_result = await simple_run(
-            "ngt_link_triage",
-            hosts=[hostname],
-            shell_cmd=cmd,
-            timeout=FETCH_SNAPSHOT_LOG_TIMEOUT_SECONDS,
-            raise_ex=False,
-            run_as="netops",
-            stdout_max_bytes=BYTES_STDOUT_LIMIT,
-        )
-        print("Running cmd:", cmd)
-        if not job_result.results:
-            raise Exception(
-                f"No job results to compile snapshot,  Status: {job_result.status} Fails: {job_result.tasks_failed} Unknown: {job_result.tasks_unknown}"
-            )
-        output = job_result.results[0]
-        stdout = output.stdout.strip()
-
-        if output.exit_code:
-            raise Exception(
-                f"Fetch snapshot command exited with error code {output.exit_code}.\nStderr: {output.stderr}\nRemCmd Exception: {output.ex}"
-            )
-        return stdout
+        self._logger: logging.Logger = logger
 
     async def get_logfiles_in_timeframe(
         self, hostname: str, time_start: datetime, time_end: datetime
@@ -189,8 +168,10 @@ class SnapshotClient:
 
         logfiles = (
             (
-                await self.run_ssh_cmd(
-                    hostname, f"ls {AGENT_ARCHIVE_PATTERN} {QSFP_ARCHIVE_PATTERN}"
+                await ssh_util.run_ssh_cmd(
+                    hostname,
+                    f"ls {AGENT_ARCHIVE_PATTERN} {QSFP_ARCHIVE_PATTERN}",
+                    self._logger,
                 )
             )
             .strip()
@@ -241,6 +222,9 @@ class SnapshotClient:
         time_end: datetime,
         backend: Backend = Backend.SSH,
     ) -> SnapshotCollection:
+        self._logger.info(
+            f"Fetching snapshots for host {hostname}:{port_name} between {time_start.isoformat()} and {time_end.isoformat()} via {str(backend)})"
+        )
         if backend == Backend.SSH:
             return await self.fetch_snapshots_in_timespan_via_ssh(
                 hostname, port_name, time_start, time_end
@@ -266,7 +250,7 @@ class SnapshotClient:
         )
         cmd = FETCH_SNAPSHOT_LOG_COMMAND.format(" ".join(possible_logfiles), port_name)
 
-        output = (await self.run_ssh_cmd(hostname, cmd)).strip()
+        output = (await ssh_util.run_ssh_cmd(hostname, cmd, self._logger)).strip()
         collection = await self.process_snapshot_lines(output.split("\n"))
 
         iphy, xphy, tcvr = collection.unpack()
@@ -339,5 +323,7 @@ class SnapshotClient:
         return SnapshotCollection(iphy_snapshots, xphy_snapshots, tcvr_snapshots)
 
 
-async def get_client() -> SnapshotClient:
-    return SnapshotClient(get_current_unix_user_fbid() or NGT_SERVICE_FBID)
+async def get_client(logger: logging.Logger = DEFAULT_LOGGER) -> SnapshotClient:
+    return SnapshotClient(
+        user=get_current_unix_user_fbid() or NGT_SERVICE_FBID, logger=logger
+    )
