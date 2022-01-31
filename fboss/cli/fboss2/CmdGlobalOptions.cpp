@@ -12,6 +12,7 @@
 #include <CLI/Validators.hpp>
 
 #include <folly/Singleton.h>
+#include <folly/String.h>
 
 namespace {
 struct singleton_tag_type {};
@@ -43,8 +44,27 @@ void CmdGlobalOptions::init(CLI::App& app) {
       ->check(CLI::PositiveNumber);
   app.add_option(
       "--color", color_, "color (no, yes => yes for tty and no for pipe)");
+  app.add_option(
+      "--filter",
+      filters_,
+      "filter list. Each filter must be in the form <key>=<value>. See specific commands for list of available filters");
 
   initAdditional(app);
+}
+
+std::map<std::string, std::string> CmdGlobalOptions::getFilters() const {
+  std::map<std::string, std::string> parsedFilters;
+  for (const auto& filter : filters_) {
+    std::vector<std::string> vec;
+    folly::split("=", filter, vec);
+    if (vec.size() != 2) {
+      throw std::runtime_error(fmt::format(
+          "Filters need to be in the form <key>=value>. {} does not match",
+          filter));
+    }
+    parsedFilters[vec[0]] = vec[1];
+  }
+  return parsedFilters;
 }
 
 } // namespace facebook::fboss

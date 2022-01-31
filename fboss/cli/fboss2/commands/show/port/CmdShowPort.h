@@ -27,6 +27,7 @@ struct CmdShowPortTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowPortModel;
+  static constexpr std::array<std::string_view, 1> FILTERS = {"LinkState"};
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -120,9 +121,20 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     std::unordered_set<std::string> queriedSet(
         queriedPorts.begin(), queriedPorts.end());
 
+    auto filters = CmdGlobalOptions::getInstance()->getFilters();
+    auto stateFilter = (filters.find("LinkState") != filters.end())
+        ? std::make_optional(filters["LinkState"])
+        : std::nullopt;
+
     for (const auto& entry : portEntries) {
       auto portInfo = entry.second;
       auto portName = portInfo.get_name();
+
+      auto operState = getOperStateStr(portInfo.get_operState());
+      // TODO: should be case insensitive
+      if (stateFilter && operState != stateFilter.value()) {
+        continue;
+      }
 
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
         cli::PortEntry portDetails;
@@ -130,7 +142,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.name_ref() = portInfo.get_name();
         portDetails.adminState_ref() =
             getAdminStateStr(portInfo.get_adminState());
-        portDetails.operState_ref() = getOperStateStr(portInfo.get_operState());
+        portDetails.operState_ref() = operState;
         portDetails.speed_ref() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId_ref() = portInfo.get_profileID();
         if (auto tcvrId = portInfo.transceiverIdx_ref()) {

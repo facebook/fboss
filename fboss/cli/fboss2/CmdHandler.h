@@ -73,6 +73,7 @@ struct BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
+  static constexpr std::array<std::string_view, 0> FILTERS{};
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>

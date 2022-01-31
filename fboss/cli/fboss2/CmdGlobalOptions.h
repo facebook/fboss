@@ -11,6 +11,7 @@
 
 #include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/options/SSLPolicy.h"
+#include "folly/String.h"
 
 namespace facebook::fboss {
 
@@ -26,7 +27,7 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
-  bool isValid() const {
+  bool isValid(std::vector<std::string_view> validFilters) const {
     bool hostsSet = !getHosts().empty();
     bool smcSet = !getSmc().empty();
     bool fileSet = !getFile().empty();
@@ -36,6 +37,18 @@ class CmdGlobalOptions {
         (fileSet && (hostsSet || smcSet))) {
       std::cerr << "only one of host(s), smc or file can be set\n";
       return false;
+    }
+
+    auto filters = getFilters();
+    for (const auto& filter : filters) {
+      if (std::find(validFilters.begin(), validFilters.end(), filter.first) ==
+          validFilters.end()) {
+        std::cerr << fmt::format(
+            "Invalid filter \"{}\" passed in. Valid filter(s) for this command are [{}]\n",
+            filter.first,
+            folly::join(", ", validFilters));
+        return false;
+      }
     }
 
     return true;
@@ -113,6 +126,8 @@ class CmdGlobalOptions {
     bgpThriftPort_ = port;
   }
 
+  std::map<std::string, std::string> getFilters() const;
+
  private:
   void initAdditional(CLI::App& app);
 
@@ -132,6 +147,7 @@ class CmdGlobalOptions {
   int rackmonThriftPort_{7910};
   int sensorServiceThriftPort_{7001};
   std::string color_{"yes"};
+  std::vector<std::string> filters_{};
 };
 
 } // namespace facebook::fboss

@@ -133,7 +133,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
   utils::logUsage(folly::demangle(typeid(this)).toStdString());
 
-  if (!CmdGlobalOptions::getInstance()->isValid()) {
+  std::vector<std::string_view> validFilters =
+      std::vector(CmdTypeTraits::FILTERS.begin(), CmdTypeTraits::FILTERS.end());
+  if (!CmdGlobalOptions::getInstance()->isValid(validFilters)) {
     exit(1);
   }
 
