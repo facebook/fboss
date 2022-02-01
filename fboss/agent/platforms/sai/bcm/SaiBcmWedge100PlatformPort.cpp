@@ -12,8 +12,7 @@
 namespace facebook::fboss {
 
 void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
-  uint32_t phyPortId = getPhysicalPortId();
-  auto ledAndIndex = getLedAndIndex(phyPortId);
+  auto ledAndIndex = getLedAndIndex(getPortID());
   if (!ledAndIndex) {
     return;
   }
@@ -33,8 +32,8 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
       compactLEDStateChange(status);
     }
   } catch (const FbossError& ex) {
-    XLOG(ERR) << "exception while setting LED state for port: "
-              << static_cast<PortID>(phyPortId) << ":" << ex.what();
+    XLOG(ERR) << "exception while setting LED state for port: " << getPortID()
+              << ":" << ex.what();
     throw;
   }
 }
@@ -49,34 +48,22 @@ void SaiBcmWedge100PlatformPort::compactLEDStateChange(uint32_t status) {
     XLOG(DBG5) << "skipping LED status change";
     return;
   }
-  std::vector<uint32_t> compactModePorts{};
+  std::vector<PortID> compactModePorts{};
   if (Wedge100LedUtils::isTop(getTransceiverID())) {
-    compactModePorts.push_back(getPhysicalPortId());
-    auto neighborPort = static_cast<PortID>(static_cast<int>(getPortID()) + 4);
-    auto platformPort = static_cast<SaiBcmWedge100PlatformPort*>(
-        getPlatform()->getPlatformPort(neighborPort));
-    if (platformPort) {
-      compactModePorts.push_back(platformPort->getPhysicalPortId());
-    } else {
-      XLOG(ERR) << "platform port not found " << neighborPort;
-    }
+    compactModePorts.push_back(getPortID());
+    compactModePorts.push_back(PortID(static_cast<uint32_t>(getPortID()) + 4));
   } else {
-    auto target = quadMode ? getPortID() + 2 : getPortID();
+    auto target = quadMode ? static_cast<uint32_t>(getPortID()) + 2
+                           : static_cast<uint32_t>(getPortID());
     for (auto neighborPort : {target + 1, target - 3}) {
-      auto platformPort = static_cast<SaiBcmWedge100PlatformPort*>(
-          getPlatform()->getPlatformPort(static_cast<PortID>(neighborPort)));
-      if (platformPort) {
-        compactModePorts.push_back(platformPort->getPhysicalPortId());
-      } else {
-        XLOG(ERR) << "platform port not found " << neighborPort;
-      }
+      compactModePorts.push_back(PortID(neighborPort));
     }
   }
 
-  for (auto phyPort : compactModePorts) {
-    if (auto ledAndIndex = getLedAndIndex(phyPort)) {
+  for (auto port : compactModePorts) {
+    if (auto ledAndIndex = getLedAndIndex(port)) {
       auto [led, index] = ledAndIndex.value();
-      XLOG(DBG5) << "compact LED state changed for " << phyPort;
+      XLOG(DBG5) << "compact LED state changed for " << port;
       setLEDState(led, index, status);
     }
   }

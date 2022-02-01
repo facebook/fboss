@@ -23,6 +23,8 @@ class HwPortProfileTest : public HwTest {
   }
 
   void verifyPort(PortID portID) {
+    auto platformPort = getPlatform()->getPlatformPort(portID);
+    EXPECT_EQ(portID, platformPort->getPortID());
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
     utility::verifyInterfaceMode(
