@@ -48,7 +48,7 @@ TEST(LoggingUtilTest, variantRecursive) {
 
 TEST(LoggingUtilTest, tuple) {
   std::tuple<int, std::string, double> t{42, "forty-two", 42.0};
-  EXPECT_EQ("(42, \"forty-two\", 42.0)", fmt::format("{}", t));
+  EXPECT_EQ("(42, \"forty-two\", 42)", fmt::format("{}", t));
 }
 
 TEST(LoggingUtilTest, emptyTuple) {

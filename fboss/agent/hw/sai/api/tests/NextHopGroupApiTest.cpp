@@ -180,7 +180,7 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   SaiNextHopGroupTraits::Attributes::Type t{SAI_NEXT_HOP_GROUP_TYPE_ECMP};
   EXPECT_EQ("Type: 0", fmt::format("{}", t));
   SaiNextHopGroupTraits::Attributes::NextHopMemberList nhml{{42, 100, 3}};
-  EXPECT_EQ("NextHopMemberList: {42, 100, 3}", fmt::format("{}", nhml));
+  EXPECT_EQ("NextHopMemberList: [42, 100, 3]", fmt::format("{}", nhml));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

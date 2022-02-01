@@ -158,12 +158,12 @@ TEST_F(HashApiTest, formatHashNativeHashFieldList) {
       SAI_NATIVE_HASH_FIELD_L4_SRC_PORT,
       SAI_NATIVE_HASH_FIELD_L4_DST_PORT,
   }};
-  std::string expected("NativeHashFieldList: {0, 1, 15, 16}");
+  std::string expected("NativeHashFieldList: [0, 1, 15, 16]");
   EXPECT_EQ(expected, fmt::format("{}", nhfl));
 }
 
 TEST_F(HashApiTest, formatUDFGroupList) {
   SaiHashTraits::Attributes::UDFGroupList udfgl{{42}};
-  std::string expected("UDFGroupList: {42}");
+  std::string expected("UDFGroupList: [42]");
   EXPECT_EQ(expected, fmt::format("{}", udfgl));
 }

@@ -171,5 +171,5 @@ TEST_F(NextHopApiTest, formatNextHopAttributes) {
   SaiIpNextHopTraits::Attributes::Ip ip{ip4};
   EXPECT_EQ(fmt::format("Ip: {}", str4), fmt::format("{}", ip));
   SaiMplsNextHopTraits::Attributes::LabelStack ls{{42, 100}};
-  EXPECT_EQ("LabelStack: {42, 100}", fmt::format("{}", ls));
+  EXPECT_EQ("LabelStack: [42, 100]", fmt::format("{}", ls));
 }
