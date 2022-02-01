@@ -304,8 +304,16 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   /*
    * Get last time(ms since epoch) of the config is applied.
    * NOTE: If no config has ever been applied, the default timestamp is 0.
+   * TODO(joseph5wu) Will deprecate such api and use getConfigAppliedInfo()
+   * instead
    */
   int64_t getLastConfigAppliedInMs() override;
+
+  /*
+   * Get config applied information, which includes last config applied time(ms)
+   * and last coldboot config applied time(ms).
+   */
+  void getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) override;
 
   /**
    * Serialize live running switch state at the path pointer by JSON Pointer

@@ -590,6 +590,16 @@ exception FbossFibUpdateError {
   4: list<mpls.MplsLabel> failedDeleteMplsLabels;
 }
 
+struct ConfigAppliedInfo {
+  // Get last time(ms since epoch) of the config is applied since the latest
+  // agent service starts.
+  1: i64 lastAppliedInMs;
+  // Get last time(ms since epoch) of the config is applied during coldboot
+  // since the latest agent service starts.
+  // If wedge_agent just has a warmboot, this should be null
+  2: optional i64 lastColdbootAppliedInMs;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -995,8 +1005,18 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Get last time(ms since epoch) of the config is applied.
    * NOTE: If no config has ever been applied, the default timestamp is 0.
+   * TODO(joseph5wu) Will deprecate such api and use getConfigAppliedInfo()
+   * instead
    */
   i64 getLastConfigAppliedInMs();
+
+  /*
+   * Get config applied information, which includes last config applied time(ms)
+   * and last coldboot config applied time(ms).
+   */
+  ConfigAppliedInfo getConfigAppliedInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Serialize switch state at path pointed by JSON pointer

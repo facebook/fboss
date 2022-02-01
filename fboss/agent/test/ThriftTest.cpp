@@ -1598,20 +1598,30 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   EXPECT_EQ(beforeGen, sw_->getState()->getGeneration());
 }
 
-TEST_F(ThriftTest, getLastConfigAppliedInMs) {
+TEST_F(ThriftTest, getConfigAppliedInfo) {
   ThriftHandler handler(sw_);
   // The SetUp() will applied an initialed config, so we should verify the
   // lastConfigAppliedInMs should be > 0 and < now.
-  auto initConfigAppliedInMs = handler.getLastConfigAppliedInMs();
+  ConfigAppliedInfo initConfigAppliedInfo;
+  handler.getConfigAppliedInfo(initConfigAppliedInfo);
+  auto initConfigAppliedInMs = *initConfigAppliedInfo.lastAppliedInMs_ref();
   EXPECT_GT(initConfigAppliedInMs, 0);
+  // Thrift test should always trigger coldboot
+  auto coldbootConfigAppliedTime =
+      initConfigAppliedInfo.lastColdbootAppliedInMs_ref();
+  if (coldbootConfigAppliedTime) {
+    EXPECT_EQ(*coldbootConfigAppliedTime, initConfigAppliedInMs);
+  } else {
+    throw FbossError("No coldboot config applied time");
+  }
+
   // Adding sleep in case we immediatly check the last config applied time
   /* sleep override */
   usleep(1000);
-  EXPECT_LT(
-      initConfigAppliedInMs,
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count());
+  auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
+  EXPECT_LT(initConfigAppliedInMs, currentInMs);
 
   // Try to apply a new config, the lastConfigAppliedTime should changed
   // Adding sleep in case we apply a new config immediatly after the last config
@@ -1619,8 +1629,18 @@ TEST_F(ThriftTest, getLastConfigAppliedInMs) {
   usleep(1000);
   sw_->applyConfig(
       "New config with new speed profile", testConfigAWithLookupClasses());
-  auto newConfigAppliedInMs = handler.getLastConfigAppliedInMs();
+
+  ConfigAppliedInfo newConfigAppliedInfo;
+  handler.getConfigAppliedInfo(newConfigAppliedInfo);
+  auto newConfigAppliedInMs = *newConfigAppliedInfo.lastAppliedInMs_ref();
   EXPECT_GT(newConfigAppliedInMs, initConfigAppliedInMs);
+  // Coldboot time should not change
+  if (auto newColdbootConfigAppliedTime =
+          newConfigAppliedInfo.lastColdbootAppliedInMs_ref()) {
+    EXPECT_EQ(*newColdbootConfigAppliedTime, *coldbootConfigAppliedTime);
+  } else {
+    throw FbossError("No coldboot config applied time");
+  }
 }
 
 TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {

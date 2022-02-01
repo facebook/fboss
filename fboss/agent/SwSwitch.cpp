@@ -1706,11 +1706,7 @@ void SwSwitch::applyConfig(
       });
   // Since we're using blocking state update, once we reach here, the new config
   // should be already applied and programmed into hardware.
-  lastConfigAppliedInMs_ =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch());
-  XLOG(DBG2) << "Finished applied config, new lastConfigAppliedInMs_="
-             << lastConfigAppliedInMs_.count();
+  updateConfigAppliedInfo();
 
   /*
    * For RIB always make route programming go through the routeUpdater wrapper
@@ -1730,6 +1726,28 @@ void SwSwitch::applyConfig(
    */
 
   routeUpdater.program();
+}
+
+void SwSwitch::updateConfigAppliedInfo() {
+  auto lockedConfigAppliedInfo = configAppliedInfo_.wlock();
+  auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+
+  lockedConfigAppliedInfo->lastAppliedInMs_ref() = currentInMs.count();
+  // Only need to update `lastColdbootAppliedInMs` once if there's a coldboot
+  // since the recent agent restarts
+  if (!lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref() &&
+      bootType_ == BootType::COLD_BOOT) {
+    lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref() =
+        currentInMs.count();
+  }
+
+  XLOG(DBG2) << "Finished applied config, lastConfigAppliedInMs="
+             << *lockedConfigAppliedInfo->lastAppliedInMs_ref()
+             << ", coldboot lastConfigAppliedInMs="
+             << (lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref()
+                     ? *lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref()
+                     : 0);
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {

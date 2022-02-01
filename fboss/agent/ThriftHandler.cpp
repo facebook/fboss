@@ -1903,7 +1903,14 @@ void ThriftHandler::reloadConfig() {
 
 int64_t ThriftHandler::getLastConfigAppliedInMs() {
   auto log = LOG_THRIFT_CALL(DBG1);
-  return sw_->getLastConfigAppliedInMs().count();
+  ensureConfigured(__func__);
+  return *sw_->getConfigAppliedInfo().lastAppliedInMs_ref();
+}
+
+void ThriftHandler::getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  configAppliedInfo = sw_->getConfigAppliedInfo();
 }
 
 void ThriftHandler::getLacpPartnerPair(

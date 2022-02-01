@@ -306,11 +306,11 @@ class SwSwitch : public HwSwitch::Callback {
       const cfg::SwitchConfig& newConfig);
 
   /*
-   * Get last time of the config is applied.
+   * Get config applied information which include last config applied time(ms).
    * NOTE: If no config has ever been applied, the default timestamp is 0.
    */
-  std::chrono::milliseconds getLastConfigAppliedInMs() const {
-    return lastConfigAppliedInMs_;
+  ConfigAppliedInfo getConfigAppliedInfo() const {
+    return *configAppliedInfo_.rlock();
   }
 
   /*
@@ -822,6 +822,8 @@ class SwSwitch : public HwSwitch::Callback {
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
 
+  void updateConfigAppliedInfo();
+
   std::string curConfigStr_;
   cfg::SwitchConfig curConfig_;
 
@@ -957,7 +959,7 @@ class SwSwitch : public HwSwitch::Callback {
       phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
 
-  std::chrono::milliseconds lastConfigAppliedInMs_{0};
+  folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
 };
 
 } // namespace facebook::fboss
