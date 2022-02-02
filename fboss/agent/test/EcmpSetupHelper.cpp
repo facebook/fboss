@@ -291,15 +291,13 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
 }
 
 template <typename IPAddrT>
-void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
-    std::unique_ptr<RouteUpdateWrapper> updater,
-    const boost::container::flat_set<PortDescriptor>& portDescriptors,
-    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
-    const std::vector<RouteT>& prefixes,
+RouteNextHopSet EcmpSetupTargetedPorts<IPAddrT>::setupMplsNexthops(
+    const flat_set<PortDescriptor>& portDescriptors,
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
+    LabelForwardingAction::LabelForwardingType labelActionType,
     const std::vector<NextHopWeight>& weights) const {
+  RouteNextHopSet nhops;
   std::vector<NextHopWeight> hopWeights;
-  std::vector<NextHopWeight> forwardingActions;
-
   if (!weights.size()) {
     for (auto i = 0; i < portDescriptors.size(); ++i) {
       hopWeights.push_back(ECMP_WEIGHT);
@@ -309,24 +307,78 @@ void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
   }
 
   CHECK_EQ(portDescriptors.size(), hopWeights.size());
-  RouteNextHopSet nhops;
-  {
-    auto i = 0;
-    for (const auto& portDescriptor : portDescriptors) {
-      auto itr = stacks.find(portDescriptor);
-      if (itr != stacks.end() && !itr->second.empty()) {
+  auto i = 0;
+  for (const auto& portDescriptor : portDescriptors) {
+    auto itr = stacks.find(portDescriptor);
+    if (itr != stacks.end() && !itr->second.empty()) {
+      if (labelActionType == LabelForwardingAction::LabelForwardingType::PUSH) {
         nhops.emplace(UnresolvedNextHop(
             BaseEcmpSetupHelperT::ip(portDescriptor),
             hopWeights[i++],
-            LabelForwardingAction(
-                LabelForwardingAction::LabelForwardingType::PUSH,
-                itr->second)));
+            LabelForwardingAction(labelActionType, itr->second)));
       } else {
+        CHECK(
+            labelActionType ==
+            LabelForwardingAction::LabelForwardingType::SWAP);
         nhops.emplace(UnresolvedNextHop(
-            BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
+            BaseEcmpSetupHelperT::ip(portDescriptor),
+            hopWeights[i++],
+            LabelForwardingAction(labelActionType, itr->second[0])));
       }
+    } else if (
+        labelActionType == LabelForwardingAction::LabelForwardingType::PHP ||
+        labelActionType ==
+            LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+      nhops.emplace(UnresolvedNextHop(
+          BaseEcmpSetupHelperT::ip(portDescriptor),
+          hopWeights[i++],
+          LabelForwardingAction(labelActionType)));
+    } else {
+      nhops.emplace(UnresolvedNextHop(
+          BaseEcmpSetupHelperT::ip(portDescriptor), hopWeights[i++]));
     }
   }
+
+  return nhops;
+}
+
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programMplsRoutes(
+    std::unique_ptr<RouteUpdateWrapper> updater,
+    const flat_set<PortDescriptor>& portDescriptors,
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+    const std::vector<LabelID>& labels,
+    LabelForwardingAction::LabelForwardingType labelActionType,
+    const std::vector<NextHopWeight>& weights,
+    std::optional<RouteCounterID> /* counterID */) const {
+  if (labels.empty()) {
+    return;
+  }
+  auto nhops =
+      setupMplsNexthops(portDescriptors, stacks, labelActionType, weights);
+  for (const auto& label : labels) {
+    MplsRoute route;
+    route.topLabel_ref() = label;
+    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    updater->addRoute(ClientID::BGPD, route);
+  }
+  updater->program();
+}
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
+    std::unique_ptr<RouteUpdateWrapper> updater,
+    const boost::container::flat_set<PortDescriptor>& portDescriptors,
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights) const {
+  std::vector<NextHopWeight> hopWeights;
+  std::vector<NextHopWeight> forwardingActions;
+
+  auto nhops = setupMplsNexthops(
+      portDescriptors,
+      stacks,
+      LabelForwardingAction::LabelForwardingType::PUSH,
+      weights);
   for (const auto& prefix : prefixes) {
     updater->addRoute(
         routerId_,

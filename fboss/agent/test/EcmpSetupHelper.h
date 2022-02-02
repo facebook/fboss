@@ -180,6 +180,15 @@ class EcmpSetupTargetedPorts
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
       std::optional<RouteCounterID> counterID = std::nullopt) const;
 
+  void programMplsRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
+      const boost::container::flat_set<PortDescriptor>& portDescriptors,
+      std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks,
+      const std::vector<LabelID>& labels,
+      LabelForwardingAction::LabelForwardingType labelActionType,
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      std::optional<RouteCounterID> counterID = std::nullopt) const;
+
   void programIp2MplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
@@ -196,6 +205,11 @@ class EcmpSetupTargetedPorts
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac = std::nullopt) override;
+  RouteNextHopSet setupMplsNexthops(
+      const boost::container::flat_set<PortDescriptor>& portDescriptors,
+      std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
+      LabelForwardingAction::LabelForwardingType labelActionType,
+      const std::vector<NextHopWeight>& weights) const;
 
   RouterID routerId_;
 };
