@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
@@ -98,6 +99,21 @@ WeutilDarwin::WeutilDarwin() {
   if (retVal != 0) {
     throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
   }
+}
+
+std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo() {
+  PrefdlBase prefdl(kPredfl);
+
+  std::vector<std::pair<std::string, std::string>> ret;
+
+  for (auto item : weFields_) {
+    auto it = kMapping.find(item.first);
+    ret.emplace_back(
+        item.first,
+        it == kMapping.end() ? item.second : prefdl.getField(it->second));
+  }
+
+  return ret;
 }
 
 void WeutilDarwin::printInfo() {

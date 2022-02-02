@@ -7,6 +7,7 @@ namespace facebook::fboss::platform {
 class WeutilDarwin : public WeutilInterface {
  public:
   WeutilDarwin();
+  std::vector<std::pair<std::string, std::string>> getInfo() override;
   void printInfo() override;
   void printInfoJson() override;
 };
