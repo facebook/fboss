@@ -33,8 +33,6 @@
 #include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 
-DEFINE_bool(mpls_rib, false, "Enable mpls rib");
-
 namespace facebook::fboss {
 
 namespace {

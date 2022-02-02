@@ -4,6 +4,7 @@
 
 #include <boost/container/flat_set.hpp>
 
+#include <fboss/agent/state/LabelForwardingEntry.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NodeMap.h"
@@ -70,6 +71,8 @@ class LabelForwardingInformationBase
       folly::dynamic entry);
 
   folly::dynamic toFollyDynamic() const override;
+  static void noRibToRibEntryConvertor(
+      std::shared_ptr<LabelForwardingEntry>& entry);
 
  private:
   // Inherit the constructors required for clone()

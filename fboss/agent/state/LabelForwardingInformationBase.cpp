@@ -1,10 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include <fboss/agent/state/LabelForwardingEntry.h>
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
+
+DEFINE_bool(mpls_rib, false, "Enable mpls rib");
 
 namespace facebook::fboss {
 
@@ -56,11 +60,16 @@ folly::dynamic LabelForwardingInformationBase::toFollyDynamic() const {
 std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::labelEntryFromFollyDynamic(
     folly::dynamic entry) {
+  std::shared_ptr<LabelForwardingEntry> labelEntry;
   if (entry.find(kIncomingLabel) != entry.items().end()) {
-    return fromFollyDynamicOldFormat(entry);
+    labelEntry = fromFollyDynamicOldFormat(entry);
   } else {
-    return LabelForwardingEntry::fromFollyDynamic(entry);
+    labelEntry = LabelForwardingEntry::fromFollyDynamic(entry);
   }
+  if (FLAGS_mpls_rib) {
+    noRibToRibEntryConvertor(labelEntry);
+  }
+  return labelEntry;
 }
 
 std::shared_ptr<LabelForwardingEntry>
@@ -83,6 +92,42 @@ folly::dynamic LabelForwardingInformationBase::toFollyDynamicOldFormat(
   json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamic();
   json[kLabelNextHopsByClient] = entry->getEntryForClients().toFollyDynamic();
   return json;
+}
+
+// when rib is enabled, the client entries are stored as received
+// from producer of route. ie interfaces will not be resolved
+// unless it is a v6 link local or interface route. With no rib,
+// thrift handler layer will fill in interface id for all client
+// entries. This method converts a no rib entry to a rib entry
+// and is used for warmboot upgrade from no rib to rib case.
+void LabelForwardingInformationBase::noRibToRibEntryConvertor(
+    std::shared_ptr<LabelForwardingEntry>& entry) {
+  CHECK(!entry->isPublished());
+  // cache fwdinfo before modifying the route
+  auto fwd = entry->getForwardInfo();
+  // only interface routes and v6 ll routes will have interface id
+  for (auto& clientEntry : entry->getEntryForClients()) {
+    if (clientEntry.first == ClientID::INTERFACE_ROUTE) {
+      continue;
+    }
+    RouteNextHopSet nhSet;
+    for (auto& nh : clientEntry.second.getNextHopSet()) {
+      const auto& addr = nh.addr();
+      if (addr.isV6() && addr.isLinkLocal()) {
+        nhSet.emplace(nh);
+      } else {
+        nhSet.emplace(UnresolvedNextHop(
+            nh.addr(), nh.weight(), nh.labelForwardingAction()));
+      }
+    }
+    entry->update(
+        clientEntry.first,
+        RouteNextHopEntry(
+            nhSet,
+            clientEntry.second.getAdminDistance(),
+            clientEntry.second.getCounterID()));
+  }
+  entry->setResolved(fwd);
 }
 
 LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
