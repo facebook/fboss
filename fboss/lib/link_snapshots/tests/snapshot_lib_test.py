@@ -166,7 +166,7 @@ class SnapshotLibTest(TestCase):
 
         return snapshot_lines
 
-    async def test_snapshot_types(self):
+    async def test_snapshot_types(self) -> None:
         snapshots_to_test = [
             self.unprocessed_snapshots.split("\n"),
             self.unprocessed_snapshots.replace(
@@ -190,7 +190,7 @@ class SnapshotLibTest(TestCase):
     @patch("fboss.lib.link_snapshots.snapshot_lib.get_rfe_client")
     async def test_fetch_recent_snapshots(
         self, mock_get_rfe_client, mock_ssh_collection
-    ):
+    ) -> None:
         mock_get_rfe_client.return_value = AsyncContextManager(
             return_value=self.rfe_client, instance=True
         )
