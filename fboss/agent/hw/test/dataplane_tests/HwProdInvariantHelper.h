@@ -41,6 +41,7 @@ enum HwInvariantOpt : HwInvariantBitmask {
   LOAD_BALANCER_INVARIANT = 0x0010,
   OLYMPIC_QOS_INVARIANT = 0x0020,
   DIAG_CMDS_INVARIANT = 0x0040,
+  MPLS_INVARIANT = 0x0080,
 };
 // Useful/common combinations can be defined here as one sees fit
 const HwInvariantBitmask DEFAULT_INVARIANTS = DIAG_CMDS_INVARIANT |
@@ -87,6 +88,9 @@ class HwProdInvariantHelper {
     if (isHwInvariantOptSet(options, MHNIC_INVARIANT)) {
       verifyQueuePerHostMapping();
     }
+    if (isHwInvariantOptSet(options, MPLS_INVARIANT)) {
+      verifyMpls();
+    }
   }
   void sendTraffic();
   PortID getDownlinkPort();
@@ -122,6 +126,10 @@ class HwProdInvariantHelper {
   void verifyCopp();
   void verifyLoadBalacing();
   void verifyQueuePerHostMapping();
+  void verifyMpls();
+  void verifyMplsEntry(
+      int label,
+      LabelForwardingAction::LabelForwardingType action);
 
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> ecmpHelper_;
   HwSwitchEnsemble* ensemble_;

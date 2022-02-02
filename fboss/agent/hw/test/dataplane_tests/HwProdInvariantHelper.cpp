@@ -28,7 +28,8 @@
 
 namespace {
 auto constexpr kEcmpWidth = 4;
-}
+auto constexpr kTopLabel = 5000;
+} // namespace
 namespace facebook::fboss {
 
 void HwProdInvariantHelper::setupEcmp() {
@@ -214,6 +215,26 @@ void HwProdInvariantHelper::verifyQueuePerHostMapping() {
       folly::IPAddressV4("10.10.1.2"),
       true /* useFrontPanel */,
       false /* blockNeighbor */);
+}
+
+void HwProdInvariantHelper::verifyMpls() {
+  verifyMplsEntry(kTopLabel, LabelForwardingAction::LabelForwardingType::SWAP);
+}
+
+void HwProdInvariantHelper::verifyMplsEntry(
+    int label,
+    LabelForwardingAction::LabelForwardingType action) {
+  auto state = getProgrammedState();
+  auto entry =
+      state->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+          label);
+  EXPECT_NE(entry, nullptr);
+  auto nhops = entry->getForwardInfo().getNextHopSet();
+  EXPECT_NE(nhops.size(), 0);
+  for (const auto& nhop : nhops) {
+    EXPECT_TRUE(nhop.labelForwardingAction().has_value());
+    EXPECT_EQ(nhop.labelForwardingAction()->type(), action);
+  }
 }
 
 } // namespace facebook::fboss

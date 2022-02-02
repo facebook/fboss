@@ -29,8 +29,8 @@ cfg::SwitchConfig HwOverflowTest::initialConfig() const {
   // Since we run inavriant tests based on switch role, we just pick the
   // most common switch role (i.e. rsw) for convenience of testing.
   // Not intended to extend coverage for every platform
-  auto config =
-      utility::createProdRswConfig(getHwSwitch(), masterLogicalPortIds());
+  auto config = utility::createProdRswConfig(
+      getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
   return config;
 }
 void HwOverflowTest::SetUp() {

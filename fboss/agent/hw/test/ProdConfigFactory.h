@@ -37,21 +37,26 @@ void addLoadBalancerToConfig(
     const HwSwitch* hwSwitch,
     LBHash hashType);
 
+void addMplsConfig(cfg::SwitchConfig& config);
+
 uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch);
 
 cfg::SwitchConfig createProdRswConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds);
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai = false);
 
 cfg::SwitchConfig createProdFswConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds);
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai = false);
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch);
 
 cfg::SwitchConfig createProdRswMhnicConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds);
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai);
 
 cfg::SwitchConfig createProdRtswConfig(
     const HwSwitch* hwSwitch,

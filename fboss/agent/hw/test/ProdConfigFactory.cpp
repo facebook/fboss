@@ -21,6 +21,10 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 
+namespace {
+auto constexpr kTopLabel = 5000;
+}
+
 namespace facebook::fboss::utility {
 
 /*
@@ -74,6 +78,20 @@ void addLoadBalancerToConfig(
       throw FbossError("invalid hashing option ", hashType);
       break;
   }
+}
+
+void addMplsConfig(cfg::SwitchConfig& config) {
+  config.staticMplsRoutesWithNhops_ref()->resize(1);
+  config.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = kTopLabel;
+  std::vector<NextHopThrift> nexthops;
+  nexthops.resize(1);
+  MplsAction swap;
+  swap.action_ref() = MplsActionCode::SWAP;
+  swap.swapLabel_ref() = 101;
+  nexthops[0].mplsAction_ref() = swap;
+  nexthops[0].address_ref() =
+      network::toBinaryAddress(folly::IPAddress("1::2"));
+  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
 }
 
 /*
@@ -200,7 +218,8 @@ cfg::SwitchConfig createProdRtswConfig(
  */
 cfg::SwitchConfig createProdRswConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds) {
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai) {
   auto platform = hwSwitch->getPlatform();
   auto hwAsic = platform->getAsic();
 
@@ -229,6 +248,9 @@ cfg::SwitchConfig createProdRswConfig(
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
   }
 
+  if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
+    addMplsConfig(config);
+  }
   return config;
 }
 
@@ -238,7 +260,8 @@ cfg::SwitchConfig createProdRswConfig(
  */
 cfg::SwitchConfig createProdFswConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds) {
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai) {
   auto platform = hwSwitch->getPlatform();
   auto hwAsic = platform->getAsic();
 
@@ -264,12 +287,16 @@ cfg::SwitchConfig createProdFswConfig(
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
   }
+  if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
+    addMplsConfig(config);
+  }
   return config;
 }
 
 cfg::SwitchConfig createProdRswMhnicConfig(
     const HwSwitch* hwSwitch,
-    const std::vector<PortID>& masterLogicalPortIds) {
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai) {
   auto platform = hwSwitch->getPlatform();
   auto hwAsic = platform->getAsic();
 
@@ -293,7 +320,9 @@ cfg::SwitchConfig createProdRswMhnicConfig(
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
   }
-
+  if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
+    addMplsConfig(config);
+  }
   return config;
 }
 

@@ -104,8 +104,8 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
 class HwProdInvariantsRswTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
-    auto config =
-        utility::createProdRswConfig(getHwSwitch(), masterLogicalPortIds());
+    auto config = utility::createProdRswConfig(
+        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
     return config;
   }
 
@@ -117,6 +117,11 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
     }
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS) &&
+        !getHwSwitchEnsemble()->isSai()) {
+      bitmask |= MPLS_INVARIANT;
     }
     return bitmask;
   }
@@ -130,8 +135,8 @@ TEST_F(HwProdInvariantsRswTest, verifyInvariants) {
 class HwProdInvariantsFswTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
-    auto config =
-        utility::createProdFswConfig(getHwSwitch(), masterLogicalPortIds());
+    auto config = utility::createProdFswConfig(
+        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
     return config;
   }
 
@@ -143,6 +148,11 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
     }
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS) &&
+        !getHwSwitchEnsemble()->isSai()) {
+      bitmask |= MPLS_INVARIANT;
     }
     return bitmask;
   }
@@ -157,7 +167,7 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswMhnicConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
     return config;
   }
 
@@ -169,6 +179,10 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
     }
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS)) {
+      bitmask |= MPLS_INVARIANT;
     }
     return bitmask;
   }
