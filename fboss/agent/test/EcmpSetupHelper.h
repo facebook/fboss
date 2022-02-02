@@ -351,8 +351,9 @@ class EcmpSetupAnyNPorts {
     return ecmpSetupTargetedPorts_.getVlan(port);
   }
 
- private:
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
+
+ private:
   EcmpSetupTargetedPorts<IPAddrT> ecmpSetupTargetedPorts_;
 };
 
@@ -418,8 +419,9 @@ class MplsEcmpSetupAnyNPorts {
       const boost::container::flat_set<PortDescriptor>& portDescs,
       bool useLinkLocal = false) const;
 
- private:
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
+
+ private:
   MplsEcmpSetupTargetedPorts<IPAddrT> mplsEcmpSetupTargetedPorts_;
 };
 

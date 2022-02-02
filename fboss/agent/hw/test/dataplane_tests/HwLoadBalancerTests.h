@@ -121,9 +121,23 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel,
       uint8_t deviation) {
-    helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
-    // Don't tolerate a deviation of > 25%
-    EXPECT_TRUE(helper_->isLoadBalanced(ecmpWidth, weights, deviation));
+    bool isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+        [=]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
+        [=]() {
+          auto helper = helper_->ecmpSetupHelper();
+          auto portDescs = helper->getPortDescs(ecmpWidth);
+          auto ports = std::make_unique<std::vector<int32_t>>();
+          for (auto portDesc : portDescs) {
+            if (portDesc.isPhysicalPort()) {
+              ports->push_back(portDesc.phyPortID());
+            }
+          }
+          getHwSwitch()->clearPortStats(ports);
+        },
+        [=]() {
+          return helper_->isLoadBalanced(ecmpWidth, weights, deviation);
+        });
+    EXPECT_TRUE(isLoadBalanced);
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
