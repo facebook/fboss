@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/agent/hw/test/LoadBalancerUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -225,6 +226,53 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     programMplsRoutes(v6PhpHelper, aggInfo);
   }
 
+  void clearPortStats(AggPortInfo aggInfo) {
+    auto portDescs = getPhysicalPorts(aggInfo);
+    auto ports = std::make_unique<std::vector<int32_t>>();
+    for (auto portDesc : portDescs) {
+      ports->push_back(static_cast<int32_t>(portDesc.phyPortID()));
+    }
+    getHwSwitch()->clearPortStats(ports);
+  }
+
+  void pumpIPTrafficAndVerifyLoadBalanced(
+      bool isV6,
+      bool loopThroughFrontPanel,
+      AggPortInfo aggInfo,
+      int deviation) {
+    auto isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+        [=]() { pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo); },
+        [=]() { clearPortStats(aggInfo); },
+        [=]() {
+          return utility::isLoadBalanced(
+              getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
+        });
+    EXPECT_TRUE(isLoadBalanced);
+  }
+
+  void pumpMPLSTrafficAndVerifyLoadBalanced(
+      bool isV6,
+      uint32_t labelV4,
+      uint32_t labelV6,
+      bool loopThroughFrontPanel,
+      AggPortInfo aggInfo,
+      int deviation) {
+    auto isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+        [=]() {
+          if (isV6) {
+            pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
+          } else {
+            pumpMPLSTraffic(isV6, labelV4, loopThroughFrontPanel, aggInfo);
+          }
+        },
+        [=]() { clearPortStats(aggInfo); },
+        [=]() {
+          return utility::isLoadBalanced(
+              getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
+        });
+    EXPECT_TRUE(isLoadBalanced);
+  }
+
   void runIPLoadBalanceTest(
       bool isV6,
       const std::vector<cfg::LoadBalancer>& loadBalancers,
@@ -239,10 +287,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           getPlatform(), getProgrammedState(), loadBalancers));
     };
     auto verify = [=]() {
-      pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo);
-      // Don't tolerate a deviation of > 25%
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation));
+      pumpIPTrafficAndVerifyLoadBalanced(
+          isV6, loopThroughFrontPanel, aggInfo, deviation);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -267,10 +313,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           getPlatform(), getProgrammedState(), loadBalancers));
     };
     auto verify = [=]() {
-      pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo);
-      // Don't tolerate a deviation of > 25%
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation));
+      pumpIPTrafficAndVerifyLoadBalanced(
+          isV6, loopThroughFrontPanel, aggInfo, deviation);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -303,13 +347,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           getPlatform(), getProgrammedState(), loadBalancers));
     };
     auto verify = [=]() {
-      if (isV6) {
-        pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
-      } else {
-        pumpMPLSTraffic(isV6, labelV4, loopThroughFrontPanel, aggInfo);
-      }
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation));
+      pumpMPLSTrafficAndVerifyLoadBalanced(
+          isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -334,14 +373,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           getPlatform(), getProgrammedState(), loadBalancers));
     };
     auto verify = [=]() {
-      if (isV6) {
-        pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
-      } else {
-        pumpMPLSTraffic(isV6, labelV4, loopThroughFrontPanel, aggInfo);
-      }
-      // Don't tolerate a deviation of > 25%
-      EXPECT_TRUE(utility::isLoadBalanced(
-          getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), 25));
+      pumpMPLSTrafficAndVerifyLoadBalanced(
+          isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
