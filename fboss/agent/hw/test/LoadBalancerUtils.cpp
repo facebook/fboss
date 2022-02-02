@@ -414,4 +414,18 @@ bool isLoadBalanced(
       maxDeviationPct);
 }
 
+bool pumpTrafficAndVerifyLoadBalanced(
+    std::function<void()> pumpTraffic,
+    std::function<void()> clearPortStats,
+    std::function<bool()> isLoadBalanced,
+    int retries) {
+  bool loadBalanced = false;
+  for (auto i = 0; i < retries && !loadBalanced; i++) {
+    clearPortStats();
+    pumpTraffic();
+    loadBalanced = isLoadBalanced();
+  }
+  return loadBalanced;
+}
+
 } // namespace facebook::fboss::utility
