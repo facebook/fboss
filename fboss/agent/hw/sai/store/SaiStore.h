@@ -78,7 +78,7 @@ class SaiObjectStore {
   }
 
   bool shouldSkipReloadingObjects() {
-#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_6_0_0_11_ODP)
+#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_6_0_0_14_ODP)
     // TODO(zecheng): Skip reloading Tam objects for switches warmbooting
     // from 4.2* to 5* This is because brcm-sai no longer support Tam related
     // objects, but move the logic to switch events. Once all brcm-sai switches
