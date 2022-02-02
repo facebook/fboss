@@ -45,7 +45,8 @@ TEST(LabelForwardingEntryTests, ToFromDynamic) {
 }
 
 TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
-  std::string jsonOldEntryType = R"(
+  // Old format. client entries have interface id always
+  std::string jsonOldFormatEntryType = R"(
   {
   "labelNextHop": {
     "action": "Nexthops",
@@ -60,19 +61,11 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
         "weight": "0"
       },
       {
-        "interface": 2067,
+        "interface": 2096,
         "label_forwarding_action": {
           "type": 2
         },
-        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
-        "weight": "0"
-      },
-      {
-        "interface": 2095,
-        "label_forwarding_action": {
-          "type": 2
-        },
-        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "nexthop": "2401::d8c4:97ff:fed0:5b14",
         "weight": "0"
       }
     ]
@@ -91,19 +84,11 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
           "weight": "0"
         },
         {
-          "interface": 2067,
+          "interface": 2096,
           "label_forwarding_action": {
             "type": 2
           },
-          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
-          "weight": "0"
-        },
-        {
-          "interface": 2095,
-          "label_forwarding_action": {
-            "type": 2
-          },
-          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "nexthop": "2401::d8c4:97ff:fed0:5b14",
           "weight": "0"
         }
       ]
@@ -111,12 +96,17 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
   },
   "topLabel": 1001
   })";
-  auto entry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
-      folly::parseJson(jsonOldEntryType));
+
+  FLAGS_mpls_rib = false;
+  auto oldFormatNoRibEntry =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          folly::parseJson(jsonOldFormatEntryType));
   auto oldFormatJsonWritten =
-      LabelForwardingInformationBase::toFollyDynamicOldFormat(entry);
-  EXPECT_EQ(folly::parseJson(jsonOldEntryType), oldFormatJsonWritten);
-  std::string jsonNewEntryType = R"(
+      LabelForwardingInformationBase::toFollyDynamicOldFormat(
+          oldFormatNoRibEntry);
+  EXPECT_EQ(folly::parseJson(jsonOldFormatEntryType), oldFormatJsonWritten);
+  // new format with no rib has interface id in client entries always
+  std::string jsonNewFormatNoRibEntryType = R"(
   {
   "forwardingInfo": {
     "adminDistance": 10,
@@ -130,19 +120,11 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
         "weight": "0"
       },
       {
-        "interface": 2067,
         "label_forwarding_action": {
           "type": 2
         },
-        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
-        "weight": "0"
-      },
-      {
-        "label_forwarding_action": {
-          "type": 2
-        },
-        "interface": 2095,
-        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "interface": 2096,
+        "nexthop": "2401::d8c4:97ff:fed0:5b14",
         "weight": "0"
       }
     ],
@@ -169,15 +151,73 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
           "label_forwarding_action": {
             "type": 2
           },
-          "interface": 2067,
-          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
-          "weight": "0"
+          "interface": 2096,
+          "weight": "0",
+          "nexthop": "2401::d8c4:97ff:fed0:5b14"
+        }
+      ]
+    }
+  }
+})";
+  auto newFormatNoRibEntry =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          folly::parseJson(jsonNewFormatNoRibEntryType));
+  // ensure that old and new format creates same entry with mpls rib disabled
+  EXPECT_TRUE(newFormatNoRibEntry->isSame(oldFormatNoRibEntry.get()));
+
+  // ensure that encode/decode in new format creates same entry
+  EXPECT_EQ(
+      folly::parseJson(jsonNewFormatNoRibEntryType),
+      newFormatNoRibEntry->toFollyDynamic());
+
+  FLAGS_mpls_rib = true;
+  // Interface id present only in fwd and not in client entries
+  // for non link local entries
+  std::string jsonRibEnabledNewFormatEntryType = R"(
+  {
+  "forwardingInfo": {
+    "adminDistance": 10,
+    "nexthops": [
+      {
+        "interface": 2002,
+        "label_forwarding_action": {
+          "type": 2
         },
+        "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      },
+      {
+        "label_forwarding_action": {
+          "type": 2
+        },
+        "interface": 2096,
+        "nexthop": "2401::d8c4:97ff:fed0:5b14",
+        "weight": "0"
+      }
+    ],
+    "action": "Nexthops"
+  },
+  "flags": 2,
+  "prefix": {
+    "label": 1001
+  },
+  "rib": {
+    "786": {
+      "adminDistance": 10,
+      "action": "Nexthops",
+      "nexthops": [
         {
           "label_forwarding_action": {
             "type": 2
           },
-          "interface": 2095,
+          "weight": "0",
+          "nexthop": "2401::d8c4:97ff:fed0:5b14"
+        },
+        {
+          "interface": 2002,
+          "label_forwarding_action": {
+            "type": 2
+          },
           "weight": "0",
           "nexthop": "fe80::d8c4:97ff:fed0:5b14"
         }
@@ -185,9 +225,49 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
     }
   }
 })";
-  auto newEntry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
-      folly::parseJson(jsonNewEntryType));
-  EXPECT_TRUE(newEntry->isSame(entry.get()));
+
+  auto newRibEntry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+      folly::parseJson(jsonRibEnabledNewFormatEntryType));
+  // Reparse the old format entry with RIB enabled
+  auto oldFormatRibEntry =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          folly::parseJson(jsonOldFormatEntryType));
+
+  // ensure that old and new format creates same entry with mpls rib enabled
+  EXPECT_TRUE(newRibEntry->isSame(oldFormatRibEntry.get()));
+
+  // parse the new format entry with RIB enabled
+  auto newFormatRibEntry =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          folly::parseJson(jsonRibEnabledNewFormatEntryType));
+  // ensure that old and new format creates same entry with mpls rib enabled
+  EXPECT_TRUE(newFormatRibEntry->isSame(oldFormatRibEntry.get()));
+
+  // ensure that encode and decode in new format with rib creates same entry
+  EXPECT_EQ(
+      folly::parseJson(jsonRibEnabledNewFormatEntryType),
+      newRibEntry->toFollyDynamic());
+
+  auto oldFormatRibJsonWritten =
+      LabelForwardingInformationBase::toFollyDynamicOldFormat(newRibEntry);
+
+  auto newFormatRibJsonWritten = newRibEntry->toFollyDynamic();
+
+  // check for mpls rib disable case
+  FLAGS_mpls_rib = false;
+  auto noRibEntry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+      oldFormatRibJsonWritten);
+  EXPECT_TRUE(noRibEntry->isSame(oldFormatRibEntry.get()));
+  oldFormatRibEntry =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          folly::parseJson(jsonOldFormatEntryType));
+  // Entries won't be same due to difference in interface id in client entries
+  EXPECT_FALSE(noRibEntry->isSame(oldFormatRibEntry.get()));
+
+  auto noRibEntryNewFormat =
+      LabelForwardingInformationBase::labelEntryFromFollyDynamic(
+          newFormatRibJsonWritten);
+  EXPECT_TRUE(noRibEntry->isSame(noRibEntryNewFormat.get()));
 }
 
 TEST(LabelForwardingEntryTests, getEntryForClient) {
