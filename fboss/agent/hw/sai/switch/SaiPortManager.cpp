@@ -766,6 +766,12 @@ void SaiPortManager::programSerdes(
   std::shared_ptr<SaiPortSerdes> serdes = store.get(serdesKey);
 
   if (!serdes) {
+    /* Serdes programming model is changed starting brcm-sai 6.0.0.14, where
+     * Serdes objects are no longer created beforehand. Therefore, agent only
+     * needs to create a new serdes object without knowing the serdes Id or
+     * reloading the object to sai store.
+     */
+#if !defined(SAI_VERSION_6_0_0_14_ODP)
     // serdes is not yet programmed or reloaded from adapter
     std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
     auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -775,6 +781,7 @@ void SaiPortManager::programSerdes(
       serdes =
           store.reloadObject(static_cast<PortSerdesSaiId>(serdesId.value()));
     }
+#endif
   } else {
     // ensure warm boot handles are reclaimed removed
     // no-op if serdes is already programmed
