@@ -72,13 +72,17 @@ void SensorServiceImpl::init() {
   }
 
   for (auto& sensor : *sensorTable_.sensorMapList_ref()) {
-    sensorNameMap_[*sensor.second.path_ref()] = sensor.first;
+    for (auto& sensorIter : sensor.second) {
+      sensorNameMap_[*sensorIter.second.path_ref()] = sensorIter.first;
+    }
   }
 
   for (auto& pair : *sensorTable_.sensorMapList_ref()) {
-    XLOG(INFO) << pair.first << " : " << *pair.second.name_ref() << " "
-               << *pair.second.path_ref() << " " << *pair.second.maxVal_ref()
-               << " ";
+    XLOG(INFO) << pair.first << ": ";
+    for (auto& sensorPair : pair.second) {
+      XLOG(INFO) << *sensorPair.second.path_ref() << " "
+                 << *sensorPair.second.maxVal_ref() << " ";
+    }
   }
 
   XLOG(INFO) << "-------------------";
