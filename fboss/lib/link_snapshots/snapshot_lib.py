@@ -250,7 +250,14 @@ class SnapshotClient:
         )
         cmd = FETCH_SNAPSHOT_LOG_COMMAND.format(" ".join(possible_logfiles), port_name)
 
-        output = (await ssh_util.run_ssh_cmd(hostname, cmd, self._logger)).strip()
+        output = (
+            await ssh_util.run_ssh_cmd(
+                hostname,
+                cmd,
+                self._logger,
+                len(possible_logfiles) * ssh_util.BYTES_STDOUT_LIMIT,
+            )
+        ).strip()
         collection = await self.process_snapshot_lines(output.split("\n"))
 
         iphy, xphy, tcvr = collection.unpack()
