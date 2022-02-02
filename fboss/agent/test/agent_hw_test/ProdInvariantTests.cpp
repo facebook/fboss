@@ -137,18 +137,27 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 }
 
 void ProdInvariantTest::verifyLoadBalancing() {
-  sendTraffic();
   auto getPortStatsFn =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
     return getLatestPortStats(portIds);
   };
-
-  bool loadBalanced = false;
-  loadBalanced = utility::isLoadBalanced(
-      ecmpPorts_,
-      std::vector<NextHopWeight>(kEcmpWidth, 1),
-      getPortStatsFn,
-      25);
+  bool loadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+      [=]() { sendTraffic(); },
+      [=]() {
+        auto ports = std::make_unique<std::vector<int32_t>>();
+        auto ecmpPortIds = getEcmpPortIds();
+        for (auto ecmpPortId : ecmpPortIds) {
+          ports->push_back(static_cast<int32_t>(ecmpPortId));
+        }
+        sw()->getHw()->clearPortStats(ports);
+      },
+      [=]() {
+        return utility::isLoadBalanced(
+            ecmpPorts_,
+            std::vector<NextHopWeight>(kEcmpWidth, 1),
+            getPortStatsFn,
+            25);
+      });
   EXPECT_TRUE(loadBalanced);
   XLOG(INFO) << "Verify loadbalancing done";
 }

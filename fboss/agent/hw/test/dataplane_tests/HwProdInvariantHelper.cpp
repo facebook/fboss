@@ -86,9 +86,20 @@ void HwProdInvariantHelper::sendTrafficOnDownlink() {
 
 void HwProdInvariantHelper::verifyLoadBalacing() {
   CHECK(ecmpHelper_);
-  sendTrafficOnDownlink();
-  bool loadBalanced = ecmpHelper_->isLoadBalanced(
-      ecmpPorts_, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
+  bool loadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
+      [=]() { sendTrafficOnDownlink(); },
+      [=]() {
+        auto ports = std::make_unique<std::vector<int32_t>>();
+        auto ecmpPortIds = getEcmpPortIds();
+        for (auto ecmpPortId : ecmpPortIds) {
+          ports->push_back(static_cast<int32_t>(ecmpPortId));
+        }
+        getHwSwitchEnsemble()->getHwSwitch()->clearPortStats(ports);
+      },
+      [=]() {
+        return ecmpHelper_->isLoadBalanced(
+            ecmpPorts_, std::vector<NextHopWeight>(kEcmpWidth, 1), 25);
+      });
   EXPECT_TRUE(loadBalanced);
 }
 
