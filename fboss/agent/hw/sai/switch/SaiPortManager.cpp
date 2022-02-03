@@ -1224,6 +1224,20 @@ void SaiPortManager::programMacsec(
     } else {
       // TX SAK mismatch between old and new. Reprogram SAK TX
       auto txSak = *newTxSak;
+      if (oldTxSak &&
+          ((oldTxSak->sci_ref().value() == txSak.sci_ref().value()) &&
+           (oldTxSak->assocNum_ref().value() ==
+            txSak.assocNum_ref().value()))) {
+        // The old Tx SAK is present and new Tx SAK with same key but different
+        // value is to be added. So delete the old Tx SAK first and then add new
+        // Tx SAK
+        auto oldSak = *oldTxSak;
+        XLOG(INFO) << "Updating Tx SAK by Deleting and Adding. MAC="
+                   << oldSak.sci_ref()->macAddress_ref().value()
+                   << " port=" << oldSak.sci_ref()->port_ref().value();
+        macsecManager.deleteMacsec(
+            portId, oldSak, *oldSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+      }
       XLOG(INFO) << "Setup Egress Macsec for MAC="
                  << txSak.sci_ref()->macAddress_ref().value()
                  << " port=" << txSak.sci_ref()->port_ref().value();
@@ -1238,6 +1252,16 @@ void SaiPortManager::programMacsec(
     const auto& [key, sak] = keyAndSak;
     auto kitr = oldRxSaks.find(key);
     if (kitr == oldRxSaks.end() || sak != kitr->second) {
+      // Either no SAK RX for this key before. Or the previous SAK with the same
+      // key did not match the new SAK
+      if (kitr != oldRxSaks.end()) {
+        // There was a prev SAK with the same key. Delete it
+        macsecManager.deleteMacsec(
+            portId,
+            kitr->second,
+            kitr->first.sci,
+            SAI_MACSEC_DIRECTION_INGRESS);
+      }
       // Use the SCI from the key. Since for RX we use SCI of peer, which
       // is stored in MKASakKey
       XLOG(INFO) << "Setup Ingress Macsec for MAC="

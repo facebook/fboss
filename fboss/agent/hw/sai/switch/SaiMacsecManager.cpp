@@ -860,6 +860,7 @@ void SaiMacsecManager::setupMacsec(
   auto secureAssoc = getMacsecSecureAssoc(
       linePort, scIdentifier, direction, *sak.assocNum_ref() % 4);
   if (!secureAssoc) {
+    // Add the new SA now
     auto secureAssocSaiId = addMacsecSecureAssoc(
         linePort,
         scIdentifier,
