@@ -111,6 +111,14 @@ SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
 }
 
 void SaiSwitchManager::resetHashes() {
+  if (ecmpV4Hash_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV4{SAI_NULL_OBJECT_ID});
+  }
+  if (ecmpV6Hash_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV6{SAI_NULL_OBJECT_ID});
+  }
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
 }
