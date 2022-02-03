@@ -7,10 +7,14 @@
 
 #include <folly/logging/xlog.h>
 #include "common/services/cpp/BuildValues.h"
+#include "common/services/cpp/ServiceFrameworkLight.h"
+#include "fboss/platform/misc_service/MiscServiceThriftHandler.h"
+#include "fboss/platform/misc_service/SetupMiscServiceThrift.h"
 
 using namespace facebook;
 using namespace facebook::services;
-// using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::misc_service;
 
 int main(int argc, char** argv) {
   // Set version info
@@ -24,12 +28,15 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
   // ToDo: Setup thrift handler and server
+  auto [server, handler] = setupThrift();
 
   folly::FunctionScheduler scheduler;
 
   scheduler.start();
 
-  // ToDo: run the Thrift server
+  facebook::services::ServiceFrameworkLight service("Misc Service");
+  // Finally, run the Thrift server
+  runServer(service, server, handler.get());
   XLOG(INFO) << "misc_service exits";
 
   return 0;
