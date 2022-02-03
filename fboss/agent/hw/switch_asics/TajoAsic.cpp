@@ -50,6 +50,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HOT_SWAP:
@@ -78,7 +80,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::SAI_LAG_HASH:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SAI_MPLS_QOS:
@@ -87,7 +88,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
-    case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
