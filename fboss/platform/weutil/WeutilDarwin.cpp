@@ -136,7 +136,6 @@ void WeutilDarwin::printInfo() {
 void WeutilDarwin::printInfoJson() {
   PrefdlBase prefdl(kPredfl);
   folly::dynamic wedgeInfo = folly::dynamic::object;
-  folly::dynamic wedgeInfoContent = folly::dynamic::object;
 
   wedgeInfo["Actions"] = folly::dynamic::array();
   wedgeInfo["Resources"] = folly::dynamic::array();
@@ -148,6 +147,15 @@ void WeutilDarwin::printInfoJson() {
       wedgeInfo["Information"][item.first] =
           (it == kMapping.end() ? item.second : prefdl.getField(it->second));
     }
+  }
+
+  // For Darwin BMC-less, we need to fill empty field "Extended MAC Address
+  // Size" and "Extended MAC Base" (same as "Local MAC") as a workaround for
+  // creating /var/facebook/fboss/fruid.json (T110038028)
+  if (wedgeInfo["Information"]["Extended MAC Base"] == "") {
+    wedgeInfo["Information"]["Extended MAC Base"] =
+        wedgeInfo["Information"]["Local MAC"];
+    wedgeInfo["Information"]["Extended MAC Address Size"] = "1";
   }
   std::cout << folly::toPrettyJson(wedgeInfo);
 }
