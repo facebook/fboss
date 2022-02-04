@@ -178,6 +178,39 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     acl->setL4DstPort(dstL4Port_);
     acl->setDstPort(trafficPort_);
     acl->setProto(17 /* udp */);
+    /*
+     * The number of packets mirrorred through ACL is different in Native BCM
+     * and BCM-SAI (CS00012203195). The number of packets mirrorred in Native
+     * BCM is 2 whereas number of packets mirrored in BCM-SAI is 4.
+     *
+     * 1) Send packet from CPU and perform hw lookup in the ASIC
+     * 2) Packet is routed and forwarded to Port 0
+     * 3) Packet is mirrored (ingress and egress) to port 1
+     * 4) For native BCM, the packet routed out of port 0 is looped back
+     *    and dropped.
+     *    For BCM-SAI, the packet routed out of port 0 is looped back
+     *    but L2 forwarded, ACL is looked up which mirrors again (2
+     *    more packets) and dropped due to same port check.
+     *
+     *  The reason for the difference is the packet in native BCM is
+     *  treated as unknown unicast and the dst port lookup is not performed
+     *  in IFP for unknown unicast packets. Whereas in BCM-SAI, we
+     *  install a FDB entry for every neighbor entry. The FDB entry is hit
+     *  which makes the packet to be treated as known unicast and the IFP
+     *  is hit and the packets are mirrored again.
+     *
+     * In order to avoid the ACL lookup, we can add additional qualifiers.
+     * - SRC PORT: can be used once TAJO supports it.
+     * - DMAC: DMAC can be used since the routed packet will have a different
+     *   DMAC. Not all platforms support DMAC as a qualifier (For eg, Tajo)
+     * - DROP Bit: WB + Fitting implications
+     * - TTL: Use TTL 255 to ensure this entry is hit only for the first packet.
+     *
+     * For now, using TTL qualifier to ensure the routed packet is dropped. We
+     * can update the test to include source port qualifier with CPU port
+     * and enable it on TAJO platform.
+     */
+    acl->setTtl(AclTtl(255, 0xFF));
     acl->setActionType(cfg::AclActionType::PERMIT);
     MatchAction action;
     action.setIngressMirror(mirrorName);
