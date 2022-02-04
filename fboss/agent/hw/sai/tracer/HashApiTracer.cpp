@@ -8,8 +8,21 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _HashMap{
+    SAI_ATTR_MAP(Hash, NativeHashFieldList),
+    SAI_ATTR_MAP(Hash, UDFGroupList),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,24 +42,6 @@ sai_hash_api_t* wrappedHashApi() {
   return &hashWrappers;
 }
 
-void setHashAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_HASH_ATTR_NATIVE_HASH_FIELD_LIST:
-        s32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_HASH_ATTR_UDF_GROUP_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Hash)
 
 } // namespace facebook::fboss

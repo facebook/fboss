@@ -8,9 +8,88 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include <typeindex>
+#include <utility>
+
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
+    SAI_ATTR_MAP(Switch, InitSwitch),
+    SAI_ATTR_MAP(Switch, HwInfo),
+    SAI_ATTR_MAP(Switch, SrcMac),
+    SAI_ATTR_MAP(Switch, SwitchShellEnable),
+    SAI_ATTR_MAP(Switch, EcmpHashV4),
+    SAI_ATTR_MAP(Switch, EcmpHashV6),
+    SAI_ATTR_MAP(Switch, LagHashV4),
+    SAI_ATTR_MAP(Switch, LagHashV6),
+    SAI_ATTR_MAP(Switch, EcmpDefaultHashSeed),
+    SAI_ATTR_MAP(Switch, LagDefaultHashSeed),
+    SAI_ATTR_MAP(Switch, EcmpDefaultHashAlgorithm),
+    SAI_ATTR_MAP(Switch, LagDefaultHashAlgorithm),
+    SAI_ATTR_MAP(Switch, SwitchRestartWarm),
+    SAI_ATTR_MAP(Switch, CpuPort),
+    SAI_ATTR_MAP(Switch, DefaultVlanId),
+    SAI_ATTR_MAP(Switch, PortNumber),
+    SAI_ATTR_MAP(Switch, PortList),
+    SAI_ATTR_MAP(Switch, Default1QBridgeId),
+    SAI_ATTR_MAP(Switch, DefaultVirtualRouterId),
+    SAI_ATTR_MAP(Switch, NumberOfMulticastQueues),
+    SAI_ATTR_MAP(Switch, LagHash),
+    SAI_ATTR_MAP(Switch, EcmpHash),
+    SAI_ATTR_MAP(Switch, QosDscpToTcMap),
+    SAI_ATTR_MAP(Switch, QosTcToQueueMap),
+    SAI_ATTR_MAP(Switch, QosExpToTcMap),
+    SAI_ATTR_MAP(Switch, QosTcToExpMap),
+    SAI_ATTR_MAP(Switch, AclEntryMinimumPriority),
+    SAI_ATTR_MAP(Switch, AclEntryMaximumPriority),
+    SAI_ATTR_MAP(Switch, MacAgingTime),
+    SAI_ATTR_MAP(Switch, FdbDstUserMetaDataRange),
+    SAI_ATTR_MAP(Switch, RouteDstUserMetaDataRange),
+    SAI_ATTR_MAP(Switch, NeighborDstUserMetaDataRange),
+    SAI_ATTR_MAP(Switch, AvailableIpv4RouteEntry),
+    SAI_ATTR_MAP(Switch, AvailableIpv6RouteEntry),
+    SAI_ATTR_MAP(Switch, AvailableIpv4NextHopEntry),
+    SAI_ATTR_MAP(Switch, AvailableIpv6NextHopEntry),
+    SAI_ATTR_MAP(Switch, AvailableNextHopGroupEntry),
+    SAI_ATTR_MAP(Switch, AvailableNextHopGroupMemberEntry),
+    SAI_ATTR_MAP(Switch, AvailableIpv4NeighborEntry),
+    SAI_ATTR_MAP(Switch, AvailableIpv6NeighborEntry),
+    SAI_ATTR_MAP(Switch, IngressAcl),
+    SAI_ATTR_MAP(Switch, TamObject),
+    SAI_ATTR_MAP(Switch, UseEcnThresholds),
+    SAI_ATTR_MAP(Switch, CounterRefreshInterval),
+    SAI_ATTR_MAP(Switch, FirmwarePathName),
+    SAI_ATTR_MAP(Switch, FirmwareLoadMethod),
+    SAI_ATTR_MAP(Switch, FirmwareLoadType),
+    SAI_ATTR_MAP(Switch, HardwareAccessBus),
+    SAI_ATTR_MAP(Switch, PlatformContext),
+    SAI_ATTR_MAP(Switch, SwitchProfileId),
+    SAI_ATTR_MAP(Switch, FirmwareStatus),
+    SAI_ATTR_MAP(Switch, FirmwareMajorVersion),
+    SAI_ATTR_MAP(Switch, FirmwareMinorVersion),
+    SAI_ATTR_MAP(Switch, PortConnectorList),
+    SAI_ATTR_MAP(Switch, SwitchId),
+    SAI_ATTR_MAP(Switch, MaxSystemCores),
+    SAI_ATTR_MAP(Switch, SysPortConfigList),
+    SAI_ATTR_MAP(Switch, SwitchType),
+    SAI_ATTR_MAP(Switch, RegisterReadFn),
+    SAI_ATTR_MAP(Switch, RegisterWriteFn),
+};
+
+void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP(Switch, Led)
+  SAI_EXT_ATTR_MAP(Switch, LedReset)
+  SAI_EXT_ATTR_MAP(Switch, AclFieldList)
+  SAI_EXT_ATTR_MAP(Switch, EgressPoolAvaialableSize)
+  SAI_EXT_ATTR_MAP(Switch, HwEccErrorInitiate)
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -88,6 +167,7 @@ sai_status_t wrap_clear_switch_stats(
 }
 
 sai_switch_api_t* wrappedSwitchApi() {
+  handleExtensionAttributes();
   static sai_switch_api_t switchWrappers;
 
   switchWrappers.create_switch = &wrap_create_switch;
@@ -101,126 +181,6 @@ sai_switch_api_t* wrappedSwitchApi() {
   return &switchWrappers;
 }
 
-void setSwitchAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_SWITCH_ATTR_CPU_PORT:
-      case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
-      case SAI_SWITCH_ATTR_DEFAULT_VLAN_ID:
-      case SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID:
-      case SAI_SWITCH_ATTR_ECMP_HASH:
-      case SAI_SWITCH_ATTR_LAG_HASH:
-      case SAI_SWITCH_ATTR_ECMP_HASH_IPV4:
-      case SAI_SWITCH_ATTR_ECMP_HASH_IPV6:
-      case SAI_SWITCH_ATTR_LAG_HASH_IPV4:
-      case SAI_SWITCH_ATTR_LAG_HASH_IPV6:
-      case SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP:
-      case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
-      case SAI_SWITCH_ATTR_INGRESS_ACL:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_SWITCH_ATTR_PORT_LIST:
-      case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
-      case SAI_SWITCH_ATTR_PORT_CONNECTOR_LIST:
-      case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
-        macAddressAttr(attr_list, i, attrLines);
-        break;
-      case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
-      case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME:
-        s8ListAttr(attr_list, i, listCount++, attrLines, true);
-        break;
-      case SAI_SWITCH_ATTR_INIT_SWITCH:
-      case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
-      case SAI_SWITCH_ATTR_RESTART_WARM:
-      case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
-      case SAI_SWITCH_ATTR_FIRMWARE_STATUS:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_SWITCH_ATTR_PORT_NUMBER:
-      case SAI_SWITCH_ATTR_NUMBER_OF_UNICAST_QUEUES:
-      case SAI_SWITCH_ATTR_NUMBER_OF_MULTICAST_QUEUES:
-      case SAI_SWITCH_ATTR_NUMBER_OF_QUEUES:
-      case SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES:
-      case SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS:
-      case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
-      case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
-      case SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY:
-      case SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEXTHOP_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_ENTRY:
-      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY:
-      case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
-      case SAI_SWITCH_ATTR_FDB_AGING_TIME:
-      case SAI_SWITCH_ATTR_FIRMWARE_MAJOR_VERSION:
-      case SAI_SWITCH_ATTR_FIRMWARE_MINOR_VERSION:
-      case SAI_SWITCH_ATTR_MAX_SYSTEM_CORES:
-      case SAI_SWITCH_ATTR_SWITCH_ID:
-      case SAI_SWITCH_ATTR_SWITCH_PROFILE_ID:
-      case SAI_SWITCH_ATTR_TYPE:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM:
-      case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
-      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD:
-      case SAI_SWITCH_ATTR_FIRMWARE_LOAD_TYPE:
-      case SAI_SWITCH_ATTR_HARDWARE_ACCESS_BUS:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_SWITCH_ATTR_FDB_DST_USER_META_DATA_RANGE:
-      case SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE:
-      case SAI_SWITCH_ATTR_ROUTE_DST_USER_META_DATA_RANGE:
-        u32RangeAttr(attr_list, i, attrLines);
-        break;
-      case SAI_SWITCH_ATTR_PLATFROM_CONTEXT:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      default:
-        // Handle extension attributes
-        auto ledId = facebook::fboss::SaiSwitchTraits::Attributes::Led::
-            optionalExtensionAttributeId();
-        auto ledResetId = facebook::fboss::SaiSwitchTraits::Attributes::
-            LedReset::optionalExtensionAttributeId();
-        auto aclFieldListId = facebook::fboss::SaiSwitchTraits::Attributes::
-            AclFieldList::optionalExtensionAttributeId();
-        auto egressPoolAvailableSizeId =
-            facebook::fboss::SaiSwitchTraits::Attributes::
-                EgressPoolAvaialableSize::optionalExtensionAttributeId();
-        auto hwECCErrorInitiateWrapperId = facebook::fboss::SaiSwitchTraits::
-            Attributes::HwEccErrorInitiate::optionalExtensionAttributeId();
-        if (ledId.has_value() && attr_list[i].id == ledId.value()) {
-          u32ListAttr(attr_list, i, listCount++, attrLines);
-        } else if (
-            ledResetId.has_value() && attr_list[i].id == ledResetId.value()) {
-          u32ListAttr(attr_list, i, listCount++, attrLines);
-        } else if (
-            aclFieldListId.has_value() &&
-            attr_list[i].id == aclFieldListId.value()) {
-          s32ListAttr(attr_list, i, listCount++, attrLines);
-        } else if (
-            egressPoolAvailableSizeId.has_value() &&
-            attr_list[i].id == egressPoolAvailableSizeId.value()) {
-          attrLines.push_back(u32Attr(attr_list, i));
-        } else if (
-            hwECCErrorInitiateWrapperId.has_value() &&
-            attr_list[i].id == hwECCErrorInitiateWrapperId.value()) {
-          attrLines.push_back(u16Attr(attr_list, i));
-        }
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Switch)
 
 } // namespace facebook::fboss
