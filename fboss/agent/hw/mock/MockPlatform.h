@@ -14,6 +14,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
 #include <gmock/gmock.h>

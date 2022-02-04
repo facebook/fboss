@@ -12,11 +12,11 @@
 #include <gmock/gmock.h>
 
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 class RxPacket;
-class SwitchState;
 
 class MockTunManager : public TunManager {
  public:
