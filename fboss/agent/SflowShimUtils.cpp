@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTestUtil.h"
+#include "fboss/agent/SflowShimUtils.h"
 
 namespace facebook::fboss::utility {
 

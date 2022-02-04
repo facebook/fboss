@@ -235,7 +235,6 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwSwitchStatsTxCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTestUtil.cpp
   fboss/agent/hw/test/dataplane_tests/Hw2QueueToOlympicQoSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
@@ -257,6 +256,7 @@ target_link_libraries(hw_switch_test
   prod_config_utils
   traffic_policy_utils
   core
+  sflow_shim_utils
   hardware_stats_cpp2
   route_distribution_gen
   route_scale_gen

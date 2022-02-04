@@ -9,7 +9,7 @@ enum class SflowShimAsic : uint8_t {
   SFLOW_SHIM_ASIC_UNKNOWN = 0,
   SFLOW_SHIM_ASIC_TH3 = 1,
   SFLOW_SHIM_ASIC_TH4 = 2,
-  SFLOW_SHIM_ASIC_GB = 3,
+  SFLOW_SHIM_ASIC_TAJO = 3,
 };
 
 struct SflowShimHeaderInfo {

@@ -263,3 +263,11 @@ target_link_libraries(async_logger
   fb303::fb303
   Folly::folly
 )
+
+add_library(sflow_shim_utils
+  fboss/agent/SflowShimUtils.cpp
+)
+
+target_link_libraries(sflow_shim_utils
+  Folly::folly
+)
