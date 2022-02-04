@@ -506,13 +506,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
   if (addedAclEntry->getSrcPort()) {
-    if (!platform_->getAsic()->isSupported(
-            HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
-      XLOG(FATAL)
-          << "ASIC does not support qualifying traffic on ingress port, not "
-          << "programming acl entry qualifier for ingress port";
-    } else if (
-        addedAclEntry->getSrcPort().value() !=
+    if (addedAclEntry->getSrcPort().value() !=
         cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
       auto portHandle = managerTable_->portManager().getPortHandle(
           PortID(addedAclEntry->getSrcPort().value()));

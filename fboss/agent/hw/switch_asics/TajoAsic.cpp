@@ -51,7 +51,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HOT_SWAP:

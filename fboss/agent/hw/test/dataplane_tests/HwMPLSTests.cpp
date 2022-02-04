@@ -48,10 +48,6 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   struct HwPacketVerifier {
     HwPacketVerifier(HwSwitchEnsemble* ensemble, PortID port, MPLSHdr hdr)
         : ensemble_(ensemble), entry_{}, snooper_{}, expectedHdr_(hdr) {
-      if (!ensemble->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
-        return;
-      }
       // capture packet exiting port (entering back due to loopback)
       entry_ = std::make_unique<HwTestPacketTrapEntry>(
           ensemble->getHwSwitch(), port);
@@ -59,10 +55,6 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
 
     ~HwPacketVerifier() {
-      if (!ensemble_->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
-        return;
-      }
       auto pkt = snooper_->waitForPacket(10);
       auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
       EXPECT_TRUE(mplsPayLoad.has_value());
