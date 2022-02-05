@@ -303,7 +303,7 @@ TEST(LabelForwardingEntryTests, getEntryForClient) {
         clientNextHopsEntry[clientID](AdminDistance::DIRECTLY_CONNECTED));
   }
 
-  for (const auto clientNextHop : clientNextHopsEntry) {
+  for (const auto& clientNextHop : clientNextHopsEntry) {
     auto* nexthopEntry = entry->getEntryForClient(clientNextHop.first);
     EXPECT_EQ(
         *nexthopEntry, clientNextHop.second(AdminDistance::DIRECTLY_CONNECTED));
