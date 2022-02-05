@@ -70,6 +70,7 @@ enum RegisterValueType {
   STRING = 1,
   FLOAT = 2,
   FLAGS = 3,
+  RAW = 4,
 }
 
 struct FlagType {
@@ -83,6 +84,7 @@ union RegisterValue {
   2: string strValue;
   3: float floatValue;
   4: list<FlagType> flagsValue;
+  5: list<byte> rawValue;
 }
 
 struct ModbusRegisterValue {
