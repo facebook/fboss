@@ -69,12 +69,20 @@ enum RegisterValueType {
   INTEGER = 0,
   STRING = 1,
   FLOAT = 2,
+  FLAGS = 3,
+}
+
+struct FlagType {
+  1: string name;
+  2: bool value;
+  3: byte bitOffset;
 }
 
 union RegisterValue {
   1: i32 intValue;
   2: string strValue;
   3: float floatValue;
+  4: list<FlagType> flagsValue;
 }
 
 struct ModbusRegisterValue {
