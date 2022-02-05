@@ -65,6 +65,13 @@ struct WriteSingleRegisterRequest {
   4: optional i32 timeout;
 }
 
+struct PresetMultipleRegistersRequest {
+  1: byte devAddress;
+  2: i32 regAddress;
+  3: list<i32> regValue;
+  4: optional i32 timeout;
+}
+
 enum RegisterValueType {
   INTEGER = 0,
   STRING = 1,
@@ -151,6 +158,13 @@ service RackmonCtrl {
    */
   RackmonStatusCode writeSingleRegister(
     1: WriteSingleRegisterRequest req,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Modbus function code 0x10, Write multiple register.
+   */
+  RackmonStatusCode presetMultipleRegisters(
+    1: PresetMultipleRegistersRequest req,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
