@@ -43,20 +43,20 @@ struct ModbusDeviceInfo {
  */
 struct ReadWordRegistersRequest {
   1: byte devAddress;
-  2: i16 regAddress;
-  3: i16 numRegisters;
+  2: i32 regAddress;
+  3: i32 numRegisters;
   4: optional i32 timeout;
 }
 
 struct ReadWordRegistersResponse {
   1: RackmonStatusCode status;
-  2: list<i16> regValues;
+  2: list<i32> regValues;
 }
 
 struct WriteSingleRegisterRequest {
   1: byte devAddress;
-  2: i16 regAddress;
-  3: i16 regValue;
+  2: i32 regAddress;
+  3: i32 regValue;
   4: optional i32 timeout;
 }
 
@@ -66,7 +66,7 @@ enum RegisterValueType {
 }
 
 union RegisterValue {
-  1: i16 intValue;
+  1: i32 intValue;
   2: string strValue;
 }
 
@@ -81,7 +81,7 @@ struct ModbusRegisterValue {
  * is tagged with a timestamp showing when the value is obtained.
  */
 struct ModbusRegisterStore {
-  1: i16 regAddress;
+  1: i32 regAddress;
   2: list<ModbusRegisterValue> history;
 }
 
