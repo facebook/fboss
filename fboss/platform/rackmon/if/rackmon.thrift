@@ -25,6 +25,10 @@ enum ModbusDeviceMode {
   DORMANT = 1,
 }
 
+enum ModbusDeviceType {
+  ORV2_PSU = 0,
+}
+
 /*
  * Structure to describe a modbus device (PSU, BBU, etc).
  */
@@ -35,6 +39,7 @@ struct ModbusDeviceInfo {
   4: i32 timeouts;
   5: i32 crcErrors;
   6: i32 miscErrors;
+  7: ModbusDeviceType deviceType;
 }
 
 /*
