@@ -87,7 +87,8 @@ struct ModbusRegisterValue {
  */
 struct ModbusRegisterStore {
   1: i32 regAddress;
-  2: list<ModbusRegisterValue> history;
+  2: string name;
+  3: list<ModbusRegisterValue> history;
 }
 
 /*
