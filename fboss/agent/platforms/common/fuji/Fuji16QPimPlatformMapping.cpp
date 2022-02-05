@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/fuji/Fuji16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 #include <folly/logging/xlog.h>
 
 namespace {

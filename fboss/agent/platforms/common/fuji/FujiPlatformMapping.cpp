@@ -8,8 +8,8 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/fuji/FujiPlatformMapping.h"
-#include "fboss/agent/platforms/wedge/fuji/Fuji16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
+#include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 
 namespace facebook {
 namespace fboss {
