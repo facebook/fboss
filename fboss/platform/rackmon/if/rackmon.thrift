@@ -72,6 +72,29 @@ struct PresetMultipleRegistersRequest {
   4: optional i32 timeout;
 }
 
+struct FileRecordReq {
+  1: i32 fileNum;
+  2: i32 recordNum;
+  3: i32 dataSize;
+}
+
+struct FileRecord {
+  1: i32 fileNum;
+  2: i32 recordNum;
+  3: list<i32> data;
+}
+
+struct ReadFileRecordRequest {
+  1: byte devAddress;
+  2: list<FileRecordReq> records;
+  3: optional i32 timeout;
+}
+
+struct ReadFileRecordResponse {
+  1: RackmonStatusCode status;
+  2: list<FileRecord> data;
+}
+
 enum RegisterValueType {
   INTEGER = 0,
   STRING = 1,
@@ -166,6 +189,13 @@ service RackmonCtrl {
   RackmonStatusCode presetMultipleRegisters(
     1: PresetMultipleRegistersRequest req,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Modbus function code 0x14, read File record.
+   */
+  ReadFileRecordResponse readFileRecord(1: ReadFileRecordRequest req) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Get the pre-fetched register values of all the detected Modbus devices.
