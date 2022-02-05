@@ -139,7 +139,7 @@ struct ModbusRegisterStore {
  */
 struct RackmonMonitorData {
   1: ModbusDeviceInfo devInfo;
-  2: list<ModbusRegisterStore> regStore;
+  2: list<ModbusRegisterStore> regList;
 }
 
 enum RackmonControlRequest {
