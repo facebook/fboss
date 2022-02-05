@@ -68,11 +68,13 @@ struct WriteSingleRegisterRequest {
 enum RegisterValueType {
   INTEGER = 0,
   STRING = 1,
+  FLOAT = 2,
 }
 
 union RegisterValue {
   1: i32 intValue;
   2: string strValue;
+  3: float floatValue;
 }
 
 struct ModbusRegisterValue {
