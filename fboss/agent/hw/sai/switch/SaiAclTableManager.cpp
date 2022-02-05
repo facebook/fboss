@@ -506,13 +506,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
   if (addedAclEntry->getSrcPort()) {
-    if (!platform_->getAsic()->isSupported(
-            HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
-      XLOG(FATAL)
-          << "ASIC does not support qualifying traffic on ingress port, not "
-          << "programming acl entry qualifier for ingress port";
-    } else if (
-        addedAclEntry->getSrcPort().value() !=
+    if (addedAclEntry->getSrcPort().value() !=
         cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
       auto portHandle = managerTable_->portManager().getPortHandle(
           PortID(addedAclEntry->getSrcPort().value()));
@@ -872,7 +866,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() ||
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
-
+  if (fieldSrcPort.has_value()) {
+    matcherIsValid &= platform_->getAsic()->isSupported(
+        HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
+  }
   auto actionIsValid =
       (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
        aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
@@ -1112,8 +1109,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::LOOKUP_CLASS_L2,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
-        cfg::AclTableQualifier::SRC_PORT};
+        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
   }
   std::set<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::SRC_IPV6,
@@ -1345,13 +1341,8 @@ void SaiAclTableManager::recreateAclTable(
       continue;
     }
     auto value = entry.second.lock()->attributes();
-    entries.emplace(key, value);
-  }
-
-  for (auto [key, value] : entries) {
-    // since store keeps only weak ref the resetting pointer will remove acl
-    // entry
     auto aclEntry = aclEntryStore.setObject(key, value);
+    entries.emplace(key, value);
     aclEntry.reset();
   }
   // remove group member and acl table, since store holds only weak ptr after
