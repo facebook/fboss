@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
   // Setup thrift handler and server
-  auto handler = std::make_shared<rackmon::ThriftHandler>();
+  auto handler = std::make_shared<rackmonsvc::ThriftHandler>();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   server->setPort(FLAGS_port);
   server->setInterface(handler);

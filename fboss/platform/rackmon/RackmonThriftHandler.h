@@ -16,44 +16,44 @@
 #include <string>
 #include <vector>
 
-namespace facebook::fboss::platform::rackmon {
+namespace facebook::fboss::platform::rackmonsvc {
 
 class ThriftHandler : virtual public RackmonCtrlSvIf {
  public:
   ThriftHandler() {}
 
   void listModbusDevices(
-      std::vector<rackmon::ModbusDeviceInfo>& /* devices */) override {
+      std::vector<rackmonsvc::ModbusDeviceInfo>& /* devices */) override {
     // TODO
   }
 
   void getMonitorData(
-      std::vector<rackmon::RackmonMonitorData>& /* data */) override {
+      std::vector<rackmonsvc::RackmonMonitorData>& /* data */) override {
     // TODO
   }
 
   void readHoldingRegisters(
-      rackmon::ReadWordRegistersResponse& /* response */,
-      std::unique_ptr<rackmon::ReadWordRegistersRequest> /* request */)
+      rackmonsvc::ReadWordRegistersResponse& /* response */,
+      std::unique_ptr<rackmonsvc::ReadWordRegistersRequest> /* request */)
       override {
     // TODO
   }
 
-  rackmon::RackmonStatusCode writeSingleRegister(
-      std::unique_ptr<rackmon::WriteSingleRegisterRequest> /* request */)
+  rackmonsvc::RackmonStatusCode writeSingleRegister(
+      std::unique_ptr<rackmonsvc::WriteSingleRegisterRequest> /* request */)
       override {
     // TODO
-    return rackmon::RackmonStatusCode::SUCCESS;
+    return rackmonsvc::RackmonStatusCode::SUCCESS;
   }
 
-  void getPowerLossSiren(rackmon::PowerLossSiren& /* plsStatus */) override {
+  void getPowerLossSiren(rackmonsvc::PowerLossSiren& /* plsStatus */) override {
     // TODO
   }
 
-  rackmon::RackmonStatusCode controlRackmond(
-      rackmon::RackmonControlRequest /* request */) override {
+  rackmonsvc::RackmonStatusCode controlRackmond(
+      rackmonsvc::RackmonControlRequest /* request */) override {
     // TODO
-    return rackmon::RackmonStatusCode::SUCCESS;
+    return rackmonsvc::RackmonStatusCode::SUCCESS;
   }
 };
-} // namespace facebook::fboss::platform::rackmon
+} // namespace facebook::fboss::platform::rackmonsvc
