@@ -81,7 +81,7 @@ void LinkTest::initializeCabledPorts() {
   const auto& platformPorts =
       sw()->getPlatform()->getPlatformMapping()->getPlatformPorts();
   const auto& chips = sw()->getPlatform()->getPlatformMapping()->getChips();
-  for (const auto port : *sw()->getConfig().ports_ref()) {
+  for (const auto& port : *sw()->getConfig().ports_ref()) {
     if (!(*port.expectedLLDPValues_ref()).empty()) {
       auto portID = *port.logicalID_ref();
       cabledPorts_.push_back(PortID(portID));
