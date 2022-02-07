@@ -67,7 +67,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
       mka::MKASci& sci,
       sai_macsec_direction_t direction,
       PhyManager* phyManager,
-      bool expectAbsent = false) {
+      bool expectAbsent = false,
+      bool expectKeyMismatch = false) {
     if (!getHwQsfpEnsemble()->isSaiPlatform()) {
       throw FbossError("Cannot verify Macsec programming on non-sai platform");
     }
@@ -213,10 +214,17 @@ class HwMacsecTest : public HwExternalPhyPortTest {
         macsecApi.getAttribute(
             macsecSecureAssocId, SaiMacsecSATraits::Attributes::AssocNum()),
         assocNum);
-    EXPECT_EQ(
-        macsecApi.getAttribute(
-            macsecSecureAssocId, SaiMacsecSATraits::Attributes::AuthKey()),
-        authKey);
+    if (!expectKeyMismatch) {
+      EXPECT_EQ(
+          macsecApi.getAttribute(
+              macsecSecureAssocId, SaiMacsecSATraits::Attributes::AuthKey()),
+          authKey);
+    } else {
+      EXPECT_NE(
+          macsecApi.getAttribute(
+              macsecSecureAssocId, SaiMacsecSATraits::Attributes::AuthKey()),
+          authKey);
+    }
     EXPECT_EQ(
         macsecApi.getAttribute(
             macsecSecureAssocId,
@@ -229,10 +237,18 @@ class HwMacsecTest : public HwExternalPhyPortTest {
             macsecSecureAssocId, SaiMacsecSATraits::Attributes::SSCI()),
         shortSecureChannelId);
 #endif
-    EXPECT_EQ(
-        macsecApi.getAttribute(
-            macsecSecureAssocId, SaiMacsecSATraits::Attributes::SAK()),
-        secureAssocKey);
+    if (!expectKeyMismatch) {
+      EXPECT_EQ(
+          macsecApi.getAttribute(
+              macsecSecureAssocId, SaiMacsecSATraits::Attributes::SAK()),
+          secureAssocKey);
+    } else {
+      EXPECT_NE(
+          macsecApi.getAttribute(
+              macsecSecureAssocId, SaiMacsecSATraits::Attributes::SAK()),
+          secureAssocKey);
+    }
+
     EXPECT_EQ(
         macsecApi.getAttribute(
             macsecSecureAssocId, SaiMacsecSATraits::Attributes::Salt()),
@@ -404,6 +420,99 @@ TEST_F(HwMacsecTest, idempotentRx) {
                << port;
     verifyMacsecProgramming(
         port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true);
+  }
+}
+
+/*
+ * updateRxKeys()
+ *
+ * This test will check Rx SAK updates:
+ * 1. Install Rx SAK1 (SC=X, AN=1, Key=Z), Rx SAK2 (SC=X, AN=2, Key=Z). Verify
+ *    SAK1 and SAK2 are programmed
+ * 2. Install Rx SAK3 (SC=X, AN=1, Key=W), Verify SAK3 is programmed, SAK1 is
+ *    removed, SAK2 is untouched
+ */
+TEST_F(HwMacsecTest, updateRxKeys) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+
+    wedgeManager->programXphyPort(port, profile);
+
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+
+    auto localSci = makeSci(macGen.getNext().toString(), port);
+
+    // Install Rx SAK1 (SC=X, AN=1, Key=Z), Rx SAK2 (SC=X, AN=2, Key=Z)
+    auto sakKey1 = sakKeyGen.getNext();
+    auto sakKeyId1 = sakKeyIdGen.getNext();
+    auto rxSak1 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        1);
+    XLOG(INFO) << "updateRxKeys: Installing RX SAK1 for port " << port;
+    phyManager->sakInstallRx(rxSak1, localSci);
+
+    auto rxSak2 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        2);
+    XLOG(INFO) << "updateRxKeys: Installing RX SAK2 for port " << port;
+    phyManager->sakInstallRx(rxSak2, localSci);
+
+    // Verify programming of Rx SAK1, SAK2
+    XLOG(INFO) << "updateRxKeys: Verifying RX SAK1 present for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak1, localSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+    XLOG(INFO) << "updateRxKeys: Verifying RX SAK2 present for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak2, localSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    // Install Rx SAK3 (SC=X, AN=1, Key=W) and verify SAK3 programming
+    auto sakKey3 = sakKeyGen.getNext();
+    auto sakKeyId3 = sakKeyIdGen.getNext();
+    auto rxSak3 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey3,
+        sakKeyId3,
+        1);
+    XLOG(INFO) << "updateRxKeys: Installing RX SAK3 for port " << port;
+    phyManager->sakInstallRx(rxSak3, localSci);
+    XLOG(INFO) << "updateRxKeys: Verifying RX SAK3 present for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak3, localSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    // Verify SAK1 is not present
+    XLOG(INFO) << "updateRxKeys: Verifying no RX SAK1 for port " << port;
+    verifyMacsecProgramming(
+        port,
+        rxSak1,
+        localSci,
+        SAI_MACSEC_DIRECTION_INGRESS,
+        phyManager,
+        false,
+        true);
+
+    // Verify SAK2 is still present
+    XLOG(INFO) << "updateRxKeys: Verifying RX SAK2 present for port " << port;
+    verifyMacsecProgramming(
+        port, rxSak2, localSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    // Cleanup - Delete SAK2 and SAK3
+    phyManager->sakDeleteRx(rxSak2, localSci);
+    phyManager->sakDeleteRx(rxSak3, localSci);
   }
 }
 
