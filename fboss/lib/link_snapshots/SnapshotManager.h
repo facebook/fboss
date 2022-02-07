@@ -27,7 +27,7 @@ using namespace fboss::phy;
 class SnapshotWrapper {
  public:
   explicit SnapshotWrapper(LinkSnapshot snapshot) : snapshot_(snapshot) {}
-  void publish(std::set<std::string> portNames);
+  void publish(const std::set<std::string>& portNames);
 
   LinkSnapshot snapshot_;
   bool published_{false};

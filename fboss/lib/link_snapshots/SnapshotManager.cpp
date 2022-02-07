@@ -16,7 +16,7 @@ using namespace std::chrono;
 
 namespace facebook::fboss {
 
-void SnapshotWrapper::publish(std::set<std::string> portNames) {
+void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
   auto serializedSnapshot =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(snapshot_);
   if (!published_) {
@@ -25,7 +25,7 @@ void SnapshotWrapper::publish(std::set<std::string> portNames) {
     for (const auto& port : portNames) {
       log << PortParam(port);
     }
-    XLOG(INFO) << log.str() << " " << LinkSnapshotParam(serializedSnapshot);
+    XLOG(DBG2) << log.str() << " " << LinkSnapshotParam(serializedSnapshot);
     published_ = true;
   }
 }
