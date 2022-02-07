@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <cstring>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include "fboss/platform/helpers/Utils.h"
