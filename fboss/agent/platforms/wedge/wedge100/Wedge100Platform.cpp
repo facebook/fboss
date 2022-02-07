@@ -26,10 +26,6 @@
 
 #include <chrono>
 
-namespace {
-constexpr auto kMaxSetLedTime = std::chrono::seconds(1);
-} // namespace
-
 namespace facebook::fboss {
 
 Wedge100Platform::Wedge100Platform(
@@ -50,25 +46,7 @@ std::unique_ptr<WedgePortMapping> Wedge100Platform::createPortMapping() {
 }
 
 void Wedge100Platform::enableLedMode() {
-  // TODO: adding retries adds tolerance in case the i2c bus is
-  // busy. Long-term, we should think about having all i2c io go
-  // through qsfp_service, though this feels a bit out of place there.
-  auto expireTime = std::chrono::steady_clock::now() + kMaxSetLedTime;
-  uint8_t mode = TWELVE_BIT_MODE;
-  while (true) {
-    try {
-      WedgeI2CBusLock(getI2CBus()).write(ADDR_SYSCPLD, LED_MODE_REG, 1, &mode);
-      XLOG(DBG0) << "Successfully set LED mode to '12-bit' mode";
-      return;
-    } catch (const std::exception& ex) {
-      if (std::chrono::steady_clock::now() > expireTime) {
-        XLOG(ERR) << __func__
-                  << ": failed to change LED mode: " << folly::exceptionStr(ex);
-        return;
-      }
-    }
-    usleep(100);
-  }
+  Wedge100LedUtils::enableLedMode();
 }
 
 void Wedge100Platform::onHwInitialized(SwSwitch* sw) {

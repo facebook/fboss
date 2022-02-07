@@ -35,6 +35,9 @@ HwAsic* SaiBcmWedge100Platform::getAsic() const {
 SaiBcmWedge100Platform::~SaiBcmWedge100Platform() {}
 
 void SaiBcmWedge100Platform::initLEDs() {
+  // The LED mode can be reset by power cycle or by BMC push. Set the LED
+  // mode every time we start agent to resolve this.
+  Wedge100LedUtils::enableLedMode();
   initWedgeLED(0, Wedge100LedUtils::defaultLedCode());
   initWedgeLED(1, Wedge100LedUtils::defaultLedCode());
 }

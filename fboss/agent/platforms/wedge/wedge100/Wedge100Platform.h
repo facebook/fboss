@@ -33,12 +33,6 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
   Wedge100Platform(Wedge100Platform const&) = delete;
   Wedge100Platform& operator=(Wedge100Platform const&) = delete;
 
-  enum : uint8_t {
-    ADDR_SYSCPLD = 0x32,
-    LED_MODE_REG = 0x3c,
-    TWELVE_BIT_MODE = 0x6,
-  };
-
   std::unique_ptr<BaseWedgeI2CBus> getI2CBus() override;
 
   folly::ByteRange defaultLed0Code() override;

@@ -48,6 +48,7 @@ class Wedge100LedUtils {
     }
     return LedColor::OFF;
   }
+  static void enableLedMode();
 };
 
 } // namespace facebook::fboss
