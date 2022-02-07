@@ -238,10 +238,24 @@ class NodeBaseT : public NodeBase {
  protected:
   class CloneAllocator : public std::allocator<NodeT> {
    public:
+    using Alloc = std::allocator<NodeT>;
+    using AllocTraits = std::allocator_traits<Alloc>;
+
     template <typename... Args>
     void construct(void* p, Args&&... args) {
       new (p) NodeT(std::forward<Args>(args)...);
     }
+
+#if __cplusplus <= 202001L
+    using Alloc::rebind;
+    using typename Alloc::is_always_equal;
+#else
+    using is_always_equal = typename AllocTraits::is_always_equal;
+    template <class U>
+    struct rebind {
+      using other = std::allocator<U>;
+    };
+#endif
   };
 
  private:
