@@ -64,6 +64,16 @@ void validatePhyInfo(
       if (auto cdrLiveStatus = lane.second.cdrLockLive_ref()) {
         EXPECT_TRUE(*cdrLiveStatus);
       }
+      if (const auto eyesRef = lane.second.eyes_ref()) {
+        for (const auto& eye : *eyesRef) {
+          if (const auto widthRef = eye.width_ref()) {
+            EXPECT_GT(*widthRef, 0);
+          }
+          if (const auto heightRef = eye.height_ref()) {
+            EXPECT_GT(*heightRef, 0);
+          }
+        }
+      }
       // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
       // sdk >= 6.5.24
     }
