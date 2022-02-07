@@ -516,4 +516,77 @@ TEST_F(HwMacsecTest, updateRxKeys) {
   }
 }
 
+/*
+ * updateTxKeys()
+ *
+ * This test will check Rx SAK updates:
+ * 1. Install Tx SAK1 (SC=X, AN=1, Key=Z), Tx SAK2 (SC=X, AN=2, Key=Z). Verify
+ *    SAK2 is programmed
+ * 2. Install Tx SAK3 (SC=X, AN=2, Key=W), Verify SAK3 is programmed
+ */
+TEST_F(HwMacsecTest, updateTxKeys) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+
+    wedgeManager->programXphyPort(port, profile);
+
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+
+    auto localSci = makeSci(macGen.getNext().toString(), port);
+
+    // Install Tx SAK1 (SC=X, AN=1, Key=Z), Tx SAK2 (SC=X, AN=2, Key=Z)
+    auto sakKey1 = sakKeyGen.getNext();
+    auto sakKeyId1 = sakKeyIdGen.getNext();
+    auto txSak1 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        1);
+    XLOG(INFO) << "updateTxKeys: Installing TX SAK1 for port " << port;
+    phyManager->sakInstallTx(txSak1);
+
+    auto txSak2 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        2);
+    XLOG(INFO) << "updateTxKeys: Installing TX SAK2 for port " << port;
+    phyManager->sakInstallTx(txSak2);
+
+    // Verify programming of Tx SAK2
+    XLOG(INFO) << "updateTxKeys: Verifying TX SAK2 for port " << port;
+    verifyMacsecProgramming(
+        port, txSak2, localSci, SAI_MACSEC_DIRECTION_EGRESS, phyManager);
+
+    // Install Tx SAK3 (SC=X, AN=2, Key=W), Verify SAK3 is programmed
+    auto sakKey3 = sakKeyGen.getNext();
+    auto sakKeyId3 = sakKeyIdGen.getNext();
+    auto txSak3 = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey3,
+        sakKeyId3,
+        2);
+    XLOG(INFO) << "updateTxKeys: Installing TX SAK3 for port " << port;
+    phyManager->sakInstallTx(txSak3);
+    XLOG(INFO) << "updateTxKeys: Verifying TX SAK3 for port " << port;
+    verifyMacsecProgramming(
+        port, txSak3, localSci, SAI_MACSEC_DIRECTION_EGRESS, phyManager);
+
+    // Cleanup - Delete SAK1 and SAK3
+    phyManager->sakDelete(txSak1);
+    phyManager->sakDelete(txSak3);
+  }
+}
+
 } // namespace facebook::fboss
