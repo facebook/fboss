@@ -4,6 +4,8 @@
 
 #include "fboss/lib/fpga/HwMemoryRegion.h"
 
+#include <folly/SharedMutex.h>
+
 namespace facebook::fboss {
 
 class FbFpgaPimQsfpController {
@@ -29,8 +31,21 @@ class FbFpgaPimQsfpController {
   void clearAllTransceiverReset();
 
  private:
+  std::unordered_map<uint32_t, std::unique_ptr<folly::SharedMutex>>
+  setupRegisterOffsetToMutex();
+  folly::SharedMutex& getMutex(uint32_t registerOffset) const;
+
+  const uint32_t kFacebookFpgaQsfpPresentRegOffset = 0x8;
+  const uint32_t kFacebookFpgaQsfpResetRegOffset = 0x30;
+
   std::unique_ptr<FpgaMemoryRegion> memoryRegion_;
   unsigned int portsPerPim_;
+  // Because all the qsfp with the same controller is sharing the same offset,
+  // and use different bits to read the value, it will be racy for different
+  // qsfps try to read the same register offset value and then write at the same
+  // time. Use mutex to protect the race condition for each register offset
+  const std::unordered_map<uint32_t, std::unique_ptr<folly::SharedMutex>>
+      registerOffsetToMutex_;
 };
 
 } // namespace facebook::fboss

@@ -2,19 +2,40 @@
 
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
 
-namespace {
-constexpr uint32_t kFacebookFpgaQsfpPresentRegOffset = 0x8;
-constexpr uint32_t kFacebookFpgaQsfpResetRegOffset = 0x30;
-} // namespace
+#include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
 
 FbFpgaPimQsfpController::FbFpgaPimQsfpController(
     std::unique_ptr<FpgaMemoryRegion> io,
     unsigned int portsPerPim)
-    : memoryRegion_(move(io)), portsPerPim_(portsPerPim) {}
+    : memoryRegion_(move(io)),
+      portsPerPim_(portsPerPim),
+      registerOffsetToMutex_(setupRegisterOffsetToMutex()) {}
+
+std::unordered_map<uint32_t, std::unique_ptr<folly::SharedMutex>>
+FbFpgaPimQsfpController::setupRegisterOffsetToMutex() {
+  std::unordered_map<uint32_t, std::unique_ptr<folly::SharedMutex>>
+      registerOffsetToMutex;
+  registerOffsetToMutex.emplace(
+      kFacebookFpgaQsfpPresentRegOffset,
+      std::make_unique<folly::SharedMutex>());
+  registerOffsetToMutex.emplace(
+      kFacebookFpgaQsfpResetRegOffset, std::make_unique<folly::SharedMutex>());
+  return registerOffsetToMutex;
+}
+
+folly::SharedMutex& FbFpgaPimQsfpController::getMutex(
+    uint32_t registerOffset) const {
+  if (const auto& mutexItr = registerOffsetToMutex_.find(registerOffset);
+      mutexItr != registerOffsetToMutex_.end()) {
+    return *(mutexItr->second.get());
+  }
+  throw FbossError("Unrecoginized register offset:", registerOffset);
+}
 
 bool FbFpgaPimQsfpController::isQsfpPresent(int qsfp) {
+  folly::SharedMutex::ReadHolder g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
   uint32_t qsfpPresentReg =
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a
@@ -24,6 +45,7 @@ bool FbFpgaPimQsfpController::isQsfpPresent(int qsfp) {
 }
 
 std::vector<bool> FbFpgaPimQsfpController::scanQsfpPresence() {
+  folly::SharedMutex::ReadHolder g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
   uint32_t qsfpPresentReg =
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a
@@ -38,6 +60,7 @@ std::vector<bool> FbFpgaPimQsfpController::scanQsfpPresence() {
 
 // Trigger the QSFP hard reset for a given QSFP module.
 void FbFpgaPimQsfpController::triggerQsfpHardReset(unsigned int port) {
+  folly::SharedMutex::WriteHolder g(getMutex(kFacebookFpgaQsfpResetRegOffset));
   uint32_t originalResetReg =
       memoryRegion_->read(kFacebookFpgaQsfpResetRegOffset);
 
@@ -64,6 +87,7 @@ void FbFpgaPimQsfpController::triggerQsfpHardReset(unsigned int port) {
 }
 
 void FbFpgaPimQsfpController::ensureQsfpOutOfReset(int qsfp) {
+  folly::SharedMutex::WriteHolder g(getMutex(kFacebookFpgaQsfpResetRegOffset));
   uint32_t currentResetReg =
       memoryRegion_->read(kFacebookFpgaQsfpResetRegOffset);
   // 1 to hold QSFP reset active. 0 to release QSFP reset.
@@ -83,6 +107,7 @@ void FbFpgaPimQsfpController::ensureQsfpOutOfReset(int qsfp) {
  * reset bits of all the transceivers through FPGA.
  */
 void FbFpgaPimQsfpController::clearAllTransceiverReset() {
+  folly::SharedMutex::WriteHolder g(getMutex(kFacebookFpgaQsfpResetRegOffset));
   XLOG(DBG5) << "Clearing all transceiver out of reset.";
   // For each bit, 1 to hold QSFP reset active. 0 to release QSFP reset.
   memoryRegion_->write(kFacebookFpgaQsfpResetRegOffset, 0x0);
