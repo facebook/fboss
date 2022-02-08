@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -41,11 +42,12 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   void sendUdpPkt(uint8_t dscpVal, const folly::IPAddressV6& dst) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
-        intfMac,
+        srcMac,
         intfMac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         dst,
@@ -142,6 +144,21 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
           {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
     }
   }
+
+  void _setup(bool disableTtlDecrement = false) {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto kEcmpWidthForTest = 1;
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), intfMac};
+    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    if (disableTtlDecrement) {
+      utility::disableTTLDecrements(
+          getHwSwitch(),
+          ecmpHelper6.getRouterId(),
+          ecmpHelper6.getNextHops()[0]);
+    }
+  }
+
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
   }
@@ -186,7 +203,7 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
 // TODO - merge device watermark checking into the tests
 // above once all platforms support device watermarks
 TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
-  auto setup = [this]() { programRoutes(); };
+  auto setup = [this]() { _setup(); };
   auto verify = [this]() {
     sendUdpPkts(0, kDestIp1());
     // Assert non zero watermark
