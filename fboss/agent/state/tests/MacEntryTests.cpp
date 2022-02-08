@@ -52,7 +52,7 @@ TEST(MacEntryTest, Compare) {
   EXPECT_NE(entryStatic, entryDynamic);
 }
 
-TEST(MacEntry, fromJSONWithType) {
+TEST(MacEntryTest, fromJSONWithType) {
   std::string jsonStrMissingEntryType = R"(
   {
       "mac": "01:02:03:04:05:06",

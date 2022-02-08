@@ -9,19 +9,40 @@
  */
 #pragma once
 
+#include <fboss/agent/gen-cpp2/switch_state_types.h>
+#include <folly/MacAddress.h>
 #include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
+#include <string>
 
 namespace facebook::fboss {
 
 using MacTableTraits = NodeMapTraits<folly::MacAddress, MacEntry>;
 
-class MacTable : public NodeMapT<MacTable, MacTableTraits> {
+struct MacTableThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::MacEntryFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "mac";
+    return _key;
+  }
+
+  static const KeyType convertKey(const folly::MacAddress& key) {
+    return key.toString();
+  }
+
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
+
+class MacTable
+    : public ThriftyNodeMapT<MacTable, MacTableTraits, MacTableThriftTraits> {
  public:
   MacTable();
   ~MacTable() override;
@@ -51,7 +72,7 @@ class MacTable : public NodeMapT<MacTable, MacTableTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 
