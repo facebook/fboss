@@ -140,3 +140,109 @@ TEST(NeighborResponseTableTest, modify) {
   EXPECT_TRUE(modifiedVlan->getArpResponseTable()->getEntry(ip1).has_value());
   EXPECT_FALSE(modifiedVlan->getArpResponseTable()->getEntry(ip2).has_value());
 }
+
+TEST(ArpResponseTableTest, nodeMapForwardConversion) {
+  auto ip1 = IPAddressV4("192.168.0.1"), ip2 = IPAddressV4("192.168.0.2");
+  auto mac1 = MacAddress("01:01:01:01:01:01"),
+       mac2 = MacAddress("01:01:01:01:01:02");
+  auto intf1 = InterfaceID(10), intf2 = InterfaceID(11);
+
+  auto arpResponseTable = std::make_shared<ArpResponseTable>();
+  arpResponseTable->setEntry(ip1, mac1, intf1);
+  arpResponseTable->setEntry(ip2, mac2, intf2);
+
+  auto serialized = arpResponseTable->toFollyDynamic();
+  auto deserialized = ArpResponseTableThrifty::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(deserialized->size(), 2);
+  auto entry1 = deserialized->getNode(ip1);
+  EXPECT_NE(entry1, nullptr);
+  EXPECT_EQ(entry1->getIP(), ip1);
+  EXPECT_EQ(entry1->getMac(), mac1);
+  EXPECT_EQ(entry1->getInterfaceID(), intf1);
+  auto entry2 = deserialized->getNode(ip2);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_EQ(entry2->getIP(), ip2);
+  EXPECT_EQ(entry2->getMac(), mac2);
+  EXPECT_EQ(entry2->getInterfaceID(), intf2);
+}
+
+TEST(ArpResponseTableTest, nodeMapBackwardsConversion) {
+  auto ip1 = IPAddressV4("192.168.0.1"), ip2 = IPAddressV4("192.168.0.2");
+  auto mac1 = MacAddress("01:01:01:01:01:01"),
+       mac2 = MacAddress("01:01:01:01:01:02");
+  auto intf1 = InterfaceID(10), intf2 = InterfaceID(11);
+
+  auto arpResponseTable = std::make_shared<ArpResponseTableThrifty>();
+  arpResponseTable->addNode(
+      std::make_shared<ArpResponseEntryThrifty>(ip1, mac1, intf1));
+  arpResponseTable->addNode(
+      std::make_shared<ArpResponseEntryThrifty>(ip2, mac2, intf2));
+
+  auto serialized = arpResponseTable->toFollyDynamic();
+  auto deserialized = ArpResponseTable::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(deserialized->getTable().size(), 2);
+  auto entry1 = deserialized->getEntry(ip1);
+  EXPECT_TRUE(entry1.has_value());
+  EXPECT_EQ(entry1->mac, mac1);
+  EXPECT_EQ(entry1->interfaceID, intf1);
+  auto entry2 = deserialized->getEntry(ip2);
+  EXPECT_TRUE(entry2.has_value());
+  EXPECT_EQ(entry2->mac, mac2);
+  EXPECT_EQ(entry2->interfaceID, intf2);
+}
+
+TEST(NdpResponseTableTest, nodeMapForwardConversion) {
+  auto ip1 = IPAddressV6("2401:db00:21:70cb:face:0:96:0"),
+       ip2 = IPAddressV6("2401:db00:21:70cb:face:0:96:1");
+  auto mac1 = MacAddress("01:01:01:01:01:01"),
+       mac2 = MacAddress("01:01:01:01:01:02");
+  auto intf1 = InterfaceID(10), intf2 = InterfaceID(11);
+
+  auto ndpResponseTable = std::make_shared<NdpResponseTable>();
+  ndpResponseTable->setEntry(ip1, mac1, intf1);
+  ndpResponseTable->setEntry(ip2, mac2, intf2);
+
+  auto serialized = ndpResponseTable->toFollyDynamic();
+  auto deserialized = NdpResponseTableThrifty::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(deserialized->size(), 2);
+  auto entry1 = deserialized->getNode(ip1);
+  EXPECT_NE(entry1, nullptr);
+  EXPECT_EQ(entry1->getIP(), ip1);
+  EXPECT_EQ(entry1->getMac(), mac1);
+  EXPECT_EQ(entry1->getInterfaceID(), intf1);
+  auto entry2 = deserialized->getNode(ip2);
+  EXPECT_NE(entry2, nullptr);
+  EXPECT_EQ(entry2->getIP(), ip2);
+  EXPECT_EQ(entry2->getMac(), mac2);
+  EXPECT_EQ(entry2->getInterfaceID(), intf2);
+}
+
+TEST(NdpResponseTableTest, nodeMapBackwardsConversion) {
+  auto ip1 = IPAddressV6("2401:db00:21:70cb:face:0:96:0"),
+       ip2 = IPAddressV6("2401:db00:21:70cb:face:0:96:1");
+  auto mac1 = MacAddress("01:01:01:01:01:01"),
+       mac2 = MacAddress("01:01:01:01:01:02");
+  auto intf1 = InterfaceID(10), intf2 = InterfaceID(11);
+
+  auto ndpResponseTable = std::make_shared<NdpResponseTableThrifty>();
+  ndpResponseTable->addNode(
+      std::make_shared<NdpResponseEntryThrifty>(ip1, mac1, intf1));
+  ndpResponseTable->addNode(
+      std::make_shared<NdpResponseEntryThrifty>(ip2, mac2, intf2));
+
+  auto serialized = ndpResponseTable->toFollyDynamic();
+  auto deserialized = NdpResponseTable::fromFollyDynamic(serialized);
+
+  EXPECT_EQ(deserialized->getTable().size(), 2);
+  auto entry1 = deserialized->getEntry(ip1);
+  EXPECT_TRUE(entry1.has_value());
+  EXPECT_EQ(entry1->mac, mac1);
+  EXPECT_EQ(entry1->interfaceID, intf1);
+  auto entry2 = deserialized->getEntry(ip2);
+  EXPECT_TRUE(entry2.has_value());
+  EXPECT_EQ(entry2->mac, mac2);
+  EXPECT_EQ(entry2->interfaceID, intf2);
+}

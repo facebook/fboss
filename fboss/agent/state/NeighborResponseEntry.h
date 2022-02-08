@@ -69,4 +69,82 @@ struct NeighborResponseTableFields {
   Table table;
 };
 
+template <typename IPADDR>
+struct NeighborResponseEntryFields : public ThriftyFields {
+  using AddressType = IPADDR;
+
+  NeighborResponseEntryFields(
+      AddressType ipAddress,
+      folly::MacAddress mac,
+      InterfaceID interfaceID)
+      : ipAddress(ipAddress), mac(mac), interfaceID(interfaceID) {}
+
+  NeighborResponseEntryFields(folly::MacAddress mac, InterfaceID interfaceID)
+      : mac(mac), interfaceID(interfaceID) {}
+
+  state::NeighborResponseEntryFields toThrift() const;
+  static NeighborResponseEntryFields fromThrift(
+      state::NeighborResponseEntryFields const& entryTh);
+
+  folly::dynamic toFollyDynamicLegacy() const;
+  static NeighborResponseEntryFields fromFollyDynamicLegacy(
+      const folly::dynamic& entry);
+
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
+
+  bool operator==(const NeighborResponseEntryFields& other) const {
+    return mac == other.mac && interfaceID == other.interfaceID;
+  }
+
+  AddressType ipAddress;
+  folly::MacAddress mac;
+  InterfaceID interfaceID{0};
+};
+
+template <typename IPADDR, typename SUBCLASS>
+class NeighborResponseEntryThrifty : public ThriftyBaseT<
+                                         state::NeighborResponseEntryFields,
+                                         SUBCLASS,
+                                         NeighborResponseEntryFields<IPADDR>> {
+ public:
+  using AddressType = IPADDR;
+
+  AddressType getID() const {
+    return this->getFields()->ipAddress;
+  }
+
+  AddressType getIP() const {
+    return this->getFields()->ipAddress;
+  }
+
+  void setIP(AddressType ip) {
+    this->writableFields()->ipAddress = ip;
+  }
+
+  folly::MacAddress getMac() const {
+    return this->getFields()->mac;
+  }
+
+  void setMac(folly::MacAddress mac) {
+    this->writableFields()->mac = mac;
+  }
+
+  InterfaceID getInterfaceID() const {
+    return this->getFields()->interfaceID;
+  }
+
+  void setInterfaceID(InterfaceID interface) {
+    this->writableFields()->interfaceID = interface;
+  }
+
+ private:
+  using Parent = ThriftyBaseT<
+      state::NeighborResponseEntryFields,
+      SUBCLASS,
+      NeighborResponseEntryFields<IPADDR>>;
+  using Parent::Parent;
+  friend class CloneAllocator;
+};
+
 } // namespace facebook::fboss

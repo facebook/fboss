@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/IPAddressV4.h>
+#include "fboss/agent/state/ArpResponseEntry.h"
 #include "fboss/agent/state/NeighborResponseTable.h"
 
 namespace facebook::fboss {
@@ -25,6 +26,14 @@ class ArpResponseTable
     : public NeighborResponseTable<folly::IPAddressV4, ArpResponseTable> {
  public:
   using NeighborResponseTable::NeighborResponseTable;
+};
+
+class ArpResponseTableThrifty : public NeighborResponseTableThrifty<
+                                    folly::IPAddressV4,
+                                    ArpResponseEntryThrifty,
+                                    ArpResponseTableThrifty> {
+ public:
+  using NeighborResponseTableThrifty::NeighborResponseTableThrifty;
 };
 
 } // namespace facebook::fboss

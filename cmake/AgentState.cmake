@@ -13,6 +13,7 @@ add_library(state
   fboss/agent/state/AggregatePort.cpp
   fboss/agent/state/AggregatePortMap.cpp
   fboss/agent/state/ArpEntry.cpp
+  fboss/agent/state/ArpResponseEntry.cpp
   fboss/agent/state/ArpResponseTable.cpp
   fboss/agent/state/ArpTable.cpp
   fboss/agent/state/ControlPlane.cpp
@@ -31,6 +32,7 @@ add_library(state
   fboss/agent/state/Mirror.cpp
   fboss/agent/state/MirrorMap.cpp
   fboss/agent/state/NdpEntry.cpp
+  fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp
   fboss/agent/state/NdpTable.cpp
   fboss/agent/state/NeighborResponseTable.cpp

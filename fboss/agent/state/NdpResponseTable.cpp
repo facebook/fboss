@@ -15,4 +15,12 @@ namespace facebook::fboss {
 
 template class NeighborResponseTable<folly::IPAddressV6, NdpResponseTable>;
 
+using NdpResponseTableTraits =
+    NeighborResponseTableTraits<folly::IPAddressV6, NdpResponseEntryThrifty>;
+FBOSS_INSTANTIATE_NODE_MAP(NdpResponseTableThrifty, NdpResponseTableTraits);
+template class NeighborResponseTableThrifty<
+    folly::IPAddressV6,
+    NdpResponseEntryThrifty,
+    NdpResponseTableThrifty>;
+
 } // namespace facebook::fboss

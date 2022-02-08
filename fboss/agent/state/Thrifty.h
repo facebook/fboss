@@ -132,7 +132,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       // Schema is up to date meaning there is not migration required
       return fromFollyDynamicImpl(dyn);
     } else {
-      return fromFollyDynamicImpl(migrateToThrifty(dyn));
+      return fromFollyDynamicImpl(NodeMap::migrateToThrifty(dyn));
     }
   }
 
@@ -175,7 +175,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       dyn[folly::to<std::string>(key)] = folly::parseJson(jsonStr);
     }
 
-    migrateFromThrifty(dyn);
+    NodeMap::migrateFromThrifty(dyn);
     return dyn;
   }
 

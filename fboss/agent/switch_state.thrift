@@ -178,6 +178,12 @@ struct MacEntryFields {
   4: MacEntryType type;
 }
 
+struct NeighborResponseEntryFields {
+  1: string ipAddress;
+  2: string mac;
+  3: i32 interfaceId;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
 }

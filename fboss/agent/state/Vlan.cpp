@@ -24,6 +24,7 @@
 // Include NeighborResponseTable-defs.h to instantiate code
 // in that file so that it does not get dropped from static
 // (switch)state library.
+#include "fboss/agent/state/NeighborResponseEntry-defs.h"
 #include "fboss/agent/state/NeighborResponseTable-defs.h"
 
 using folly::IPAddressV4;

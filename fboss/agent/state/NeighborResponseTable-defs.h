@@ -9,7 +9,9 @@
  */
 #pragma once
 
+#include "fboss/agent/state/NeighborResponseEntry-defs.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 
 namespace facebook::fboss {
 
