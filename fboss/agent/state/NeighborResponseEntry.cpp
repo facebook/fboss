@@ -8,11 +8,11 @@
  *
  */
 
-#include "fboss/agent/state/NeighborResponseTable.h"
+#include "fboss/agent/state/NeighborResponseEntry.h"
 
 namespace {
 constexpr auto kMac = "mac";
-constexpr auto kIntf = "interfaceId";
+constexpr auto kNeighborResponseIntf = "interfaceId";
 } // namespace
 
 namespace facebook::fboss {
@@ -20,7 +20,7 @@ namespace facebook::fboss {
 folly::dynamic NeighborResponseEntry::toFollyDynamic() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kMac] = mac.toString();
-  entry[kIntf] = static_cast<uint32_t>(interfaceID);
+  entry[kNeighborResponseIntf] = static_cast<uint32_t>(interfaceID);
   return entry;
 }
 
@@ -28,7 +28,7 @@ NeighborResponseEntry NeighborResponseEntry::fromFollyDynamic(
     const folly::dynamic& entry) {
   return NeighborResponseEntry(
       folly::MacAddress(entry[kMac].stringPiece()),
-      InterfaceID(entry[kIntf].asInt()));
+      InterfaceID(entry[kNeighborResponseIntf].asInt()));
 }
 
 } // namespace facebook::fboss
