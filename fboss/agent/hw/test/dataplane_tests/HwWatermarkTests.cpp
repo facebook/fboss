@@ -247,4 +247,51 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
+  auto setup = [this]() {
+    _setup(true);
+    auto minPktsForLineRate =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    // Sending traffic on 2 queues
+    sendUdpPkts(
+        utility::kOlympicQueueToDscp()
+            .at(utility::kOlympicSilverQueueId)
+            .front(),
+        kDestIp1(),
+        minPktsForLineRate / 2);
+    sendUdpPkts(
+        utility::kOlympicQueueToDscp().at(utility::kOlympicGoldQueueId).front(),
+        kDestIp2(),
+        minPktsForLineRate / 2);
+    getHwSwitchEnsemble()->waitForLineRateOnPort(masterLogicalPortIds()[0]);
+  };
+  auto verify = [this]() {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+      return;
+    }
+
+    // Now we are at line rate on port, get queue watermark
+    auto queueWaterMarks = *getHwSwitchEnsemble()
+                                ->getLatestPortStats(masterLogicalPortIds()[0])
+                                .queueWatermarkBytes__ref();
+    // Get device watermark
+    auto deviceWaterMark =
+        getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
+    XLOG(DBG0) << "For port: " << masterLogicalPortIds()[0] << " Queue"
+               << utility::kOlympicSilverQueueId << " watermark: "
+               << queueWaterMarks.at(utility::kOlympicSilverQueueId)
+               << ", Queue" << utility::kOlympicGoldQueueId << " watermark: "
+               << queueWaterMarks.at(utility::kOlympicGoldQueueId)
+               << ", Device watermark: " << deviceWaterMark;
+
+    // Make sure that device watermark is > highest queue watermark
+    EXPECT_GT(
+        deviceWaterMark,
+        std::max(
+            queueWaterMarks.at(utility::kOlympicSilverQueueId),
+            queueWaterMarks.at(utility::kOlympicGoldQueueId)));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
