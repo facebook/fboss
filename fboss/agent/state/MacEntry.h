@@ -11,8 +11,10 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -25,7 +27,7 @@ namespace facebook::fboss {
 
 enum class MacEntryType : uint8_t { DYNAMIC_ENTRY, STATIC_ENTRY };
 
-struct MacEntryFields {
+struct MacEntryFields : public ThriftyFields {
   MacEntryFields(
       folly::MacAddress mac,
       PortDescriptor portDescr,
@@ -35,6 +37,9 @@ struct MacEntryFields {
 
   template <typename Fn>
   void forEachChild(Fn) {}
+
+  state::MacEntryFields toThrift() const;
+  static MacEntryFields fromThrift(state::MacEntryFields const& ma);
 
   folly::dynamic toFollyDynamic() const;
   static MacEntryFields fromFollyDynamic(const folly::dynamic& json);

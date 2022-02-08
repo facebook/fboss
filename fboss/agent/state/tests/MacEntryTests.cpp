@@ -14,18 +14,18 @@
 
 using namespace facebook::fboss;
 namespace {
-const auto kMac = folly::MacAddress("01:02:03:04:05:06");
+const auto kTestMac = folly::MacAddress("01:02:03:04:05:06");
 }
 
 TEST(MacEntryTest, toFromFollyDynamic) {
   MacEntry entryDynamic(
-      kMac,
+      kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryDynamic.toFollyDynamic()), entryDynamic);
   MacEntry entryStatic(
-      kMac,
+      kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
@@ -35,12 +35,12 @@ TEST(MacEntryTest, toFromFollyDynamic) {
 
 TEST(MacEntryTest, Compare) {
   MacEntry entryDynamic(
-      kMac,
+      kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
   MacEntry entryStatic(
-      kMac,
+      kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
@@ -60,7 +60,7 @@ TEST(MacEntry, fromJSONWithType) {
   EXPECT_EQ(
       *entry,
       MacEntry(
-          kMac,
+          kTestMac,
           PortDescriptor(PortID(1)),
           std::nullopt,
           MacEntryType::DYNAMIC_ENTRY));

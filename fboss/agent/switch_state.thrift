@@ -166,6 +166,18 @@ struct NeighborEntryFields {
   6: optional switch_config.AclLookupClass classID;
 }
 
+enum MacEntryType {
+  DYNAMIC_ENTRY = 0,
+  STATIC_ENTRY = 1,
+}
+
+struct MacEntryFields {
+  1: string mac;
+  2: switch_config.PortDescriptor portId;
+  3: optional switch_config.AclLookupClass classID;
+  4: MacEntryType type;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
 }
