@@ -83,6 +83,7 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
     case cfg::PacketRxReason::MPLS_TTL_1:
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::DHCPV6:
+    case cfg::PacketRxReason::SAMPLEPACKET:
       break;
   }
   throw FbossError(

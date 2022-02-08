@@ -87,6 +87,9 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::DHCPV6:
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_DHCPV6, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::SAMPLEPACKET:
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
@@ -126,6 +129,8 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
       return cfg::PacketRxReason::MPLS_TTL_1;
     case SAI_HOSTIF_TRAP_TYPE_DHCPV6:
       return cfg::PacketRxReason::DHCPV6;
+    case SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET:
+      return cfg::PacketRxReason::SAMPLEPACKET;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }
