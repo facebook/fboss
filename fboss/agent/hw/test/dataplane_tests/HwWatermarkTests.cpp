@@ -88,6 +88,21 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     return false;
   }
 
+  uint64_t getMinDeviceWatermarkValue() {
+    uint64_t minDeviceWatermarkBytes{0};
+    if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      /*
+       * TAJO will always have some internal buffer utilization even
+       * when there is no traffic in the ASIC. The recommendation is
+       * to consider atleast 100 buffers, translating to 100 x 384B
+       * as steady state device watermark.
+       */
+      constexpr auto kTajoMinDeviceWatermarkBytes = 38400;
+      minDeviceWatermarkBytes = kTajoMinDeviceWatermarkBytes;
+    }
+    return minDeviceWatermarkBytes;
+  }
+
   bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
     do {
       getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
