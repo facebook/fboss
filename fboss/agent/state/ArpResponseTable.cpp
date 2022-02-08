@@ -9,18 +9,17 @@
  */
 #include "fboss/agent/state/ArpResponseTable.h"
 
-#include "fboss/agent/state/NeighborResponseTable-defs.h"
+#include "fboss/agent/state/NeighborResponseEntry-defs.h"
+#include "fboss/agent/state/NodeMap-defs.h"
 
 namespace facebook::fboss {
 
-template class NeighborResponseTable<folly::IPAddressV4, ArpResponseTable>;
-
 using ArpResponseTableTraits =
-    NeighborResponseTableTraits<folly::IPAddressV4, ArpResponseEntryThrifty>;
-FBOSS_INSTANTIATE_NODE_MAP(ArpResponseTableThrifty, ArpResponseTableTraits);
-template class NeighborResponseTableThrifty<
+    NeighborResponseTableTraits<folly::IPAddressV4, ArpResponseEntry>;
+FBOSS_INSTANTIATE_NODE_MAP(ArpResponseTable, ArpResponseTableTraits);
+template class NeighborResponseTable<
     folly::IPAddressV4,
-    ArpResponseEntryThrifty,
-    ArpResponseTableThrifty>;
+    ArpResponseEntry,
+    ArpResponseTable>;
 
 } // namespace facebook::fboss

@@ -159,7 +159,7 @@ void ArpHandler::handlePacket(
     sendArpReply(
         pkt->getSrcVlan(),
         pkt->getSrcPort(),
-        entry.value().mac,
+        entry->getMac(),
         targetIP,
         senderMac,
         senderIP);

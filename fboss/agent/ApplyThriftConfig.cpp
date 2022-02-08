@@ -298,6 +298,12 @@ class ThriftConfigApplier {
   std::optional<std::string> getDefaultDataPlaneQosPolicyName() const;
   std::shared_ptr<QosPolicy> updateDataplaneDefaultQosPolicy();
   shared_ptr<QosPolicy> createQosPolicy(const cfg::QosPolicy& qosPolicy);
+  struct VlanIpInfo;
+  template <typename NeighborResponseEntry, typename IPAddr>
+  std::shared_ptr<NeighborResponseEntry> updateNeighborResponseEntry(
+      const std::shared_ptr<NeighborResponseEntry>& orig,
+      IPAddr ip,
+      VlanIpInfo addrInfo);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
@@ -2477,38 +2483,59 @@ bool ThriftConfigApplier::updateDhcpOverrides(
   return changed;
 }
 
+template <typename NeighborResponseEntry, typename IPAddr>
+std::shared_ptr<NeighborResponseEntry>
+ThriftConfigApplier::updateNeighborResponseEntry(
+    const std::shared_ptr<NeighborResponseEntry>& orig,
+    IPAddr ip,
+    ThriftConfigApplier::VlanIpInfo addrInfo) {
+  if (orig && orig->getMac() == addrInfo.mac &&
+      orig->getInterfaceID() == addrInfo.interfaceID) {
+    return nullptr;
+  } else {
+    return std::make_shared<NeighborResponseEntry>(
+        ip, addrInfo.mac, addrInfo.interfaceID);
+  }
+}
+
 bool ThriftConfigApplier::updateNeighborResponseTables(
     Vlan* vlan,
     const cfg::Vlan* config) {
+  auto arpChanged = false, ndpChanged = false;
   auto origArp = vlan->getArpResponseTable();
   auto origNdp = vlan->getNdpResponseTable();
-  ArpResponseTable::Table arpTable;
-  NdpResponseTable::Table ndpTable;
+  ArpResponseTable::NodeContainer arpTable;
+  NdpResponseTable::NodeContainer ndpTable;
 
   VlanID vlanID(*config->id_ref());
   auto it = vlanInterfaces_.find(vlanID);
   if (it != vlanInterfaces_.end()) {
-    for (const auto& addrInfo : it->second.addresses) {
-      NeighborResponseEntry entry(
-          addrInfo.second.mac, addrInfo.second.interfaceID);
-      if (addrInfo.first.isV4()) {
-        arpTable.insert(std::make_pair(addrInfo.first.asV4(), entry));
+    for (const auto& [ip, addrInfo] : it->second.addresses) {
+      if (ip.isV4()) {
+        auto origNode = origArp->getNodeIf(ip.asV4());
+        auto newNode =
+            updateNeighborResponseEntry(origNode, ip.asV4(), addrInfo);
+        arpChanged |= updateMap(&arpTable, origNode, newNode);
+
       } else {
-        ndpTable.insert(std::make_pair(addrInfo.first.asV6(), entry));
+        auto origNode = origNdp->getNodeIf(ip.asV6());
+        auto newNode =
+            updateNeighborResponseEntry(origNode, ip.asV6(), addrInfo);
+        ndpChanged |= updateMap(&ndpTable, origNode, newNode);
       }
     }
   }
 
-  bool changed = false;
-  if (origArp->getTable() != arpTable) {
-    changed = true;
+  arpChanged |= origArp->size() != arpTable.size();
+  ndpChanged |= origNdp->size() != ndpTable.size();
+
+  if (arpChanged) {
     vlan->setArpResponseTable(origArp->clone(std::move(arpTable)));
   }
-  if (origNdp->getTable() != ndpTable) {
-    changed = true;
+  if (ndpChanged) {
     vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
   }
-  return changed;
+  return arpChanged || ndpChanged;
 }
 
 std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {

@@ -461,7 +461,7 @@ void IPv6Handler::handleNeighborSolicitation(
   // src port of such packet to send back the neighbor advertisement.
   sendNeighborAdvertisement(
       pkt->getSrcVlan(),
-      entry.value().mac,
+      entry->getMac(),
       targetIP,
       hdr.src,
       hdr.ipv6->srcAddr,

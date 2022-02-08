@@ -13,8 +13,6 @@
 
 namespace facebook::fboss {
 
-template class NeighborResponseEntryThrifty<
-    folly::IPAddressV6,
-    NdpResponseEntryThrifty>;
+template class NeighborResponseEntry<folly::IPAddressV6, NdpResponseEntry>;
 
 } // namespace facebook::fboss

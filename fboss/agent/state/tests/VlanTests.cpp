@@ -38,6 +38,16 @@ static const string kVlan1234("Vlan1234");
 static const string kVlan99("Vlan99");
 static const string kVlan1299("Vlan1299");
 
+template <typename Entry>
+void validateRespEntry(
+    std::shared_ptr<Entry> entry,
+    folly::MacAddress mac,
+    InterfaceID intf) {
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(entry->getMac(), mac);
+  EXPECT_EQ(entry->getInterfaceID(), intf);
+}
+
 TEST(Vlan, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
@@ -129,24 +139,25 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(InterfaceID(1), vlanV2->getInterfaceID());
   // Check the ArpResponseTable
   auto arpRespTable = vlanV2->getArpResponseTable();
-  ArpResponseTable expectedArpResp;
-  expectedArpResp.setEntry(
-      IPAddressV4("10.1.1.1"), MockPlatform::getMockLocalMac(), InterfaceID(1));
-  EXPECT_EQ(expectedArpResp.getTable(), arpRespTable->getTable());
+  EXPECT_EQ(arpRespTable->size(), 1);
+  validateRespEntry(
+      arpRespTable->getNodeIf(IPAddressV4("10.1.1.1")),
+      MockPlatform::getMockLocalMac(),
+      InterfaceID(1));
   // Check the NdpResponseTable
   auto ndpRespTable = vlanV2->getNdpResponseTable();
-  NdpResponseTable expectedNdpResp;
-  expectedNdpResp.setEntry(
-      IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0"),
+  EXPECT_EQ(ndpRespTable->size(), 2);
+  validateRespEntry(
+      ndpRespTable->getNodeIf(IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0")),
       MockPlatform::getMockLocalMac(),
       InterfaceID(1));
+
   // The link-local IPv6 address should also have been automatically added
   // to the NDP response table.
-  expectedNdpResp.setEntry(
-      MockPlatform::getMockLinkLocalIp6(),
+  validateRespEntry(
+      ndpRespTable->getNodeIf(MockPlatform::getMockLinkLocalIp6()),
       MockPlatform::getMockLocalMac(),
       InterfaceID(1));
-  EXPECT_EQ(expectedNdpResp.getTable(), ndpRespTable->getTable());
 
   // Add another vlan and interface
   config.vlans_ref()->resize(2);
@@ -172,17 +183,24 @@ TEST(Vlan, applyConfig) {
 
   // Check the ArpResponseTable
   arpRespTable = vlanV3->getArpResponseTable();
-  ArpResponseTable expectedTable2;
-  expectedTable2.setEntry(IPAddressV4("10.1.10.1"), intf2Mac, InterfaceID(2));
-  expectedTable2.setEntry(IPAddressV4("192.168.0.1"), intf2Mac, InterfaceID(2));
-  EXPECT_EQ(expectedTable2.getTable(), arpRespTable->getTable());
+  EXPECT_EQ(arpRespTable->size(), 2);
+  validateRespEntry(
+      arpRespTable->getNodeIf(IPAddressV4("10.1.10.1")),
+      intf2Mac,
+      InterfaceID(2));
+  validateRespEntry(
+      arpRespTable->getNodeIf(IPAddressV4("192.168.0.1")),
+      intf2Mac,
+      InterfaceID(2));
+
   // The new interface has no IPv6 address, but the NDP table should still
   // be updated with the link-local address.
-  NdpResponseTable expectedNdpResp2;
-  expectedNdpResp2.setEntry(
-      IPAddressV6("fe80::1:02ff:feab:cd78"), intf2Mac, InterfaceID(2));
-  EXPECT_EQ(
-      expectedNdpResp2.getTable(), vlanV3->getNdpResponseTable()->getTable());
+  ndpRespTable = vlanV3->getNdpResponseTable();
+  EXPECT_EQ(ndpRespTable->size(), 1);
+  validateRespEntry(
+      ndpRespTable->getNodeIf(IPAddressV6("fe80::1:02ff:feab:cd78")),
+      intf2Mac,
+      InterfaceID(2));
 
   // Add a new VLAN with an ArpResponseTable that needs to be set up
   // when the VLAN is first created
@@ -208,13 +226,15 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(0, vlan99->getGeneration());
   EXPECT_EQ(InterfaceID(3), vlan99->getInterfaceID());
 
-  ArpResponseTable expectedTable99;
-  expectedTable99.setEntry(
-      IPAddressV4("1.2.3.4"), MockPlatform::getMockLocalMac(), InterfaceID(3));
-  expectedTable99.setEntry(
-      IPAddressV4("10.0.0.1"), MockPlatform::getMockLocalMac(), InterfaceID(3));
-  EXPECT_EQ(
-      expectedTable99.getTable(), vlan99->getArpResponseTable()->getTable());
+  EXPECT_EQ(vlan99->getArpResponseTable()->size(), 2);
+  validateRespEntry(
+      vlan99->getArpResponseTable()->getNodeIf(IPAddressV4("1.2.3.4")),
+      MockPlatform::getMockLocalMac(),
+      InterfaceID(3));
+  validateRespEntry(
+      vlan99->getArpResponseTable()->getNodeIf(IPAddressV4("10.0.0.1")),
+      MockPlatform::getMockLocalMac(),
+      InterfaceID(3));
 
   // Check vlan congfig with no intfID set
   config.vlans_ref()->resize(4);

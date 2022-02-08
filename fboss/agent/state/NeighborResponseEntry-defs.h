@@ -41,4 +41,23 @@ NeighborResponseEntryFields<IPADDR>::fromThrift(
   InterfaceID intf(entryTh.get_interfaceId());
   return NeighborResponseEntryFields(ip, mac, intf);
 }
+template <typename IPADDR>
+folly::dynamic NeighborResponseEntryFields<IPADDR>::toFollyDynamicLegacy()
+    const {
+  folly::dynamic entry = folly::dynamic::object;
+  // deliberately don't write ip since legacy entry did not have this
+  entry[kMac] = mac.toString();
+  entry[kNeighborResponseIntf] = static_cast<uint32_t>(interfaceID);
+  return entry;
+}
+
+template <typename IPADDR>
+NeighborResponseEntryFields<IPADDR>
+NeighborResponseEntryFields<IPADDR>::fromFollyDynamicLegacy(
+    const folly::dynamic& entry) {
+  return NeighborResponseEntryFields<IPADDR>(
+      folly::MacAddress(entry[kMac].stringPiece()),
+      InterfaceID(entry[kNeighborResponseIntf].asInt()));
+}
+
 } // namespace facebook::fboss

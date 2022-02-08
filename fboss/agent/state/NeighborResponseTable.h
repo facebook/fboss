@@ -12,8 +12,6 @@
 #include <fboss/agent/state/Thrifty.h>
 #include <folly/MacAddress.h>
 #include <optional>
-#include "fboss/agent/state/NodeBase.h"
-
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NeighborResponseEntry.h"
 #include "fboss/agent/state/NodeMap.h"
@@ -58,84 +56,17 @@ struct NeighborResponseTableThriftTraits
  * This information is computed from the interface configuration, but is stored
  * with each VLAN so that we can efficiently respond to ARP requests.
  */
-template <typename IPADDR, typename SUBCLASS>
-class NeighborResponseTable
-    : public NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> {
- public:
-  typedef IPADDR AddressType;
-  typedef typename NeighborResponseTableFields<AddressType>::Table Table;
-
-  NeighborResponseTable() {}
-  explicit NeighborResponseTable(Table table);
-
-  static std::shared_ptr<SUBCLASS> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields =
-        NeighborResponseTableFields<IPADDR>::fromFollyDynamic(json);
-    return std::make_shared<SUBCLASS>(fields);
-  }
-
-  static std::shared_ptr<SUBCLASS> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return this->getFields()->toFollyDynamic();
-  }
-
-  std::optional<NeighborResponseEntry> getEntry(AddressType ip) {
-    const auto& table = getTable();
-    auto it = table.find(ip);
-    if (it == table.end()) {
-      return std::optional<NeighborResponseEntry>();
-    }
-    return it->second;
-  }
-
-  const Table& getTable() const {
-    return this->getFields()->table;
-  }
-  void setTable(Table table) {
-    this->writableFields()->table.swap(table);
-  }
-
-  /*
-   * Set an entry in the table.
-   *
-   * This adds a new entry if this IP address is not already present in the
-   * table, or updates the MAC address associated with this IP if it does
-   * exist.
-   */
-  void setEntry(AddressType ip, folly::MacAddress mac, InterfaceID intfID) {
-    auto& entry = this->writableFields()->table[ip];
-    entry.mac = mac;
-    entry.interfaceID = intfID;
-  }
-
- private:
-  // Inherit the constructors required for clone()
-  typedef NodeBaseT<SUBCLASS, NeighborResponseTableFields<IPADDR>> Parent;
-  using Parent::Parent;
-  friend class CloneAllocator;
-};
-
-/*
- * A map of IP --> MAC for the IP addresses of other nodes on a VLAN.
- *
- * TODO: We should switch from NodeMap to PrefixMap when the new PrefixMap
- * implementation is ready.
- *
- * Any change to a NodeMap is O(N), so it is really only suitable for small
- * maps that do not change frequently.  Our new PrefixMap implementation will
- * allow us to perform cheaper copy-on-write updates.
- */
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
-class NeighborResponseTableThrifty
+class NeighborResponseTable
     : public ThriftyNodeMapT<
           SUBCLASS,
           NeighborResponseTableTraits<IPADDR, ENTRY>,
           NeighborResponseTableThriftTraits<IPADDR, ENTRY>> {
  public:
+  typedef IPADDR AddressType;
+
+  NeighborResponseTable() {}
+
   static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
     folly::dynamic newItems = folly::dynamic::object;
     for (auto item : dyn.items()) {
@@ -149,12 +80,62 @@ class NeighborResponseTableThrifty
 
   static void migrateFromThrifty(folly::dynamic& /* dyn */) {}
 
+  folly::dynamic toFollyDynamicLegacy() const {
+    folly::dynamic entries = folly::dynamic::object;
+    for (const auto& [ip, entry] : this->getAllNodes()) {
+      entries[ip.str()] = entry->toFollyDynamicLegacy();
+    }
+    return entries;
+  }
+
+  static std::shared_ptr<SUBCLASS> fromFollyDynamicLegacy(
+      const folly::dynamic& entries) {
+    auto nbrTable = std::make_shared<SUBCLASS>();
+    for (const auto& entry : entries.items()) {
+      auto node = ENTRY::fromFollyDynamicLegacy(entry.second);
+      // have to manually set IP because old dynamic struct did not include ip
+      node->setIP(IPADDR(entry.first.stringPiece()));
+      nbrTable->addNode(node);
+    }
+    return nbrTable;
+  }
+
+  std::shared_ptr<ENTRY> getEntry(AddressType ip) const {
+    return this->getNodeIf(ip);
+  }
+
+  const typename NeighborResponseTableTraits<IPADDR, ENTRY>::NodeContainer&
+  getTable() const {
+    return this->getAllNodes();
+  }
+
+  /*
+   * Set an entry in the table.
+   *
+   * This adds a new entry if this IP address is not already present in the
+   * table, or updates the MAC address associated with this IP if it does
+   * exist.
+   */
+  void setEntry(AddressType ip, folly::MacAddress mac, InterfaceID intfID) {
+    auto& nodes = this->writableNodes();
+    auto it = nodes.find(ip);
+    if (it == nodes.end()) {
+      this->addNode(std::make_shared<ENTRY>(ip, mac, intfID));
+    } else {
+      auto entry = it->second->clone();
+      entry->setIP(ip);
+      entry->setMac(mac);
+      entry->setInterfaceID(intfID);
+      it->second = entry;
+    }
+  }
+
  private:
+  // Inherit the constructors required for clone()
   using Parent = ThriftyNodeMapT<
       SUBCLASS,
       NeighborResponseTableTraits<IPADDR, ENTRY>,
       NeighborResponseTableThriftTraits<IPADDR, ENTRY>>;
-  // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;
 };

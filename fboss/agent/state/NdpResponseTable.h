@@ -15,18 +15,12 @@
 
 namespace facebook::fboss {
 
-class NdpResponseTable
-    : public NeighborResponseTable<folly::IPAddressV6, NdpResponseTable> {
+class NdpResponseTable : public NeighborResponseTable<
+                             folly::IPAddressV6,
+                             NdpResponseEntry,
+                             NdpResponseTable> {
  public:
   using NeighborResponseTable::NeighborResponseTable;
-};
-
-class NdpResponseTableThrifty : public NeighborResponseTableThrifty<
-                                    folly::IPAddressV6,
-                                    NdpResponseEntryThrifty,
-                                    NdpResponseTableThrifty> {
- public:
-  using NeighborResponseTableThrifty::NeighborResponseTableThrifty;
 };
 
 } // namespace facebook::fboss

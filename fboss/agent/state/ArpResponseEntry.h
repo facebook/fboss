@@ -14,11 +14,10 @@
 
 namespace facebook::fboss {
 
-class ArpResponseEntryThrifty : public NeighborResponseEntryThrifty<
-                                    folly::IPAddressV4,
-                                    ArpResponseEntryThrifty> {
+class ArpResponseEntry
+    : public NeighborResponseEntry<folly::IPAddressV4, ArpResponseEntry> {
  public:
-  using NeighborResponseEntryThrifty::NeighborResponseEntryThrifty;
+  using NeighborResponseEntry::NeighborResponseEntry;
 };
 
 } // namespace facebook::fboss

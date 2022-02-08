@@ -16,59 +16,6 @@
 
 namespace facebook::fboss {
 
-struct NeighborResponseEntry {
-  NeighborResponseEntry() {}
-  NeighborResponseEntry(folly::MacAddress mac, InterfaceID interfaceID)
-      : mac(mac), interfaceID(interfaceID) {}
-
-  bool operator==(const NeighborResponseEntry& other) const {
-    return (mac == other.mac && interfaceID == other.interfaceID);
-  }
-  bool operator!=(const NeighborResponseEntry& other) const {
-    return !operator==(other);
-  }
-
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const;
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static NeighborResponseEntry fromFollyDynamic(const folly::dynamic& entry);
-
-  folly::MacAddress mac;
-  InterfaceID interfaceID{0};
-};
-
-template <typename IPADDR>
-struct NeighborResponseTableFields {
-  typedef IPADDR AddressType;
-  typedef boost::container::flat_map<AddressType, NeighborResponseEntry> Table;
-
-  NeighborResponseTableFields() {}
-  explicit NeighborResponseTableFields(Table&& t) : table(std::move(t)) {}
-  NeighborResponseTableFields(
-      const NeighborResponseTableFields& /*other*/,
-      Table t)
-      : table(std::move(t)) {}
-
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const;
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static NeighborResponseTableFields fromFollyDynamic(
-      const folly::dynamic& entry);
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  Table table;
-};
-
 template <typename IPADDR>
 struct NeighborResponseEntryFields : public ThriftyFields {
   using AddressType = IPADDR;
@@ -103,10 +50,10 @@ struct NeighborResponseEntryFields : public ThriftyFields {
 };
 
 template <typename IPADDR, typename SUBCLASS>
-class NeighborResponseEntryThrifty : public ThriftyBaseT<
-                                         state::NeighborResponseEntryFields,
-                                         SUBCLASS,
-                                         NeighborResponseEntryFields<IPADDR>> {
+class NeighborResponseEntry : public ThriftyBaseT<
+                                  state::NeighborResponseEntryFields,
+                                  SUBCLASS,
+                                  NeighborResponseEntryFields<IPADDR>> {
  public:
   using AddressType = IPADDR;
 

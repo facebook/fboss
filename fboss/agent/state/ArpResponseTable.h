@@ -22,18 +22,12 @@ namespace facebook::fboss {
  * This information is computed from the interface configuration, but is stored
  * with each VLAN so that we can efficiently respond to ARP requests.
  */
-class ArpResponseTable
-    : public NeighborResponseTable<folly::IPAddressV4, ArpResponseTable> {
+class ArpResponseTable : public NeighborResponseTable<
+                             folly::IPAddressV4,
+                             ArpResponseEntry,
+                             ArpResponseTable> {
  public:
   using NeighborResponseTable::NeighborResponseTable;
-};
-
-class ArpResponseTableThrifty : public NeighborResponseTableThrifty<
-                                    folly::IPAddressV4,
-                                    ArpResponseEntryThrifty,
-                                    ArpResponseTableThrifty> {
- public:
-  using NeighborResponseTableThrifty::NeighborResponseTableThrifty;
 };
 
 } // namespace facebook::fboss
