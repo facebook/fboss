@@ -14,6 +14,7 @@
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/NeighborResponseTable.h"
+#include "fboss/agent/state/Vlan.h"
 
 #include <gtest/gtest.h>
 
@@ -100,4 +101,42 @@ TEST(NeighborResponseEntry, serialize) {
   auto entryBack = NeighborResponseEntry::fromFollyDynamic(serialized);
 
   EXPECT_TRUE(*entry == entryBack);
+}
+
+TEST(NeighborResponseTableTest, modify) {
+  auto ip1 = IPAddressV4("192.168.0.1"), ip2 = IPAddressV4("192.168.0.2");
+  auto mac1 = MacAddress("01:01:01:01:01:01"),
+       mac2 = MacAddress("01:01:01:01:01:02");
+
+  auto state = std::make_shared<SwitchState>();
+  auto vlan = std::make_shared<Vlan>(VlanID(2001), "vlan1");
+  auto arpResponseTable = std::make_shared<ArpResponseTable>();
+  arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
+  vlan->setArpResponseTable(arpResponseTable);
+  state->getVlans()->addVlan(vlan);
+
+  // modify unpublished state
+  EXPECT_EQ(vlan.get(), vlan->modify(&state));
+
+  arpResponseTable = std::make_shared<ArpResponseTable>();
+  arpResponseTable->setEntry(ip2, mac2, InterfaceID(1));
+  vlan->setArpResponseTable(arpResponseTable);
+
+  // modify unpublished state
+  EXPECT_EQ(vlan.get(), vlan->modify(&state));
+
+  vlan->publish();
+  auto modifiedVlan = vlan->modify(&state);
+
+  arpResponseTable = std::make_shared<ArpResponseTable>();
+  arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
+  EXPECT_DEATH(vlan->setArpResponseTable(arpResponseTable), "!isPublished");
+  modifiedVlan->setArpResponseTable(arpResponseTable);
+
+  EXPECT_NE(vlan.get(), modifiedVlan);
+
+  EXPECT_FALSE(vlan->getArpResponseTable()->getEntry(ip1).has_value());
+  EXPECT_TRUE(vlan->getArpResponseTable()->getEntry(ip2).has_value());
+  EXPECT_TRUE(modifiedVlan->getArpResponseTable()->getEntry(ip1).has_value());
+  EXPECT_FALSE(modifiedVlan->getArpResponseTable()->getEntry(ip2).has_value());
 }
