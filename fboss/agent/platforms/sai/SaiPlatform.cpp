@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
@@ -213,6 +214,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::YAMP) {
       saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::FUJI) {
+      saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::ELBERT) {
       saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
     } else {

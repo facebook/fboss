@@ -15,6 +15,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
@@ -62,6 +63,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER) {
     return std::make_unique<SaiCloudRipperPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::FUJI) {
+    return std::make_unique<SaiBcmFujiPlatform>(
         std::move(productInfo), localMac);
   }
 
