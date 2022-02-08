@@ -30,4 +30,6 @@ target_link_libraries(wedge_led_utils
   ctrl_cpp2
   fboss_types
   transceiver_cpp2
+  fboss_i2c_lib
+  qsfp_lib
 )
