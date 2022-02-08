@@ -17,7 +17,12 @@ ScdHelper::ScdHelper() {
   if (!fp) {
     throw std::runtime_error("SCD FPGA not found on PCI bus");
   }
-  fgets(busId.data(), 64, fp);
+
+  if (fgets(busId.data(), 64, fp) == nullptr) {
+    throw std::runtime_error(
+        "Unable to get PCI bus id from lspci output for SCD FPGA");
+  }
+
   std::istringstream iStream(folly::to<std::string>(busId));
   std::string busIdStr;
   iStream >> busIdStr;
