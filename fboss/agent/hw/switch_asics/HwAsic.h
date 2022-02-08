@@ -98,6 +98,7 @@ class HwAsic {
     PORT_EYE_VALUES,
     SAI_MPLS_TTL_1_TRAP,
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
+    SAI_SAMPLEPACKET_TRAP,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

@@ -50,6 +50,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HOT_SWAP:
