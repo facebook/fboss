@@ -104,13 +104,17 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   }
 
   bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
+    XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
     do {
       getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
       auto deviceWatermarkBytes =
           getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
-      auto watermarkAsExpected = (expectZero && !deviceWatermarkBytes) ||
-          (!expectZero && deviceWatermarkBytes);
+      auto watermarkAsExpected =
+          (expectZero &&
+           (deviceWatermarkBytes <= getMinDeviceWatermarkValue())) ||
+          (!expectZero &&
+           (deviceWatermarkBytes > getMinDeviceWatermarkValue()));
       if (watermarkAsExpected) {
         return true;
       }
@@ -218,19 +222,27 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
 // TODO - merge device watermark checking into the tests
 // above once all platforms support device watermarks
 TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
-  auto setup = [this]() { _setup(); };
+  auto setup = [this]() { _setup(true); };
   auto verify = [this]() {
-    sendUdpPkts(0, kDestIp1());
+    auto minPktsForLineRate =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    sendUdpPkts(0, kDestIp1(), minPktsForLineRate);
+    getHwSwitchEnsemble()->waitForLineRateOnPort(masterLogicalPortIds()[0]);
     // Assert non zero watermark
     assertDeviceWatermark(false);
-    // Assert zero watermark
-    assertDeviceWatermark(true, 5);
     auto counters =
         fb303::fbData->getSelectedCounters({"buffer_watermark_device.p100.60"});
-    EXPECT_EQ(1, counters.size());
     // Unfortunately since  we use quantile stats, which compute
     // a MAX over a period, we can't really assert on the exact
     // value, just on its presence
+    EXPECT_EQ(1, counters.size());
+
+    // Now, break the loop to make sure traffic goes to zero!
+    bringDownPort(masterLogicalPortIds()[0]);
+    bringUpPort(masterLogicalPortIds()[0]);
+
+    // Assert zero watermark
+    assertDeviceWatermark(true, 5);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
