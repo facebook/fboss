@@ -75,7 +75,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
-    case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
@@ -89,6 +88,13 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return false;
+
+    case HwAsic::Feature::SAI_LAG_HASH:
+#if defined(SAI_VERSION_6_0_0_14_ODP)
+      return true;
+#else
+      return false;
+#endif
   }
   return false;
 }
