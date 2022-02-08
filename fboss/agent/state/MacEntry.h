@@ -41,8 +41,8 @@ struct MacEntryFields : public ThriftyFields {
   state::MacEntryFields toThrift() const;
   static MacEntryFields fromThrift(state::MacEntryFields const& ma);
 
-  folly::dynamic toFollyDynamic() const;
-  static MacEntryFields fromFollyDynamic(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static MacEntryFields fromFollyDynamicLegacy(const folly::dynamic& json);
 
   folly::MacAddress mac_;
   PortDescriptor portDescr_;
@@ -50,27 +50,24 @@ struct MacEntryFields : public ThriftyFields {
   MacEntryType type_{MacEntryType::DYNAMIC_ENTRY};
 };
 
-class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
+class MacEntry
+    : public ThriftyBaseT<state::MacEntryFields, MacEntry, MacEntryFields> {
  public:
   MacEntry(
       folly::MacAddress mac,
       PortDescriptor portDescr,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       MacEntryType type = MacEntryType::DYNAMIC_ENTRY)
-      : NodeBaseT(mac, portDescr, classID, type) {}
+      : ThriftyBaseT(mac, portDescr, classID, type) {}
 
-  static std::shared_ptr<MacEntry> fromFollyDynamic(
+  static std::shared_ptr<MacEntry> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
-    const auto& fields = MacEntryFields::fromFollyDynamic(json);
+    const auto& fields = MacEntryFields::fromFollyDynamicLegacy(json);
     return std::make_shared<MacEntry>(fields);
   }
 
-  static std::shared_ptr<MacEntry> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+  folly::dynamic toFollyDynamicLegacy() const {
+    return getFields()->toFollyDynamicLegacy();
   }
 
   bool operator==(const MacEntry& macEntry) const {
@@ -128,7 +125,7 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

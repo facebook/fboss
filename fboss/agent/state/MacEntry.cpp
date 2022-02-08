@@ -45,7 +45,7 @@ MacEntryFields MacEntryFields::fromThrift(
   return MacEntryFields(mac, portDescr, classID, type);
 }
 
-folly::dynamic MacEntryFields::toFollyDynamic() const {
+folly::dynamic MacEntryFields::toFollyDynamicLegacy() const {
   folly::dynamic macEntry = folly::dynamic::object;
   macEntry[kMac] = mac_.toString();
   macEntry[kMacEntryPort] = portDescr_.toFollyDynamic();
@@ -57,7 +57,8 @@ folly::dynamic MacEntryFields::toFollyDynamic() const {
   return macEntry;
 }
 
-MacEntryFields MacEntryFields::fromFollyDynamic(const folly::dynamic& jsonStr) {
+MacEntryFields MacEntryFields::fromFollyDynamicLegacy(
+    const folly::dynamic& jsonStr) {
   folly::MacAddress mac(jsonStr[kMac].stringPiece());
   auto portDescr = PortDescriptor::fromFollyDynamic(jsonStr[kMacEntryPort]);
 

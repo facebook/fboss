@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/MacEntry.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -24,6 +25,7 @@ TEST(MacEntryTest, toFromFollyDynamic) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryDynamic.toFollyDynamic()), entryDynamic);
+  validateThriftyMigration(entryDynamic);
   MacEntry entryStatic(
       kTestMac,
       PortDescriptor(PortID(1)),
@@ -31,6 +33,7 @@ TEST(MacEntryTest, toFromFollyDynamic) {
       MacEntryType::STATIC_ENTRY);
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryStatic.toFollyDynamic()), entryStatic);
+  validateThriftyMigration(entryStatic);
 }
 
 TEST(MacEntryTest, Compare) {
@@ -38,12 +41,14 @@ TEST(MacEntryTest, Compare) {
       kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  validateThriftyMigration(entryDynamic);
 
   MacEntry entryStatic(
       kTestMac,
       PortDescriptor(PortID(1)),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
       MacEntryType::STATIC_ENTRY);
+  validateThriftyMigration(entryStatic);
   EXPECT_NE(entryStatic, entryDynamic);
 }
 
@@ -64,4 +69,5 @@ TEST(MacEntry, fromJSONWithType) {
           PortDescriptor(PortID(1)),
           std::nullopt,
           MacEntryType::DYNAMIC_ENTRY));
+  validateThriftyMigration(*entry);
 }
