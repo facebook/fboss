@@ -17,12 +17,12 @@ using namespace facebook::fboss::utility;
 
 TEST(BcmLabelSwitchingUtilsTests, getLabelSwitchAction) {
   EXPECT_EQ(
-      BCM_MPLS_SWITCH_ACTION_INVALID,
+      BCM_MPLS_SWITCH_ACTION_PHP,
       getLabelSwitchAction(
           LabelNextHopEntry::Action::DROP,
           LabelForwardingAction::LabelForwardingType::PUSH));
   EXPECT_EQ(
-      BCM_MPLS_SWITCH_ACTION_INVALID,
+      BCM_MPLS_SWITCH_ACTION_PHP,
       getLabelSwitchAction(
           LabelNextHopEntry::Action::TO_CPU,
           LabelForwardingAction::LabelForwardingType::PUSH));

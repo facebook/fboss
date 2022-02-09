@@ -9,6 +9,7 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 
 namespace {
 bool areEquivalent(
@@ -52,9 +53,15 @@ void BcmLabelSwitchAction::program(
     action_.flags |= BCM_MPLS_SWITCH_REPLACE;
   }
   action_.port = BCM_GPORT_INVALID; // platform label space
-  action_.action = utility::getLabelSwitchAction(
-      entry.getAction(),
-      entry.getNextHopSet().begin()->labelForwardingAction()->type());
+  LabelForwardingAction::LabelForwardingType labelForwardingType{
+      LabelForwardingAction::LabelForwardingType::NOOP};
+  if (entry.getAction() != LabelNextHopEntry::Action::DROP &&
+      entry.getAction() != LabelNextHopEntry::Action::TO_CPU) {
+    labelForwardingType =
+        entry.getNextHopSet().begin()->labelForwardingAction()->type();
+  }
+  action_.action =
+      utility::getLabelSwitchAction(entry.getAction(), labelForwardingType);
   std::shared_ptr<BcmMultiPathNextHop> nexthop;
 
   auto defaultDataPlaneQosPolicy =
@@ -64,10 +71,9 @@ void BcmLabelSwitchAction::program(
     action_.exp_map =
         defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_INGRESS);
   }
-  auto labelForwardingType =
-      entry.getNextHopSet().begin()->labelForwardingAction()->type();
   if (labelForwardingType !=
-      LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
+          LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP &&
+      labelForwardingType != LabelForwardingAction::LabelForwardingType::NOOP) {
     /* pop and look up does not require any egress if settings */
     if (labelForwardingType ==
         LabelForwardingAction::LabelForwardingType::PHP) {
@@ -87,16 +93,23 @@ void BcmLabelSwitchAction::program(
     }
     action_.egress_if = nexthop->getEgressId();
   } else {
-    // action POP
-    if (hw->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::INGRESS_L3_INTERFACE)) {
-      // use ingress intf of default vlan for re-injected packet after pop
-      bcm_vlan_t defaultVlan;
-      auto rv = bcm_vlan_default_get(0, &defaultVlan);
-      bcmCheckError(rv, "Unable to get default VLAN");
-      const auto intf =
-          hw->getIntfTable()->getBcmIntf(InterfaceID(defaultVlan));
-      action_.ingress_if = intf->getBcmIfId();
+    if (labelForwardingType ==
+        LabelForwardingAction::LabelForwardingType::NOOP) {
+      action_.egress_if = entry.getAction() == LabelNextHopEntry::Action::DROP
+          ? hw->getDropEgressId()
+          : hw->getToCPUEgressId();
+    } else {
+      // action POP
+      if (hw->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+        // use ingress intf of default vlan for re-injected packet after pop
+        bcm_vlan_t defaultVlan;
+        auto rv = bcm_vlan_default_get(0, &defaultVlan);
+        bcmCheckError(rv, "Unable to get default VLAN");
+        const auto intf =
+            hw->getIntfTable()->getBcmIntf(InterfaceID(defaultVlan));
+        action_.ingress_if = intf->getBcmIfId();
+      }
     }
   }
 

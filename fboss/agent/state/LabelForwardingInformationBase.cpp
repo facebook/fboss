@@ -105,6 +105,11 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
   CHECK(!entry->isPublished());
   // cache fwdinfo before modifying the route
   auto fwd = entry->getForwardInfo();
+
+  if (fwd.getAction() == LabelNextHopEntry::Action::DROP ||
+      fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
+    return;
+  }
   // only interface routes and v6 ll routes will have interface id
   for (auto& clientEntry : entry->getEntryForClients()) {
     if (clientEntry.first == ClientID::INTERFACE_ROUTE) {

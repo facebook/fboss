@@ -10,11 +10,17 @@ bcm_mpls_switch_action_t getLabelSwitchAction(
     LabelForwardingAction::LabelForwardingType type) {
   using LabelForwardingType = LabelForwardingAction::LabelForwardingType;
 
+  // To drop or punt a packet, the label switch entry needs to point to the drop
+  // or punt egress id. Broadcom hardware supports a set of operations for each
+  // type of label switch action. Setting an egress id is not a valid operation
+  // for BCM_MPLS_SWITCH_ACTION_INVALID or BCM_MPLS_SWITCH_ACTION_NOP.
+  // BCM_MPLS_SWITCH_ACTION_PHP allows setting egress id as operation.
+  // Packets punted to CPU will include the ingress label as PHP action is not
+  // performed for punted packets
   if (action == LabelNextHopEntry::Action::DROP) {
-    return BCM_MPLS_SWITCH_ACTION_INVALID;
+    return BCM_MPLS_SWITCH_ACTION_PHP;
   } else if (action == LabelNextHopEntry::Action::TO_CPU) {
-    // TODO - (pshaikh) find how to redirect to CPU
-    return BCM_MPLS_SWITCH_ACTION_INVALID;
+    return BCM_MPLS_SWITCH_ACTION_PHP;
   }
   switch (type) {
     case LabelForwardingType::PUSH:
