@@ -8,8 +8,26 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _QueueMap{
+    SAI_ATTR_MAP(Queue, Type),
+    SAI_ATTR_MAP(Queue, Port),
+    SAI_ATTR_MAP(Queue, Index),
+    SAI_ATTR_MAP(Queue, ParentSchedulerNode),
+    SAI_ATTR_MAP(Queue, WredProfileId),
+    SAI_ATTR_MAP(Queue, BufferProfileId),
+    SAI_ATTR_MAP(Queue, SchedulerProfileId),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -59,29 +77,6 @@ sai_queue_api_t* wrappedQueueApi() {
   return &queueWrappers;
 }
 
-void setQueueAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_QUEUE_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_QUEUE_ATTR_INDEX:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      case SAI_QUEUE_ATTR_PORT:
-      case SAI_QUEUE_ATTR_PARENT_SCHEDULER_NODE:
-      case SAI_QUEUE_ATTR_WRED_PROFILE_ID:
-      case SAI_QUEUE_ATTR_BUFFER_PROFILE_ID:
-      case SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Queue)
 
 } // namespace facebook::fboss

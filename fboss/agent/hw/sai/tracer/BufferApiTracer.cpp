@@ -8,8 +8,29 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _BufferPoolMap{
+    SAI_ATTR_MAP(BufferPool, Type),
+    SAI_ATTR_MAP(BufferPool, Size),
+    SAI_ATTR_MAP(BufferPool, ThresholdMode),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _BufferProfileMap{
+    SAI_ATTR_MAP(BufferProfile, PoolId),
+    SAI_ATTR_MAP(BufferProfile, ReservedBytes),
+    SAI_ATTR_MAP(BufferProfile, ThresholdMode),
+    SAI_ATTR_MAP(BufferProfile, SharedDynamicThreshold),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -70,48 +91,7 @@ sai_buffer_api_t* wrappedBufferApi() {
   return &bufferWrappers;
 }
 
-void setBufferPoolAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_BUFFER_POOL_ATTR_TYPE:
-      case SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_BUFFER_POOL_ATTR_SIZE:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setBufferProfileAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_BUFFER_PROFILE_ATTR_POOL_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      case SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
-      case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
-        attrLines.push_back(s8Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(BufferPool)
+SET_SAI_ATTRIBUTES(BufferProfile)
 
 } // namespace facebook::fboss
