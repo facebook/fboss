@@ -5,10 +5,10 @@
 #include <folly/IPAddressV6.h>
 #include <set>
 #include <vector>
-#include "PyRadixWrapper.h"
 #include "common/base/Random.h"
 #include "common/init/Init.h"
 #include "fboss/lib/RadixTree.h"
+#include "fboss/lib/test/PyRadixWrapper.h"
 
 using namespace std;
 using namespace folly;

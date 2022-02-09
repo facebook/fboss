@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "TunManager.h"
+#include "fboss/agent/TunManager.h"
 
 extern "C" {
 #include <linux/if.h>

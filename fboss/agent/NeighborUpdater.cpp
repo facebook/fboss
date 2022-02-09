@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "NeighborUpdater.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/ArpCache.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"

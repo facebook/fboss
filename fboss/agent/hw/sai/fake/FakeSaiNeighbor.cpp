@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "FakeSaiNeighbor.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BmcRestClient.h"
+#include "fboss/lib/BmcRestClient.h"
 #include <folly/IPAddress.h>
 
 using folly::IPAddress;

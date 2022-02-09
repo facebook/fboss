@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "MockTestHandle.h"
+#include "fboss/agent/hw/mock/MockTestHandle.h"
 
 #include <folly/io/IOBuf.h>
 #include <gmock/gmock.h>

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "DHCPv4Packet.h"
+#include "fboss/agent/packet/DHCPv4Packet.h"
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>

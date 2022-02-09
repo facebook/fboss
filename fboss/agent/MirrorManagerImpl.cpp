@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "MirrorManagerImpl.h"
+#include "fboss/agent/MirrorManagerImpl.h"
 
 #include "folly/IPAddress.h"
 

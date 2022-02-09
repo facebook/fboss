@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "RouteTypes.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/AddressUtil.h"
 
 namespace {

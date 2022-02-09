@@ -7,8 +7,8 @@
 #include <folly/IPAddressV6.h>
 #include "common/base/Random.h"
 
-#include "PyRadixWrapper.h"
 #include "fboss/lib/RadixTree.h"
+#include "fboss/lib/test/PyRadixWrapper.h"
 
 using namespace facebook;
 using namespace facebook::network;

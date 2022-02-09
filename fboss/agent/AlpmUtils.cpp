@@ -8,7 +8,7 @@
  *
  */
 
-#include "AlpmUtils.h"
+#include "fboss/agent/AlpmUtils.h"
 
 #include <utility>
 

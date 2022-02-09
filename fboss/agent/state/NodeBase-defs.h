@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "NodeBase.h"
+#include "fboss/agent/state/NodeBase.h"
 
 #include <memory>
 

@@ -8,7 +8,7 @@
  *
  */
 
-#include "EcmpSetupHelper.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <iterator>
 

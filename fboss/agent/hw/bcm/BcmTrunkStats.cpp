@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmTrunkStats.h"
+#include "fboss/agent/hw/bcm/BcmTrunkStats.h"
 
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwTrunkCounters.h"

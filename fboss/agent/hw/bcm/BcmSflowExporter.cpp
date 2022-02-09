@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmSflowExporter.h"
+#include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 
 #include <fstream>
 #include <iostream>

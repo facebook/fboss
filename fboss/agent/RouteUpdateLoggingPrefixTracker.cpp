@@ -8,7 +8,7 @@
  *
  */
 
-#include "RouteUpdateLoggingPrefixTracker.h"
+#include "fboss/agent/RouteUpdateLoggingPrefixTracker.h"
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {

@@ -7,14 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 
 extern "C" {
 #include <bcm/trunk.h>
 }
 
-#include "BcmSwitch.h"
-#include "BcmTrunk.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmTrunk.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"

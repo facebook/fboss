@@ -8,7 +8,7 @@
  *
  */
 
-#include "PortAndEgressIdsMap.h"
+#include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
 namespace facebook::fboss {

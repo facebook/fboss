@@ -7,14 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "DHCPv6Handler.h"
+#include "fboss/agent/DHCPv6Handler.h"
 #include <arpa/inet.h>
 #include <folly/IPAddressV6.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <string>
-#include "FbossError.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"

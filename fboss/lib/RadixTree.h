@@ -1236,6 +1236,6 @@ class RadixTreeNode<folly::IPAddress, T>;
 
 } // namespace facebook::network
 
-#include "RadixTree-inl.h"
+#include "fboss/lib/RadixTree-inl.h"
 
 #endif // RADIX_TREE_H

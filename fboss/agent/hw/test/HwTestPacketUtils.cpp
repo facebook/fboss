@@ -8,7 +8,7 @@
  *
  */
 
-#include "HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
 #include <folly/Range.h>
 #include <folly/String.h>

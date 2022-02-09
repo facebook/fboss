@@ -12,7 +12,7 @@
 #include <fboss/agent/platforms/wedge/facebook/minipack/MinipackPlatform.h>
 #include <fboss/lib/fpga/MinipackSystemContainer.h>
 
-#include "PhyInitBenchmark-defs.h"
+#include "fboss/agent/platforms/tests/benchmarks/PhyInitBenchmark-defs.h"
 
 namespace facebook::fboss {
 

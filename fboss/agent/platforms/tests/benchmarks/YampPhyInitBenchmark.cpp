@@ -12,7 +12,7 @@
 #include <fboss/agent/platforms/wedge/facebook/yamp/YampPlatform.h>
 #include <fboss/lib/fpga/facebook/yamp/YampSystemContainer.h>
 
-#include "PhyInitBenchmark-defs.h"
+#include "fboss/agent/platforms/tests/benchmarks/PhyInitBenchmark-defs.h"
 
 namespace facebook::fboss {
 

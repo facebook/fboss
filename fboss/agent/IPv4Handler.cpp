@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "IPv4Handler.h"
+#include "fboss/agent/IPv4Handler.h"
 
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>

@@ -8,7 +8,7 @@
  *
  */
 
-#include "BcmFieldProcessorUtils.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"

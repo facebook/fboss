@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "DHCPv6Packet.h"
+#include "fboss/agent/packet/DHCPv6Packet.h"
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>

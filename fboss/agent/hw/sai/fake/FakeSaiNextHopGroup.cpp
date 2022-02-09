@@ -8,8 +8,8 @@
  *
  */
 
-#include "FakeSaiNextHopGroup.h"
-#include "FakeSai.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
 #include <optional>

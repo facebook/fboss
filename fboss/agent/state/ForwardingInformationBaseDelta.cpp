@@ -8,7 +8,7 @@
  *
  */
 
-#include "ForwardingInformationBaseDelta.h"
+#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
 namespace facebook::fboss {

@@ -5,10 +5,10 @@
 #include <array>
 #include <set>
 #include <vector>
-#include "Utils.h"
 #include "common/base/Random.h"
 #include "common/init/Init.h"
 #include "fboss/lib/RadixTree.h"
+#include "fboss/lib/test/Utils.h"
 
 using namespace std;
 using namespace folly;

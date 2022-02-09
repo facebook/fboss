@@ -134,4 +134,4 @@ class TimeSeriesWithMinMax {
 };
 
 } // namespace facebook::fboss
-#include "TimeSeriesWithMinMax-inl.h"
+#include "fboss/lib/TimeSeriesWithMinMax-inl.h"

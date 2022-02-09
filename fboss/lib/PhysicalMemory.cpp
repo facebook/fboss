@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "PhysicalMemory.h"
+#include "fboss/lib/PhysicalMemory.h"
 
 #include <cstdint>
 

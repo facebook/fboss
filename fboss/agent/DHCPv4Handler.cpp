@@ -7,19 +7,19 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "DHCPv4Handler.h"
+#include "fboss/agent/DHCPv4Handler.h"
 #include <arpa/inet.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <string>
-#include "FbossError.h"
-#include "Platform.h"
-#include "RxPacket.h"
-#include "SwSwitch.h"
-#include "SwitchStats.h"
-#include "TxPacket.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/DHCPv4Packet.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"

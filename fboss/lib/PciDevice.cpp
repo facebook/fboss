@@ -7,9 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "PciDevice.h"
+#include "fboss/lib/PciDevice.h"
 #include <pciaccess.h>
-#include "PciSystem.h"
+#include "fboss/lib/PciSystem.h"
 
 #include <folly/Exception.h>
 #include <folly/Format.h>

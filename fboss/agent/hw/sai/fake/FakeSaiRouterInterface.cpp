@@ -8,8 +8,8 @@
  *
  */
 
-#include "FakeSaiRouterInterface.h"
-#include "FakeSai.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiRouterInterface.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
 #include <optional>

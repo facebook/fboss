@@ -8,7 +8,7 @@
  *
  */
 
-#include "RouteUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include <numeric>
 

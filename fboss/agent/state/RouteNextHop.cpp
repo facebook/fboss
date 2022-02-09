@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHop.h"
 
 #include <folly/Conv.h>
 

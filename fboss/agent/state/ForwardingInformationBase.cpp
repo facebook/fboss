@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
 
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/NodeMap-defs.h"

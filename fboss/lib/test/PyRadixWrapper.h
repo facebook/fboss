@@ -17,8 +17,8 @@ void PyMem_Free(void* p) {
 #include <folly/IPAddressV6.h>
 #include <memory>
 
-#include "Utils.h"
 #include "common/logging/logging.h"
+#include "fboss/lib/test/Utils.h"
 
 // Not implemented. Only exists so we can specialize
 // for v4 and v6

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "TCPHeader.h"
+#include "fboss/agent/packet/TCPHeader.h"
 
 #include <folly/io/Cursor.h>
 #include <folly/lang/Bits.h>

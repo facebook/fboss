@@ -9,7 +9,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "FakePhysicalMemory.h"
+#include "fboss/lib/test/FakePhysicalMemory.h"
 
 namespace {
 const uint64_t kFakePhysicalAddr = 0xfb000000;

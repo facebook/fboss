@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "FakeManager.h"
+#include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 #include <folly/IPAddress.h>
 
