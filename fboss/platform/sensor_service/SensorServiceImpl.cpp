@@ -106,6 +106,25 @@ std::optional<SensorData> SensorServiceImpl::getSensorData(
   return *d.name_ref() == "" ? std::nullopt : std::optional<SensorData>{d};
 }
 
+std::vector<SensorData> SensorServiceImpl::getSensorsData(
+    const std::vector<std::string>& sensorNames) {
+  std::vector<SensorData> sensorDataVec;
+
+  liveDataTable_.withRLock([&](auto& table) {
+    for (auto& pair : table) {
+      if (std::find(sensorNames.begin(), sensorNames.end(), pair.first) !=
+          sensorNames.end()) {
+        SensorData d;
+        d.name_ref() = pair.first;
+        d.value_ref() = pair.second.value;
+        d.timeStamp_ref() = pair.second.timeStamp;
+        sensorDataVec.push_back(d);
+      }
+    }
+  });
+  return sensorDataVec;
+}
+
 std::vector<SensorData> SensorServiceImpl::getAllSensorData() {
   std::vector<SensorData> sensorDataVec;
 

@@ -26,16 +26,20 @@ SensorServiceThriftHandler::co_getSensorValuesByNames(
   // Request list is not empty
   if (!request->empty()) {
     std::vector<SensorData> v;
-    for (auto it : *request) {
-      SensorData sa;
-      std::optional<SensorData> sensor = sensorService_->getSensorData(it);
 
+    if (request->size() == 1) {
+      // Request is for a single sensor
+      std::optional<SensorData> sensor =
+          sensorService_->getSensorData(request->at(0));
       if (sensor) {
-        sa.name_ref() = it;
+        SensorData sa;
+        sa.name_ref() = request->at(0);
         sa.value_ref() = *sensor->value_ref();
         sa.timeStamp_ref() = *sensor->timeStamp_ref();
         v.push_back(sa);
       }
+    } else {
+      v = sensorService_->getSensorsData(*request);
     }
     response->sensorData_ref() = v;
 
