@@ -13,5 +13,6 @@ target_link_libraries(weutil
   product_info
   platform_utils
   Folly::folly
+  common_file_utils
 )
 

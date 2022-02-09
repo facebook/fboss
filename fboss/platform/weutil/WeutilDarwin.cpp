@@ -5,10 +5,10 @@
 #include <folly/Conv.h>
 #include <folly/Format.h>
 #include <folly/json.h>
-#include <filesystem>
 #include <iostream>
 #include <unordered_map>
 #include <utility>
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
@@ -48,11 +48,7 @@ WeutilDarwin::WeutilDarwin() {
   int retVal = 0;
   std::string ret;
 
-  if (!std::filesystem::exists(kPathPrefix)) {
-    if (!std::filesystem::create_directory(kPathPrefix)) {
-      throw std::runtime_error("Cannot create directory: " + kPathPrefix);
-    }
-  }
+  createDir(kPathPrefix);
 
   ret = execCommandUnchecked(kCreteLayout, retVal);
 
