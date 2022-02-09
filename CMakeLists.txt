@@ -713,7 +713,6 @@ if (NOT SAI_ONLY)
       fboss/agent/state/NdpResponseEntry.cpp
       fboss/agent/state/NdpResponseTable.cpp
       fboss/agent/state/NdpTable.cpp
-      fboss/agent/state/NeighborResponseEntry.cpp
       fboss/agent/state/NodeBase.cpp
       fboss/agent/state/Port.cpp
       fboss/agent/state/PortMap.cpp
