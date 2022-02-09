@@ -188,8 +188,11 @@ void SaiPhyManager::sakDeleteRx(
     return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
       auto rxSaks = port->getRxSaks();
       PortFields::MKASakKey key{sci, *sak.assocNum_ref()};
-      rxSaks.erase(key);
-      port->setRxSaks(rxSaks);
+      auto it = rxSaks.find(key);
+      if (it != rxSaks.end() && it->second == sak) {
+        rxSaks.erase(key);
+        port->setRxSaks(rxSaks);
+      }
     });
   };
   getPlatformInfo(portId)->applyUpdate(
@@ -199,11 +202,14 @@ void SaiPhyManager::sakDeleteRx(
 void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
   auto portId = getPortId(*sak.l2Port_ref());
   auto saiPlatform = getSaiPlatform(portId);
-  auto updateFn = [portId, saiPlatform, this](std::shared_ptr<SwitchState> in) {
-    return portUpdateHelper(in, portId, saiPlatform, [](auto& port) {
-      port->setTxSak(std::nullopt);
-    });
-  };
+  auto updateFn =
+      [portId, saiPlatform, this, &sak](std::shared_ptr<SwitchState> in) {
+        return portUpdateHelper(in, portId, saiPlatform, [&sak](auto& port) {
+          if (port->getTxSak() && *port->getTxSak() == sak) {
+            port->setTxSak(std::nullopt);
+          }
+        });
+      };
   getPlatformInfo(portId)->applyUpdate(
       folly::sformat("Delete SAK tx for : {}", *sak.l2Port_ref()), updateFn);
 }
