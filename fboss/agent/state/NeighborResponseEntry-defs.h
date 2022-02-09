@@ -15,11 +15,6 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/types.h"
 
-namespace {
-inline constexpr auto kMac = "mac";
-inline constexpr auto kNeighborResponseIntf = "interfaceId";
-} // namespace
-
 namespace facebook::fboss {
 
 template <typename IPADDR>

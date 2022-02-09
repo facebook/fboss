@@ -19,6 +19,8 @@ namespace facebook::fboss {
 template <typename IPADDR>
 struct NeighborResponseEntryFields : public ThriftyFields {
   using AddressType = IPADDR;
+  static constexpr auto kMac = "mac";
+  static constexpr auto kNeighborResponseIntf = "interfaceId";
 
   NeighborResponseEntryFields(
       AddressType ipAddress,
@@ -95,3 +97,4 @@ class NeighborResponseEntry : public ThriftyBaseT<
 };
 
 } // namespace facebook::fboss
+#include "fboss/agent/state/NeighborResponseEntry-defs.h"
