@@ -47,8 +47,6 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     serverSSLSetup(*server);
   }
 
-  handler->setEventBaseManager(server->getEventBaseManager());
-
   setupThriftModules();
 
   // When a thrift connection closes, we need to clean up the associated
