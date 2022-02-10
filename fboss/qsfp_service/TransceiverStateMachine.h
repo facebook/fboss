@@ -63,6 +63,14 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needMarkLastDownTime)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(class TransceiverManager*, transceiverMgrPtr)
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(TransceiverID, transceiverID)
 
+// Use this bool value to gate whether we need to reset the data path for
+// xphy/tcvr.
+// Some of the high speed optics will stuck in a bad state if iphy reset during
+// agent coldboot because iphy port might send some unstable signals during the
+// coldboot. Therefore, we need to reset the data path for xphy/tcvr after
+// agent coldboot and reset the iphy.
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needResetDataPath)
+
 // clang-format off
 BOOST_MSM_EUML_ACTION(resetProgrammingAttributes) {
 template <class Event, class Fsm, class State>
@@ -251,6 +259,7 @@ bool operator()(
   try {
     fsm.get_attribute(transceiverMgrPtr)->programTransceiver(tcvrID);
     fsm.get_attribute(isTransceiverProgrammed) = true;
+    fsm.get_attribute(needResetDataPath) = false;
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
@@ -357,7 +366,7 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      no_action,
      attributes_ << isIphyProgrammed << isXphyProgrammed
                  << isTransceiverProgrammed << transceiverMgrPtr
-                 << transceiverID << needMarkLastDownTime),
+                 << transceiverID << needMarkLastDownTime << needResetDataPath),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

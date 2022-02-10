@@ -779,29 +779,77 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   }
 
   auto wedgeAgentClient = utils::createWedgeAgentClient();
-  int64_t lastConfigApplied{0};
+  ConfigAppliedInfo newConfigAppliedInfo;
   try {
-    lastConfigApplied = wedgeAgentClient->sync_getLastConfigAppliedInMs();
+    wedgeAgentClient->sync_getConfigAppliedInfo(newConfigAppliedInfo);
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
-    XLOG(WARN) << "Failed to call wedge_agent getLastConfigAppliedInMs(). "
+    XLOG(WARN) << "Failed to call wedge_agent getConfigAppliedInfo(). "
                << folly::exceptionStr(ex);
+    // Current agent might not support the new thrift api: getConfigAppliedInfo
+    // Fall back to use old thrift api: getLastConfigAppliedInMs
+    // TODO(joseph5wu) Will deprecate this call once we deprecate the old api
+    try {
+      newConfigAppliedInfo.lastAppliedInMs_ref() =
+          wedgeAgentClient->sync_getLastConfigAppliedInMs();
+    } catch (const std::exception& oldApiEx) {
+      // We have retry mechanism to handle failure. No crash here
+      XLOG(WARN) << "Failed to call wedge_agent getLastConfigAppliedInMs(). "
+                 << folly::exceptionStr(oldApiEx);
+    }
     return;
   }
 
   // Now check if the new timestamp is later than the cached one.
-  if (lastConfigApplied <= lastConfigAppliedInMs_) {
+  if (*newConfigAppliedInfo.lastAppliedInMs_ref() <=
+      *configAppliedInfo_.lastAppliedInMs_ref()) {
     return;
   }
 
-  XLOG(INFO) << "New Agent config applied time:" << lastConfigApplied
-             << " and last cached time:" << lastConfigAppliedInMs_
-             << ". Issue all ports reprogramming events";
+  // Only need to reset data path if there's a new coldboot
+  bool resetDataPath = false;
+  std::optional<std::string> resetDataPathLog;
+  if (auto lastColdbootAppliedInMs =
+          newConfigAppliedInfo.lastColdbootAppliedInMs_ref()) {
+    if (auto oldLastColdbootAppliedInMs =
+            configAppliedInfo_.lastColdbootAppliedInMs_ref()) {
+      resetDataPath = (*lastColdbootAppliedInMs > *oldLastColdbootAppliedInMs);
+      resetDataPathLog = folly::to<std::string>(
+          "Need reset data path. [Old Coldboot time:",
+          *oldLastColdbootAppliedInMs,
+          ", New Coldboot time:",
+          *lastColdbootAppliedInMs,
+          "]");
+    } else {
+      // Always reset data path the cached info doesn't have coldboot config
+      // applied time
+      resetDataPath = true;
+      resetDataPathLog = folly::to<std::string>(
+          "Need reset data path. [Old Coldboot time:0, New Coldboot time:",
+          *lastColdbootAppliedInMs,
+          "]");
+    }
+  }
+
+  XLOG(INFO) << "New Agent config applied time:"
+             << *newConfigAppliedInfo.lastAppliedInMs_ref()
+             << " and last cached time:"
+             << *configAppliedInfo_.lastAppliedInMs_ref()
+             << ". Issue all ports reprogramming events. "
+             << (resetDataPathLog ? *resetDataPathLog : "");
+
   // Update present transceiver state machine back to DISCOVERED
   // and absent transeiver state machine back to NOT_PRESENT
   int numResetToDiscovered{0}, numResetToNotPresent{0};
   BlockingStateUpdateResultList results;
   for (auto& stateMachine : stateMachines_) {
+    // Only need to set true to `needResetDataPath` attribute here. And leave
+    // the state machine to change it to false once it finishes
+    // programTransceiver
+    if (resetDataPath) {
+      stateMachine.second->getStateMachine().wlock()->get_attribute(
+          needResetDataPath) = true;
+    }
     auto tcvrID = stateMachine.first;
     if (std::find(transceivers.begin(), transceivers.end(), tcvrID) !=
         transceivers.end()) {
@@ -822,7 +870,7 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
-  lastConfigAppliedInMs_ = lastConfigApplied;
+  configAppliedInfo_ = newConfigAppliedInfo;
 }
 
 TransceiverManager::TransceiverStateMachineHelper::
@@ -834,6 +882,8 @@ TransceiverManager::TransceiverStateMachineHelper::
   auto lockedStateMachine = stateMachine_.wlock();
   lockedStateMachine->get_attribute(transceiverMgrPtr) = tcvrMgrPtr;
   lockedStateMachine->get_attribute(transceiverID) = tcvrID_;
+  // Make sure this attr is false by default.
+  lockedStateMachine->get_attribute(needResetDataPath) = false;
 }
 
 void TransceiverManager::TransceiverStateMachineHelper::startThread() {

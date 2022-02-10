@@ -428,13 +428,17 @@ class TransceiverManager {
   const TransceiverToPortInfo tcvrToPortInfo_;
 
   /*
-   * A timestamp to keep track of the last wedge_agent config applied time.
-   * refreshStateMachines() will routinely call wedge_agent thrift api to
-   * getLastConfigAppliedInMs() thrift api, and then we can use that to tell
-   * whether there's a config change. This will probably introduce an updated
-   * iphy port profile change, and we should then issue a port re-programming
+   * A ConfigAppliedInfo to keep track of the last wedge_agent config applied
+   * info. refreshStateMachines() will routinely call wedge_agent thrift api to
+   * getConfigAppliedInfo() thrift api, and then we can use that to tell
+   * whether there's a config change. This will probably:
+   * 1) introduce an updated iphy port profile change, like reloading config
+   * with new speed;
+   * 2) agent coldboot to reset iphy
+   * And for the above cases, we need to issue a port re-programming from
+   * iphy to xphy to tcvr.
    */
-  int64_t lastConfigAppliedInMs_{0};
+  ConfigAppliedInfo configAppliedInfo_;
 };
 } // namespace fboss
 } // namespace facebook
