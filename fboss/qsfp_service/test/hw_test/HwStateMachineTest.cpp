@@ -63,6 +63,80 @@ class HwStateMachineTest : public HwTest {
         paused ? 600 : 0);
   }
 
+  bool meetAllExpectedState(
+      TransceiverID id,
+      TransceiverStateMachineState curState,
+      std::queue<TransceiverStateMachineState>& tcvrExpectedStates) {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    // Check whether current state matches the head of the expected state
+    // queue
+    if (tcvrExpectedStates.empty()) {
+      // Already meet all expected states.
+      return true;
+    } else if (curState == tcvrExpectedStates.front()) {
+      tcvrExpectedStates.pop();
+      if (curState == TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED) {
+        // TODO(joseph5wu) Add check to ensure the module remediation did
+        // happen
+        const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
+        auto mgmtInterface = apache::thrift::can_throw(
+            *transceiver.transceiverManagementInterface_ref());
+        if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+          // CMIS will hard reset the module in
+          // remediateFlakyTransceiver() Without clear hard reset, we
+          // won't be able to detect such transceiver
+        } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
+          // SFF will trigger tx enable and then reset low power mode.
+        }
+      } else if (
+          curState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+        // Just finished transceiver programming
+        // Only care enabled ports
+        const auto programmedPortToPortInfo =
+            wedgeMgr->getProgrammedIphyPortToPortInfo(id);
+        if (programmedPortToPortInfo.size() == 1) {
+          utility::HwTransceiverUtils::verifyTransceiverSettings(
+              wedgeMgr->getTransceiverInfo(id),
+              programmedPortToPortInfo.begin()->second.profile);
+        }
+      }
+      return tcvrExpectedStates.empty();
+    }
+    XLOG(WARN) << "Transceiver:" << id << " doesn't have expected state="
+               << apache::thrift::util::enumNameSafe(tcvrExpectedStates.front())
+               << " but actual state="
+               << apache::thrift::util::enumNameSafe(curState);
+    return false;
+  }
+
+  bool refreshStateMachinesTillMeetAllStates(
+      std::unordered_map<
+          TransceiverID,
+          std::queue<TransceiverStateMachineState>>& expectedStates) {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    wedgeMgr->refreshStateMachines();
+    int numFailedTransceivers = 0;
+    for (auto id : getPresentTransceivers()) {
+      auto curState = wedgeMgr->getCurrentState(id);
+      auto tcvrExpectedStates = expectedStates.find(id);
+      // Only enabled transceivers are in expectedStates
+      // Disabled ports should stay INACTIVE without remediation
+      if (tcvrExpectedStates == expectedStates.end()) {
+        EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
+            << "Transceiver:" << id << " doesn't have expected state=INACTIVE"
+            << " but actual state="
+            << apache::thrift::util::enumNameSafe(curState);
+      } else if (!meetAllExpectedState(
+                     id, curState, tcvrExpectedStates->second)) {
+        ++numFailedTransceivers;
+      }
+    }
+    XLOG_IF(WARN, numFailedTransceivers)
+        << numFailedTransceivers
+        << " transceivers don't meet the expected state";
+    return numFailedTransceivers == 0;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   HwStateMachineTest(HwStateMachineTest const&) = delete;
@@ -282,87 +356,13 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
       expectedStates.emplace(id, std::move(tcvrExpectedStates));
     }
 
-    auto meetAllExpectedState =
-        [](WedgeManager* wedgeMgr,
-           TransceiverID id,
-           TransceiverStateMachineState curState,
-           std::queue<TransceiverStateMachineState>& tcvrExpectedStates) {
-          // Check whether current state matches the head of the expected state
-          // queue
-          if (tcvrExpectedStates.empty()) {
-            // Already meet all expected states.
-            return true;
-          } else if (curState == tcvrExpectedStates.front()) {
-            tcvrExpectedStates.pop();
-            if (curState ==
-                TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED) {
-              // TODO(joseph5wu) Add check to ensure the module remediation did
-              // happen
-              const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
-              auto mgmtInterface = apache::thrift::can_throw(
-                  *transceiver.transceiverManagementInterface_ref());
-              if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-                // CMIS will hard reset the module in
-                // remediateFlakyTransceiver() Without clear hard reset, we
-                // won't be able to detect such transceiver
-              } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
-                // SFF will trigger tx enable and then reset low power mode.
-              }
-            } else if (
-                curState ==
-                TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-              // Just finished transceiver programming
-              // Only care enabled ports
-              const auto programmedPortToPortInfo =
-                  wedgeMgr->getProgrammedIphyPortToPortInfo(id);
-              if (programmedPortToPortInfo.size() == 1) {
-                utility::HwTransceiverUtils::verifyTransceiverSettings(
-                    wedgeMgr->getTransceiverInfo(id),
-                    programmedPortToPortInfo.begin()->second.profile);
-              }
-            }
-            return tcvrExpectedStates.empty();
-          }
-          XLOG(WARN) << "Transceiver:" << id << " doesn't have expected state="
-                     << apache::thrift::util::enumNameSafe(
-                            tcvrExpectedStates.front())
-                     << " but actual state="
-                     << apache::thrift::util::enumNameSafe(curState);
-          return false;
-        };
-
     // Due to some platforms are easy to have i2c issue which causes the current
     // refresh not work as expected. Adding enough retries to make sure that we
     // at least can meet all `expectedStates` after 10 times.
-    auto refreshStateMachinesTillMeetAllStates = [this,
-                                                  wedgeMgr,
-                                                  &expectedStates,
-                                                  &meetAllExpectedState]() {
-      wedgeMgr->refreshStateMachines();
-      int numFailedTransceivers = 0;
-      for (auto id : getPresentTransceivers()) {
-        auto curState = wedgeMgr->getCurrentState(id);
-        auto tcvrExpectedStates = expectedStates.find(id);
-        // Only enabled transceivers are in expectedStates
-        // Disabled ports should stay INACTIVE without remediation
-        if (tcvrExpectedStates == expectedStates.end()) {
-          EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
-              << "Transceiver:" << id << " doesn't have expected state=INACTIVE"
-              << " but actual state="
-              << apache::thrift::util::enumNameSafe(curState);
-        } else if (!meetAllExpectedState(
-                       wedgeMgr, id, curState, tcvrExpectedStates->second)) {
-          ++numFailedTransceivers;
-        }
-      }
-      XLOG_IF(WARN, numFailedTransceivers)
-          << numFailedTransceivers
-          << " transceivers don't meet the expected state";
-      return numFailedTransceivers == 0;
-    };
-    // Retry 10 times until all state machines reach expected states
     checkWithRetry(
-        refreshStateMachinesTillMeetAllStates,
+        [this, &expectedStates]() {
+          return refreshStateMachinesTillMeetAllStates(expectedStates);
+        },
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */);
   };
