@@ -8,12 +8,15 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <string>
 
 extern "C" {
 extern int debug_main();
 }
 
-constexpr std::string kCredoDebugIntfSocketIp("127.0.0.1");
+using namespace std;
+
+constexpr std::string_view kCredoDebugIntfSocketIp = "127.0.0.1";
 constexpr uint16_t kCredoDebugIntfSocketPort(8299);
 
 /*
@@ -40,7 +43,7 @@ int main(int argc, char* argv[]) {
 
   // Connect to loopback address and port for communicating with Credo library
   // running in different process
-  peer.sin_addr.s_addr = inet_addr(kCredoDebugIntfSocketIp.c_str());
+  peer.sin_addr.s_addr = inet_addr(kCredoDebugIntfSocketIp.data());
   peer.sin_family = AF_INET;
   peer.sin_port = htons(kCredoDebugIntfSocketPort);
 
