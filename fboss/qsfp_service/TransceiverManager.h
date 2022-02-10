@@ -186,6 +186,8 @@ class TransceiverManager {
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
+  bool getNeedResetDataPath(TransceiverID id) const;
+
   // ========== Public functions for TransceiverStateMachine ==========
   // This refresh TransceiverStateMachine functions will handle all state
   // machine updates.
@@ -222,6 +224,8 @@ class TransceiverManager {
       bool up,
       bool enabled,
       bool clearOnly = false);
+  void setOverrideAgentConfigAppliedInfoForTesting(
+      std::optional<ConfigAppliedInfo> configAppliedInfo);
 
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.
@@ -391,6 +395,8 @@ class TransceiverManager {
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
   std::map<int32_t, PortStatus> overrideAgentPortStatusForTesting_;
+  // This ConfigAppliedInfo is an override of agent getConfigAppliedInfo()
+  std::optional<ConfigAppliedInfo> overrideAgentConfigAppliedInfoForTesting_;
 
   using StateUpdateList = folly::IntrusiveList<
       TransceiverStateMachineUpdate,

@@ -313,6 +313,15 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return curState;
 }
 
+bool TransceiverManager::getNeedResetDataPath(TransceiverID id) const {
+  auto stateMachineItr = stateMachines_.find(id);
+  if (stateMachineItr == stateMachines_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      needResetDataPath);
+}
+
 std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
   std::vector<TransceiverID> programmedTcvrs;
   int32_t numProgramIphy{0}, numProgramXphy{0}, numProgramTcvr{0};
@@ -797,7 +806,25 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
       XLOG(WARN) << "Failed to call wedge_agent getLastConfigAppliedInMs(). "
                  << folly::exceptionStr(oldApiEx);
     }
-    return;
+
+    // For testing only, if overrideAgentConfigAppliedInfoForTesting_ is set,
+    // use it directly; otherwise return without trigger any config changed
+    // events
+    if (overrideAgentConfigAppliedInfoForTesting_) {
+      XLOG(INFO)
+          << "triggerAgentConfigChangeEvent is using override ConfigAppliedInfo"
+          << ", lastAppliedInMs="
+          << *overrideAgentConfigAppliedInfoForTesting_->lastAppliedInMs_ref()
+          << ", lastColdbootAppliedInMs="
+          << (overrideAgentConfigAppliedInfoForTesting_
+                      ->lastColdbootAppliedInMs_ref()
+                  ? *overrideAgentConfigAppliedInfoForTesting_
+                         ->lastColdbootAppliedInMs_ref()
+                  : 0);
+      newConfigAppliedInfo = *overrideAgentConfigAppliedInfoForTesting_;
+    } else {
+      return;
+    }
   }
 
   // Now check if the new timestamp is later than the cached one.
@@ -960,6 +987,11 @@ void TransceiverManager::setOverrideAgentPortStatusForTesting(
       overrideAgentPortStatusForTesting_.emplace(portID, std::move(status));
     }
   }
+}
+
+void TransceiverManager::setOverrideAgentConfigAppliedInfoForTesting(
+    std::optional<ConfigAppliedInfo> configAppliedInfo) {
+  overrideAgentConfigAppliedInfoForTesting_ = configAppliedInfo;
 }
 
 bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
