@@ -47,11 +47,6 @@ constexpr auto kNdpResponseTable = "ndpResponseTable";
 constexpr auto kMacTable = "macTable";
 } // namespace
 
-// Include NeighborResponseEntry-defs.h to instantiate code
-// in that file so that it does not get dropped from static
-// (switch)state library.
-#include "fboss/agent/state/NeighborResponseEntry-defs.h"
-
 namespace facebook::fboss {
 
 folly::dynamic VlanFields::PortInfo::toFollyDynamic() const {
