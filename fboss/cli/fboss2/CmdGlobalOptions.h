@@ -143,7 +143,7 @@ class CmdGlobalOptions {
   int bgpThriftPort_{6909};
   int coopThriftPort_{6969};
   int mkaThriftPort_{5920};
-  int bmcHttpPort_{8080};
+  int bmcHttpPort_{8443};
   int rackmonThriftPort_{7910};
   int sensorServiceThriftPort_{7001};
   std::string color_{"yes"};

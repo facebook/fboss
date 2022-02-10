@@ -31,6 +31,9 @@ folly::dynamic BmcClient::fetchRaw(const std::string& endpoint) {
                  We can implement handling empty JSON in the command itself
   */
   try {
+    // TODO: Once BMC devices are provisioned with a non self-signed cert
+    // this should be removed.
+    client.allowBadCertificate(true);
     auto result = client.fetchUrl(buildUrl(endpoint));
     return folly::parseJson(result->getString());
   } catch (http_client::ErrorResponseException& ex) {
@@ -39,7 +42,7 @@ folly::dynamic BmcClient::fetchRaw(const std::string& endpoint) {
 }
 
 std::string BmcClient::buildUrl(const std::string& endpoint) const {
-  return fmt::format("http://{}:{}/api{}", host_, port_, endpoint);
+  return fmt::format("https://{}:{}/api{}", host_, port_, endpoint);
 }
 
 std::map<std::string, std::string> BmcClient::get_endpoints() {
