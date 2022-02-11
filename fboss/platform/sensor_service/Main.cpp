@@ -1,13 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-
-#include "common/base/BuildInfo.h"
-#include "common/init/Init.h"
-
+//
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
-#include "common/services/cpp/BuildValues.h"
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
@@ -24,17 +20,16 @@ DEFINE_uint32(
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
+void exportBuildInfo(int argc, char** argv);
+
 int main(int argc, char** argv) {
   // Set version info
-  gflags::SetVersionString(BuildInfo::toDebugString());
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
-  // Init FB and export build values
-  initFacebook(&argc, &argv);
-  services::BuildValues::setExportedValues();
   fb303::registerFollyLoggingOptionHandlers();
 
+  exportBuildInfo(argc, argv);
   // Setup thrift handler and server
   auto [server, handler] = setupThrift();
 
