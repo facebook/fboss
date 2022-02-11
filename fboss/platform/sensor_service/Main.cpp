@@ -4,7 +4,9 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
+#ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
+#endif
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
 
@@ -44,9 +46,11 @@ int main(int argc, char** argv) {
 
   scheduler.start();
 
+#ifndef IS_OSS
   facebook::services::ServiceFrameworkLight service("Sensor Service");
   // Finally, run the Thrift server
   runServer(service, server, handler.get());
+#endif
 
   return 0;
 }
