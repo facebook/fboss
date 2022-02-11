@@ -50,8 +50,7 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
    * function gets the i2c controller stats and returns it in form of a vector
    * to the caller
    */
-  std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() override;
+  std::vector<I2cControllerStats> getI2cControllerStats() override;
 
   folly::EventBase* getEventBase(unsigned int module) override;
 

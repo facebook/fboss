@@ -59,7 +59,7 @@ class I2cController {
 
   /* Get the I2c transaction stats from the i2c controller
    */
-  const I2cControllerStats& getI2cControllerPlatformStats() const {
+  const I2cControllerStats getI2cControllerPlatformStats() const {
     // return the structre reference of latest i2c transaction stats
     return i2cControllerPlatformStats_;
   }

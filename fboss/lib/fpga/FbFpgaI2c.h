@@ -115,7 +115,7 @@ class FbFpgaI2cController {
 
   /* Get the I2c transaction stats from this controller with the lock
    */
-  const I2cControllerStats& getI2cControllerPlatformStats() const {
+  const I2cControllerStats getI2cControllerPlatformStats() const {
     return syncedFbI2c_.lock()->getI2cControllerPlatformStats();
   }
 

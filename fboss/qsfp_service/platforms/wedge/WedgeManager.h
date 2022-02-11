@@ -72,8 +72,7 @@ class WedgeManager : public TransceiverManager {
    * where this function will be called. This function uses platform
    * specific I2c class routing to get these counters
    */
-  std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() const override {
+  std::vector<I2cControllerStats> getI2cControllerStats() const override {
     return wedgeI2cBus_->getI2cControllerStats();
   }
 

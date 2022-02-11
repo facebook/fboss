@@ -28,8 +28,7 @@ class Minipack16QI2CBus : public MinipackBaseI2cBus {
    * function consolidates the counters from all constollers and return the
    * vector of the i2c stats
    */
-  std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() override;
+  std::vector<I2cControllerStats> getI2cControllerStats() override;
 
   folly::EventBase* getEventBase(unsigned int module) override;
 

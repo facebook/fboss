@@ -87,8 +87,7 @@ class TransceiverManager {
    * This will be overridden by derived classes which are platform specific
    * and has the platform specific implementation for this counter
    */
-  virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() const = 0;
+  virtual std::vector<I2cControllerStats> getI2cControllerStats() const = 0;
 
   /* Virtual function to update the I2c transaction stats to the ServiceData
    * object from where it will get picked up by FbAgent.

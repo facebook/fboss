@@ -50,10 +50,8 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
    * function gets the i2c controller stats and returns it in form of a vector
    * to the caller
    */
-  std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() override {
-    std::vector<std::reference_wrapper<const I2cControllerStats>>
-        i2cControllerCurrentStats;
+  std::vector<I2cControllerStats> getI2cControllerStats() override {
+    std::vector<I2cControllerStats> i2cControllerCurrentStats;
 
     // Get the i2c controller platform stats from the controller class like
     // CP2112 class and return

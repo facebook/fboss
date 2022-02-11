@@ -50,10 +50,8 @@ FbFpgaI2cController* Minipack16QI2CBus::getI2cController(
  * function consolidates the counters from all constollers and return the
  * array of the i2c stats
  */
-std::vector<std::reference_wrapper<const I2cControllerStats>>
-Minipack16QI2CBus::getI2cControllerStats() {
-  std::vector<std::reference_wrapper<const I2cControllerStats>>
-      i2cControllerCurrentStats;
+std::vector<I2cControllerStats> Minipack16QI2CBus::getI2cControllerStats() {
+  std::vector<I2cControllerStats> i2cControllerCurrentStats;
 
   for (uint32_t pim = MinipackSystemContainer::kPimStartNum;
        pim < MinipackSystemContainer::kPimStartNum +

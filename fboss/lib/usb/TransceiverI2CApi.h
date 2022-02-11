@@ -99,9 +99,8 @@ class TransceiverI2CApi {
    * will be overridden by derived classes which are platform specific
    * and has the platform specific implementation for this counter
    */
-  virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() {
-    std::vector<std::reference_wrapper<const I2cControllerStats>> dummyStat;
+  virtual std::vector<I2cControllerStats> getI2cControllerStats() {
+    std::vector<I2cControllerStats> dummyStat;
     return dummyStat;
   }
 

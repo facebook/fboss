@@ -101,8 +101,7 @@ void WedgeI2CBusLock::ensureOutOfReset(unsigned int module) {
  * function gets the i2c controller stats and returns it in form of a vector
  * to the caller
  */
-std::vector<std::reference_wrapper<const I2cControllerStats>>
-WedgeI2CBusLock::getI2cControllerStats() {
+std::vector<I2cControllerStats> WedgeI2CBusLock::getI2cControllerStats() {
   BusGuard g(this);
   return wedgeI2CBus_->getI2cControllerStats();
 }
