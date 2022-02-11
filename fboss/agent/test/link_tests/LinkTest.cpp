@@ -36,6 +36,12 @@ void LinkTest::SetUp() {
   XLOG(INFO) << "Link Test setup ready";
 }
 
+void LinkTest::TearDown() {
+  // Expect the qsfp service to be running at the end of the tests
+  EXPECT_NO_THROW(utils::createQsfpServiceClient());
+  AgentTest::TearDown();
+}
+
 void LinkTest::setupFlags() const {
   FLAGS_enable_macsec = true;
   // Collect stats faster instead of defaulting to 200s. So our stat

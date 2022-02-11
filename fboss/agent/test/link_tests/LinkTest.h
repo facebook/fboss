@@ -86,6 +86,8 @@ class LinkTest : public AgentTest {
 
   void setupFlags() const override;
 
+  void TearDown() override;
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
