@@ -7,17 +7,18 @@
 namespace facebook::fboss {
 
 void SaiBcmWedge40PlatformPort::linkStatusChanged(bool up, bool adminUp) {
-  PortID phyPortId = static_cast<PortID>(getPhysicalPortId());
-  uint32_t index = Wedge40LedUtils::getPortIndex(phyPortId);
-  auto led = Wedge40LedUtils::getLEDProcessorNumber(phyPortId);
+  uint32_t index = Wedge40LedUtils::getPortIndex(getPortID());
+  auto led = Wedge40LedUtils::getLEDProcessorNumber(getPortID());
   if (!led) {
+    // We only show link status for the first 64 ports.
+    XLOG(WARNING) << "port " << getPortID()
+                  << " is not supported for LED set operation";
     return;
-    led = 0;
   }
   // write to LED
   setLEDState(
       led.value(),
-      index,
+      Wedge40LedUtils::getPortOffset(index),
       static_cast<uint32_t>(Wedge40LedUtils::getDesiredLEDState(up, adminUp)));
 }
 
