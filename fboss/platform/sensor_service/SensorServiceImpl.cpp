@@ -14,8 +14,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/sensor_service/GetSensorConfig.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
-#include "fboss/platform/sensor_service/facebook/GetSensorConfig.h"
 
 #include <chrono>
 
