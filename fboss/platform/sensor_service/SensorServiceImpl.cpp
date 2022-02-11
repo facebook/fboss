@@ -17,8 +17,7 @@
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/facebook/GetSensorConfig.h"
 
-#include "common/fbwhoami/FbWhoAmI.h"
-#include "common/time/Time.h"
+#include <chrono>
 
 namespace {
 
@@ -31,6 +30,11 @@ const std::string kSensorFieldName = "name";
 const std::string kMockLmsensorJasonData =
     "/etc/sensor_service/sensors_output.json";
 const std::string kLmsensorCommand = "sensors -j";
+uint64_t nowInSecs() {
+  return std::chrono::duration_cast<std::chrono::seconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 using namespace facebook::fboss::platform::helpers;
@@ -173,12 +177,13 @@ void SensorServiceImpl::fetchSensorData() {
 void SensorServiceImpl::getSensorDataFromPath() {
   auto dataTable = liveDataTable_.wlock();
 
+  auto now = nowInSecs();
   for (const auto& [path, name] : sensorNameMap_) {
     std::string sensorInput;
 
     if (folly::readFile(path.c_str(), sensorInput)) {
       (*dataTable)[name].value = folly::to<float>(sensorInput);
-      (*dataTable)[name].timeStamp = WallClockUtil::NowInSecFast();
+      (*dataTable)[name].timeStamp = now;
       XLOG(INFO) << name << "(" << path << ")"
                  << " : " << (*dataTable)[name].value << " >>>> "
                  << (*dataTable)[name].timeStamp;
@@ -193,6 +198,7 @@ void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
 
   auto dataTable = liveDataTable_.wlock();
 
+  auto now = nowInSecs();
   for (auto& firstPair : sensorJson.items()) {
     // Key is pair.first, value is pair.second
     if (firstPair.second.isObject()) {
@@ -208,8 +214,7 @@ void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
                 std::string::npos) {
               (*dataTable)[sensorNameMap_[sensorPath]].value =
                   folly::to<float>(thirdPair.second.asString());
-              (*dataTable)[sensorNameMap_[sensorPath]].timeStamp =
-                  WallClockUtil::NowInSecFast();
+              (*dataTable)[sensorNameMap_[sensorPath]].timeStamp = now;
 
               XLOG(INFO) << sensorNameMap_[sensorPath] << " : "
                          << (*dataTable)[sensorNameMap_[sensorPath]].value
