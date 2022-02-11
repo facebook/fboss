@@ -94,8 +94,17 @@ TEST_F(LinkTest, warmbootIsHitLess) {
 }
 
 TEST_F(LinkTest, ptpEnableIsHitless) {
+  // disable PTP as by default we'll  have it enabled now
+  sw()->updateStateBlocking("ptp disable", [](auto state) {
+    auto newState = state->clone();
+    auto switchSettings = newState->getSwitchSettings()->modify(&newState);
+    switchSettings->setPtpTcEnable(false);
+    return newState;
+  });
+
   createL3DataplaneFlood();
   assertNoInDiscards();
+
   sw()->updateStateBlocking("ptp enable", [](auto state) {
     auto newState = state->clone();
     auto switchSettings = newState->getSwitchSettings()->modify(&newState);
