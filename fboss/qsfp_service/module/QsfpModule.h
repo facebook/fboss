@@ -222,19 +222,23 @@ class QsfpModule : public Transceiver {
   virtual void moduleDiagsCapabilitySet() {}
 
   bool isVdmSupported() const {
-    return diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref();
+    auto diagsCapability = diagsCapability_.rlock();
+    return (*diagsCapability).has_value() &&
+        *(*diagsCapability).value().vdm_ref();
   }
 
   bool isPrbsSupported(phy::Side side) const {
+    auto diagsCapability = diagsCapability_.rlock();
     return (side == phy::Side::LINE)
-        ? (diagsCapability_.has_value() &&
-           *diagsCapability_.value().prbsLine_ref())
-        : (diagsCapability_.has_value() &&
-           *diagsCapability_.value().prbsSystem_ref());
+        ? ((*diagsCapability).has_value() &&
+           *(*diagsCapability).value().prbsLine_ref())
+        : ((*diagsCapability).has_value() &&
+           *(*diagsCapability).value().prbsSystem_ref());
   }
 
   std::optional<DiagsCapability> moduleDiagsCapabilityGet() const {
-    return diagsCapability_;
+    // return a copy to avoid needing a lock
+    return diagsCapability_.copy();
   }
 
   /*
@@ -331,7 +335,7 @@ class QsfpModule : public Transceiver {
   std::map<uint32_t, uint32_t> systemPortToModulePortIdMap_;
 
   // Diagnostic capabilities of the module
-  std::optional<DiagsCapability> diagsCapability_;
+  folly::Synchronized<std::optional<DiagsCapability>> diagsCapability_;
 
   /*
    * This function will return the local module port id for the given system

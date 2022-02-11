@@ -2082,7 +2082,8 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
  * the MSM enters Module Discovered state after EEPROM read.
  */
 void CmisModule::moduleDiagsCapabilitySet() {
-  if (!diagsCapability_.has_value()) {
+  auto diagsCapability = diagsCapability_.wlock();
+  if (!(*diagsCapability).has_value()) {
     XLOG(INFO) << "Module diag capability is set for " << qsfpImpl_->getName();
     DiagsCapability diags;
     uint8_t data;
@@ -2124,11 +2125,11 @@ void CmisModule::moduleDiagsCapabilitySet() {
           (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
     }
 
-    diagsCapability_ = diags;
+    *diagsCapability = diags;
   }
 
   // If VDM capability has been identified then update VDM cache
-  if (diagsCapability_.has_value() && *diagsCapability_.value().vdm_ref()) {
+  if ((*diagsCapability).has_value() && *(*diagsCapability).value().vdm_ref()) {
     uint8_t page = 0x20;
     qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);

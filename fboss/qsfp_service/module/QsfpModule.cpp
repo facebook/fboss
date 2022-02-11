@@ -866,8 +866,9 @@ void QsfpModule::addModulePortStateMachines() {
  */
 void QsfpModule::eraseModulePortStateMachines() {
   portStateMachines_.clear();
-  if (diagsCapability_.has_value()) {
-    diagsCapability_.reset();
+  auto diagsCapability = diagsCapability_.wlock();
+  if ((*diagsCapability).has_value()) {
+    (*diagsCapability).reset();
   }
 }
 
