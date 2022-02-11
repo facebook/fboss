@@ -14,6 +14,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/misc_service/MiscServiceImpl.h"
+#include "fboss/platform/weutil/Weutil.h"
 
 namespace {
 // ToDo
@@ -22,9 +23,27 @@ namespace {
 
 namespace facebook::fboss::platform::misc_service {
 
+using namespace facebook::fboss::platform;
+
 void MiscServiceImpl::init() {
   // ToDo
   XLOG(INFO) << "Init MiscServiceImpl";
 }
 
+std::vector<FruIdData> MiscServiceImpl::getFruid(bool uncached) {
+  std::vector<FruIdData> vData;
+
+  if (uncached || fruid_.empty()) {
+    fruid_ = get_plat_weutil()->getInfo();
+  }
+
+  for (auto it : fruid_) {
+    FruIdData data;
+    data.name_ref() = it.first;
+    data.value_ref() = it.second;
+    vData.emplace_back(data);
+  }
+
+  return vData;
+}
 } // namespace facebook::fboss::platform::misc_service

@@ -16,15 +16,11 @@
 namespace facebook::fboss::platform::misc_service {
 
 folly::coro::Task<std::unique_ptr<MiscFruidReadResponse>>
-MiscServiceThriftHandler::co_getFruid(bool force) {
+MiscServiceThriftHandler::co_getFruid(bool uncached) {
   auto log = LOG_THRIFT_CALL(DBG1);
   auto response = std::make_unique<MiscFruidReadResponse>();
 
-  if (force) {
-    // ToDo force a read
-  } else {
-    // ToDo get data from cache
-  }
+  response->fruidData_ref() = miscService_->getFruid(uncached);
 
   co_return response;
 }

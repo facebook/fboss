@@ -33,9 +33,15 @@ class MiscServiceImpl {
     init();
   }
 
+  std::vector<FruIdData> getFruid(bool uncached);
+
  private:
   // Designate platform name
   std::string platformName_{};
+
+  // Cached Fruid
+  std::vector<std::pair<std::string, std::string>> fruid_{};
+
   void init();
 };
 

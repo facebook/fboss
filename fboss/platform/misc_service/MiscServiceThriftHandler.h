@@ -28,8 +28,9 @@ class MiscServiceThriftHandler : public MiscServiceThriftSvIf {
   folly::coro::Task<std::unique_ptr<MiscFruidReadResponse>> co_getFruid(
       bool force) override;
 
-  // MiscServiceImpl* getServiceImpl() {
-  //  return miscService_.get();
+  MiscServiceImpl* getServiceImpl() {
+    return miscService_.get();
+  }
 
  private:
   std::shared_ptr<MiscServiceImpl> miscService_;
