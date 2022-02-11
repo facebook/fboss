@@ -106,10 +106,10 @@ std::optional<uint32_t> GalaxyLedUtils::getLEDProcessorNumber(PortID port) {
    *  Port 129 & 131 are managed by LED Processor 2. We don't
    *  care about these
    */
-  if (port == 129 || port == 131) {
+  if (port == PortID(129) || port == PortID(131)) {
     return std::nullopt;
   }
-  if (port > 32 && port < 97) {
+  if (port > PortID(32) && port < PortID(97)) {
     return 1;
   }
   return 0;

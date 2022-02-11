@@ -565,7 +565,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
       auto induceMacLearning = [this]() {
         // Send gratuitous ARPs so intf/router MAC is learnt on all VLANs
         // and ports
-        for (const auto port : masterLogicalPortIds()) {
+        for (const auto& port : masterLogicalPortIds()) {
           auto vlanID = getProgrammedState()
                             ->getPorts()
                             ->getPort(port)

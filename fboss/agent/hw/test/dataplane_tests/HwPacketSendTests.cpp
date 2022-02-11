@@ -265,7 +265,7 @@ TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), port, std::nullopt);
       ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
-      EXPECT_EQ(port, getLastPktSrcPort());
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
     }
   };
   verifyAcrossWarmBoots(setup, verify);

@@ -1210,7 +1210,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<Port>& orig,
     const cfg::Port* portConf,
     const shared_ptr<Transceiver>& transceiver) {
-  CHECK_EQ(orig->getID(), *portConf->logicalID_ref());
+  CHECK_EQ(orig->getID(), PortID(*portConf->logicalID_ref()));
 
   auto vlans = portVlans_[orig->getID()];
 
@@ -1518,7 +1518,7 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
 shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
     const shared_ptr<AggregatePort>& origAggPort,
     const cfg::AggregatePort& cfg) {
-  CHECK_EQ(origAggPort->getID(), *cfg.key_ref());
+  CHECK_EQ(origAggPort->getID(), AggregatePortID(*cfg.key_ref()));
 
   auto cfgSubports = getSubportsSorted(cfg);
   auto origSubports = origAggPort->sortedSubports();
@@ -1710,7 +1710,7 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
 shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
     const shared_ptr<Vlan>& orig,
     const cfg::Vlan* config) {
-  CHECK_EQ(orig->getID(), *config->id_ref());
+  CHECK_EQ(orig->getID(), VlanID(*config->id_ref()));
   const auto& ports = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
@@ -2653,7 +2653,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
     const shared_ptr<Interface>& orig,
     const cfg::Interface* config,
     const Interface::Addresses& addrs) {
-  CHECK_EQ(orig->getID(), *config->intfID_ref());
+  CHECK_EQ(orig->getID(), InterfaceID(*config->intfID_ref()));
 
   cfg::NdpConfig ndp;
   if (config->ndp_ref()) {
