@@ -4,6 +4,8 @@
 
 #include "fboss/lib/fpga/HwMemoryRegion.h"
 
+#include <folly/SharedMutex.h>
+
 namespace facebook::fboss {
 
 /*
@@ -14,17 +16,22 @@ template <typename IO>
 class HwMemoryRegister : public HwMemoryRegion<IO> {
  public:
   HwMemoryRegister(const std::string& name, FpgaDevice* device, uint32_t start)
-      : HwMemoryRegion<IO>(name, device, start, 4) {}
+      : HwMemoryRegion<IO>(name, device, start, 4) {
+    mutex_ = std::make_unique<folly::SharedMutex>();
+  }
 
   uint32_t readRegister() const {
+    folly::SharedMutex::ReadHolder g(*mutex_);
     return read(0);
   }
 
   void writeRegister(uint32_t value) {
+    folly::SharedMutex::WriteHolder g(*mutex_);
     write(0, value);
   }
 
  private:
+  std::unique_ptr<folly::SharedMutex> mutex_;
   using FpgaMemoryRegion::read;
   using FpgaMemoryRegion::write;
 };
