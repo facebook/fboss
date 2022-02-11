@@ -17,8 +17,6 @@
 #include "fboss/platform/sensor_service/GetSensorConfig.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
-#include <chrono>
-
 namespace {
 
 // The following are keys in sensor conf file
@@ -30,11 +28,6 @@ const std::string kSensorFieldName = "name";
 const std::string kMockLmsensorJasonData =
     "/etc/sensor_service/sensors_output.json";
 const std::string kLmsensorCommand = "sensors -j";
-uint64_t nowInSecs() {
-  return std::chrono::duration_cast<std::chrono::seconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
-}
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 using namespace facebook::fboss::platform::helpers;
@@ -177,7 +170,7 @@ void SensorServiceImpl::fetchSensorData() {
 void SensorServiceImpl::getSensorDataFromPath() {
   auto dataTable = liveDataTable_.wlock();
 
-  auto now = nowInSecs();
+  auto now = helpers::nowInSecs();
   for (const auto& [path, name] : sensorNameMap_) {
     std::string sensorInput;
 
@@ -198,7 +191,7 @@ void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
 
   auto dataTable = liveDataTable_.wlock();
 
-  auto now = nowInSecs();
+  auto now = helpers::nowInSecs();
   for (auto& firstPair : sensorJson.items()) {
     // Key is pair.first, value is pair.second
     if (firstPair.second.isObject()) {

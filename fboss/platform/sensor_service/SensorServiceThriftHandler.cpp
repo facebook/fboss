@@ -10,8 +10,8 @@
 
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include <folly/logging/xlog.h>
-#include "common/time/Time.h"
 #include "fboss/lib/LogThriftCall.h"
+#include "fboss/platform/helpers/Utils.h"
 
 namespace facebook::fboss::platform::sensor_service {
 
@@ -21,7 +21,7 @@ SensorServiceThriftHandler::co_getSensorValuesByNames(
   auto log = LOG_THRIFT_CALL(DBG1);
   auto response = std::make_unique<SensorReadResponse>();
 
-  response->timeStamp_ref() = facebook::WallClockUtil::NowInSecFast();
+  response->timeStamp_ref() = helpers::nowInSecs();
 
   // Request list is not empty
   if (!request->empty()) {

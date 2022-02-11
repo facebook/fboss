@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <chrono>
 #include <iostream>
 #include <unordered_set>
 
@@ -141,4 +142,9 @@ std::string getFlashType(const std::string& str) {
   return "";
 }
 
+uint64_t nowInSecs() {
+  return std::chrono::duration_cast<std::chrono::seconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
 } // namespace facebook::fboss::platform::helpers

@@ -24,4 +24,6 @@ void showDeviceInfo();
  * If it can not find, return empty string
  */
 std::string getFlashType(const std::string& str);
+
+uint64_t nowInSecs();
 } // namespace facebook::fboss::platform::helpers
