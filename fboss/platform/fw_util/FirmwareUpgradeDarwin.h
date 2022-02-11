@@ -1,7 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #pragma once
 
-#include <sstream>
+#include <string>
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
 // include for new class
 

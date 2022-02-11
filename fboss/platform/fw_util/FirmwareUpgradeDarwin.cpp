@@ -5,13 +5,12 @@
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
 #include "fboss/platform/helpers/Utils.h"
 
-using namespace facebook::fboss::platform::helpers;
-
 namespace facebook::fboss::platform {
 
 FirmwareUpgradeDarwin::FirmwareUpgradeDarwin() {
   int exitStatus = 0;
-  std::string cmdOutput = execCommandUnchecked(flashromStrCmd, exitStatus);
+  std::string cmdOutput =
+      helpers::execCommandUnchecked(flashromStrCmd, exitStatus);
   /*cmd exit status is expected to be 1 since cmd
    is not complete, so skipping checking for out
    value. Purpose is to look for the chip name.
@@ -22,7 +21,7 @@ FirmwareUpgradeDarwin::FirmwareUpgradeDarwin() {
     chip = "-c N25Q128..3E";
   }
 
-  execCommand(createLayoutCmd);
+  helpers::execCommand(createLayoutCmd);
 }
 
 void FirmwareUpgradeDarwin::upgradeFirmware(int argc, char* argv[]) {
