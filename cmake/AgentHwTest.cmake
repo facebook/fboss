@@ -40,6 +40,15 @@ target_link_libraries(hw_packet_utils
   resourcelibutil
 )
 
+add_library(packet_observer
+  fboss/agent/PacketObserver.cpp
+)
+
+target_link_libraries(packet_observer
+  fboss_error
+  Folly::folly
+)  
+
 add_library(hw_copp_utils
   fboss/agent/hw/test/HwTestCoppUtils.cpp
 )

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/ThreadHeartbeat.h"
@@ -925,6 +926,7 @@ class SwSwitch : public HwSwitch::Callback {
    * locking when we access the container during a state update.
    */
   std::map<StateObserver*, std::string> stateObservers_;
+  std::unique_ptr<PacketObservers> pktObservers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;

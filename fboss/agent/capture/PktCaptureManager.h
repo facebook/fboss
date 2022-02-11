@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include "fboss/agent/PacketObserver.h"
 
 namespace facebook::fboss {
 
@@ -23,9 +24,11 @@ class PktCapture;
 class RxPacket;
 class TxPacket;
 
-class PktCaptureManager {
+class PktCaptureManager : public PacketObserverIf {
  public:
-  explicit PktCaptureManager(const std::string& persistentDir);
+  PktCaptureManager(
+      const std::string& persistentDir,
+      PacketObservers* observer);
   virtual ~PktCaptureManager();
 
   /*
@@ -40,20 +43,6 @@ class PktCaptureManager {
 
   void stopAllCaptures();
   void forgetAllCaptures();
-
-  /*
-   * packetReceived() is called by the SwSwitch whenever a packet is received.
-   *
-   * This method is safe to call from any thread.
-   */
-  void packetReceived(const RxPacket* pkt) {
-    // We expect that in the common case there will be no active captures
-    // running.  Just do a fast check to handle that case.
-    if (!capturesRunning_.load(std::memory_order_acquire)) {
-      return;
-    }
-    packetReceivedImpl(pkt);
-  }
 
   /*
    * packetSent() is called by the SwSwitch whenever a packet is transmitted.
@@ -77,6 +66,8 @@ class PktCaptureManager {
   static void checkCaptureName(folly::StringPiece name);
   int getCaptureCount(folly::StringPiece name);
 
+  void packetReceived(const RxPacket* pkt) noexcept override;
+
  private:
   // Forbidden copy constructor and assignment operator
   PktCaptureManager(PktCaptureManager const&) = delete;
@@ -93,6 +84,7 @@ class PktCaptureManager {
   std::string captureDir_;
   std::map<std::string, std::unique_ptr<PktCapture>> activeCaptures_;
   std::map<std::string, std::unique_ptr<PktCapture>> inactiveCaptures_;
+  PacketObservers* observer_{nullptr};
 };
 
 } // namespace facebook::fboss

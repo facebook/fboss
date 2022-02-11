@@ -36,6 +36,7 @@
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
+#include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/PhySnapshotManager-defs.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
@@ -179,11 +180,14 @@ namespace facebook::fboss {
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     : hw_(platform->getHwSwitch()),
       platform_(std::move(platform)),
+      pktObservers_(new PacketObservers()),
       arp_(new ArpHandler(this)),
       ipv4_(new IPv4Handler(this)),
       ipv6_(new IPv6Handler(this)),
       nUpdater_(new NeighborUpdater(this)),
-      pcapMgr_(new PktCaptureManager(platform_->getPersistentStateDir())),
+      pcapMgr_(new PktCaptureManager(
+          platform_->getPersistentStateDir(),
+          pktObservers_.get())),
       mirrorManager_(new MirrorManager(this)),
       mplsHandler_(new MPLSHandler(this)),
       packetLogger_(new PacketLogger(this)),
@@ -278,6 +282,9 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
 #endif
   phySnapshotManager_.reset();
 
+  // reset explicitly since it uses observer
+  pcapMgr_.reset();
+  pktObservers_.reset();
   // stops the background and update threads.
   stopThreads();
 
@@ -1116,7 +1123,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   PortID port = pkt->getSrcPort();
   portStats(port)->trappedPkt();
 
-  pcapMgr_->packetReceived(pkt.get());
+  pktObservers_->packetReceived(pkt.get());
 
   /*
    * The minimum required frame length for ethernet is 64 bytes.

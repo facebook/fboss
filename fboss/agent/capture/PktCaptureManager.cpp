@@ -22,12 +22,33 @@ using std::unique_ptr;
 
 namespace facebook::fboss {
 
-PktCaptureManager::PktCaptureManager(const std::string& persistentDir) {
+PktCaptureManager::PktCaptureManager(
+    const std::string& persistentDir,
+    PacketObservers* observer)
+    : observer_(observer) {
   captureDir_ = folly::to<string>(persistentDir, "/captures");
   utilCreateDir(captureDir_);
+  // observer for rx the packet
+  observer_->registerPacketObserver(this, "PktCaptureManager");
 }
 
-PktCaptureManager::~PktCaptureManager() {}
+PktCaptureManager::~PktCaptureManager() {
+  observer_->unregisterPacketObserver(this, "PktCaptureManager");
+}
+
+/*
+ * packetReceived() is called by the SwSwitch whenever a packet is received.
+ *
+ * This method is safe to call from any thread.
+ */
+void PktCaptureManager::packetReceived(const RxPacket* pkt) noexcept {
+  // We expect that in the common case there will be no active captures
+  // running.  Just do a fast check to handle that case.
+  if (!capturesRunning_.load(std::memory_order_acquire)) {
+    return;
+  }
+  packetReceivedImpl(pkt);
+}
 
 void PktCaptureManager::startCapture(unique_ptr<PktCapture> capture) {
   checkCaptureName(capture->name());
