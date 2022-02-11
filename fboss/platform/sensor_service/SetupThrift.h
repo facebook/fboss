@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include <gflags/gflags.h>
 #include <memory>
 
 namespace facebook::services {
@@ -17,6 +18,8 @@ class ServiceFrameworkLight;
 namespace apache::thrift {
 class ThriftServer;
 }
+
+DECLARE_int32(thrift_port);
 
 namespace facebook::fboss::platform::sensor_service {
 class SensorServiceThriftHandler;

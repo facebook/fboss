@@ -15,6 +15,7 @@
 
 namespace facebook::fboss::platform::sensor_service {
 
+#if FOLLY_HAS_COROUTINES
 folly::coro::Task<std::unique_ptr<SensorReadResponse>>
 SensorServiceThriftHandler::co_getSensorValuesByNames(
     std::unique_ptr<std::vector<std::string>> request) {
@@ -60,5 +61,6 @@ SensorServiceThriftHandler::co_getSensorValuesByFruTypes(
   // ToDo: implement here
   co_return response;
 }
+#endif
 
 } // namespace facebook::fboss::platform::sensor_service
