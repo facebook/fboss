@@ -6,6 +6,8 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
 namespace rust facebook.fboss
 
+include "fboss/lib/phy/prbs.thrift"
+
 struct Vendor {
   1: string name;
   2: binary oui;
@@ -455,6 +457,8 @@ struct DiagsCapability {
   5: bool prbsSystem = false;
   6: bool loopbackLine = false;
   7: bool loopbackSystem = false;
+  8: list<prbs.PrbsPolynomial> prbsSystemCapabilities = [];
+  9: list<prbs.PrbsPolynomial> prbsLineCapabilities = [];
 }
 
 enum TransceiverStateMachineState {

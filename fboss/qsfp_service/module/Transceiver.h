@@ -144,6 +144,12 @@ class Transceiver {
   virtual bool shouldRemediate() = 0;
 
   /*
+   * Returns the list of prbs polynomials supported on the given side
+   */
+  virtual std::vector<prbs::PrbsPolynomial> getPrbsCapabilities(
+      phy::Side side) const = 0;
+
+  /*
    * Return true if such Transceiver can support remediation.
    * Different from shouldRemediate(), which will also check whether there's
    * a recent remediation and will returl false if the remediation interval

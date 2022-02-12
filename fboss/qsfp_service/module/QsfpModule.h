@@ -12,6 +12,7 @@
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/ModuleStateMachine.h"
@@ -239,6 +240,21 @@ class QsfpModule : public Transceiver {
   std::optional<DiagsCapability> moduleDiagsCapabilityGet() const {
     // return a copy to avoid needing a lock
     return diagsCapability_.copy();
+  }
+
+  /*
+   * Returns the list of prbs polynomials supported on the given side
+   */
+  std::vector<prbs::PrbsPolynomial> getPrbsCapabilities(
+      phy::Side side) const override {
+    auto diagsCapability = diagsCapability_.rlock();
+    if (!(*diagsCapability).has_value()) {
+      return std::vector<prbs::PrbsPolynomial>();
+    }
+    if (side == phy::Side::SYSTEM) {
+      return (*diagsCapability).value().get_prbsSystemCapabilities();
+    }
+    return (*diagsCapability).value().get_prbsLineCapabilities();
   }
 
   /*
