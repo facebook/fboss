@@ -283,6 +283,16 @@ class SffModule : public QsfpModule {
   const std::optional<LengthAndGauge> getDACCableOverride() const;
 
   /*
+   * Sets the diags capability. Called by MSM when module enters discovered
+   * state
+   */
+  virtual void moduleDiagsCapabilitySet() override;
+  /*
+   * Provides the option to override the diags capability for certain
+   * transceivers
+   */
+  const std::optional<DiagsCapability> getDiagsCapabilityOverride();
+  /*
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.

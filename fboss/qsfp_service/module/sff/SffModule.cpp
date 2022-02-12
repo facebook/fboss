@@ -102,6 +102,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::RX_PWR_THRESH, {SffPages::PAGE3, 176, 8}},
     {SffField::TX_BIAS_THRESH, {SffPages::PAGE3, 184, 8}},
     {SffField::TX_PWR_THRESH, {SffPages::PAGE3, 192, 8}},
+    {SffField::FR1_PRBS_SUPPORT, {SffPages::PAGE3, 231, 1}},
     {SffField::TX_EQUALIZATION, {SffPages::PAGE3, 234, 2}},
     {SffField::RX_EMPHASIS, {SffPages::PAGE3, 236, 2}},
     {SffField::RX_AMPLITUDE, {SffPages::PAGE3, 238, 2}},
@@ -1372,6 +1373,22 @@ bool SffModule::supportRemediate() {
   }
 
   return true;
+}
+
+/*
+ * moduleDiagsCapabilitySet
+ *
+ * This function reads the module register from cache and populates the
+ * diagnostic capability. This function is called from Module State Machine when
+ * the MSM enters Module Discovered state after EEPROM read.
+ */
+void SffModule::moduleDiagsCapabilitySet() {
+  auto diagsCapability = diagsCapability_.wlock();
+  if (!(*diagsCapability).has_value()) {
+    if (auto diagsCapabilityOverride = getDiagsCapabilityOverride()) {
+      *diagsCapability = *diagsCapabilityOverride;
+    }
+  }
 }
 
 } // namespace fboss

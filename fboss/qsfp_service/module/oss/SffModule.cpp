@@ -17,5 +17,9 @@ const std::optional<QsfpModule::LengthAndGauge> SffModule::getDACCableOverride()
   return std::nullopt;
 }
 
+const std::optional<DiagsCapability> SffModule::getDiagsCapabilityOverride() {
+  return std::nullopt;
+}
+
 } // namespace fboss
 } // namespace facebook
