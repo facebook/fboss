@@ -119,6 +119,7 @@ TEST(SffTest, transceiverInfoTest) {
   }
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
   testCachedMediaSignals(qsfp.get());
+  EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -147,6 +148,7 @@ TEST(SffDacTest, transceiverInfoTest) {
   }
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CR4_100G);
   testCachedMediaSignals(qsfp.get());
+  EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
 // Tests that a SFF Fr1 module can properly refresh
@@ -175,6 +177,21 @@ TEST(SffFr1Test, transceiverInfoTest) {
   }
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR1_100G);
   testCachedMediaSignals(qsfp.get());
+
+  auto diagsCap = qsfp->moduleDiagsCapabilityGet();
+  EXPECT_TRUE(diagsCap);
+  EXPECT_TRUE(*(*diagsCap).prbsLine_ref());
+  EXPECT_TRUE(*(*diagsCap).prbsSystem_ref());
+  auto prbsSystemCaps = (*diagsCap).get_prbsSystemCapabilities();
+  auto prbsLineCaps = (*diagsCap).get_prbsLineCapabilities();
+  std::vector<prbs::PrbsPolynomial> expectedCapabilities = {
+      prbs::PrbsPolynomial::PRBS31};
+  EXPECT_TRUE(std::equal(
+      prbsSystemCaps.begin(),
+      prbsSystemCaps.end(),
+      expectedCapabilities.begin()));
+  EXPECT_TRUE(std::equal(
+      prbsLineCaps.begin(), prbsLineCaps.end(), expectedCapabilities.begin()));
 }
 
 // Tests that a miniphoton module can properly refresh
@@ -202,6 +219,7 @@ TEST(SffMiniphotonTest, transceiverInfoTest) {
     EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
   }
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
 TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
@@ -286,6 +304,7 @@ TEST(SfpTest, transceiverInfoTest) {
       expectedMediaLaneSettings, sfp->numMediaLanes());
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::LR_10G);
+  EXPECT_EQ(sfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
 } // namespace
