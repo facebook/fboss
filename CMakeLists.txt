@@ -249,6 +249,12 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
+  prbs_cpp2
+  fboss/lib/phy/prbs.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
   optic_cpp2
   fboss/agent/if/optic.thrift
   OPTIONS
