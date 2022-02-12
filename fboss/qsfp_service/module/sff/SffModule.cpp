@@ -43,14 +43,6 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 namespace facebook {
 namespace fboss {
 
-// As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
-
-enum SffPages {
-  LOWER,
-  PAGE0,
-  PAGE3,
-};
-
 // As per SFF-8636
 static SffFieldInfo::SffFieldMap qsfpFields = {
     // Base page values, including alarms and sensors

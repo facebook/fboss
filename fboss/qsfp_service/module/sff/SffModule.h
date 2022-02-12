@@ -10,6 +10,13 @@
 namespace facebook {
 namespace fboss {
 
+enum SffPages {
+  LOWER,
+  PAGE0,
+  PAGE3,
+  PAGE7,
+};
+
 enum class SffField;
 
 class SffModule : public QsfpModule {
