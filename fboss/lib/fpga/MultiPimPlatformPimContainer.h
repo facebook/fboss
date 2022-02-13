@@ -24,6 +24,7 @@ class MultiPimPlatformPimContainer {
     MINIPACK_16O,
     YAMP_16Q,
     FUJI_16Q,
+    FUJI_16O,
     ELBERT_16Q,
     ELBERT_8DD,
   };

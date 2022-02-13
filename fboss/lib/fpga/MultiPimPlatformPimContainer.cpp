@@ -24,6 +24,8 @@ std::string MultiPimPlatformPimContainer::getPimTypeStr(
       return "YAMP_16Q";
     case PimType::FUJI_16Q:
       return "FUJI_16Q";
+    case PimType::FUJI_16O:
+      return "FUJI_16O";
     case PimType::ELBERT_16Q:
       return "ELBERT_16Q";
     case PimType::ELBERT_8DD:
@@ -42,6 +44,8 @@ MultiPimPlatformPimContainer::getPimTypeFromStr(const std::string& pimTypeStr) {
     return MultiPimPlatformPimContainer::PimType::YAMP_16Q;
   } else if (pimTypeStr == "FUJI_16Q") {
     return MultiPimPlatformPimContainer::PimType::FUJI_16Q;
+  } else if (pimTypeStr == "FUJI_16O") {
+    return MultiPimPlatformPimContainer::PimType::FUJI_16O;
   } else if (pimTypeStr == "ELBERT_16Q") {
     return MultiPimPlatformPimContainer::PimType::ELBERT_16Q;
   } else if (pimTypeStr == "ELBERT_8DD") {
