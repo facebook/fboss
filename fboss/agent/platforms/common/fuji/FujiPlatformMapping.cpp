@@ -9,15 +9,25 @@
  */
 
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
+#include "fboss/lib/fpga/facebook/fuji/FujiSystemContainer.h"
 
 namespace facebook {
 namespace fboss {
 FujiPlatformMapping::FujiPlatformMapping() {
-  // current minipack platform only supports 16Q pims
   auto fuji16Q = std::make_unique<Fuji16QPimPlatformMapping>();
+  // TODO: Define 16O platform mapping
+  auto fuji16O = std::make_unique<Fuji16QPimPlatformMapping>();
   for (uint8_t pimID = 2; pimID < 10; pimID++) {
-    this->merge(fuji16Q->getPimPlatformMapping(pimID));
+    auto pimType = FujiSystemContainer::getInstance()->getPimType(pimID);
+    if (pimType == MultiPimPlatformPimContainer::PimType::FUJI_16O) {
+      XLOG(INFO) << "Detected pim:" << static_cast<int>(pimID) << " is 16O";
+      this->merge(fuji16O->getPimPlatformMapping(pimID));
+    } else {
+      XLOG(INFO) << "Detected pim:" << static_cast<int>(pimID) << " is 16Q";
+      this->merge(fuji16Q->getPimPlatformMapping(pimID));
+    }
   }
 }
 } // namespace fboss
