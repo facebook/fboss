@@ -128,17 +128,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -148,17 +148,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -168,17 +168,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -188,17 +188,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -240,16 +240,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -200,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -260,16 +260,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -200,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -280,16 +280,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -200,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -300,16 +300,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -200,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -352,17 +352,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -372,17 +372,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -392,17 +392,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -412,17 +412,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -464,17 +464,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -484,17 +484,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -504,17 +504,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -524,17 +524,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -544,17 +544,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -564,17 +564,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -584,17 +584,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -604,17 +604,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -787,17 +787,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -807,17 +807,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -827,17 +827,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -847,17 +847,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -899,16 +899,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -30,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -180,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -919,16 +919,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -30,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -180,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -939,16 +939,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -30,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -180,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -959,16 +959,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -30,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -180,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1011,17 +1011,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1031,17 +1031,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1051,17 +1051,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1071,17 +1071,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -1123,17 +1123,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1143,17 +1143,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1163,17 +1163,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1183,17 +1183,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1203,17 +1203,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 20
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1223,17 +1223,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 21
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1243,17 +1243,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 22
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1263,17 +1263,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 23
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -1446,17 +1446,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1466,17 +1466,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1486,17 +1486,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -1506,17 +1506,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -1566,8 +1566,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1586,8 +1586,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1606,8 +1606,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1626,8 +1626,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1670,16 +1670,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1690,16 +1690,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1710,16 +1710,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1730,16 +1730,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1782,16 +1782,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1802,16 +1802,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1822,16 +1822,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1842,16 +1842,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1862,16 +1862,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1882,16 +1882,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1902,16 +1902,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -1922,16 +1922,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2105,17 +2105,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2125,17 +2125,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2145,17 +2145,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2165,17 +2165,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -2219,14 +2219,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 810,
-                      "post": -180,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2239,14 +2239,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 810,
-                      "post": -180,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2259,14 +2259,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 810,
-                      "post": -180,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2279,14 +2279,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 810,
-                      "post": -180,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2329,16 +2329,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2349,16 +2349,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2369,16 +2369,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2389,16 +2389,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2441,16 +2441,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2461,16 +2461,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2481,16 +2481,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2501,16 +2501,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2521,16 +2521,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2541,16 +2541,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2561,16 +2561,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2581,16 +2581,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2764,17 +2764,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2784,17 +2784,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2804,17 +2804,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -2824,17 +2824,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -2878,14 +2878,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 860,
+                      "main": 800,
                       "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2898,14 +2898,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 860,
+                      "main": 800,
                       "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2918,14 +2918,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 860,
+                      "main": 800,
                       "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2938,14 +2938,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 860,
+                      "main": 800,
                       "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -2988,17 +2988,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3008,17 +3008,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3028,17 +3028,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3048,17 +3048,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -3100,17 +3100,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3120,17 +3120,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3140,17 +3140,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3160,17 +3160,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3180,17 +3180,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3200,17 +3200,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3220,17 +3220,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3240,17 +3240,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -3423,17 +3423,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3443,17 +3443,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3463,17 +3463,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3483,17 +3483,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -3537,14 +3537,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -170,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -3557,14 +3557,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -170,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -3577,14 +3577,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -170,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -3597,14 +3597,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -170,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -3647,17 +3647,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3667,17 +3667,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3687,17 +3687,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3707,17 +3707,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -3759,17 +3759,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3779,17 +3779,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3799,17 +3799,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3819,17 +3819,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3839,17 +3839,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3859,17 +3859,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3879,17 +3879,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -3899,17 +3899,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -56,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 888,
-                      "post": -56,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -4082,17 +4082,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4102,17 +4102,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4122,17 +4122,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4142,17 +4142,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -4196,14 +4196,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 770,
-                      "post": -240,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4216,14 +4216,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 770,
-                      "post": -240,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4236,14 +4236,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 770,
-                      "post": -240,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4256,14 +4256,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 770,
-                      "post": -240,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4306,17 +4306,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4326,17 +4326,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4346,17 +4346,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4366,17 +4366,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -4418,17 +4418,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4438,17 +4438,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4458,17 +4458,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4478,17 +4478,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4498,17 +4498,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -84,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 840,
-                      "post": -76,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4518,17 +4518,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -84,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 840,
-                      "post": -76,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4538,17 +4538,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -75,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -100,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4558,17 +4558,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -4741,17 +4741,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4761,17 +4761,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4781,17 +4781,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4801,17 +4801,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -4853,16 +4853,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4873,16 +4873,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4893,16 +4893,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4913,16 +4913,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 780,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -4965,17 +4965,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -4985,17 +4985,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5005,17 +5005,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5025,17 +5025,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -5077,17 +5077,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5097,17 +5097,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5117,17 +5117,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5137,17 +5137,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5157,17 +5157,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5177,17 +5177,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5197,17 +5197,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5217,17 +5217,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -64,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 868,
-                      "post": -68,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -5400,17 +5400,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5420,17 +5420,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5440,17 +5440,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -5460,17 +5460,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -5512,16 +5512,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -240,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5532,16 +5532,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -240,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5552,16 +5552,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -240,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5572,16 +5572,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -240,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5624,16 +5624,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5644,16 +5644,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5664,16 +5664,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5684,16 +5684,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5736,16 +5736,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5756,16 +5756,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5776,16 +5776,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5796,16 +5796,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5816,16 +5816,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 20
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5836,16 +5836,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 21
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5856,16 +5856,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 22
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -5876,16 +5876,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 23
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6059,17 +6059,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6079,17 +6079,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6099,17 +6099,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6119,17 +6119,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -6171,16 +6171,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6191,16 +6191,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6211,16 +6211,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6231,16 +6231,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6283,16 +6283,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6303,16 +6303,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6323,16 +6323,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6343,16 +6343,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6395,16 +6395,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6415,16 +6415,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6435,16 +6435,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6455,16 +6455,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6475,16 +6475,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6495,16 +6495,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6515,16 +6515,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6535,16 +6535,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6718,17 +6718,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6738,17 +6738,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6758,17 +6758,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -6778,17 +6778,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -6830,16 +6830,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -230,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6850,16 +6850,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -230,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6870,16 +6870,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -230,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6890,16 +6890,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -230,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6942,16 +6942,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6962,16 +6962,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -6982,16 +6982,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7002,16 +7002,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7054,16 +7054,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7074,16 +7074,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7094,16 +7094,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7114,16 +7114,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7134,16 +7134,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7154,16 +7154,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7174,16 +7174,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7194,16 +7194,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7377,17 +7377,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -7397,17 +7397,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -7417,17 +7417,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -7437,17 +7437,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -7489,16 +7489,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 750,
-                      "post": -170,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7509,16 +7509,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 750,
-                      "post": -170,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7529,16 +7529,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 750,
-                      "post": -170,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7549,16 +7549,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -50,
                       "pre2": 0,
-                      "main": 750,
-                      "post": -170,
+                      "main": 800,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7601,16 +7601,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7621,16 +7621,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7641,16 +7641,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7661,16 +7661,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7713,16 +7713,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7733,16 +7733,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7753,16 +7753,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7773,16 +7773,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7793,16 +7793,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 20
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7813,16 +7813,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 21
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7833,16 +7833,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 22
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -7853,16 +7853,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 23
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 880,
+                      "post": -60,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8036,17 +8036,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8056,17 +8056,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8076,17 +8076,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8096,17 +8096,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -8148,16 +8148,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8168,16 +8168,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8188,16 +8188,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8208,16 +8208,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8260,17 +8260,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8280,17 +8280,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8300,17 +8300,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8320,17 +8320,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -8372,17 +8372,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8392,17 +8392,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8412,17 +8412,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8432,17 +8432,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8452,17 +8452,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 4
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8472,17 +8472,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 5
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8492,17 +8492,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 6
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8512,17 +8512,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 7
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -80,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 880,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -8695,17 +8695,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8715,17 +8715,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8735,17 +8735,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -8755,17 +8755,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -8809,14 +8809,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8829,14 +8829,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8849,14 +8849,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8869,14 +8869,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8919,16 +8919,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8939,16 +8939,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8959,16 +8959,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -8979,16 +8979,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9031,16 +9031,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9051,16 +9051,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9071,16 +9071,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9091,16 +9091,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9111,16 +9111,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9131,16 +9131,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9151,16 +9151,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9171,16 +9171,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9354,17 +9354,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9374,17 +9374,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9394,17 +9394,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9414,17 +9414,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -9466,16 +9466,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9486,16 +9486,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9506,16 +9506,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9526,16 +9526,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -50,
                       "pre2": 0,
                       "main": 800,
-                      "post": -130,
+                      "post": -100,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -9578,17 +9578,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9598,17 +9598,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9618,17 +9618,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9638,17 +9638,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -9690,17 +9690,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 16
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9710,17 +9710,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 17
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9730,17 +9730,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9750,17 +9750,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9770,17 +9770,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 20
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9790,17 +9790,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 21
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9810,17 +9810,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 22
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -9830,17 +9830,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 23
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -60,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 900,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 7,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -10013,17 +10013,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -10033,17 +10033,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -10053,17 +10053,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   },
@@ -10073,17 +10073,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -25,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 700,
+                      "post": -175,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 0,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -10127,14 +10127,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10147,14 +10147,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10167,14 +10167,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10187,14 +10187,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": -50,
                       "pre2": 0,
-                      "main": 850,
-                      "post": -130,
+                      "main": 800,
+                      "post": -150,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 2,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10237,16 +10237,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10257,16 +10257,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10277,16 +10277,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10297,16 +10297,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10349,16 +10349,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10369,16 +10369,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10389,16 +10389,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10409,16 +10409,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10429,16 +10429,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 12
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10449,16 +10449,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 13
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10469,16 +10469,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 14
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10489,16 +10489,16 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 15
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -60,
                       "pre2": 0,
                       "main": 900,
-                      "post": -50,
+                      "post": -40,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 7,
+                      "dspMode": 0,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -10575,7 +10575,534 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 0
                 }
               }
-            },
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                130,
+                131,
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                130
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                130,
+                131,
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                130,
+                131,
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "130": {
+        "mapping": {
+          "id": 130,
+          "name": "eth1/17/2",
+          "controllingPort": 129,
+          "pins": [
             {
               "a": {
                 "chip": "IFG5",
@@ -10587,7 +11114,120 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 1
                 }
               }
-            },
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "131": {
+        "mapping": {
+          "id": 131,
+          "name": "eth1/17/3",
+          "controllingPort": 129,
+          "pins": [
             {
               "a": {
                 "chip": "IFG5",
@@ -10599,150 +11239,218 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 19
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 3
-                }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  }
+                ]
               }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 20
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 4
-                }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  }
+                ]
               }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 21
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 5
-                }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  }
+                ]
               }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 22
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 6
-                }
+          },
+          "21": {
+              "subsumedPorts": [
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
               }
-            },
+          }
+        }
+    },
+    "133": {
+        "mapping": {
+          "id": 133,
+          "name": "eth1/18/1",
+          "controllingPort": 133,
+          "pins": [
             {
               "a": {
                 "chip": "IFG5",
-                "lane": 23
+                "lane": 8
               },
               "z": {
                 "end": {
-                  "chip": "eth1/17",
-                  "lane": 7
+                  "chip": "eth1/18",
+                  "lane": 0
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 16
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -10750,111 +11458,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                134,
+                135,
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                134
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 16
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 880,
+                      "main": 600,
                       "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 17
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 880,
+                      "main": 600,
                       "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 880,
-                      "post": -140,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 880,
-                      "post": -140,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -10862,111 +11700,221 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                134,
+                135,
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/18",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                134,
+                135,
+                136
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 16
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 17
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 18
+                      "lane": 10
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 19
+                      "lane": 11
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -10974,190 +11922,73 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 3
                     }
                   }
                 ]
               }
-          },
-          "26": {
+          }
+        }
+    },
+    "134": {
+        "mapping": {
+          "id": 134,
+          "name": "eth1/18/2",
+          "controllingPort": 133,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 16
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 20
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 21
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 22
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 23
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -11166,50 +11997,264 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/17",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "135": {
+        "mapping": {
+          "id": 135,
+          "name": "eth1/18/3",
+          "controllingPort": 133,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/17",
+                      "chip": "eth1/18",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/17",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/17",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/17",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/17",
-                      "lane": 7
                     }
                   }
                 ]
@@ -11220,188 +12265,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "137": {
         "mapping": {
           "id": 137,
-          "name": "eth1/18/1",
+          "name": "eth1/19/1",
           "controllingPort": 137,
           "pins": [
             {
               "a": {
                 "chip": "IFG5",
-                "lane": 8
+                "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/18",
+                  "chip": "eth1/19",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/18",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -11409,111 +12310,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                138,
+                139,
+                140
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                138
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 800,
-                      "post": -130,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 9
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -80,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 800,
-                      "post": -130,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -80,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -130,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -80,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -130,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -11521,111 +12552,221 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                138,
+                139,
+                140
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/19",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                138,
+                139,
+                140
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 9
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 10
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 11
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -11633,191 +12774,629 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "138": {
+        "mapping": {
+          "id": 138,
+          "name": "eth1/19/2",
+          "controllingPort": 137,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/19",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "139": {
+        "mapping": {
+          "id": 139,
+          "name": "eth1/19/3",
+          "controllingPort": 137,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/19",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                140
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "141": {
+        "mapping": {
+          "id": 141,
+          "name": "eth1/20/1",
+          "controllingPort": 141,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 8
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/20",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                142,
+                143,
+                144
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "IFG4",
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "IFG4",
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -11825,50 +13404,561 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/20",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                142,
+                143,
+                144
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/20",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
+                      "chip": "eth1/20",
                       "lane": 3
                     }
-                  },
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                142,
+                143,
+                144
+              ],
+              "pins": {
+                "iphy": [
                   {
                     "id": {
-                      "chip": "eth1/18",
-                      "lane": 4
+                      "chip": "IFG4",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
-                      "lane": 5
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
-                      "lane": 6
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/18",
-                      "lane": 7
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "142": {
+        "mapping": {
+          "id": 142,
+          "name": "eth1/20/2",
+          "controllingPort": 141,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/20",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "143": {
+        "mapping": {
+          "id": 143,
+          "name": "eth1/20/3",
+          "controllingPort": 141,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/20",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                144
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 3
                     }
                   }
                 ]
@@ -11879,188 +13969,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "145": {
         "mapping": {
           "id": 145,
-          "name": "eth1/19/1",
+          "name": "eth1/21/1",
           "controllingPort": 145,
           "pins": [
             {
               "a": {
-                "chip": "IFG5",
-                "lane": 0
+                "chip": "IFG1",
+                "lane": 8
               },
               "z": {
                 "end": {
-                  "chip": "eth1/19",
+                  "chip": "eth1/21",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/19",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 0
+                      "chip": "IFG1",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -12068,111 +14014,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                146,
+                147,
+                148
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                146
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 0
+                      "chip": "IFG1",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 880,
+                      "main": 600,
                       "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 1
+                      "chip": "IFG1",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 880,
+                      "main": 600,
                       "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 880,
-                      "post": -140,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 880,
-                      "post": -140,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -12180,110 +14256,295 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                146,
+                147,
+                148
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/21",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                146,
+                147,
+                148
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "IFG1",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
                       "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "eth1/21",
                       "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "eth1/21",
                       "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "eth1/21",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "146": {
+        "mapping": {
+          "id": 146,
+          "name": "eth1/21/2",
+          "controllingPort": 145,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/21",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -12292,190 +14553,850 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "147": {
+        "mapping": {
+          "id": 147,
+          "name": "eth1/21/3",
+          "controllingPort": 145,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/21",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                148
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "IFG1",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/21",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "149": {
+        "mapping": {
+          "id": 149,
+          "name": "eth1/22/1",
+          "controllingPort": 149,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 16
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/22",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                150,
+                151,
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                150
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "IFG1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
                       "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "eth1/22",
                       "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                150,
+                151,
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "IFG1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
                       "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 900,
-                      "post": -50,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
+                      "chip": "eth1/22",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                150,
+                151,
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 16
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 4
+                      "chip": "IFG1",
+                      "lane": 17
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 5
+                      "chip": "IFG1",
+                      "lane": 18
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 6
+                      "chip": "IFG1",
+                      "lane": 19
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG5",
-                      "lane": 7
+                      "chip": "eth1/22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "150": {
+        "mapping": {
+          "id": 150,
+          "name": "eth1/22/2",
+          "controllingPort": 149,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 17
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/22",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 17
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 900,
-                      "post": -50,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -12484,50 +15405,264 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/19",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/22",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "151": {
+        "mapping": {
+          "id": 151,
+          "name": "eth1/22/3",
+          "controllingPort": 149,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 18
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/22",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/19",
+                      "chip": "eth1/22",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/19",
-                      "lane": 7
                     }
                   }
                 ]
@@ -12538,188 +15673,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "153": {
         "mapping": {
           "id": 153,
-          "name": "eth1/20/1",
+          "name": "eth1/23/1",
           "controllingPort": 153,
           "pins": [
             {
               "a": {
-                "chip": "IFG4",
-                "lane": 8
+                "chip": "IFG0",
+                "lane": 16
               },
               "z": {
                 "end": {
-                  "chip": "eth1/20",
+                  "chip": "eth1/23",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/20",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 8
+                      "chip": "IFG0",
+                      "lane": 16
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -12727,111 +15718,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                154,
+                155,
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                154
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 8
+                      "chip": "IFG0",
+                      "lane": 16
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 820,
-                      "post": -120,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 9
+                      "chip": "IFG0",
+                      "lane": 17
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 820,
-                      "post": -120,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 820,
-                      "post": -120,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 820,
-                      "post": -120,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -12839,111 +15960,221 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                154,
+                155,
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/23",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                154,
+                155,
+                156
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 8
+                      "chip": "IFG0",
+                      "lane": 16
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 9
+                      "chip": "IFG0",
+                      "lane": 17
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 10
+                      "chip": "IFG0",
+                      "lane": 18
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 11
+                      "chip": "IFG0",
+                      "lane": 19
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -12951,191 +16182,629 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "154": {
+        "mapping": {
+          "id": 154,
+          "name": "eth1/23/2",
+          "controllingPort": 153,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 17
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/23",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "155": {
+        "mapping": {
+          "id": 155,
+          "name": "eth1/23/3",
+          "controllingPort": 153,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 18
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/23",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "157": {
+        "mapping": {
+          "id": 157,
+          "name": "eth1/24/1",
+          "controllingPort": 157,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/24",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                158,
+                159,
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                158
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 8
+                      "chip": "IFG0",
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG4",
-                      "lane": 9
+                      "chip": "IFG0",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -47,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 906,
-                      "post": -47,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -47,
-                      "pre2": 0,
-                      "main": 906,
-                      "post": -47,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -13143,50 +16812,561 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/24",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                158,
+                159,
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/24",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
+                      "chip": "eth1/24",
                       "lane": 3
                     }
-                  },
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                158,
+                159,
+                160
+              ],
+              "pins": {
+                "iphy": [
                   {
                     "id": {
-                      "chip": "eth1/20",
-                      "lane": 4
+                      "chip": "IFG0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
-                      "lane": 5
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
-                      "lane": 6
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/20",
-                      "lane": 7
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "158": {
+        "mapping": {
+          "id": 158,
+          "name": "eth1/24/2",
+          "controllingPort": 157,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/24",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "159": {
+        "mapping": {
+          "id": 159,
+          "name": "eth1/24/3",
+          "controllingPort": 157,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/24",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 3
                     }
                   }
                 ]
@@ -13197,188 +17377,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "161": {
         "mapping": {
           "id": 161,
-          "name": "eth1/21/1",
+          "name": "eth1/25/1",
           "controllingPort": 161,
           "pins": [
             {
               "a": {
                 "chip": "IFG1",
-                "lane": 8
+                "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/21",
+                  "chip": "eth1/25",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/21",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -13386,111 +17422,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                162,
+                163,
+                164
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                162
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 730,
-                      "post": -230,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 9
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 730,
-                      "post": -230,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -230,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -230,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -13498,111 +17664,221 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                162,
+                163,
+                164
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/25",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                162,
+                163,
+                164
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 8
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 9
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 10
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 11
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -13610,191 +17886,629 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "162": {
+        "mapping": {
+          "id": 162,
+          "name": "eth1/25/2",
+          "controllingPort": 161,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/25",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "163": {
+        "mapping": {
+          "id": 163,
+          "name": "eth1/25/3",
+          "controllingPort": 161,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/25",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                164
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "165": {
+        "mapping": {
+          "id": 165,
+          "name": "eth1/26/1",
+          "controllingPort": 165,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 8
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/26",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                166,
+                167,
+                168
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                166
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG0",
                       "lane": 8
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG0",
                       "lane": 9
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -84,
-                      "pre2": 0,
-                      "main": 840,
-                      "post": -76,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -84,
-                      "pre2": 0,
-                      "main": 840,
-                      "post": -76,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -13802,50 +18516,561 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/26",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                166,
+                167,
+                168
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/26",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
+                      "chip": "eth1/26",
                       "lane": 3
                     }
-                  },
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                166,
+                167,
+                168
+              ],
+              "pins": {
+                "iphy": [
                   {
                     "id": {
-                      "chip": "eth1/21",
-                      "lane": 4
+                      "chip": "IFG0",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
-                      "lane": 5
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
-                      "lane": 6
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/21",
-                      "lane": 7
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "166": {
+        "mapping": {
+          "id": 166,
+          "name": "eth1/26/2",
+          "controllingPort": 165,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/26",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "167": {
+        "mapping": {
+          "id": 167,
+          "name": "eth1/26/3",
+          "controllingPort": 165,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/26",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                168
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 3
                     }
                   }
                 ]
@@ -13856,188 +19081,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "169": {
         "mapping": {
           "id": 169,
-          "name": "eth1/22/1",
+          "name": "eth1/27/1",
           "controllingPort": 169,
           "pins": [
             {
               "a": {
-                "chip": "IFG1",
-                "lane": 16
+                "chip": "IFG4",
+                "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/22",
+                  "chip": "eth1/27",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 17
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 18
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 19
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 20
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 21
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 22
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 23
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/22",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 16
+                      "chip": "IFG4",
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -14045,111 +19126,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                170,
+                171,
+                172
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                170
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 16
+                      "chip": "IFG4",
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 17
+                      "chip": "IFG4",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 700,
-                      "post": -200,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 700,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 700,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -14157,110 +19368,295 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                170,
+                171,
+                172
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/27",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                170,
+                171,
+                172
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 16
+                      "chip": "IFG4",
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 17
+                      "chip": "IFG4",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 18
+                      "chip": "IFG4",
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 19
+                      "chip": "IFG4",
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "170": {
+        "mapping": {
+          "id": 170,
+          "name": "eth1/27/2",
+          "controllingPort": 169,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/27",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -14269,190 +19665,850 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "171": {
+        "mapping": {
+          "id": 171,
+          "name": "eth1/27/3",
+          "controllingPort": 169,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/27",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                172
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "173": {
+        "mapping": {
+          "id": 173,
+          "name": "eth1/28/1",
+          "controllingPort": 173,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/28",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                174,
+                175,
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                174
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 16
+                      "chip": "IFG3",
+                      "lane": 0
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 17
+                      "chip": "IFG3",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                174,
+                175,
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 18
+                      "chip": "IFG3",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 19
+                      "chip": "IFG3",
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 20
+                      "chip": "IFG3",
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                174,
+                175,
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 21
+                      "chip": "IFG3",
+                      "lane": 1
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 22
+                      "chip": "IFG3",
+                      "lane": 2
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
-                      "lane": 23
+                      "chip": "IFG3",
+                      "lane": 3
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 825,
-                      "post": -125,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "174": {
+        "mapping": {
+          "id": 174,
+          "name": "eth1/28/2",
+          "controllingPort": 173,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/28",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -14461,50 +20517,264 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/22",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/28",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "175": {
+        "mapping": {
+          "id": 175,
+          "name": "eth1/28/3",
+          "controllingPort": 173,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/28",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                176
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "IFG3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/22",
+                      "chip": "eth1/28",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/22",
-                      "lane": 7
                     }
                   }
                 ]
@@ -14515,188 +20785,44 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "177": {
         "mapping": {
           "id": 177,
-          "name": "eth1/23/1",
+          "name": "eth1/29/1",
           "controllingPort": 177,
           "pins": [
             {
               "a": {
-                "chip": "IFG0",
-                "lane": 16
+                "chip": "IFG2",
+                "lane": 8
               },
               "z": {
                 "end": {
-                  "chip": "eth1/23",
+                  "chip": "eth1/29",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 17
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 18
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 19
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 20
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 21
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 22
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 23
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/23",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 16
+                      "chip": "IFG2",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -14704,111 +20830,241 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                178,
+                179,
+                180
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                178
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 16
+                      "chip": "IFG2",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 800,
-                      "post": -240,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 17
+                      "chip": "IFG2",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -40,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 800,
-                      "post": -240,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 18
-                    },
-                    "tx": {
-                      "pre": -40,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -240,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -40,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -240,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -14816,110 +21072,295 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                178,
+                179,
+                180
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "24": {
+              "subsumedPorts": [
+                178,
+                179,
+                180
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 16
+                      "chip": "IFG2",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 17
+                      "chip": "IFG2",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 18
+                      "chip": "IFG2",
+                      "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 19
+                      "chip": "IFG2",
+                      "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -120,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 700,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "178": {
+        "mapping": {
+          "id": 178,
+          "name": "eth1/29/2",
+          "controllingPort": 177,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG2",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/29",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -14928,190 +21369,850 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "179": {
+        "mapping": {
+          "id": 179,
+          "name": "eth1/29/3",
+          "controllingPort": 177,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG2",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/29",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                180
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "IFG2",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "181": {
+        "mapping": {
+          "id": 181,
+          "name": "eth1/30/1",
+          "controllingPort": 181,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 8
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/30",
+                  "lane": 0
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                182,
+                183,
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                182
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 16
+                      "chip": "IFG3",
+                      "lane": 8
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 17
+                      "chip": "IFG3",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                182,
+                183,
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 18
+                      "chip": "IFG3",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 19
+                      "chip": "IFG3",
+                      "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 20
+                      "chip": "IFG3",
+                      "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                182,
+                183,
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 21
+                      "chip": "IFG3",
+                      "lane": 9
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 22
+                      "chip": "IFG3",
+                      "lane": 10
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG0",
-                      "lane": 23
+                      "chip": "IFG3",
+                      "lane": 11
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": 0,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 750,
+                      "post": -200,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
                       "ctlCode": 63,
-                      "dspMode": 7,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "182": {
+        "mapping": {
+          "id": 182,
+          "name": "eth1/30/2",
+          "controllingPort": 181,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 9
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/30",
+                  "lane": 1
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -15120,50 +22221,264 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/23",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/30",
                       "lane": 1
                     }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "183": {
+        "mapping": {
+          "id": 183,
+          "name": "eth1/30/3",
+          "controllingPort": 181,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 10
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/30",
+                  "lane": 2
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                184
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "IFG3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/23",
+                      "chip": "eth1/30",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/23",
-                      "lane": 7
                     }
                   }
                 ]
@@ -15174,299 +22489,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "185": {
         "mapping": {
           "id": 185,
-          "name": "eth1/24/1",
+          "name": "eth1/31/1",
           "controllingPort": 185,
           "pins": [
             {
               "a": {
-                "chip": "IFG0",
+                "chip": "IFG2",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/24",
+                  "chip": "eth1/31",
                   "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/24",
-                  "lane": 7
                 }
               }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
+                      "chip": "IFG2",
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
+                      "ctlCode": 59,
+                      "dspMode": 4,
                       "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
@@ -15475,111 +22534,33 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/31",
                       "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "14": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
+                      "chip": "IFG2",
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -15587,191 +22568,33 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/31",
                       "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG0",
+                      "chip": "IFG2",
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -15779,242 +22602,98 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/24",
+                      "chip": "eth1/31",
                       "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/24",
-                      "lane": 7
                     }
                   }
                 ]
               }
-          }
-        }
-    },
-    "193": {
-        "mapping": {
-          "id": 193,
-          "name": "eth1/25/1",
-          "controllingPort": 193,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/25",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
+          },
+          "17": {
+              "subsumedPorts": [
+                186,
+                187,
+                188
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -16022,111 +22701,296 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "21": {
+              "subsumedPorts": [
+                186
+              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 0
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                186,
+                187,
+                188
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                186,
+                187,
+                188
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -120,
                       "pre2": 0,
                       "main": 700,
-                      "post": -200,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 1
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -120,
                       "pre2": 0,
                       "main": 700,
-                      "post": -200,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -120,
                       "pre2": 0,
                       "main": 700,
-                      "post": -200,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "IFG1",
+                      "chip": "IFG2",
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -60,
+                      "pre": -120,
                       "pre2": 0,
                       "main": 700,
-                      "post": -200,
+                      "post": -160,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -16134,354 +22998,26 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "transceiver": [
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/31",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/25",
-                      "lane": 7
                     }
                   }
                 ]
@@ -16489,3319 +23025,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "201": {
+    "186": {
         "mapping": {
-          "id": 201,
-          "name": "eth1/26/1",
-          "controllingPort": 201,
+          "id": 186,
+          "name": "eth1/31/2",
+          "controllingPort": 185,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 8
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/26",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -60,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -200,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 825,
-                      "post": -125,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/26",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "209": {
-        "mapping": {
-          "id": 209,
-          "name": "eth1/27/1",
-          "controllingPort": 209,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/27",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 860,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 860,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 860,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 860,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/27",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "217": {
-        "mapping": {
-          "id": 217,
-          "name": "eth1/28/1",
-          "controllingPort": 217,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/28",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 2
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/28",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "225": {
-        "mapping": {
-          "id": 225,
-          "name": "eth1/29/1",
-          "controllingPort": 225,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 8
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/29",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/29",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "233": {
-        "mapping": {
-          "id": 233,
-          "name": "eth1/30/1",
-          "controllingPort": 233,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 8
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 9
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 10
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 11
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 12
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 13
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 14
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 15
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/30",
-                  "lane": 7
-                }
-              }
-            }
-          ]
-        },
-        "supportedProfiles": {
-          "18": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 850,
-                      "post": -170,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 9
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 10
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 11
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 12
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 13
-                    },
-                    "tx": {
-                      "pre": -56,
-                      "pre2": 0,
-                      "main": 888,
-                      "post": -56,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 14
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 15
-                    },
-                    "tx": {
-                      "pre": -64,
-                      "pre2": 0,
-                      "main": 868,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/30",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "241": {
-        "mapping": {
-          "id": 241,
-          "name": "eth1/31/1",
-          "controllingPort": 241,
-          "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 0
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG2",
@@ -19813,7 +23042,120 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 1
                 }
               }
-            },
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "187": {
+        "mapping": {
+          "id": 187,
+          "name": "eth1/31/3",
+          "controllingPort": 185,
+          "pins": [
             {
               "a": {
                 "chip": "IFG2",
@@ -19825,150 +23167,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 4
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 5
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 6
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 7
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/31",
-                  "lane": 7
-                }
-              }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 3
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -19977,314 +23199,103 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/31",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "14": {
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 730,
-                      "post": -220,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "25": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 1
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 2
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                188
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
@@ -20294,114 +23305,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": -76,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 856,
-                      "post": -68,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 5
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 6
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 7
-                    },
-                    "tx": {
-                      "pre": -76,
-                      "pre2": 0,
-                      "main": 856,
-                      "post": -68,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 7,
-                      "afeTrim": 16,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth1/31",
@@ -20412,30 +23331,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/31",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/31",
-                      "lane": 7
                     }
                   }
                 ]
@@ -20443,11 +23338,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "249": {
+    "189": {
         "mapping": {
-          "id": 249,
+          "id": 189,
           "name": "eth1/32/1",
-          "controllingPort": 249,
+          "controllingPort": 189,
           "pins": [
             {
               "a": {
@@ -20460,7 +23355,534 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 0
                 }
               }
-            },
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "17": {
+              "subsumedPorts": [
+                190,
+                191,
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "21": {
+              "subsumedPorts": [
+                190
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "22": {
+              "subsumedPorts": [
+                190,
+                191,
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "24": {
+              "subsumedPorts": [
+                190,
+                191,
+                192
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -120,
+                      "pre2": 0,
+                      "main": 700,
+                      "post": -160,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 63,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "190": {
+        "mapping": {
+          "id": 190,
+          "name": "eth1/32/2",
+          "controllingPort": 189,
+          "pins": [
             {
               "a": {
                 "chip": "IFG2",
@@ -20472,7 +23894,120 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 1
                 }
               }
-            },
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "191": {
+        "mapping": {
+          "id": 191,
+          "name": "eth1/32/3",
+          "controllingPort": 189,
+          "pins": [
             {
               "a": {
                 "chip": "IFG2",
@@ -20484,150 +24019,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   "lane": 2
                 }
               }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 19
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/32",
-                  "lane": 3
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 20
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/32",
-                  "lane": 4
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 21
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/32",
-                  "lane": 5
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 22
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/32",
-                  "lane": 6
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 23
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/32",
-                  "lane": 7
-                }
-              }
             }
           ]
         },
         "supportedProfiles": {
-          "18": {
+          "11": {
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 16
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 18
                     },
                     "tx": {
-                      "pre": 0,
+                      "pre": -75,
                       "pre2": 0,
-                      "main": 765,
-                      "post": -155,
+                      "main": 800,
+                      "post": -125,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 765,
-                      "post": -155,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 13,
-                      "dspMode": 2,
-                      "afeTrim": 16,
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
                       "acCouplingBypass": 1
                     }
                   }
@@ -20636,110 +24051,32 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/32",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "23": {
+          "14": {
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 16
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -50,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 800,
-                      "post": -150,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -50,
-                      "pre2": 0,
-                      "main": 800,
-                      "post": -150,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 4,
-                      "dspMode": 2,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -20748,110 +24085,32 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/32",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "25": {
+          "15": {
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 16
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 19
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
@@ -20860,90 +24119,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/32",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
                       "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 3
                     }
                   }
                 ]
               }
           },
-          "26": {
+          "21": {
+              "subsumedPorts": [
+                192
+              ],
               "pins": {
                 "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 16
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 17
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "IFG2",
                       "lane": 18
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   },
@@ -20953,114 +24157,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 19
                     },
                     "tx": {
-                      "pre": -70,
+                      "pre": -180,
                       "pre2": 0,
-                      "main": 855,
-                      "post": -75,
+                      "main": 600,
+                      "post": -140,
                       "post2": 0,
                       "post3": 0
                     },
                     "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 20
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 21
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 22
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
-                      "acCouplingBypass": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 23
-                    },
-                    "tx": {
-                      "pre": -70,
-                      "pre2": 0,
-                      "main": 855,
-                      "post": -75,
-                      "post2": 0,
-                      "post3": 0
-                    },
-                    "rx": {
-                      "ctlCode": 63,
-                      "dspMode": 7,
-                      "afeTrim": 4,
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
                       "acCouplingBypass": 1
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 1
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth1/32",
@@ -21071,30 +24183,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/32",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/32",
-                      "lane": 7
                     }
                   }
                 ]
@@ -21323,86 +24411,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "eth1/32",
       "type": 3,
       "physicalID": 31
-    },
-    {
-      "name": "eth1/33",
-      "type": 3,
-      "physicalID": 32
-    },
-    {
-      "name": "eth1/34",
-      "type": 3,
-      "physicalID": 33
-    },
-    {
-      "name": "eth1/35",
-      "type": 3,
-      "physicalID": 34
-    },
-    {
-      "name": "eth1/36",
-      "type": 3,
-      "physicalID": 35
-    },
-    {
-      "name": "eth1/37",
-      "type": 3,
-      "physicalID": 36
-    },
-    {
-      "name": "eth1/38",
-      "type": 3,
-      "physicalID": 37
-    },
-    {
-      "name": "eth1/39",
-      "type": 3,
-      "physicalID": 38
-    },
-    {
-      "name": "eth1/40",
-      "type": 3,
-      "physicalID": 39
-    },
-    {
-      "name": "eth1/41",
-      "type": 3,
-      "physicalID": 40
-    },
-    {
-      "name": "eth1/42",
-      "type": 3,
-      "physicalID": 41
-    },
-    {
-      "name": "eth1/43",
-      "type": 3,
-      "physicalID": 42
-    },
-    {
-      "name": "eth1/44",
-      "type": 3,
-      "physicalID": 43
-    },
-    {
-      "name": "eth1/45",
-      "type": 3,
-      "physicalID": 44
-    },
-    {
-      "name": "eth1/46",
-      "type": 3,
-      "physicalID": 45
-    },
-    {
-      "name": "eth1/47",
-      "type": 3,
-      "physicalID": 46
-    },
-    {
-      "name": "eth1/48",
-      "type": 3,
-      "physicalID": 47
     }
   ],
   "platformSettings": {
