@@ -112,7 +112,7 @@ class Bsp {
   bool qsfpCacheInitialized_{false};
 
   // Private Attributes
-  int sensordThriftPort_{7001};
+  int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
   bool initialSensorDataRead_{false};
 

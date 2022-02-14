@@ -15,7 +15,7 @@
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 
-DEFINE_int32(thrift_port, 7001, "Port for the thrift service");
+DEFINE_int32(thrift_port, 5970, "Port for the thrift service");
 
 DEFINE_string(
     config_path,

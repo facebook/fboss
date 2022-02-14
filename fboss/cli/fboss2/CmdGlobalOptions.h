@@ -145,7 +145,7 @@ class CmdGlobalOptions {
   int mkaThriftPort_{5920};
   int bmcHttpPort_{8443};
   int rackmonThriftPort_{7910};
-  int sensorServiceThriftPort_{7001};
+  int sensorServiceThriftPort_{5970};
   std::string color_{"yes"};
   std::vector<std::string> filters_{};
 };

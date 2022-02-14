@@ -82,7 +82,7 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
 }
 
 TEST_F(SensorsTest, testThrift) {
-  folly::SocketAddress addr("::1", 7001);
+  folly::SocketAddress addr("::1", 5970);
   auto socket = folly::AsyncSocket::newSocket(
       folly::EventBaseManager::get()->getEventBase(), addr, 5000);
   auto channel =
