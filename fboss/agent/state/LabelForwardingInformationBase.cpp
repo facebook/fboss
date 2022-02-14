@@ -46,17 +46,6 @@ LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
   return labelFib;
 }
 
-folly::dynamic LabelForwardingInformationBase::toFollyDynamic() const {
-  folly::dynamic nodesJson = folly::dynamic::array;
-  for (const auto& node : *this) {
-    nodesJson.push_back(toFollyDynamicOldFormat(node));
-  }
-  folly::dynamic json = folly::dynamic::object;
-  json[kEntries] = std::move(nodesJson);
-  json[kExtraFields] = getExtraFields().toFollyDynamic();
-  return json;
-}
-
 std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::labelEntryFromFollyDynamic(
     folly::dynamic entry) {

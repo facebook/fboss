@@ -70,7 +70,6 @@ class LabelForwardingInformationBase
   static std::shared_ptr<LabelForwardingEntry> labelEntryFromFollyDynamic(
       folly::dynamic entry);
 
-  folly::dynamic toFollyDynamic() const override;
   static void noRibToRibEntryConvertor(
       std::shared_ptr<LabelForwardingEntry>& entry);
 
