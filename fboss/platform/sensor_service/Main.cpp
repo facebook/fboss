@@ -7,6 +7,7 @@
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #endif
+#include "fboss/platform/sensor_service/Init.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
 
@@ -31,7 +32,7 @@ int main(int argc, char** argv) {
 
   fb303::registerFollyLoggingOptionHandlers();
 
-  exportBuildInfo(argc, argv);
+  fbInit(argc, argv);
   // Setup thrift handler and server
   auto [server, handler] = setupThrift();
 

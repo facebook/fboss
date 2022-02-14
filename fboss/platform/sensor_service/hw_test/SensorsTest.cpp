@@ -14,7 +14,9 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
+#ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
+#endif
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
@@ -25,15 +27,19 @@ SensorsTest::~SensorsTest() {}
 
 void SensorsTest::SetUp() {
   std::tie(thriftServer_, thriftHandler_) = setupThrift();
+#ifndef IS_OSS
   service_ =
       std::make_unique<services::ServiceFrameworkLight>("Sensor service test");
   runServer(
       *service_, thriftServer_, thriftHandler_.get(), false /*loop forever*/);
+#endif
 }
 void SensorsTest::TearDown() {
+#ifndef IS_OSS
   service_->stop();
   service_->waitForStop();
   service_.reset();
+#endif
   thriftServer_.reset();
   thriftHandler_.reset();
 }
