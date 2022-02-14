@@ -121,10 +121,22 @@ void BcmSwitchSettings::enableL2LearningCallback() {
     /*
      * Configure callback for L2 table update events, and configure the udpate
      * events to generate callback for.
+     *
+     * Note:
+     *   Until BCM SDK 6.5.24, callback for L2 CPU Add Event was also
+     *   subscribed. But due to a bug in BCM SDK, callback for L2 CPU Add
+     *   Event was not received at all. This got fixed in BCM SDK 6.5.24,
+     *   resulting in an infinite loop after learn callback event - CPU
+     *   Add -> CPU Add Callback -> CPU Delete -> CPU Delete Callback ->
+     *   CPU Add -> CPU Add Callback and so on. So, as per Broadcom's
+     *   suggestion, from BCM SDK 6.5.24 onwards, FBOSS stopped subscribing
+     *   to L2 CPU Add Event as there is no use case for this in FBOSS.
+     *
+     *   In case there arises a need for subscribing to L2 Add Event, then
+     *   callback for FBOSS' own CPU Add should be disabled for each MAC add
+     *   (by setting the appropriate flag for this during CPU add API call).
      */
-    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuAddEvent, 1);
-    bcmCheckError(rv, "Failed to subscribe to L2 CPU Add Event");
-    rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 1);
+    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 1);
     bcmCheckError(rv, "Failed to subscribe to L2 CPU Delete Event");
     rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 1);
     bcmCheckError(rv, "Failed to subscribe to L2 CPU Learn Event");
