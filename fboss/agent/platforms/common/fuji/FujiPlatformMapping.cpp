@@ -20,7 +20,14 @@ FujiPlatformMapping::FujiPlatformMapping() {
   // TODO: Define 16O platform mapping
   auto fuji16O = std::make_unique<Fuji16QPimPlatformMapping>();
   for (uint8_t pimID = 2; pimID < 10; pimID++) {
-    auto pimType = FujiSystemContainer::getInstance()->getPimType(pimID);
+    MultiPimPlatformPimContainer::PimType pimType;
+    if (std::getenv("BCM_SIM_PATH")) {
+      // Assume 16Q for TH4 bcmsim to avoid accessing undelrying pci device
+      // in FujiSystemContainer::getInstance()
+      pimType = MultiPimPlatformPimContainer::PimType::FUJI_16Q;
+    } else {
+      pimType = FujiSystemContainer::getInstance()->getPimType(pimID);
+    }
     if (pimType == MultiPimPlatformPimContainer::PimType::FUJI_16O) {
       XLOG(INFO) << "Detected pim:" << static_cast<int>(pimID) << " is 16O";
       this->merge(fuji16O->getPimPlatformMapping(pimID));
