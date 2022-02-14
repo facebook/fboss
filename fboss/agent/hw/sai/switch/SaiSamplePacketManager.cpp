@@ -33,15 +33,6 @@ sai_samplepacket_type_t getSamplePacketType(
       throw facebook::fboss::FbossError("sample destination is invalid");
   }
 }
-
-sai_samplepacket_mode_t getSamplePacketMode(
-    const facebook::fboss::SaiPlatform* platform) {
-  // TODO: Tajo will be moving to shared mode and we can get rid of this.
-  return platform->getAsic()->getAsicType() ==
-          facebook::fboss::HwAsic::AsicType::ASIC_TYPE_TAJO
-      ? SAI_SAMPLEPACKET_MODE_EXCLUSIVE
-      : SAI_SAMPLEPACKET_MODE_SHARED;
-}
 } // namespace
 namespace facebook::fboss {
 
@@ -51,7 +42,7 @@ SaiSamplePacketManager::getOrCreateSamplePacket(
     cfg::SampleDestination sampleDestination) {
   auto type = getSamplePacketType(sampleDestination);
   SaiSamplePacketTraits::AdapterHostKey k{
-      sampleRate, type, getSamplePacketMode(platform_)};
+      sampleRate, type, SAI_SAMPLEPACKET_MODE_EXCLUSIVE};
   SaiSamplePacketTraits::CreateAttributes attributes = k;
   auto& store = saiStore_->get<SaiSamplePacketTraits>();
   return store.setObject(k, attributes);
