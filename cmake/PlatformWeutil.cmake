@@ -7,6 +7,7 @@ add_executable(weutil
   fboss/platform/weutil/WeutilDarwin.cpp
   fboss/platform/weutil/main.cpp
   fboss/platform/weutil/prefdl/Prefdl.cpp
+  fboss/platform/weutil/Weutil.cpp
 )
 
 target_link_libraries(weutil
@@ -15,4 +16,3 @@ target_link_libraries(weutil
   Folly::folly
   common_file_utils
 )
-
