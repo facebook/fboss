@@ -83,6 +83,12 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getPortSerdesPreemphasis() const override {
     return std::nullopt;
   }
+  uint32_t getPacketBufferUnitSize() const override {
+    return 0;
+  }
+  uint32_t getPacketBufferDescriptorSize() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

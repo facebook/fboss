@@ -73,6 +73,12 @@ class TajoAsic : public HwAsic {
   std::optional<uint32_t> getPortSerdesPreemphasis() const override {
     return 50;
   }
+  uint32_t getPacketBufferUnitSize() const override {
+    return 384;
+  }
+  uint32_t getPacketBufferDescriptorSize() const override {
+    return 40;
+  }
 };
 
 } // namespace facebook::fboss

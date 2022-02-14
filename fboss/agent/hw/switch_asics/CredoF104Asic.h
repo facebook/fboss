@@ -40,5 +40,7 @@ class CredoF104Asic : public HwAsic {
   std::optional<uint32_t> getPortSerdesPreemphasis() const override {
     return std::nullopt;
   }
+  uint32_t getPacketBufferUnitSize() const override;
+  uint32_t getPacketBufferDescriptorSize() const override;
 };
 } // namespace facebook::fboss

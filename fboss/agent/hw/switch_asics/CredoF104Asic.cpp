@@ -57,4 +57,11 @@ int CredoF104Asic::getMaxNumLogicalPorts() const {
 uint32_t CredoF104Asic::getMaxWideEcmpSize() const {
   throw FbossError("CredoF104Asic doesn't support ecmp feature");
 }
+uint32_t CredoF104Asic::getPacketBufferUnitSize() const {
+  throw FbossError("CredoF104Asic doesn't support MMU feature");
+}
+uint32_t CredoF104Asic::getPacketBufferDescriptorSize() const {
+  throw FbossError("CredoF104Asic doesn't support MMU feature");
+}
+
 }; // namespace facebook::fboss

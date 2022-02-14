@@ -134,6 +134,11 @@ class HwAsic {
   virtual bool mmuQgroupsEnabled() const {
     return false;
   }
+  // Get the smallest packet buffer unit for ASIC, cell size for BCM
+  virtual uint32_t getPacketBufferUnitSize() const = 0;
+
+  // Get the size of the buffer descriptor associated with each packet
+  virtual uint32_t getPacketBufferDescriptorSize() const = 0;
 
   /*
     This function will be used in calculating lane assignment, physical port

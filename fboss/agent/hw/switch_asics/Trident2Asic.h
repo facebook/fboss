@@ -60,6 +60,12 @@ class Trident2Asic : public BroadcomAsic {
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
   }
+  uint32_t getPacketBufferUnitSize() const override {
+    return 208;
+  }
+  uint32_t getPacketBufferDescriptorSize() const override {
+    return 64;
+  }
 };
 
 } // namespace facebook::fboss
