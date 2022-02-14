@@ -178,8 +178,7 @@ void SensorServiceImpl::getSensorDataFromPath() {
       (*dataTable)[name].value = folly::to<float>(sensorInput);
       (*dataTable)[name].timeStamp = now;
       XLOG(INFO) << name << "(" << path << ")"
-                 << " : " << (*dataTable)[name].value << " >>>> "
-                 << (*dataTable)[name].timeStamp;
+                 << " : " << (*dataTable)[name].value;
     } else {
       XLOG(INFO) << "Can not read data for " << name << " from " << path;
     }
