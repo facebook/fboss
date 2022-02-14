@@ -21,6 +21,8 @@ void validatePhyInfo(
     const phy::PhyInfo& prev,
     const phy::PhyInfo& curr,
     phy::DataPlanePhyChipType chipType) {
+  SCOPED_TRACE(folly::to<std::string>("port ", *prev.name()));
+
   // Assert that a phy info update happened
   EXPECT_TRUE(*curr.timeCollected_ref() > *prev.timeCollected_ref());
   EXPECT_EQ(*curr.phyChip_ref()->type_ref(), chipType);
@@ -61,6 +63,7 @@ void validatePhyInfo(
   // PMD checks
   auto checkPmd = [](phy::PmdInfo pmdInfo) {
     for (const auto& lane : *pmdInfo.lanes_ref()) {
+      SCOPED_TRACE(folly::to<std::string>("lane ", lane.first));
       if (auto cdrLiveStatus = lane.second.cdrLockLive_ref()) {
         EXPECT_TRUE(*cdrLiveStatus);
       }
@@ -79,9 +82,13 @@ void validatePhyInfo(
     }
   };
 
-  checkPmd(prev.line_ref()->get_pmd());
-  checkPmd(curr.line_ref()->get_pmd());
+  {
+    SCOPED_TRACE("line side");
+    checkPmd(prev.line_ref()->get_pmd());
+    checkPmd(curr.line_ref()->get_pmd());
+  }
   if (chipType == phy::DataPlanePhyChipType::XPHY) {
+    SCOPED_TRACE("system side");
     if (auto sysInfo = prev.system_ref()) {
       checkPmd(sysInfo->get_pmd());
       EXPECT_TRUE(curr.system_ref());
@@ -259,7 +266,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
 
   // Validate PhyInfo
   for (const auto& port : cabledPorts) {
-    XLOG(INFO) << "Verifying port:" << port;
+    XLOG(INFO) << "Verifying port:" << getPortName(port);
     validatePhyInfo(
         phyInfoBefore[port],
         phyInfoAfter[port],
