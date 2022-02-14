@@ -23,8 +23,6 @@ namespace {
 
 namespace facebook::fboss::platform::misc_service {
 
-using namespace facebook::fboss::platform;
-
 void MiscServiceImpl::init() {
   // ToDo
   XLOG(INFO) << "Init MiscServiceImpl";

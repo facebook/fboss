@@ -22,7 +22,7 @@
 #include "common/services/cpp/ThriftAclCheckerModuleConfig.h"
 #include "common/services/cpp/ThriftStatsModule.h"
 
-DEFINE_int32(thrift_port, 5911, "Port for the thrift service");
+DEFINE_int32(thrift_port, 5971, "Port for the thrift service");
 
 namespace facebook::fboss::platform::misc_service {
 
