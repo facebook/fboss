@@ -12,6 +12,7 @@
 
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
+#include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 
@@ -35,13 +36,7 @@ setupThrift() {
   // Fetch sensor data once to warmup
   sensorService->fetchSensorData();
 
-  // Setup thrift handler and server
-  auto handler = std::make_shared<SensorServiceThriftHandler>(sensorService);
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  server->setPort(FLAGS_thrift_port);
-  server->setInterface(handler);
-
-  return {server, handler};
+  return helpers::setupThrift<SensorServiceThriftHandler>(
+      sensorService, FLAGS_thrift_port);
 }
-
 } // namespace facebook::fboss::platform::sensor_service
