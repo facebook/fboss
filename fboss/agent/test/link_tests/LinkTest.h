@@ -84,7 +84,7 @@ class LinkTest : public AgentTest {
       uint32_t retries,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
 
-  void setupFlags() const override;
+  void setCmdLineFlagOverrides() const override;
 
   void TearDown() override;
 

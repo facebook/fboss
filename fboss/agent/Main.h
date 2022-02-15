@@ -108,6 +108,15 @@ class AgentInitializer {
   int initAgent();
   void stopAgent(bool setupWarmboot);
 
+ protected:
+  /*
+   * API to all flag overrides for individual tests. Primarily
+   * used for features which we don't want to enable for
+   * all tests, but still want to tweak/test this behavior in
+   * our test.
+   */
+  virtual void setCmdLineFlagOverrides() const {}
+
  private:
   void waitForQsfpServiceImpl(
       uint32_t retries,

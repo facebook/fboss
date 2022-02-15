@@ -61,9 +61,9 @@ class MultiNodeLacpTest : public MultiNodeTest {
     return getConfigWithAggPort();
   }
 
-  void setupFlags() const override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_enable_lacp = true;
-    MultiNodeTest::setupFlags();
+    MultiNodeTest::setCmdLineFlagOverrides();
   }
 
  protected:

@@ -15,6 +15,6 @@ class ProdAgentTests : public AgentTest {
   void setupConfigFlag() override;
 
  private:
-  void setupFlags() const override;
+  void setCmdLineFlagOverrides() const override;
 };
 } // namespace facebook::fboss

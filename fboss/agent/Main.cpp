@@ -236,7 +236,8 @@ void AgentInitializer::createSwitch(
   initFlagDefaults(*config->thrift.defaultCommandLineArgs_ref());
 
   fbossInit(argc, argv);
-
+  // Allow any flag overrides to kick in before we create SwSwitch
+  setCmdLineFlagOverrides();
   // Allow the fb303 setOption() call to update the command line flag
   // settings.  This allows us to change the log levels on the fly using
   // setOption().

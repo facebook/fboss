@@ -16,6 +16,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -42,13 +43,16 @@ void LinkTest::TearDown() {
   AgentTest::TearDown();
 }
 
-void LinkTest::setupFlags() const {
+void LinkTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_macsec = true;
   // Collect stats faster instead of defaulting to 200s. So our stat
   // tests can finish faster.
   // TODO(joseph5wu) Will deprecate this gearbox_stat_interval flag in agent
   // and rely on qsfp_service to collect xphy stats
-  switch (sw()->getPlatform()->getMode()) {
+
+  PlatformProductInfo productInfo(FLAGS_fruid_filepath);
+  productInfo.initialize();
+  switch (productInfo.getMode()) {
     case PlatformMode::MINIPACK:
     case PlatformMode::FUJI:
       // Xphy stats takes 3s here. 8 PIMS can go in parallel but the 16
@@ -62,7 +66,7 @@ void LinkTest::setupFlags() const {
       FLAGS_gearbox_stat_interval = 5;
       break;
   }
-  AgentTest::setupFlags();
+  AgentTest::setCmdLineFlagOverrides();
 }
 
 // Waits till the link status of the ports in cabledPorts vector reaches

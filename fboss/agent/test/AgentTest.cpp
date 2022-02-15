@@ -26,7 +26,6 @@ void AgentTest::setupAgent() {
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       initPlatform);
   setupConfigFlag();
-  setupFlags();
   asyncInitThread_.reset(
       new std::thread([this] { AgentInitializer::initAgent(); }));
   // Cannot join the thread because initAgent starts a thrift server in the main
@@ -181,10 +180,6 @@ void AgentTest::waitForLinkStatus(
   throw FbossError(msg);
 }
 void AgentTest::setupConfigFlag() {
-  // Nothing to setup by default
-}
-
-void AgentTest::setupFlags() const {
   // Nothing to setup by default
 }
 
