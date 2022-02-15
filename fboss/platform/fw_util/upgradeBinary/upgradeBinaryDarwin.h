@@ -4,6 +4,7 @@
 #include <folly/init/Init.h>
 #include <sysexits.h>
 #include <algorithm>
+#include <filesystem>
 #include <unordered_set>
 #include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
@@ -30,7 +31,10 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   std::string sc_bus;
   std::string fan_bus;
   bool failedPath = false;
-  const std::string darwin_sc_scd_path = "/sys/bus/pci/devices/0000:07:00.0/";
+  const std::string darwin_sc_sat_path = "/sys/bus/pci/devices/0000:07:00.0/";
+  const std::string darwin_sc_cpld_path =
+      "/sys/bus/i2c/drivers/blackhawk-cpld/";
+  const std::string blackhawkRegister = "0023";
   const std::string darwin_cpu_cpld_path =
       "/sys/bus/pci/drivers/scd/0000\\:ff\\:0b.3/";
   void upgradeThroughJam(std::string, std::string, std::string);
@@ -40,13 +44,11 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   void printAllVersion(void);
   void constructCpuCpldPath(std::string);
   std::string getBusNumber(std::string, std::string);
-  std::string getSysfsCpldVersion(std::string);
-  std::string getScCpldVersion(void);
-  std::string getScSatCpldVersion(uint16_t);
+  std::string getSysfsCpldVersion(std::string, std::string, std::string);
   std::string getFanCpldVersion(void);
   std::string getRegValue(std::string);
-  uint32_t getScdSatVersion();
   std::string getBiosVersion(void);
+  std::string getFullScCpldPath(void);
 };
 
 } // namespace facebook::fboss::platform

@@ -120,29 +120,16 @@ std::string UpgradeBinaryDarwin::getRegValue(std::string path) {
   return regVal;
 }
 
-std::string UpgradeBinaryDarwin::getSysfsCpldVersion(std::string sysfsPath) {
-  std::string majorVer = getRegValue(sysfsPath + "fpga_ver");
-  std::string minorVer = getRegValue(sysfsPath + "fpga_sub_ver");
+std::string UpgradeBinaryDarwin::getSysfsCpldVersion(
+    std::string sysfsPath,
+    std::string ver,
+    std::string sub_ver) {
+  std::string majorVer = getRegValue(sysfsPath + ver);
+  std::string minorVer = getRegValue(sysfsPath + sub_ver);
   return folly::to<std::string>(
       std::to_string(std::stoul(majorVer, nullptr, 0)),
       ".",
       std::to_string(std::stoul(minorVer, nullptr, 0)));
-}
-std::string UpgradeBinaryDarwin::getScCpldVersion(void) {
-  std::string majorVer =
-      i2cRegRead(sc_bus, std::to_string(DARWIN_CPLD_ADDR), "0x1");
-  std::string minorVer =
-      i2cRegRead(sc_bus, std::to_string(DARWIN_CPLD_ADDR), "0x0");
-  return folly::to<std::string>(
-      std::to_string(std::stoul(majorVer, nullptr, 0)),
-      ".",
-      std::to_string(std::stoul(minorVer, nullptr, 0)));
-}
-std::string UpgradeBinaryDarwin::getScSatCpldVersion(
-    uint16_t sat_cpld_version) {
-  std::string majorVer = std::to_string(sat_cpld_version >> 8);
-  std::string minorVer = std::to_string(sat_cpld_version & 0x00FF);
-  return folly::to<std::string>(majorVer, ".", minorVer);
 }
 
 std::string UpgradeBinaryDarwin::getFanCpldVersion(void) {
@@ -164,16 +151,9 @@ void UpgradeBinaryDarwin::constructCpuCpldPath(std::string node) {
   }
 }
 
-uint32_t UpgradeBinaryDarwin::getScdSatVersion() {
-  const std::string cmd =
-      "devmem2 0xfbe00400 | grep -i 0xfbe00400 | cut -d ':' -f 2";
-  std::string regVal = execCommand(cmd);
-  return std::stoul(regVal, nullptr, 0);
-}
-
 std::string UpgradeBinaryDarwin::getBiosVersion() {
   const std::string cmd =
-      "dmidecode | grep Version | head -n 1 | cut -d ':' -f 2";
+      "dmidecode | grep Version | head -n 1 | cut -d ':' -f 2 | cut -d '-' -f 3";
   std::string biosVersion = execCommand(cmd);
   biosVersion.erase(
       std::remove(biosVersion.begin(), biosVersion.end(), '\n'),
@@ -184,20 +164,45 @@ std::string UpgradeBinaryDarwin::getBiosVersion() {
   return biosVersion;
 }
 
+std::string UpgradeBinaryDarwin::getFullScCpldPath() {
+  if (std::filesystem::exists(darwin_sc_cpld_path)) {
+    for (auto const& dir_entry :
+         std::filesystem::recursive_directory_iterator(darwin_sc_cpld_path)) {
+      if (dir_entry.path().string().find(blackhawkRegister) !=
+          std::string::npos) {
+        return dir_entry.path().string() + "/";
+      }
+    }
+  }
+  // Code should never get here because path must always exist
+  throw std::runtime_error(
+      "couldn't find path" + darwin_sc_cpld_path + " for sc_cpld version");
+}
+
 void UpgradeBinaryDarwin::printAllVersion(void) {
   constructCpuCpldPath("fpga_ver");
   constructCpuCpldPath("fpga_sub_ver");
-  uint32_t sat_cpld_version = getScdSatVersion();
-
   std::cout << "BIOS:" << getBiosVersion() << std::endl;
-  std::cout << "CPU_CPLD:" << getSysfsCpldVersion("/tmp/") << std::endl;
-  std::cout << "SC_SCD:" << getSysfsCpldVersion(darwin_sc_scd_path)
+  std::cout << "CPU_CPLD:"
+            << getSysfsCpldVersion("/tmp/", "fpga_ver", "fpga_sub_ver")
             << std::endl;
-  std::cout << "SC_CPLD:" << getScCpldVersion() << std::endl;
+  std::cout << "SC_SCD:"
+            << getSysfsCpldVersion(
+                   darwin_sc_sat_path, "fpga_ver", "fpga_sub_ver")
+            << std::endl;
+  std::string darwin_sc_cpld_full_path = getFullScCpldPath();
+  std::cout << "SC_CPLD:"
+            << getSysfsCpldVersion(
+                   darwin_sc_cpld_full_path, "cpld_ver", "cpld_sub_ver")
+            << std::endl;
   std::cout << "FAN_CPLD:" << getFanCpldVersion() << std::endl;
-  std::cout << "SC_SAT_CPLD_0: "
-            << getScSatCpldVersion(sat_cpld_version & 0x0000FFFF) << std::endl;
-  std::cout << "SC_SAT_CPLD_1: " << getScSatCpldVersion(sat_cpld_version >> 16)
+  std::cout << "SC_SAT_CPLD0: "
+            << getSysfsCpldVersion(
+                   darwin_sc_sat_path, "sat0_cpld_ver", "sat0_cpld_sub_ver")
+            << std::endl;
+  std::cout << "SC_SAT_CPLD1: "
+            << getSysfsCpldVersion(
+                   darwin_sc_sat_path, "sat1_cpld_sub_ver", "sat1_cpld_sub_ver")
             << std::endl;
 
   if (failedPath) {
@@ -213,23 +218,32 @@ void UpgradeBinaryDarwin::printVersion(std::string binary) {
   } else if (binary == "cpu_cpld") {
     constructCpuCpldPath("fpga_ver");
     constructCpuCpldPath("fpga_sub_ver");
-    std::cout << "CPU_CPLD:" << getSysfsCpldVersion("/tmp/") << std::endl;
+    std::cout << "CPU_CPLD:"
+              << getSysfsCpldVersion("/tmp/", "fpga_ver", "fpga_sub_ver")
+              << std::endl;
   } else if (binary == "sc_scd") {
-    std::cout << "SC_SCD:" << getSysfsCpldVersion(darwin_sc_scd_path)
+    std::cout << "SC_SCD:"
+              << getSysfsCpldVersion(
+                     darwin_sc_sat_path, "fpga_ver", "fpga_sub_ver")
               << std::endl;
   } else if (binary == "sc_cpld") {
-    std::cout << "SC_CPLD:" << getScCpldVersion() << std::endl;
+    std::string darwin_sc_cpld_full_path = getFullScCpldPath();
+    std::cout << "SC_CPLD:"
+              << getSysfsCpldVersion(
+                     darwin_sc_cpld_full_path, "cpld_ver", "cpld_sub_ver")
+              << std::endl;
   } else if (binary == "fan_cpld") {
     std::cout << "FAN_CPLD:" << getFanCpldVersion() << std::endl;
-  } else if (binary == "sc_sat_cpld_0") {
-    uint32_t sat_cpld_version = getScdSatVersion();
-    std::cout << "SC_SAT_CPLD_0: "
-              << getScSatCpldVersion(sat_cpld_version & 0x0000FFFF)
+  } else if (binary == "sc_sat_cpld0") {
+    std::cout << "SC_SAT_CPLD0: "
+              << getSysfsCpldVersion(
+                     darwin_sc_sat_path, "sat0_cpld_ver", "sat0_cpld_sub_ver")
               << std::endl;
-  } else if (binary == "sc_sat_cpld_1") {
-    uint32_t sat_cpld_version = getScdSatVersion();
-    std::cout << "SC_SAT_CPLD_1: "
-              << getScSatCpldVersion(sat_cpld_version >> 16) << std::endl;
+  } else if (binary == "sc_sat_cpld1") {
+    std::cout << "SC_SAT_CPLD1: "
+              << getSysfsCpldVersion(
+                     darwin_sc_sat_path, "sat1_cpld_ver", "sat1_cpld_sub_ver")
+              << std::endl;
   } else {
     std::cout << "unsupported binary option. please follow the usage"
               << std::endl;
