@@ -23,6 +23,14 @@ class HwSwitch;
 namespace utility {
 
 /*
+ * Platforms might not program the buffer configurations as is or
+ * read back the values of buffer usage accurately, instead is rounded.
+ * Given the expected actual threshold, this API returns the rounded
+ * value as programmed / read by specific platform.
+ */
+int getRoundedBufferThreshold(HwSwitch* hwSwitch, int threshold);
+
+/*
  * A packet being forwarded in HW will have a buffer descriptor associated
  * with it. Also, a single packet being forwarded in HW will be split into
  * multiple ASIC specific internal buffers/cells. The effective memory usage

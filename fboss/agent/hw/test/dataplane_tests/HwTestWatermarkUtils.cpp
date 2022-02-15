@@ -13,6 +13,52 @@
 
 namespace facebook::fboss::utility {
 
+int getRoundedBufferThreshold(HwSwitch* hwSwitch, int expThreshold) {
+  int threshold{};
+  if (HwAsic::AsicType::ASIC_TYPE_TAJO ==
+      hwSwitch->getPlatform()->getAsic()->getAsicType()) {
+    /*
+     * TAJO splits queue buffers into 16 blocks, watermarks and
+     * ECN/WRED thresholds can only be reported / configured in
+     * the order of these block thresholds as captured below.
+     *
+     * Doc: https://fburl.com/nil3f15m
+     */
+    const std::vector<int> kTajoQuantizedThresholds{
+        (50 * 384),
+        (256 * 384),
+        (512 * 384),
+        (1024 * 384),
+        (2 * 1024 * 384),
+        (3 * 1024 * 384),
+        (6 * 1024 * 384),
+        (7 * 1024 * 384),
+        (8 * 1024 * 384),
+        (9 * 1024 * 384),
+        (10 * 1024 * 384),
+        (11 * 1024 * 384),
+        (12 * 1024 * 384),
+        (15 * 1024 * 384),
+        (16000 * 384)};
+    auto it = std::upper_bound(
+        kTajoQuantizedThresholds.begin(),
+        kTajoQuantizedThresholds.end(),
+        expThreshold);
+    if (it == kTajoQuantizedThresholds.end()) {
+      FbossError("Invalid threshold for ASIC, ", expThreshold);
+    }
+    threshold = *it;
+  } else {
+    // Thresholds are applied in multiples of unit buffer size
+    auto bufferUnitSize =
+        hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
+    threshold =
+        bufferUnitSize * ((expThreshold + bufferUnitSize - 1) / bufferUnitSize);
+  }
+
+  return threshold;
+}
+
 size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int pktSizeBytes) {
   auto packetBufferUnitBytes =
       hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
