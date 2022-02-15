@@ -5,4 +5,5 @@
 
 namespace facebook::fboss::platform::helpers {
 void fbInit(int /*argc*/, char** /*argv*/) {}
+void addCommonModules(facebook::services::ServiceFrameworkLight& /*service*/) {}
 } // namespace facebook::fboss::platform::helpers

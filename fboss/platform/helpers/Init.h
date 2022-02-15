@@ -2,6 +2,10 @@
 //
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
+namespace facebook::services {
+class ServiceFrameworkLight;
+}
+
 namespace facebook::fboss::platform::helpers {
 
 void fbInit(int argc, char** argv);
@@ -19,4 +23,5 @@ setupThrift(std::shared_ptr<Service> service, int thriftPort) {
 
   return {server, handler};
 }
+void addCommonModules(facebook::services::ServiceFrameworkLight& service);
 } // namespace facebook::fboss::platform::helpers
