@@ -10,18 +10,24 @@ namespace facebook::fboss::platform::helpers {
 
 void fbInit(int argc, char** argv);
 
-template <typename SvcThriftHandler, typename Service>
+template <typename SvcThriftHandler>
 std::pair<
     std::shared_ptr<apache::thrift::ThriftServer>,
     std::shared_ptr<SvcThriftHandler>>
-setupThrift(std::shared_ptr<Service> service, int thriftPort) {
-  auto handler = std::make_shared<SvcThriftHandler>(service);
+setupThrift(std::shared_ptr<SvcThriftHandler> handler, int thriftPort) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   server->setPort(thriftPort);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);
 
   return {server, handler};
+}
+template <typename SvcThriftHandler, typename Service>
+std::pair<
+    std::shared_ptr<apache::thrift::ThriftServer>,
+    std::shared_ptr<SvcThriftHandler>>
+setupThrift(std::shared_ptr<Service> service, int thriftPort) {
+  return setupThrift(std::make_shared<SvcThriftHandler>(service), thriftPort);
 }
 void addCommonModules(facebook::services::ServiceFrameworkLight& service);
 } // namespace facebook::fboss::platform::helpers
