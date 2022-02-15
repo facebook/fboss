@@ -10,7 +10,6 @@
 
 #include "fboss/platform/misc_service/SetupMiscServiceThrift.h"
 
-#include "common/services/cpp/ServiceFrameworkLight.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
 #include "fboss/platform/helpers/Init.h"

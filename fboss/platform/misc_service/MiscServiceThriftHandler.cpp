@@ -14,13 +14,10 @@
 
 namespace facebook::fboss::platform::misc_service {
 
-folly::coro::Task<std::unique_ptr<MiscFruidReadResponse>>
-MiscServiceThriftHandler::co_getFruid(bool uncached) {
+void MiscServiceThriftHandler::getFruid(
+    MiscFruidReadResponse& response,
+    bool uncached) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  auto response = std::make_unique<MiscFruidReadResponse>();
-
-  response->fruidData_ref() = miscService_->getFruid(uncached);
-
-  co_return response;
+  response.fruidData_ref() = miscService_->getFruid(uncached);
 }
 } // namespace facebook::fboss::platform::misc_service
