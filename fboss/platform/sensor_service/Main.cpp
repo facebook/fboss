@@ -23,8 +23,6 @@ DEFINE_uint32(
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
-void exportBuildInfo(int argc, char** argv);
-
 int main(int argc, char** argv) {
   // Set version info
   gflags::SetCommandLineOptionWithMode(

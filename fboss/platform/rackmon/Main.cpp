@@ -1,6 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
+#endif
 #include "fboss/platform/helpers/Init.h"
 
 #include <fb303/FollyLoggingHandler.h>
@@ -25,10 +27,11 @@ int main(int argc, char** argv) {
   auto [server, handler] = helpers::setupThrift(
       std::make_shared<rackmonsvc::ThriftHandler>(), FLAGS_port);
 
+#ifndef IS_OSS
   services::ServiceFrameworkLight service("Rackmon Service");
   service.addThriftService(server, handler.get(), FLAGS_port);
   helpers::addCommonModules(service);
   service.go();
-
+#endif
   return 0;
 }

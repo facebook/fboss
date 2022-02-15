@@ -12,3 +12,12 @@ target_link_libraries(rackmon_lib
   Folly::folly
 )
 
+add_executable(rackmon
+  fboss/platform/rackmon/Main.cpp
+)
+
+target_link_libraries(rackmon
+  platform_utils
+  rackmon_lib
+  fb303::fb303
+)
