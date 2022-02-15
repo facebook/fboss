@@ -204,6 +204,29 @@ void operator()(
 }
 };
 
+BOOST_MSM_EUML_ACTION(discoverTransceiver){
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  try {
+    // After discovery check if the EEPROM content is correct by verifying the
+    // checksum in various pages.
+    // For now, we ONLY LOG the eeprom checksums fail.
+    fsm.get_attribute(transceiverMgrPtr)->verifyEepromChecksums(tcvrID);
+    return true;
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "[Transceiver:" << tcvrID
+               << "] discover transceiver failed:" << folly::exceptionStr(ex);
+    return false;
+  }
+}
+};
+
 BOOST_MSM_EUML_ACTION(programIphyPorts) {
 template <class Event, class Fsm, class Source, class Target>
 bool operator()(
@@ -316,7 +339,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
 //  Start                  + Event                  [Guard]                    / Action          == Next
 // +-------------------------------------------------------------------------------------------------------------+
     NOT_PRESENT            + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
-    PRESENT                + READ_EEPROM                                       / logStateChanged == DISCOVERED,
+    PRESENT                + READ_EEPROM            [discoverTransceiver]      / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call port program in case optic is actually
     // inserted but just can't read the present state
     NOT_PRESENT            + PROGRAM_IPHY           [programIphyPorts]         / logStateChanged == IPHY_PORTS_PROGRAMMED,

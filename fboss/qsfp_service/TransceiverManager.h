@@ -205,6 +205,8 @@ class TransceiverManager {
   bool supportRemediateTransceiver(TransceiverID id);
 
   void markLastDownTime(TransceiverID id) noexcept;
+
+  bool verifyEepromChecksums(TransceiverID id);
   // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status

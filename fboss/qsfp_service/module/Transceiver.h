@@ -163,6 +163,13 @@ class Transceiver {
 
   virtual time_t getLastDownTime() const = 0;
 
+  /*
+   * Verifies the Transceiver register checksum from EEPROM
+   */
+  virtual bool verifyEepromChecksums() {
+    return true;
+  }
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

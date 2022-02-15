@@ -257,13 +257,6 @@ class QsfpModule : public Transceiver {
     return (*diagsCapability).value().get_prbsLineCapabilities();
   }
 
-  /*
-   * Verifies the Optics module register checksum from EEPROM
-   */
-  virtual bool verifyEepromChecksums() {
-    return true;
-  }
-
   TransceiverSnapshotCache getTransceiverSnapshots() const {
     // return a copy to avoid needing a lock in the caller
     return snapshots_.copy();

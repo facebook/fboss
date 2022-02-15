@@ -1111,5 +1111,16 @@ std::optional<TransceiverID> TransceiverManager::getTransceiverID(
   }
   return swPortInfo->second.tcvrID;
 }
+
+bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Skip verifying eeprom checksum for Transceiver=" << id
+               << ". Transceiver is not present";
+    return true;
+  }
+  return tcvrIt->second->verifyEepromChecksums();
+}
 } // namespace fboss
 } // namespace facebook
