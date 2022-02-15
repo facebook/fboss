@@ -33,8 +33,10 @@ class SensorsTest : public ::testing::Test {
  protected:
   SensorReadResponse getSensors(const std::vector<std::string>& sensors);
   SensorServiceImpl* getService();
-  std::unique_ptr<services::ServiceFrameworkLight> service_;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
   std::shared_ptr<SensorServiceThriftHandler> thriftHandler_;
+#ifndef IS_OSS
+  std::unique_ptr<services::ServiceFrameworkLight> service_;
+#endif
 };
 } // namespace facebook::fboss::platform::sensor_service

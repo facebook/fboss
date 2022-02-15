@@ -31,4 +31,5 @@ add_executable(sensor_service
 
 target_link_libraries(sensor_service
   sensor_service_lib
+  fb303::fb303
 )
