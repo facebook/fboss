@@ -32,6 +32,7 @@ class MiscServiceTest : public ::testing::Test {
   void TearDown() override;
 
  protected:
+  MiscFruidReadResponse getFruid(bool uncached);
   MiscServiceImpl* getService();
   std::unique_ptr<services::ServiceFrameworkLight> service_;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;

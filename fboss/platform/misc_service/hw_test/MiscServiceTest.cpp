@@ -38,8 +38,20 @@ void MiscServiceTest::TearDown() {
   thriftHandler_.reset();
 }
 
+MiscFruidReadResponse MiscServiceTest::getFruid(bool uncached) {
+  return *(folly::coro::blockingWait(thriftHandler_->co_getFruid(uncached)));
+}
+
 MiscServiceImpl* MiscServiceTest::getService() {
   return thriftHandler_->getServiceImpl();
+}
+
+TEST_F(MiscServiceTest, getCachedFruid) {
+  EXPECT_GT(getFruid(false).fruidData_ref()->size(), 0);
+}
+
+TEST_F(MiscServiceTest, getUncachedFruid) {
+  EXPECT_GT(getFruid(true).fruidData_ref()->size(), 0);
 }
 
 TEST_F(MiscServiceTest, testThrift) {
