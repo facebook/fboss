@@ -37,14 +37,4 @@ setupThrift() {
       miscService, FLAGS_thrift_port);
 }
 
-void runServer(
-    facebook::services::ServiceFrameworkLight& service,
-    std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    MiscServiceThriftHandler* handler,
-    bool loopForever) {
-  service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
-  helpers::addCommonModules(service);
-  service.go(loopForever);
-}
-
 } // namespace facebook::fboss::platform::misc_service
