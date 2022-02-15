@@ -10,7 +10,6 @@
 
 #include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
 
-#include <folly/experimental/coro/BlockingWait.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
@@ -46,8 +45,10 @@ void SensorsTest::TearDown() {
 
 SensorReadResponse SensorsTest::getSensors(
     const std::vector<std::string>& sensors) {
-  return *(folly::coro::blockingWait(thriftHandler_->co_getSensorValuesByNames(
-      std::make_unique<std::vector<std::string>>(sensors))));
+  SensorReadResponse response;
+  thriftHandler_->getSensorValuesByNames(
+      response, std::make_unique<std::vector<std::string>>(sensors));
+  return response;
 }
 
 SensorServiceImpl* SensorsTest::getService() {
@@ -80,9 +81,9 @@ TEST_F(SensorsTest, getSomeSensors) {
 
 TEST_F(SensorsTest, getSensorsByFruTypes) {
   std::vector<FruType> fruTypes{FruType::ALL};
-  auto response =
-      *(folly::coro::blockingWait(thriftHandler_->co_getSensorValuesByFruTypes(
-          std::make_unique<std::vector<FruType>>(fruTypes))));
+  SensorReadResponse response;
+  thriftHandler_->getSensorValuesByFruTypes(
+      response, std::make_unique<std::vector<FruType>>(fruTypes));
   // TODO assert for non empty response once this thrift API is implemented
   EXPECT_EQ(response.sensorData_ref()->size(), 0);
 }

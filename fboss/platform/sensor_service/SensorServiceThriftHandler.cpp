@@ -15,14 +15,12 @@
 
 namespace facebook::fboss::platform::sensor_service {
 
-#if FOLLY_HAS_COROUTINES
-folly::coro::Task<std::unique_ptr<SensorReadResponse>>
-SensorServiceThriftHandler::co_getSensorValuesByNames(
+void SensorServiceThriftHandler::getSensorValuesByNames(
+    SensorReadResponse& response,
     std::unique_ptr<std::vector<std::string>> request) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  auto response = std::make_unique<SensorReadResponse>();
 
-  response->timeStamp_ref() = helpers::nowInSecs();
+  response.timeStamp_ref() = helpers::nowInSecs();
 
   // Request list is not empty
   if (!request->empty()) {
@@ -42,25 +40,20 @@ SensorServiceThriftHandler::co_getSensorValuesByNames(
     } else {
       v = sensorService_->getSensorsData(*request);
     }
-    response->sensorData_ref() = v;
+    response.sensorData_ref() = v;
 
   } else {
     // Request list is empty, we send all the sensor data
     std::vector<SensorData> sensorVec = sensorService_->getAllSensorData();
 
-    response->sensorData_ref() = sensorVec;
+    response.sensorData_ref() = sensorVec;
   }
-  co_return response;
 }
 
-folly::coro::Task<std::unique_ptr<SensorReadResponse>>
-SensorServiceThriftHandler::co_getSensorValuesByFruTypes(
-    std::unique_ptr<std::vector<FruType>> request) {
+void SensorServiceThriftHandler::getSensorValuesByFruTypes(
+    SensorReadResponse& /*response*/,
+    std::unique_ptr<std::vector<FruType>> /*request*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  auto response = std::make_unique<SensorReadResponse>();
   // ToDo: implement here
-  co_return response;
 }
-#endif
-
 } // namespace facebook::fboss::platform::sensor_service
