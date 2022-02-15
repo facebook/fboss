@@ -12,14 +12,29 @@
 #include <gtest/gtest.h>
 
 #include "fboss/platform/misc_service/MiscServiceImpl.h"
+#include "fboss/platform/misc_service/if/gen-cpp2/MiscServiceThrift.h"
+
+namespace facebook::services {
+class ServiceFrameworkLight;
+}
+namespace apache::thrift {
+class ThriftServer;
+}
 
 namespace facebook::fboss::platform::misc_service {
 
+class MiscServiceThriftHandler;
+
 class MiscServiceTest : public ::testing::Test {
  public:
+  ~MiscServiceTest() override;
   void SetUp() override;
+  void TearDown() override;
 
  protected:
-  std::unique_ptr<MiscServiceImpl> miscServiceImpl_;
+  MiscServiceImpl* getService();
+  std::unique_ptr<services::ServiceFrameworkLight> service_;
+  std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
+  std::shared_ptr<MiscServiceThriftHandler> thriftHandler_;
 };
 } // namespace facebook::fboss::platform::misc_service
