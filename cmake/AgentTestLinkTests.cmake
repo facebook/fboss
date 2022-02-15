@@ -6,6 +6,7 @@
 add_library(link_tests
   fboss/agent/test/link_tests/LinkTest.cpp
   fboss/agent/test/link_tests/LinkSanityTests.cpp
+  fboss/agent/test/link_tests/PtpTests.cpp
 )
 
 target_link_libraries(link_tests
@@ -16,6 +17,8 @@ target_link_libraries(link_tests
   fboss_config_utils
   load_balancer_utils
   hw_olympic_qos_utils
+  hw_agent_packet_utils
+  packet
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
@@ -29,6 +32,7 @@ target_link_libraries(bcm_link_test
   platform
   bcm
   bcm_ecmp_utils
+  bcm_packet_trap_helper
   bcm_qos_utils
 )
 

@@ -581,6 +581,10 @@ class SwSwitch : public HwSwitch::Callback {
     return pcapMgr_.get();
   }
 
+  PacketObservers* getPacketObservers() {
+    return pktObservers_.get();
+  }
+
   /*
    * Get the LldpManager object
    */

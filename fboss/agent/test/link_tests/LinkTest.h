@@ -15,6 +15,8 @@ DECLARE_bool(skip_xphy_programming);
 DECLARE_string(oob_asset);
 DECLARE_string(oob_flash_device_name);
 DECLARE_string(openbmc_password);
+DECLARE_bool(enable_lldp);
+DECLARE_bool(tun_intf);
 
 namespace facebook::fboss {
 

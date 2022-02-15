@@ -44,7 +44,7 @@ vector<PcapPktInfo> readPcapFile(const char* path, bool throw_exception) {
       if (!throw_exception) {
         break;
       }
-      throw FbossError("error reading from pcap file");
+      throw FbossError("error reading from pcap file: ", pcap_geterr(pcap));
     }
 
     pkts.emplace_back(hdr, data);
