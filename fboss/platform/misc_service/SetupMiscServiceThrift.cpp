@@ -10,17 +10,12 @@
 
 #include "fboss/platform/misc_service/SetupMiscServiceThrift.h"
 
+#include "common/services/cpp/ServiceFrameworkLight.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
+#include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/misc_service/MiscServiceImpl.h"
 #include "fboss/platform/misc_service/MiscServiceThriftHandler.h"
-
-#include "common/services/cpp/AclCheckerModule.h"
-#include "common/services/cpp/BuildModule.h"
-#include "common/services/cpp/Fb303Module.h"
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#include "common/services/cpp/ThriftAclCheckerModuleConfig.h"
-#include "common/services/cpp/ThriftStatsModule.h"
 
 DEFINE_int32(thrift_port, 5971, "Port for the thrift service");
 
@@ -38,12 +33,8 @@ setupThrift() {
   // ToDo miscService->fetchData();
 
   // Setup thrift handler and server
-  auto handler = std::make_shared<MiscServiceThriftHandler>(miscService);
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-  server->setPort(FLAGS_thrift_port);
-  server->setInterface(handler);
-
-  return {server, handler};
+  return helpers::setupThrift<MiscServiceThriftHandler>(
+      miscService, FLAGS_thrift_port);
 }
 
 void runServer(
@@ -51,20 +42,8 @@ void runServer(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
     MiscServiceThriftHandler* handler,
     bool loopForever) {
-  thriftServer->setAllowPlaintextOnLoopback(true);
   service.addThriftService(thriftServer, handler, FLAGS_thrift_port);
-  service.addModule(
-      facebook::services::BuildModule::kModuleName,
-      new facebook::services::BuildModule(&service));
-  service.addModule(
-      facebook::services::ThriftStatsModule::kModuleName,
-      new facebook::services::ThriftStatsModule(&service));
-  service.addModule(
-      facebook::services::Fb303Module::kModuleName,
-      new facebook::services::Fb303Module(&service));
-  service.addModule(
-      facebook::services::AclCheckerModule::kModuleName,
-      new facebook::services::AclCheckerModule(&service));
+  helpers::addCommonModules(service);
   service.go(loopForever);
 }
 
