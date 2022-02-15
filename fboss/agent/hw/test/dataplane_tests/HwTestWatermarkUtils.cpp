@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwTestWatermarkUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -70,6 +71,55 @@ size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int pktSizeBytes) {
       ((pktSizeBytes + bufferDescriptorBytes + packetBufferUnitBytes - 1) /
        packetBufferUnitBytes);
   return effectiveBytesPerPkt;
+}
+
+void sendPacketsWithQueueBuildup(
+    std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
+    HwSwitchEnsemble* ensemble,
+    PortID port,
+    int numPackets) {
+  auto getOutPacketDelta = [](auto& after, auto& before) {
+    return (
+        (*after.outMulticastPkts__ref() + *after.outBroadcastPkts__ref() +
+         *after.outUnicastPkts__ref()) -
+        (*before.outMulticastPkts__ref() + *before.outBroadcastPkts__ref() +
+         *before.outUnicastPkts__ref()));
+  };
+  /*
+   * Packets are sent in 2 blocks, 80% first and 20% later. This is
+   * to ensure that stats read will give the right numbers for
+   * watermarks if thats is of interest, which means we need a minimum
+   * of 5 packets to split as 4:1.
+   */
+  CHECK_GE(numPackets, 5) << "Number of packets to send should be >= 5";
+  int eightyPercentPackets = (numPackets * 80) / 100;
+  auto stats0 = ensemble->getLatestPortStats(port);
+  // Disable TX to allow queue to build up
+  utility::setPortTxEnable(ensemble->getHwSwitch(), port, false);
+  sendPktsFn(port, eightyPercentPackets);
+
+  auto stats1 = ensemble->getLatestPortStats(port);
+  auto txedPackets = getOutPacketDelta(stats1, stats0);
+  /*
+   * The expectation is that 80% of packets is sufficiently
+   * large to have some packets TXed out and some remain in
+   * the queue. If all of these 80% packets are being sent
+   * out, more packets are needed to ensure we have some
+   * packets left in the queue!
+   */
+  CHECK_NE(txedPackets, eightyPercentPackets)
+      << "Need to send more than " << numPackets
+      << " packets to trigger queue build up";
+
+  /*
+   * TXed packets dont contribute to queue build up, hence send
+   * those many packets again to build the queue as expected, along
+   * with the remaning 20% packets.
+   */
+  sendPktsFn(port, txedPackets + (numPackets - eightyPercentPackets));
+
+  // Enable TX to send traffic out
+  utility::setPortTxEnable(ensemble->getHwSwitch(), port, true);
 }
 
 }; // namespace facebook::fboss::utility
