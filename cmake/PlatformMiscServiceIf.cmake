@@ -12,5 +12,6 @@ add_fbthrift_cpp_library(
     json
   DEPENDS
     fb303_cpp2
+    fboss_cpp2
 )
 

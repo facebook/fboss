@@ -25,7 +25,6 @@ target_link_libraries(sensor_service_lib
 
 add_executable(sensor_service
   fboss/platform/sensor_service/Main.cpp
-  fboss/platform/sensor_service/oss/Main.cpp
 )
 
 target_link_libraries(sensor_service

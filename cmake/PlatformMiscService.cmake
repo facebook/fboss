@@ -15,7 +15,15 @@ target_link_libraries(misc_service_lib
   product_info
   platform_utils
   misc_service_cpp2
-  misc_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+)
+
+add_executable(misc_service
+  fboss/platform/misc_service/Main.cpp
+)
+
+target_link_libraries(misc_service
+  misc_service_lib
+  fb303::fb303
 )
