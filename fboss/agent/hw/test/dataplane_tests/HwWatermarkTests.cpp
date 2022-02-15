@@ -11,9 +11,15 @@
 #include <fb303/ServiceData.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestWatermarkUtils.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -39,11 +45,16 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   MacAddress kDstMac() const {
     return getPlatform()->getLocalMac();
   }
-  void sendUdpPkt(uint8_t dscpVal, const folly::IPAddressV6& dst) {
+  void sendUdpPkt(
+      uint8_t dscpVal,
+      const folly::IPAddressV6& dst,
+      int payloadSize,
+      std::optional<PortID> port) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
+    auto kECT1 = 0x01; // ECN capable transport ECT(1)
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
@@ -53,11 +64,16 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         dst,
         8000,
         8001,
-        // Trailing 2 bits are for ECN
-        static_cast<uint8_t>(dscpVal << 2),
+        // Trailing 2 bits are for ECN, we do not want drops in
+        // these queues due to any configured thresholds!
+        static_cast<uint8_t>(dscpVal << 2 | kECT1),
         255,
-        std::vector<uint8_t>(6000, 0xff));
-    getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+        std::vector<uint8_t>(payloadSize, 0xff));
+    if (port.has_value()) {
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), *port);
+    } else {
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    }
   }
 
   void
@@ -145,10 +161,14 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
    * value > 0 (usually 2, but  other times it was 0). Thus, send a large
    * number of packets to try to avoid the risk of flakiness.
    */
-  void
-  sendUdpPkts(uint8_t dscpVal, const folly::IPAddressV6& dstIp, int cnt = 100) {
+  void sendUdpPkts(
+      uint8_t dscpVal,
+      const folly::IPAddressV6& dstIp,
+      int cnt = 100,
+      int payloadSize = 6000,
+      std::optional<PortID> port = std::nullopt) {
     for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal, dstIp);
+      sendUdpPkt(dscpVal, dstIp, payloadSize, port);
     }
   }
   void programRoutes() {
@@ -294,4 +314,66 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
+  auto setup = []() {};
+  auto verify = [this]() {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+
+    /*
+     * This test ensures that the queue watermark reported is accurate.
+     * For this, we start by clearing any watermark from previous tests.
+     * We need to know the exact number of bytes a packet will need while
+     * it is in the ASIC queue. This size includes the headers + overhead
+     * used in the ASIC for each packet. Once we know the number of bytes
+     * that will be used per packet, with TX disable function, we ensure
+     * that all the packets to be TXed is queued up, resulting in a high
+     * watermark which is predictable. Then compare and make sure that
+     * the watermark reported is as expected by the computed watermark
+     * based on the number of bytes we expect in the queue.
+     */
+    constexpr auto kQueueId{0};
+    constexpr auto kTxPacketPayloadLen{200};
+    constexpr auto kNumberOfPacketsToSend{100};
+    auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
+        UDPHeader::size();
+    // Clear any watermark stats
+    (void)getHwSwitchEnsemble()
+        ->getLatestPortStats(masterLogicalPortIds()[0])
+        .queueWatermarkBytes__ref();
+
+    auto sendPackets = [=](PortID port, int numPacketsToSend) {
+      sendUdpPkts(
+          utility::kOlympicQueueToDscp().at(kQueueId).front(),
+          kDestIp1(),
+          numPacketsToSend,
+          kTxPacketPayloadLen,
+          port);
+    };
+
+    utility::sendPacketsWithQueueBuildup(
+        sendPackets,
+        getHwSwitchEnsemble(),
+        masterLogicalPortIds()[0],
+        kNumberOfPacketsToSend);
+
+    auto portStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+    auto queueWaterMarks = *portStats.queueWatermarkBytes__ref();
+    auto expectedWatermarkBytes =
+        utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
+        kNumberOfPacketsToSend;
+    auto roundedWatermarkBytes = utility::getRoundedBufferThreshold(
+        getHwSwitch(), expectedWatermarkBytes);
+    XLOG(DBG0) << "Expected rounded watermark bytes: " << roundedWatermarkBytes
+               << ", reported watermark bytes: "
+               << queueWaterMarks.at(kQueueId);
+    EXPECT_EQ(queueWaterMarks.at(kQueueId), roundedWatermarkBytes);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
