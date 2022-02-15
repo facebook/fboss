@@ -10,7 +10,6 @@
 
 #include "fboss/platform/misc_service/MiscServiceThriftHandler.h"
 #include <folly/logging/xlog.h>
-#include "common/time/Time.h"
 #include "fboss/lib/LogThriftCall.h"
 
 namespace facebook::fboss::platform::misc_service {
