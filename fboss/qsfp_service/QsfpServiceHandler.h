@@ -134,6 +134,9 @@ class QsfpServiceHandler
   folly::coro::Task<bool> co_deleteAllSc(
       std::unique_ptr<std::string> portName) override;
 
+  folly::coro::Task<bool> co_pruneMacsecConfig(
+      std::unique_ptr<std::vector<std::string>> portList) override;
+
   folly::coro::Task<std::unique_ptr<std::map<std::string, MacsecStats>>>
   co_getAllMacsecPortStats(bool readFromHw) override;
 

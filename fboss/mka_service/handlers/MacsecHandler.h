@@ -73,6 +73,14 @@ class MacsecHandler {
   }
 
   /*
+   * Prune Macsec config from list of ports
+   */
+  virtual bool pruneMacsecConfig(
+      const std::vector<std::string>& /* portList */) {
+    return true;
+  }
+
+  /*
    * Get all the macsec port stats
    */
   virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(

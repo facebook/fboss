@@ -143,6 +143,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     cpp.coroutine,
   );
 
+  bool pruneMacsecConfig(1: list<string> portList) throws (
+    1: fboss.FbossBaseError error,
+  ) (cpp.coroutine);
+
   map<string, hardware_stats.MacsecStats> getAllMacsecPortStats(
     1: bool readFromHw = false,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
