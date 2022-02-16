@@ -31,6 +31,11 @@ add_library(hw_agent_packet_utils
   fboss/agent/hw/test/HwAgentTestPacketSnooper.cpp
 )  
 
+target_link_libraries(hw_agent_packet_utils
+  Folly::folly
+  packet_factory
+)
+
 add_library(hw_packet_utils
   fboss/agent/hw/test/HwTestLearningUpdateObserver.cpp
   fboss/agent/hw/test/HwTestPacketSnooper.cpp

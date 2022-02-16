@@ -3,16 +3,23 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_executable(weutil
+add_library(weutil_lib
   fboss/platform/weutil/WeutilDarwin.cpp
-  fboss/platform/weutil/main.cpp
   fboss/platform/weutil/prefdl/Prefdl.cpp
   fboss/platform/weutil/Weutil.cpp
 )
 
-target_link_libraries(weutil
+target_link_libraries(weutil_lib
   product_info
   platform_utils
   Folly::folly
   common_file_utils
+)
+
+add_executable(weutil
+  fboss/platform/weutil/main.cpp
+)
+
+target_link_libraries(weutil
+  weutil_lib
 )

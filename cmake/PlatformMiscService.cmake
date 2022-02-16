@@ -13,6 +13,7 @@ add_library(misc_service_lib
 target_link_libraries(misc_service_lib
   log_thrift_call
   product_info
+  weutil_lib
   platform_utils
   misc_service_cpp2
   Folly::folly

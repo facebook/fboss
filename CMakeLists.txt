@@ -643,6 +643,7 @@ if (NOT SAI_ONLY)
       fboss/agent/oss/SwitchStats.cpp
       fboss/agent/oss/SwSwitch.cpp
       fboss/agent/oss/Utils.cpp
+      fboss/agent/PacketObserver.cpp
       fboss/agent/packet/ArpHdr.cpp
       fboss/agent/packet/DHCPv4Packet.cpp
       fboss/agent/packet/DHCPv6Packet.cpp

@@ -14,5 +14,6 @@ add_library(capture
 
 target_link_libraries(capture
   packet
+  packet_observer
   Folly::folly
 )
