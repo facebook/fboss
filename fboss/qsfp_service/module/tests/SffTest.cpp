@@ -307,4 +307,42 @@ TEST(SfpTest, transceiverInfoTest) {
   EXPECT_EQ(sfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
+TEST(SfpTest, moduleEepromChecksumTest) {
+  // Create SFF FR1 module
+  int idx = 1;
+  std::unique_ptr<SffFr1Transceiver> qsfpImplSff100GFr1 =
+      std::make_unique<SffFr1Transceiver>(idx);
+  std::unique_ptr<SffModule> qsfp100GFr1 =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImplSff100GFr1), 4);
+
+  qsfp100GFr1->refresh();
+  // Verify EEPROM checksum for SFF FR1 module
+  bool csumValid = qsfp100GFr1->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CWDM4 module
+  idx = 2;
+  std::unique_ptr<SffCwdm4Transceiver> qsfpImplCwdm4 =
+      std::make_unique<SffCwdm4Transceiver>(idx);
+  std::unique_ptr<SffModule> qsfpCwdm4 =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImplCwdm4), 4);
+
+  qsfpCwdm4->refresh();
+  // Verify EEPROM checksum for CWDM4 module
+  csumValid = qsfpCwdm4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CWDM4 Bad module
+  idx = 3;
+  std::unique_ptr<BadEepromSffCwdm4Transceiver> qsfpImplCwdm4Bad =
+      std::make_unique<BadEepromSffCwdm4Transceiver>(idx);
+  std::unique_ptr<SffModule> qsfpCwdm4Bad =
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImplCwdm4Bad), 4);
+
+  qsfpCwdm4Bad->refresh();
+  // Verify EEPROM checksum Invalid for CWDM4 Bad module
+  csumValid = qsfpCwdm4Bad->verifyEepromChecksums();
+  EXPECT_FALSE(csumValid);
+}
+
 } // namespace

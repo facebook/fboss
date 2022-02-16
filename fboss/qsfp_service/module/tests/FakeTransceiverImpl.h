@@ -64,6 +64,11 @@ class BadSffCwdm4Transceiver : public FakeTransceiverImpl {
   explicit BadSffCwdm4Transceiver(int module);
 };
 
+class BadEepromSffCwdm4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit BadEepromSffCwdm4Transceiver(int module);
+};
+
 class MiniphotonOBOTransceiver : public FakeTransceiverImpl {
  public:
   explicit MiniphotonOBOTransceiver(int module);
