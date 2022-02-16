@@ -247,6 +247,8 @@ class TransceiverManager {
 
   static std::string forceColdBootFileName();
 
+  static std::string warmBootFlagFileName();
+
   bool canWarmBoot() const {
     return canWarmBoot_;
   }
@@ -408,7 +410,6 @@ class TransceiverManager {
   // the remediation events to remediate such transceivers.
   void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
 
-  std::string warmBootFlagFileName() const;
   std::string warmBootStateFileName() const;
 
   /*

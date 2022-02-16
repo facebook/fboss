@@ -1228,7 +1228,7 @@ std::string TransceiverManager::forceColdBootFileName() {
       FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
 }
 
-std::string TransceiverManager::warmBootFlagFileName() const {
+std::string TransceiverManager::warmBootFlagFileName() {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kWarmBootFlag);
 }

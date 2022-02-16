@@ -74,12 +74,11 @@ class HwQsfpEnsemble {
   bool didWarmBoot() const {
     return warmBoot_;
   }
-  void setupForWarmboot() const;
+  void setupForWarmboot();
 
   bool isSaiPlatform() const;
 
  private:
-  bool hasWarmbootCapability() const;
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
   bool warmBoot_{false};
