@@ -1245,9 +1245,19 @@ void TransceiverManager::setWarmBootState() {
   // Right now, we only need to store phy related info.
   if (phyManager_) {
     folly::dynamic qsfpServiceState = folly::dynamic::object;
+    steady_clock::time_point begin = steady_clock::now();
     qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
+    steady_clock::time_point getWarmbootState = steady_clock::now();
+    XLOG(INFO)
+        << "[Exit] Finish getting warm boot state. Time: "
+        << duration_cast<duration<float>>(getWarmbootState - begin).count();
     folly::writeFile(
         folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
+    steady_clock::time_point serializeState = steady_clock::now();
+    XLOG(INFO) << "[Exit] Finish writing warm boot state to file. Time: "
+               << duration_cast<duration<float>>(
+                      serializeState - getWarmbootState)
+                      .count();
   }
 }
 

@@ -7,6 +7,7 @@
 
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include "fboss/qsfp_service/QsfpServiceSignalHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
@@ -53,12 +54,12 @@ int main(int argc, char** argv) {
   StatsPublisher publisher(transceiverManager.get());
 
   auto [server, handler] = setupThriftServer(std::move(transceiverManager));
-  // Create Platform specific FbossMacsecHandler object
-  folly::FunctionScheduler scheduler;
+
+  auto scheduler = std::make_unique<folly::FunctionScheduler>();
   // init after handler has been initted - this ensures everything is setup
   // before we try to retrieve stats for it
   publisher.init();
-  scheduler.addFunction(
+  scheduler->addFunction(
       [&publisher, server = server]() {
         publisher.publishStats(
             server->getEventBaseManager()->getEventBase(),
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
 
   // Change the previous refreshTransceivers() to refreshStateMachines(), the
   // later one will call refreshTransceivers() and update state machines as well
-  scheduler.addFunction(
+  scheduler->addFunction(
       [mgr = handler->getTransceiverManager()]() {
         mgr->refreshStateMachines();
       },
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
   // The function is called from abstract base class TransceiverManager
   // which gets implemented by platfdorm aware class inheriting
   // this class
-  scheduler.addFunction(
+  scheduler->addFunction(
       [mgr = handler->getTransceiverManager()]() {
         mgr->publishI2cTransactionStats();
       },
@@ -91,14 +92,22 @@ int main(int argc, char** argv) {
   // Schedule the function to periodically collect xphy stats if there's a
   // PhyManager
   if (auto* mgr = handler->getTransceiverManager(); mgr->getPhyManager()) {
-    scheduler.addFunction(
+    scheduler->addFunction(
         [mgr]() { mgr->updateAllXphyPortsStats(); },
         std::chrono::seconds(FLAGS_xphy_stats_loop_interval),
         "updateAllXphyPortsStats");
   }
 
   // Note: This doesn't block, this merely starts it's own thread
-  scheduler.start();
+  scheduler->start();
+
+  // Add signal handler to handle exit signals so that we can have gracefully
+  // shutdown
+  QsfpServiceSignalHandler signalHandler(
+      server->getEventBaseManager()->getEventBase(),
+      scheduler.get(),
+      server,
+      handler);
 
   // Start the server loop
   doServerLoop(server, handler);

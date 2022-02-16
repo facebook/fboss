@@ -451,6 +451,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/oss/QsfpServer.cpp
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp
+      fboss/qsfp_service/QsfpServiceSignalHandler.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
