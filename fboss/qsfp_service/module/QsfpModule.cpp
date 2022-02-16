@@ -1111,9 +1111,11 @@ MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
   return MediaInterfaceCode::UNKNOWN;
 }
 
-void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
+void QsfpModule::programTransceiver(
+    cfg::PortSpeed speed,
+    bool needResetDataPath) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto programTcvrFunc = [speed, this]() {
+  auto programTcvrFunc = [this, speed, needResetDataPath]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       // Current configureModule() actually assumes the locked is obtained.
@@ -1127,6 +1129,10 @@ void QsfpModule::programTransceiver(cfg::PortSpeed speed) {
       // Here we ensure that Rx output squelch is always enabled.
       if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
         ensureRxOutputSquelchEnabled(*hostLaneSettings);
+      }
+
+      if (needResetDataPath) {
+        resetDataPath();
       }
 
       // Since we're touching the transceiver, we need to update the cached

@@ -280,7 +280,8 @@ bool operator()(
     Target& /* trg */) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   try {
-    fsm.get_attribute(transceiverMgrPtr)->programTransceiver(tcvrID);
+    fsm.get_attribute(transceiverMgrPtr)->programTransceiver(
+      tcvrID, fsm.get_attribute(needResetDataPath));
     fsm.get_attribute(isTransceiverProgrammed) = true;
     fsm.get_attribute(needResetDataPath) = false;
     return true;

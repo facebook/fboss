@@ -473,7 +473,9 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
   }
 }
 
-void TransceiverManager::programTransceiver(TransceiverID id) {
+void TransceiverManager::programTransceiver(
+    TransceiverID id,
+    bool needResetDataPath) {
   // Get programmed iphy port profile
   const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
   if (programmedPortToPortInfo.empty()) {
@@ -506,9 +508,11 @@ void TransceiverManager::programTransceiver(TransceiverID id) {
                << ". Transeciver is not present";
     return;
   }
-  tcvrIt->second->programTransceiver(speed);
+  tcvrIt->second->programTransceiver(speed, needResetDataPath);
   XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
-             << " with speed=" << apache::thrift::util::enumNameSafe(speed);
+             << " with speed=" << apache::thrift::util::enumNameSafe(speed)
+             << (needResetDataPath ? " with" : " without")
+             << " resetting data path";
 }
 
 bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {

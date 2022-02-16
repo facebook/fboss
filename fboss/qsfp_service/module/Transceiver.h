@@ -75,7 +75,9 @@ class Transceiver {
    * TODO(joseph5wu) Will deprecate configureModule() and customizeTransceiver()
    * once we switch to use the new state machine.
    */
-  virtual void programTransceiver(cfg::PortSpeed speed) = 0;
+  virtual void programTransceiver(
+      cfg::PortSpeed speed,
+      bool needResetDataPath) = 0;
 
   /*
    * Set speed specific settings for the transceiver

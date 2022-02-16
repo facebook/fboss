@@ -268,7 +268,8 @@ class QsfpModule : public Transceiver {
 
   void setLegacyModuleStateMachineModulePointer(QsfpModule* modulePtr);
 
-  void programTransceiver(cfg::PortSpeed speed) override;
+  void programTransceiver(cfg::PortSpeed speed, bool needResetDataPath)
+      override;
 
   virtual void triggerVdmStatsCapture() override {}
 

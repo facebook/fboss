@@ -196,7 +196,7 @@ class TransceiverManager {
 
   void programExternalPhyPorts(TransceiverID id);
 
-  void programTransceiver(TransceiverID id);
+  void programTransceiver(TransceiverID id, bool needResetDataPath);
 
   bool areAllPortsDown(TransceiverID id) const noexcept;
 
