@@ -29,6 +29,7 @@
 #include <vector>
 
 DECLARE_string(qsfp_service_volatile_dir);
+DECLARE_bool(can_qsfp_service_warm_boot);
 
 namespace facebook::fboss {
 class TransceiverManager {
@@ -407,7 +408,7 @@ class TransceiverManager {
   // the remediation events to remediate such transceivers.
   void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
 
-  // WARM BOOT related functions
+  std::string warmBootFlagFileName() const;
   std::string warmBootStateFileName() const;
 
   /*
@@ -417,13 +418,19 @@ class TransceiverManager {
    * 1) User did not create cold_boot_once_qsfp_service file
    * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
    *    state and shut down successfully.
-   * This function also removes the 2 files so that these checks are
-   * attempted afresh based on how the qsfp_service exits this time and whether
-   * or not the user wishes for another cold boot.
+   *
+   * This function also remove the forceColdBoot file but keep the canWarmBoot
+   * file so that for future qsfp_service crash, we can still use warm boot
+   * without resetting the xphy or transceiver.
    */
-  bool checkAndClearWarmBootFlags();
+  bool checkWarmBootFlags();
+  /*
+   * ONLY REMOVE can_warm_boot flag file if there's a cold_boot
+   */
+  void removeWarmBootFlag();
 
   void setWarmBootState();
+  void setCanWarmBoot();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()

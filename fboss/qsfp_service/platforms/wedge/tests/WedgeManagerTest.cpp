@@ -32,6 +32,13 @@ class WedgeManagerTest : public ::testing::Test {
   void SetUp() override {
     setupFakeAgentConfig(agentCfgPath);
     setupFakeQsfpConfig(qsfpCfgPath);
+
+    // Set up fake qsfp_service volatile directory
+    gflags::SetCommandLineOptionWithMode(
+        "qsfp_service_volatile_dir",
+        qsfpSvcVolatileDir.c_str(),
+        gflags::SET_FLAGS_DEFAULT);
+
     // Create a wedge manager for 16 modules and 4 ports per module
     wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
     wedgeManager_->initTransceiverMap();
@@ -39,10 +46,14 @@ class WedgeManagerTest : public ::testing::Test {
         "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
 
-  std::unique_ptr<NiceMock<MockWedgeManager>> wedgeManager_;
   folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
-  std::string agentCfgPath = tmpDir.path().string() + "/fakeAgentConfig";
-  std::string qsfpCfgPath = tmpDir.path().string() + "/fakeQsfpConfig";
+  std::string qsfpSvcVolatileDir = tmpDir.path().string();
+  std::string agentCfgPath = qsfpSvcVolatileDir + "/fakeAgentConfig";
+  std::string qsfpCfgPath = qsfpSvcVolatileDir + "/fakeQsfpConfig";
+  std::string warmBootFlagFile = qsfpSvcVolatileDir + "/can_warm_boot";
+  std::string coldBootFileName =
+      qsfpSvcVolatileDir + "/cold_boot_once_qsfp_service";
+  std::unique_ptr<NiceMock<MockWedgeManager>> wedgeManager_;
 };
 
 TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
@@ -301,33 +312,65 @@ TEST_F(WedgeManagerTest, syncPorts) {
 }
 
 TEST_F(WedgeManagerTest, coldBootTest) {
-  auto qsfpSvcDir = folly::test::TemporaryDirectory();
-  FLAGS_qsfp_service_volatile_dir = qsfpSvcDir.path().string();
-  std::string coldBootFileName =
-      qsfpSvcDir.path().string() + "/cold_boot_once_qsfp_service";
+  auto verifyColdBootLogic = [this]() {
+    // Delete the existing wedge manager and create a new one
+    wedgeManager_.reset();
+    wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
+    // Force cold boot is set
+    EXPECT_FALSE(wedgeManager_->canWarmBoot());
+    // We expect a cold boot in this case and that should trigger hard resets of
+    // QSFP modules
+    for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
+      EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(1);
+    }
+    wedgeManager_->initTransceiverMap();
+
+    // Confirm that the cold boot file and warm boot flag file were deleted
+    EXPECT_FALSE(facebook::files::FileUtil::fileExists(coldBootFileName));
+    EXPECT_FALSE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+  };
+  auto gracefulExit = [this]() {
+    // Trigger a graceful exit
+    wedgeManager_->gracefulExit();
+    // Check warm boot flag file is created
+    EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+  };
 
   // Create the cold boot file
   EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);
-  // Delete the existing wedge manager and create a new one
-  wedgeManager_.reset();
-  wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
-  // We expect a cold boot in this case and that should trigger hard resets of
-  // QSFP modules
-  for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
-    EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(1);
-  }
-  wedgeManager_->initTransceiverMap();
-  // Confirm that the cold boot file was deleted
-  EXPECT_EQ(facebook::files::FileUtil::fileExists(coldBootFileName), false);
+  verifyColdBootLogic();
 
-  // Test a warm boot
+  // Try cold boot again if last time was using graceful exit
+  gracefulExit();
+  EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);
+  verifyColdBootLogic();
+
+  // Sepcifically set can_qsfp_service_warm_boot to false to mimic
+  // Elbert8DD pim case which doesn't support warm boot
+  gracefulExit();
+  gflags::SetCommandLineOptionWithMode(
+      "can_qsfp_service_warm_boot", "0", gflags::SET_FLAGS_DEFAULT);
+  verifyColdBootLogic();
+}
+
+TEST_F(WedgeManagerTest, warmBootTest) {
+  // Trigger a graceful exit
+  wedgeManager_->gracefulExit();
+  // Check warm boot flag file is created
+  EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+
   wedgeManager_.reset();
   wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
-  // We expect a warm boot in this case and that should not trigger hard resets
+  // Confirm that the warm boot falg was still there
+  EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+  EXPECT_TRUE(wedgeManager_->canWarmBoot());
+
+  // We expect a warm boot in this case and that should NOT trigger hard resets
   // of QSFP modules
   for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
     EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(0);
   }
+  wedgeManager_->initTransceiverMap();
 }
 
 TEST_F(WedgeManagerTest, getAndClearTransceiversSignalFlagsTest) {

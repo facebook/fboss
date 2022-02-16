@@ -12,6 +12,8 @@
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <common/files/FileUtil.h>
+
 using namespace std::chrono;
 
 // allow us to configure the qsfp_service dir so that the qsfp cold boot test
@@ -21,8 +23,14 @@ DEFINE_string(
     "/dev/shm/fboss/qsfp_service",
     "Path to the directory in which we store the qsfp_service's cold boot flag");
 
+DEFINE_bool(
+    can_qsfp_service_warm_boot,
+    true,
+    "Enable/disable warm boot functionality for qsfp_service");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
+constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 constexpr auto kPhyStateKey = "phy";
 } // namespace
@@ -50,8 +58,16 @@ TransceiverManager::TransceiverManager(
   }
 
   // Check whether we can warm boot
-  canWarmBoot_ = checkAndClearWarmBootFlags();
+  canWarmBoot_ = checkWarmBootFlags();
+  if (!FLAGS_can_qsfp_service_warm_boot) {
+    canWarmBoot_ = false;
+  }
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
+  if (!canWarmBoot_) {
+    // Since this is going to be cold boot, we need to remove the can_warm_boot
+    // file
+    removeWarmBootFlag();
+  }
 
   // Now we might need to start threads
   startThreads();
@@ -77,6 +93,7 @@ void TransceiverManager::gracefulExit() {
 
   // Set all warm boot related files before gracefully shut down
   setWarmBootState();
+  setCanWarmBoot();
   steady_clock::time_point setWBFilesDone = steady_clock::now();
   XLOG(INFO) << "[Exit] Done creating Warm Boot related files. Stop time: "
              << duration_cast<duration<float>>(setWBFilesDone - stopThreadsDone)
@@ -1168,7 +1185,7 @@ bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
   return tcvrIt->second->verifyEepromChecksums();
 }
 
-bool TransceiverManager::checkAndClearWarmBootFlags() {
+bool TransceiverManager::checkWarmBootFlags() {
   // TODO(joseph5wu) Due to new-port-programming is still rolling out, we only
   // need cold boot for new state machine, and old state machine should always
   // use warm boot. Will only check the warm boot flag once we finish rolling
@@ -1184,13 +1201,36 @@ bool TransceiverManager::checkAndClearWarmBootFlags() {
     return false;
   }
 
-  // TODO(joseph5wu) Will add the logic of handling can_warm_boot flag later
+  // However, because all the previous qsfp_service didn't set this warm boot
+  // flag at all, we need to have the roll out order:
+  // 1) Always return true no matter whether there's warm boot flag file so that
+  //    this qsfp_service version can start generating such flag during shut
+  //    down;
+  // 2) Only check warm boot flag file for new_port_programming case
+  // 3) Always check warm boot flag file once new_port_programming is enabled
+  //    everywhere.
+  const auto& warmBootFile = warmBootFlagFileName();
+  // Instead of removing the can_warm_boot file, we keep it unless it's a
+  // coldboot, so that qsfp_service crash can still use warm boot.
+  bool canWarmBoot = facebook::files::FileUtil::fileExists(warmBootFile);
+  XLOG(INFO) << "Warm Boot flag: " << warmBootFile << " is "
+             << (canWarmBoot ? "set" : "missing");
+  // Step 1)
   return true;
+}
+
+void TransceiverManager::removeWarmBootFlag() {
+  removeFile(warmBootFlagFileName());
 }
 
 std::string TransceiverManager::forceColdBootFileName() {
   return folly::to<std::string>(
       FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
+}
+
+std::string TransceiverManager::warmBootFlagFileName() const {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kWarmBootFlag);
 }
 
 std::string TransceiverManager::warmBootStateFileName() const {
@@ -1209,6 +1249,13 @@ void TransceiverManager::setWarmBootState() {
     folly::writeFile(
         folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
   }
+}
+
+void TransceiverManager::setCanWarmBoot() {
+  const auto& warmBootFile = warmBootFlagFileName();
+  auto createFd = createFile(warmBootFile);
+  close(createFd);
+  XLOG(INFO) << "Wrote can warm boot flag: " << warmBootFile;
 }
 
 void TransceiverManager::restoreWarmBootPhyState() {
