@@ -660,6 +660,8 @@ std::string SaiPhyManager::listHwObjects(
       auto saiSwitch = getSaiSwitch(xphyID);
 
       resultStr += folly::to<std::string>("Xphy Id: ", xphyID, "\n");
+      resultStr += folly::to<std::string>(
+          "Sai Switch Id: ", saiSwitch->getSwitchId(), "\n");
       resultStr += saiSwitch->listObjects(hwObjects, cached);
     }
   }
