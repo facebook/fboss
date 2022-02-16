@@ -42,6 +42,8 @@ class HwTransceiverUtils {
   static void verifyCopper100gProfile(
       const TransceiverInfo& transceiver,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
+
+  static void verifyDataPathEnabled(const TransceiverInfo& transceiver);
 };
 
 } // namespace facebook::fboss::utility

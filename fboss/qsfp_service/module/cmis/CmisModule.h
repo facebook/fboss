@@ -7,6 +7,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <optional>
+
 namespace facebook {
 namespace fboss {
 
@@ -307,6 +309,8 @@ class CmisModule : public QsfpModule {
    */
   phy::PrbsStats getPortPrbsStats(phy::Side side) override;
 
+  void resetDataPath() override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -365,6 +369,10 @@ class CmisModule : public QsfpModule {
    * return 200G-FR4
    */
   MediaInterfaceCode getModuleMediaInterface() override;
+
+  void resetDataPathWithFunc(
+      std::optional<std::function<void()>> afterDataPathDeinitFunc =
+          std::nullopt);
 };
 
 } // namespace fboss

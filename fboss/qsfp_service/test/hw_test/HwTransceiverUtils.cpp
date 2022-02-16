@@ -41,6 +41,8 @@ void HwTransceiverUtils::verifyTransceiverSettings(
   }
 
   verifyMediaInterfaceCompliance(transceiver, profile);
+
+  verifyDataPathEnabled(transceiver);
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
@@ -198,4 +200,39 @@ void HwTransceiverUtils::verifyCopper100gProfile(
   }
 }
 
+void HwTransceiverUtils::verifyDataPathEnabled(
+    const TransceiverInfo& transceiver) {
+  auto mgmtInterface = transceiver.transceiverManagementInterface_ref();
+  if (!mgmtInterface) {
+    throw FbossError(
+        "Transceiver:",
+        *transceiver.port_ref(),
+        " is missing transceiverManagementInterface");
+  }
+  // Right now, we only reset data path for CMIS module
+  if (*mgmtInterface == TransceiverManagementInterface::CMIS) {
+    // All lanes should have `false` Deinit
+    if (auto hostLaneSignals = transceiver.hostLaneSignals_ref()) {
+      auto lane = 0;
+      for (const auto& laneSignals : *hostLaneSignals) {
+        if (auto dataPathDeInit = laneSignals.dataPathDeInit_ref()) {
+          EXPECT_FALSE(*dataPathDeInit);
+        } else {
+          throw FbossError(
+              "Transceiver:",
+              *transceiver.port_ref(),
+              " Lane:",
+              lane,
+              " is missing dataPathDeInit signal");
+        }
+        ++lane;
+      }
+    } else {
+      throw FbossError(
+          "Transceiver:",
+          *transceiver.port_ref(),
+          " is missing hostLaneSignals");
+    }
+  }
+}
 } // namespace facebook::fboss::utility

@@ -170,6 +170,8 @@ class Transceiver {
     return true;
   }
 
+  virtual void resetDataPath() = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

@@ -123,6 +123,10 @@ class Sff8472Module : public QsfpModule {
     return true;
   }
 
+  void resetDataPath() override {
+    // no-op
+  }
+
  protected:
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};

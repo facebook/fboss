@@ -255,6 +255,10 @@ class SffModule : public QsfpModule {
    */
   void updateQsfpData(bool allPages = true) override;
 
+  void resetDataPath() override {
+    // no-op
+  }
+
  private:
   // no copy or assignment
   SffModule(SffModule const&) = delete;
