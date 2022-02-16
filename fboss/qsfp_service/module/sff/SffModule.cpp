@@ -1282,7 +1282,7 @@ bool SffModule::verifyEepromChecksums() {
     if (flatMem_ && csumInfoIt.first != SffPages::PAGE0) {
       continue;
     }
-    rc |= verifyEepromChecksum(csumInfoIt.first);
+    rc &= verifyEepromChecksum(csumInfoIt.first);
   }
   XLOG_IF(WARN, !rc) << folly::sformat(
       "Module {} EEPROM Checksum Failed", qsfpImpl_->getName());

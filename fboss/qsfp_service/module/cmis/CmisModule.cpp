@@ -2174,7 +2174,7 @@ bool CmisModule::verifyEepromChecksums() {
     if (flatMem_ && csumInfoIt.first != CmisPages::PAGE00) {
       continue;
     }
-    rc |= verifyEepromChecksum(csumInfoIt.first);
+    rc &= verifyEepromChecksum(csumInfoIt.first);
   }
   XLOG_IF(WARN, !rc) << folly::sformat(
       "Module {} EEPROM Checksum Failed", qsfpImpl_->getName());
