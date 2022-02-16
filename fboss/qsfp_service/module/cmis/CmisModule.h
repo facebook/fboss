@@ -75,6 +75,12 @@ class CmisModule : public QsfpModule {
 
   void configureModule() override;
 
+  /*
+   * This function veifies the Module eeprom register checksum for various
+   * pages.
+   */
+  bool verifyEepromChecksums() override;
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -277,12 +283,6 @@ class CmisModule : public QsfpModule {
   virtual void moduleDiagsCapabilitySet() override;
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
-
-  /*
-   * This function veifies the Module eeprom register checksum for various
-   * pages.
-   */
-  bool verifyEepromChecksums() override;
 
   /*
    * Trigger next VDM stats capture

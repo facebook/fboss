@@ -456,4 +456,39 @@ TEST(CmisFlatMemTest, transceiverInfoTest) {
   EXPECT_EQ(xcvr->numMediaLanes(), 0);
 }
 
+TEST(CmisTest, moduleEepromChecksumTest) {
+  // Create CMIS 200G FR4 module
+  int idx = 1;
+  std::unique_ptr<Cmis200GTransceiver> qsfpImplCmis200GFr4 =
+      std::make_unique<Cmis200GTransceiver>(idx);
+  std::unique_ptr<CmisModule> xcvrCmis200GFr4 =
+      std::make_unique<CmisModule>(nullptr, std::move(qsfpImplCmis200GFr4), 4);
+  xcvrCmis200GFr4->refresh();
+  // Verify EEPROM checksum for CMIS 200G FR4 module
+  bool csumValid = xcvrCmis200GFr4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CMIS 400G LR4 module
+  idx = 2;
+  std::unique_ptr<Cmis400GLr4Transceiver> qsfpImplCmis400GLr4 =
+      std::make_unique<Cmis400GLr4Transceiver>(idx);
+  std::unique_ptr<CmisModule> xcvrCmis400GLr4 =
+      std::make_unique<CmisModule>(nullptr, std::move(qsfpImplCmis400GLr4), 1);
+  xcvrCmis400GLr4->refresh();
+  // Verify EEPROM checksum for CMIS 400G LR4 module
+  csumValid = xcvrCmis400GLr4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CMIS 200G FR4 Bad module
+  idx = 3;
+  std::unique_ptr<BadCmis200GTransceiver> qsfpImplCmis200GFr4Bad =
+      std::make_unique<BadCmis200GTransceiver>(idx);
+  std::unique_ptr<CmisModule> xcvrCmis200GFr4Bad = std::make_unique<CmisModule>(
+      nullptr, std::move(qsfpImplCmis200GFr4Bad), 1);
+  xcvrCmis200GFr4Bad->refresh();
+  // Verify EEPROM checksum Invalid for CMIS 200G FR4 Bad module
+  csumValid = xcvrCmis200GFr4Bad->verifyEepromChecksums();
+  EXPECT_FALSE(csumValid);
+}
+
 } // namespace

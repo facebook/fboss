@@ -79,6 +79,11 @@ class Cmis200GTransceiver : public FakeTransceiverImpl {
   explicit Cmis200GTransceiver(int module);
 };
 
+class BadCmis200GTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit BadCmis200GTransceiver(int module);
+};
+
 class Cmis400GLr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis400GLr4Transceiver(int module);
