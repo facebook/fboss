@@ -18,6 +18,11 @@
 #include <cstdlib>
 #include <memory>
 
+DEFINE_bool(
+    init_pim_xphys,
+    false,
+    "Initialize pim xphys after creating xphy map");
+
 namespace {
 // Key of the portToCacheInfo map in warmboot state cache
 constexpr auto kPortToCacheInfoKey = "portToCacheInfo";
@@ -177,13 +182,12 @@ void PhyManager::programOnePort(
   }
 }
 
-folly::EventBase* FOLLY_NULLABLE
-PhyManager::getPimEventBase(PimID pimID) const {
+folly::EventBase* PhyManager::getPimEventBase(PimID pimID) const {
   if (auto pimEventMultiThread = pimToThread_.find(pimID);
       pimEventMultiThread != pimToThread_.end()) {
     return pimEventMultiThread->second->eventBase.get();
   }
-  return nullptr;
+  throw FbossError("Can't find pim EventBase for pim=", pimID);
 }
 
 PhyManager::PimEventMultiThreading::PimEventMultiThreading(PimID pimID) {
@@ -719,5 +723,9 @@ std::optional<cfg::PortSpeed> PhyManager::getProgrammedSpeed(PortID portID) {
     return rLockedCache->speed;
   }
   throw FbossError("Can't find port:", portID, " in portToCacheInfo_");
+}
+
+bool PhyManager::shouldInitializePimXphy(PimID pim) const {
+  return FLAGS_init_pim_xphys && xphyMap_.find(pim) != xphyMap_.end();
 }
 } // namespace facebook::fboss

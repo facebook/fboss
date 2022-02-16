@@ -18,6 +18,8 @@
 #include <optional>
 #include <vector>
 
+DECLARE_bool(init_pim_xphys);
+
 namespace facebook {
 namespace fboss {
 
@@ -200,6 +202,8 @@ class PhyManager {
   virtual std::optional<phy::TxSettings> getDefaultTxSettings() {
     return std::nullopt;
   }
+
+  virtual bool shouldInitializePimXphy(PimID pim) const;
 
  protected:
   struct PortCacheInfo {

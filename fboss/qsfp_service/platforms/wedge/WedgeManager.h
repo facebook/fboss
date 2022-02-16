@@ -13,7 +13,6 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-DECLARE_bool(init_pim_xphys);
 DECLARE_bool(override_program_iphy_ports_for_test);
 
 namespace facebook::fboss {
@@ -158,8 +157,6 @@ class WedgeManager : public TransceiverManager {
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
-
-  virtual bool shouldInitializePimXphy() const;
 
   // thread safe handle to access bus
   std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;

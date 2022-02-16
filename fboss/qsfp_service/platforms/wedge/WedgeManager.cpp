@@ -26,11 +26,6 @@
 #include <chrono>
 
 DEFINE_bool(
-    init_pim_xphys,
-    false,
-    "Initialize pim xphys after creating xphy map");
-
-DEFINE_bool(
     override_program_iphy_ports_for_test,
     false,
     "Override wedge_agent programInternalPhyPorts(). For test only");
@@ -872,10 +867,6 @@ void WedgeManager::programXphyPort(
   phyManager_->programOnePort(portId, portProfileId, itTcvr);
 }
 
-bool WedgeManager::shouldInitializePimXphy() const {
-  return FLAGS_init_pim_xphys;
-}
-
 bool WedgeManager::initExternalPhyMap() {
   if (!phyManager_) {
     // If there's no PhyManager for such platform, skip init xphy map
@@ -885,36 +876,37 @@ bool WedgeManager::initExternalPhyMap() {
   // First call PhyManager::initExternalPhyMap() to create xphy map
   auto rb = phyManager_->initExternalPhyMap();
   bool warmboot = canWarmBoot();
-  // And then initialize the xphy for each pim
-  if (shouldInitializePimXphy()) {
-    std::vector<folly::Future<folly::Unit>> initPimTasks;
-    std::chrono::steady_clock::time_point begin =
-        std::chrono::steady_clock::now();
-    for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
-      auto pimID =
-          PimID(pimIndex + phyManager_->getSystemContainer()->getPimStartNum());
-      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
-                 << " Boot] Initializing PIM " << static_cast<int>(pimID);
-      if (auto* pimEventBase = phyManager_->getPimEventBase(pimID)) {
-        initPimTasks.push_back(
-            folly::via(pimEventBase)
-                .thenValue([&, pimID, warmboot](auto&&) {
-                  phyManager_->initializeSlotPhys(pimID, warmboot);
-                })
-                .thenError(
-                    folly::tag_t<std::exception>{},
-                    [pimID](const std::exception& e) {
-                      XLOG(WARNING)
-                          << "Exception in initializeSlotPhys() for pim:"
-                          << static_cast<int>(pimID) << ", "
-                          << folly::exceptionStr(e);
-                    }));
-      } else {
-        // If the pim EventBase doesn't exist, call such function directly
-        phyManager_->initializeSlotPhys(pimID, warmboot);
-      }
-    }
 
+  // And then initialize the xphy for each pim which has xphy
+  std::vector<folly::Future<folly::Unit>> initPimTasks;
+  std::chrono::steady_clock::time_point begin =
+      std::chrono::steady_clock::now();
+  for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
+    auto pimID =
+        PimID(pimIndex + phyManager_->getSystemContainer()->getPimStartNum());
+    if (!phyManager_->shouldInitializePimXphy(pimID)) {
+      XLOG(WARN) << "Skip intializing pim xphy for pim="
+                 << static_cast<int>(pimID);
+      continue;
+    }
+    XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+               << " Boot] Initializing PIM " << static_cast<int>(pimID);
+    auto* pimEventBase = phyManager_->getPimEventBase(pimID);
+    initPimTasks.push_back(
+        folly::via(pimEventBase)
+            .thenValue([&, pimID, warmboot](auto&&) {
+              phyManager_->initializeSlotPhys(pimID, warmboot);
+            })
+            .thenError(
+                folly::tag_t<std::exception>{},
+                [pimID](const std::exception& e) {
+                  XLOG(WARNING) << "Exception in initializeSlotPhys() for pim="
+                                << static_cast<int>(pimID) << ", "
+                                << folly::exceptionStr(e);
+                }));
+  }
+
+  if (!initPimTasks.empty()) {
     folly::collectAll(initPimTasks).wait();
     XLOG(DBG2) << "Initialized all pims xphy took "
                << std::chrono::duration_cast<std::chrono::seconds>(
@@ -924,8 +916,6 @@ bool WedgeManager::initExternalPhyMap() {
 
     // Restore warm boot Phy state after initializing all the phys.
     restoreWarmBootPhyState();
-  } else {
-    XLOG(WARN) << "Skip intializing pim xphy";
   }
   return rb;
 }
@@ -948,16 +938,10 @@ void WedgeManager::updateAllXphyPortsStats() {
     // If there's no PhyManager for such platform, skip updating xphy stats
     return;
   }
-  // For now, we only need to update xphy ports stats if we support
-  // initializing the pim xphy so that if this flag is still disabled, which
-  // means wedge_agent is still the service to program xphy, we don't need
-  // to collect xphy stats in qsfp_service
-  if (!shouldInitializePimXphy()) {
-    return;
-  }
   // Then we need to update all the programmed port xphy stats
   phyManager_->updateAllXphyPortsStats();
 }
+
 std::vector<PortID> WedgeManager::getMacsecCapablePorts() const {
   if (!phyManager_) {
     return {};
