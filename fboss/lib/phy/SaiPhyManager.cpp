@@ -362,8 +362,7 @@ void SaiPhyManager::programOnePort(
   if (isChanged &&
       getExternalPhyLocked(wLockedCache)
           ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-    setPortToExternalPhyPortStatsLocked(
-        wLockedCache, createExternalPhyPortStats(PortID(portId)));
+    setPortToExternalPhyPortStats(portId, createExternalPhyPortStats(portId));
   }
 }
 

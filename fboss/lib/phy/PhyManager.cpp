@@ -69,6 +69,7 @@ cfg::PortProfileID getProfileIDBySpeed(
 PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
       portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
+      portToStatsInfo_(setupPortToStatsInfo(platformMapping)),
       xphySnapshotManager_(
           std::make_unique<
               PhySnapshotManager<kXphySnapshotIntervalSeconds>>()) {}
@@ -90,6 +91,22 @@ PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(
     }
   }
   return cacheMap;
+}
+
+PhyManager::PortToStatsInfo PhyManager::setupPortToStatsInfo(
+    const PlatformMapping* platformMapping) {
+  PortToStatsInfo statsMap;
+  const auto& chips = platformMapping->getChips();
+  for (const auto& port : platformMapping->getPlatformPorts()) {
+    const auto& xphy = utility::getDataPlanePhyChips(
+        port.second, chips, phy::DataPlanePhyChipType::XPHY);
+    if (!xphy.empty()) {
+      statsMap.emplace(
+          PortID(port.first),
+          std::make_unique<folly::Synchronized<PortStatsInfo>>());
+    }
+  }
+  return statsMap;
 }
 
 GlobalXphyID PhyManager::getGlobalXphyIDbyPortID(PortID portID) const {
@@ -176,9 +193,11 @@ void PhyManager::programOnePort(
   bool isChanged = setPortToPortCacheInfoLocked(
       wLockedCache, portId, portProfileId, desiredPhyPortConfig);
   // Only reset phy port stats when there're changes on the xphy ports
-  if (isChanged && xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-    setPortToExternalPhyPortStatsLocked(
-        wLockedCache, createExternalPhyPortStats(PortID(portId)));
+  if (isChanged &&
+      (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+       xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS))) {
+    setPortToExternalPhyPortStats(
+        portId, createExternalPhyPortStats(PortID(portId)));
   }
 }
 
@@ -285,12 +304,13 @@ void PhyManager::setPortPrbs(
                                                     : wLockedCache->lineLanes;
   xphy->setPortPrbs(side, sideLanes, prbs);
 
+  const auto& wLockedStats = getWLockedStats(portID);
   if (*prbs.enabled_ref()) {
     const auto& phyPortConfig = getHwPhyPortConfigLocked(wLockedCache, portID);
-    wLockedCache->stats->setupPrbsCollection(
+    wLockedStats->stats->setupPrbsCollection(
         side, sideLanes, phyPortConfig.getLaneSpeedInMb(side));
   } else {
-    wLockedCache->stats->disablePrbsCollection(side);
+    wLockedStats->stats->disablePrbsCollection(side);
   }
 }
 
@@ -314,25 +334,31 @@ phy::PortPrbsState PhyManager::getPortPrbs(PortID portID, phy::Side side) {
 std::vector<phy::PrbsLaneStats> PhyManager::getPortPrbsStats(
     PortID portID,
     phy::Side side) {
-  const auto& rLockedCache = getRLockedCache(portID);
+  {
+    const auto& rLockedCache = getRLockedCache(portID);
 
-  auto* xphy = getExternalPhyLocked(rLockedCache);
-  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+    auto* xphy = getExternalPhyLocked(rLockedCache);
+    if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+      throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+    }
   }
 
-  return rLockedCache->stats->getPrbsStats(side);
+  const auto& rLockedStats = getRLockedStats(portID);
+  return rLockedStats->stats->getPrbsStats(side);
 }
 
 void PhyManager::clearPortPrbsStats(PortID portID, phy::Side side) {
-  const auto& wLockedCache = getWLockedCache(portID);
+  {
+    const auto& rLockedCache = getRLockedCache(portID);
 
-  auto* xphy = getExternalPhyLocked(wLockedCache);
-  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+    auto* xphy = getExternalPhyLocked(rLockedCache);
+    if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+      throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+    }
   }
 
-  return wLockedCache->stats->clearPrbsStats(side);
+  const auto& wLockedStats = getRLockedStats(portID);
+  return wLockedStats->stats->clearPrbsStats(side);
 }
 
 folly::dynamic PhyManager::getWarmbootState() const {
@@ -448,9 +474,10 @@ void PhyManager::restoreFromWarmbootState(
 
       // If the port has programmed lane info, we also need to restore the
       // ExternalPhyPortStatsUtils
-      if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
-        setPortToExternalPhyPortStatsLocked(
-            wLockedCache, createExternalPhyPortStats(portIDStrong));
+      if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+          xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+        setPortToExternalPhyPortStats(
+            portIDStrong, createExternalPhyPortStats(portIDStrong));
       }
       // If the prbs is enabled in HW, we also need to setup prbs stats
       if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
@@ -464,14 +491,16 @@ void PhyManager::restoreFromWarmbootState(
                 wLockedCache->systemLanes, wLockedCache->lineLanes);
           }
           hwPortConfig = getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
+
+          const auto& wLockedStats = getWLockedStats(portIDStrong);
           if (*sysPrbsState.enabled_ref()) {
-            wLockedCache->stats->setupPrbsCollection(
+            wLockedStats->stats->setupPrbsCollection(
                 phy::Side::SYSTEM,
                 wLockedCache->systemLanes,
                 hwPortConfig->getLaneSpeedInMb(phy::Side::SYSTEM));
           }
           if (*linePrbsState.enabled_ref()) {
-            wLockedCache->stats->setupPrbsCollection(
+            wLockedStats->stats->setupPrbsCollection(
                 phy::Side::LINE,
                 wLockedCache->lineLanes,
                 hwPortConfig->getLaneSpeedInMb(phy::Side::LINE));
@@ -494,114 +523,149 @@ void PhyManager::restoreFromWarmbootState(
   }
 }
 
-void PhyManager::setPortToExternalPhyPortStatsLocked(
-    const PortCacheWLockedPtr& lockedCache,
+void PhyManager::setPortToExternalPhyPortStats(
+    PortID portID,
     std::unique_ptr<ExternalPhyPortStatsUtils> stats) {
-  lockedCache->stats = std::move(stats);
+  const auto& wLockedStats = getWLockedStats(portID);
+  wLockedStats->stats = std::move(stats);
 }
 
 void PhyManager::updateAllXphyPortsStats() {
-  for (const auto& portCacheInfo : portToCacheInfo_) {
-    const auto& wLockedCache = portCacheInfo.second->wlock();
-    // If the port is not programmed yet, skip updating xphy stats for it
-    if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
+  for (const auto& portStatsInfo : portToStatsInfo_) {
+    bool supportPortStats = false, supportPrbsStats = false;
+    PimID pimID;
+    ExternalPhy* xphy;
+    {
+      const auto& rLockedCache = getRLockedCache(portStatsInfo.first);
+      // If the port is not programmed yet, skip updating xphy stats for it
+      if (!rLockedCache->speed || rLockedCache->systemLanes.empty() ||
+          rLockedCache->lineLanes.empty()) {
+        continue;
+      }
+      xphy = getExternalPhyLocked(rLockedCache);
+      supportPortStats =
+          (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+           xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO));
+      supportPrbsStats =
+          xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS);
+
+      auto xphyID = getGlobalXphyIDbyPortIDLocked(rLockedCache);
+      pimID = getPhyIDInfo(xphyID).pimID;
+    }
+
+    // If xphy doesn't support either of stats collection, skip
+    if (!supportPortStats && !supportPrbsStats) {
       continue;
     }
-    updateStatsLocked(wLockedCache, portCacheInfo.first);
+
+    const auto& wLockedStats = getWLockedStats(portStatsInfo.first);
+    auto evb = getPimEventBase(pimID);
+    if (supportPortStats) {
+      updatePortStats(portStatsInfo.first, xphy, wLockedStats, evb);
+    }
+    if (supportPrbsStats) {
+      updatePrbsStats(portStatsInfo.first, xphy, wLockedStats, evb);
+    }
   }
 }
 
 using namespace std::chrono;
-void PhyManager::updateStatsLocked(
-    const PortCacheWLockedPtr& wLockedCache,
-    PortID portID) {
-  if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " is not programmed and can't find cached lanes");
-  }
-
-  auto xphyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
-  auto* xphy = getExternalPhyLocked(wLockedCache);
-  // If the xphy doesn't support either port or prbs stats, no-op
-  if (!xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) &&
-      !xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO) &&
-      !xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+void PhyManager::updatePortStats(
+    PortID portID,
+    phy::ExternalPhy* xphy,
+    const PhyManager::PortStatsWLockedPtr& wLockedStats,
+    folly::EventBase* pimEvb) {
+  if (wLockedStats->ongoingStatCollection.has_value() &&
+      !wLockedStats->ongoingStatCollection->isReady()) {
+    XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
+               << " still underway...";
     return;
   }
 
-  auto pimID = getPhyIDInfo(xphyID).pimID;
-  auto evb = getPimEventBase(pimID);
-  if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
-      xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
-    if (wLockedCache->ongoingStatCollection.has_value() &&
-        !wLockedCache->ongoingStatCollection->isReady()) {
-      XLOG(DBG4) << "XPHY Port Stat collection for Port:" << portID
-                 << " still underway...";
-    } else {
-      // Collect xphy port stats
-      wLockedCache->ongoingStatCollection =
-          folly::via(evb).thenValue([this, portID, xphy](auto&&) {
-            // Since this is future job, we need to fetch the cache with wlock
-            // again
-            const auto& wCache = getWLockedCache(portID);
-            steady_clock::time_point begin = steady_clock::now();
-            std::optional<ExternalPhyPortStats> stats;
-            // if PORT_INFO feature is supported, use getPortInfo instead
-            if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
-              auto xphyPortInfo =
-                  xphy->getPortInfo(wCache->systemLanes, wCache->lineLanes);
-              xphyPortInfo.name_ref() = getPortName(portID);
-              if (auto programmedSpeed = wCache->speed) {
-                xphyPortInfo.speed_ref() = *programmedSpeed;
-              } else {
-                throw FbossError("Missing programmed speed for port:", portID);
-              }
-              updateXphyInfo(portID, xphyPortInfo);
-              stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
-            } else {
-              stats =
-                  xphy->getPortStats(wCache->systemLanes, wCache->lineLanes);
-            }
-            wCache->stats->updateXphyStats(*stats);
-            XLOG(DBG3) << "Port " << portID
-                       << ": xphy port stat collection took "
-                       << duration_cast<milliseconds>(
-                              steady_clock::now() - begin)
-                              .count()
-                       << "ms";
-          });
-    }
+  // Collect xphy port stats
+  wLockedStats->ongoingStatCollection =
+      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+        // Since this is future job, we need to fetch the cache with lock
+        std::vector<LaneID> systemLanes, lineLanes;
+        cfg::PortSpeed programmedSpeed;
+        {
+          const auto& wCache = getWLockedCache(portID);
+          if (!wCache->speed || wCache->systemLanes.empty() ||
+              wCache->lineLanes.empty()) {
+            XLOG(WARN) << "Port:" << portID
+                       << " doesn't have programmed speed and lanes";
+            return;
+          }
+          programmedSpeed = *wCache->speed;
+          systemLanes = wCache->systemLanes;
+          lineLanes = wCache->lineLanes;
+        }
+
+        steady_clock::time_point begin = steady_clock::now();
+        std::optional<ExternalPhyPortStats> stats;
+        // if PORT_INFO feature is supported, use getPortInfo instead
+        if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
+          auto xphyPortInfo = xphy->getPortInfo(systemLanes, lineLanes);
+          xphyPortInfo.name_ref() = getPortName(portID);
+          xphyPortInfo.speed_ref() = programmedSpeed;
+          updateXphyInfo(portID, xphyPortInfo);
+          stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
+        } else {
+          stats = xphy->getPortStats(systemLanes, lineLanes);
+        }
+
+        const auto& wLockedStats = getWLockedStats(portID);
+        wLockedStats->stats->updateXphyStats(*stats);
+        XLOG(DBG3)
+            << "Port " << portID << ": xphy port stat collection took "
+            << duration_cast<milliseconds>(steady_clock::now() - begin).count()
+            << "ms";
+      });
+}
+
+void PhyManager::updatePrbsStats(
+    PortID portID,
+    phy::ExternalPhy* xphy,
+    const PhyManager::PortStatsWLockedPtr& wLockedStats,
+    folly::EventBase* pimEvb) {
+  // Only needs to update prbs stats as long as there's one side enabled
+  if (!wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::SYSTEM) &&
+      !wLockedStats->stats->isPrbsCollectionEnabled(phy::Side::LINE)) {
+    return;
   }
 
-  if (xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
-    // Only needs to update prbs stats as long as there's one side enabled
-    if (wLockedCache->stats->isPrbsCollectionEnabled(phy::Side::SYSTEM) ||
-        wLockedCache->stats->isPrbsCollectionEnabled(phy::Side::LINE)) {
-      if (wLockedCache->ongoingPrbsStatCollection.has_value() &&
-          !wLockedCache->ongoingPrbsStatCollection->isReady()) {
-        XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
-                   << " still underway...";
-      } else {
-        // Collect xphy prbs stats
-        wLockedCache->ongoingPrbsStatCollection =
-            folly::via(evb).thenValue([this, portID, xphy](auto&&) {
-              // Since this is future job, we need to fetch the cache with wlock
-              // again
-              const auto& wCache = getWLockedCache(portID);
-              steady_clock::time_point begin = steady_clock::now();
-              const auto& stats = xphy->getPortPrbsStats(
-                  wCache->systemLanes, wCache->lineLanes);
-              wCache->stats->updateXphyPrbsStats(stats);
-              XLOG(DBG3) << "Port " << portID
-                         << ": xphy prbs stat collection took "
-                         << duration_cast<milliseconds>(
-                                steady_clock::now() - begin)
-                                .count()
-                         << "ms";
-            });
-      }
-    }
+  if (wLockedStats->ongoingPrbsStatCollection.has_value() &&
+      !wLockedStats->ongoingPrbsStatCollection->isReady()) {
+    XLOG(DBG4) << "XPHY PRBS Stat collection for Port:" << portID
+               << " still underway...";
+    return;
   }
+
+  // Collect xphy prbs stats
+  wLockedStats->ongoingPrbsStatCollection =
+      folly::via(pimEvb).thenValue([this, portID, xphy](auto&&) {
+        // Since this is future job, we need to fetch the cache with lock
+        std::vector<LaneID> systemLanes, lineLanes;
+        {
+          const auto& wCache = getWLockedCache(portID);
+          if (wCache->systemLanes.empty() || wCache->lineLanes.empty()) {
+            XLOG(WARN) << "Port:" << portID << " doesn't have programmed lanes";
+            return;
+          }
+          systemLanes = wCache->systemLanes;
+          lineLanes = wCache->lineLanes;
+        }
+
+        steady_clock::time_point begin = steady_clock::now();
+        const auto& stats = xphy->getPortPrbsStats(systemLanes, lineLanes);
+
+        const auto& wLockedStats = getWLockedStats(portID);
+        wLockedStats->stats->updateXphyPrbsStats(stats);
+        XLOG(DBG3)
+            << "Port " << portID << ": xphy prbs stat collection took "
+            << duration_cast<milliseconds>(steady_clock::now() - begin).count()
+            << "ms";
+      });
 }
 
 const std::string& PhyManager::getPortName(PortID portID) const {
@@ -633,23 +697,15 @@ PhyManager::PortCacheWLockedPtr PhyManager::getWLockedCache(
 }
 
 bool PhyManager::isXphyStatsCollectionDone(PortID portID) const {
-  const auto& rLockedCache = getRLockedCache(portID);
-  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " is not programmed and can't find cached lanes");
-  }
-  return rLockedCache->ongoingStatCollection.has_value() &&
-      rLockedCache->ongoingStatCollection->isReady();
+  const auto& rLockedStats = getRLockedStats(portID);
+  return rLockedStats->ongoingStatCollection.has_value() &&
+      rLockedStats->ongoingStatCollection->isReady();
 }
 
 bool PhyManager::isPrbsStatsCollectionDone(PortID portID) const {
-  const auto& rLockedCache = getRLockedCache(portID);
-  if (rLockedCache->systemLanes.empty() || rLockedCache->lineLanes.empty()) {
-    throw FbossError(
-        "Port:", portID, " is not programmed and can't find cached lanes");
-  }
-  return rLockedCache->ongoingPrbsStatCollection.has_value() &&
-      rLockedCache->ongoingPrbsStatCollection->isReady();
+  const auto& rLockedStats = getRLockedStats(portID);
+  return rLockedStats->ongoingPrbsStatCollection.has_value() &&
+      rLockedStats->ongoingPrbsStatCollection->isReady();
 }
 
 std::vector<PortID> PhyManager::getXphyPorts() const {
@@ -727,5 +783,25 @@ std::optional<cfg::PortSpeed> PhyManager::getProgrammedSpeed(PortID portID) {
 
 bool PhyManager::shouldInitializePimXphy(PimID pim) const {
   return FLAGS_init_pim_xphys && xphyMap_.find(pim) != xphyMap_.end();
+}
+
+PhyManager::PortStatsRLockedPtr PhyManager::getRLockedStats(
+    PortID portID) const {
+  const auto& statsInfo = portToStatsInfo_.find(portID);
+  if (statsInfo == portToStatsInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+  return statsInfo->second->rlock();
+}
+
+PhyManager::PortStatsWLockedPtr PhyManager::getWLockedStats(
+    PortID portID) const {
+  const auto& statsInfo = portToStatsInfo_.find(portID);
+  if (statsInfo == portToStatsInfo_.end()) {
+    throw FbossError(
+        "Unrecoginized port=", portID, ", which is not in PlatformMapping");
+  }
+  return statsInfo->second->wlock();
 }
 } // namespace facebook::fboss

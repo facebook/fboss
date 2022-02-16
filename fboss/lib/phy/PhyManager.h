@@ -226,10 +226,6 @@ class PhyManager {
     // cached info to pass in the xphy lanes directly.
     std::vector<LaneID> systemLanes;
     std::vector<LaneID> lineLanes;
-    // Xphy port related stats and prbs stats
-    std::unique_ptr<ExternalPhyPortStatsUtils> stats;
-    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
-    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
   };
   using PortCacheRLockedPtr = folly::Synchronized<PortCacheInfo>::RLockedPtr;
   using PortCacheWLockedPtr = folly::Synchronized<PortCacheInfo>::WLockedPtr;
@@ -256,8 +252,8 @@ class PhyManager {
       cfg::PortProfileID profileID,
       const phy::PhyPortConfig& portConfig);
 
-  void setPortToExternalPhyPortStatsLocked(
-      const PortCacheWLockedPtr& lockedCache,
+  void setPortToExternalPhyPortStats(
+      PortID portID,
       std::unique_ptr<ExternalPhyPortStatsUtils> stats);
 
   template <typename LockedPtr>
@@ -305,11 +301,6 @@ class PhyManager {
       const phy::PhyIDInfo& phyIDInfo,
       MultiPimPlatformPimContainer* pimContainer) = 0;
 
-  // Update PortCacheInfo::stats
-  void updateStatsLocked(
-      const PortCacheWLockedPtr& wLockedCache,
-      PortID portID);
-
   virtual std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
       PortID portID) = 0;
 
@@ -317,6 +308,39 @@ class PhyManager {
       PortID,
       std::unique_ptr<folly::Synchronized<PortCacheInfo>>>;
   PortToCacheInfo setupPortToCacheInfo(const PlatformMapping* platformMapping);
+
+  // PortToCacheInfo is a heavily used cache while stats should only be used
+  // when the scheduler function kicks in and also some platforms might take
+  // longer than the other to collect stats. Split PortCacheInfo and
+  // PortStatsInfo into two const map so that each map doesn't affect the other
+  // map performance.
+  // Xphy port related stats and prbs stats
+  struct PortStatsInfo {
+    std::unique_ptr<ExternalPhyPortStatsUtils> stats;
+    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
+    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
+  };
+  using PortToStatsInfo = std::unordered_map<
+      PortID,
+      std::unique_ptr<folly::Synchronized<PortStatsInfo>>>;
+  PortToStatsInfo setupPortToStatsInfo(const PlatformMapping* platformMapping);
+
+  using PortStatsRLockedPtr = folly::Synchronized<PortStatsInfo>::RLockedPtr;
+  using PortStatsWLockedPtr = folly::Synchronized<PortStatsInfo>::WLockedPtr;
+  PortStatsRLockedPtr getRLockedStats(PortID portID) const;
+  PortStatsWLockedPtr getWLockedStats(PortID portID) const;
+
+  // Update PortStatsInfo::stats
+  void updatePortStats(
+      PortID portID,
+      phy::ExternalPhy* xphy,
+      const PortStatsWLockedPtr& wLockedStats,
+      folly::EventBase* pimEvb);
+  void updatePrbsStats(
+      PortID portID,
+      phy::ExternalPhy* xphy,
+      const PortStatsWLockedPtr& wLockedStats,
+      folly::EventBase* pimEvb);
 
   const PlatformMapping* platformMapping_;
 
@@ -344,9 +368,9 @@ class PhyManager {
   // Thus, we need to make the whole PortCacheInfo as synchronized to protect
   // multi-threading accessing the cache info.
   const PortToCacheInfo portToCacheInfo_;
+  const PortToStatsInfo portToStatsInfo_;
 
   static constexpr auto kXphySnapshotIntervalSeconds = 60;
-
   std::unique_ptr<PhySnapshotManager<kXphySnapshotIntervalSeconds>>
       xphySnapshotManager_;
 };
