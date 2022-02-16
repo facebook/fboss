@@ -28,8 +28,9 @@
 #include <map>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+DECLARE_string(qsfp_service_volatile_dir);
+
+namespace facebook::fboss {
 class TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
   using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
@@ -39,6 +40,8 @@ class TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping);
   virtual ~TransceiverManager();
+  void gracefulExit();
+
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(
       std::map<int32_t, TransceiverInfo>& info,
@@ -241,6 +244,12 @@ class TransceiverManager {
 
   time_t getLastDownTime(TransceiverID id) const;
 
+  static std::string forceColdBootFileName();
+
+  bool canWarmBoot() const {
+    return canWarmBoot_;
+  }
+
  protected:
   virtual void loadConfig() = 0;
 
@@ -266,6 +275,11 @@ class TransceiverManager {
       TransceiverID,
       std::unordered_map<PortID, cfg::PortProfileID>>;
   virtual void setOverrideTcvrToPortAndProfileForTest() = 0;
+
+  // Restore phy state from the last cached warm boot qsfp_service state
+  // Called this after initializing all the xphys during warm boot
+  void restoreWarmBootPhyState();
+
   OverrideTcvrToPortAndProfile overrideTcvrToPortAndProfileForTest_;
 
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>
@@ -393,6 +407,24 @@ class TransceiverManager {
   // the remediation events to remediate such transceivers.
   void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
 
+  // WARM BOOT related functions
+  std::string warmBootStateFileName() const;
+
+  /*
+   * Check to see if we can attempt a warm boot.
+   * Returns true if 2 conditions are met
+   *
+   * 1) User did not create cold_boot_once_qsfp_service file
+   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
+   *    state and shut down successfully.
+   * This function also removes the 2 files so that these checks are
+   * attempted afresh based on how the qsfp_service exits this time and whether
+   * or not the user wishes for another cold boot.
+   */
+  bool checkAndClearWarmBootFlags();
+
+  void setWarmBootState();
+
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
   std::map<int32_t, PortStatus> overrideAgentPortStatusForTesting_;
@@ -446,6 +478,10 @@ class TransceiverManager {
    * iphy to xphy to tcvr.
    */
   ConfigAppliedInfo configAppliedInfo_;
+
+  /*
+   * qsfp_service warm boot related attributes
+   */
+  bool canWarmBoot_{false};
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -16,8 +16,6 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 
-DECLARE_string(qsfp_service_volatile_dir);
-
 namespace facebook {
 namespace fboss {
 

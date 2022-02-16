@@ -6,6 +6,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
@@ -13,8 +14,20 @@
 
 using namespace std::chrono;
 
-namespace facebook {
-namespace fboss {
+// allow us to configure the qsfp_service dir so that the qsfp cold boot test
+// can run concurrently with itself
+DEFINE_string(
+    qsfp_service_volatile_dir,
+    "/dev/shm/fboss/qsfp_service",
+    "Path to the directory in which we store the qsfp_service's cold boot flag");
+
+namespace {
+constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
+constexpr auto kWarmbootStateFileName = "qsfp_service_state";
+constexpr auto kPhyStateKey = "phy";
+} // namespace
+
+namespace facebook::fboss {
 
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
@@ -35,14 +48,42 @@ TransceiverManager::TransceiverManager(
     portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
     portToSwPortInfo_.emplace(portID, std::move(portInfo));
   }
+
+  // Check whether we can warm boot
+  canWarmBoot_ = checkAndClearWarmBootFlags();
+  XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
+
   // Now we might need to start threads
   startThreads();
 }
 
 TransceiverManager::~TransceiverManager() {
+  // Make sure if gracefulExit() is not called, we will still stop the threads
+  if (!isExiting_) {
+    isExiting_ = true;
+    stopThreads();
+  }
+}
+
+void TransceiverManager::gracefulExit() {
+  steady_clock::time_point begin = steady_clock::now();
+  XLOG(INFO) << "[Exit] Starting TransceiverManager graceful exit";
   // Stop all the threads before shutdown
   isExiting_ = true;
   stopThreads();
+  steady_clock::time_point stopThreadsDone = steady_clock::now();
+  XLOG(INFO) << "[Exit] Stopped all state machine threads. Stop time: "
+             << duration_cast<duration<float>>(stopThreadsDone - begin).count();
+
+  // Set all warm boot related files before gracefully shut down
+  setWarmBootState();
+  steady_clock::time_point setWBFilesDone = steady_clock::now();
+  XLOG(INFO) << "[Exit] Done creating Warm Boot related files. Stop time: "
+             << duration_cast<duration<float>>(setWBFilesDone - stopThreadsDone)
+                    .count()
+             << std::endl
+             << "[Exit] Total TransceiverManager graceful Exit time: "
+             << duration_cast<duration<float>>(setWBFilesDone - begin).count();
 }
 
 const TransceiverManager::PortNameMap&
@@ -1126,5 +1167,69 @@ bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
   }
   return tcvrIt->second->verifyEepromChecksums();
 }
-} // namespace fboss
-} // namespace facebook
+
+bool TransceiverManager::checkAndClearWarmBootFlags() {
+  // TODO(joseph5wu) Due to new-port-programming is still rolling out, we only
+  // need cold boot for new state machine, and old state machine should always
+  // use warm boot. Will only check the warm boot flag once we finish rolling
+  // out the new port programming feature.
+
+  // Return true if coldBootOnceFile does not exist and
+  // - If use_new_state_machine check canWarmBoot file exists
+  // - Otherwise, always use warmboot
+  const auto& forceColdBootFile = forceColdBootFileName();
+  bool forceColdBoot = removeFile(forceColdBootFile);
+  if (forceColdBoot) {
+    XLOG(INFO) << "Force Cold Boot file: " << forceColdBootFile << " is set";
+    return false;
+  }
+
+  // TODO(joseph5wu) Will add the logic of handling can_warm_boot flag later
+  return true;
+}
+
+std::string TransceiverManager::forceColdBootFileName() {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
+}
+
+std::string TransceiverManager::warmBootStateFileName() const {
+  return folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
+}
+
+void TransceiverManager::setWarmBootState() {
+  // Store necessary information of qsfp_service state into the warmboot state
+  // file. This can be the lane id vector of each port from PhyManager or
+  // transciever info.
+  // Right now, we only need to store phy related info.
+  if (phyManager_) {
+    folly::dynamic qsfpServiceState = folly::dynamic::object;
+    qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
+    folly::writeFile(
+        folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
+  }
+}
+
+void TransceiverManager::restoreWarmBootPhyState() {
+  // Only need to restore warm boot state if this is a warm boot
+  if (!canWarmBoot_) {
+    XLOG(INFO) << "[Cold Boot] No need to restore warm boot state";
+    return;
+  }
+
+  std::string warmBootJson;
+  const auto& warmBootStateFile = warmBootStateFileName();
+  if (!folly::readFile(warmBootStateFile.c_str(), warmBootJson)) {
+    XLOG(WARN) << "Warm Boot state file: " << warmBootStateFile
+               << " doesn't exit, skip restoring warm boot state";
+    return;
+  }
+
+  auto wbState = folly::parseJson(warmBootJson);
+  if (const auto& phyStateIt = wbState.find(kPhyStateKey);
+      phyManager_ && phyStateIt != wbState.items().end()) {
+    phyManager_->restoreFromWarmbootState(phyStateIt->second);
+  }
+}
+} // namespace facebook::fboss

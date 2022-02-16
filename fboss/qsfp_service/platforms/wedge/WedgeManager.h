@@ -13,7 +13,6 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(init_pim_xphys);
 DECLARE_bool(override_program_iphy_ports_for_test);
 
@@ -30,7 +29,7 @@ class WedgeManager : public TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping,
       PlatformMode mode);
-  ~WedgeManager() override;
+  ~WedgeManager() override {}
 
   void initTransceiverMap() override;
   void getTransceiversInfo(
@@ -146,18 +145,7 @@ class WedgeManager : public TransceiverManager {
     return agentConfig_.get();
   }
 
-  virtual bool canWarmboot() const {
-    return !forceColdBoot_;
-  }
-
-  bool forcedColdBoot() const {
-    return forceColdBoot_;
-  }
-
   virtual std::vector<PortID> getMacsecCapablePorts() const override;
-  static std::string forceColdBootFileName();
-
-  static std::string warmbootStateFileName();
 
   virtual std::string listHwObjects(
       std::vector<HwObjectType>& hwObjects,
@@ -197,8 +185,5 @@ class WedgeManager : public TransceiverManager {
   void triggerQsfpHardResetLocked(
       int idx,
       LockedTransceiversPtr& lockedTransceivers);
-
-  bool forceColdBoot_{false};
-  folly::dynamic qsfpServiceState_;
 };
 } // namespace facebook::fboss

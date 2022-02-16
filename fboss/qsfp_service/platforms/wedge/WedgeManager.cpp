@@ -3,7 +3,6 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -26,13 +25,6 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
 
-// allow us to configure the qsfp_service dir so that the qsfp cold boot test
-// can run concurrently with itself
-DEFINE_string(
-    qsfp_service_volatile_dir,
-    "/dev/shm/fboss/qsfp_service",
-    "Path to the directory in which we store the qsfp_service's cold boot flag");
-
 DEFINE_bool(
     init_pim_xphys,
     false,
@@ -46,9 +38,6 @@ DEFINE_bool(
 namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
-constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
-constexpr auto kWarmbootStateFileName = "qsfp_service_state";
-constexpr auto kPhyStateKey = "phy";
 
 } // namespace
 
@@ -71,42 +60,6 @@ WedgeManager::WedgeManager(
    * on FPGA managed platforms and the wedgeI2cBus_ will be used to control
    * the QSFP devices on I2C/CPLD managed platforms
    */
-  forceColdBoot_ = removeFile(forceColdBootFileName());
-
-  std::string warmBootJson;
-  if (folly::readFile(warmbootStateFileName().c_str(), warmBootJson)) {
-    qsfpServiceState_ = folly::parseJson(warmBootJson);
-  } else {
-    XLOG(INFO) << "Warmboot state filename:" << warmbootStateFileName()
-               << " doesn't exit.";
-    // Simply assign cached state to an empty object
-    qsfpServiceState_ = folly::dynamic::object;
-  }
-}
-
-WedgeManager::~WedgeManager() {
-  // Store necessary information of qsfp_service state into the warmboot state
-  // file. This can be the lane id vector of each port from PhyManager or
-  // transciever info.
-  // Right now, we only need to store phy related info.
-  if (!phyManager_) {
-    return;
-  }
-  folly::dynamic qsfpServiceState = folly::dynamic::object;
-  qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
-
-  folly::writeFile(
-      folly::toPrettyJson(qsfpServiceState), warmbootStateFileName().c_str());
-}
-
-std::string WedgeManager::forceColdBootFileName() {
-  return folly::to<std::string>(
-      FLAGS_qsfp_service_volatile_dir, "/", kForceColdBootFileName);
-}
-
-std::string WedgeManager::warmbootStateFileName() {
-  return folly::to<std::string>(
-      FLAGS_qsfp_service_volatile_dir, "/", kWarmbootStateFileName);
 }
 
 void WedgeManager::loadConfig() {
@@ -159,8 +112,9 @@ void WedgeManager::initTransceiverMap() {
   }
 
   // Check if a cold boot has been forced
-  if (!canWarmboot()) {
-    XLOG(INFO) << "Forced cold boot";
+  if (!canWarmBoot()) {
+    XLOG(INFO) << "[COLD Boot] Will trigger all " << getNumQsfpModules()
+               << " qsfps hard reset";
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       try {
         // Force hard resets on the transceivers which forces a cold boot of the
@@ -171,8 +125,6 @@ void WedgeManager::initTransceiverMap() {
                   << ex.what();
       }
     }
-  } else {
-    XLOG(INFO) << "Attempting a warm boot";
   }
 
   // Also try to load the config file here so that we have transceiver to port
@@ -932,7 +884,7 @@ bool WedgeManager::initExternalPhyMap() {
 
   // First call PhyManager::initExternalPhyMap() to create xphy map
   auto rb = phyManager_->initExternalPhyMap();
-  bool warmboot = canWarmboot();
+  bool warmboot = canWarmBoot();
   // And then initialize the xphy for each pim
   if (shouldInitializePimXphy()) {
     std::vector<folly::Future<folly::Unit>> initPimTasks;
@@ -941,7 +893,8 @@ bool WedgeManager::initExternalPhyMap() {
     for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
       auto pimID =
           PimID(pimIndex + phyManager_->getSystemContainer()->getPimStartNum());
-      XLOG(DBG1) << "Initializing PIM " << static_cast<int>(pimID);
+      XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
+                 << " Boot] Initializing PIM " << static_cast<int>(pimID);
       if (auto* pimEventBase = phyManager_->getPimEventBase(pimID)) {
         initPimTasks.push_back(
             folly::via(pimEventBase)
@@ -969,11 +922,8 @@ bool WedgeManager::initExternalPhyMap() {
                       .count()
                << " seconds";
 
-    if (warmboot &&
-        qsfpServiceState_.find(kPhyStateKey) !=
-            qsfpServiceState_.items().end()) {
-      phyManager_->restoreFromWarmbootState(qsfpServiceState_[kPhyStateKey]);
-    }
+    // Restore warm boot Phy state after initializing all the phys.
+    restoreWarmBootPhyState();
   } else {
     XLOG(WARN) << "Skip intializing pim xphy";
   }

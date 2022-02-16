@@ -27,8 +27,6 @@ DEFINE_bool(
     "Setup a thrift handler. Primarily useful for inspecting HW state,"
     "say for debugging things via a shell");
 
-DECLARE_string(qsfp_service_volatile_dir);
-
 namespace {
 auto constexpr kQsfpTestWarmnbootFile = "can_warm_boot";
 }
