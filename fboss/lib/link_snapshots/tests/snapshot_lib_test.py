@@ -5,10 +5,8 @@ import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
 from fboss.lib.link_snapshots.snapshot_lib import (
     SNAPSHOT_FORMAT,
     Backend,
-    AGENT_CURRENT_LOG,
     AGENT_ARCHIVE_FMT,
     QSFP_ARCHIVE_FMT,
-    QSFP_CURRENT_LOG,
 )
 from later.unittest.mock import AsyncContextManager, AsyncMock, patch
 from libfb.py.asyncio.await_utils import await_sync
@@ -35,6 +33,10 @@ HOSTNAME = "test_host"
 TCVR_ID = 1
 PORT_ID = 2
 PORT_NAME = "eth2/1/1"
+
+# redefined here instead of importing from snapshot_lib to catch log name typos
+AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
+QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qsfp_service.log"
 
 
 def build_iphy_snapshot(timestamp: int, port_name: str) -> LinkSnapshot:

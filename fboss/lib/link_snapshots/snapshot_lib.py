@@ -53,7 +53,7 @@ AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
 
 QSFP_ARCHIVE_FMT = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
 QSFP_ARCHIVE_PATTERN = QSFP_ARCHIVE_FMT.format("*")
-QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qfsp_service.log"
+QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qsfp_service.log"
 
 FILENAME_REGEX = (
     ARCHIVE_PATH
