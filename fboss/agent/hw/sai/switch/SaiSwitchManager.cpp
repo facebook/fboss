@@ -119,8 +119,18 @@ void SaiSwitchManager::resetHashes() {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::EcmpHashV6{SAI_NULL_OBJECT_ID});
   }
+  if (lagV4Hash_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::LagHashV4{SAI_NULL_OBJECT_ID});
+  }
+  if (lagV6Hash_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::LagHashV6{SAI_NULL_OBJECT_ID});
+  }
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
+  lagV4Hash_.reset();
+  lagV6Hash_.reset();
 }
 
 void SaiSwitchManager::resetQosMaps() {
