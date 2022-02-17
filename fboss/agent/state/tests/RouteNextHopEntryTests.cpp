@@ -351,7 +351,7 @@ TEST(RouteNextHopEntry, OptimizedUcmpDiscardMultipleLowWeights) {
       {nextHopAddr6, 0},
       {nextHopAddr7, 0},
       {nextHopAddr8, 0}};
-  for (const auto nhop : normalizedNextHops) {
+  for (const auto& nhop : normalizedNextHops) {
     EXPECT_EQ(nhop.weight(), expectedWeights[nhop.addr()]);
   }
 }
