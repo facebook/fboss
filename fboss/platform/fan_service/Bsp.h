@@ -82,7 +82,7 @@ class Bsp {
   static folly::Future<
       std::unique_ptr<facebook::fboss::platform::sensor_service::
                           SensorServiceThriftAsyncClient>>
-  createSensorServiceClient(folly::EventBase* eb);
+  createSensorServiceClient(folly::EventBase* eb, int servicePort);
   static apache::thrift::RpcOptions getRpcOptions();
 
  protected:

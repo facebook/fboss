@@ -22,7 +22,6 @@ ControlLogic::ControlLogic(
 ControlLogic::~ControlLogic() {}
 
 void ControlLogic::getFanUpdate() {
-  uint64_t alculatedTime;
   SensorEntryType entryType;
 
   // Zeroth, check Fan RPM and Status
@@ -246,7 +245,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
 
 void ControlLogic::getSensorUpdate() {
   std::string sensorItemName;
-  float rawValue, adjustedValue, targetPwm;
+  float rawValue = 0.0, adjustedValue, targetPwm;
   uint64_t calculatedTime = 0;
   for (auto configSensorItem = pConfig_->sensors.begin();
        configSensorItem != pConfig_->sensors.end();

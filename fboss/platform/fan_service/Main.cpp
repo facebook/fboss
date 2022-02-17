@@ -9,7 +9,7 @@
 //                      FLAGS_ods_tier
 //
 
-DEFINE_int32(thrift_port, 7001, "Thrift Port");
+DEFINE_int32(thrift_port, 5972, "Thrift Port");
 DEFINE_int32(ods_publish_interval, 300, "How often we publish ODS");
 DEFINE_int32(
     control_interval,

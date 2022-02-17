@@ -375,7 +375,7 @@ void Bsp::getSensorDataThriftWithSensorList(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> pSensorData,
     std::vector<std::string> sensorList) {
-  Bsp::createSensorServiceClient(&evb_)
+  Bsp::createSensorServiceClient(&evb_, sensordThriftPort_)
       .thenValue([sensorList](auto&& client) {
         // use empty list to fetch all transceivers
         std::vector<int32_t> ids;
@@ -513,11 +513,11 @@ bool Bsp::initializeQsfpService() {
 
 folly::Future<std::unique_ptr<
     facebook::fboss::platform::sensor_service::SensorServiceThriftAsyncClient>>
-Bsp::createSensorServiceClient(folly::EventBase* eb) {
+Bsp::createSensorServiceClient(folly::EventBase* eb, int servicePort) {
   // SR relies on both configerator and smcc being up
   // use raw thrift instead
-  auto createClient = [eb]() {
-    folly::SocketAddress sockAddr("::1", 5910);
+  auto createClient = [eb, servicePort]() {
+    folly::SocketAddress sockAddr("::1", servicePort);
     // secure client
     auto certKeyPair =
         facebook::security::CertPathPicker::getClientCredentialPaths(true);
