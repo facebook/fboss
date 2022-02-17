@@ -88,7 +88,7 @@ class SaiPhyManager : public PhyManager {
   void initializeSlotPhysImpl(PimID pimID);
 
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
-  phy::PhyInfo getPhyInfo(PortID swPort);
+  phy::PhyInfo getPhyInfo(PortID swPort) override;
   void updateAllXphyPortsStats() override;
 
   bool getSdkState(const std::string& fileName) override;

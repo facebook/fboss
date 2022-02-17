@@ -946,9 +946,10 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
       oneLaneEyeInfo.width_ref() = width;
       eyeInfo.push_back(oneLaneEyeInfo);
       laneInfo.eyes_ref() = eyeInfo;
-      phyParams.name_ref() = folly::to<std::string>("port", swPort);
       phyParams.line_ref()->pmd_ref()->lanes_ref()[i] = laneInfo;
     }
+    phyParams.name_ref() = folly::to<std::string>("port", swPort);
+    phyParams.switchID_ref() = getSwitchId();
     returnPhyParams[swPort] = phyParams;
   }
   return returnPhyParams;

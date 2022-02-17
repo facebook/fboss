@@ -242,21 +242,24 @@ void CredoMacsecUtil::printPhyPortMap(QsfpServiceAsyncClient* fbMacsecHandler) {
   fbMacsecHandler->sync_macsecGetPhyPortInfo(macsecPortPhyMap);
 
   printf("Printing the Phy port info map:\n");
-  printf("PORT    SLOT    MDIO    PHYID   NAME\n");
+  printf("PORT    SLOT    MDIO    PHYID   NAME       SAISW   SLICE\n");
   for (auto it : *macsecPortPhyMap.macsecPortPhyMap_ref()) {
     int port = it.first;
     int slot = *it.second.slotId_ref();
     int mdio = *it.second.mdioId_ref();
     int phy = *it.second.phyId_ref();
+    int saiSwitch = *it.second.saiSwitchId_ref();
 
     printf(
-        "%4d    %4d    %4d    %4d    eth%d/%d/1\n",
+        "%4d    %4d    %4d    %4d    eth%d/%d/1  %4d    %4d\n",
         port,
         slot,
         mdio,
         phy,
         slot,
-        mdio + 1);
+        mdio + 1,
+        saiSwitch,
+        saiSwitch - 1);
   }
 }
 

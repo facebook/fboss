@@ -52,6 +52,7 @@ struct MacsecPortPhyInfo {
   1: i32 slotId;
   2: i32 mdioId;
   3: i32 phyId;
+  4: i32 saiSwitchId;
 }
 
 struct MacsecPortPhyMap {

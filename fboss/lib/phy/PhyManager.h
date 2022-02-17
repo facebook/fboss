@@ -205,6 +205,10 @@ class PhyManager {
 
   virtual bool shouldInitializePimXphy(PimID pim) const;
 
+  virtual phy::PhyInfo getPhyInfo(PortID /* swPort */) {
+    return phy::PhyInfo{};
+  }
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead

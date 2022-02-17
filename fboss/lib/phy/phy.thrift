@@ -284,6 +284,7 @@ struct PhyInfo {
   10: optional PhySideInfo system;
   11: PhySideInfo line;
   12: i32 timeCollected; // Time the diagnostic info was collected at
+  13: optional i32 switchID;
 }
 
 struct PhySideInfo {
