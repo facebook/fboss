@@ -771,7 +771,7 @@ void SaiPortManager::programSerdes(
      * needs to create a new serdes object without knowing the serdes Id or
      * reloading the object to sai store.
      */
-#if !defined(SAI_VERSION_6_0_0_14_ODP)
+#if !defined(SAI_VERSION_7_0_0_1_ODP)
     // serdes is not yet programmed or reloaded from adapter
     std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
     auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(

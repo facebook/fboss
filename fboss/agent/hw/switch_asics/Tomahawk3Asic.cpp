@@ -90,7 +90,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
       return false;
 
     case HwAsic::Feature::SAI_LAG_HASH:
-#if defined(SAI_VERSION_6_0_0_14_ODP)
+#if defined(SAI_VERSION_7_0_0_1_ODP)
       return true;
 #else
       return false;
