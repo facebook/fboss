@@ -1213,8 +1213,8 @@ bool TransceiverManager::checkWarmBootFlags() {
   bool canWarmBoot = checkFileExists(warmBootFile);
   XLOG(INFO) << "Warm Boot flag: " << warmBootFile << " is "
              << (canWarmBoot ? "set" : "missing");
-  // Step 1)
-  return true;
+  // Step 2)
+  return FLAGS_use_new_state_machine ? canWarmBoot : true;
 }
 
 void TransceiverManager::removeWarmBootFlag() {
