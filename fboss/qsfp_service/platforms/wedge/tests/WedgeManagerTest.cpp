@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 #include "fboss/qsfp_service/test/FakeConfigsHelper.h"
@@ -20,7 +21,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <common/files/FileUtil.h>
 #include <folly/experimental/TestUtil.h>
 
 using namespace facebook::fboss;
@@ -326,23 +326,25 @@ TEST_F(WedgeManagerTest, coldBootTest) {
     wedgeManager_->initTransceiverMap();
 
     // Confirm that the cold boot file and warm boot flag file were deleted
-    EXPECT_FALSE(facebook::files::FileUtil::fileExists(coldBootFileName));
-    EXPECT_FALSE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+    EXPECT_FALSE(checkFileExists(coldBootFileName));
+    EXPECT_FALSE(checkFileExists(warmBootFlagFile));
   };
   auto gracefulExit = [this]() {
     // Trigger a graceful exit
     wedgeManager_->gracefulExit();
     // Check warm boot flag file is created
-    EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+    EXPECT_TRUE(checkFileExists(warmBootFlagFile));
   };
 
   // Create the cold boot file
-  EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);
+  auto fd = createFile(coldBootFileName);
+  close(fd);
   verifyColdBootLogic();
 
   // Try cold boot again if last time was using graceful exit
   gracefulExit();
-  EXPECT_EQ(facebook::files::FileUtil::touch(coldBootFileName), true);
+  fd = createFile(coldBootFileName);
+  close(fd);
   verifyColdBootLogic();
 
   // Sepcifically set can_qsfp_service_warm_boot to false to mimic
@@ -357,12 +359,12 @@ TEST_F(WedgeManagerTest, warmBootTest) {
   // Trigger a graceful exit
   wedgeManager_->gracefulExit();
   // Check warm boot flag file is created
-  EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+  EXPECT_TRUE(checkFileExists(warmBootFlagFile));
 
   wedgeManager_.reset();
   wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
   // Confirm that the warm boot falg was still there
-  EXPECT_TRUE(facebook::files::FileUtil::fileExists(warmBootFlagFile));
+  EXPECT_TRUE(checkFileExists(warmBootFlagFile));
   EXPECT_TRUE(wedgeManager_->canWarmBoot());
 
   // We expect a warm boot in this case and that should NOT trigger hard resets

@@ -860,6 +860,7 @@ if (NOT SAI_ONLY)
     qsfp_config
     phy_management_base
     thrift_service_client
+    common_file_utils
   )
 
   target_link_libraries(qsfp_module

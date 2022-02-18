@@ -39,4 +39,9 @@ void createDir(folly::StringPiece path) {
     throw SysError(errno, "failed to create directory \"", path, "\"");
   }
 }
+
+bool checkFileExists(const std::string& filename) {
+  // No need to catch exception as this function is BOOST_NOEXCEPT
+  return boost::filesystem::exists(filename);
+}
 } // namespace facebook::fboss

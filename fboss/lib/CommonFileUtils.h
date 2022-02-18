@@ -27,4 +27,8 @@ int createFile(const std::string& filename);
  */
 void createDir(folly::StringPiece path);
 
+/*
+ * Check whether the given file exists.
+ */
+bool checkFileExists(const std::string& filename);
 } // namespace facebook::fboss

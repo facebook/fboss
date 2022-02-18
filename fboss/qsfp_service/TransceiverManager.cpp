@@ -12,8 +12,6 @@
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-#include <common/files/FileUtil.h>
-
 using namespace std::chrono;
 
 // allow us to configure the qsfp_service dir so that the qsfp cold boot test
@@ -1212,7 +1210,7 @@ bool TransceiverManager::checkWarmBootFlags() {
   const auto& warmBootFile = warmBootFlagFileName();
   // Instead of removing the can_warm_boot file, we keep it unless it's a
   // coldboot, so that qsfp_service crash can still use warm boot.
-  bool canWarmBoot = facebook::files::FileUtil::fileExists(warmBootFile);
+  bool canWarmBoot = checkFileExists(warmBootFile);
   XLOG(INFO) << "Warm Boot flag: " << warmBootFile << " is "
              << (canWarmBoot ? "set" : "missing");
   // Step 1)

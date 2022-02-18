@@ -20,7 +20,6 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
-#include <common/files/FileUtil.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 DEFINE_bool(
@@ -45,11 +44,11 @@ void HwQsfpEnsemble::init() {
   // file logic for now.
   // TODO(joseph5wu) Remove the specifically setting force cold boot file logic
   // once we roll out can_warm_boot everywhere
-  if (!facebook::files::FileUtil::fileExists(
-          TransceiverManager::warmBootFlagFileName())) {
+  if (!checkFileExists(TransceiverManager::warmBootFlagFileName())) {
     // Force a cold boot
     createDir(FLAGS_qsfp_service_volatile_dir);
-    createFile(TransceiverManager::forceColdBootFileName());
+    auto fd = createFile(TransceiverManager::forceColdBootFileName());
+    close(fd);
   }
 
   auto wedgeManager = createWedgeManager();
