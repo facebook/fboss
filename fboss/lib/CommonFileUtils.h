@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <boost/filesystem/operations.hpp>
 #include <folly/Range.h>
 #include <string>
 
@@ -31,4 +32,7 @@ void createDir(folly::StringPiece path);
  * Check whether the given file exists.
  */
 bool checkFileExists(const std::string& filename);
+
+boost::filesystem::recursive_directory_iterator recursive_directory_iterator(
+    const std::string& path);
 } // namespace facebook::fboss

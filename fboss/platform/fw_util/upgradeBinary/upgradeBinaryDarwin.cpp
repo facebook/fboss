@@ -2,6 +2,7 @@
 
 #include "fboss/platform/fw_util/upgradeBinary/upgradeBinaryDarwin.h"
 #include <gflags/gflags.h>
+#include "fboss/lib/CommonFileUtils.h"
 
 DEFINE_bool(h, false, "Help");
 
@@ -165,9 +166,9 @@ std::string UpgradeBinaryDarwin::getBiosVersion() {
 }
 
 std::string UpgradeBinaryDarwin::getFullScCpldPath() {
-  if (std::filesystem::exists(darwin_sc_cpld_path)) {
+  if (checkFileExists(darwin_sc_cpld_path)) {
     for (auto const& dir_entry :
-         std::filesystem::recursive_directory_iterator(darwin_sc_cpld_path)) {
+         recursive_directory_iterator(darwin_sc_cpld_path)) {
       if (dir_entry.path().string().find(blackhawkRegister) !=
           std::string::npos) {
         return dir_entry.path().string() + "/";

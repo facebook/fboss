@@ -44,4 +44,10 @@ bool checkFileExists(const std::string& filename) {
   // No need to catch exception as this function is BOOST_NOEXCEPT
   return boost::filesystem::exists(filename);
 }
+
+boost::filesystem::recursive_directory_iterator recursive_directory_iterator(
+    const std::string& path) {
+  return boost::filesystem::recursive_directory_iterator(path);
+}
+
 } // namespace facebook::fboss

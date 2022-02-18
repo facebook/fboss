@@ -4,7 +4,6 @@
 #include <folly/init/Init.h>
 #include <sysexits.h>
 #include <algorithm>
-#include <filesystem>
 #include <unordered_set>
 #include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"

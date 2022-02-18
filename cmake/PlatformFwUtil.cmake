@@ -12,5 +12,5 @@ add_executable(fw_util
 target_link_libraries(fw_util
   platform_utils
   Folly::folly
+  common_file_utils
 )
-
