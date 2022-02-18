@@ -235,6 +235,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     interfaceType = saiInterfaceType.value();
   }
 
+  auto ptpStatusOpt = managerTable_->switchManager().getPtpTcEnabled();
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
   return SaiPortTraits::CreateAttributes {
@@ -253,7 +254,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Ingress MacSec ACL
         std::nullopt, // Egress MacSec ACL
         systemPortId, // System Port Id
-        std::nullopt // PTP Mode
+        ptpStatusOpt, // PTP Mode, can be std::nullopt
   };
 }
 

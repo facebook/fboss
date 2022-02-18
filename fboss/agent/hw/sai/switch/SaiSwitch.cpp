@@ -832,7 +832,10 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
     if (oldVal != newVal) {
       XLOG(DBG3) << "Configuring ptpTcEnable old: " << oldVal
                  << " new: " << newVal;
+      // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+      // cache the new status, used if the ports are not added yet
+      managerTable_->switchManager().setPtpTcEnabled(newVal);
     }
   }
 }

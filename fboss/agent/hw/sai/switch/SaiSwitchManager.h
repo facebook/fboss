@@ -72,6 +72,8 @@ class SaiSwitchManager {
   PortSaiId getCpuPort() const;
 
   void initCpuPort();
+  void setPtpTcEnabled(bool ptpEnable);
+  std::optional<bool> getPtpTcEnabled();
 
  private:
   void programEcmpLoadBalancerParams(
@@ -108,6 +110,8 @@ class SaiSwitchManager {
   std::shared_ptr<SaiQosMap> globalTcToExpQosMap_;
 
   bool isMplsQosSupported_{false};
+  // since this is an optional attribute in SAI
+  std::optional<bool> isPtpTcEnabled_{std::nullopt};
 };
 
 } // namespace facebook::fboss

@@ -455,4 +455,12 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
       switch_->adapterKey(), SaiSwitchTraits::Attributes::DefaultVlanId{});
 }
 
+void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
+  isPtpTcEnabled_ = ptpEnable;
+}
+
+std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
+  return isPtpTcEnabled_;
+}
+
 } // namespace facebook::fboss
