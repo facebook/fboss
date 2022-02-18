@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include <folly/init/Init.h>
+#include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <string.h>
@@ -29,7 +30,7 @@ void print_usage(void) {
   std::cout << "To reboot uServer: wedge_power reset" << std::endl;
 }
 void reboot_userver(void) {
-  std::cout << "Power Cycle uServer/CPU board" << std::endl;
+  XLOG(INFO) << "Power Cycle uServer/CPU board";
 
   std::string res = execCommand("sudo systemctl reboot");
 }
@@ -40,7 +41,7 @@ void power_cycle_chassis(void) {
   // Reg offset 7000 is for power cycling the whole chassis
   uint32_t val = 0xdead; // For whole chassis power cycle
   if (mmap_write(0xb0007000, 'w', val) != 0) {
-    std::cout << "Failed to power cycle whole chassis" << std::endl;
+    XLOG(INFO) << "Failed to power cycle whole chassis";
   }
 }
 
