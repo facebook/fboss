@@ -18,6 +18,8 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
+DECLARE_bool(setup_for_warmboot);
+
 namespace facebook::fboss {
 
 class HwMmuTuningTest : public HwLinkStateDependentTest {
@@ -73,6 +75,11 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     EXPECT_GT(queueOutDiscardBytes[highPriQueue], 0);
     EXPECT_GT(queueOutDiscardPackets[lowPriQueue], 0);
     EXPECT_GT(queueOutDiscardPackets[highPriQueue], 0);
+    // After verification, enable tx to let packets go through.
+    // New SDK expects buffer to be empty during teardown.
+    if (!FLAGS_setup_for_warmboot) {
+      utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], true);
+    }
   }
 
   bool isSupported() const {
