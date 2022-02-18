@@ -24,8 +24,10 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
   // Setup thrift handler and server
-  auto [server, handler] = helpers::setupThrift(
+  auto serverHandlerPair = helpers::setupThrift(
       std::make_shared<rackmonsvc::ThriftHandler>(), FLAGS_port);
+  __attribute__((unused)) auto server = serverHandlerPair.first;
+  __attribute__((unused)) auto handler = serverHandlerPair.second;
 
 #ifndef IS_OSS
   services::ServiceFrameworkLight service("Rackmon Service");
