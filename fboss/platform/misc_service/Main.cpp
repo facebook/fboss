@@ -27,7 +27,9 @@ int main(int argc, char** argv) {
   helpers::fbInit(argc, argv);
 
   // ToDo: Setup thrift handler and server
-  auto [server, handler] = setupThrift();
+  auto serverHandlerPair = setupThrift();
+  __attribute__((unused)) auto server = serverHandlerPair.first;
+  __attribute__((unused)) auto handler = serverHandlerPair.second;
 
   folly::FunctionScheduler scheduler;
 
