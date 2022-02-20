@@ -118,7 +118,7 @@ void SaiPortManager::changePort(
     return false;
   };
 
-  // Onle add/reprogram port if something besides MACSEC changed
+  // Only add/reprogram port if something besides MACSEC changed
   if (nonMacsecFieldsChange(*oldPort, *newPort)) {
     // Clear MACSEC, we will program that just after addPort
     auto portSansMacsec = newPort->clone();
