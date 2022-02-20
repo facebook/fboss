@@ -110,6 +110,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
   fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
+  fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp

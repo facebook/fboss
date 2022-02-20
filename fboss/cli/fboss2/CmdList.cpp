@@ -22,6 +22,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
@@ -106,6 +107,10 @@ const CommandTree& kCommandTree() {
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interace Status",
             commandHandler<CmdShowInterfaceStatus>},
+           {"phymap",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+            "Show External Phy Port Map",
+            commandHandler<CmdShowInterfacePhymap>},
        }},
       {"show",
        "transceiver",
