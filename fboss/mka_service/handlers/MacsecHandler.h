@@ -46,7 +46,8 @@ class MacsecHandler {
   /*
    * Get the Phy port map from Macsec handler
    */
-  virtual MacsecPortPhyMap macsecGetPhyPortInfo() {
+  virtual MacsecPortPhyMap macsecGetPhyPortInfo(
+      const std::vector<std::string>& /* portNames */) {
     return MacsecPortPhyMap{};
   }
 

@@ -123,7 +123,8 @@ class QsfpServiceHandler
   co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) override;
 
   folly::coro::Task<std::unique_ptr<mka::MacsecPortPhyMap>>
-  co_macsecGetPhyPortInfo() override;
+  co_macsecGetPhyPortInfo(
+      std::unique_ptr<std::vector<std::string>> portNames) override;
 
   folly::coro::Task<PortOperState> co_macsecGetPhyLinkInfo(
       std::unique_ptr<std::string> portName) override;

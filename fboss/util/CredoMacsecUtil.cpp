@@ -239,7 +239,7 @@ bool CredoMacsecUtil::getMacsecScFromJson(std::string scJsonFile, MKASci& sci) {
  */
 void CredoMacsecUtil::printPhyPortMap(QsfpServiceAsyncClient* fbMacsecHandler) {
   MacsecPortPhyMap macsecPortPhyMap{};
-  fbMacsecHandler->sync_macsecGetPhyPortInfo(macsecPortPhyMap);
+  fbMacsecHandler->sync_macsecGetPhyPortInfo(macsecPortPhyMap, {});
 
   printf("Printing the Phy port info map:\n");
   printf("PORT    SLOT    MDIO    PHYID   NAME       SAISW   SLICE\n");

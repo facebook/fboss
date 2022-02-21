@@ -305,11 +305,12 @@ QsfpServiceHandler::co_sakHealthCheck(std::unique_ptr<mka::MKASak> sak) {
 }
 
 folly::coro::Task<std::unique_ptr<mka::MacsecPortPhyMap>>
-QsfpServiceHandler::co_macsecGetPhyPortInfo() {
+QsfpServiceHandler::co_macsecGetPhyPortInfo(
+    std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);
   validateHandler();
   co_return std::make_unique<mka::MacsecPortPhyMap>(
-      macsecHandler_->macsecGetPhyPortInfo());
+      macsecHandler_->macsecGetPhyPortInfo(*portNames));
 }
 
 folly::coro::Task<PortOperState> QsfpServiceHandler::co_macsecGetPhyLinkInfo(

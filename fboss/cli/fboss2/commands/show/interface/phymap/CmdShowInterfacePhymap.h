@@ -45,7 +45,7 @@ class CmdShowInterfacePhymap
 
     facebook::fboss::mka::MacsecPortPhyMap portsPhyMap;
 
-    client->sync_macsecGetPhyPortInfo(portsPhyMap);
+    client->sync_macsecGetPhyPortInfo(portsPhyMap, queriedIfs);
 
     return createModel(portsPhyMap);
   }

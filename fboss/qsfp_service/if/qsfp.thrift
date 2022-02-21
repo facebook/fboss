@@ -127,9 +127,9 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: mka_structs.MKASak sak,
   ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
 
-  mka_structs.MacsecPortPhyMap macsecGetPhyPortInfo() throws (
-    1: fboss.FbossBaseError error,
-  ) (cpp.coroutine);
+  mka_structs.MacsecPortPhyMap macsecGetPhyPortInfo(
+    1: list<string> portNames = [],
+  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
   ctrl.PortOperState macsecGetPhyLinkInfo(1: string portName) throws (
     1: fboss.FbossBaseError error,
