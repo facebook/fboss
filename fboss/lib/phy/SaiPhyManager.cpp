@@ -252,6 +252,13 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
   return health;
 }
 
+bool SaiPhyManager::setupMacsecState(
+    const std::vector<std::string>& /* portList */,
+    bool /* macsecDesired */,
+    bool /* dropUnencrypted */) {
+  return true;
+}
+
 PortID SaiPhyManager::getPortId(std::string portName) const {
   auto portIdVal = folly::tryTo<int>(portName);
   if (portIdVal.hasValue()) {

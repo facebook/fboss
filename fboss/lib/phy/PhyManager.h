@@ -160,6 +160,14 @@ class PhyManager {
     throw FbossError("Attempted to call getSdkState from non-SaiPhyManager");
   }
 
+  virtual bool setupMacsecState(
+      const std::vector<std::string>& /* portList */,
+      bool /* macsecDesired */,
+      bool /* dropUnencrypted */) {
+    throw FbossError(
+        "Attempted to call setupMacsecState from non-SaiPhyManager");
+  }
+
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
   void

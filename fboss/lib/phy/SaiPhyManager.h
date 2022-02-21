@@ -93,6 +93,11 @@ class SaiPhyManager : public PhyManager {
 
   bool getSdkState(const std::string& fileName) override;
 
+  bool setupMacsecState(
+      const std::vector<std::string>& portList,
+      bool macsecDesired,
+      bool dropUnencrypted) override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
