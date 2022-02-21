@@ -62,11 +62,18 @@ class CmdShowInterfacePhymap
     auto printPortMap = [&out](const auto& portsPhyMap) {
       Table table;
       table.setHeader(
-          {"SW Port", "SlotId", "MdioId", "PhyId", "SaiSwitchId", "SliceId"});
+          {"SW Port",
+           "Port Name",
+           "SlotId",
+           "MdioId",
+           "PhyId",
+           "SaiSwitchId",
+           "SliceId"});
 
       for (auto& phyMap : portsPhyMap) {
         table.addRow(
             {std::to_string(phyMap.first),
+             phyMap.second.portName_ref().value(),
              std::to_string(phyMap.second.slotId_ref().value()),
              std::to_string(phyMap.second.mdioId_ref().value()),
              std::to_string(phyMap.second.phyId_ref().value()),

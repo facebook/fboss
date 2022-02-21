@@ -217,6 +217,8 @@ class PhyManager {
     return phy::PhyInfo{};
   }
 
+  const std::string& getPortName(PortID portID) const;
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead
@@ -247,7 +249,6 @@ class PhyManager {
   const PlatformMapping* getPlatformMapping() const {
     return platformMapping_;
   }
-  const std::string& getPortName(PortID portID) const;
 
   void setupPimEventMultiThreading(PimID pimID);
 

@@ -232,32 +232,32 @@ bool CredoMacsecUtil::getMacsecScFromJson(std::string scJsonFile, MKASci& sci) {
  * Print the Phy port mapping information from the macsec handling process.
  * This function will make the thrift call to the qsfp_service (or phy_service)
  * process to get this phy port mapping information. ie:
- * PORT    SLOT    MDIO    PHYID   NAME
- *  1       2       1       0      eth4/2/1
- *  3       0       0       0      eth2/1/1
- *  5       3       4       0      eth5/5/1
+ * PORT    SLOT    MDIO    PHYID   NAME        SAISW    SLICE
+ *  1       2       1       0      eth4/2/1    10       9
+ *  3       0       0       0      eth2/1/1    7        6
+ *  5       3       4       0      eth5/5/1    16       15
  */
 void CredoMacsecUtil::printPhyPortMap(QsfpServiceAsyncClient* fbMacsecHandler) {
   MacsecPortPhyMap macsecPortPhyMap{};
   fbMacsecHandler->sync_macsecGetPhyPortInfo(macsecPortPhyMap, {});
 
   printf("Printing the Phy port info map:\n");
-  printf("PORT    SLOT    MDIO    PHYID   NAME       SAISW   SLICE\n");
+  printf("PORT    SLOT    MDIO    PHYID    NAME       SAISW   SLICE\n");
   for (auto it : *macsecPortPhyMap.macsecPortPhyMap_ref()) {
     int port = it.first;
     int slot = *it.second.slotId_ref();
     int mdio = *it.second.mdioId_ref();
     int phy = *it.second.phyId_ref();
     int saiSwitch = *it.second.saiSwitchId_ref();
+    std::string name = *it.second.portName_ref();
 
     printf(
-        "%4d    %4d    %4d    %4d    eth%d/%d/1  %4d    %4d\n",
+        "%4d    %4d    %4d    %4d    %8s  %4d    %4d\n",
         port,
         slot,
         mdio,
         phy,
-        slot,
-        mdio + 1,
+        name.c_str(),
         saiSwitch,
         saiSwitch - 1);
   }
