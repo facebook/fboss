@@ -81,6 +81,16 @@ class MacsecHandler {
   }
 
   /*
+   * Set the Macsec state for port as per the fields provided
+   */
+  virtual bool setupMacsecState(
+      const std::vector<std::string>& /* portList */,
+      bool /* macsecDesired */,
+      bool /* dropUnencrypted */) {
+    return true;
+  }
+
+  /*
    * Get all the macsec port stats
    */
   virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(

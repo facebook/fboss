@@ -72,6 +72,13 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return true;
   }
 
+  virtual bool setupMacsecState(
+      const std::vector<std::string>& /* portList */,
+      bool /* macsecDesired */,
+      bool /* dropUnencrypted */) override {
+    return true;
+  }
+
   virtual std::map<std::string, MacsecStats> getAllMacsecPortStats(
       bool /* readFromHw */) override {
     return std::map<std::string, MacsecStats>{};
