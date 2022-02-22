@@ -88,6 +88,13 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
 )
+
+add_fbthrift_cpp_library(
+  show_interface_phymap
+  fboss/cli/fboss2/commands/show/interface/phymap/model.thrift
+  OPTIONS
+    json
+)
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -150,6 +157,7 @@ target_link_libraries(fboss2
   show_interface_counters_mka
   show_interface_traffic
   show_interface_status
+  show_interface_phymap
   ${RE2}
 )
 
