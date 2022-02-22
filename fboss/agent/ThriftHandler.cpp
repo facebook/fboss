@@ -2279,6 +2279,13 @@ void ThriftHandler::setNeighborsToBlock(
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 
   if (neighborsToBlock) {
+    if ((*neighborsToBlock).size() != 0 &&
+        sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size() !=
+            0) {
+      throw FbossError(
+          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
+    }
+
     for (const auto& neighborToBlock : *neighborsToBlock) {
       if (!folly::IPAddress::validate(*neighborToBlock.ipAddress_ref())) {
         throw FbossError(
@@ -2331,6 +2338,12 @@ void ThriftHandler::setMacAddrsToBlock(
   std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
 
   if (macAddrsToBlock) {
+    if ((*macAddrsToBlock).size() != 0 &&
+        sw_->getState()->getSwitchSettings()->getBlockNeighbors().size() != 0) {
+      throw FbossError(
+          "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
+    }
+
     for (const auto& macAddrToBlock : *macAddrsToBlock) {
       auto macAddr =
           folly::MacAddress::tryFromString(*macAddrToBlock.macAddress_ref());
