@@ -1180,6 +1180,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Get the list of MAC addrs the traffic is blocked for.
+   */
+  list<switch_config.MacAndVlan> getMacAddrsToBlock() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Set MAC addrs to block the traffic to. Useful to temporarily block traffic
    * to a list of MAC addrs. This does not affect the configuration, the list
    * will be cleared out due to config reapplication post agent restart.

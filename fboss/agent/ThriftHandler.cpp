@@ -2311,6 +2311,20 @@ void ThriftHandler::setNeighborsToBlock(
       });
 }
 
+void ThriftHandler::getMacAddrsToBlock(
+    std::vector<cfg::MacAndVlan>& blockedMacAddrs) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  for (const auto& [vlanID, macAddress] :
+       sw_->getState()->getSwitchSettings()->getMacAddrsToBlock()) {
+    cfg::MacAndVlan blockedMacAddr;
+    blockedMacAddr.vlanID_ref() = vlanID;
+    blockedMacAddr.macAddress_ref() = macAddress.toString();
+    blockedMacAddrs.emplace_back(std::move(blockedMacAddr));
+  }
+}
+
 void ThriftHandler::setMacAddrsToBlock(
     std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) {
   std::string macAddrsToBlockStr;
