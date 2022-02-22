@@ -373,6 +373,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  void blockMacResolveNeighborAddRouteUnblockHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -1126,6 +1140,13 @@ TYPED_TEST(
     LookupClassRouteUpdaterTest,
     ResolveNeighborBlockMacAddRouteUnblockMac) {
   this->resolveNeighborBlockMacAddRouteUnblockMacHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    BlockMacResolveNeighborAddRouteUnblock) {
+  this->blockMacResolveNeighborAddRouteUnblockHelper(
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
