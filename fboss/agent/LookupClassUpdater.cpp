@@ -124,6 +124,16 @@ bool LookupClassUpdater::isPresentInBlockList(
 }
 
 template <typename NewEntryT>
+bool LookupClassUpdater::isPresentInMacAddrsBlockList(
+    VlanID vlanID,
+    const std::shared_ptr<NewEntryT>& newEntry) {
+  // Check if macAddress for the newEntry (macEntry or neighibor entry) is
+  // present in the block list.
+  auto it = macAddrsToBlock_.find(std::make_pair(vlanID, newEntry->getMac()));
+  return it != macAddrsToBlock_.end();
+}
+
+template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
