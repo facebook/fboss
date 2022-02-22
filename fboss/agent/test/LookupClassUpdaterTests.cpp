@@ -617,6 +617,32 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
           classID2 /* macClassID */);
     });
   }
+
+  void verifyMultipleBlockedMacsHelper(
+      const std::vector<folly::MacAddress>& macAddresses,
+      std::optional<cfg::AclLookupClass> classID1,
+      std::optional<cfg::AclLookupClass> classID2) {
+    std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock;
+    for (const auto& macAddress : macAddresses) {
+      macAddrsToBlock.push_back(std::make_pair(this->kVlan(), macAddress));
+    }
+
+    updateMacAddrsToBlock(this->getSw(), macAddrsToBlock);
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress(),
+          this->kMacAddress(),
+          classID1 /* ipClassID */,
+          classID1 /* macClassID */);
+    });
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress2(),
+          this->kMacAddress2(),
+          classID2 /* ipClassID */,
+          classID2 /* macClassID */);
+    });
+  }
 };
 
 TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
@@ -979,6 +1005,41 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveNeighborThenBlockMac) {
   });
 }
 
+TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleMacs) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getIpAddress2(), this->kMacAddress2());
+
+  // mac1 unblocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper(
+      {},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // mac1 blocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // mac1 blocked, mac2 blocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress(), this->kMacAddress2()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // mac1 unblocked, mac2 blocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress2()},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // mac1 unblocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper(
+      {},
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+}
+
 TYPED_TEST(
     LookupClassUpdaterNeighborTest,
     NoLookupClassBlockMacThenResolveNeighbor) {
@@ -1019,6 +1080,36 @@ TYPED_TEST(
         cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
         cfg::AclLookupClass::CLASS_DROP /* macClassID */);
   });
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassBlockThenUnblockMultipleMacs) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getIpAddress2(), this->kMacAddress2());
+
+  // mac1 unblocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper({}, std::nullopt, std::nullopt);
+
+  // mac1 blocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress()}, cfg::AclLookupClass::CLASS_DROP, std::nullopt);
+
+  // mac1 blocked, mac2 blocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress(), this->kMacAddress2()},
+      cfg::AclLookupClass::CLASS_DROP,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  // mac1 unblocked, mac2 blocked
+  this->verifyMultipleBlockedMacsHelper(
+      {this->kMacAddress2()}, std::nullopt, cfg::AclLookupClass::CLASS_DROP);
+
+  // mac1 unblocked, mac2 unblocked
+  this->verifyMultipleBlockedMacsHelper({}, std::nullopt, std::nullopt);
 }
 
 template <typename AddrT>
