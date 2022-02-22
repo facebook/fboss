@@ -147,7 +147,10 @@ void LookupClassUpdater::updateNeighborClassID(
   }
 
   auto noLookupClasses = !portHasClassID(port);
-  auto setDropClassID = isPresentInBlockList(vlanID, newEntry);
+
+  auto setDropClassID = isPresentInBlockList(vlanID, newEntry) ||
+      isPresentInMacAddrsBlockList(vlanID, newEntry);
+
   auto mac = newEntry->getMac();
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
@@ -835,6 +838,78 @@ void LookupClassUpdater::removeClassIDForEveryNeighborForMac(
   }
 }
 
+void LookupClassUpdater::processMacAddrsToBlockUpdates(
+    const StateDelta& stateDelta) {
+  auto newState = stateDelta.newState();
+  /*
+   * Set of currently blocked MACs: set A
+   * New set of MACs to block: set B
+   *
+   * A - B: set of MACs to unblock
+   * B - A: set of MACs to block
+   *
+   * In this case:
+   *  A is macAddrsToBlock_
+   *  B is newState->getSwitchSettings()->getMacAddrsToBlock()
+   *
+   * Approach:
+   *   - Compute symmetric difference (disjunctive union) i.e. set of elements
+   *     which are in either A or B, but not in their intersection.
+   *   - Update macAddrsToBlock_ to newState's macAddrsToBlock
+   *   - For every MAC in the symmetric difference:
+   *   -    Remove classID associated with the MAC.
+   *   -    Remove classID associated with every neighbor using the MAC.
+   *   -    Re-add classID for the MAC.
+   *   -    Re-add classID for every neighbor using the MAC.
+   *
+   *   Since macAddrsToBlock_ is updated before calling remove/re-add, if a
+   *   MAC address is blocked, Remove will remove queue-per-host/NONE classID
+   *   and Re-add will assoicate CLASS_DROP.
+   *   Conversely, if a MAC addr is being unblocked, remove will remove
+   *   CLASS_DROP and re-add will associate queue-per-host/NONE classID.
+   */
+
+  std::set<std::pair<VlanID, folly::MacAddress>> newMacAddrsToBlock;
+  for (const auto& [vlanID, macAddress] :
+       newState->getSwitchSettings()->getMacAddrsToBlock()) {
+    newMacAddrsToBlock.insert(std::make_pair(vlanID, macAddress));
+  }
+
+  std::vector<std::pair<VlanID, folly::MacAddress>> toBeUpdatedMacAddrsToBlock;
+  std::set_symmetric_difference(
+      macAddrsToBlock_.begin(),
+      macAddrsToBlock_.end(),
+      newMacAddrsToBlock.begin(),
+      newMacAddrsToBlock.end(),
+      std::inserter(
+          toBeUpdatedMacAddrsToBlock, toBeUpdatedMacAddrsToBlock.end()));
+
+  macAddrsToBlock_ = newMacAddrsToBlock;
+  for (const auto& [vlanID, macAddress] : toBeUpdatedMacAddrsToBlock) {
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    auto macEntry = vlan->getMacTable()->getNodeIf(macAddress);
+    if (!macEntry) {
+      continue;
+    }
+
+    removeClassIDForPortAndMac(newState, vlan->getID(), macEntry);
+    removeClassIDForEveryNeighborForMac<folly::IPAddressV4>(
+        newState, vlan, macAddress);
+    removeClassIDForEveryNeighborForMac<folly::IPAddressV6>(
+        newState, vlan, macAddress);
+
+    updateNeighborClassID(newState, vlan->getID(), macEntry);
+    updateClassIDForEveryNeighborForMac<folly::IPAddressV4>(
+        newState, vlan, macAddress);
+    updateClassIDForEveryNeighborForMac<folly::IPAddressV6>(
+        newState, vlan, macAddress);
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
@@ -844,6 +919,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);
+  processMacAddrsToBlockUpdates(stateDelta);
 }
 
 } // namespace facebook::fboss

@@ -150,6 +150,8 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       const std::shared_ptr<Vlan>& vlan,
       folly::MacAddress macAddress);
 
+  void processMacAddrsToBlockUpdates(const StateDelta& stateDelta);
+
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
    */
