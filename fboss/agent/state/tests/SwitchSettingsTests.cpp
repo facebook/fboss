@@ -187,7 +187,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
           "ptpTcEnable": true,
           "l2AgeTimerSeconds": 600,
           "maxRouteCounterIDs": 10,
-          "blockNeighbors": []
+          "blockNeighbors": [],
+          "macAddrsToBlock": []
         }
   )";
 

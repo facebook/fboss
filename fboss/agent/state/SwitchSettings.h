@@ -29,6 +29,7 @@ struct SwitchSettingsFields {
   uint32_t l2AgeTimerSeconds{300};
   uint32_t maxRouteCounterIDs{0};
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
+  std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock;
 };
 
 /*
@@ -94,6 +95,16 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
   void setBlockNeighbors(
       const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
     writableFields()->blockNeighbors = blockNeighbors;
+  }
+
+  std::vector<std::pair<VlanID, folly::MacAddress>> getMacAddrsToBlock() const {
+    return getFields()->macAddrsToBlock;
+  }
+
+  void setMacAddrsToBlock(
+      const std::vector<std::pair<VlanID, folly::MacAddress>>&
+          macAddrsToBlock) {
+    writableFields()->macAddrsToBlock = macAddrsToBlock;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

@@ -21,6 +21,9 @@ constexpr auto kMaxRouteCounterIDs = "maxRouteCounterIDs";
 constexpr auto kBlockNeighbors = "blockNeighbors";
 constexpr auto kBlockNeighborVlanID = "blockNeighborVlanID";
 constexpr auto kBlockNeighborIP = "blockNeighborIP";
+constexpr auto kMacAddrsToBlock = "macAddrsToBlock";
+constexpr auto kMacAddrToBlockVlanID = "macAddrToBlockVlanID";
+constexpr auto kMacAddrToBlockAddr = "macAddrToBlockAddr";
 } // namespace
 
 namespace facebook::fboss {
@@ -40,6 +43,14 @@ folly::dynamic SwitchSettingsFields::toFollyDynamic() const {
     jsonEntry[kBlockNeighborVlanID] = folly::to<std::string>(vlanID);
     jsonEntry[kBlockNeighborIP] = folly::to<std::string>(ipAddress);
     switchSettings[kBlockNeighbors].push_back(jsonEntry);
+  }
+
+  switchSettings[kMacAddrsToBlock] = folly::dynamic::array;
+  for (const auto& [vlanID, macAddr] : macAddrsToBlock) {
+    folly::dynamic jsonEntry = folly::dynamic::object;
+    jsonEntry[kMacAddrToBlockVlanID] = folly::to<std::string>(vlanID);
+    jsonEntry[kMacAddrToBlockAddr] = folly::to<std::string>(macAddr);
+    switchSettings[kMacAddrsToBlock].push_back(jsonEntry);
   }
 
   return switchSettings;
@@ -74,6 +85,14 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamic(
     }
   }
 
+  if (json.find(kMacAddrsToBlock) != json.items().end()) {
+    for (const auto& entry : json[kMacAddrsToBlock]) {
+      switchSettings.macAddrsToBlock.emplace_back(
+          entry[kMacAddrToBlockVlanID].asInt(),
+          entry[kMacAddrToBlockAddr].asString());
+    }
+  }
+
   return switchSettings;
 }
 
@@ -100,7 +119,8 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
        switchSettings.getL2AgeTimerSeconds()) &&
       (getFields()->maxRouteCounterIDs ==
        switchSettings.getMaxRouteCounterIDs()) &&
-      getFields()->blockNeighbors == switchSettings.getBlockNeighbors());
+      getFields()->blockNeighbors == switchSettings.getBlockNeighbors() &&
+      getFields()->macAddrsToBlock == switchSettings.getMacAddrsToBlock());
 }
 
 template class NodeBaseT<SwitchSettings, SwitchSettingsFields>;
