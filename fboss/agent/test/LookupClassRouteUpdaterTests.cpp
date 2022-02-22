@@ -463,6 +463,51 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  void multipleRoutesBlockUnblockNexthopMacHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID1,
+      std::optional<cfg::AclLookupClass> expectedClassID2) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+    this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+    this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+
+    // route1's nexthop's mac unblocked, route2's nexthop's mac unblocked
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
+    this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
+
+    // route1's nexthop's mac blocked, route2's nexthop's mac unblocked
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+    this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
+
+    // route1's nexthop's mac blocked, route2's nexthop's mac blocked
+    updateMacAddrsToBlock(
+        this->getSw(),
+        {{this->kVlan(), this->kMacAddressA()},
+         {this->kVlan(), this->kMacAddressB()}});
+
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+    this->verifyClassIDHelper(
+        this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
+
+    // route1's nexthop's mac unblocked, route2's nexthop's mac blocked
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressB()}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
+    this->verifyClassIDHelper(
+        this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
+
+    // route1's nexthop's mac unblocked, route2's nexthop's mac unblocked
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
+    this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -1241,6 +1286,12 @@ TYPED_TEST(
     AddRouteThenResolveNextHopBlockMacForFirstNextHop) {
   this->blockMacForFirstNextHopHelper(
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthopMac) {
+  this->multipleRoutesBlockUnblockNexthopMacHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
 template <typename AddressT>
