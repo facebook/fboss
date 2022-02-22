@@ -636,6 +636,25 @@ void updateBlockedNeighbor(
   waitForStateUpdates(sw);
 }
 
+void updateMacAddrsToBlock(
+    SwSwitch* sw,
+    const std::vector<std::pair<VlanID, folly::MacAddress>>& macAddrsToBlock) {
+  sw->updateStateBlocking(
+      "Update MAC addrs to block traffic to",
+      [=](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+
+        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+        newSwitchSettings->setMacAddrsToBlock(macAddrsToBlock);
+        return newState;
+      });
+
+  waitForStateUpdates(sw);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw);
+  waitForStateUpdates(sw);
+}
+
 std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     const std::shared_ptr<SwitchState>& state) {
   std::vector<std::shared_ptr<Port>> lbPorts;

@@ -130,6 +130,13 @@ void updateBlockedNeighbor(
     SwSwitch* sw,
     const std::vector<std::pair<VlanID, folly::IPAddress>>& ipAddresses);
 
+/*
+ * Update Blocked MAC addr list and wait for updates
+ */
+void updateMacAddrsToBlock(
+    SwSwitch* sw,
+    const std::vector<std::pair<VlanID, folly::MacAddress>>& macAddrsToBlock);
+
 /**
  * check the field value
  */
