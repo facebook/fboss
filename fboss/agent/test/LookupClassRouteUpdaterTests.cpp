@@ -342,6 +342,37 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
+  // block traffic to MAC helpers
+  void addRouteResolveNeighborBlockUnblockMacHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
+  void resolveNeighborBlockMacAddRouteUnblockMacHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -1081,6 +1112,21 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ModifyBlockListSameSubnet) {
 TYPED_TEST(LookupClassRouteUpdaterTest, ModifyBlockListDifferentSubnet) {
   this->modifyBlockListDifferentSubnetHelper(
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0, std::nullopt);
+}
+
+// MAC addrs to block unit tests
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    AddRouteResolveNeighborBlockUnblockMac) {
+  this->addRouteResolveNeighborBlockUnblockMacHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    ResolveNeighborBlockMacAddRouteUnblockMac) {
+  this->resolveNeighborBlockMacAddRouteUnblockMacHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
 template <typename AddressT>
