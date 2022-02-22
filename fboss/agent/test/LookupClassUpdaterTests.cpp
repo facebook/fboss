@@ -954,6 +954,31 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, BlockThenUnblockMultipleNeighbors) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
+// MAC addrs to block unit tests
+TYPED_TEST(LookupClassUpdaterNeighborTest, BlockMacThenResolveNeighbor) {
+  updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
+  });
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveNeighborThenBlockMac) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
+  });
+}
+
 template <typename AddrT>
 class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
  public:
