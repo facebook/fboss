@@ -2863,6 +2863,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
+  for (const auto& macAddrToBlock :
+       *cfg_->switchSettings_ref()->macAddrsToBlock_ref()) {
+    cfgMacAddrsToBlock.emplace_back(
+        VlanID(*macAddrToBlock.vlanID_ref()),
+        folly::MacAddress(*macAddrToBlock.macAddress_ref()));
+  }
+  if (origSwitchSettings->getMacAddrsToBlock() != cfgMacAddrsToBlock) {
+    newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 
