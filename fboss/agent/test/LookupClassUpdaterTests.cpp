@@ -979,6 +979,48 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveNeighborThenBlockMac) {
   });
 }
 
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassBlockMacThenResolveNeighbor) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
+  });
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NoLookupClassResolveNeighborThenBlockMac) {
+  // No lookup classes
+  this->updateLookupClasses({});
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        std::nullopt /* ipClassID */,
+        std::nullopt /* macClassID */);
+  });
+
+  updateMacAddrsToBlock(this->getSw(), {{this->kVlan(), this->kMacAddress()}});
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->getIpAddress(),
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_DROP /* ipClassID */,
+        cfg::AclLookupClass::CLASS_DROP /* macClassID */);
+  });
+}
+
 template <typename AddrT>
 class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
  public:
