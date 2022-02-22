@@ -807,6 +807,34 @@ void LookupClassUpdater::processBlockNeighborUpdates(
   }
 }
 
+template <typename AddrT>
+void LookupClassUpdater::updateClassIDForEveryNeighborForMac(
+    const std::shared_ptr<SwitchState>& switchState,
+    const std::shared_ptr<Vlan>& vlan,
+    folly::MacAddress macAddress) {
+  for (const auto& neighborEntry :
+       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    if (!isNoHostRoute(neighborEntry) && neighborEntry->isReachable() &&
+        neighborEntry->getMac() == macAddress) {
+      updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
+    }
+  }
+}
+
+template <typename AddrT>
+void LookupClassUpdater::removeClassIDForEveryNeighborForMac(
+    const std::shared_ptr<SwitchState>& switchState,
+    const std::shared_ptr<Vlan>& vlan,
+    folly::MacAddress macAddress) {
+  for (const auto& neighborEntry :
+       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    if (!isNoHostRoute(neighborEntry) && neighborEntry->isReachable() &&
+        neighborEntry->getMac() == macAddress) {
+      removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);
+    }
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());

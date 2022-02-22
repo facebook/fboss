@@ -139,6 +139,17 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       VlanID vlanID,
       const std::shared_ptr<NewEntryT>& newEntry);
 
+  template <typename AddrT>
+  void updateClassIDForEveryNeighborForMac(
+      const std::shared_ptr<SwitchState>& switchState,
+      const std::shared_ptr<Vlan>& vlan,
+      folly::MacAddress macAddress);
+  template <typename AddrT>
+  void removeClassIDForEveryNeighborForMac(
+      const std::shared_ptr<SwitchState>& switchState,
+      const std::shared_ptr<Vlan>& vlan,
+      folly::MacAddress macAddress);
+
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
    */
