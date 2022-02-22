@@ -191,6 +191,44 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
    */
   std::set<std::pair<VlanID, folly::IPAddress>> blockedNeighbors_;
 
+  /*
+   * The approach to use IPs to block traffic to a server has few challenges
+   * when multiple IPs (say IP1 and IP2) share the same MAC1.
+   *     - Blocking traffic to MAC1 is necessary to block the L2 traffic to
+   *       IP1, but that inadvertently blocks the L2 traffic to IP2 as well,
+   *       while leaving L3 traffic to IP2 unblocked.
+   *     - DR use case requires blocking ALL the traffic to a specific server,
+   *       and thus wants to block ALL the traffic to IP1 as well as IP2.
+   *       However, that puts additional requirement on the DR test to
+   *       discover (or compute e.g. IPv6 auto configured addr) ALL the IPs
+   *       (IP1, IP2 etc.) for a server.
+   *     - Given an IP-to-block, FBOSS could compute/track all the IPs that
+   *       share the same MAC with IP-to-block, but a design with implicit
+   *       configuration is hard to reason/explain/likely bug-prone.
+   *     - ALL the traffic to a server (L2 link local or otherwise, Neighbor,
+   *       Routed) uses the same destination MAC.
+   *
+   * Given all the above, to address the use case of "blocking ALL the traffic
+   * to a server" by implemeting "blocking ALL the traffic to a specified MAC
+   * address".
+   *
+   * Similar to blocking traffic to Neighbor IP solution, this solution has two
+   * parts viz.:
+   *
+   * static configuration:
+   *     ACL:: matcher: CLASS_DROP action: Drop.
+   *     One such ACL each for L2, neighbor and route.
+   *
+   * dynamic configuration:
+   *  Dynamically associate/disassociate CLASS_DROP with provided MAC addrs to
+   *  block/unblock traffic egress to them.
+   *  LookupClassUpdater implements this.
+   *
+   *  macAddrsToBlock_ maintains the current set of MAC addrs to block the
+   *  traffic to.
+   */
+  std::set<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock_;
+
   friend class VlanTableDeltaCallbackGenerator;
   bool inited_{false};
 };
