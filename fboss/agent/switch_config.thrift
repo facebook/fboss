@@ -1339,6 +1339,11 @@ struct Neighbor {
   2: string ipAddress;
 }
 
+struct MacAndVlan {
+  1: i32 vlanID;
+  2: string macAddress;
+}
+
 /*
  * Switch specific settings: global to the switch
  */
@@ -1358,6 +1363,9 @@ struct SwitchSettings {
 
   // neighbors to block egress traffic to
   6: list<Neighbor> blockNeighbors = [];
+
+  // MAC addrs to block the egress traffic to
+  7: list<MacAndVlan> macAddrsToBlock = [];
 }
 
 // Global buffer pool shared by {port, pgs}
