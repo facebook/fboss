@@ -179,6 +179,38 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
       blockNeighbor.ipAddress_ref());
 }
 
+TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getMacAddrsToBlock().size(), 0);
+
+  // Check if value is updated
+  cfg::SwitchConfig config;
+
+  cfg::MacAndVlan macAddrToBlock;
+  macAddrToBlock.vlanID_ref() = 1;
+  macAddrToBlock.macAddress_ref() = "00:11:22:33:44:55";
+
+  config.switchSettings_ref()->macAddrsToBlock_ref() = {macAddrToBlock};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock().size(), 1);
+
+  EXPECT_EQ(
+      switchSettingsV1->getMacAddrsToBlock()[0].first,
+      macAddrToBlock.vlanID_ref());
+  EXPECT_EQ(
+      switchSettingsV1->getMacAddrsToBlock()[0].second.toString(),
+      macAddrToBlock.macAddress_ref());
+}
+
 TEST(SwitchSettingsTest, ToFromJSON) {
   std::string jsonStr = R"(
         {
