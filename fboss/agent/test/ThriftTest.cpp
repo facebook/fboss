@@ -362,6 +362,44 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   EXPECT_TRUE(macAddrsToBlock.empty());
 }
 
+TEST_F(ThriftTest, setNeighborsToBlockAndMacAddrsToBlock) {
+  ThriftHandler handler(sw_);
+
+  auto getNeighborsToBlock = []() {
+    auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+    cfg::Neighbor neighbor;
+    neighbor.vlanID_ref() = 2000;
+    neighbor.ipAddress_ref() = "2401:db00:2110:3001::0003";
+    neighborsToBlock->emplace_back(neighbor);
+    return neighborsToBlock;
+  };
+
+  auto getMacAddrsToBlock = []() {
+    auto macAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
+    cfg::MacAndVlan macAndVlan;
+    macAndVlan.vlanID_ref() = 2000;
+    macAndVlan.macAddress_ref() = "00:11:22:33:44:55";
+    macAddrsToBlock->emplace_back(macAndVlan);
+    return macAddrsToBlock;
+  };
+
+  // set neighborsToBlock and then set macAddrsToBlock: expect FAIL
+  handler.setNeighborsToBlock(getNeighborsToBlock());
+  waitForStateUpdates(handler.getSw());
+  EXPECT_THROW(handler.setMacAddrsToBlock(getMacAddrsToBlock()), FbossError);
+  waitForStateUpdates(handler.getSw());
+
+  // clear neighborsToBlock and then set macAddrsToBlock: expect PASS
+  handler.setNeighborsToBlock({});
+  waitForStateUpdates(handler.getSw());
+  handler.setMacAddrsToBlock(getMacAddrsToBlock());
+  waitForStateUpdates(handler.getSw());
+
+  // macAddrsToBlock already set, now set neighborsToBlock: expect FAIL
+  EXPECT_THROW(handler.setNeighborsToBlock(getNeighborsToBlock()), FbossError);
+  waitForStateUpdates(handler.getSw());
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
