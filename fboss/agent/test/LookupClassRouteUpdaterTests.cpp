@@ -442,6 +442,27 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     }
   }
 
+  void blockMacForFirstNextHopHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(
+        this->kroutePrefix1(), {this->kIpAddressA(), this->kIpAddressB()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+    this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+    /*
+     * In the current implementation, route inherits classID of the first
+     * reachable nexthop. Thus, if the MAC corresponding to that nexthop is
+     * blocked, traffic to that route stops.
+     */
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -1212,6 +1233,13 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ApplySameMacBlockListTwice) {
 
 TYPED_TEST(LookupClassRouteUpdaterTest, SetAndClearMacBlockList) {
   this->setAndClearMacBlockListHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    AddRouteThenResolveNextHopBlockMacForFirstNextHop) {
+  this->blockMacForFirstNextHopHelper(
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
