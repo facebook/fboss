@@ -291,6 +291,77 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   EXPECT_TRUE(blockedNeighbors.empty());
 }
 
+TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
+  ThriftHandler handler(sw_);
+
+  auto blockListVerify = [&handler](
+                             std::vector<std::pair<VlanID, folly::MacAddress>>
+                                 macAddrsToBlock) {
+    auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
+
+    for (const auto& [vlanID, macAddress] : macAddrsToBlock) {
+      cfg::MacAndVlan macAndVlan;
+      macAndVlan.vlanID_ref() = vlanID;
+      macAndVlan.macAddress_ref() = macAddress.toString();
+      cfgMacAddrsToBlock->emplace_back(macAndVlan);
+    }
+    auto expectedCfgMacAddrsToBlock = *cfgMacAddrsToBlock;
+    handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
+    waitForStateUpdates(handler.getSw());
+
+    auto gotMacAddrsToBlock =
+        handler.getSw()->getState()->getSwitchSettings()->getMacAddrsToBlock();
+    EXPECT_EQ(macAddrsToBlock, gotMacAddrsToBlock);
+
+    std::vector<cfg::MacAndVlan> gotMacAddrsToBlockViaThrift;
+    handler.getMacAddrsToBlock(gotMacAddrsToBlockViaThrift);
+    EXPECT_EQ(gotMacAddrsToBlockViaThrift, expectedCfgMacAddrsToBlock);
+  };
+
+  // set blockneighbor1
+  blockListVerify({{VlanID(2000), folly::MacAddress("00:11:22:33:44:55")}});
+
+  // set blockneighbor1, blockNeighbor2
+  blockListVerify(
+      {{VlanID(2000), folly::MacAddress("00:11:22:33:44:55")},
+       {VlanID(2000), folly::MacAddress("00:11:22:33:44:66")}});
+
+  // set blockNeighbor2
+  blockListVerify({{VlanID(2000), folly::MacAddress("00:11:22:33:44:66")}});
+
+  // set null list (clears block list)
+  std::vector<cfg::MacAndVlan> macAddrsToBlock;
+  handler.setMacAddrsToBlock({});
+  waitForStateUpdates(sw_);
+  EXPECT_EQ(
+      0, sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size());
+  handler.getMacAddrsToBlock(macAddrsToBlock);
+  EXPECT_TRUE(macAddrsToBlock.empty());
+
+  // set empty list (clears block list)
+  auto macAddrsToBlock2 = std::make_unique<std::vector<cfg::MacAndVlan>>();
+  handler.setMacAddrsToBlock(std::move(macAddrsToBlock2));
+  waitForStateUpdates(sw_);
+  EXPECT_EQ(
+      0, sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size());
+  handler.getMacAddrsToBlock(macAddrsToBlock);
+  EXPECT_TRUE(macAddrsToBlock.empty());
+
+  auto invalidMacAddrToBlock =
+      "twshared12345.06.abc7"; // only MACs are supported
+  auto invalidMacAddrsToBlock =
+      std::make_unique<std::vector<cfg::MacAndVlan>>();
+  cfg::MacAndVlan macAndVlan;
+  macAndVlan.vlanID_ref() = 2000;
+  macAndVlan.macAddress_ref() = invalidMacAddrToBlock;
+  invalidMacAddrsToBlock->emplace_back(macAndVlan);
+  EXPECT_THROW(
+      handler.setMacAddrsToBlock(std::move(invalidMacAddrsToBlock)),
+      FbossError);
+  handler.getMacAddrsToBlock(macAddrsToBlock);
+  EXPECT_TRUE(macAddrsToBlock.empty());
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
