@@ -2311,6 +2311,45 @@ void ThriftHandler::setNeighborsToBlock(
       });
 }
 
+void ThriftHandler::setMacAddrsToBlock(
+    std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) {
+  std::string macAddrsToBlockStr;
+  std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
+
+  if (macAddrsToBlock) {
+    for (const auto& macAddrToBlock : *macAddrsToBlock) {
+      auto macAddr =
+          folly::MacAddress::tryFromString(*macAddrToBlock.macAddress_ref());
+      if (!macAddr.hasValue()) {
+        throw FbossError(
+            "Invalid MAC address: ", *macAddrToBlock.macAddress_ref());
+      }
+
+      auto macAddrToBlockStr = folly::to<std::string>(
+          "[vlan: ",
+          *macAddrToBlock.vlanID_ref(),
+          " ip: ",
+          *macAddrToBlock.macAddress_ref(),
+          "], ");
+      macAddrsToBlockStr.append(macAddrToBlockStr);
+
+      blockMacAddrs.emplace_back(
+          VlanID(*macAddrToBlock.vlanID_ref()), *macAddr);
+    }
+  }
+
+  auto log = LOG_THRIFT_CALL(DBG1, macAddrsToBlockStr);
+
+  sw_->updateStateBlocking(
+      "Update MAC addrs to block ",
+      [blockMacAddrs](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+        auto newSwitchSettings = state->getSwitchSettings()->modify(&newState);
+        newSwitchSettings->setMacAddrsToBlock(blockMacAddrs);
+        return newState;
+      });
+}
+
 void ThriftHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(DBG1);

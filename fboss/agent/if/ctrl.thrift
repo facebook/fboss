@@ -1178,6 +1178,17 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void setNeighborsToBlock(
     1: list<switch_config.Neighbor> neighborsToBlock,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Set MAC addrs to block the traffic to. Useful to temporarily block traffic
+   * to a list of MAC addrs. This does not affect the configuration, the list
+   * will be cleared out due to config reapplication post agent restart.
+   *
+   * To clear, set macAddrsToBlock to empty.
+   */
+  void setMacAddrsToBlock(
+    1: list<switch_config.MacAndVlan> macAddrsToblock,
+  ) throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

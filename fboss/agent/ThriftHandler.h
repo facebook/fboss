@@ -353,6 +353,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void setNeighborsToBlock(
       std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) override;
 
+  void setMacAddrsToBlock(
+      std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) override;
+
   void publishLinkSnapshots(
       std::unique_ptr<std::vector<std::string>> portNames) override;
 
