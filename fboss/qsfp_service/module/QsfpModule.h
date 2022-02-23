@@ -289,10 +289,6 @@ class QsfpModule : public Transceiver {
     return lastDownTime_;
   }
 
-  virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) {
-    return phy::PrbsStats{};
-  }
-
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
@@ -678,6 +674,14 @@ class QsfpModule : public Transceiver {
       phy::Side /* side */,
       const phy::PortPrbsState& /* prbs */) {
     return false;
+  }
+
+  /*
+   * Returns the port prbs stats for a given side
+   * Expects the caller to hold the qsfp module level lock
+   */
+  virtual phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side /* side */) {
+    return phy::PrbsStats{};
   }
 };
 } // namespace fboss

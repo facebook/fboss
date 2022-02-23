@@ -2422,13 +2422,13 @@ bool CmisModule::setPortPrbsLocked(
 }
 
 /*
- * getPortPrbsStats
+ * getPortPrbsStatsSideLocked
  *
  * This function retrieves the PRBS stats for all the lanes in a module for the
  * given side of optics (line side or host side). The PRBS checker lock and BER
  * stats are returned.
  */
-phy::PrbsStats CmisModule::getPortPrbsStats(phy::Side side) {
+phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   int offset, length, dataAddress;
   phy::PrbsStats prbsStats;
 

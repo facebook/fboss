@@ -298,11 +298,6 @@ class CmisModule : public QsfpModule {
     return true;
   }
 
-  /*
-   * Get the PRBS stats for a module
-   */
-  phy::PrbsStats getPortPrbsStats(phy::Side side) override;
-
   void resetDataPath() override;
 
  private:
@@ -374,6 +369,11 @@ class CmisModule : public QsfpModule {
    */
   bool setPortPrbsLocked(phy::Side side, const phy::PortPrbsState& prbs)
       override;
+
+  /*
+   * Get the PRBS stats for a module
+   */
+  phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
 };
 
 } // namespace fboss
