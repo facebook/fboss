@@ -2322,6 +2322,7 @@ bool CmisModule::getModuleStateChanged() {
  * This function starts or stops the PRBS generator and checker on a given side
  * of optics (line side or host side). The PRBS is supported on new 200G and
  * 400G CMIS optics.
+ * This function expects the caller to hold the qsfp module level lock
  */
 bool CmisModule::setPortPrbsLocked(
     phy::Side side,

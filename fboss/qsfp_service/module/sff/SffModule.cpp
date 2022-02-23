@@ -1391,6 +1391,42 @@ void SffModule::moduleDiagsCapabilitySet() {
   }
 }
 
+/*
+ * Set the PRBS Generator and Checker on a module for the desired side (Line
+ * or System side).
+ * This function expects the caller to hold the qsfp module level lock
+ */
+bool SffModule::setPortPrbsLocked(
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  auto enable = *(prbs.enabled_ref());
+  auto polynomial = *(prbs.polynominal_ref());
+  {
+    auto lockedDiagsCapability = diagsCapability_.rlock();
+    if (auto diagsCapability = *lockedDiagsCapability) {
+      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem_ref())) ||
+          (side == Side::LINE && !*(diagsCapability->prbsLine_ref()))) {
+        // Check if there is an override function available for setting prbs
+        // state
+        if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
+          XLOG(INFO) << folly::sformat(
+              "Module {:s} : Prbs {:d} {:s} on {:s} side",
+              qsfpImpl_->getName(),
+              polynomial,
+              enable ? "enabled" : "disabled",
+              apache::thrift::util::enumNameSafe(side));
+          return true;
+        }
+      }
+    }
+  }
+  XLOG(WARNING) << folly::sformat(
+      "Module {:s} does not support PRBS on {:s} side",
+      qsfpImpl_->getName(),
+      apache::thrift::util::enumNameSafe(side));
+  return false;
+}
+
 // This function expects caller to hold the qsfp module level lock
 phy::PortPrbsState SffModule::getPortPrbsStateLocked(Side side) {
   {

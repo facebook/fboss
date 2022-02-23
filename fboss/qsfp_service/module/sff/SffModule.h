@@ -305,6 +305,21 @@ class SffModule : public QsfpModule {
    * 100G-FR1 modules have a proprietary method to get the prbs state
    */
   const phy::PortPrbsState getFr1PortPrbsStateOverrideLocked(Side side);
+
+  /*
+   * Provides the option to override the implementation of setPortPrbs for
+   * certain transceivers
+   */
+  const std::optional<bool> setPortPrbsOverrideLocked(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */);
+  /*
+   * 100G-FR1 modules have a proprietary method to set the prbs state
+   */
+  bool setFr1PortPrbsOverrideLocked(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */);
+
   /*
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
@@ -333,6 +348,15 @@ class SffModule : public QsfpModule {
    * Returns the current state of prbs (enabled/polynomial)
    */
   PortPrbsState getPortPrbsStateLocked(Side side) override;
+
+  /*
+   * Set the PRBS Generator and Checker on a module for the desired side (Line
+   * or System side).
+   * This function expects the caller to hold the qsfp module level lock
+   */
+  bool setPortPrbsLocked(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */) override;
 };
 
 } // namespace fboss
