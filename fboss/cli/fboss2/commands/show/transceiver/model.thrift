@@ -16,4 +16,5 @@ struct TransceiverDetail {
   9: list<double> currentMA;
   10: list<double> txPower;
   11: list<double> rxPower;
+  12: list<double> rxSnr;
 }
