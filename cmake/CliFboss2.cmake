@@ -134,6 +134,7 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/utils/oss/CLIParserUtils.cpp
+  fboss/cli/fboss2/options/OutputFormat.h
   fboss/cli/fboss2/options/SSLPolicy.h
 )
 

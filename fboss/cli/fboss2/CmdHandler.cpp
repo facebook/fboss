@@ -163,10 +163,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
         host /*, inArgs*/));
   }
 
-  if (CmdGlobalOptions::getInstance()->getFmt() == "tabular") {
-    printTabular(impl(), futureList, std::cout, std::cerr);
-  } else if (CmdGlobalOptions::getInstance()->getFmt() == "JSON") {
+  if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
     printJson(impl(), futureList, std::cout, std::cerr);
+  } else {
+    printTabular(impl(), futureList, std::cout, std::cerr);
   }
 }
 

@@ -10,6 +10,7 @@
 #pragma once
 
 #include <CLI/CLI.hpp>
+#include "fboss/cli/fboss2/options/OutputFormat.h"
 #include "fboss/cli/fboss2/options/SSLPolicy.h"
 #include "folly/String.h"
 
@@ -74,7 +75,7 @@ class CmdGlobalOptions {
     return sslPolicy_;
   }
 
-  std::string getFmt() const {
+  const OutputFormat& getFmt() const {
     return fmt_;
   }
 
@@ -140,7 +141,7 @@ class CmdGlobalOptions {
   std::string file_;
   std::string logLevel_{"DBG0"};
   SSLPolicy sslPolicy_{"plaintext"};
-  std::string fmt_{"tabular"};
+  OutputFormat fmt_;
   std::string logUsage_{"scuba"};
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};

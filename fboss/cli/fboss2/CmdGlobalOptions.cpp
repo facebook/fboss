@@ -32,8 +32,8 @@ void CmdGlobalOptions::init(CLI::App& app) {
   app.add_option("-l,--loglevel", logLevel_, "Debug log level");
   app.add_option("--file", file_, "filename, queries every host in the file")
       ->check(CLI::ExistingFile);
-  app.add_option("--fmt", fmt_, "output format (tabular, JSON)")
-      ->check(CLI::IsMember({"tabular", "json"}, CLI::ignore_case));
+  app.add_option("--fmt", fmt_, OutputFormat::getDescription())
+      ->check(OutputFormat::getValidator());
   app.add_option(
          "--agent-port", agentThriftPort_, "Agent thrift port to connect to")
       ->check(CLI::PositiveNumber);
