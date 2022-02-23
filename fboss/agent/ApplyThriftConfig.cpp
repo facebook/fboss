@@ -3410,14 +3410,15 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::DROP,
-          {});
+          LabelNextHopSet());
       LabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
       auto entryToUpdate = labelFib->cloneLabelEntry(entry);
       entryToUpdate->update(
           ClientID::STATIC_ROUTE,
-          getStaticLabelNextHopEntry(LabelNextHopEntry::Action::DROP, {}));
+          getStaticLabelNextHopEntry(
+              LabelNextHopEntry::Action::DROP, LabelNextHopSet()));
       LabelForwardingInformationBase::resolve(entryToUpdate);
       labelFib->updateNode(entryToUpdate);
     }
@@ -3430,14 +3431,15 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       auto node = createLabelForwardingEntry(
           staticMplsRouteEntry.get_ingressLabel(),
           LabelNextHopEntry::Action::TO_CPU,
-          {});
+          LabelNextHopSet());
       LabelForwardingInformationBase::resolve(node);
       labelFib->addNode(node);
     } else {
       auto entryToUpdate = labelFib->cloneLabelEntry(entry);
       entryToUpdate->update(
           ClientID::STATIC_ROUTE,
-          getStaticLabelNextHopEntry(LabelNextHopEntry::Action::TO_CPU, {}));
+          getStaticLabelNextHopEntry(
+              LabelNextHopEntry::Action::TO_CPU, LabelNextHopSet()));
       LabelForwardingInformationBase::resolve(entryToUpdate);
       labelFib->updateNode(entryToUpdate);
     }
