@@ -299,12 +299,6 @@ class CmisModule : public QsfpModule {
   }
 
   /*
-   * Set the PRBS Generator and Checker on a module for the desired side (Line
-   * or System side)
-   */
-  bool setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) override;
-
-  /*
    * Get the PRBS stats for a module
    */
   phy::PrbsStats getPortPrbsStats(phy::Side side) override;
@@ -373,6 +367,13 @@ class CmisModule : public QsfpModule {
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt);
+
+  /*
+   * Set the PRBS Generator and Checker on a module for the desired side (Line
+   * or System side)
+   */
+  bool setPortPrbsLocked(phy::Side side, const phy::PortPrbsState& prbs)
+      override;
 };
 
 } // namespace fboss

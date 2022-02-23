@@ -2317,13 +2317,15 @@ bool CmisModule::getModuleStateChanged() {
 }
 
 /*
- * setPortPrbs
+ * setPortPrbsLocked
  *
  * This function starts or stops the PRBS generator and checker on a given side
  * of optics (line side or host side). The PRBS is supported on new 200G and
  * 400G CMIS optics.
  */
-bool CmisModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
+bool CmisModule::setPortPrbsLocked(
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
   int offset, length, dataAddress;
 
   // If PRBS is not supported then return

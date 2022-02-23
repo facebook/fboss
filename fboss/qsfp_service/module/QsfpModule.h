@@ -289,12 +289,6 @@ class QsfpModule : public Transceiver {
     return lastDownTime_;
   }
 
-  virtual bool setPortPrbs(
-      phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */) {
-    return false;
-  }
-
   virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) {
     return phy::PrbsStats{};
   }
@@ -674,6 +668,16 @@ class QsfpModule : public Transceiver {
    */
   virtual phy::PortPrbsState getPortPrbsStateLocked(phy::Side /* side */) {
     return phy::PortPrbsState();
+  }
+
+  /*
+   * Sets the prbs state on a port. Expects the caller to hold the qsfp module
+   * level lock. Returns true if setting the prbs was successful
+   */
+  virtual bool setPortPrbsLocked(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */) {
+    return false;
   }
 };
 } // namespace fboss
