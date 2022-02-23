@@ -1,9 +1,6 @@
-namespace cpp2 facebook.fboss.platform.rackmonsvc
-namespace go neteng.fboss.platform.rackmonsvc
-namespace py neteng.fboss.platform.rackmon
-namespace py3 neteng.fboss.platform.rackmonsvc
-namespace py.asyncio neteng.fboss.platform.asyncio.rackmon
-namespace rust facebook.fboss.platform.rackmonsvc
+namespace cpp2 rackmonsvc
+namespace go rackmonsvc
+namespace rust rackmonsvc
 
 include "fboss/agent/if/fboss.thrift"
 

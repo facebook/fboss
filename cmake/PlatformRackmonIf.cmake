@@ -5,7 +5,7 @@
 
 add_fbthrift_cpp_library(
   rackmon_cpp2
-  fboss/platform/rackmon/if/rackmon.thrift
+  fboss/platform/rackmon/if/rackmonsvc.thrift
   SERVICES
   RackmonCtrl
   OPTIONS

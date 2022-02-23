@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook::fboss::platform::rackmonsvc {
+namespace rackmonsvc {
 
 class ThriftHandler : virtual public RackmonCtrlSvIf {
  public:
@@ -56,4 +56,4 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
     return rackmonsvc::RackmonStatusCode::SUCCESS;
   }
 };
-} // namespace facebook::fboss::platform::rackmonsvc
+} // namespace rackmonsvc
