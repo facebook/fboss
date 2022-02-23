@@ -94,6 +94,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/interface/phymap/model.thrift
   OPTIONS
     json
+  DEPENDS
+    mka_structs_cpp2
 )
 find_package(CLI11 CONFIG REQUIRED)
 
