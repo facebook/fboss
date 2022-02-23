@@ -21,5 +21,10 @@ const std::optional<DiagsCapability> SffModule::getDiagsCapabilityOverride() {
   return std::nullopt;
 }
 
+const std::optional<phy::PortPrbsState>
+SffModule::getPortPrbsStateOverrideLocked(Side /* side */) {
+  return std::nullopt;
+}
+
 } // namespace fboss
 } // namespace facebook

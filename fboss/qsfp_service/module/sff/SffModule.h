@@ -297,6 +297,15 @@ class SffModule : public QsfpModule {
    */
   const std::optional<DiagsCapability> getDiagsCapabilityOverride();
   /*
+   * Provides the option to override the prbs state for certain transceivers
+   */
+  const std::optional<phy::PortPrbsState> getPortPrbsStateOverrideLocked(
+      Side side);
+  /*
+   * 100G-FR1 modules have a proprietary method to get the prbs state
+   */
+  const phy::PortPrbsState getFr1PortPrbsStateOverrideLocked(Side side);
+  /*
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
@@ -319,6 +328,11 @@ class SffModule : public QsfpModule {
    * This function veifies the Module eeprom register checksum for a given page
    */
   bool verifyEepromChecksum(int pageId);
+
+  /*
+   * Returns the current state of prbs (enabled/polynomial)
+   */
+  PortPrbsState getPortPrbsStateLocked(Side side) override;
 };
 
 } // namespace fboss

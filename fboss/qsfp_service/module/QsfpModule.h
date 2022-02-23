@@ -668,6 +668,13 @@ class QsfpModule : public Transceiver {
   // machine to handle the state.
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
+
+  /*
+   * Returns the current state of prbs (enabled/polynomial)
+   */
+  virtual phy::PortPrbsState getPortPrbsStateLocked(phy::Side /* side */) {
+    return phy::PortPrbsState();
+  }
 };
 } // namespace fboss
 } // namespace facebook
