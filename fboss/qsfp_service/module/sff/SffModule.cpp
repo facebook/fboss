@@ -884,6 +884,33 @@ void SffModule::updateQsfpData(bool allPages) {
   }
 }
 
+// Returns the total prbs bit count
+// This function expects caller to hold the qsfp module level lock
+long long SffModule::getPrbsTotalBitCountLocked(Side side, uint8_t lane) {
+  if (auto bitCount = getPrbsTotalBitCountOverrideLocked(side, lane)) {
+    return *bitCount;
+  }
+  return -1;
+}
+
+// Returns the total prbs bit error count
+// This function expects caller to hold the qsfp module level lock
+long long SffModule::getPrbsBitErrorCountLocked(Side side, uint8_t lane) {
+  if (auto errCount = getPrbsBitErrorCountOverrideLocked(side, lane)) {
+    return *errCount;
+  }
+  return -1;
+}
+
+// Returns the prbs lock status of lanes on the given side
+// This function expects caller to hold the qsfp module level lock
+int SffModule::getPrbsLockStatusLocked(Side side) {
+  if (auto lockStatus = getPrbsLockStatusOverrideLocked(side)) {
+    return *lockStatus;
+  }
+  return 0;
+}
+
 void SffModule::setCdrIfSupported(
     cfg::PortSpeed speed,
     FeatureState currentStateTx,

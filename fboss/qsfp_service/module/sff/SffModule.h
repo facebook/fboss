@@ -357,6 +357,44 @@ class SffModule : public QsfpModule {
   bool setPortPrbsLocked(
       phy::Side /* side */,
       const phy::PortPrbsState& /* prbs */) override;
+
+  /*
+   * Allows the option to override the implementation of getting total bit count
+   */
+  const std::optional<long long> getPrbsTotalBitCountOverrideLocked(
+      Side side,
+      uint8_t lane);
+  /*
+   * Allows the option to override the implementation of getting total bit error
+   * count
+   */
+  const std::optional<long long> getPrbsBitErrorCountOverrideLocked(
+      Side side,
+      uint8_t lane);
+  /*
+   * Allows the option to override the implementation of getting prbs lock
+   * status
+   */
+  const std::optional<int> getPrbsLockStatusOverrideLocked(Side side);
+  /*
+   * 100G-FR1 modules have a proprietary method to read prbs lock status
+   */
+  const std::optional<int> getFr1PrbsLockStatusOverrideLocked(Side side);
+  /*
+   * Returns the total bit count
+   * This function expects the caller to hold the qsfp module level lock
+   */
+  long long getPrbsTotalBitCountLocked(Side side, uint8_t lane);
+  /*
+   * Returns the total PRBS bit error count
+   * This function expects the caller to hold the qsfp module level lock
+   */
+  long long getPrbsBitErrorCountLocked(Side side, uint8_t lane);
+  /*
+   * Returns the prbs lock status of lanes on the given side
+   * This function expects the caller to hold the qsfp module level lock
+   */
+  int getPrbsLockStatusLocked(Side side);
 };
 
 } // namespace fboss

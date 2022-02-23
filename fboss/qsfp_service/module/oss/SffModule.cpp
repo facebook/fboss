@@ -32,5 +32,21 @@ const std::optional<bool> SffModule::setPortPrbsOverrideLocked(
   return std::nullopt;
 }
 
+const std::optional<long long> SffModule::getPrbsTotalBitCountOverrideLocked(
+    Side /* side */,
+    uint8_t /* lane */) {
+  return std::nullopt;
+}
+
+const std::optional<long long> SffModule::getPrbsBitErrorCountOverrideLocked(
+    Side /* side */,
+    uint8_t /* lane */) {
+  return std::nullopt;
+}
+
+const std::optional<int> SffModule::getPrbsLockStatusOverrideLocked(
+    Side /* side */) {
+  return std::nullopt;
+}
 } // namespace fboss
 } // namespace facebook
