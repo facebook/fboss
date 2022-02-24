@@ -45,7 +45,11 @@ void verifyPktFromAggregatePort(
     AggregatePortID aggregatePortID) {
   std::array<char, 8> data{};
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      data.size(), data.data(), aggregatePortID, VlanID(1));
+      data.size(),
+      data.data(),
+      aggregatePortID,
+      VlanID(1),
+      cfg::PacketRxReason::UNMATCHED);
   EXPECT_TRUE(rxPacket->isFromAggregatePort());
 }
 

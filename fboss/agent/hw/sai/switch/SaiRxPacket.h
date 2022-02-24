@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include "fboss/agent/RxPacket.h"
@@ -17,17 +18,19 @@ namespace facebook::fboss {
 
 class SaiRxPacket : public RxPacket {
  public:
-  explicit SaiRxPacket(
+  SaiRxPacket(
       size_t buffer_size,
       const void* buffer,
       PortID portID,
-      VlanID vlanID);
+      VlanID vlanID,
+      cfg::PacketRxReason rxReason);
 
   SaiRxPacket(
       size_t buffer_size,
       const void* buffer,
       AggregatePortID aggregatePortID,
-      VlanID vlanID);
+      VlanID vlanID,
+      cfg::PacketRxReason rxReason);
   /*
    * Set the port on which this packet was received.
    */
@@ -48,5 +51,8 @@ class SaiRxPacket : public RxPacket {
     isFromAggregatePort_ = true;
     srcAggregatePort_ = srcAggregatePort;
   }
+
+ private:
+  cfg::PacketRxReason rxReason_;
 };
 } // namespace facebook::fboss

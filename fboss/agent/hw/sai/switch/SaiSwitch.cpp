@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
@@ -1408,8 +1409,12 @@ void SaiSwitch::packetRxCallbackPort(
     bool allowMissingSrcPort) {
   PortID swPortId(0);
   VlanID swVlanId(0);
-  auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, PortID(0), VlanID(0));
+  auto rxPacket = std::make_unique<SaiRxPacket>(
+      buffer_size,
+      buffer,
+      PortID(0),
+      VlanID(0),
+      cfg::PacketRxReason::UNMATCHED);
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
@@ -1480,8 +1485,12 @@ void SaiSwitch::packetRxCallbackLag(
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
-  auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, PortID(0), VlanID(0));
+  auto rxPacket = std::make_unique<SaiRxPacket>(
+      buffer_size,
+      buffer,
+      PortID(0),
+      VlanID(0),
+      cfg::PacketRxReason::UNMATCHED);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 

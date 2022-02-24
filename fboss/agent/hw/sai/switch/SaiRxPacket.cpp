@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <folly/io/IOBuf.h>
 
@@ -22,25 +23,29 @@ SaiRxPacket::SaiRxPacket(
     size_t buffer_size,
     const void* buffer,
     PortID portId,
-    VlanID vlanId) {
+    VlanID vlanId,
+    cfg::PacketRxReason rxReason) {
   buf_ = folly::IOBuf::takeOwnership(
       const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
   len_ = buffer_size;
   srcPort_ = portId;
   srcVlan_ = vlanId;
+  rxReason_ = rxReason;
 }
 
 SaiRxPacket::SaiRxPacket(
     size_t buffer_size,
     const void* buffer,
     AggregatePortID aggregatePortID,
-    VlanID vlanId) {
+    VlanID vlanId,
+    cfg::PacketRxReason rxReason) {
   buf_ = folly::IOBuf::takeOwnership(
       const_cast<void*>(buffer), buffer_size, freeRxPacket, nullptr);
   len_ = buffer_size;
   srcAggregatePort_ = aggregatePortID;
   srcVlan_ = vlanId;
   isFromAggregatePort_ = true;
+  rxReason_ = rxReason;
 }
 
 } // namespace facebook::fboss
