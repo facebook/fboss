@@ -1391,14 +1391,20 @@ void SaiSwitch::packetRxCallback(
   auto portSaiId = portSaiIdOpt.has_value() ? portSaiIdOpt.value()
                                             : PortSaiId(SAI_NULL_OBJECT_ID);
   if (!lagSaiIdOpt) {
-    packetRxCallbackPort(buffer_size, buffer, portSaiId, allowMissingSrcPort);
+    packetRxCallbackPort(
+        buffer_size,
+        buffer,
+        portSaiId,
+        allowMissingSrcPort,
+        cfg::PacketRxReason::UNMATCHED);
   } else {
     packetRxCallbackLag(
         buffer_size,
         buffer,
         lagSaiIdOpt.value(),
         portSaiId,
-        allowMissingSrcPort);
+        allowMissingSrcPort,
+        cfg::PacketRxReason::UNMATCHED);
   }
 }
 
@@ -1406,15 +1412,12 @@ void SaiSwitch::packetRxCallbackPort(
     sai_size_t buffer_size,
     const void* buffer,
     PortSaiId portSaiId,
-    bool allowMissingSrcPort) {
+    bool allowMissingSrcPort,
+    cfg::PacketRxReason rxReason) {
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size,
-      buffer,
-      PortID(0),
-      VlanID(0),
-      cfg::PacketRxReason::UNMATCHED);
+      buffer_size, buffer, PortID(0), VlanID(0), rxReason);
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
@@ -1481,16 +1484,13 @@ void SaiSwitch::packetRxCallbackLag(
     const void* buffer,
     LagSaiId lagSaiId,
     PortSaiId portSaiId,
-    bool allowMissingSrcPort) {
+    bool allowMissingSrcPort,
+    cfg::PacketRxReason rxReason) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
   VlanID swVlanId(0);
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size,
-      buffer,
-      PortID(0),
-      VlanID(0),
-      cfg::PacketRxReason::UNMATCHED);
+      buffer_size, buffer, PortID(0), VlanID(0), rxReason);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
