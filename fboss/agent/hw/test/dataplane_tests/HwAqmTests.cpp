@@ -156,6 +156,38 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
 
+  /*
+   * Ensure that the number of dropped packets is as expected. Allow for
+   * an error to account for more / less drops while its worked out.
+   */
+  void verifyWredDroppedPacketCount(
+      HwPortStats& after,
+      HwPortStats& before,
+      int expectedDroppedPkts) {
+    constexpr auto kAcceptableError = 2;
+    auto deltaWredDroppedPackets =
+        *after.wredDroppedPackets__ref() - *before.wredDroppedPackets__ref();
+    XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
+    EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
+    EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
+  }
+
+  /*
+   * Ensure that the number of marked packets is as expected. Allow for
+   * an error to account for more / less marking while its worked out.
+   */
+  void verifyEcnMarkedPacketCount(
+      HwPortStats& after,
+      HwPortStats& before,
+      int expectedMarkedPkts) {
+    constexpr auto kAcceptableError = 2;
+    auto deltaEcnMarkedPackets =
+        *after.outEcnCounter__ref() - *before.outEcnCounter__ref();
+    XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets;
+    EXPECT_GT(deltaEcnMarkedPackets, expectedMarkedPkts - kAcceptableError);
+    EXPECT_LT(deltaEcnMarkedPackets, expectedMarkedPkts + kAcceptableError);
+  }
+
  protected:
   void runTest(bool isEcn) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
