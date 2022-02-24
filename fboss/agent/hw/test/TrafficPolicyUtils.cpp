@@ -22,6 +22,50 @@ void addDscpAclToCfg(
   config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
 }
 
+void addL4SrcPortAclToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    IP_PROTO proto,
+    uint32_t l4SrcPort) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].proto_ref() = static_cast<int>(proto);
+  config->acls_ref()[numCfgAcls].l4SrcPort_ref() = l4SrcPort;
+}
+
+void addL4DstPortAclToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    IP_PROTO proto,
+    uint32_t l4DstPort) {
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].proto_ref() = static_cast<int>(proto);
+  config->acls_ref()[numCfgAcls].l4DstPort_ref() = l4DstPort;
+}
+
+void addSetDscpAndEgressQueueActionToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    uint8_t dscp,
+    int queueId) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+
+  // set specific dscp value action
+  cfg::SetDscpMatchAction setDscpMatchAction;
+  setDscpMatchAction.dscpValue_ref() = dscp;
+  matchAction.setDscp_ref() = setDscpMatchAction;
+
+  // egress via specific queue action
+  cfg::QueueMatchAction queueAction;
+  queueAction.queueId_ref() = queueId;
+  matchAction.sendToQueue_ref() = queueAction;
+
+  utility::addMatcher(config, aclName, matchAction);
+}
+
 void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,

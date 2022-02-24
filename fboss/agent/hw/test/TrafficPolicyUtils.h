@@ -11,6 +11,8 @@
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include "fboss/agent/packet/IPProto.h"
+
 #include <string>
 
 /*
@@ -22,6 +24,24 @@ void addDscpAclToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp);
+
+void addL4SrcPortAclToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    IP_PROTO proto,
+    uint32_t l4SrcPort);
+
+void addL4DstPortAclToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    IP_PROTO proto,
+    uint32_t l4DstPort);
+
+void addSetDscpAndEgressQueueActionToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    uint8_t dscp,
+    int queueId);
 
 void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
