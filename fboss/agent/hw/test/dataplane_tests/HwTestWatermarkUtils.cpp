@@ -14,7 +14,10 @@
 
 namespace facebook::fboss::utility {
 
-int getRoundedBufferThreshold(HwSwitch* hwSwitch, int expThreshold) {
+int getRoundedBufferThreshold(
+    HwSwitch* hwSwitch,
+    int expectedThreshold,
+    bool roundUp) {
   int threshold{};
   if (HwAsic::AsicType::ASIC_TYPE_TAJO ==
       hwSwitch->getPlatform()->getAsic()->getAsicType()) {
@@ -41,20 +44,50 @@ int getRoundedBufferThreshold(HwSwitch* hwSwitch, int expThreshold) {
         (12 * 1024 * 384),
         (15 * 1024 * 384),
         (16000 * 384)};
-    auto it = std::upper_bound(
+    auto it = std::lower_bound(
         kTajoQuantizedThresholds.begin(),
         kTajoQuantizedThresholds.end(),
-        expThreshold);
-    if (it == kTajoQuantizedThresholds.end()) {
-      FbossError("Invalid threshold for ASIC, ", expThreshold);
+        expectedThreshold);
+
+    if (roundUp) {
+      if (it == kTajoQuantizedThresholds.end()) {
+        FbossError("Invalid threshold for ASIC, ", expectedThreshold);
+      } else {
+        threshold = *it;
+      }
+    } else {
+      if (it != kTajoQuantizedThresholds.end() && *it == expectedThreshold) {
+        threshold = *it;
+      } else if (it != kTajoQuantizedThresholds.begin()) {
+        threshold = *(std::prev(it));
+      } else {
+        FbossError("Invalid threshold for ASIC, ", expectedThreshold);
+      }
     }
-    threshold = *it;
   } else {
     // Thresholds are applied in multiples of unit buffer size
     auto bufferUnitSize =
         hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
-    threshold =
-        bufferUnitSize * ((expThreshold + bufferUnitSize - 1) / bufferUnitSize);
+    /*
+     * Round up:
+     * For expected threshold of 300B with round up, we need 2 cells worth
+     * bytes in case of TH3, to get the same, we do 300 / CELLSIZE to find
+     * the number of CELLs needed to accommodate this size, which comes out
+     * to be 1.18 (rounded up to 2) and then multiply it by CELLSIZE
+     * to get the number of bytes for 2 cells, which will be 508B.
+     *
+     * Round down:
+     * For expected threshold of 600B with round down, we need 2 cell worth
+     * bytes in case of TH3 (no use case), to get the same, we do
+     * 600 / CELLSIZE to find the number of CELLs needed to accommodate this
+     * size, which comes out to be 2.36 (integer round down to 2) and then
+     * multiply it by CELLSIZE to get the number of bytes for 2 cells, which
+     * will be 508B.
+     */
+    threshold = roundUp ? bufferUnitSize *
+            ceil(static_cast<double>(expectedThreshold) / bufferUnitSize)
+                        : bufferUnitSize *
+            floor(static_cast<double>(expectedThreshold) / bufferUnitSize);
   }
 
   return threshold;
