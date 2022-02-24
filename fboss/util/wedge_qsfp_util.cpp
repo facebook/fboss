@@ -382,7 +382,7 @@ TransceiverManagementInterface getModuleType(
   // Get the module id to differentiate between CMIS (0x1e) and SFF
   for (auto retry = 0; retry < numRetryGetModuleType; retry++) {
     try {
-      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
+      bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, &moduleId);
     } catch (const I2cError& ex) {
       fprintf(
           stderr, "QSFP %d: not present or read error, retrying...\n", port);
@@ -435,7 +435,7 @@ bool flipModuleUpperPage(
     uint8_t page) {
   try {
     bus->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: Fail to flip module upper page\n", port);
     return false;
@@ -452,12 +452,12 @@ bool overrideLowPower(
     // First figure out whether this module follows CMIS or Sff8636.
     auto managementInterface = getModuleType(bus, port);
     if (managementInterface == TransceiverManagementInterface::CMIS) {
-      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 26, 1, buf.data());
+      bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 26, 1}, buf.data());
       lowPower ? buf[0] |= kCmisPowerModeMask : buf[0] &= ~kCmisPowerModeMask;
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 26, 1, buf.data());
+      bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 26, 1}, buf.data());
     } else if (managementInterface == TransceiverManagementInterface::SFF) {
       buf[0] = {lowPower ? kSffLowPowerMode : kSffHighPowerMode};
-      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 93, 1, buf.data());
+      bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 93, 1}, buf.data());
     } else {
       fprintf(stderr, "QSFP %d: Unrecognizable management interface\n", port);
       return false;
@@ -479,9 +479,9 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     // ensure we have page0 selected
     uint8_t page0 = 0;
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page0);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page0);
 
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 129, 1, supported);
+    bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 129, 1}, supported);
   } catch (const I2cError& ex) {
     fprintf(
         stderr,
@@ -500,7 +500,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   // byte anyway
   uint8_t buf[1] = {value};
   try {
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 98, 1, buf);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 98, 1}, buf);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: Failed to set CDR\n", port);
     return false;
@@ -516,9 +516,9 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     // ensure we have page0 selected
     uint8_t page0 = 0;
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page0);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page0);
 
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 141, 1, version);
+    bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 141, 1}, version);
   } catch (const I2cError& ex) {
     fprintf(
         stderr,
@@ -536,8 +536,8 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   }
 
   try {
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 87, 1, buf);
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 88, 1, buf);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 87, 1}, buf);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 88, 1}, buf);
   } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
@@ -558,18 +558,18 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     for (int channel = 0; channel < 4; channel++) {
       bus->moduleWrite(
           port,
-          TransceiverI2CApi::ADDR_QSFP,
-          kCMISOffsetAppSelLane1 + channel,
-          sizeof(applicationCode),
+          {TransceiverI2CApi::ADDR_QSFP,
+           kCMISOffsetAppSelLane1 + channel,
+           sizeof(applicationCode)},
           &applicationCode);
     }
 
     uint8_t applySet0 = 0x0f;
     bus->moduleWrite(
         port,
-        TransceiverI2CApi::ADDR_QSFP,
-        kCMISOffsetStageCtrlSet0,
-        sizeof(applySet0),
+        {TransceiverI2CApi::ADDR_QSFP,
+         kCMISOffsetStageCtrlSet0,
+         sizeof(applySet0)},
         &applySet0);
   } catch (const I2cError& ex) {
     // This generally means the QSFP module is not present.
@@ -656,7 +656,10 @@ void doReadRegDirect(
     int length) {
   std::array<uint8_t, 128> buf;
   try {
-    bus->moduleRead(port, FLAGS_i2c_address, offset, length, buf.data());
+    bus->moduleRead(
+        port,
+        {static_cast<uint8_t>(FLAGS_i2c_address), offset, length},
+        buf.data());
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to read module\n", port);
     return;
@@ -707,7 +710,8 @@ void doWriteRegDirect(
     uint8_t value) {
   uint8_t buf[1] = {value};
   try {
-    bus->moduleWrite(port, FLAGS_i2c_address, offset, 1, buf);
+    bus->moduleWrite(
+        port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, buf);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return;
@@ -2171,7 +2175,7 @@ bool doMiniphotonLoopback(
   try {
     // Make sure we have page128 selected.
     uint8_t page128 = 128;
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page128);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page128);
 
     uint8_t loopback = 0;
     if (mode == electricalLoopback) {
@@ -2180,7 +2184,7 @@ bool doMiniphotonLoopback(
       loopback = 0b10101010;
     }
     fprintf(stderr, "loopback value: %x\n", loopback);
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 245, 1, &loopback);
+    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 245, 1}, &loopback);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
     return false;
@@ -2196,11 +2200,11 @@ void cmisHostInputLoopback(
     // Make sure we have page 0x13 selected.
     uint8_t page = 0x13;
     bus->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
     uint8_t data = (mode == electricalLoopback) ? 0xff : 0;
     bus->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, 183, sizeof(data), &data);
+        port, {TransceiverI2CApi::ADDR_QSFP, 183, sizeof(data)}, &data);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
@@ -2214,11 +2218,11 @@ void cmisMediaInputLoopback(
     // Make sure we have page 0x13 selected.
     uint8_t page = 0x13;
     bus->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
     uint8_t data;
     bus->moduleRead(
-        port, TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data), &data);
+        port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
     if (!(data & 0x02)) {
       fprintf(
           stderr, "QSFP %d: Media side input loopback not supported\n", port);
@@ -2227,7 +2231,7 @@ void cmisMediaInputLoopback(
 
     data = (mode == opticalLoopback) ? 0xff : 0;
     bus->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, 181, sizeof(data), &data);
+        port, {TransceiverI2CApi::ADDR_QSFP, 181, sizeof(data)}, &data);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
@@ -2538,7 +2542,7 @@ void fwUpgradeThreadHandler(
 
     // Find out the current version running on module
     bus->moduleRead(
-        module, TransceiverI2CApi::ADDR_QSFP, 39, 2, versionNumber.data());
+        module, {TransceiverI2CApi::ADDR_QSFP, 39, 2}, versionNumber.data());
     printf(
         "cmisModuleFirmwareUpgrade: Mod%d: Module Active Firmware Revision now: %d.%d\n",
         module,

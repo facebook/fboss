@@ -8,10 +8,10 @@ MinipackBaseI2cBus::MinipackBaseI2cBus() {}
 
 void MinipackBaseI2cBus::moduleRead(
     unsigned int module,
-    uint8_t /* i2cAddress */,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* buf) {
+  auto len = param.len;
+  auto offset = param.offset;
   if (len > 128) {
     throw MinipackI2cError("Too long read");
   }
@@ -31,10 +31,10 @@ void MinipackBaseI2cBus::moduleRead(
 
 void MinipackBaseI2cBus::moduleWrite(
     unsigned int module,
-    uint8_t /* i2cAddress */,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     const uint8_t* data) {
+  auto len = param.len;
+  auto offset = param.offset;
   if (len > 128) {
     throw MinipackI2cError("Too long write");
   }

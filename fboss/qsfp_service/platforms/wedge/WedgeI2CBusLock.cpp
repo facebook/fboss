@@ -49,22 +49,18 @@ void WedgeI2CBusLock::verifyBus(bool autoReset) {
 
 void WedgeI2CBusLock::moduleRead(
     unsigned int module,
-    uint8_t address,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* buf) {
   BusGuard g(this);
-  wedgeI2CBus_->moduleRead(module, address, offset, len, buf);
+  wedgeI2CBus_->moduleRead(module, param, buf);
 }
 
 void WedgeI2CBusLock::moduleWrite(
     unsigned int module,
-    uint8_t address,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     const uint8_t* buf) {
   BusGuard g(this);
-  wedgeI2CBus_->moduleWrite(module, address, offset, len, buf);
+  wedgeI2CBus_->moduleWrite(module, param, buf);
 }
 
 void WedgeI2CBusLock::read(uint8_t address, int offset, int len, uint8_t* buf) {

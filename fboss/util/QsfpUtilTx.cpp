@@ -76,9 +76,11 @@ bool QsfpUtilTx::setSffTxDisableDirect(unsigned int port) {
     const int length = 1;
     uint8_t buf;
 
-    bus_->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, length, &buf);
+    bus_->moduleRead(
+        port, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &buf);
     setChannelDisable(TransceiverManagementInterface::SFF, buf);
-    bus_->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, offset, length, &buf);
+    bus_->moduleWrite(
+        port, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &buf);
   } catch (const I2cError& ex) {
     XLOG(ERR) << fmt::format(
         "TxDisableTrace: QSFP {:d}: unwritable or write error", port);
@@ -101,7 +103,7 @@ bool QsfpUtilTx::setCmisTxDisableDirect(unsigned int port) {
 
     // Save current page
     bus_->moduleRead(
-        port, TransceiverI2CApi::ADDR_QSFP, offset, length, &savedPage);
+        port, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &savedPage);
 
     // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
     uint8_t moduleControlPage = 0x10;
@@ -109,18 +111,20 @@ bool QsfpUtilTx::setCmisTxDisableDirect(unsigned int port) {
     uint8_t buf;
 
     bus_->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, offset, length, &moduleControlPage);
+        port,
+        {TransceiverI2CApi::ADDR_QSFP, offset, length},
+        &moduleControlPage);
     bus_->moduleRead(
-        port, TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length, &buf);
+        port, {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length}, &buf);
     setChannelDisable(TransceiverManagementInterface::CMIS, buf);
     bus_->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length, &buf);
+        port, {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length}, &buf);
 
     // Restore current page. Need a delay here, otherwise certain modules
     // will fail to turn on the lasers. Sleep override
     usleep(20 * 1000);
     bus_->moduleWrite(
-        port, TransceiverI2CApi::ADDR_QSFP, offset, length, &savedPage);
+        port, {TransceiverI2CApi::ADDR_QSFP, offset, length}, &savedPage);
   } catch (const I2cError& ex) {
     XLOG(ERR) << fmt::format(
         "TxDisableTrace: QSFP {:d}: read/write error", port);

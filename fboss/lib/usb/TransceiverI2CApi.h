@@ -20,6 +20,17 @@
 namespace facebook::fboss {
 enum class ModulePresence { PRESENT, ABSENT, UNKNOWN };
 
+struct TransceiverAccessParameter {
+  std::optional<uint8_t> i2cAddress;
+  int offset;
+  int len;
+  std::optional<int> page;
+  std::optional<int> bank;
+
+  TransceiverAccessParameter(uint8_t i2cAddress_, int offset_, int len_)
+      : i2cAddress(i2cAddress_), offset(offset_), len(len_) {}
+};
+
 class I2cError : public std::exception {
  public:
   I2cError(const std::string& what) : what_(what) {}
@@ -45,16 +56,12 @@ class TransceiverI2CApi {
   virtual void close() = 0;
   virtual void moduleRead(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* buf) = 0;
 
   virtual void moduleWrite(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       const uint8_t* buf) = 0;
 
   virtual void verifyBus(bool autoReset) = 0;

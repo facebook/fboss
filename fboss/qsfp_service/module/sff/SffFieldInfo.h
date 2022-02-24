@@ -115,10 +115,10 @@ enum class SffField {
   VENDOR_CONTROL, // Vendor Specific Control
 };
 
-enum DeviceTechnology : uint8_t {
+enum DeviceTechnologySff : uint8_t {
   TRANSMITTER_TECH_SHIFT = 4,
-  OPTICAL_MAX_VALUE = 0b1001,
-  UNKNOWN_VALUE = 0b1000,
+  OPTICAL_MAX_VALUE_SFF = 0b1001,
+  UNKNOWN_VALUE_SFF = 0b1000,
 };
 
 enum class PowerControl : uint8_t {

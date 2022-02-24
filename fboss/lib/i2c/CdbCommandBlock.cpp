@@ -6,6 +6,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <chrono>
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook::fboss {
 
@@ -53,7 +54,7 @@ static void i2cWriteAndContinue(
     int length,
     const uint8_t* buf) {
   try {
-    bus->moduleWrite(modId, i2cAddress, offset, length, buf);
+    bus->moduleWrite(modId, {i2cAddress, offset, length}, buf);
   } catch (const std::exception& e) {
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue";
     usleep(cdbCommandIntervalUsec);
@@ -77,7 +78,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
 
   uint8_t page = 0x9f;
   bus->moduleWrite(
-      modId, TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1, &page);
+      modId, {TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1}, &page);
 
   // Since we are going to write byte 2 to len-1 in the module CDB memory
   // without interpreting it so let's take uint8_t* pointer here and do it
@@ -141,9 +142,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(
     try {
       bus->moduleRead(
           modId,
-          TransceiverI2CApi::ADDR_QSFP,
-          kCdbCommandStatusReg,
-          1,
+          {TransceiverI2CApi::ADDR_QSFP, kCdbCommandStatusReg, 1},
           &status);
     } catch (const std::exception& e) {
       XLOG(INFO) << "read() raised exception: Sleep for 100ms and continue";
@@ -177,19 +176,17 @@ bool CdbCommandBlock::cmisRunCdbCommand(
 
   bus->moduleRead(
       modId,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCdbRlplLengthReg,
-      1,
+      {TransceiverI2CApi::ADDR_QSFP, kCdbRlplLengthReg, 1},
       &this->cdbFields_.cdbRlplLength);
 
   auto i2cReadWithRetry =
       [&](uint8_t i2cAddress, int offset, int length, uint8_t* buf) {
         try {
-          bus->moduleRead(modId, i2cAddress, offset, length, buf);
+          bus->moduleRead(modId, {i2cAddress, offset, length}, buf);
         } catch (const std::exception& e) {
           XLOG(INFO) << "read() raised exception: Sleep for 100ms and retry";
           usleep(cdbCommandIntervalUsec);
-          bus->moduleRead(modId, i2cAddress, offset, length, buf);
+          bus->moduleRead(modId, {i2cAddress, offset, length}, buf);
         }
       };
 
@@ -494,7 +491,7 @@ void CdbCommandBlock::selectCdbPage(
     unsigned int modId) {
   uint8_t page = 0x9f;
   bus->moduleWrite(
-      modId, TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1, &page);
+      modId, {TransceiverI2CApi::ADDR_QSFP, kPageSelectReg, 1}, &page);
 }
 
 /*
@@ -513,9 +510,7 @@ void CdbCommandBlock::setMsaPassword(
   }
   bus->moduleWrite(
       modId,
-      TransceiverI2CApi::ADDR_QSFP,
-      kModulePasswordEntryReg,
-      4,
+      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPwArray.data());
 }
 

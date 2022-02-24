@@ -1048,9 +1048,9 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
 
   uint8_t transTech = *data;
-  if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
+  if (transTech == DeviceTechnologyCmis::UNKNOWN_VALUE_CMIS) {
     return TransmitterTechnology::UNKNOWN;
-  } else if (transTech <= DeviceTechnology::OPTICAL_MAX_VALUE) {
+  } else if (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) {
     return TransmitterTechnology::OPTICAL;
   } else {
     return TransmitterTechnology::COPPER;

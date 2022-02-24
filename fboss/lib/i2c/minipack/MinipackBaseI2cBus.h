@@ -22,15 +22,11 @@ class MinipackBaseI2cBus : public TransceiverI2CApi {
 
   void moduleRead(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* buf) override;
   void moduleWrite(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       const uint8_t* buf) override;
 
   bool isPresent(unsigned int module) override;

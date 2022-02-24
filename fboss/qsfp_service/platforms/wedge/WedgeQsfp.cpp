@@ -70,7 +70,9 @@ int WedgeQsfp::readTransceiver(
       wedgeQsfpstats_.recordReadSuccess();
     };
     threadSafeI2CBus_->moduleRead(
-        module_ + 1, dataAddress, offset, len, fieldValue);
+        module_ + 1,
+        {static_cast<uint8_t>(dataAddress), offset, len},
+        fieldValue);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
@@ -95,7 +97,9 @@ int WedgeQsfp::writeTransceiver(
       wedgeQsfpstats_.recordWriteSuccess();
     };
     threadSafeI2CBus_->moduleWrite(
-        module_ + 1, dataAddress, offset, len, fieldValue);
+        module_ + 1,
+        {static_cast<uint8_t>(dataAddress), offset, len},
+        fieldValue);
 
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.
@@ -139,7 +143,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   for (int i = 0; i < kNumInterfaceDetectionRetries; ++i) {
     try {
       threadSafeI2CBus_->moduleRead(
-          module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
+          module_ + 1, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, buf.data());
       XLOG(DBG3) << folly::sformat(
           "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
       if ((buf[0] ==
@@ -220,31 +224,23 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
   // SFF module. Restore the page in the end
   threadSafeI2CBus_->moduleRead(
       module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModulePageReg,
-      1,
+      {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
       &savedPage);
   if (savedPage != page) {
     threadSafeI2CBus_->moduleWrite(
         module_ + 1,
-        TransceiverI2CApi::ADDR_QSFP,
-        kCommonModulePageReg,
-        1,
+        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
         &page);
   }
 
   threadSafeI2CBus_->moduleRead(
       module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      partNoRegOffset,
-      16,
+      {TransceiverI2CApi::ADDR_QSFP, partNoRegOffset, 16},
       partNo.data());
   if (savedPage != page) {
     threadSafeI2CBus_->moduleWrite(
         module_ + 1,
-        TransceiverI2CApi::ADDR_QSFP,
-        kCommonModulePageReg,
-        1,
+        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
         &savedPage);
   }
 
@@ -263,9 +259,7 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   // Read 2 byte firmware version from base page reg 39-40 for CMIS module
   threadSafeI2CBus_->moduleRead(
       module_ + 1,
-      TransceiverI2CApi::ADDR_QSFP,
-      kCommonModuleFwVerReg,
-      2,
+      {TransceiverI2CApi::ADDR_QSFP, kCommonModuleFwVerReg, 2},
       fwVer.data());
   return fwVer;
 }

@@ -208,9 +208,9 @@ enum FieldMasks : uint8_t {
   TX_BIAS_MULTIPLIER_MASK = 0x18,
 };
 
-enum DeviceTechnology : uint8_t {
-  OPTICAL_MAX_VALUE = 0b1001,
-  UNKNOWN_VALUE = 0b1000,
+enum DeviceTechnologyCmis : uint8_t {
+  OPTICAL_MAX_VALUE_CMIS = 0b1001,
+  UNKNOWN_VALUE_CMIS = 0b1000,
 };
 
 class CmisFieldInfo {

@@ -139,12 +139,15 @@ void BaseWedgeI2CBus::write(
 
 void BaseWedgeI2CBus::moduleRead(
     unsigned int module,
-    uint8_t address,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* buf) {
   selectQsfp(module);
   CHECK_NE(selectedPort_, NO_PORT);
+  // I2C access should always have a i2cAddress
+  CHECK(param.i2cAddress.has_value());
+  auto address = *(param.i2cAddress);
+  auto offset = param.offset;
+  auto len = param.len;
 
   read(address, offset, len, buf);
 
@@ -154,12 +157,15 @@ void BaseWedgeI2CBus::moduleRead(
 
 void BaseWedgeI2CBus::moduleWrite(
     unsigned int module,
-    uint8_t address,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     const uint8_t* buf) {
   selectQsfp(module);
   CHECK_NE(selectedPort_, NO_PORT);
+  // I2C access should always have a i2cAddress
+  CHECK(param.i2cAddress.has_value());
+  auto address = *(param.i2cAddress);
+  auto offset = param.offset;
+  auto len = param.len;
 
   write(address, offset, len, buf);
 
@@ -171,7 +177,7 @@ bool BaseWedgeI2CBus::isPresent(unsigned int module) {
   uint8_t buf = 0;
   for (int i = 0; i < kNumPresenceDetectionRetries; ++i) {
     try {
-      moduleRead(module, TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf), &buf);
+      moduleRead(module, {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf)}, &buf);
       return true;
     } catch (const I2cError& ex) {
       /*
@@ -194,9 +200,7 @@ void BaseWedgeI2CBus::scanPresence(
     try {
       moduleRead(
           presence.first + 1,
-          TransceiverI2CApi::ADDR_QSFP,
-          0,
-          sizeof(buf),
+          {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf)},
           &buf);
     } catch (const I2cError& ex) {
       /*

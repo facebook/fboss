@@ -105,9 +105,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Set the password to let the privileged operation of firmware download
   bus_->moduleWrite(
       moduleId_,
-      TransceiverI2CApi::ADDR_QSFP,
-      kModulePasswordEntryReg,
-      4,
+      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data());
 
   CdbCommandBlock commandBlockBuf;
@@ -298,9 +296,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Set the password to let the privileged operation of firmware download
   bus_->moduleWrite(
       moduleId_,
-      TransceiverI2CApi::ADDR_QSFP,
-      kModulePasswordEntryReg,
-      4,
+      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data());
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
@@ -324,9 +320,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Set the password to let the privileged operation of firmware download
   bus_->moduleWrite(
       moduleId_,
-      TransceiverI2CApi::ADDR_QSFP,
-      kModulePasswordEntryReg,
-      4,
+      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data());
 
   return true;
@@ -365,9 +359,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Find out the current version running on module
   bus_->moduleRead(
       moduleId_,
-      TransceiverI2CApi::ADDR_QSFP,
-      kfirmwareVersionReg,
-      2,
+      {TransceiverI2CApi::ADDR_QSFP, kfirmwareVersionReg, 2},
       versionNumber.data());
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}",

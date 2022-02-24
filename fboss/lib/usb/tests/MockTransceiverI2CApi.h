@@ -18,14 +18,12 @@ class MockTransceiverI2CApi : public TransceiverI2CApi {
   bool isPresent(unsigned int id) override;
   void moduleRead(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* buf) override;
 
-  MOCK_METHOD5(
+  MOCK_METHOD3(
       moduleWrite,
-      void(unsigned int, uint8_t, int, int, const uint8_t*));
+      void(unsigned int, const TransceiverAccessParameter&, const uint8_t*));
 
   void scanPresence(std::map<int32_t, ModulePresence>&) override;
 

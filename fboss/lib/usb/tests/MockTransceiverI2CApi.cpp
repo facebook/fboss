@@ -17,10 +17,13 @@ bool MockTransceiverI2CApi::isPresent(unsigned int id) {
 
 void MockTransceiverI2CApi::moduleRead(
     unsigned int module,
-    uint8_t i2cAddress,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* buf) {
+  // I2C access should always have a i2cAddress
+  CHECK(param.i2cAddress.has_value());
+  auto i2cAddress = *(param.i2cAddress);
+  auto offset = param.offset;
+  auto len = param.len;
   EXPECT_TRUE(i2cAddress == 0x50 || i2cAddress == 0x51);
   // Throw a forced exception when asked to do so
   if (throwReadExceptionForMgmtInterface_ ||

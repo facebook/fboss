@@ -667,10 +667,10 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
 
-  uint8_t transTech = *data >> DeviceTechnology::TRANSMITTER_TECH_SHIFT;
-  if (transTech == DeviceTechnology::UNKNOWN_VALUE) {
+  uint8_t transTech = *data >> DeviceTechnologySff::TRANSMITTER_TECH_SHIFT;
+  if (transTech == DeviceTechnologySff::UNKNOWN_VALUE_SFF) {
     return TransmitterTechnology::UNKNOWN;
-  } else if (transTech <= DeviceTechnology::OPTICAL_MAX_VALUE) {
+  } else if (transTech <= DeviceTechnologySff::OPTICAL_MAX_VALUE_SFF) {
     return TransmitterTechnology::OPTICAL;
   } else {
     return TransmitterTechnology::COPPER;

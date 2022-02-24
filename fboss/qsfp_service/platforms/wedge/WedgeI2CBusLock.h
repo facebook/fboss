@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 
 #include <folly/Range.h>
 #include <mutex>
@@ -28,15 +29,11 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   void close() override;
   void moduleRead(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* buf) override;
   void moduleWrite(
       unsigned int module,
-      uint8_t i2cAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       const uint8_t* buf) override;
   void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
