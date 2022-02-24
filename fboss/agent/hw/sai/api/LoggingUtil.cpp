@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 #include <folly/Format.h>
@@ -317,6 +318,41 @@ sai_log_level_t saiLogLevelFromString(const std::string& logLevel) {
     return SAI_LOG_LEVEL_DEBUG;
   } else {
     throw FbossError("invalid log level set", logLevel);
+  }
+}
+
+folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
+  switch (rxReason) {
+    case cfg::PacketRxReason::ARP:
+      return "arp-request";
+    case cfg::PacketRxReason::ARP_RESPONSE:
+      return "arp-response";
+    case cfg::PacketRxReason::NDP:
+      return "ipv6-ndp-discovery";
+    case cfg::PacketRxReason::CPU_IS_NHOP:
+      return "ip2me";
+    case cfg::PacketRxReason::DHCP:
+      return "dhcp";
+    case cfg::PacketRxReason::LLDP:
+      return "lldp";
+    case cfg::PacketRxReason::BGP:
+      return "bgp";
+    case cfg::PacketRxReason::BGPV6:
+      return "bgpv6";
+    case cfg::PacketRxReason::LACP:
+      return "lacp";
+    case cfg::PacketRxReason::L3_MTU_ERROR:
+      return "l3-mtu-error";
+    case cfg::PacketRxReason::TTL_1:
+      return "ttl-error";
+    case cfg::PacketRxReason::MPLS_TTL_1:
+      return "mpls-ttl-error";
+    case cfg::PacketRxReason::DHCPV6:
+      return "dhcpv6";
+    case cfg::PacketRxReason::SAMPLEPACKET:
+      return "samplepacket";
+    default:
+      return "unknown-trap";
   }
 }
 

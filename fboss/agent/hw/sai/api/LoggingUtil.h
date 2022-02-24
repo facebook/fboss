@@ -23,6 +23,7 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType);
 folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType);
 folly::StringPiece saiStatusToString(sai_status_t status);
 sai_log_level_t saiLogLevelFromString(const std::string& logLevel);
+folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason);
 
 } // namespace facebook::fboss
 
