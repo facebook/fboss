@@ -129,7 +129,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           if (profile.first ==
               cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL) {
             verifyTxSettings(*tx, {0, -6, 69, 0, 0, 0});
-          } else {
+          } else if (
+              profile.first !=
+              cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL) {
             verifyTxSettings(*tx, {0, -8, 89, 0, 0, 0});
           }
         } else if (
@@ -175,6 +177,62 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
             uplinkTx.first));
+    EXPECT_EQ(pinCfgs.size(), 4);
+    for (auto pinCfg : pinCfgs) {
+      auto tx = pinCfg.tx_ref();
+      EXPECT_TRUE(tx.has_value());
+      verifyTxSettings(*tx, uplinkTx.second);
+    }
+  }
+
+  std::unordered_map<PortID, std::array<int, 6>> downlinkTxMapForProfile23 = {
+      {PortID(20), {0, -2, 94, -24, 0, 0}},
+      {PortID(24), {0, -4, 89, -24, 0, 0}},
+
+      {PortID(28), {0, -2, 94, -22, 0, 0}},
+      {PortID(32), {0, -2, 94, -22, 0, 0}},
+      {PortID(40), {0, -2, 94, -22, 0, 0}},
+
+      {PortID(44), {0, -2, 88, -20, 0, 0}},
+      {PortID(48), {0, -2, 88, -20, 0, 0}},
+      {PortID(52), {0, -2, 88, -18, 0, 0}},
+      {PortID(1), {0, -2, 94, -22, 0, 0}},
+      {PortID(5), {0, -4, 89, -24, 0, 0}},
+      {PortID(9), {0, -2, 92, -20, 0, 0}},
+      {PortID(13), {0, -2, 92, -22, 0, 0}},
+      {PortID(60), {0, -2, 66, -8, 0, 0}},
+      {PortID(64), {0, 0, 88, -16, 0, 0}},
+
+      {PortID(68), {0, -2, 66, -8, 0, 0}},
+      {PortID(72), {0, -2, 66, -8, 0, 0}},
+      {PortID(80), {0, -2, 66, -8, 0, 0}},
+      {PortID(84), {0, -2, 66, -8, 0, 0}},
+      {PortID(88), {0, -2, 66, -10, 0, 0}},
+
+      {PortID(92), {0, 0, 88, -16, 0, 0}},
+      {PortID(140), {0, -2, 92, -20, 0, 0}},
+      {PortID(144), {0, -2, 90, -20, 0, 0}},
+      {PortID(148), {0, -2, 94, -22, 0, 0}},
+      {PortID(152), {0, -6, 94, -24, 0, 0}},
+      {PortID(100), {0, -2, 92, -22, 0, 0}},
+      {PortID(104), {0, -2, 92, -22, 0, 0}},
+      {PortID(108), {0, -2, 90, -20, 0, 0}},
+      {PortID(112), {0, -2, 90, -20, 0, 0}},
+
+      {PortID(120), {0, -6, 94, -24, 0, 0}},
+      {PortID(124), {0, -6, 94, -24, 0, 0}},
+
+      {PortID(128), {0, -6, 94, -22, 0, 0}},
+      {PortID(132), {0, -6, 94, -22, 0, 0}},
+  };
+
+  for (auto uplinkTx : downlinkTxMapForProfile23) {
+    // this is profile 23
+    const auto& pinCfgs =
+        mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL,
+            uplinkTx.first));
+
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
       auto tx = pinCfg.tx_ref();
