@@ -36,6 +36,27 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       return;
     }
 
+    /*
+     * ACL1:: Matcher: ICP DSCP. Action: Increment stat.
+     * ACL2:: Matcher: L4SrcPort/L4DstPort. Action: SET_DSCP, SET_TC.
+     *
+     * ACL1 precedes ACL2.
+     * ACL2 mimics prod ACL, ACL1 is used only for test verification.
+     *
+     * Inject a pkt with dscp = 0, l4SrcPort matching ACL2:
+     *   - The packet will match ACL2, thus SET_DSCP, SET_TC.
+     *   - Verify ICP queue counters (verifies SET_TC action).
+     *   - Packet egress via front panel port which is in loopback mode.
+     *   - Thus, packet gets looped back.
+     *   - Verify ACL1 counter (verifies SET_DSCP action).
+     *
+     * Inject a pkt with dscp = ICP DSCP, l4SrcPort matching ACL2:
+     *   - The packet will match ACL1, thus counter incremented.
+     *   - Packet egress via front panel port which is in loopback mode.
+     *   - Thus, packet gets looped back.
+     *   - Hits ACL1 again, and thus counter incremented twice.
+     */
+
     // TODO
   }
 
