@@ -15,6 +15,10 @@
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestWatermarkUtils.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
@@ -299,6 +303,140 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  void waitForExpectedThresholdTestStats(
+      bool isEcn,
+      PortID port,
+      const int queueId,
+      const uint64_t expectedOutPkts,
+      HwPortStats& before) {
+    auto waitForExpectedOutPackets = [&](const auto& newStats) {
+      uint64_t outPackets{0}, wredDrops{0}, ecnMarking{0};
+      auto portStatsIter = newStats.find(port);
+      if (portStatsIter != newStats.end()) {
+        auto portStats = portStatsIter->second;
+        outPackets = (*portStats.queueOutPackets__ref())[queueId] -
+            (*before.queueOutPackets__ref())[queueId];
+        if (isEcn) {
+          ecnMarking =
+              *portStats.outEcnCounter__ref() - *before.outEcnCounter__ref();
+        } else {
+          wredDrops = *portStats.wredDroppedPackets__ref() -
+              *before.wredDroppedPackets__ref();
+        }
+      }
+      /*
+       * Check for outpackets as expected and ensure that ECN or WRED
+       * counters are incrementing too!
+       */
+      return (outPackets >= expectedOutPkts) &&
+          ((isEcn && ecnMarking) || (!isEcn && wredDrops));
+    };
+
+    constexpr auto kNumRetries{5};
+    getHwSwitchEnsemble()->waitPortStatsCondition(
+        waitForExpectedOutPackets,
+        kNumRetries,
+        std::chrono::milliseconds(std::chrono::seconds(1)));
+  }
+
+  void runEcnWredThresholdTest(bool isEcn) {
+    constexpr auto kQueueId{0};
+    constexpr auto kPayloadLength{200};
+    constexpr auto kDroppedPackets{50};
+    constexpr auto kMarkedPackets{50};
+
+    const int kTxPacketLen =
+        kPayloadLength + EthHdr::SIZE + IPv6Hdr::size() + TCPHeader::size();
+    const int kThresholdBytes = isEcn
+        ? utility::kQueueConfigAqmsEcnThresholdMinMax
+        : utility::kQueueConfigAqmsWredThresholdMinMax;
+    /*
+     * The ECN/WRED threshold are rounded down for TAJO as opposed to
+     * being rounded up to the next cell size for Broadcom.
+     */
+    bool roundUp = getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO
+        ? false
+        : true;
+
+    /*
+     * Send enough packets such that the queue gets filled up to the
+     * configured ECN/WRED threshold, then send a fixed number of
+     * additional packets to get marked / dropped.
+     */
+    int numPacketsToSend = utility::getRoundedBufferThreshold(
+                               getHwSwitch(), kThresholdBytes, roundUp) /
+            utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen) +
+        (isEcn ? kMarkedPackets : kDroppedPackets);
+    XLOG(DBG3) << "Rounded threshold: "
+               << utility::getRoundedBufferThreshold(
+                      getHwSwitch(), kThresholdBytes)
+               << ", effective bytes per pkt: "
+               << utility::getEffectiveBytesPerPacket(
+                      getHwSwitch(), kTxPacketLen)
+               << ", kTxPacketLen: " << kTxPacketLen
+               << ", pkts to send: " << numPacketsToSend;
+
+    auto setup = [=]() {
+      auto config{initialConfig()};
+      queueEcnWredThresholdSetup(isEcn, {kQueueId}, config);
+      applyNewConfig(config);
+
+      // No traffic loop needed, so send traffic to a different MAC
+      auto kEcmpWidthForTest = 1;
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(),
+          utility::MacAddressGenerator().get(getIntfMac().u64NBO() + 10)};
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+    };
+
+    auto verify = [=]() {
+      auto sendPackets = [=](PortID /* port */, int numPacketsToSend) {
+        // Single port config, traffic gets forwarded out of the same!
+        sendPkts(
+            utility::kOlympicQueueToDscp().at(kQueueId).front(),
+            isEcn,
+            numPacketsToSend,
+            kPayloadLength);
+      };
+
+      // Send traffic with queue buildup and get the stats at the start!
+      auto before = utility::sendPacketsWithQueueBuildup(
+          sendPackets,
+          getHwSwitchEnsemble(),
+          masterLogicalPortIds()[0],
+          numPacketsToSend);
+
+      // For ECN all packets are sent out, for WRED, account for drops!
+      const uint64_t kExpectedOutPackets =
+          isEcn ? numPacketsToSend : numPacketsToSend - kDroppedPackets;
+
+      waitForExpectedThresholdTestStats(
+          isEcn,
+          masterLogicalPortIds()[0],
+          kQueueId,
+          kExpectedOutPackets,
+          before);
+      auto after =
+          getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+      auto deltaOutPackets = (*after.queueOutPackets__ref())[kQueueId] -
+          (*before.queueOutPackets__ref())[kQueueId];
+      /*
+       * Might see more outPackets than expected due to
+       * utility::sendPacketsWithQueueBuildup()
+       */
+      EXPECT_GE(deltaOutPackets, kExpectedOutPackets);
+      XLOG(DBG0) << "Delta out pkts: " << deltaOutPackets;
+
+      if (isEcn) {
+        verifyEcnMarkedPacketCount(after, before, kMarkedPackets);
+      } else {
+        verifyWredDroppedPacketCount(after, before, kDroppedPackets);
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
 };
 
 TEST_F(HwAqmTest, verifyEcn) {
@@ -312,4 +450,9 @@ TEST_F(HwAqmTest, verifyWred) {
 TEST_F(HwAqmTest, verifyWredDrop) {
   runWredDropTest();
 }
+
+TEST_F(HwAqmTest, verifyWredThreshold) {
+  runEcnWredThresholdTest(false /* isEcn */);
+}
+
 } // namespace facebook::fboss
