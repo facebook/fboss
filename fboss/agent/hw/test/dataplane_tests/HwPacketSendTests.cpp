@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "folly/Utility.h"
@@ -35,6 +36,31 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
   }
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
+  void waitForTxDoneOnPort(
+      PortID port,
+      uint64_t expectedOutPkts,
+      HwPortStats& before) {
+    auto waitForExpectedOutPackets = [&](const auto& newStats) {
+      uint64_t outPackets{0}, outDiscards{0};
+      auto portStatsIter = newStats.find(port);
+      if (portStatsIter != newStats.end()) {
+        auto portStats = portStatsIter->second;
+        outPackets =
+            portStats.get_outUnicastPkts_() - before.get_outUnicastPkts_();
+        outDiscards = portStats.get_outDiscards_() - before.get_outDiscards_();
+      }
+      // Check to see if outPackets + outDiscards add up to the expected!
+      XLOG(DBG3) << "Port: " << port << ", out packets: " << outPackets
+                 << ", discarded packets: " << outDiscards;
+      return outPackets + outDiscards >= expectedOutPkts;
+    };
+
+    constexpr auto kNumRetries{3};
+    getHwSwitchEnsemble()->waitPortStatsCondition(
+        waitForExpectedOutPackets,
+        kNumRetries,
+        std::chrono::milliseconds(std::chrono::seconds(1)));
   }
 };
 
@@ -238,6 +264,91 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
           *portStatsAfter.outBroadcastPkts__ref() -
               *portStatsBefore.outBroadcastPkts__ref());
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwPacketSendTest, PortTxEnableTest) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    constexpr auto kNumPacketsToSend{100};
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+
+    auto sendTcpPkts = [=](int numPacketsToSend) {
+      int dscpVal = 0;
+      for (int i = 0; i < numPacketsToSend; i++) {
+        auto kECT1 = 0x01; // ECN capable transport ECT(1)
+        constexpr auto kPayLoadLen{200};
+        auto txPacket = utility::makeTCPTxPacket(
+            getHwSwitch(),
+            vlanId,
+            srcMac,
+            intfMac,
+            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+            8001,
+            8000,
+            /*
+             * Trailing 2 bits are for ECN, we do not want drops in
+             * these queues due to WRED thresholds!
+             */
+            static_cast<uint8_t>(dscpVal << 2 | kECT1),
+            255,
+            std::vector<uint8_t>(kPayLoadLen, 0xff));
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), masterLogicalPortIds()[0]);
+      }
+    };
+
+    auto getOutPacketDelta = [](auto& after, auto& before) {
+      return (
+          (*after.outMulticastPkts__ref() + *after.outBroadcastPkts__ref() +
+           *after.outUnicastPkts__ref()) -
+          (*before.outMulticastPkts__ref() + *before.outBroadcastPkts__ref() +
+           *before.outUnicastPkts__ref()));
+    };
+
+    // Disable TX on port
+    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], false);
+
+    auto portStatsT0 = getLatestPortStats(masterLogicalPortIds()[0]);
+    sendTcpPkts(kNumPacketsToSend);
+    // We don't know how many packets will get out, wait for atleast 1.
+    waitForTxDoneOnPort(masterLogicalPortIds()[0], 1, portStatsT0);
+
+    auto portStatsT1 = getLatestPortStats(masterLogicalPortIds()[0]);
+    /*
+     * Most platforms would allow some packets to be TXed even after TX
+     * disable is set. But after the initial set of packets TX, no further
+     * TX happens, verify the same.
+     */
+    sendTcpPkts(kNumPacketsToSend);
+    auto portStatsT2 = getLatestPortStats(masterLogicalPortIds()[0]);
+
+    // Enable TX on port, and wait for a while for packets to TX
+    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], true);
+    /*
+     * For most platforms where TX disable will not drop traffic, will have
+     * the out count increment. However, there are implementations like in
+     * native TH where the packets are just dropped and TH4 where there is
+     * no accounting for these packets at all. Below API would wait for out
+     * or drop counts to increment, if neither, return after a timeout.
+     */
+    waitForTxDoneOnPort(
+        masterLogicalPortIds()[0], kNumPacketsToSend * 2, portStatsT0);
+
+    auto portStatsT3 = getLatestPortStats(masterLogicalPortIds()[0]);
+    XLOG(DBG0) << "Expected number of packets to be TXed: "
+               << kNumPacketsToSend * 2;
+    XLOG(DBG0) << "Delta packets during test, T0:T1 -> "
+               << getOutPacketDelta(portStatsT1, portStatsT0) << ", T1:T2 -> "
+               << getOutPacketDelta(portStatsT2, portStatsT1) << ", T2:T3 -> "
+               << getOutPacketDelta(portStatsT3, portStatsT2);
+
+    // TX disable works if no TX is seen between T1 and T2
+    EXPECT_EQ(0, getOutPacketDelta(portStatsT2, portStatsT1));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
