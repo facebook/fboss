@@ -46,7 +46,7 @@ size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int packetSizeInBytes);
  * to build up to a specific number of packets, need to account for the packets
  * if any that gets TXed after TX is disabled and send that many packets again.
  */
-void sendPacketsWithQueueBuildup(
+HwPortStats sendPacketsWithQueueBuildup(
     std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
     HwSwitchEnsemble* ensemble,
     PortID port,

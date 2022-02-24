@@ -73,7 +73,7 @@ size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int pktSizeBytes) {
   return effectiveBytesPerPkt;
 }
 
-void sendPacketsWithQueueBuildup(
+HwPortStats sendPacketsWithQueueBuildup(
     std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
     HwSwitchEnsemble* ensemble,
     PortID port,
@@ -93,13 +93,35 @@ void sendPacketsWithQueueBuildup(
    */
   CHECK_GE(numPackets, 5) << "Number of packets to send should be >= 5";
   int eightyPercentPackets = (numPackets * 80) / 100;
-  auto stats0 = ensemble->getLatestPortStats(port);
+  auto statsAtStart = ensemble->getLatestPortStats(port);
   // Disable TX to allow queue to build up
   utility::setPortTxEnable(ensemble->getHwSwitch(), port, false);
   sendPktsFn(port, eightyPercentPackets);
 
-  auto stats1 = ensemble->getLatestPortStats(port);
-  auto txedPackets = getOutPacketDelta(stats1, stats0);
+  auto waitForStatsIncrement = [&](const auto& newStats) {
+    static auto prevStats = statsAtStart;
+    auto portStatsIter = newStats.find(port);
+    uint64_t netOut{0}, newOut{0};
+    if (portStatsIter != newStats.end()) {
+      netOut = getOutPacketDelta(portStatsIter->second, statsAtStart);
+      newOut = getOutPacketDelta(portStatsIter->second, prevStats);
+    }
+    prevStats = portStatsIter->second;
+    /*
+     * Wait for stats to be different from statsAtStart, but remains
+     * the same for atleast one iteration, to ensure stats stop
+     * incrementing before we return
+     */
+    return netOut > 0 && newOut == 0;
+  };
+
+  constexpr auto kNumRetries{5};
+  ensemble->waitPortStatsCondition(
+      waitForStatsIncrement,
+      kNumRetries,
+      std::chrono::milliseconds(std::chrono::seconds(1)));
+  auto statsWithTxDisabled = ensemble->getLatestPortStats(port);
+  auto txedPackets = getOutPacketDelta(statsWithTxDisabled, statsAtStart);
   /*
    * The expectation is that 80% of packets is sufficiently
    * large to have some packets TXed out and some remain in
@@ -111,6 +133,7 @@ void sendPacketsWithQueueBuildup(
       << "Need to send more than " << numPackets
       << " packets to trigger queue build up";
 
+  XLOG(DBG3) << "Number of packets TXed with TX disable set is " << txedPackets;
   /*
    * TXed packets dont contribute to queue build up, hence send
    * those many packets again to build the queue as expected, along
@@ -120,6 +143,9 @@ void sendPacketsWithQueueBuildup(
 
   // Enable TX to send traffic out
   utility::setPortTxEnable(ensemble->getHwSwitch(), port, true);
+
+  // Return the stats before numPackets were sent
+  return statsWithTxDisabled;
 }
 
 }; // namespace facebook::fboss::utility
