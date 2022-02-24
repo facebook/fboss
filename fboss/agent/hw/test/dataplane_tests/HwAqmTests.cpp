@@ -23,6 +23,8 @@ namespace facebook::fboss {
 
 class HwAqmTest : public HwLinkStateDependentTest {
  private:
+  static constexpr auto kDefaultTxPayloadBytes{7000};
+
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
@@ -64,7 +66,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendPkt(uint8_t dscpVal, bool isEcn, bool ensure = false) {
+  void sendPkt(
+      uint8_t dscpVal,
+      bool isEcn,
+      bool ensure = false,
+      int payloadLen = kDefaultTxPayloadBytes) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
 
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
@@ -86,7 +92,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
         8001,
         dscpVal,
         255,
-        std::vector<uint8_t>(7000, 0xff));
+        std::vector<uint8_t>(payloadLen, 0xff));
 
     if (ensure) {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
@@ -100,9 +106,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
    * 128, a packet count of 128 has been enough to cause ECN marking. Inject
    * 128 * 2 packets to avoid test noise.
    */
-  void sendPkts(uint8_t dscpVal, bool isEcn, int cnt = 256) {
+  void sendPkts(
+      uint8_t dscpVal,
+      bool isEcn,
+      int cnt = 256,
+      int payloadLen = kDefaultTxPayloadBytes) {
     for (int i = 0; i < cnt; i++) {
-      sendPkt(dscpVal, isEcn);
+      sendPkt(dscpVal, isEcn, false /* ensure */, payloadLen);
     }
   }
   folly::MacAddress getIntfMac() const {
