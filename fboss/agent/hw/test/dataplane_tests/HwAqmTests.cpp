@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -32,7 +33,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic(), true /*add wred*/);
+          &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg);
     }
     return cfg;
@@ -45,6 +46,19 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
       utility::addQueueWredDropConfig(&cfg, streamType);
+      utility::addOlympicQosMaps(cfg);
+    }
+    return cfg;
+  }
+
+  cfg::SwitchConfig configureQueue2WithWredThreshold() const {
+    auto cfg = utility::oneL3IntfConfig(
+        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(
+          &cfg, streamType, getPlatform()->getAsic(), true /*add wred*/);
       utility::addOlympicQosMaps(cfg);
     }
     return cfg;
@@ -120,6 +134,28 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
   }
 
+  void queueEcnWredThresholdSetup(
+      bool isEcn,
+      std::vector<int> queueIds,
+      cfg::SwitchConfig& cfg) {
+    for (auto queueId : queueIds) {
+      if (isEcn) {
+        utility::addQueueEcnConfig(
+            &cfg,
+            queueId,
+            utility::kQueueConfigAqmsEcnThresholdMinMax,
+            utility::kQueueConfigAqmsEcnThresholdMinMax);
+      } else {
+        utility::addQueueWredConfig(
+            &cfg,
+            queueId,
+            utility::kQueueConfigAqmsWredThresholdMinMax,
+            utility::kQueueConfigAqmsWredThresholdMinMax,
+            utility::kQueueConfigAqmsWredDropProbability);
+      }
+    }
+  }
+
  protected:
   void runTest(bool isEcn) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
@@ -129,6 +165,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       return;
     }
     auto setup = [=]() {
+      applyNewConfig(configureQueue2WithWredThreshold());
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(), getIntfMac()};
