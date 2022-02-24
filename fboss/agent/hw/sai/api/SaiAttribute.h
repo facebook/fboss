@@ -438,6 +438,14 @@ void _realloc(const SrcT& src, DstT& dst) {
   XLOG(FATAL) << "Unexpected call to fully generic _realloc";
 }
 
+inline void _realloc(
+    const sai_acl_action_data_t& src,
+    facebook::fboss::AclEntryActionSaiObjectIdList& dst) {
+  std::vector<sai_object_id_t> dstData(src.parameter.objlist.count);
+  dstData.resize(src.parameter.objlist.count);
+  dst.setData(dstData);
+}
+
 template <typename SaiListT, typename T>
 void _realloc(const SaiListT& src, std::vector<T>& dst) {
   static_assert(
