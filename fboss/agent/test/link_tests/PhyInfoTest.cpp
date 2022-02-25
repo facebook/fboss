@@ -77,6 +77,9 @@ void validatePhyInfo(
           }
         }
       }
+      if (auto snrRef = lane.second.snr()) {
+        EXPECT_NE(*snrRef, 0.0);
+      }
       // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
       // sdk >= 6.5.24
     }
