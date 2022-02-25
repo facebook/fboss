@@ -20,6 +20,7 @@
 #include "fboss/agent/state/VlanMap.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/types.h"
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -88,7 +89,65 @@ VlanFields::VlanFields(
       ndpResponseTable(make_shared<NdpResponseTable>()),
       macTable(make_shared<MacTable>()) {}
 
-folly::dynamic VlanFields::toFollyDynamic() const {
+state::VlanFields VlanFields::toThrift() const {
+  auto vlanTh = state::VlanFields();
+  vlanTh.vlanId() = id;
+  vlanTh.vlanName() = name;
+  vlanTh.intfID() = intfID;
+  vlanTh.dhcpV4Relay() = dhcpV4Relay.str();
+  vlanTh.dhcpV6Relay() = dhcpV6Relay.str();
+  for (const auto& [mac, ip] : dhcpRelayOverridesV4) {
+    vlanTh.dhcpRelayOverridesV4()[mac.toString()] = ip.str();
+  }
+  for (const auto& [mac, ip] : dhcpRelayOverridesV6) {
+    vlanTh.dhcpRelayOverridesV6()[mac.toString()] = ip.str();
+  }
+  for (const auto& [portId, memberPort] : ports) {
+    folly::dynamic portInfo = folly::dynamic::object;
+    vlanTh.ports()[portId] = memberPort.tagged;
+  }
+  vlanTh.arpTable() = arpTable->toThrift();
+  vlanTh.ndpTable() = ndpTable->toThrift();
+  vlanTh.arpResponseTable() = arpResponseTable->toThrift();
+  vlanTh.ndpResponseTable() = ndpResponseTable->toThrift();
+  vlanTh.macTable() = macTable->toThrift();
+
+  return vlanTh;
+}
+
+VlanFields VlanFields::fromThrift(const state::VlanFields& vlanTh) {
+  auto id = VlanID(vlanTh.get_vlanId());
+  auto name = vlanTh.get_vlanName();
+  auto intfID = InterfaceID(vlanTh.get_intfID());
+  auto dhcpV4Relay = folly::IPAddressV4(vlanTh.get_dhcpV4Relay());
+  auto dhcpV6Relay = folly::IPAddressV6(vlanTh.get_dhcpV6Relay());
+  MemberPorts ports;
+  for (const auto& [portId, tagged] : vlanTh.get_ports()) {
+    ports.emplace(portId, tagged);
+  }
+
+  auto vlan =
+      VlanFields(id, name, intfID, dhcpV4Relay, dhcpV6Relay, std::move(ports));
+
+  for (const auto& [mac, ip] : vlanTh.get_dhcpRelayOverridesV4()) {
+    vlan.dhcpRelayOverridesV4.emplace(MacAddress(mac), folly::IPAddressV4(ip));
+  }
+  for (const auto& [mac, ip] : vlanTh.get_dhcpRelayOverridesV6()) {
+    vlan.dhcpRelayOverridesV6.emplace(MacAddress(mac), folly::IPAddressV6(ip));
+  }
+
+  vlan.arpTable = ArpTable::fromThrift(vlanTh.get_arpTable());
+  vlan.ndpTable = NdpTable::fromThrift(vlanTh.get_ndpTable());
+  vlan.arpResponseTable =
+      ArpResponseTable::fromThrift(vlanTh.get_arpResponseTable());
+  vlan.ndpResponseTable =
+      NdpResponseTable::fromThrift(vlanTh.get_ndpResponseTable());
+  vlan.macTable = MacTable::fromThrift(vlanTh.get_macTable());
+
+  return vlan;
+}
+
+folly::dynamic VlanFields::toFollyDynamicLegacy() const {
   folly::dynamic vlan = folly::dynamic::object;
   vlan[kVlanId] = static_cast<uint16_t>(id);
   vlan[kVlanName] = name;
@@ -110,15 +169,15 @@ folly::dynamic VlanFields::toFollyDynamic() const {
         port.second.toFollyDynamic();
   }
   vlan[kMemberPorts] = memberPorts;
-  vlan[kArpTable] = arpTable->toFollyDynamic();
-  vlan[kNdpTable] = ndpTable->toFollyDynamic();
-  vlan[kArpResponseTable] = arpResponseTable->toFollyDynamic();
-  vlan[kNdpResponseTable] = ndpResponseTable->toFollyDynamic();
-  vlan[kMacTable] = macTable->toFollyDynamic();
+  vlan[kArpTable] = arpTable->toFollyDynamicLegacy();
+  vlan[kNdpTable] = ndpTable->toFollyDynamicLegacy();
+  vlan[kArpResponseTable] = arpResponseTable->toFollyDynamicLegacy();
+  vlan[kNdpResponseTable] = ndpResponseTable->toFollyDynamicLegacy();
+  vlan[kMacTable] = macTable->toFollyDynamicLegacy();
   return vlan;
 }
 
-VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
+VlanFields VlanFields::fromFollyDynamicLegacy(const folly::dynamic& vlanJson) {
   VlanFields vlan(
       VlanID(vlanJson[kVlanId].asInt()), vlanJson[kVlanName].asString());
   vlan.intfID = InterfaceID(vlanJson[kIntfID].asInt());
@@ -149,10 +208,78 @@ VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
   return vlan;
 }
 
-Vlan::Vlan(VlanID id, string name) : NodeBaseT(id, std::move(name)) {}
+folly::dynamic VlanFields::migrateToThrifty(const folly::dynamic& dyn) {
+  folly::dynamic newDyn = dyn;
+
+  // memberPorts used to be a map<id, PortInfo> but changing this to
+  // map<id, bool> since the tagged field is the only thing in PortInfo.
+  // renaming to "port" so we can support both for backwards compatibility
+  folly::dynamic newPorts = folly::dynamic::object();
+  for (const auto& [portId, info] : newDyn[kMemberPorts].items()) {
+    auto portInfo = PortInfo::fromFollyDynamic(info);
+    newPorts[portId] = portInfo.tagged;
+  }
+  newDyn["ports"] = newPorts;
+  newDyn[kArpTable] = ArpTable::migrateToThrifty(newDyn[kArpTable]);
+  newDyn[kNdpTable] = NdpTable::migrateToThrifty(newDyn[kNdpTable]);
+  newDyn[kArpResponseTable] =
+      ArpResponseTable::migrateToThrifty(newDyn[kArpResponseTable]);
+  newDyn[kNdpResponseTable] =
+      NdpResponseTable::migrateToThrifty(newDyn[kNdpResponseTable]);
+  newDyn[kMacTable] = MacTable::migrateToThrifty(newDyn[kMacTable]);
+
+  return newDyn;
+}
+void VlanFields::migrateFromThrifty(folly::dynamic& dyn) {
+  folly::dynamic legacyMemberPorts = folly::dynamic::object();
+  for (const auto& [portId, tagged] : dyn["ports"].items()) {
+    auto portInfo = PortInfo(tagged.asBool());
+    legacyMemberPorts[portId] = portInfo.toFollyDynamic();
+  }
+  dyn[kMemberPorts] = legacyMemberPorts;
+
+  ArpTable::migrateFromThrifty(dyn[kArpTable]);
+  NdpTable::migrateFromThrifty(dyn[kNdpTable]);
+  ArpResponseTable::migrateFromThrifty(dyn[kArpResponseTable]);
+  NdpResponseTable::migrateFromThrifty(dyn[kNdpResponseTable]);
+  MacTable::migrateFromThrifty(dyn[kMacTable]);
+}
+
+bool VlanFields::operator==(const VlanFields& o) const {
+  return std::tie(
+             id,
+             name,
+             intfID,
+             dhcpV4Relay,
+             dhcpV6Relay,
+             dhcpRelayOverridesV4,
+             dhcpRelayOverridesV6,
+             ports,
+             *arpTable,
+             *ndpTable,
+             *arpResponseTable,
+             *ndpResponseTable,
+             *macTable) ==
+      std::tie(
+             o.id,
+             o.name,
+             o.intfID,
+             o.dhcpV4Relay,
+             o.dhcpV6Relay,
+             o.dhcpRelayOverridesV4,
+             o.dhcpRelayOverridesV6,
+             o.ports,
+             *o.arpTable,
+             *o.ndpTable,
+             *o.arpResponseTable,
+             *o.ndpResponseTable,
+             *o.macTable);
+}
+
+Vlan::Vlan(VlanID id, string name) : ThriftyBaseT(id, std::move(name)) {}
 
 Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
-    : NodeBaseT(
+    : ThriftyBaseT(
           VlanID(*config->id_ref()),
           *config->name_ref(),
           (config->intfID_ref() ? InterfaceID(*config->intfID_ref())

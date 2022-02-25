@@ -52,6 +52,9 @@ TEST(Vlan, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
+
+  validateThriftyMigration(*vlanV0);
+
   stateV0->addVlan(vlanV0);
   stateV0->registerPort(PortID(1), "port1");
   stateV0->registerPort(PortID(2), "port2");
@@ -105,6 +108,9 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(expectedPorts, vlanV1->getPorts());
   EXPECT_EQ(0, vlanV1->getArpResponseTable()->getTable().size());
   EXPECT_EQ(InterfaceID(1), vlanV1->getInterfaceID());
+
+  validateThriftyMigration(*vlanV0);
+  validateThriftyMigration(*vlanV1);
 
   auto map4 = vlanV1->getDhcpV4RelayOverrides();
   EXPECT_EQ(

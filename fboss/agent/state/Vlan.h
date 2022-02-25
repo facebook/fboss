@@ -12,12 +12,14 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/MacTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -34,12 +36,10 @@ namespace cfg {
 class Vlan;
 }
 
-typedef boost::container::flat_map<folly::MacAddress, folly::IPAddressV4>
-    DhcpV4OverrideMap;
-typedef boost::container::flat_map<folly::MacAddress, folly::IPAddressV6>
-    DhcpV6OverrideMap;
+using DhcpV4OverrideMap = std::map<folly::MacAddress, folly::IPAddressV4>;
+using DhcpV6OverrideMap = std::map<folly::MacAddress, folly::IPAddressV6>;
 
-struct VlanFields {
+struct VlanFields : public ThriftyFields {
   struct PortInfo {
     explicit PortInfo(bool emitTags) : tagged(emitTags) {}
     bool operator==(const PortInfo& other) const {
@@ -72,8 +72,16 @@ struct VlanFields {
     fn(macTable.get());
   }
 
-  folly::dynamic toFollyDynamic() const;
-  static VlanFields fromFollyDynamic(const folly::dynamic& vlanJson);
+  state::VlanFields toThrift() const;
+  static VlanFields fromThrift(const state::VlanFields& vlanTh);
+  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
+  folly::dynamic toFollyDynamicLegacy() const;
+  static VlanFields fromFollyDynamicLegacy(const folly::dynamic& vlanJson);
+
+  // used primarily for testing
+  bool operator==(const VlanFields& other) const;
 
   const VlanID id{0};
   std::string name;
@@ -99,7 +107,7 @@ struct VlanFields {
   std::shared_ptr<MacTable> macTable;
 };
 
-class Vlan : public NodeBaseT<Vlan, VlanFields> {
+class Vlan : public ThriftyBaseT<state::VlanFields, Vlan, VlanFields> {
  public:
   typedef VlanFields::PortInfo PortInfo;
   typedef VlanFields::MemberPorts MemberPorts;
@@ -107,17 +115,18 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, MemberPorts ports);
 
-  static std::shared_ptr<Vlan> fromFollyDynamic(const folly::dynamic& json) {
-    const auto& fields = VlanFields::fromFollyDynamic(json);
+  static std::shared_ptr<Vlan> fromFollyDynamicLegacy(
+      const folly::dynamic& json) {
+    const auto& fields = VlanFields::fromFollyDynamicLegacy(json);
     return std::make_shared<Vlan>(fields);
   }
 
   static std::shared_ptr<Vlan> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
+    return fromFollyDynamicLegacy(folly::parseJson(jsonStr));
   }
 
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+  folly::dynamic toFollyDynamicLegacy() const {
+    return getFields()->toFollyDynamicLegacy();
   }
 
   VlanID getID() const {
@@ -250,7 +259,7 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

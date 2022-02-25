@@ -184,6 +184,22 @@ struct NeighborResponseEntryFields {
   3: i32 interfaceId;
 }
 
+struct VlanFields {
+  1: i16 vlanId;
+  2: string vlanName;
+  3: i32 intfID;
+  4: string dhcpV4Relay;
+  5: string dhcpV6Relay;
+  6: map<string, string> dhcpRelayOverridesV4;
+  7: map<string, string> dhcpRelayOverridesV6;
+  8: map<i16, bool> ports;
+  9: map<string, NeighborEntryFields> arpTable;
+  10: map<string, NeighborResponseEntryFields> arpResponseTable;
+  11: map<string, NeighborEntryFields> ndpTable;
+  12: map<string, NeighborResponseEntryFields> ndpResponseTable;
+  13: map<string, MacEntryFields> macTable;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
 }
