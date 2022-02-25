@@ -94,6 +94,10 @@ class ThriftyUtils {
         (a.has_value() && b.has_value() && listEq(*a, *b));
   }
 
+  static bool nodeNeedsMigration(const folly::dynamic& dyn) {
+    return !dyn.getDefault(kThriftySchemaUpToDate, false).asBool();
+  }
+
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
 };
 
@@ -128,11 +132,11 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
   }
 
   static std::shared_ptr<NodeMap> fromFollyDynamic(folly::dynamic const& dyn) {
-    if (dyn.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false).asBool()) {
+    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
+      return fromFollyDynamicImpl(NodeMap::migrateToThrifty(dyn));
+    } else {
       // Schema is up to date meaning there is not migration required
       return fromFollyDynamicImpl(dyn);
-    } else {
-      return fromFollyDynamicImpl(NodeMap::migrateToThrifty(dyn));
     }
   }
 
@@ -187,17 +191,14 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
    */
   static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
     folly::dynamic newItems = folly::dynamic::object;
-
     for (auto& item : dyn[kEntries]) {
-      if (item.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false)
-              .asBool()) {
+      if (ThriftyUtils::nodeNeedsMigration(item)) {
         newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] =
             TraitsT::Node::Fields::migrateToThrifty(item);
       } else {
         newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] = item;
       }
     }
-
     return newItems;
   }
 
@@ -272,11 +273,11 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   }
 
   static std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
-    if (dyn.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false).asBool()) {
-      // Schema is up to date meaning there is not migration required
-      return fromJson(folly::toJson(dyn));
-    } else {
+    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
       return fromJson(folly::toJson(FieldsT::migrateToThrifty(dyn)));
+    } else {
+      // Schema is up to date meaning there is no migration required
+      return fromJson(folly::toJson(dyn));
     }
   }
 
