@@ -90,6 +90,7 @@ SwitchStateFields::SwitchStateFields()
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
   state.portMap_ref() = ports->toThrift();
+  state.vlanMap_ref() = vlans->toThrift();
   return state;
 }
 
@@ -97,6 +98,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     const state::SwitchState& state) {
   auto fields = SwitchStateFields();
   fields.ports = PortMap::fromThrift(state.get_portMap());
+  fields.vlans = VlanMap::fromThrift(state.get_vlanMap());
   return fields;
 }
 

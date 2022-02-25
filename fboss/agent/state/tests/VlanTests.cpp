@@ -296,6 +296,8 @@ void checkChangedVlans(
         EXPECT_TRUE(ret.second);
       });
 
+  validateThriftyMigration(*oldVlans);
+  validateThriftyMigration(*newVlans);
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);

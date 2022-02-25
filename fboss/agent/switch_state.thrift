@@ -202,4 +202,5 @@ struct VlanFields {
 
 struct SwitchState {
   1: map<i16, PortFields> portMap;
+  2: map<i16, VlanFields> vlanMap;
 }

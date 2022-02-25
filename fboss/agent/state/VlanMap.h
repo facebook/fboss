@@ -10,7 +10,9 @@
 #pragma once
 
 #include <string>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -24,10 +26,19 @@ typedef NodeMapTraits<
     std::map<VlanID, std::shared_ptr<Vlan>>>
     VlanMapTraits;
 
+struct VlanMapThriftTraits
+    : public ThriftyNodeMapTraits<int16_t, state::VlanFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "vlanId";
+    return _key;
+  }
+};
+
 /*
  * A container for the set of VLANs.
  */
-class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
+class VlanMap
+    : public ThriftyNodeMapT<VlanMap, VlanMapTraits, VlanMapThriftTraits> {
  public:
   VlanMap();
   ~VlanMap() override;
@@ -86,7 +97,7 @@ class VlanMap : public NodeMapT<VlanMap, VlanMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 
