@@ -839,12 +839,30 @@ void SaiMacsecManager::setupMacsec(
   // Step4: Create the Macsec SA now
   // Input macsec key is a string which needs to be converted to 32 bytes
   // array for passing to sai
+
+  auto hexStringToBytes = [](const std::string& str,
+                             uint8_t* byteList,
+                             uint8_t dataLen) {
+    for (int i = 0; i < str.length(); i += 2) {
+      std::string byteAsStr = str.substr(i, 2);
+      uint8_t byte = (uint8_t)strtol(byteAsStr.c_str(), nullptr, 16);
+      if (i / 2 >= dataLen) {
+        XLOG(ERR) << folly::sformat(
+            "Key string (length: {:d}) can't fit in key byte array (length: {:d})",
+            str.length(),
+            dataLen);
+        break;
+      }
+      byteList[i / 2] = byte;
+    }
+  };
+
   if (sak.keyHex_ref()->size() < 32) {
     XLOG(ERR) << "Macsec key can't be lesser than 32 bytes";
     return;
   }
-  std::array<uint8_t, 32> key;
-  std::copy(sak.keyHex_ref()->begin(), sak.keyHex_ref()->end(), key.data());
+  std::array<uint8_t, 32> key{0};
+  hexStringToBytes(sak.keyHex_ref().value(), key.data(), 32);
 
   // Input macsec keyid (auth key) is provided in string which needs to be
   // converted to 16 byte array for passing to sai
@@ -853,9 +871,8 @@ void SaiMacsecManager::setupMacsec(
     return;
   }
 
-  std::array<uint8_t, 16> keyId;
-  std::copy(
-      sak.keyIdHex_ref()->begin(), sak.keyIdHex_ref()->end(), keyId.data());
+  std::array<uint8_t, 16> keyId{0};
+  hexStringToBytes(sak.keyIdHex_ref().value(), keyId.data(), 16);
 
   auto secureAssoc = getMacsecSecureAssoc(
       linePort, scIdentifier, direction, *sak.assocNum_ref() % 4);
