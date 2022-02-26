@@ -6,6 +6,10 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/logging/xlog.h>
 
+#ifndef IS_OSS
+#include "fboss/fsdb/client/facebook/Client.h"
+#endif
+
 DEFINE_int32(
     fsdb_reconnect_ms,
     1000,
@@ -59,12 +63,6 @@ bool FsdbStreamClient::isConnectedToServer() const {
   return (state_.load() == State::CONNECTED);
 }
 
-void FsdbStreamClient::createClient(const std::string& ip, uint16_t port) {
-  clientEvbThread_->getEventBase()->runInEventBaseThreadAndWait(
-      [this] { client_.reset(); });
-  client_ = Client::getClient(ip, port, clientEvbThread_->getEventBase());
-}
-
 void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
   auto state = state_.load();
   if (state == State::CONNECTING) {
@@ -77,7 +75,9 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
     try {
       createClient(ip, port);
       state_.store(State::CONNECTED);
+#if FOLLY_HAS_COROUTINES
       folly::coro::blockingWait(serviceLoop());
+#endif
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
       state_.store(State::DISCONNECTED);
@@ -104,8 +104,7 @@ void FsdbStreamClient::cancel() {
   serverAddress_.reset();
   connRetryEvb_->runInEventBaseThreadAndWait([this] { cancelTimeout(); });
   state_.store(State::CANCELLED);
-  clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
-      [this]() { client_.reset(); });
+  resetClient();
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
 }

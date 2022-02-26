@@ -4,14 +4,16 @@
 
 #include <folly/SocketAddress.h>
 #include <folly/Synchronized.h>
+#include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-#include "fboss/fsdb/client/facebook/Client.h"
 
 namespace folly {
 class CancellationToken;
 }
 
 namespace facebook::fboss::fsdb {
+class FsdbServiceAsyncClient;
+
 class FsdbStreamClient : public folly::AsyncTimeout {
  public:
   FsdbStreamClient(
@@ -44,18 +46,23 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 
  private:
   void createClient(const std::string& ip, uint16_t port);
+  void resetClient();
   void connectToServer(const std::string& ip, uint16_t port);
 
   void timeoutExpired() noexcept override;
 
+#if FOLLY_HAS_COROUTINES
   virtual folly::coro::Task<void> serviceLoop() = 0;
+#endif
 
  protected:
   void setState(State state) {
     state_.store(state);
   }
   folly::Synchronized<std::unique_ptr<folly::CancellationSource>> cancelSource_;
+#ifndef IS_OSS
   std::unique_ptr<FsdbServiceAsyncClient> client_;
+#endif
 
  private:
   std::string clientId_;
