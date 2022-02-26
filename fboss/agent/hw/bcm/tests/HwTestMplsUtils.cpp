@@ -160,7 +160,7 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
   const auto& nextHops = egr->egressId2Weight();
   EXPECT_GT(nextHops.size(), memberIndex);
   auto i = 0;
-  for (const auto nextHopId : nextHops) {
+  for (const auto& nextHopId : nextHops) {
     if (i == memberIndex) {
       // verify that given egress is tunneled egress
       // its egress label must be tunnelLabel (top of stack)

@@ -83,7 +83,7 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
   auto kDscpValueMaxCnt = kDscpValueMax - kDscpValueMin + 1;
   std::set<uint8_t> dscpSet;
 
-  for (const auto entry : qosPolicy->getDscpMap().from()) {
+  for (const auto& entry : qosPolicy->getDscpMap().from()) {
     // TODO(pshaikh): validating traffic class is valid, provide separate
     // function for the same
     BcmPortQueueManager::CosQToBcmInternalPriority(entry.trafficClass());

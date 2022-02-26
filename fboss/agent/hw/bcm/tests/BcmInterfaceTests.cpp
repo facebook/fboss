@@ -141,7 +141,7 @@ void checkSwHwIntfMatch(
     bcmCheckError(rv, "failed to find l3 intf");
     EXPECT_EQ(swIntf->getMac(), macFromBcm(intf.l3a_mac_addr));
     ASSERT_EQ(swIntf->getMtu(), intf.l3a_mtu);
-    ASSERT_EQ(swIntf->getRouterID(), intf.l3a_vrf);
+    ASSERT_EQ(swIntf->getRouterID(), RouterID(intf.l3a_vrf));
 
     if (verifyIngress) {
       bcm_l3_ingress_t ing_intf;

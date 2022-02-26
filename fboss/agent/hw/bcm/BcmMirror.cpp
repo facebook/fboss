@@ -335,7 +335,7 @@ void BcmMirror::applyAclMirrorAction(
 }
 
 void BcmMirror::applyPortMirrorActions(MirrorAction action) {
-  for (const auto [portID, bcmPort] : *hw_->getPortTable()) {
+  for (const auto& [portID, bcmPort] : *hw_->getPortTable()) {
     if (bcmPort->getIngressPortMirror() == mirrorName_) {
       applyPortMirrorAction(
           portID,

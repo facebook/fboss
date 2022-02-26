@@ -2748,7 +2748,7 @@ void BcmSwitch::processChangedControlPlaneQueues(
       << "Old cpu queue size:" << oldCPU->getQueues().size()
       << ", but new cpu queue size:" << newCPU->getQueues().size();
   // first make sure queue settings changes applied
-  for (const auto newQueue : newCPU->getQueues()) {
+  for (const auto& newQueue : newCPU->getQueues()) {
     if (oldCPU->getQueues().size() > newQueue->getID() &&
         *(oldCPU->getQueues().at(newQueue->getID())) == *newQueue) {
       continue;

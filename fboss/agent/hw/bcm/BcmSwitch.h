@@ -109,7 +109,7 @@ class BcmSwitchIf : public HwSwitch {
    */
   virtual void resetTables() = 0;
 
-  virtual BcmPlatform* getPlatform() const = 0;
+  virtual BcmPlatform* getPlatform() const override = 0;
 
   virtual std::unique_ptr<PacketTraceInfo> getPacketTrace(
       std::unique_ptr<MockRxPacket> pkt) const = 0;

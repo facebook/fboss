@@ -57,7 +57,7 @@ bcm_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
 }
 
 AggregatePortID BcmTrunkTable::getAggregatePortId(bcm_trunk_t trunk) const {
-  for (const auto [aggregateID, trunkID] : tgidLookup_) {
+  for (const auto& [aggregateID, trunkID] : tgidLookup_) {
     if (trunkID == trunk) {
       return aggregateID;
     }

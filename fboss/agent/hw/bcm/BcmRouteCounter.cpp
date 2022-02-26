@@ -187,7 +187,7 @@ BcmRouteCounterTable::referenceOrEmplaceCounterID(RouteCounterID id) {
 
 folly::dynamic BcmRouteCounterTable::toFollyDynamic() const {
   folly::dynamic routeCounterIDs = folly::dynamic::object;
-  for (const auto entry : counterIDs_) {
+  for (const auto& entry : counterIDs_) {
     auto counter = entry.second.lock();
     // Temporarly store TH3 counter id in old format so that warmboot
     // downgrades to old image works. This can be removed once
@@ -267,7 +267,7 @@ std::optional<BcmRouteCounterID> BcmRouteFlexCounterTable::getHwCounterID(
 
 folly::dynamic BcmRouteFlexCounterTable::toFollyDynamic() const {
   folly::dynamic routeCounterIDs = folly::dynamic::object;
-  for (const auto entry : counterIDs_) {
+  for (const auto& entry : counterIDs_) {
     auto counter = entry.second.lock();
     routeCounterIDs[entry.first] = counter->getHwCounterID().toFollyDynamic();
   }
