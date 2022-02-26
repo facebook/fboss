@@ -45,6 +45,9 @@ FsdbStreamClient::~FsdbStreamClient() {
 
 void FsdbStreamClient::setState(State state) {
   auto oldState = state_.load();
+  if (oldState == state) {
+    return;
+  }
   state_.store(state);
   stateChangeCb_(oldState, state);
 }
