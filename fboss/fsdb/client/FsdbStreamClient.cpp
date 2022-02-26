@@ -19,13 +19,15 @@ namespace facebook::fboss::fsdb {
 FsdbStreamClient::FsdbStreamClient(
     const std::string& clientId,
     folly::EventBase* streamEvb,
-    folly::EventBase* connRetryEvb)
+    folly::EventBase* connRetryEvb,
+    FsdbStreamStateChangeCb stateChangeCb)
     : folly::AsyncTimeout(connRetryEvb),
       clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
       clientEvbThread_(
-          std::make_unique<folly::ScopedEventBaseThread>(clientId)) {
+          std::make_unique<folly::ScopedEventBaseThread>(clientId)),
+      stateChangeCb_(stateChangeCb) {
   if (!streamEvb_ || !connRetryEvb) {
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
@@ -41,6 +43,12 @@ FsdbStreamClient::~FsdbStreamClient() {
   cancel();
 }
 
+void FsdbStreamClient::setState(State state) {
+  auto oldState = state_.load();
+  state_.store(state);
+  stateChangeCb_(oldState, state);
+}
+
 void FsdbStreamClient::setServerToConnect(
     const std::string& ip,
     uint16_t port,
@@ -52,7 +60,7 @@ void FsdbStreamClient::setServerToConnect(
 }
 
 void FsdbStreamClient::timeoutExpired() noexcept {
-  if (state_.load() == State::DISCONNECTED && serverAddress_) {
+  if (getState() == State::DISCONNECTED && serverAddress_) {
     connectToServer(
         serverAddress_->getIPAddress().str(), serverAddress_->getPort());
   }
@@ -60,27 +68,26 @@ void FsdbStreamClient::timeoutExpired() noexcept {
 }
 
 bool FsdbStreamClient::isConnectedToServer() const {
-  return (state_.load() == State::CONNECTED);
+  return (getState() == State::CONNECTED);
 }
 
 void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
-  auto state = state_.load();
-  if (state == State::CONNECTING) {
+  if (getState() == State::CONNECTING) {
     XLOG(DBG2) << "Connection already in progress";
     return;
   }
-  CHECK(state == State::DISCONNECTED);
-  state_.store(State::CONNECTING);
+  CHECK(getState() == State::DISCONNECTED);
+  setState(State::CONNECTING);
   streamEvb_->runInEventBaseThread([this, ip, port] {
     try {
       createClient(ip, port);
-      state_.store(State::CONNECTED);
+      setState(State::CONNECTED);
 #if FOLLY_HAS_COROUTINES
       folly::coro::blockingWait(serviceLoop());
 #endif
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
-      state_.store(State::DISCONNECTED);
+      setState(State::DISCONNECTED);
     }
   });
 }
@@ -97,20 +104,20 @@ void FsdbStreamClient::cancel() {
   });
 
   // already disconnected;
-  if (state_.load() == State::CANCELLED) {
+  if (getState() == State::CANCELLED) {
     XLOG(WARNING) << clientId_ << " already disconnected";
     return;
   }
   serverAddress_.reset();
   connRetryEvb_->runInEventBaseThreadAndWait([this] { cancelTimeout(); });
-  state_.store(State::CANCELLED);
+  setState(State::CANCELLED);
   resetClient();
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
 }
 
 bool FsdbStreamClient::isCancelled() const {
-  return (state_.load() == State::CANCELLED);
+  return (getState() == State::CANCELLED);
 }
 
 } // namespace facebook::fboss::fsdb

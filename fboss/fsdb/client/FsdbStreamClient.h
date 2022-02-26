@@ -7,6 +7,8 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 
+#include <functional>
+
 namespace folly {
 class CancellationToken;
 }
@@ -16,10 +18,20 @@ class FsdbServiceAsyncClient;
 
 class FsdbStreamClient : public folly::AsyncTimeout {
  public:
+  enum class State : uint16_t {
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED,
+    CANCELLED
+  };
+
+  using FsdbStreamStateChangeCb = std::function<void(State, State)>;
   FsdbStreamClient(
       const std::string& clientId,
       folly::EventBase* streamEvb,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
+                                                 State /*newState*/) {});
 
   void setServerToConnect(
       const std::string& ip,
@@ -30,12 +42,6 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   bool isConnectedToServer() const;
   void cancel();
 
-  enum class State : uint16_t {
-    DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    CANCELLED
-  };
   bool isCancelled() const;
   const std::string& clientId() const {
     return clientId_;
@@ -56,9 +62,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 #endif
 
  protected:
-  void setState(State state) {
-    state_.store(state);
-  }
+  void setState(State state);
   folly::Synchronized<std::unique_ptr<folly::CancellationSource>> cancelSource_;
 #ifndef IS_OSS
   std::unique_ptr<FsdbServiceAsyncClient> client_;
@@ -71,6 +75,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   std::atomic<State> state_{State::DISCONNECTED};
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
   std::optional<folly::SocketAddress> serverAddress_;
+  FsdbStreamStateChangeCb stateChangeCb_;
 };
 
 } // namespace facebook::fboss::fsdb

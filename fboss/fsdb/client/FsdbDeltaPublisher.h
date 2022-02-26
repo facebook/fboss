@@ -15,7 +15,9 @@ class FsdbDeltaPublisher : public FsdbStreamClient {
       const std::string& clientId,
       const std::vector<std::string>& publishPath,
       folly::EventBase* streamEvb,
-      folly::EventBase* connRetryEvb)
+      folly::EventBase* connRetryEvb,
+      FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
+                                                 State /*newState*/) {})
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb),
         publishPath_(publishPath) {}
 
