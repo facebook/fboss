@@ -12,3 +12,14 @@ target_link_libraries(fsdb_stream_client
   Folly::folly
   FBThrift::thriftcpp2
 )
+
+add_library(fsdb_pub_sub
+  fboss/fsdb/client/FsdbDeltaPublisher.cpp
+)
+
+target_link_libraries(fsdb_pub_sub
+  fsdb_oper_cpp2
+  fsdb_stream_client
+  Folly::folly
+  FBThrift::thriftcpp2
+)

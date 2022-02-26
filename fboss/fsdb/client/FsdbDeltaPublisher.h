@@ -29,8 +29,10 @@ class FsdbDeltaPublisher : public FsdbStreamClient {
   }
 
  private:
+#if FOLLY_HAS_COROUTINES
   folly::coro::AsyncGenerator<OperDelta> createGenerator();
   folly::coro::Task<void> serviceLoop() override;
+#endif
   static constexpr auto kPubQueueCapacity{2000};
   folly::DMPSCQueue<OperDelta, true /*may block*/> toPublishQueue_{
       kPubQueueCapacity};
