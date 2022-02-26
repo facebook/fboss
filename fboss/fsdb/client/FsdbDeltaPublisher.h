@@ -19,10 +19,7 @@ class FsdbDeltaPublisher : public FsdbStreamClient {
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb),
         publishPath_(publishPath) {}
 
-  bool write(OperDelta pubUnit) {
-    // Producer must handle errors if we can't enqueue
-    return toPublishQueue_.try_enqueue(std::move(pubUnit));
-  }
+  void write(OperDelta pubUnit);
 
   ssize_t queueSize() const {
     return toPublishQueue_.size();
