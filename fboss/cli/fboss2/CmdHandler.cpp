@@ -42,7 +42,7 @@
 template <typename CmdTypeT>
 void printTabular(
     CmdTypeT& cmd,
-    std::vector<std::future<
+    std::vector<std::shared_future<
         std::tuple<std::string, typename CmdTypeT::RetType, std::string>>>&
         results,
     std::ostream& out,
@@ -64,7 +64,7 @@ void printTabular(
 template <typename CmdTypeT>
 void printJson(
     const CmdTypeT& /* cmd */,
-    std::vector<std::future<
+    std::vector<std::shared_future<
         std::tuple<std::string, typename CmdTypeT::RetType, std::string>>>&
         results,
     std::ostream& out,
@@ -153,20 +153,29 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     hosts = {"localhost"};
   }
 
-  std::vector<std::future<std::tuple<std::string, RetType, std::string>>>
+  std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
   for (const auto& host : hosts) {
     futureList.push_back(std::async(
-        std::launch::async,
-        &CmdHandler::asyncHandler,
-        this,
-        host /*, inArgs*/));
+                             std::launch::async,
+                             &CmdHandler::asyncHandler,
+                             this,
+                             host /*, inArgs*/)
+                             .share());
   }
 
   if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
     printJson(impl(), futureList, std::cout, std::cerr);
   } else {
     printTabular(impl(), futureList, std::cout, std::cerr);
+  }
+
+  for (auto& fut : futureList) {
+    auto [host, data, errStr] = fut.get();
+    // exit with failure if any of the calls failed
+    if (!errStr.empty()) {
+      exit(1);
+    }
   }
 }
 
