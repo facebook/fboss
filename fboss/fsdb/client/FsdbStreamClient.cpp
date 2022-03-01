@@ -2,7 +2,6 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
-#include <folly/CancellationToken.h>
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/logging/xlog.h>
 
@@ -33,7 +32,6 @@ FsdbStreamClient::FsdbStreamClient(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
   }
 
-  cancelSource_ = std::make_unique<folly::CancellationSource>();
   connRetryEvb->runInEventBaseThread(
       [this] { scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
 }
@@ -107,12 +105,8 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 
 void FsdbStreamClient::cancel() {
   XLOG(DBG2) << "Cancel FsdbStreamClient: " << clientId();
-  cancelSource_.withWLock([this](auto& cancelSource) {
-    if (cancelSource) {
-      XLOG(DBG2) << "Request FsdbStreamClient Cancellation for: " << clientId();
-      cancelSource->requestCancellation();
-    }
-  });
+  cancelSource_.requestCancellation();
+  XLOG(DBG2) << "Requested FsdbStreamClient Cancellation for: " << clientId();
 
   // already disconnected;
   if (getState() == State::CANCELLED) {

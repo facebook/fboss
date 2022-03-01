@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/CancellationToken.h>
 #include <folly/SocketAddress.h>
 #include <folly/Synchronized.h>
 #include <folly/experimental/coro/BlockingWait.h>
@@ -58,7 +59,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 
  protected:
   void setState(State state);
-  folly::Synchronized<std::unique_ptr<folly::CancellationSource>> cancelSource_;
+  folly::CancellationSource cancelSource_;
 #ifndef IS_OSS
   std::unique_ptr<FsdbServiceAsyncClient> client_;
 #endif
