@@ -2,6 +2,7 @@
 
 #pragma once
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -19,7 +20,8 @@ class FsdbPubSubManager {
   }
   void createDeltaPublisher(
       const std::vector<std::string>& publishPath,
-      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb);
+      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+      int32_t fsdbPort = FLAGS_fsdbPort);
   void publish(const OperDelta& pubUnit);
 
  private:

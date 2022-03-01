@@ -20,6 +20,7 @@ add_library(fsdb_pub_sub
 
 target_link_libraries(fsdb_pub_sub
   fsdb_common_cpp2
+  fsdb_flags
   fsdb_oper_cpp2
   fsdb_stream_client
   Folly::folly
