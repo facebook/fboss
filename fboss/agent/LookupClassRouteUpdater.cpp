@@ -561,6 +561,11 @@ void LookupClassRouteUpdater::processNeighborRemoved(
 
   auto& newState = stateDelta.newState();
 
+  // Updating prefixesWithMultiNextHops_ to see if there's any route with
+  // multiple next hop becomes single next hop. Routes with classId will be
+  // handled in addRouteAndFindClassID.
+  removePrefixesWithMultiNextHops(withoutClassIDPrefixes, removedNeighborIP);
+
   auto iter = withClassIDPrefixes.begin();
   while (iter != withClassIDPrefixes.end()) {
     auto ridAndCidr = *iter;
@@ -779,6 +784,26 @@ void LookupClassRouteUpdater::updatePrefixesWithMultiNextHops(
           prefixesWithMultiNextHops_.size());
       XLOG(DBG2) << "Number of routes with QPH multiple next hops: "
                  << prefixesWithMultiNextHops_.size();
+    }
+  }
+}
+
+void LookupClassRouteUpdater::removePrefixesWithMultiNextHops(
+    const std::set<RidAndCidr>& withoutClassIDPrefixes,
+    const folly::IPAddress& removedNeighborIP) {
+  for (const auto& ridAndCidr : withoutClassIDPrefixes) {
+    if (prefixesWithMultiNextHops_.find(ridAndCidr) !=
+        prefixesWithMultiNextHops_.end()) {
+      auto ret =
+          prefixesWithMultiNextHops_[ridAndCidr].erase(removedNeighborIP);
+      if (ret && prefixesWithMultiNextHops_[ridAndCidr].size() <= 1) {
+        prefixesWithMultiNextHops_.erase(ridAndCidr);
+        fb303::fbData->setCounter(
+            SwitchStats::kCounterPrefix + kQphMultiNextHopCounter,
+            prefixesWithMultiNextHops_.size());
+        XLOG(DBG2) << "Number of routes with QPH multiple next hops: "
+                   << prefixesWithMultiNextHops_.size();
+      }
     }
   }
 }

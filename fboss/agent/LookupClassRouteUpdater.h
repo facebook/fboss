@@ -194,6 +194,9 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void updatePrefixesWithMultiNextHops(
       const std::set<folly::IPAddress>& neighborsWithClassId,
       const RidAndCidr& ridAndCidr);
+  void removePrefixesWithMultiNextHops(
+      const std::set<RidAndCidr>& withoutClassIDPrefixes,
+      const folly::IPAddress& removedNeighborIP);
 
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
