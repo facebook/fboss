@@ -30,7 +30,7 @@ enum ModbusDeviceType {
  * Structure to describe a modbus device (PSU, BBU, etc).
  */
 struct ModbusDeviceInfo {
-  1: byte devAddress;
+  1: i16 devAddress;
   2: ModbusDeviceMode mode;
   3: i32 baudrate;
   4: i32 timeouts;
@@ -44,7 +44,7 @@ struct ModbusDeviceInfo {
  * such as holding registers, input registers
  */
 struct ReadWordRegistersRequest {
-  1: byte devAddress;
+  1: i16 devAddress;
   2: i32 regAddress;
   3: i32 numRegisters;
   4: optional i32 timeout;
@@ -56,14 +56,14 @@ struct ReadWordRegistersResponse {
 }
 
 struct WriteSingleRegisterRequest {
-  1: byte devAddress;
+  1: i16 devAddress;
   2: i32 regAddress;
   3: i32 regValue;
   4: optional i32 timeout;
 }
 
 struct PresetMultipleRegistersRequest {
-  1: byte devAddress;
+  1: i16 devAddress;
   2: i32 regAddress;
   3: list<i32> regValue;
   4: optional i32 timeout;
@@ -82,7 +82,7 @@ struct FileRecord {
 }
 
 struct ReadFileRecordRequest {
-  1: byte devAddress;
+  1: i16 devAddress;
   2: list<FileRecordReq> records;
   3: optional i32 timeout;
 }
