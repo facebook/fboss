@@ -10,6 +10,8 @@ cpp_include "folly/container/F14Set.h"
 const string kFsdbServiceHandlerNativeStatsPrefix = "fsdb.handler.";
 const string kFsdbStatsFanOutNativeStatsPrefix = "fsdb.statsFanOut.";
 
+const i32 PORT = 5908;
+
 // NOTE: keep in sync with fb303::ExportType
 enum ExportType {
   SUM = 0,
