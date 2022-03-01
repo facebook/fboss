@@ -11,32 +11,38 @@ FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
     : clientId_(clientId) {}
 
 FsdbPubSubManager::~FsdbPubSubManager() {
-  stopDeltaPublisher();
+  deltaPublisher_.withWLock(
+      [this](auto& deltaPublisher) { stopDeltaPublisher(deltaPublisher); });
 }
 
 void FsdbPubSubManager::createDeltaPublisher(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) {
-  stopDeltaPublisher();
-  deltaPublisher_ = std::make_unique<FsdbDeltaPublisher>(
-      clientId_,
-      publishPath,
-      publisherStreamEvbThread_.getEventBase(),
-      reconnectThread_.getEventBase(),
-      publisherStateChangeCb);
-  deltaPublisher_->setServerToConnect("::1", fsdbPort);
+  deltaPublisher_.withWLock([&](auto& deltaPublisher) {
+    stopDeltaPublisher(deltaPublisher);
+    deltaPublisher = std::make_unique<FsdbDeltaPublisher>(
+        clientId_,
+        publishPath,
+        publisherStreamEvbThread_.getEventBase(),
+        reconnectThread_.getEventBase(),
+        publisherStateChangeCb);
+    deltaPublisher->setServerToConnect("::1", fsdbPort);
+  });
 }
 
-void FsdbPubSubManager::stopDeltaPublisher() {
-  if (deltaPublisher_) {
-    deltaPublisher_->cancel();
-    deltaPublisher_.reset();
+void FsdbPubSubManager::stopDeltaPublisher(
+    std::unique_ptr<FsdbDeltaPublisher>& deltaPublisher) {
+  if (deltaPublisher) {
+    deltaPublisher->cancel();
+    deltaPublisher.reset();
   }
 }
 
 void FsdbPubSubManager::publish(const OperDelta& pubUnit) {
-  CHECK(deltaPublisher_);
-  deltaPublisher_->write(pubUnit);
+  deltaPublisher_.withWLock([&pubUnit](auto& deltaPublisher) {
+    CHECK(deltaPublisher);
+    deltaPublisher->write(pubUnit);
+  });
 }
 } // namespace facebook::fboss::fsdb

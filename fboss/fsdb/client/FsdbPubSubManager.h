@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #pragma once
+#include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -23,11 +24,11 @@ class FsdbPubSubManager {
   void publish(const OperDelta& pubUnit);
 
  private:
-  void stopDeltaPublisher();
+  void stopDeltaPublisher(std::unique_ptr<FsdbDeltaPublisher>& deltaPublisher);
   folly::ScopedEventBaseThread reconnectThread_;
   folly::ScopedEventBaseThread publisherStreamEvbThread_;
   const std::string clientId_;
   // TODO - support multiple publishers?
-  std::unique_ptr<FsdbDeltaPublisher> deltaPublisher_;
+  folly::Synchronized<std::unique_ptr<FsdbDeltaPublisher>> deltaPublisher_;
 };
 } // namespace facebook::fboss::fsdb
