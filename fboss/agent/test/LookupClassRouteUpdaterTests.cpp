@@ -15,9 +15,10 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Port.h"
-
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -26,6 +27,10 @@
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+
+namespace {
+constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
+} // namespace
 
 namespace facebook::fboss {
 
@@ -105,6 +110,10 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
 
   MacAddress kMacAddressB() const {
     return MacAddress("01:02:03:04:05:07");
+  }
+
+  MacAddress kMacAddressC() const {
+    return MacAddress("01:02:03:04:05:09");
   }
 
   MacAddress kMacAddressD() const {
@@ -241,6 +250,19 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           sw_->getState());
       EXPECT_EQ(route->getClassID(), classID);
     });
+  }
+
+  void verifyNumRoutesWithMultiNextHops(int numExpectedRoute) {
+    auto lookupClassRouteUpdater = this->sw_->getLookupClassRouteUpdater();
+    EXPECT_EQ(
+        lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(),
+        numExpectedRoute);
+
+    CounterCache counters(this->sw_);
+    counters.update();
+    EXPECT_EQ(
+        counters.value(SwitchStats::kCounterPrefix + kQphMultiNextHopCounter),
+        numExpectedRoute);
   }
 
   void addRoute(RoutePrefix<AddrT> routePrefix, std::vector<AddrT> nextHops) {
@@ -813,6 +835,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveNextHop) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNextHopThenAddRoute) {
@@ -821,6 +844,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNextHopThenAddRoute) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveTwoNextHop) {
@@ -837,6 +861,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveTwoNextHop) {
    */
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(1);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, ResolveTwoNextHopThenAddRoute) {
@@ -853,6 +878,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveTwoNextHopThenAddRoute) {
    */
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(1);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveSecondNextHopOnly) {
@@ -862,6 +888,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveSecondNextHopOnly) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, ResolveSecondNextHopOnlyThenAddRoute) {
@@ -871,6 +898,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveSecondNextHopOnlyThenAddRoute) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(
@@ -889,10 +917,12 @@ TYPED_TEST(
    */
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(1);
 
   this->unresolveNeighbor(this->kIpAddressA());
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(
@@ -911,10 +941,60 @@ TYPED_TEST(
    */
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(1);
 
   this->removeNeighbor(this->kIpAddressA());
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->verifyNumRoutesWithMultiNextHops(0);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterTest,
+    ResolveOneNextHopAndAddRouteThenResolveSecondNextHop) {
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->addRoute(
+      this->kroutePrefix1(), {this->kIpAddressA(), this->kIpAddressB()});
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(1);
+
+  this->unresolveNeighbor(this->kIpAddressB());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, AddTwoRouteThenResolveNextHop) {
+  this->addRoute(
+      this->kroutePrefix1(), {this->kIpAddressA(), this->kIpAddressB()});
+  this->addRoute(
+      this->kroutePrefix2(), {this->kIpAddressB(), this->kIpAddressC()});
+  auto lookupClassRouteUpdater = this->sw_->getLookupClassRouteUpdater();
+
+  EXPECT_EQ(lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(), 0);
+
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+  EXPECT_EQ(lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(), 1);
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  this->resolveNeighbor(this->kIpAddressC(), this->kMacAddressC());
+  EXPECT_EQ(lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(), 2);
+
+  this->unresolveNeighbor(this->kIpAddressC());
+  EXPECT_EQ(lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(), 1);
+
+  this->resolveNeighbor(this->kIpAddressC(), this->kMacAddressC());
+  this->unresolveNeighbor(this->kIpAddressB());
+  EXPECT_EQ(lookupClassRouteUpdater->getNumPrefixesWithMultiNextHops(), 0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, ChangeNextHopSet) {
@@ -928,6 +1008,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ChangeNextHopSet) {
 
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 // Test cases verifying Neighbor changes
@@ -958,6 +1039,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyNeighborAddAndRemove) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->verifyNumRoutesWithMultiNextHops(1);
 
   // unresolve ipA.
   // r1 inherits ipB's classID.
@@ -966,12 +1048,14 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyNeighborAddAndRemove) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
   this->verifyClassIDHelper(
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->verifyNumRoutesWithMultiNextHops(0);
 
   // unresolve ipB.
   // None of the nexthops are resolved, thus, no classID for r1 or r2.
   this->unresolveNeighbor(this->kIpAddressB());
   this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
   this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithSyncFib) {
@@ -1012,6 +1096,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithAddRoute) {
   // ClassID should be unchanged
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithDelRoute) {
@@ -1027,6 +1112,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithDelRoute) {
   // ClassID should be unchanged
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyNumRoutesWithMultiNextHops(0);
 }
 
 // Test cases verifying Port changes

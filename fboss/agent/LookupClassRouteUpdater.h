@@ -31,6 +31,9 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       getVlan2SubnetCache() const {
     return vlan2SubnetsCache_;
   }
+  int getNumPrefixesWithMultiNextHops() const {
+    return prefixesWithMultiNextHops_.size();
+  }
 
  private:
   // Helper methods
