@@ -7,6 +7,13 @@
 
 namespace facebook::fboss::fsdb {
 
+FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
+    : clientId_(clientId) {}
+
+FsdbPubSubManager::~FsdbPubSubManager() {
+  stopDeltaPublisher();
+}
+
 void FsdbPubSubManager::createDeltaPublisher(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
