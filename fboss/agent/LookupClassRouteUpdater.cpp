@@ -496,6 +496,13 @@ void LookupClassRouteUpdater::processNeighborAdded(
   }
 
   /*
+   * Check if the added neighbor would make a route become QPH multiple next
+   * hop, since neighbor is already associated with a class ID.
+   */
+  addPrefixesWithMultiNextHops(
+      withoutClassIDPrefixes, addedNeighborIP, newState, vlanID);
+
+  /*
    * For every route with *this* nexthop, if the route does not have a
    * classID associated with it, then assign *this* nexthop's classID.
    */
@@ -675,6 +682,37 @@ void LookupClassRouteUpdater::processNeighborUpdates(
   }
 }
 
+template <typename RouteT>
+bool LookupClassRouteUpdater::addRouteToMultiNextHopMap(
+    const std::shared_ptr<SwitchState>& newState,
+    const std::shared_ptr<RouteT>& route,
+    std::optional<std::pair<folly::IPAddress, VlanID>> addedNeighborIPandVlan,
+    const RidAndCidr& ridAndCidr) {
+  for (const auto& nextHop : route->getForwardInfo().getNextHopSet()) {
+    auto vlanID =
+        newState->getInterfaces()->getInterfaceIf(nextHop.intf())->getVlanID();
+    if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
+      continue;
+    }
+
+    const auto& [addedNeighborIP, addedNeighborVlan] =
+        addedNeighborIPandVlan.value();
+    if (nextHop.addr() == addedNeighborIP && vlanID == addedNeighborVlan) {
+      continue;
+    }
+
+    auto neighborClassID =
+        getClassIDForNeighbor(newState, vlanID, nextHop.addr());
+    if (neighborClassID.has_value() && neighborClassID == route->getClassID()) {
+      // Insert this route to the multi-nexthop map.
+      prefixesWithMultiNextHops_[ridAndCidr] = {
+          addedNeighborIP, nextHop.addr()};
+      return true;
+    }
+  }
+  return false;
+}
+
 // Methods for handling route updates
 
 template <typename RouteT>
@@ -805,6 +843,52 @@ void LookupClassRouteUpdater::removePrefixesWithMultiNextHops(
                    << prefixesWithMultiNextHops_.size();
       }
     }
+  }
+}
+
+void LookupClassRouteUpdater::addPrefixesWithMultiNextHops(
+    const std::set<RidAndCidr>& withoutClassIDPrefixes,
+    const folly::IPAddress& addedNeighborIP,
+    const std::shared_ptr<SwitchState>& newState,
+    VlanID vlanID) {
+  bool prefixesWithMultiNextHopsAdded = false;
+  for (const auto& ridAndCidr : withoutClassIDPrefixes) {
+    // Route already has multiple next hops - add neighbor to the set.
+    if (prefixesWithMultiNextHops_.find(ridAndCidr) !=
+        prefixesWithMultiNextHops_.end()) {
+      prefixesWithMultiNextHops_[ridAndCidr].insert(addedNeighborIP);
+    } else {
+      // If route has classId, with the addition of neighbor class ID, it will
+      // have multiple next hops with classID.
+      auto& [rid, cidr] = ridAndCidr;
+      std::set<folly::IPAddress> nextHopsWithClassId{addedNeighborIP};
+      if (cidr.first.isV6()) {
+        auto route = findRoute<folly::IPAddressV6>(rid, cidr, newState);
+        if (route->getClassID().has_value()) {
+          prefixesWithMultiNextHopsAdded |= addRouteToMultiNextHopMap(
+              newState,
+              route,
+              std::make_pair(addedNeighborIP, vlanID),
+              ridAndCidr);
+        }
+      } else {
+        auto route = findRoute<folly::IPAddressV4>(rid, cidr, newState);
+        if (route->getClassID().has_value()) {
+          prefixesWithMultiNextHopsAdded |= addRouteToMultiNextHopMap(
+              newState,
+              route,
+              std::make_pair(addedNeighborIP, vlanID),
+              ridAndCidr);
+        }
+      }
+    }
+  }
+  if (prefixesWithMultiNextHopsAdded) {
+    fb303::fbData->setCounter(
+        SwitchStats::kCounterPrefix + kQphMultiNextHopCounter,
+        prefixesWithMultiNextHops_.size());
+    XLOG(DBG2) << "Number of routes with QPH multiple next hops: "
+               << prefixesWithMultiNextHops_.size();
   }
 }
 

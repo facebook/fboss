@@ -162,6 +162,13 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   using RouteAndClassID =
       std::pair<RidAndCidr, std::optional<cfg::AclLookupClass>>;
 
+  template <typename RouteT>
+  bool addRouteToMultiNextHopMap(
+      const std::shared_ptr<SwitchState>& newState,
+      const std::shared_ptr<RouteT>& route,
+      std::optional<std::pair<folly::IPAddress, VlanID>> nextHopAndVlanToOmit,
+      const RidAndCidr& ridAndCidr);
+
   // Methods for scheduling state updates
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs) const;
@@ -197,6 +204,11 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void removePrefixesWithMultiNextHops(
       const std::set<RidAndCidr>& withoutClassIDPrefixes,
       const folly::IPAddress& removedNeighborIP);
+  void addPrefixesWithMultiNextHops(
+      const std::set<RidAndCidr>& withoutClassIDPrefixes,
+      const folly::IPAddress& addedNeighborIP,
+      const std::shared_ptr<SwitchState>& newState,
+      VlanID vlanID);
 
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
