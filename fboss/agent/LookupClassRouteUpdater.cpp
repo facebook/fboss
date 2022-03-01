@@ -8,10 +8,13 @@
  *
  */
 
+#include <fb303/ServiceData.h>
+
 #include "fboss/agent/LookupClassRouteUpdater.h"
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -25,6 +28,10 @@ DEFINE_bool(
     queue_per_host_route_fix,
     true,
     "Enable route entry (ip-per-task/VIP) portion of Queue-per-host fix");
+
+namespace {
+constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
+} // namespace
 
 namespace facebook::fboss {
 
@@ -679,6 +686,7 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
 
   auto& newState = stateDelta.newState();
   std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
+  std::set<folly::IPAddress> neighborsWithClassId;
   for (const auto& nextHop : addedRoute->getForwardInfo().getNextHopSet()) {
     auto vlanID =
         newState->getInterfaces()->getInterfaceIf(nextHop.intf())->getVlanID();
@@ -695,6 +703,9 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
 
     auto neighborClassID =
         getClassIDForNeighbor(newState, vlanID, nextHop.addr());
+    if (neighborClassID.has_value()) {
+      neighborsWithClassId.insert(nextHop.addr());
+    }
 
     /*
      * The nextHopAndVlan may already be cached if:
@@ -735,7 +746,41 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
     allPrefixesWithClassID_.erase(ridAndCidr);
   }
 
+  /*
+   * Update prefixesWithMultiNextHops_ to keep track of routes with multiple
+   * nexthop.
+   */
+  updatePrefixesWithMultiNextHops(neighborsWithClassId, ridAndCidr);
   return routeClassID;
+}
+
+void LookupClassRouteUpdater::updatePrefixesWithMultiNextHops(
+    const std::set<folly::IPAddress>& neighborsWithClassId,
+    const RidAndCidr& ridAndCidr) {
+  if (neighborsWithClassId.size() > 1) {
+    // The route has multiple nexthops pointing to different class IDs - add
+    // into the map if not already.
+    auto ret = prefixesWithMultiNextHops_.insert(
+        std::pair<RidAndCidr, std::set<folly::IPAddress>>(
+            ridAndCidr, neighborsWithClassId));
+    if (ret.second) {
+      fb303::fbData->setCounter(
+          SwitchStats::kCounterPrefix + kQphMultiNextHopCounter,
+          prefixesWithMultiNextHops_.size());
+      XLOG(DBG2) << "Number of routes with QPH multiple next hops: "
+                 << prefixesWithMultiNextHops_.size();
+    }
+  } else {
+    // Remove route from the set if the route no longer has multiple nexthops.
+    auto ret = prefixesWithMultiNextHops_.erase(ridAndCidr);
+    if (ret) {
+      fb303::fbData->setCounter(
+          SwitchStats::kCounterPrefix + kQphMultiNextHopCounter,
+          prefixesWithMultiNextHops_.size());
+      XLOG(DBG2) << "Number of routes with QPH multiple next hops: "
+                 << prefixesWithMultiNextHops_.size();
+    }
+  }
 }
 
 template <typename RouteT>

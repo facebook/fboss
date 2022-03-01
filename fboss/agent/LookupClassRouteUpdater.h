@@ -191,6 +191,10 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
           toBeRemovedBlockNeighbors);
   void processBlockNeighborUpdates(const StateDelta& stateDelta);
 
+  void updatePrefixesWithMultiNextHops(
+      const std::set<folly::IPAddress>& neighborsWithClassId,
+      const RidAndCidr& ridAndCidr);
+
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with
@@ -288,6 +292,12 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    * Set of prefixes with classID (from any [nexthop + vlan]).
    */
   std::set<RidAndCidr> allPrefixesWithClassID_;
+
+  /*
+   * Map of prefixes with multiple nexthops associated to class IDs.
+   */
+  folly::F14FastMap<RidAndCidr, std::set<folly::IPAddress>>
+      prefixesWithMultiNextHops_;
 
   // pending routes with classID to be updated
   std::vector<RouteAndClassID> toUpdateRoutesAndClassIDs_;
