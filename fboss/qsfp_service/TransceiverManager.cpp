@@ -8,6 +8,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -1286,5 +1287,54 @@ void TransceiverManager::restoreWarmBootPhyState() {
       phyManager_ && phyStateIt != wbState.items().end()) {
     phyManager_->restoreFromWarmbootState(phyStateIt->second);
   }
+}
+
+namespace {
+phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
+  switch (component) {
+    case phy::PrbsComponent::ASIC:
+      throw FbossError("qsfp_service doesn't support program ASIC prbs");
+    case phy::PrbsComponent::GB_SYSTEM:
+      return phy::Side::SYSTEM;
+    case phy::PrbsComponent::GB_LINE:
+      return phy::Side::LINE;
+  };
+  throw FbossError(
+      "Unsupported prbs component: ",
+      apache::thrift::util::enumNameSafe(component));
+}
+} // namespace
+
+void TransceiverManager::setPortPrbs(
+    PortID portId,
+    phy::PrbsComponent component,
+    const phy::PortPrbsState& state) {
+  if (!phyManager_) {
+    throw FbossError("Current platform doesn't support xphy");
+  }
+  phyManager_->setPortPrbs(portId, prbsComponentToPhySide(component), state);
+}
+
+phy::PrbsStats TransceiverManager::getPortPrbsStats(
+    PortID portId,
+    phy::PrbsComponent component) {
+  if (!phyManager_) {
+    throw FbossError("Current platform doesn't support xphy");
+  }
+  phy::Side side = prbsComponentToPhySide(component);
+  phy::PrbsStats stats;
+  stats.laneStats_ref() = phyManager_->getPortPrbsStats(portId, side);
+  stats.portId_ref() = portId;
+  stats.component_ref() = component;
+  return stats;
+}
+
+void TransceiverManager::clearPortPrbsStats(
+    PortID portId,
+    phy::PrbsComponent component) {
+  if (!phyManager_) {
+    throw FbossError("Current platform doesn't support xphy");
+  }
+  phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
 }
 } // namespace facebook::fboss

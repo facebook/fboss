@@ -92,6 +92,39 @@ class QsfpServiceHandler
 
   void getXphyInfo(phy::PhyInfo& response, int32_t portID) override;
 
+  /*
+   * Change the PRBS setting on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void setPortPrbs(
+      int32_t portId,
+      phy::PrbsComponent component,
+      std::unique_ptr<phy::PortPrbsState> state) override;
+
+  /*
+   * Get the PRBS stats on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void getPortPrbsStats(
+      phy::PrbsStats& response,
+      int32_t portId,
+      phy::PrbsComponent component) override;
+
+  /*
+   * Clear the PRBS stats counter on a port. Useful when debugging a link
+   * down or flapping issue.
+   * This clearPortPrbsStats will result in:
+   * 1. reset ber (due to reset accumulated error count if implemented)
+   * 2. reset maxBer
+   * 3. reset numLossOfLock to 0
+   * 4. set timeLastCleared to now
+   * 5. set timeLastLocked to timeLastCollect if locked else epoch
+   * 6. locked status not changed
+   * 7. timeLastCollect not changed
+   */
+  void clearPortPrbsStats(int32_t portId, phy::PrbsComponent component)
+      override;
+
   void getMacsecCapablePorts(std::vector<int32_t>& ports) override;
 
   void listHwObjects(

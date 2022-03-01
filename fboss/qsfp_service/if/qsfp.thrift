@@ -98,6 +98,42 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
 
   phy.PhyInfo getXphyInfo(1: i32 portID) throws (1: fboss.FbossBaseError error);
 
+  /*
+   * Change the PRBS setting on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void setPortPrbs(
+    1: i32 portId,
+    2: phy.PrbsComponent component,
+    3: phy.PortPrbsState state,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get the PRBS stats on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  phy.PrbsStats getPortPrbsStats(
+    1: i32 portId,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Clear the PRBS stats counter on a port. Useful when debugging a link
+   * down or flapping issue.
+   * This clearPortPrbsStats will result in:
+   * 1. reset ber (due to reset accumulated error count if implemented)
+   * 2. reset maxBer
+   * 3. reset numLossOfLock to 0
+   * 4. set timeLastCleared to now
+   * 5. set timeLastLocked to timeLastCollect if locked else epoch
+   * 6. locked status not changed
+   * 7. timeLastCollect not changed
+   */
+  void clearPortPrbsStats(
+    1: i32 portId,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
   string listHwObjects(
     1: list<ctrl.HwObjectType> objects,
     2: bool cached,

@@ -253,6 +253,15 @@ class TransceiverManager {
     return canWarmBoot_;
   }
 
+  void setPortPrbs(
+      PortID portId,
+      phy::PrbsComponent component,
+      const phy::PortPrbsState& state);
+
+  phy::PrbsStats getPortPrbsStats(PortID portId, phy::PrbsComponent component);
+
+  void clearPortPrbsStats(PortID portId, phy::PrbsComponent component);
+
  protected:
   virtual void loadConfig() = 0;
 

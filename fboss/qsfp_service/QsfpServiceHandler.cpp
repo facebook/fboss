@@ -160,6 +160,29 @@ void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portID) {
   response = manager_->getXphyInfo(PortID(portID));
 }
 
+void QsfpServiceHandler::setPortPrbs(
+    int32_t portId,
+    phy::PrbsComponent component,
+    std::unique_ptr<phy::PortPrbsState> state) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->setPortPrbs(PortID(portId), component, *state);
+}
+
+void QsfpServiceHandler::getPortPrbsStats(
+    phy::PrbsStats& response,
+    int32_t portId,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  response = manager_->getPortPrbsStats(PortID(portId), component);
+}
+
+void QsfpServiceHandler::clearPortPrbsStats(
+    int32_t portId,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->clearPortPrbsStats(PortID(portId), component);
+}
+
 void QsfpServiceHandler::getMacsecCapablePorts(std::vector<int32_t>& ports) {
   auto macsecPorts = manager_->getMacsecCapablePorts();
   std::for_each(macsecPorts.begin(), macsecPorts.end(), [&ports](auto portId) {
