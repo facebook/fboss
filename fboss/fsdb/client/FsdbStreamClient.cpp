@@ -40,7 +40,6 @@ FsdbStreamClient::FsdbStreamClient(
 
 FsdbStreamClient::~FsdbStreamClient() {
   XLOG(DBG2) << "Destroying FsdbStreamClient";
-  XLOG(INFO) << "Destroying FsdbStreamClient";
   cancel();
 }
 
@@ -107,17 +106,17 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 // TODO derived classes to override this
 
 void FsdbStreamClient::cancel() {
-  XLOG(DBG2) << "Cancel FsdbStreamClient";
-  cancelSource_.withWLock([](auto& cancelSource) {
+  XLOG(DBG2) << "Cancel FsdbStreamClient: " << clientId();
+  cancelSource_.withWLock([this](auto& cancelSource) {
     if (cancelSource) {
-      XLOG(DBG2) << "Request FsdbStreamClient Cancellation";
+      XLOG(DBG2) << "Request FsdbStreamClient Cancellation for: " << clientId();
       cancelSource->requestCancellation();
     }
   });
 
   // already disconnected;
   if (getState() == State::CANCELLED) {
-    XLOG(WARNING) << clientId_ << " already disconnected";
+    XLOG(WARNING) << clientId_ << " already cancelled";
     return;
   }
   serverAddress_.reset();
@@ -126,6 +125,7 @@ void FsdbStreamClient::cancel() {
   resetClient();
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
+  XLOG(DBG2) << " Cancelled: " << clientId_;
 }
 
 bool FsdbStreamClient::isCancelled() const {
