@@ -21,7 +21,7 @@ class FsdbDeltaPublisher : public FsdbStreamClient {
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb),
         publishPath_(publishPath) {}
 
-  void write(OperDelta pubUnit);
+  void write(const OperDelta& pubUnit);
 
   ssize_t queueSize() const {
     return toPublishQueue_.size();

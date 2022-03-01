@@ -6,8 +6,8 @@
 
 namespace facebook::fboss::fsdb {
 
-void FsdbDeltaPublisher::write(OperDelta pubUnit) {
-  if (!toPublishQueue_.try_enqueue(std::move(pubUnit))) {
+void FsdbDeltaPublisher::write(const OperDelta& pubUnit) {
+  if (!toPublishQueue_.try_enqueue(pubUnit)) {
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
     ex.message_ref() = "Unable to queue delta";
