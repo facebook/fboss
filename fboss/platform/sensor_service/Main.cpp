@@ -9,6 +9,7 @@
 #endif
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
+#include "fboss/platform/sensor_service/SensorStatsPub.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
 
 using namespace facebook;
@@ -21,6 +22,11 @@ DEFINE_uint32(
     5,
     "The interval between each sensor data fetch");
 
+DEFINE_int32(
+    stats_publish_interval,
+    60,
+    "Interval (in seconds) for publishing stats");
+
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
@@ -31,6 +37,7 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
   helpers::fbInit(argc, argv);
+
   // Setup thrift handler and server
   auto [server, handler] = setupThrift();
 
@@ -38,10 +45,18 @@ int main(int argc, char** argv) {
 
   // To fetch sensor data at define cadence
   auto sensorService = handler->getServiceImpl();
+
+  SensorStatsPub publisher(handler->getServiceImpl());
+
   scheduler.addFunction(
       [sensorService]() { sensorService->fetchSensorData(); },
       std::chrono::seconds(FLAGS_sensor_fetch_interval),
       "fetchSensorData");
+
+  scheduler.addFunction(
+      [&publisher]() { publisher.publishStats(); },
+      std::chrono::seconds(FLAGS_stats_publish_interval),
+      "SensorStatsPublish");
 
   scheduler.start();
 
