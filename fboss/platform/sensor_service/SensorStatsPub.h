@@ -19,13 +19,19 @@ namespace facebook::fboss::platform::sensor_service {
 
 class SensorStatsPub {
  public:
-  explicit SensorStatsPub(std::shared_ptr<SensorServiceImpl> sensorService)
+  explicit SensorStatsPub(SensorServiceImpl* sensorService)
       : sensorService_(sensorService) {}
   void init();
-  void publishStats(int32_t stats_publish_interval);
+  void publishStats();
 
  private:
-  std::shared_ptr<SensorServiceImpl> sensorService_;
-}
+  SensorServiceImpl* sensorService_;
+  bool fb303Initialized_{false};
+  std::unordered_map<
+      std::string,
+      std::shared_ptr<fb303::ThreadCachedServiceData::TLTimeseries>>
+      timeSeries_;
+  fb303::ThreadCachedServiceData::ThreadLocalStatsMap* tlsMap_;
+};
 
 } // namespace facebook::fboss::platform::sensor_service
