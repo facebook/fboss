@@ -18,12 +18,7 @@ class FsdbServiceAsyncClient;
 
 class FsdbStreamClient : public folly::AsyncTimeout {
  public:
-  enum class State : uint16_t {
-    DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    CANCELLED
-  };
+  enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
 
   using FsdbStreamStateChangeCb = std::function<void(State, State)>;
   FsdbStreamClient(

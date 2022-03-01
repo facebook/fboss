@@ -40,6 +40,7 @@ FsdbStreamClient::FsdbStreamClient(
 
 FsdbStreamClient::~FsdbStreamClient() {
   XLOG(DBG2) << "Destroying FsdbStreamClient";
+  XLOG(INFO) << "Destroying FsdbStreamClient";
   cancel();
 }
 
@@ -75,24 +76,32 @@ bool FsdbStreamClient::isConnectedToServer() const {
 }
 
 void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
-  if (getState() == State::CONNECTING) {
-    XLOG(DBG2) << "Connection already in progress";
-    return;
-  }
   CHECK(getState() == State::DISCONNECTED);
-  setState(State::CONNECTING);
-  streamEvb_->runInEventBaseThread([this, ip, port] {
+
+  streamEvb_->runInEventBaseThreadAndWait([this, ip, port]() {
     try {
       createClient(ip, port);
       setState(State::CONNECTED);
-#if FOLLY_HAS_COROUTINES
-      folly::coro::blockingWait(serviceLoop());
-#endif
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
       setState(State::DISCONNECTED);
     }
   });
+
+  if (getState() == State::CONNECTED) {
+#if FOLLY_HAS_COROUTINES
+    auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
+      try {
+        co_await serviceLoop();
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Service loop broken:" << ex.what();
+        setState(State::DISCONNECTED);
+      }
+      co_return;
+    });
+    startServiceLoop().scheduleOn(streamEvb_).start();
+#endif
+  }
 }
 
 // TODO derived classes to override this
