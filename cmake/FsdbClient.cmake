@@ -15,6 +15,7 @@ target_link_libraries(fsdb_stream_client
 
 add_library(fsdb_pub_sub
   fboss/fsdb/client/FsdbDeltaPublisher.cpp
+  fboss/fsdb/client/FsdbPubSubManager.cpp
 )
 
 target_link_libraries(fsdb_pub_sub
