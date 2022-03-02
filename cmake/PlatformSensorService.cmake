@@ -11,6 +11,7 @@ add_library(sensor_service_lib
   fboss/platform/sensor_service/SensorServiceThriftHandler.cpp
   fboss/platform/sensor_service/SetupThrift.cpp
   fboss/platform/sensor_service/oss/SetupThrift.cpp
+  fboss/platform/sensor_service/oss/SensorStatsPub.cpp
 )
 
 target_link_libraries(sensor_service_lib
