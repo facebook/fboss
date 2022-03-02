@@ -1,0 +1,112 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/Flags.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include <folly/experimental/coro/AsyncGenerator.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/logging/xlog.h>
+#include <gtest/gtest.h>
+#include <atomic>
+
+namespace facebook::fboss::fsdb::test {
+
+class TestFsdbStreamClient : public FsdbStreamClient {
+ public:
+  TestFsdbStreamClient(folly::EventBase* streamEvb, folly::EventBase* timerEvb)
+      : FsdbStreamClient(
+            "test_fsdb_client",
+            streamEvb,
+            timerEvb,
+            [this](auto oldState, auto newState) {
+              EXPECT_NE(oldState, newState);
+              lastStateUpdateSeen_ = newState;
+            }) {}
+
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<void> serviceLoop() override {
+    /*
+     * Dummy generator for testing. Derived classes will
+     * provide this as we flesh out publisher, subscriber
+     * classes
+     */
+    auto gen = []() -> folly::coro::AsyncGenerator<int> {
+      auto i = 0;
+      while (true) {
+        co_yield ++i;
+      }
+    }();
+    try {
+      serviceLoopRunning_.store(true);
+      while (auto intgen = co_await folly::coro::co_withCancellation(
+                 cancelSource_.getToken(), gen.next())) {
+        if (isCancelled()) {
+          XLOG(DBG2) << " Detected cancellation";
+          break;
+        }
+      }
+    } catch (const folly::OperationCancelled&) {
+      XLOG(DBG2) << "Packet Stream Operation cancelled";
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << clientId() << " Server error: " << folly::exceptionStr(ex);
+      setState(State::DISCONNECTED);
+    }
+    XLOG(DBG2) << "Client Cancellation Completed";
+    serviceLoopRunning_.store(false);
+    co_return;
+  }
+#endif
+  std::optional<FsdbStreamClient::State> lastStateUpdateSeen() const {
+    return lastStateUpdateSeen_.load();
+  }
+  void markConnected() {
+    setState(State::CONNECTED);
+  }
+  bool serviceLoopRunning() const {
+    return serviceLoopRunning_.load();
+  }
+
+ private:
+  std::atomic<std::optional<FsdbStreamClient::State>> lastStateUpdateSeen_{
+      std::nullopt};
+  std::atomic<bool> serviceLoopRunning_{false};
+};
+
+class StreamClientTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
+    streamClient_ = std::make_unique<TestFsdbStreamClient>(
+        streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+  }
+  void TearDown() override {
+    streamClient_.reset();
+    streamEvbThread_.reset();
+    connRetryEvbThread_.reset();
+  }
+
+ protected:
+  static auto constexpr kRetries = 60;
+  std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
+  std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
+  std::unique_ptr<TestFsdbStreamClient> streamClient_;
+};
+
+TEST_F(StreamClientTest, connectAndCancel) {
+  streamClient_->setServerToConnect("::1", FLAGS_fsdbPort);
+  streamClient_->markConnected();
+  EXPECT_EQ(
+      *streamClient_->lastStateUpdateSeen(),
+      FsdbStreamClient::State::CONNECTED);
+  checkWithRetry(
+      [&]() { return streamClient_->serviceLoopRunning(); }, kRetries);
+  streamClient_->cancel();
+  EXPECT_EQ(
+      *streamClient_->lastStateUpdateSeen(),
+      FsdbStreamClient::State::CANCELLED);
+  checkWithRetry(
+      [&]() { return !streamClient_->serviceLoopRunning(); }, kRetries);
+}
+} // namespace facebook::fboss::fsdb::test

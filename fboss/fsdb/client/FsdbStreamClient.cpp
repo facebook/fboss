@@ -48,6 +48,20 @@ void FsdbStreamClient::setState(State state) {
   }
   state_.store(state);
   stateChangeCb_(oldState, state);
+  if (state == State::CONNECTED) {
+#if FOLLY_HAS_COROUTINES
+    auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
+      try {
+        co_await serviceLoop();
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Service loop broken:" << ex.what();
+        setState(State::DISCONNECTED);
+      }
+      co_return;
+    });
+    startServiceLoop().scheduleOn(streamEvb_).start();
+#endif
+  }
 }
 
 void FsdbStreamClient::setServerToConnect(
@@ -84,21 +98,6 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
       setState(State::DISCONNECTED);
     }
   });
-
-  if (getState() == State::CONNECTED) {
-#if FOLLY_HAS_COROUTINES
-    auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
-      try {
-        co_await serviceLoop();
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Service loop broken:" << ex.what();
-        setState(State::DISCONNECTED);
-      }
-      co_return;
-    });
-    startServiceLoop().scheduleOn(streamEvb_).start();
-#endif
-  }
 }
 
 // TODO derived classes to override this
