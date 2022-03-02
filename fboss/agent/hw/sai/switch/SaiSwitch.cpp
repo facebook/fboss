@@ -1390,13 +1390,18 @@ void SaiSwitch::packetRxCallback(
 
   auto portSaiId = portSaiIdOpt.has_value() ? portSaiIdOpt.value()
                                             : PortSaiId(SAI_NULL_OBJECT_ID);
+  auto packetRxReason = cfg::PacketRxReason::UNMATCHED;
+  if (hostifTrapSaiIdOpt.has_value()) {
+    const auto hostifTrapItr =
+        concurrentIndices_->hostifTrapIds.find(hostifTrapSaiIdOpt.value());
+    if (hostifTrapItr != concurrentIndices_->hostifTrapIds.cend()) {
+      packetRxReason = hostifTrapItr->second;
+    }
+  }
+
   if (!lagSaiIdOpt) {
     packetRxCallbackPort(
-        buffer_size,
-        buffer,
-        portSaiId,
-        allowMissingSrcPort,
-        cfg::PacketRxReason::UNMATCHED);
+        buffer_size, buffer, portSaiId, allowMissingSrcPort, packetRxReason);
   } else {
     packetRxCallbackLag(
         buffer_size,
@@ -1404,7 +1409,7 @@ void SaiSwitch::packetRxCallback(
         lagSaiIdOpt.value(),
         portSaiId,
         allowMissingSrcPort,
-        cfg::PacketRxReason::UNMATCHED);
+        packetRxReason);
   }
 }
 
@@ -1472,8 +1477,8 @@ void SaiSwitch::packetRxCallbackPort(
    */
   rxPacket->setSrcPort(swPortId);
   rxPacket->setSrcVlan(swVlanId);
-
-  XLOG(DBG6) << "Rx packet on port: " << swPortId << " and vlan: " << swVlanId;
+  XLOG(DBG6) << "Rx packet on port: " << swPortId << " vlan: " << swVlanId
+             << " trap: " << packetRxReasonToString(rxReason);
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
@@ -1521,7 +1526,8 @@ void SaiSwitch::packetRxCallbackLag(
   swPortId = swPortItr->second;
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
-             << " and vlan: " << swVlanId;
+             << " vlan: " << swVlanId
+             << " trap: " << packetRxReasonToString(rxReason);
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
