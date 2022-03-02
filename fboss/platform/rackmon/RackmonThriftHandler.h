@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/platform/rackmon/Rackmon.h"
 #include "fboss/platform/rackmon/if/gen-cpp2/RackmonCtrl.h"
 
 #include <memory>
@@ -19,41 +20,46 @@
 namespace rackmonsvc {
 
 class ThriftHandler : virtual public RackmonCtrlSvIf {
+  rackmon::Rackmon rackmond_{};
+
+  ModbusDeviceInfo transformModbusDeviceInfo(
+      const rackmon::ModbusDeviceInfo& source);
+  ModbusRegisterStore transformRegisterStoreValue(
+      const rackmon::RegisterStoreValue& source);
+  RackmonMonitorData transformModbusDeviceValueData(
+      const rackmon::ModbusDeviceValueData& source);
+  ModbusRegisterValue transformRegisterValue(
+      const rackmon::RegisterValue& value);
+
  public:
-  ThriftHandler() {}
+  ThriftHandler();
 
   void listModbusDevices(
-      std::vector<rackmonsvc::ModbusDeviceInfo>& /* devices */) override {
-    // TODO
-  }
+      std::vector<rackmonsvc::ModbusDeviceInfo>& devices) override;
 
   void getMonitorData(
-      std::vector<rackmonsvc::RackmonMonitorData>& /* data */) override {
-    // TODO
-  }
+      std::vector<rackmonsvc::RackmonMonitorData>& data) override;
 
   void readHoldingRegisters(
-      rackmonsvc::ReadWordRegistersResponse& /* response */,
-      std::unique_ptr<rackmonsvc::ReadWordRegistersRequest> /* request */)
-      override {
-    // TODO
-  }
+      rackmonsvc::ReadWordRegistersResponse& response,
+      std::unique_ptr<rackmonsvc::ReadWordRegistersRequest> request) override;
 
   rackmonsvc::RackmonStatusCode writeSingleRegister(
-      std::unique_ptr<rackmonsvc::WriteSingleRegisterRequest> /* request */)
-      override {
-    // TODO
-    return rackmonsvc::RackmonStatusCode::SUCCESS;
-  }
+      std::unique_ptr<rackmonsvc::WriteSingleRegisterRequest> request) override;
+
+  rackmonsvc::RackmonStatusCode presetMultipleRegisters(
+      std::unique_ptr<rackmonsvc::PresetMultipleRegistersRequest> request)
+      override;
+
+  void readFileRecord(
+      rackmonsvc::ReadFileRecordResponse& response,
+      std::unique_ptr<rackmonsvc::ReadFileRecordRequest> request) override;
+
+  rackmonsvc::RackmonStatusCode controlRackmond(
+      rackmonsvc::RackmonControlRequest request) override;
 
   void getPowerLossSiren(rackmonsvc::PowerLossSiren& /* plsStatus */) override {
     // TODO
-  }
-
-  rackmonsvc::RackmonStatusCode controlRackmond(
-      rackmonsvc::RackmonControlRequest /* request */) override {
-    // TODO
-    return rackmonsvc::RackmonStatusCode::SUCCESS;
   }
 };
 } // namespace rackmonsvc
