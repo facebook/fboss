@@ -7,6 +7,7 @@
 
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/logging/Init.h>
+#include <glog/logging.h>
 
 #include "fboss/platform/rackmon/RackmonThriftHandler.h"
 
