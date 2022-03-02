@@ -52,11 +52,13 @@ void FsdbStreamClient::setState(State state) {
 #if FOLLY_HAS_COROUTINES
     auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
       try {
+        XLOG(INFO) << " Service loop started: " << clientId_;
         co_await serviceLoop();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Service loop broken:" << ex.what();
         setState(State::DISCONNECTED);
       }
+      XLOG(INFO) << " Service loop done: " << clientId_;
       co_return;
     });
     startServiceLoop().scheduleOn(streamEvb_).start();

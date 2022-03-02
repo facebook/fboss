@@ -5,9 +5,11 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/experimental/coro/AsyncGenerator.h>
+#include <folly/experimental/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <atomic>
 
 namespace facebook::fboss::fsdb::test {
@@ -26,18 +28,9 @@ class TestFsdbStreamClient : public FsdbStreamClient {
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoop() override {
-    /*
-     * Dummy generator for testing. Derived classes will
-     * provide this as we flesh out publisher, subscriber
-     * classes
-     */
-    auto gen = []() -> folly::coro::AsyncGenerator<int> {
-      auto i = 0;
-      while (true) {
-        co_yield ++i;
-      }
-    }();
     try {
+      auto [gen, pipe] = folly::coro::AsyncPipe<int>::create();
+      pipe.write(1);
       while (auto intgen = co_await folly::coro::co_withCancellation(
                  cancelSource_.getToken(), gen.next())) {
         serviceLoopRunning_.store(true);
@@ -86,12 +79,24 @@ class StreamClientTest : public ::testing::Test {
     streamEvbThread_.reset();
     connRetryEvbThread_.reset();
   }
-  void verifyServiceLoopRunning(bool expectRunning) const {
+  void verifyServiceLoopRunning(
+      bool expectRunning,
+      const std::vector<TestFsdbStreamClient*>& clients) const {
 #if FOLLY_HAS_COROUTINES
     checkWithRetry(
-        [&]() { return streamClient_->serviceLoopRunning() == expectRunning; },
+        [&]() {
+          return std::all_of(
+              clients.begin(),
+              clients.end(),
+              [expectRunning](const auto& streamClient) {
+                return streamClient->serviceLoopRunning() == expectRunning;
+              });
+        },
         kRetries);
 #endif
+  }
+  void verifyServiceLoopRunning(bool expectRunning) const {
+    verifyServiceLoopRunning(expectRunning, {streamClient_.get()});
   }
 
  protected:
@@ -113,5 +118,15 @@ TEST_F(StreamClientTest, connectAndCancel) {
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CANCELLED);
   verifyServiceLoopRunning(false);
+}
+TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {
+  auto streamClient2 = std::make_unique<TestFsdbStreamClient>(
+      streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+  streamClient_->markConnected();
+  streamClient2->markConnected();
+  verifyServiceLoopRunning(true, {streamClient_.get(), streamClient2.get()});
+  streamClient_->cancel();
+  streamClient2->cancel();
+  verifyServiceLoopRunning(false, {streamClient_.get(), streamClient2.get()});
 }
 } // namespace facebook::fboss::fsdb::test
