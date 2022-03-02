@@ -1,5 +1,5 @@
-// Copyright 2004-present Facebook. All Rights Reserved.
-//
+// Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
+// All Rights Reserved.
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
