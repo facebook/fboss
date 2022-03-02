@@ -1,0 +1,896 @@
+{
+    "name": "orv2_psu",
+    "address_range": [
+        160,
+        191
+    ],
+    "probe_register": 104,
+    "default_baudrate": 19200,
+    "preferred_baudrate": 19200,
+    "registers": [
+        {
+            "begin": 0,
+            "length": 8,
+            "format": "string",
+            "name": "PSU MFR MODEL"
+        },
+        {
+            "begin": 16,
+            "length": 8,
+            "format": "string",
+            "name": "PSU MFR DATE"
+        },
+        {
+            "begin": 32,
+            "length": 8,
+            "format": "string",
+            "name": "PSU FB Part #"
+        },
+        {
+            "begin": 48,
+            "length": 4,
+            "format": "string",
+            "name": "PSU HW Revision"
+        },
+        {
+            "begin": 56,
+            "length": 4,
+            "format": "string",
+            "name": "PSU FW Revision"
+        },
+        {
+            "begin": 64,
+            "length": 16,
+            "format": "string",
+            "name": "PSU MFR Serial #"
+        },
+        {
+            "begin": 96,
+            "length": 4,
+            "format": "string",
+            "name": "PSU Workorder #"
+        },
+        {
+            "begin": 104,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "flags",
+            "flags": [
+                [13, "Forced Backup"],
+                [11, "Power Fail signal"],
+                [10, "Redundancy Lost"],
+                [9, "PSU Not Responding"],
+                [8, "SoH Discharge"],
+                [7, "SoH Requested"],
+                [6, "Battery Alarm"],
+                [5, "Fan Alarm"],
+                [4, "Temp Alarm"],
+                [3, "Current Feed (Boost Converter) Failed"],
+                [2, "Battery Charger Failed"],
+                [1, "Aux 54V Converter failed"],
+                [0, "Main Converter Failed"]
+            ],
+            "name": "PSU Status"
+        },
+        {
+            "begin": 105,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "flags",
+            "flags": [
+                [15, "Unknown Error"],
+                [14, "Bad Size"],
+                [13, "Overflow/Underflow"],
+                [12, "Access Denied"],
+                [11, "Unsupported Command"],
+                [9, "Busy"],
+                [8, "Normal"],
+                [7, "BBU Charge_Enable_L signal mismatch"],
+                [6, "BBU Stop_Discharge_L signal mismatch"],
+                [2, "End of Life"],
+                [1, "Low Voltage"],
+                [0, "BBU Fail"]
+            ],
+            "name": "BBU Status (0x00 of the BBU)"
+        },
+        {
+            "begin": 107,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "flags",
+            "flags": [
+                [15, "Capacity Mode"],
+                [14, "Charger Mode"],
+                [13, "Alarm Mode"],
+                [9, "Primary Battery"],
+                [8, "Charge Controller Enabled"],
+                [7, "Battery OK Flag"],
+                [1, "Primary Battery Support"],
+                [0, "Internal Charge Controller"]
+            ],
+            "name": "BBU Battery Mode (0x03 of BBU)"
+        },
+        {
+            "begin": 108,
+            "length": 1,
+            "keep": 10,
+            "changes_only": true,
+            "format": "flags",
+            "flags": [
+                [15, "Over Charged Alarm"],
+                [14, "Terminated Charge Alarm"],
+                [12, "Over Temp Alarm"],
+                [11, "Terminate Discharge Alarm"],
+                [9, "Remaining Capacity Alarm"],
+                [8, "Remaining Time Alarm"],
+                [7, "Initialized"],
+                [6, "Discharging"],
+                [5, "Fully Charged"],
+                [4, "Fully Discharged"]
+            ],
+            "name": "BBU Battery Status (0x16 of BBU)"
+        },
+        {
+            "begin": 109,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 1 (0x80 of the BBU)"
+        },
+        {
+            "begin": 110,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 2 (0x81 of the BBU)"
+        },
+        {
+            "begin": 111,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 3 (0x82 of the BBU)"
+        },
+        {
+            "begin": 112,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 4 (0x83 of the BBU)"
+        },
+        {
+            "begin": 113,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 5 (0x84 of the BBU)"
+        },
+        {
+            "begin": 114,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 6 (0x85 of the BBU)"
+        },
+        {
+            "begin": 115,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 7 (0x86 of the BBU)"
+        },
+        {
+            "begin": 116,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 8 (0x87 of the BBU)"
+        },
+        {
+            "begin": 117,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 9 (0x88 of the BBU)"
+        },
+        {
+            "begin": 118,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 10 (0x89 of the BBU)"
+        },
+        {
+            "begin": 119,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 11 (0x8A of the BBU)"
+        },
+        {
+            "begin": 120,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 12 (0x8B of the BBU)"
+        },
+        {
+            "begin": 121,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cell Voltage 13 (0x8C of the BBU)"
+        },
+        {
+            "begin": 122,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Temp 1 (0x90 of the BBU)"
+        },
+        {
+            "begin": 123,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Temp 2 (0x91 of the BBU)"
+        },
+        {
+            "begin": 124,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Temp 3 (0x92 of the BBU)"
+        },
+        {
+            "begin": 125,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Temp 4 (0x93 of the BBU)"
+        },
+        {
+            "begin": 126,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Relative State of Charge (0x0D of the BBU)"
+        },
+        {
+            "begin": 127,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Absolute State of Charge (0x0E of the BBU)"
+        },
+        {
+            "begin": 128,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 6,
+            "name": "PSU Input VAC"
+        },
+        {
+            "begin": 129,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Battery Voltage (0x09 of the BBU)"
+        },
+        {
+            "begin": 130,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 10,
+            "name": "PSU Input Current AC"
+        },
+        {
+            "begin": 131,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Battery Current (0x0A of the BBU)"
+        },
+        {
+            "begin": 132,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 9,
+            "name": "Battery Voltage (Detected by PSU)"
+        },
+        {
+            "begin": 133,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Average Current (0x0B of the BBU)"
+        },
+        {
+            "begin": 134,
+            "length": 1,
+            "format": "float",
+            "precision": 8,
+            "name": "Battery Current Output"
+        },
+        {
+            "begin": 135,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Remaining Capacity (0x0F of the BBU)"
+        },
+        {
+            "begin": 136,
+            "length": 1,
+            "format": "float",
+            "precision": 12,
+            "name": "Battery Current Input"
+        },
+        {
+            "begin": 137,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Full Charge Capacity (0x10 of the BBU)"
+        },
+        {
+            "begin": 138,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 11,
+            "name": "PSU Output Voltage"
+        },
+        {
+            "begin": 139,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Run Time To Empty (0x11 of the BBU)"
+        },
+        {
+            "begin": 140,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 6,
+            "name": "PSU Output Current"
+        },
+        {
+            "begin": 141,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Average Time To Empty (0x12 of the BBU)"
+        },
+        {
+            "begin": 142,
+            "length": 1,
+            "format": "float",
+            "precision": 9,
+            "name": "PSU IT Load Voltage Output"
+        },
+        {
+            "begin": 143,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Charging Current (0x14 of the BBU)"
+        },
+        {
+            "begin": 144,
+            "length": 1,
+            "format": "float",
+            "precision": 12,
+            "name": "PSU IT Load Current Output"
+        },
+        {
+            "begin": 145,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Charging Voltage (0x15 of the BBU)"
+        },
+        {
+            "begin": 146,
+            "length": 1,
+            "format": "float",
+            "precision": 6,
+            "name": "PSU Bulk Cap Voltage"
+        },
+        {
+            "begin": 147,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Cycle Count (0x17 of the BBU)"
+        },
+        {
+            "begin": 148,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 3,
+            "name": "PSU Input Power"
+        },
+        {
+            "begin": 149,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Design Capacity (0x18 of the BBU)"
+        },
+        {
+            "begin": 150,
+            "length": 1,
+            "keep": 10,
+            "format": "float",
+            "precision": 3,
+            "name": "PSU Output Power"
+        },
+        {
+            "begin": 151,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Design Voltage (0x19 of the BBU)"
+        },
+        {
+            "begin": 152,
+            "length": 1,
+            "format": "float",
+            "precision": 0,
+            "name": "PSU RPM Fan 0"
+        },
+        {
+            "begin": 153,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU At Rate (0x04 of the BBU)"
+        },
+        {
+            "begin": 154,
+            "length": 1,
+            "format": "float",
+            "precision": 0,
+            "name": "PSU RPM Fan 1"
+        },
+        {
+            "begin": 155,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU At Rate Time to Full (0x05 of the BBU)"
+        },
+        {
+            "begin": 156,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU At Rate Time to Empty (0x06 of the BBU)"
+        },
+        {
+            "begin": 157,
+            "length": 1,
+            "keep": 10,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU At Rate OK (0x07 of the BBU)"
+        },
+        {
+            "begin": 158,
+            "length": 1,
+            "format": "float",
+            "precision": 7,
+            "name": "PSU Temp 0 (inlet)"
+        },
+        {
+            "begin": 159,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Temp (0x08 of the BBU)"
+        },
+        {
+            "begin": 160,
+            "length": 1,
+            "format": "float",
+            "precision": 7,
+            "name": "PSU Temp 1 (outlet)"
+        },
+        {
+            "begin": 161,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Max Error (0x0C of the BBU)"
+        },
+        {
+            "begin": 163,
+            "length": 1,
+            "format": "integer",
+            "name": "Communication Baud Rate"
+        },
+        {
+            "begin": 164,
+            "length": 1,
+            "format": "float",
+            "precision": 12,
+            "name": "Charging Constant Current Level Override"
+        },
+        {
+            "begin": 165,
+            "length": 1,
+            "format": "float",
+            "precision": 12,
+            "name": "Computed Charging Constant Current Level"
+        },
+        {
+            "begin": 208,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [7, "Communication"],
+                [6, "Fan"],
+                [5, "Temperature"],
+                [4, "Battery Charger"],
+                [3, "Auxiliary"],
+                [2, "Boost Converter"],
+                [1, "DCDC"],
+                [0, "PFC"]
+            ],
+            "name": "General Alarm Status Register"
+        },
+        {
+            "begin": 209,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [11, "LLC enabled"],
+                [10, "Input relay on"],
+                [9, "!(Bulk ok)"],
+                [8, "AC_OK"],
+                [5, "!(AC_FREQ_GOOD_HIGH)"],
+                [4, "!(AC_FREQ_GOOD_LOW)"],
+                [1, "AC_OVP"],
+                [0, "AC_UVP"]
+            ],
+            "name": "PFC Alarm Status Register"
+        },
+        {
+            "begin": 210,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [10, "Oring fail"],
+                [9, "Secondary DSP fail"],
+                [8, "DC/DC fail"],
+                [3, "MAIN_SCKT"],
+                [2, "MAIN_OCP"],
+                [1, "MAIN_OVP"],
+                [0, "MAIN_UVP"]
+            ],
+            "name": "DC/DC Alarm Status Register"
+        },
+        {
+            "begin": 211,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [8, "CF Failure"],
+                [4, "OPP"],
+                [3, "Battery UVP"],
+                [2, "BOOST_OCP/Battery OVP"],
+                [1, "BOOST_UVP"],
+                [0, "BOOST_OVP"]
+            ],
+            "name": "Current Feed Alarm Status Register"
+        },
+        {
+            "begin": 212,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [8, "Aux alarm"],
+                [2, "OCP"],
+                [1, "OVP"],
+                [0, "UVP"]
+            ],
+            "name": "Auxiliary Alarm Status Register"
+        },
+        {
+            "begin": 213,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [6, "CHARGER_SCKT"],
+                [5, "CHARGER_HW_OVP"],
+                [3, "Charger_Failure_Timeout"],
+                [2, "CHARGER_OCP"],
+                [1, "CHARGER_UVP"],
+                [0, "CHARGER_OVP"]
+            ],
+            "name": "Battery Charger Alarm Status Register"
+        },
+        {
+            "begin": 215,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [15, "PFC FET 2 temp alarm"],
+                [14, "PFC FET 1 temp alarm"],
+                [13, "Bridge temp alarm"],
+                [12, "Buck temp alarm"],
+                [9, "Charger temp alarm"],
+                [8, "Boost temp alarm"],
+                [7, "PFC temp alarm"],
+                [6, "LLC temp alarm"],
+                [5, "CF temp alarm"],
+                [4, "Aux temp alarm"],
+                [3, "Sync temp alarm"],
+                [2, "Oring temp alarm"],
+                [1, "Inlet temp alarm"],
+                [0, "Outlet temp alarm"]
+            ],
+            "name": "Temperature Alarm Status Register"
+        },
+        {
+            "begin": 216,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [0, "Fan Tacho Fail"]
+            ],
+            "name": "Fan Alarm Status Register"
+        },
+        {
+            "begin": 217,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [11, "BBU not_insert"],
+                [14, "BBU protection"],
+                [13, "BBU sleep"],
+                [12, "BBU fail"],
+                [11, "BBU eol"],
+                [10, "soh_check"],
+                [9, "charge_enable"],
+                [8, "stop_discharge"],
+                [3, "Discharger - Logic Fault"],
+                [2, "Secondary - Logic Fault"],
+                [1, "Primary - Secondary Fault"],
+                [0, "BBU Comm Fault"]
+            ],
+            "name": "Communication Alarm Status Register"
+        },
+        {
+            "begin": 262,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Specification Info (0x1A of BBU)"
+        },
+        {
+            "begin": 263,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Manufacturer Date (0x1B of BBU)"
+        },
+        {
+            "begin": 264,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Serial Number (0x1C of BBU)"
+        },
+        {
+            "begin": 265,
+            "length": 2,
+            "format": "string",
+            "name": "BBU Device Chemistry (0x22 of BBU)"
+        },
+        {
+            "begin": 267,
+            "length": 2,
+            "format": "integer",
+            "endian": "L",
+            "name": "BBU Manufacturer Data (0x23 of BBU)"
+        },
+        {
+            "begin": 269,
+            "length": 8,
+            "format": "string",
+            "name": "BBU Manufacturer Name (0x20 of BBU)"
+        },
+        {
+            "begin": 277,
+            "length": 8,
+            "format": "string",
+            "name": "BBU Device Name (0x21 of BBU)"
+        },
+        {
+            "begin": 285,
+            "length": 4,
+            "format": "flags",
+            "flags": [
+                [63, "Charge timeout"],
+                [61, "BMS Failure"],
+                [60, "Cell voltage under 2.0V"],
+                [59, "FET Failure"],
+                [58, "Temperature above 85C"],
+                [57, "Cell voltage above 4.22V (analog)"],
+                [56, "Cell voltage above 4.22V"],
+                [55, "Temperature protection for charge"],
+                [54, "Charge current above 6A"],
+                [53, "Cell voltage above 4.12V"],
+                [51, "Full charge state"],
+                [50, "Cell balancing failure"],
+                [49, "Fuse blown detected - general"],
+                [48, "Fuse blown detected - during charge"],
+                [47, "SoH test is enabled"],
+                [46, "PSU failure"],
+                [45, "Sleep mode"],
+                [44, "End of Life"],
+                [42, "Temperature protection for discharge"],
+                [41, "Discharge current over 132A"],
+                [40, "Cell voltage under 2.6V"],
+                [31, "Stop Discharge"],
+                [30, "EoL"],
+                [29, "SoH check"],
+                [28, "Charge Enable"],
+                [27, "Fail"],
+                [26, "EoL LED"],
+                [25, "Fail LED"],
+                [24, "Online LED"],
+                [16, "Sleep"],
+                [15, "BatTest FCC update successful"],
+                [14, "BatTest FCC calculation"],
+                [13, "BatTest OCV checking after discharge"],
+                [12, "BatTest discharging"],
+                [11, "BatTest discharge permission"],
+                [10, "BatTest start time measured after wake up"],
+                [9, "BatTest suspended"],
+                [8, "BatTest start time elapsed"]
+            ],
+            "name": "BBU FB Status (0x31 of the BBU)"
+        },
+        {
+            "begin": 289,
+            "length": 1,
+            "format": "integer",
+            "endian": "L",
+            "name": "Battery Test Result (0x31 of the BBU)"
+        },
+        {
+            "begin": 290,
+            "length": 1,
+            "format": "integer",
+            "name": "Fan RPM Override"
+        },
+        {
+            "begin": 291,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [12, "Variable Charger CC Mode Override"],
+                [5, "Forced discharge"],
+                [4, "Charge timeout disable"],
+                [0, "SoH Override"]
+            ],
+            "name": "Rack Monitor BBU Control Enable"
+        },
+        {
+            "begin": 292,
+            "length": 1,
+            "format": "flags",
+            "flags": [
+                [7, "RED LED"],
+                [6, "AMBER LED"],
+                [5, "GREEN LED"],
+                [0, "LED Override"]
+            ],
+            "name": "LED Override"
+        },
+        {
+            "begin": 293,
+            "length": 1,
+            "format": "float",
+            "precision": 0,
+            "name": "PSU Input Frequency AC"
+        },
+        {
+            "begin": 294,
+            "length": 1,
+            "format": "float",
+            "precision": 9,
+            "name": "PSU Power Factor"
+        },
+        {
+            "begin": 295,
+            "length": 1,
+            "format": "float",
+            "precision": 9,
+            "name": "PSU iTHD"
+        },
+        {
+            "begin": 296,
+            "length": 2,
+            "format": "integer",
+            "name": "PSU CC Charge Failure Timeout"
+        },
+        {
+            "begin": 298,
+            "length": 2,
+            "format": "integer",
+            "name": "Time Stamping For Blackbox And SOH Test"
+        },
+        {
+            "begin": 300,
+            "length": 2,
+            "format": "integer",
+            "name": "Variable Charger Override Timeout"
+        },
+        {
+            "begin": 302,
+            "length": 1,
+            "format": "integer",
+            "name": "Configurable BBU Backup Time (90s-1200s)"
+        },
+        {
+            "begin": 303,
+            "length": 1,
+            "format": "integer",
+            "name": "Configurable PLS Timing (1s-300s)"
+        },
+        {
+            "begin": 304,
+            "length": 1,
+            "format": "integer",
+            "name": "Forced Discharge Timeout"
+        },
+        {
+            "begin": 305,
+            "length": 2,
+            "format": "integer",
+            "name": "SOH Timestamp"
+        }
+    ]
+}
