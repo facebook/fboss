@@ -52,6 +52,8 @@ class SaiRxPacket : public RxPacket {
     srcAggregatePort_ = srcAggregatePort;
   }
 
+  std::string describeDetails() const override;
+
  private:
   cfg::PacketRxReason rxReason_;
 };

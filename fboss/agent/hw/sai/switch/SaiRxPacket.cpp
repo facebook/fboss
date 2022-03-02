@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
+
 #include <folly/io/IOBuf.h>
 
 namespace facebook::fboss {
@@ -46,6 +48,10 @@ SaiRxPacket::SaiRxPacket(
   srcVlan_ = vlanId;
   isFromAggregatePort_ = true;
   rxReason_ = rxReason;
+}
+
+std::string SaiRxPacket::describeDetails() const {
+  return folly::sformat("rx reason={}", packetRxReasonToString(rxReason_));
 }
 
 } // namespace facebook::fboss
