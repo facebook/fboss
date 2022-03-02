@@ -38,9 +38,9 @@ class TestFsdbStreamClient : public FsdbStreamClient {
       }
     }();
     try {
-      serviceLoopRunning_.store(true);
       while (auto intgen = co_await folly::coro::co_withCancellation(
                  cancelSource_.getToken(), gen.next())) {
+        serviceLoopRunning_.store(true);
         if (isCancelled()) {
           XLOG(DBG2) << " Detected cancellation";
           break;
@@ -86,6 +86,13 @@ class StreamClientTest : public ::testing::Test {
     streamEvbThread_.reset();
     connRetryEvbThread_.reset();
   }
+  void verifyServiceLoopRunning(bool expectRunning) const {
+#if FOLLY_HAS_COROUTINES
+    checkWithRetry(
+        [&]() { return streamClient_->serviceLoopRunning() == expectRunning; },
+        kRetries);
+#endif
+  }
 
  protected:
   static auto constexpr kRetries = 60;
@@ -100,13 +107,11 @@ TEST_F(StreamClientTest, connectAndCancel) {
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CONNECTED);
-  checkWithRetry(
-      [&]() { return streamClient_->serviceLoopRunning(); }, kRetries);
+  verifyServiceLoopRunning(true);
   streamClient_->cancel();
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CANCELLED);
-  checkWithRetry(
-      [&]() { return !streamClient_->serviceLoopRunning(); }, kRetries);
+  verifyServiceLoopRunning(false);
 }
 } // namespace facebook::fboss::fsdb::test
