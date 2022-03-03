@@ -31,6 +31,7 @@ class FsdbStateSyncer : public AutoRegisterStateObserver {
       fsdb::FsdbStreamClient::State newState);
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::atomic<bool> readyForPublishing_{false};
 };
 
 } // namespace facebook::fboss
