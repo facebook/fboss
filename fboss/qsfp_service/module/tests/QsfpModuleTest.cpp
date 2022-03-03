@@ -88,7 +88,7 @@ TEST_F(QsfpModuleTest, setRateSelect) {
   {
     InSequence a;
     // Unsupported
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
 
@@ -104,17 +104,17 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     // 40G + LESS_THAN_12GB -> no change
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     // 100G + LESS_THAN_12GB -> needs change
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
 
     qsfp_->setRateSelect(
         RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::FROM_24GB_to_26GB);
     // 40G + FROM_24GB_to_26GB -> needs change
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     // 100G + FROM_24GB_to_26GB -> no change
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
   }
 }
@@ -150,7 +150,7 @@ TEST_F(QsfpModuleTest, setCdr) {
   // writes for settings changes.
   {
     InSequence a;
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
     // Unsupported
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
@@ -159,24 +159,24 @@ TEST_F(QsfpModuleTest, setCdr) {
     // Disabled + 40G
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
     // Disabled + 100G
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG); // CHECK
 
     qsfp_->setCdrState(FeatureState::ENABLED, FeatureState::ENABLED);
     // Enabled + 40G
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG); // CHECK
     // Enabled + 100G
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG); // CHECK
 
     // One of rx an tx enabled with the other disabled
     qsfp_->setCdrState(FeatureState::DISABLED, FeatureState::ENABLED);
     // 40G
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
     qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG); // CHECK
     // 100G
-    EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+    EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
     qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
   }
 }
@@ -432,19 +432,19 @@ TEST_F(QsfpModuleTest, updateQsfpDataPartial) {
   // Ensure that partial updates don't ever call writeTranscevier,
   // which needs to gain control of the bus and slows the call
   // down drastically.
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
   qsfp_->actualUpdateQsfpData(false);
 }
 
 TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   // Bit of a hack to ensure we have flatMem_ == false.
-  ON_CALL(*transImpl_, readTransceiver(_, _, _, _))
+  ON_CALL(*transImpl_, readTransceiver(_, _))
       .WillByDefault(DoAll(
           InvokeWithoutArgs(qsfp_.get(), &MockSffModule::setFlatMem),
           Return(0)));
 
   // Full updates do need to write to select higher pages
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(AtLeast(1));
 
   qsfp_->actualUpdateQsfpData(true);
 }
@@ -492,30 +492,30 @@ TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
 TEST_F(QsfpModuleTest, readTransceiver) {
   // Skip the length field and confirm that the length of data in response is 1.
   // Page is also skipped so there should not be a write to byte 127.
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
   TransceiverIOParameters param;
   param.offset_ref() = 0;
   auto buf = qsfp_->readTransceiver(param);
   EXPECT_EQ(buf->length(), 1);
 
   // Test for a specific length
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
-  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
   param.length_ref() = 10;
   buf = qsfp_->readTransceiver(param);
   EXPECT_EQ(buf->length(), *param.length_ref());
 
   // Set the page
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
-  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(1);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
   param.page_ref() = 3;
   buf = qsfp_->readTransceiver(param);
   EXPECT_EQ(buf->length(), *param.length_ref());
 
   // Test on a transceiver that fails detection
   EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
-  EXPECT_CALL(*transImpl_, readTransceiver(_, _, _, _)).Times(0);
+  EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(0);
   qsfp_->detectPresence();
   buf = qsfp_->readTransceiver(param);
   EXPECT_EQ(buf->length(), 0);
@@ -523,19 +523,19 @@ TEST_F(QsfpModuleTest, readTransceiver) {
 
 TEST_F(QsfpModuleTest, writeTransceiver) {
   // Expect a call to writeTransceiver and the result to be successful
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(1);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
   TransceiverIOParameters param;
   param.offset_ref() = 0x23;
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xab), true);
 
   // Set the page
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(2);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
   param.page_ref() = 3;
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xde), true);
 
   // Test on a transceiver that fails detection, the result should be false
   EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
-  EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(0);
+  EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
   qsfp_->detectPresence();
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xac), false);
 }

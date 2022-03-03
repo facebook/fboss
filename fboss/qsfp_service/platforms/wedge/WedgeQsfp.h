@@ -75,14 +75,13 @@ class WedgeQsfp : public TransceiverImpl {
   ~WedgeQsfp() override;
 
   /* This function is used to read the SFP EEprom */
-  int readTransceiver(int dataAddress, int offset, int len, uint8_t* fieldValue)
-      override;
+  int readTransceiver(
+      const TransceiverAccessParameter& param,
+      uint8_t* fieldValue) override;
 
   /* write to the eeprom (usually to change the page setting) */
   int writeTransceiver(
-      int dataAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* fieldValue) override;
 
   /* This function detects if a SFP is present on the particular port */

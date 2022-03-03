@@ -844,7 +844,7 @@ void SffModule::updateQsfpData(bool allPages) {
                << " qsfp data cache refresh for transceiver "
                << folly::to<std::string>(qsfpImpl_->getName());
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_), lowerPage_);
+        {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_)}, lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
@@ -862,16 +862,16 @@ void SffModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       uint8_t page = 0;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     }
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page0_), page0_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page0_)}, page0_);
     if (!flatMem_) {
       uint8_t page = 3;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page3_), page3_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page3_)}, page3_);
     }
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
@@ -961,7 +961,7 @@ void SffModule::setCdrIfSupported(
       SffField::CDR_CONTROL, dataAddress, dataOffset, dataLength);
 
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value), &value);
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value)}, &value);
   XLOG(INFO) << folly::to<std::string>(
       "Port: ",
       qsfpImpl_->getName(),
@@ -1026,12 +1026,12 @@ void SffModule::setRateSelectIfSupported(
   getQsfpFieldAddress(
       SffField::RATE_SELECT_RX, dataAddress, dataOffset, dataLength);
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value), &value);
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value)}, &value);
 
   getQsfpFieldAddress(
       SffField::RATE_SELECT_RX, dataAddress, dataOffset, dataLength);
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value), &value);
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, sizeof(value)}, &value);
   XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
              << " set rate select to "
              << apache::thrift::util::enumNameSafe(newSetting);
@@ -1094,7 +1094,7 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   // enable target power class
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
+      {TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power)}, &power);
 
   XLOG(INFO) << folly::sformat(
       "Port {:s}: QSFP set to power setting {:s} ({:d})",
@@ -1131,7 +1131,7 @@ void SffModule::resetLowPowerMode() {
   if (oldPower != lowPower) {
     // first set to low power
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(lowPower), &lowPower);
+        {TransceiverI2CApi::ADDR_QSFP, offset, sizeof(lowPower)}, &lowPower);
 
     // Transceivers need a bit of time to handle the low power setting
     // we just sent. We should be able to use the status register to be
@@ -1141,7 +1141,7 @@ void SffModule::resetLowPowerMode() {
 
   // set back to previous value
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(oldPower), &oldPower);
+      {TransceiverI2CApi::ADDR_QSFP, offset, sizeof(oldPower)}, &oldPower);
 }
 
 void SffModule::ensureTxEnabled() {
@@ -1162,7 +1162,7 @@ void SffModule::ensureTxEnabled() {
   // Force enable
   std::array<uint8_t, 1> buf = {{0}};
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, buf.data());
 }
 
 bool SffModule::getMediaLaneSettings(
@@ -1234,7 +1234,7 @@ void SffModule::overwriteChannelControlSettings() {
 
   uint8_t page = 3;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   int offset;
   int length;
   int dataAddress;
@@ -1243,18 +1243,18 @@ void SffModule::overwriteChannelControlSettings() {
   getQsfpFieldAddress(SffField::TX_EQUALIZATION, dataAddress, offset, length);
   CHECK_EQ(length, 2);
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, buf.data());
 
   getQsfpFieldAddress(SffField::RX_EMPHASIS, dataAddress, offset, length);
   CHECK_EQ(length, 2);
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, buf.data());
 
   buf.fill(0x22);
   getQsfpFieldAddress(SffField::RX_AMPLITUDE, dataAddress, offset, length);
   CHECK_EQ(length, 2);
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, buf.data());
 
   // Bump up the ODS counter.
   StatsPublisher::bumpAOIOverride();

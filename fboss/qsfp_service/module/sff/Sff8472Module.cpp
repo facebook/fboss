@@ -147,7 +147,8 @@ void Sff8472Module::updateQsfpData(bool allPages) {
                << " sfp data cache refresh for transceiver "
                << folly::to<std::string>(qsfpImpl_->getName());
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP_A2, 0, sizeof(a2LowerPage_), a2LowerPage_);
+        {TransceiverI2CApi::ADDR_QSFP_A2, 0, sizeof(a2LowerPage_)},
+        a2LowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
 
@@ -158,7 +159,7 @@ void Sff8472Module::updateQsfpData(bool allPages) {
     }
 
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 0, sizeof(a0LowerPage_), a0LowerPage_);
+        {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(a0LowerPage_)}, a0LowerPage_);
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.

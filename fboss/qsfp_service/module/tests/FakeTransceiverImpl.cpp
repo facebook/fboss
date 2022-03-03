@@ -23,11 +23,13 @@ bool FakeTransceiverImpl::detectTransceiver() {
 }
 
 int FakeTransceiverImpl::readTransceiver(
-    int dataAddress,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* fieldValue) {
   int read = 0;
+  CHECK(param.i2cAddress.has_value());
+  auto dataAddress = *(param.i2cAddress);
+  auto offset = param.offset;
+  auto len = param.len;
   EXPECT_TRUE(dataAddress == 0x50 || dataAddress == 0x51);
 
   if (offset < QsfpModule::MAX_QSFP_PAGE_SIZE) {
@@ -57,10 +59,12 @@ int FakeTransceiverImpl::readTransceiver(
 }
 
 int FakeTransceiverImpl::writeTransceiver(
-    int dataAddress,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* fieldValue) {
+  CHECK(param.i2cAddress.has_value());
+  auto dataAddress = *(param.i2cAddress);
+  auto offset = param.offset;
+  auto len = param.len;
   if (offset == 127) {
     page_ = *fieldValue;
   }

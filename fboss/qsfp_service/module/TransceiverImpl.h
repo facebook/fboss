@@ -15,6 +15,7 @@
 #include <optional>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook {
@@ -32,14 +33,10 @@ class TransceiverImpl {
    * Get the raw data from the Transceiver via I2C
    */
   virtual int readTransceiver(
-      int dataAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* fieldValue) = 0;
   virtual int writeTransceiver(
-      int dataAddress,
-      int offset,
-      int len,
+      const TransceiverAccessParameter& param,
       uint8_t* fieldValue) = 0;
 
   /*

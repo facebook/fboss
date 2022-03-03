@@ -1402,7 +1402,7 @@ void CmisModule::updateQsfpData(bool allPages) {
                << " qsfp data cache refresh for transceiver "
                << folly::to<std::string>(qsfpImpl_->getName());
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_), lowerPage_);
+        {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_)}, lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
@@ -1417,60 +1417,58 @@ void CmisModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       uint8_t page = 0x00;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     }
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page0_), page0_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page0_)}, page0_);
     if (!flatMem_) {
       uint8_t page = 0x10;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page10_), page10_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page10_)}, page10_);
 
       page = 0x11;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page11_), page11_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page11_)}, page11_);
 
       if (getLegacyModuleStateMachineCmisModuleReady()) {
         page = 0x14;
         auto diagFeature = (uint8_t)DiagnosticFeatureEncoding::SNR;
         qsfpImpl_->writeTransceiver(
-            TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+            {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
         qsfpImpl_->writeTransceiver(
-            TransceiverI2CApi::ADDR_QSFP,
-            128,
-            sizeof(diagFeature),
+            {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(diagFeature)},
             &diagFeature);
         qsfpImpl_->readTransceiver(
-            TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_), page14_);
+            {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_)}, page14_);
 
         if (isVdmSupported()) {
           page = 0x20;
           qsfpImpl_->writeTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_), page20_);
+              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
 
           page = 0x21;
           qsfpImpl_->writeTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_), page21_);
+              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
 
           page = 0x24;
           qsfpImpl_->writeTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
 
           page = 0x25;
           qsfpImpl_->writeTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
-              TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
+              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
         }
       }
     }
@@ -1485,21 +1483,21 @@ void CmisModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       uint8_t page = 0x01;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page01_), page01_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page01_)}, page01_);
 
       page = 0x02;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page02_), page02_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page02_)}, page02_);
 
       page = 0x13;
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
       qsfpImpl_->readTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page13_), page13_);
+          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page13_)}, page13_);
     }
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
@@ -1601,9 +1599,9 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         // four lanes for 100G/200G or all eight lanes for 400G.
         uint8_t laneApSelCode = (channel < hostLanes) ? newApSelCode : 0;
         qsfpImpl_->writeTransceiver(
-            TransceiverI2CApi::ADDR_QSFP,
-            offset2 + channel,
-            sizeof(laneApSelCode),
+            {TransceiverI2CApi::ADDR_QSFP,
+             offset2 + channel,
+             sizeof(laneApSelCode)},
             &laneApSelCode);
       }
       uint8_t applySet0 = (hostLanes == 8) ? 0xff : 0x0f;
@@ -1611,7 +1609,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
       getQsfpFieldAddress(
           CmisField::STAGE_CTRL_SET_0, dataAddress2, offset2, length2);
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset2, sizeof(applySet0), &applySet0);
+          {TransceiverI2CApi::ADDR_QSFP, offset2, sizeof(applySet0)},
+          &applySet0);
 
       XLOG(INFO) << folly::sformat(
           "Transceiver: {:s} set application to {:#x}",
@@ -1658,7 +1657,7 @@ bool CmisModule::checkLaneConfigError() {
   // Set the page to 0x11 for lane config status
   uint8_t page = 0x11;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   uint8_t configErrors[4];
   getQsfpFieldAddress(
@@ -1670,7 +1669,7 @@ bool CmisModule::checkLaneConfigError() {
   while (retryCount) {
     retryCount--;
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, length, configErrors);
+        {TransceiverI2CApi::ADDR_QSFP, offset, length}, configErrors);
 
     bool allStatusAvailable = true;
     success = true;
@@ -1769,7 +1768,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   // first set to low power
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &currentModuleControl);
 
   // Transceivers need a bit of time to handle the low power setting
   // we just sent. We should be able to use the status register to be
@@ -1780,7 +1779,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   currentModuleControl = currentModuleControl & 0x3f;
 
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &currentModuleControl);
 
   XLOG(INFO) << folly::sformat(
       "Port {:s}: QSFP module control field set to {:#x}",
@@ -1808,15 +1807,13 @@ void CmisModule::ensureRxOutputSquelchEnabled(
     // Flip to page 0x10 to get prepared.
     uint8_t page = 0x10;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
     getQsfpFieldAddress(
         CmisField::RX_SQUELCH_DISABLE, dataAddress, offset, length);
 
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP,
-        offset,
-        length,
+        {TransceiverI2CApi::ADDR_QSFP, offset, length},
         &enableAllLaneRxOutputSquelch);
     XLOG(INFO) << "Transceiver " << folly::to<std::string>(qsfpImpl_->getName())
                << ": Enabled Rx output squelch on all lanes.";
@@ -1952,7 +1949,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   // Flip to page 0x11 to read current values
   uint8_t page = 0x11;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   auto compareSettings = [numLanes](
                              uint8_t currSettings[],
@@ -1974,20 +1971,20 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   getQsfpFieldAddress(
       CmisField::RX_OUT_PRE_CURSOR, dataAddress, offset, length);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, currPre);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currPre);
   compareSettings(currPre, desiredPre, length, changePre);
 
   // Compare current Post cursor value to see if the change is needed
   getQsfpFieldAddress(
       CmisField::RX_OUT_POST_CURSOR, dataAddress, offset, length);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, currPost);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currPost);
   compareSettings(currPost, desiredPost, length, changePost);
 
   // Compare current Rx Main value to see if the change is needed
   getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, currMain);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currMain);
   compareSettings(currMain, desiredMain, length, changeMain);
 
   // If anything is changed then apply the change and trigger it
@@ -1995,14 +1992,14 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     // Flip to page 0x10 to change the values
     page = 0x10;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
     // Apply the change for pre/post/main if needed
     if (changePre) {
       getQsfpFieldAddress(
           CmisField::RX_CONTROL_PRE_CURSOR, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPre);
+          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredPre);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2015,7 +2012,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
       getQsfpFieldAddress(
           CmisField::RX_CONTROL_POST_CURSOR, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredPost);
+          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredPost);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2028,7 +2025,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
       getQsfpFieldAddress(
           CmisField::RX_CONTROL_MAIN, dataAddress, offset, length);
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset, length, desiredMain);
+          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredMain);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2042,19 +2039,19 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
     uint8_t stage0Control[8];
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, 8, stage0Control);
+        {TransceiverI2CApi::ADDR_QSFP, offset, 8}, stage0Control);
     for (int i = 0; i < numLanes; i++) {
       stage0Control[i] |= 1;
     }
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, numLanes, stage0Control);
+        {TransceiverI2CApi::ADDR_QSFP, offset, numLanes}, stage0Control);
 
     // Trigger the stage 0 control values to be operational in optics
     getQsfpFieldAddress(
         CmisField::STAGE_CTRL_SET0_IMMEDIATE, dataAddress, offset, length);
     uint8_t stage0ControlTrigger = (1 << numLanes) - 1;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, length, &stage0ControlTrigger);
+        {TransceiverI2CApi::ADDR_QSFP, offset, length}, &stage0ControlTrigger);
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
@@ -2088,7 +2085,7 @@ void CmisModule::moduleDiagsCapabilitySet() {
         getQsfpValue(dataAddress, offset, 1, &dataVal);
       } else {
         qsfpImpl_->readTransceiver(
-            TransceiverI2CApi::ADDR_QSFP, offset, length, &dataVal);
+            {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataVal);
       }
       return dataVal;
     };
@@ -2122,27 +2119,27 @@ void CmisModule::moduleDiagsCapabilitySet() {
   if ((*diagsCapability).has_value() && *(*diagsCapability).value().vdm_ref()) {
     uint8_t page = 0x20;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_), page20_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
 
     page = 0x21;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_), page21_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
 
     page = 0x24;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
 
     page = 0x25;
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
+        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
   }
 }
 
@@ -2253,17 +2250,17 @@ void CmisModule::latchAndReadVdmDataLocked() {
   // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
   uint8_t page = 0x2f;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   getQsfpFieldAddress(
       CmisField::VDM_LATCH_REQUEST, dataAddress, offset, length);
   uint8_t latchRequest;
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
 
   latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
   // Hold the latch to read the VDM data
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
 
   // Wait tNack time
   /* sleep override */
@@ -2272,24 +2269,24 @@ void CmisModule::latchAndReadVdmDataLocked() {
   // Read data for publishing to ODS
   page = 0x24;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_), page24_);
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
 
   page = 0x25;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_), page25_);
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
   page = 0x2f;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
   // Release the latch to resume VDM data collection
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &latchRequest);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
 
   // Wait tNack time
   /* sleep override */
@@ -2354,7 +2351,7 @@ bool CmisModule::setPortPrbsLocked(
   // Set the page to 0x13 first
   uint8_t page = 0x13;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   // Step 1: Set the pattern for Generator (for starting case)
   if (start) {
@@ -2367,7 +2364,7 @@ bool CmisModule::setPortPrbsLocked(
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
     for (int i = 0; i < length; i++) {
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset + i, 1, &patternVal);
+          {TransceiverI2CApi::ADDR_QSFP, offset + i, 1}, &patternVal);
     }
   }
 
@@ -2386,7 +2383,7 @@ bool CmisModule::setPortPrbsLocked(
   getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
 
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, 1, &startLaneMask);
+      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &startLaneMask);
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (start) {
@@ -2399,7 +2396,7 @@ bool CmisModule::setPortPrbsLocked(
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
     for (int i = 0; i < length; i++) {
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, offset + i, 1, &patternVal);
+          {TransceiverI2CApi::ADDR_QSFP, offset + i, 1}, &patternVal);
     }
   }
 
@@ -2409,7 +2406,7 @@ bool CmisModule::setPortPrbsLocked(
   getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
 
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, 1, &startLaneMask);
+      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &startLaneMask);
 
   XLOG(INFO) << folly::sformat(
       "PRBS on module {:s} side {:s} Lanemask {:#x} {:s}",
@@ -2446,7 +2443,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   // The PRBS information is in page 0x14 so set the page first
   uint8_t page = 0x14;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   // Step1: Get the lane locked mask for PRBS checker
   uint8_t checkerLockMask;
@@ -2455,7 +2452,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
       : CmisField::HOST_LANE_CHECKER_LOL_LATCH;
   getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, 1, &checkerLockMask);
+      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &checkerLockMask);
 
   // Step 2: Get BER values for all the lanes
   int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
@@ -2465,7 +2462,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   getQsfpFieldAddress(CmisField::DIAG_SEL, dataAddress, offset, length);
   uint8_t diagSel = 1; // Diag Sel 1 is to obtain BER values
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, 1, &diagSel);
+      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &diagSel);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
@@ -2475,7 +2472,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
   std::array<uint8_t, 16> laneBerList;
   qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, laneBerList.data());
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, laneBerList.data());
 
   // Step 3: Put all the lane info in return structure and return
   for (auto laneId = 0; laneId < numLanes; laneId++) {
@@ -2506,13 +2503,13 @@ void CmisModule::resetDataPathWithFunc(
   // Flip to page 0x10 to get prepared.
   uint8_t page = 0x10;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   // First deactivate all the lanes
   getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
   uint8_t dataPathDeInit = 0xff;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
@@ -2525,7 +2522,7 @@ void CmisModule::resetDataPathWithFunc(
   getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
   dataPathDeInit = 0x0;
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &dataPathDeInit);
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 

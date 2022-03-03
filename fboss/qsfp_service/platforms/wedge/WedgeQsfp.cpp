@@ -55,10 +55,10 @@ void WedgeQsfp::ensureOutOfReset() {
 }
 
 int WedgeQsfp::readTransceiver(
-    int dataAddress,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* fieldValue) {
+  auto offset = param.offset;
+  auto len = param.len;
   try {
     SCOPE_EXIT {
       wedgeQsfpstats_.updateReadDownTime();
@@ -69,10 +69,7 @@ int WedgeQsfp::readTransceiver(
     SCOPE_SUCCESS {
       wedgeQsfpstats_.recordReadSuccess();
     };
-    threadSafeI2CBus_->moduleRead(
-        module_ + 1,
-        {static_cast<uint8_t>(dataAddress), offset, len},
-        fieldValue);
+    threadSafeI2CBus_->moduleRead(module_ + 1, param, fieldValue);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
@@ -82,10 +79,10 @@ int WedgeQsfp::readTransceiver(
 }
 
 int WedgeQsfp::writeTransceiver(
-    int dataAddress,
-    int offset,
-    int len,
+    const TransceiverAccessParameter& param,
     uint8_t* fieldValue) {
+  auto offset = param.offset;
+  auto len = param.len;
   try {
     SCOPE_EXIT {
       wedgeQsfpstats_.updateWriteDownTime();
@@ -96,10 +93,7 @@ int WedgeQsfp::writeTransceiver(
     SCOPE_SUCCESS {
       wedgeQsfpstats_.recordWriteSuccess();
     };
-    threadSafeI2CBus_->moduleWrite(
-        module_ + 1,
-        {static_cast<uint8_t>(dataAddress), offset, len},
-        fieldValue);
+    threadSafeI2CBus_->moduleWrite(module_ + 1, param, fieldValue);
 
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.

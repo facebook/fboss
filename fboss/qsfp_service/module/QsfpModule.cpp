@@ -707,10 +707,10 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     }
     qsfpImpl_->readTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, length, iobuf->writableData());
+        {TransceiverI2CApi::ADDR_QSFP, offset, length}, iobuf->writableData());
     // Mark the valid data in the buffer
     iobuf->append(length);
   } catch (const std::exception& ex) {
@@ -760,10 +760,10 @@ bool QsfpModule::writeTransceiverLocked(
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
-          TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
     }
     qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(data), &data);
+        {TransceiverI2CApi::ADDR_QSFP, offset, sizeof(data)}, &data);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Error writing data to transceiver:"
               << folly::to<std::string>(qsfpImpl_->getName()) << ": "
