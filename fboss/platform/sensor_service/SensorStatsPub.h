@@ -25,7 +25,7 @@ class SensorStatsPub {
   void publishStats();
 
  private:
-  SensorServiceImpl* sensorService_;
+  SensorServiceImpl* sensorService_{nullptr};
   bool fb303Initialized_{false};
   std::unordered_map<
       std::string,
