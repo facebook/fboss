@@ -74,9 +74,8 @@ class MKAServiceManager;
 template <typename AddressT>
 class Route;
 class Interface;
-namespace fsdb {
-class FsdbPubSubManager;
-}
+class FsdbStateSyncer;
+
 enum class SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
@@ -546,10 +545,6 @@ class SwSwitch : public HwSwitch::Callback {
    */
   bool sendPacketToHost(InterfaceID dstIfID, std::unique_ptr<RxPacket> pkt);
 
-  fsdb::FsdbPubSubManager* getFsdbPubSubManager() {
-    return fsdbPubSubMgr_.get();
-  }
-
   /**
    * Get the ArpHandler object.
    *
@@ -970,7 +965,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
-  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::unique_ptr<FsdbStateSyncer> fsdbStateSyncer_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
 };

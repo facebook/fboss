@@ -489,6 +489,7 @@ if (NOT SAI_ONLY)
       fboss/agent/DHCPv4Handler.cpp
       fboss/agent/DHCPv6Handler.cpp
       fboss/agent/FibHelpers.cpp
+      fboss/agent/FsdbStateSyncer.cpp
       fboss/agent/L2Entry.cpp
       fboss/agent/hw/BufferStatsLogger.cpp
       fboss/agent/hw/CounterUtils.cpp
@@ -847,6 +848,7 @@ if (NOT SAI_ONLY)
       wedge_led_utils
       bidirectional_packet_stream
       snapshot_manager
+      fsdb_stream_client
       fsdb_pub_sub
       fsdb_flags
       qsfp_lib

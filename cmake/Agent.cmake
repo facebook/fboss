@@ -107,6 +107,7 @@ add_library(core
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/FibHelpers.cpp
+  fboss/agent/FsdbStateSyncer.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
@@ -183,6 +184,7 @@ target_link_libraries(core
   Folly::folly
   normalizer
   bidirectional_packet_stream
+  fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
   ${IPROUTE2}
