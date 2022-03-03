@@ -847,6 +847,8 @@ if (NOT SAI_ONLY)
       wedge_led_utils
       bidirectional_packet_stream
       snapshot_manager
+      fsdb_pub_sub
+      fsdb_flags
       qsfp_lib
   )
 

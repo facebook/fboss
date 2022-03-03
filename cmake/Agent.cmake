@@ -183,6 +183,8 @@ target_link_libraries(core
   Folly::folly
   normalizer
   bidirectional_packet_stream
+  fsdb_pub_sub
+  fsdb_flags
   ${IPROUTE2}
   ${NETLINK3}
   ${NETLINKROUTE3}

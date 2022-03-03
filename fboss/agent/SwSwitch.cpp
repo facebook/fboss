@@ -67,6 +67,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/fsdb/Flags.h"
+#include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -201,11 +203,16 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(
           new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
-      aclNexthopHandler_(new AclNexthopHandler(this)) {
+      aclNexthopHandler_(new AclNexthopHandler(this)),
+      fsdbPubSubMgr_(new fsdb::FsdbPubSubManager("wedge_agent")) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+  if (FLAGS_publish_state_to_fsdb) {
+    fsdbPubSubMgr_->createDeltaPublisher(
+        {"agent"}, [](auto /*oldState*/, auto /*newState*/) {});
+  }
 }
 
 SwSwitch::~SwSwitch() {
@@ -297,6 +304,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
     hw_->stateChanged(StateDelta(getState(), getMinAlpmRouteState(getState())));
   }
+  fsdbPubSubMgr_.reset();
 }
 
 bool SwSwitch::isFullyInitialized() const {
