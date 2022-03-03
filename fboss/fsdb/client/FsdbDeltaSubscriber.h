@@ -21,6 +21,9 @@ class FsdbDeltaSubscriber : public FsdbStreamClient {
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
         subscribePath_(subscribePath) {}
 
+  ~FsdbDeltaSubscriber() override {
+    cancel();
+  }
   ssize_t queueSize() const {
     return publishedQueue_.size();
   }

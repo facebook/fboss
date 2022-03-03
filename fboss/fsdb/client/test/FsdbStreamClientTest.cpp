@@ -26,6 +26,9 @@ class TestFsdbStreamClient : public FsdbStreamClient {
               lastStateUpdateSeen_ = newState;
             }) {}
 
+  ~TestFsdbStreamClient() {
+    cancel();
+  }
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoop() override {
     try {
@@ -33,7 +36,6 @@ class TestFsdbStreamClient : public FsdbStreamClient {
       pipe.write(1);
       while (auto intgen = co_await folly::coro::co_withCancellation(
                  cancelSource_.getToken(), gen.next())) {
-        serviceLoopRunning_.store(true);
         if (isCancelled()) {
           XLOG(DBG2) << " Detected cancellation";
           break;
@@ -46,7 +48,6 @@ class TestFsdbStreamClient : public FsdbStreamClient {
       setState(State::DISCONNECTED);
     }
     XLOG(DBG2) << "Client Cancellation Completed";
-    serviceLoopRunning_.store(false);
     co_return;
   }
 #endif
@@ -56,14 +57,10 @@ class TestFsdbStreamClient : public FsdbStreamClient {
   void markConnected() {
     setState(State::CONNECTED);
   }
-  bool serviceLoopRunning() const {
-    return serviceLoopRunning_.load();
-  }
 
  private:
   std::atomic<std::optional<FsdbStreamClient::State>> lastStateUpdateSeen_{
       std::nullopt};
-  std::atomic<bool> serviceLoopRunning_{false};
 };
 
 class StreamClientTest : public ::testing::Test {

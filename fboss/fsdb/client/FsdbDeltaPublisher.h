@@ -20,6 +20,9 @@ class FsdbDeltaPublisher : public FsdbStreamClient {
                                                  State /*newState*/) {})
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb),
         publishPath_(publishPath) {}
+  ~FsdbDeltaPublisher() override {
+    cancel();
+  }
 
   void write(const OperDelta& pubUnit);
 

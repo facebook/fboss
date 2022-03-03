@@ -8,6 +8,7 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 
+#include <atomic>
 #include <functional>
 
 namespace folly {
@@ -28,22 +29,25 @@ class FsdbStreamClient : public folly::AsyncTimeout {
       folly::EventBase* connRetryEvb,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {});
+  virtual ~FsdbStreamClient() override;
 
   void setServerToConnect(
       const std::string& ip,
       uint16_t port,
       /* allow reset for use in tests*/
       bool allowReset = false);
-  virtual ~FsdbStreamClient() override;
-  bool isConnectedToServer() const;
   void cancel();
 
+  bool isConnectedToServer() const;
   bool isCancelled() const;
   const std::string& clientId() const {
     return clientId_;
   }
   State getState() const {
     return state_.load();
+  }
+  bool serviceLoopRunning() const {
+    return serviceLoopRunning_.load();
   }
 
  private:
@@ -72,6 +76,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
   std::optional<folly::SocketAddress> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
+  std::atomic<bool> serviceLoopRunning_{false};
 };
 
 } // namespace facebook::fboss::fsdb

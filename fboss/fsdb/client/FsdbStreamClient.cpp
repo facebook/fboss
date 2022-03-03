@@ -38,7 +38,7 @@ FsdbStreamClient::FsdbStreamClient(
 
 FsdbStreamClient::~FsdbStreamClient() {
   XLOG(DBG2) << "Destroying FsdbStreamClient";
-  cancel();
+  CHECK(isCancelled());
 }
 
 void FsdbStreamClient::setState(State state) {
@@ -46,24 +46,28 @@ void FsdbStreamClient::setState(State state) {
   if (oldState == state) {
     return;
   }
-  state_.store(state);
-  stateChangeCb_(oldState, state);
   if (state == State::CONNECTED) {
 #if FOLLY_HAS_COROUTINES
     auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
       try {
         XLOG(INFO) << " Service loop started: " << clientId_;
+        serviceLoopRunning_.store(true);
+        SCOPE_EXIT {
+          XLOG(INFO) << " Service loop done: " << clientId_;
+          serviceLoopRunning_.store(false);
+        };
         co_await serviceLoop();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Service loop broken:" << ex.what();
         setState(State::DISCONNECTED);
       }
-      XLOG(INFO) << " Service loop done: " << clientId_;
       co_return;
     });
     startServiceLoop().scheduleOn(streamEvb_).start();
 #endif
   }
+  state_.store(state);
+  stateChangeCb_(oldState, state);
 }
 
 void FsdbStreamClient::setServerToConnect(
@@ -101,8 +105,6 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
     }
   });
 }
-
-// TODO derived classes to override this
 
 void FsdbStreamClient::cancel() {
   XLOG(DBG2) << "Cancel FsdbStreamClient: " << clientId();
