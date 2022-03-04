@@ -7,8 +7,7 @@
 
 namespace facebook::fboss {
 FsdbStateSyncer::FsdbStateSyncer(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "FsdbStateSyncer"),
-      sw_(sw),
+    : sw_(sw),
       fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("wedge_agent")) {
   if (FLAGS_publish_state_to_fsdb) {
     fsdbPubSubMgr_->createDeltaPublisher(
@@ -16,9 +15,11 @@ FsdbStateSyncer::FsdbStateSyncer(SwSwitch* sw)
           fsdbConnectionStateChanged(oldState, newState);
         });
   }
+  sw_->registerStateObserver(this, "FsdbStateSyncer");
 }
 
 FsdbStateSyncer::~FsdbStateSyncer() {
+  sw_->unregisterStateObserver(this);
   readyForPublishing_.store(false);
   fsdbPubSubMgr_.reset();
 }

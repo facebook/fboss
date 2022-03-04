@@ -17,7 +17,7 @@ class FsdbPubSubManager;
 namespace cfg {
 class SwitchConfig;
 }
-class FsdbStateSyncer : public AutoRegisterStateObserver {
+class FsdbStateSyncer : public StateObserver {
  public:
   explicit FsdbStateSyncer(SwSwitch* sw);
   ~FsdbStateSyncer() override;
