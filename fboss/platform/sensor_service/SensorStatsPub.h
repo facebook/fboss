@@ -27,11 +27,6 @@ class SensorStatsPub {
  private:
   SensorServiceImpl* sensorService_{nullptr};
   bool fb303Initialized_{false};
-  std::unordered_map<
-      std::string,
-      std::shared_ptr<fb303::ThreadCachedServiceData::TLTimeseries>>
-      timeSeries_;
-  fb303::ThreadCachedServiceData::ThreadLocalStatsMap* tlsMap_;
 };
 
 } // namespace facebook::fboss::platform::sensor_service
