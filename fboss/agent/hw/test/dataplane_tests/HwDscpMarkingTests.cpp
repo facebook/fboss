@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -33,20 +34,6 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  // 53: DNS, 88: Kerberos, 123: NTP, 319/320: PTP, 514: syslog, 636: LDAP
-
-  const std::vector<uint32_t>& kTcpPorts() {
-    static const std::vector<uint32_t> tcpPorts = {53, 88, 123, 636};
-
-    return tcpPorts;
-  }
-
-  const std::vector<uint32_t>& kUdpPorts() {
-    static const std::vector<uint32_t> udpPorts = {53, 88, 123, 319, 320, 514};
-
-    return udpPorts;
-  }
-
   std::string kDscpCounterAclName() const {
     return "dscp_counter_acl";
   }
@@ -57,28 +44,12 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
 
   void addDscpCounterAcl(cfg::SwitchConfig* config) {
     // Create ACL to count the number of packets with DSCP == ICP
-    utility::addDscpAclToCfg(config, kDscpCounterAclName(), kIcpDscp());
+    utility::addDscpAclToCfg(
+        config, kDscpCounterAclName(), utility::kIcpDscp());
     utility::addTrafficCounter(config, kCounterName());
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.counter_ref() = kCounterName();
     utility::addMatcher(config, kDscpCounterAclName(), matchAction);
-  }
-
-  void addSetDscpAclsHelper(
-      cfg::SwitchConfig* config,
-      IP_PROTO proto,
-      const std::vector<uint32_t>& ports) {
-    for (auto port : ports) {
-      auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
-      utility::addL4SrcPortAclToCfg(config, l4SrcPortAclName, proto, port);
-      utility::addSetDscpAndEgressQueueActionToCfg(
-          config, l4SrcPortAclName, kIcpDscp(), utility::kOlympicICPQueueId);
-
-      auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
-      utility::addL4DstPortAclToCfg(config, l4DstPortAclName, proto, port);
-      utility::addSetDscpAndEgressQueueActionToCfg(
-          config, l4DstPortAclName, kIcpDscp(), utility::kOlympicICPQueueId);
-    }
   }
 
   void verifyDscpMarking(bool frontPanel) {
@@ -113,8 +84,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto newCfg{initialConfig()};
       utility::addOlympicQosMaps(newCfg);
       addDscpCounterAcl(&newCfg);
-      addSetDscpAclsHelper(&newCfg, IP_PROTO::IP_PROTO_UDP, kUdpPorts());
-      addSetDscpAclsHelper(&newCfg, IP_PROTO::IP_PROTO_TCP, kTcpPorts());
+      utility::addDscpMarkingAcls(&newCfg);
 
       applyNewConfig(newCfg);
     };
@@ -130,9 +100,15 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
           kCounterName());
 
       sendAllPackets(
-          0 /* No Dscp */, frontPanel, IP_PROTO::IP_PROTO_UDP, kUdpPorts());
+          0 /* No Dscp */,
+          frontPanel,
+          IP_PROTO::IP_PROTO_UDP,
+          utility::kUdpPorts());
       sendAllPackets(
-          0 /* No Dscp */, frontPanel, IP_PROTO::IP_PROTO_TCP, kTcpPorts());
+          0 /* No Dscp */,
+          frontPanel,
+          IP_PROTO::IP_PROTO_TCP,
+          utility::kTcpPorts());
 
       auto afterAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(),
@@ -144,20 +120,26 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       EXPECT_EQ(
           afterAclInOutPkts - beforeAclInOutPkts,
           (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
-           kUdpPorts().size()) +
+           utility::kUdpPorts().size()) +
               (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
-               kTcpPorts().size()));
+               utility::kTcpPorts().size()));
 
       EXPECT_TRUE(utility::verifyQueueMappings(
           portStatsBefore,
-          {{utility::kOlympicICPQueueId, {kIcpDscp()}}},
+          {{utility::kOlympicICPQueueId, {utility::kIcpDscp()}}},
           getHwSwitchEnsemble(),
           portId));
 
       sendAllPackets(
-          kIcpDscp(), frontPanel, IP_PROTO::IP_PROTO_UDP, kUdpPorts());
+          utility::kIcpDscp(),
+          frontPanel,
+          IP_PROTO::IP_PROTO_UDP,
+          utility::kUdpPorts());
       sendAllPackets(
-          kIcpDscp(), frontPanel, IP_PROTO::IP_PROTO_TCP, kTcpPorts());
+          utility::kIcpDscp(),
+          frontPanel,
+          IP_PROTO::IP_PROTO_TCP,
+          utility::kTcpPorts());
 
       auto afterAclInOutPkts2 = utility::getAclInOutPackets(
           getHwSwitch(),
@@ -169,29 +151,12 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       EXPECT_EQ(
           afterAclInOutPkts2 - afterAclInOutPkts,
           (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
-           kUdpPorts().size()) +
+           utility::kUdpPorts().size()) +
               (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
-               kTcpPorts().size()));
+               utility::kTcpPorts().size()));
     };
 
     verifyAcrossWarmBoots(setup, verify);
-  }
-
-  uint8_t kIcpDscp() const {
-    return utility::kOlympicQueueToDscp()
-        .at(utility::kOlympicICPQueueId)
-        .front();
-  }
-
-  std::string
-  getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) const {
-    return folly::to<std::string>(
-        "dscp-mark-for-proto-",
-        static_cast<int>(proto),
-        "-L4-",
-        direction,
-        "-port-",
-        port);
   }
 
  private:
