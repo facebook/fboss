@@ -47,8 +47,8 @@ namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
-NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl)
-    : AutoRegisterStateObserver(sw, "NeighborUpdater"), sw_(sw) {
+NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl) : sw_(sw) {
+  sw_->registerStateObserver(this, "NeighborUpdater");
   // for agent tests, we want to disable the neighbor updater
   // functionality. Simplest way to do so is to create stub version
   // of NeighborUpdaterImpl i.e. NeighborUpdaterNoopImpl
@@ -67,6 +67,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
     : NeighborUpdater(sw, FLAGS_disable_neighbor_updates){};
 
 NeighborUpdater::~NeighborUpdater() {
+  sw_->unregisterStateObserver(this);
   // we make sure to destroy the NeighborUpdaterImpl on the neighbor
   // cache thread to avoid racing between background entry processing
   // and destruction.

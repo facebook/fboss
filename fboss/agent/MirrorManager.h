@@ -9,14 +9,17 @@
 
 namespace facebook::fboss {
 
-class MirrorManager : public AutoRegisterStateObserver {
+class MirrorManager : public StateObserver {
  public:
   explicit MirrorManager(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "MirrorManager"),
-        sw_(sw),
+      : sw_(sw),
         v4Manager_(std::make_unique<MirrorManagerV4>(sw)),
-        v6Manager_(std::make_unique<MirrorManagerV6>(sw)) {}
-  ~MirrorManager() override {}
+        v6Manager_(std::make_unique<MirrorManagerV6>(sw)) {
+    sw_->registerStateObserver(this, "MirrorManager");
+  }
+  ~MirrorManager() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& delta) override;
 

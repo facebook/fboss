@@ -46,13 +46,13 @@ using NeighborUpdaterVariant =
  * class. Everything else is forwarded to the `Impl` class on the neighbor
  * thread.
  */
-class NeighborUpdater : public AutoRegisterStateObserver {
+class NeighborUpdater : public StateObserver {
  private:
   std::shared_ptr<NeighborUpdaterVariant> impl_;
   SwSwitch* sw_{nullptr};
 
  public:
-  explicit NeighborUpdater(SwSwitch* sw, bool disableImpl);
+  NeighborUpdater(SwSwitch* sw, bool disableImpl);
   explicit NeighborUpdater(SwSwitch* sw);
   ~NeighborUpdater() override;
 
