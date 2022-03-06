@@ -101,9 +101,9 @@ std::ostream& operator<<(
 }
 
 LinkAggregationManager::LinkAggregationManager(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "LinkAggregationManager"),
-      portToController_(),
-      sw_(sw) {}
+    : portToController_(), sw_(sw) {
+  sw_->registerStateObserver(this, "LinkAggregationManager");
+}
 
 void LinkAggregationManager::handlePacket(
     std::unique_ptr<RxPacket> pkt,
@@ -415,6 +415,7 @@ LinkAggregationManager::~LinkAggregationManager() {
   for (auto controller : portToController_) {
     controller.second->stopMachines();
   }
+  sw_->unregisterStateObserver(this);
 }
 
 } // namespace facebook::fboss

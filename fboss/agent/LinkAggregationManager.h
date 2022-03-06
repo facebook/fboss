@@ -68,8 +68,7 @@ class ProgramForwardingAndPartnerState {
   AggregatePort::PartnerState partnerState_;
 };
 
-class LinkAggregationManager : public AutoRegisterStateObserver,
-                               public LacpServicerIf {
+class LinkAggregationManager : public StateObserver, public LacpServicerIf {
  public:
   explicit LinkAggregationManager(SwSwitch* sw);
   ~LinkAggregationManager() override;
