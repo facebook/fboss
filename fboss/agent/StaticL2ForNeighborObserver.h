@@ -18,11 +18,14 @@ namespace facebook::fboss {
 class SwitchState;
 class StateDelta;
 
-class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
+class StaticL2ForNeighborObserver : public StateObserver {
  public:
-  explicit StaticL2ForNeighborObserver(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "StaticL2ForNeighborObserver"), sw_(sw) {}
-  ~StaticL2ForNeighborObserver() override {}
+  explicit StaticL2ForNeighborObserver(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "StaticL2ForNeighborObserver");
+  }
+  ~StaticL2ForNeighborObserver() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& stateDelta) override;
 
