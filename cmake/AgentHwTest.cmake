@@ -84,6 +84,18 @@ target_link_libraries(hw_olympic_qos_utils
   switch_config_cpp2
 )
 
+add_library(hw_dscp_marking_utils)(
+  fboss/agent/hw/test/dataplane_tests/HwDscpMarkingTests.cpp
+)
+
+target_link_libraries(hw_dscp_marking_utils
+  fboss_types
+  hw_switch_ensemble
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+)
+
 add_library(hw_link_state_toggler
   fboss/agent/hw/test/HwLinkStateToggler.cpp
 )
@@ -304,6 +316,7 @@ add_library(prod_config_factory
 target_link_libraries(prod_config_factory
   config_factory
   hw_copp_utils
+  hw_dscp_marking_utils
   hw_olympic_qos_utils
   hw_queue_per_host_utils
   load_balancer_utils

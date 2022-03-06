@@ -87,6 +87,7 @@ class HwProdInvariantHelper {
     }
     if (isHwInvariantOptSet(options, MHNIC_INVARIANT)) {
       verifyQueuePerHostMapping();
+      verifyQueuePerHostMapping(true /* DSCP Marking test */);
     }
     if (isHwInvariantOptSet(options, MPLS_INVARIANT)) {
       verifyMpls();
@@ -125,7 +126,7 @@ class HwProdInvariantHelper {
   void verifyDscpToQueueMapping();
   void verifyCopp();
   void verifyLoadBalacing();
-  void verifyQueuePerHostMapping();
+  void verifyQueuePerHostMapping(bool dscpMarkingTest = false);
   void verifyMpls();
   void verifyMplsEntry(
       int label,

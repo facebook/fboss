@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
@@ -316,6 +317,14 @@ cfg::SwitchConfig createProdRswMhnicConfig(
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addQueuePerHostToConfig(config);
+    // DSCP Marking ACLs must be programmed AFTER queue-per-host ACLs or else
+    // traffic matching DSCP Marking ACLs will only hit DSCP Marking ACLs and
+    // thus suffer from noisy neighbor.
+    // The queue-per-host ACLs match on traffic to downlinks.
+    // Thus, putting DSCP Marking ACLs before queue-per-host ACLs would cause
+    // noisy neighbor problem for traffic between ports connected to the same
+    // switch.
+    utility::addDscpMarkingAcls(&config);
   }
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);

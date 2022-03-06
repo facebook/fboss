@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
@@ -210,11 +211,21 @@ void HwProdInvariantHelper::disableTtl() {
   }
 }
 
-void HwProdInvariantHelper::verifyQueuePerHostMapping() {
+void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   auto vlanId = utility::firstVlanID(getProgrammedState());
   auto intfMac =
       utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
+
+  // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,
+  // but expect queue-per-host to be honored, as the DSCP Marking ACL is listed
+  // AFTER queue-per-host ACL by design.
+  std::optional<uint16_t> l4SrcPort = std::nullopt;
+  std::optional<uint8_t> dscp = std::nullopt;
+  if (dscpMarkingTest) {
+    l4SrcPort = utility::kUdpPorts().front();
+    dscp = 0;
+  }
 
   utility::verifyQueuePerHostMapping(
       ensemble_->getHwSwitch(),
@@ -226,9 +237,9 @@ void HwProdInvariantHelper::verifyQueuePerHostMapping() {
       folly::IPAddressV4("10.10.1.2"),
       true /* useFrontPanel */,
       false /* blockNeighbor */,
-      std::nullopt, /* l4SrcPort */
+      l4SrcPort,
       std::nullopt, /* l4DstPort */
-      std::nullopt); /* dscp */
+      dscp);
 }
 
 void HwProdInvariantHelper::verifyMpls() {
