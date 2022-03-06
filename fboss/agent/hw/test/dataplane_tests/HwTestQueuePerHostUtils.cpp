@@ -264,7 +264,10 @@ void verifyQueuePerHostMapping(
     bool useFrontPanel,
     bool blockNeighbor,
     std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
-        getHwPortStatsFn) {
+        getHwPortStatsFn,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp) {
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -285,9 +288,10 @@ void verifyQueuePerHostMapping(
       dstMac,
       srcIp,
       dstIp,
-      8000,
-      8001,
-      64 /* ttl < 128 */);
+      l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
+      l4DstPort.has_value() ? l4DstPort.value() : 8001,
+      64 /* ttl < 128 */,
+      dscp);
   auto txPacket2 = createUdpPkt(
       hwSwitch,
       vlanId,
@@ -295,9 +299,10 @@ void verifyQueuePerHostMapping(
       dstMac,
       srcIp,
       dstIp,
-      8000,
-      8001,
-      128 /* ttl >= 128 */);
+      l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
+      l4DstPort.has_value() ? l4DstPort.value() : 8001,
+      128 /* ttl >= 128 */,
+      dscp);
 
   if (useFrontPanel) {
     utility::ensureSendPacketOutOfPort(
@@ -387,7 +392,10 @@ void verifyQueuePerHostMapping(
     const folly::IPAddress& srcIp,
     const folly::IPAddress& dstIp,
     bool useFrontPanel,
-    bool blockNeighbor) {
+    bool blockNeighbor,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp) {
   // lambda that returns HwPortStats for the given port
   auto getPortStats =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
@@ -405,7 +413,10 @@ void verifyQueuePerHostMapping(
       dstIp,
       useFrontPanel,
       blockNeighbor,
-      getPortStats);
+      getPortStats,
+      l4SrcPort,
+      l4DstPort,
+      dscp);
 }
 
 } // namespace facebook::fboss::utility

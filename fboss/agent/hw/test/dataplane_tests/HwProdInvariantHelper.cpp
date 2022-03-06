@@ -225,7 +225,10 @@ void HwProdInvariantHelper::verifyQueuePerHostMapping() {
       folly::IPAddressV4("1.0.0.1"),
       folly::IPAddressV4("10.10.1.2"),
       true /* useFrontPanel */,
-      false /* blockNeighbor */);
+      false /* blockNeighbor */,
+      std::nullopt, /* l4SrcPort */
+      std::nullopt, /* l4DstPort */
+      std::nullopt); /* dscp */
 }
 
 void HwProdInvariantHelper::verifyMpls() {

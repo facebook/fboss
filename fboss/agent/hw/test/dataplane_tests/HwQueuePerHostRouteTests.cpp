@@ -127,7 +127,10 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         this->kSrcIP(),
         this->kDstIP(),
         useFrontPanel,
-        blockNeighbor);
+        blockNeighbor,
+        std::nullopt, /* l4SrcPort */
+        std::nullopt, /* l4DstPort */
+        std::nullopt); /* dscp */
   }
 };
 

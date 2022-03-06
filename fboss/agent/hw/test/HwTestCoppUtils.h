@@ -131,7 +131,8 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const folly::IPAddress& dstIpAddress,
     int l4SrcPort,
     int l4DstPort,
-    uint8_t ttl);
+    uint8_t ttl,
+    std::optional<uint8_t> dscp);
 
 uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,

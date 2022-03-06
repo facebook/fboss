@@ -76,7 +76,10 @@ void verifyQueuePerHostMapping(
     const folly::IPAddress& srcIp,
     const folly::IPAddress& dstIp,
     bool useFrontPanel,
-    bool blockNeighbor);
+    bool blockNeighbor,
+    std::optional<uint16_t> l4SrcPort = std::nullopt,
+    std::optional<uint16_t> l4DstPort = std::nullopt,
+    std::optional<uint8_t> dscp = std::nullopt);
 
 void addQueuePerHostAclTables(cfg::SwitchConfig* config);
 

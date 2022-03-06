@@ -303,7 +303,8 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const folly::IPAddress& dstIpAddress,
     int l4SrcPort,
     int l4DstPort,
-    uint8_t ttl) {
+    uint8_t ttl,
+    std::optional<uint8_t> dscp) {
   auto txPacket = utility::makeUDPTxPacket(
       hwSwitch,
       vlanId,
@@ -313,7 +314,7 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       dstIpAddress,
       l4SrcPort,
       l4DstPort,
-      48 << 2, // DSCP
+      (dscp.has_value() ? dscp.value() : 48) << 2,
       ttl);
 
   return txPacket;
