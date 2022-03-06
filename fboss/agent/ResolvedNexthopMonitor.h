@@ -11,7 +11,7 @@ namespace facebook::fboss {
 class SwSwitch;
 class StateDelta;
 
-class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
+class ResolvedNexthopMonitor : public StateObserver {
   /*
    * under certain topologies and routing protocols, resolved l3 next hop may
    * not be l2 resolved i.e. a routing protocol may indicate next hop x is
@@ -37,6 +37,7 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
    */
  public:
   explicit ResolvedNexthopMonitor(SwSwitch* sw);
+  ~ResolvedNexthopMonitor() override;
   void stateUpdated(const StateDelta& delta) override;
 
   bool probesScheduled() const {

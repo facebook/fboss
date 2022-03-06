@@ -58,8 +58,12 @@ namespace facebook::fboss {
 folly::Synchronized<std::set<ClientID>>
     ResolvedNexthopMonitor::kMonitoredClients;
 
-ResolvedNexthopMonitor::ResolvedNexthopMonitor(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "ResolvedNexthopMonitor"), sw_(sw) {}
+ResolvedNexthopMonitor::ResolvedNexthopMonitor(SwSwitch* sw) : sw_(sw) {
+  sw_->registerStateObserver(this, "ResolvedNexthopMonitor");
+}
+ResolvedNexthopMonitor::~ResolvedNexthopMonitor() {
+  sw_->unregisterStateObserver(this);
+}
 
 void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
   scheduleProbes_ = false;

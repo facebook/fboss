@@ -148,7 +148,7 @@ class LabelsTracker {
  * changes, log that information. The logger is pluggable, but by default
  * we use GLOG.
  */
-class RouteUpdateLogger : public AutoRegisterStateObserver {
+class RouteUpdateLogger : public StateObserver {
   // TODO(pshaikh): rename RouteUpdateLogger to FibUpdateObserver
  public:
   explicit RouteUpdateLogger(SwSwitch* sw);
@@ -158,7 +158,7 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
       std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6,
       std::unique_ptr<MplsRouteLogger> mplsRouteLogger);
 
-  ~RouteUpdateLogger() override = default;
+  ~RouteUpdateLogger() override;
 
   void stateUpdated(const StateDelta& delta) override;
   void startLoggingForPrefix(const RouteUpdateLoggingInstance& req);
@@ -187,7 +187,7 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   }
 
  private:
-  const SwSwitch* swSwitch_;
+  SwSwitch* swSwitch_;
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   folly::Synchronized<LabelsTracker> labelTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;

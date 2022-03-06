@@ -68,12 +68,15 @@ RouteUpdateLogger::RouteUpdateLogger(
     std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4,
     std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6,
     std::unique_ptr<MplsRouteLogger> mplsRouteLogger)
-    : AutoRegisterStateObserver(sw, "RouteUpdateLogger"),
-      swSwitch_(sw),
+    : swSwitch_(sw),
       routeLoggerV4_(std::move(routeLoggerV4)),
       routeLoggerV6_(std::move(routeLoggerV6)),
-      mplsRouteLogger_(std::move(mplsRouteLogger)) {}
-
+      mplsRouteLogger_(std::move(mplsRouteLogger)) {
+  swSwitch_->registerStateObserver(this, "RouteUpdateLogger");
+}
+RouteUpdateLogger::~RouteUpdateLogger() {
+  swSwitch_->unregisterStateObserver(this);
+}
 void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
   forEachChangedRoute<folly::IPAddressV4>(
       delta,
