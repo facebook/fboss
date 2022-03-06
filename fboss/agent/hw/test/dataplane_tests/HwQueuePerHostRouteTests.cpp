@@ -112,26 +112,6 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
                         : this->kLookupClass()}});
   }
 
-  std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(uint8_t ttl) {
-    auto vlanId =
-        VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
-    auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto txPacket = utility::makeUDPTxPacket(
-        this->getHwSwitch(),
-        vlanId,
-        srcMac, // src mac
-        intfMac, // dst mac
-        this->kSrcIP(),
-        this->kDstIP(),
-        8000, // l4 src port
-        8001, // l4 dst port
-        48 << 2, // DSCP
-        ttl);
-
-    return txPacket;
-  }
-
   void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
     auto vlanId =
         VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
