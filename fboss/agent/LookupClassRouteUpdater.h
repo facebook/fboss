@@ -17,11 +17,14 @@
 
 namespace facebook::fboss {
 
-class LookupClassRouteUpdater : public AutoRegisterStateObserver {
+class LookupClassRouteUpdater : public StateObserver {
  public:
-  explicit LookupClassRouteUpdater(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "LookupClassRouteUpdater"), sw_(sw) {}
-  ~LookupClassRouteUpdater() override {}
+  explicit LookupClassRouteUpdater(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "LookupClassRouteUpdater");
+  }
+  ~LookupClassRouteUpdater() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& stateDelta) override;
 

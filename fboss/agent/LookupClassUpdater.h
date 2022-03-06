@@ -14,11 +14,14 @@
 
 namespace facebook::fboss {
 
-class LookupClassUpdater : public AutoRegisterStateObserver {
+class LookupClassUpdater : public StateObserver {
  public:
-  explicit LookupClassUpdater(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "LookupClassUpdater"), sw_(sw) {}
-  ~LookupClassUpdater() override {}
+  explicit LookupClassUpdater(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "LookupClassUpdater");
+  }
+  ~LookupClassUpdater() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& stateDelta) override;
 
