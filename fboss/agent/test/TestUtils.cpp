@@ -580,11 +580,13 @@ WaitForSwitchState::WaitForSwitchState(
     SwSwitch* sw,
     SwitchStatePredicate predicate,
     const std::string& name)
-    : AutoRegisterStateObserver(sw, name),
-      predicate_(std::move(predicate)),
-      name_(name) {}
+    : predicate_(std::move(predicate)), name_(name), sw_(sw) {
+  sw_->registerStateObserver(this, name_);
+}
 
-WaitForSwitchState::~WaitForSwitchState() {}
+WaitForSwitchState::~WaitForSwitchState() {
+  sw_->unregisterStateObserver(this);
+}
 
 void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
   if (predicate_(delta)) {

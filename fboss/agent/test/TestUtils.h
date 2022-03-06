@@ -380,9 +380,9 @@ class RxPacketMatcher : public ::testing::MatcherInterface<RxMatchFnArgs> {
 
 using SwitchStatePredicate = folly::Function<bool(const StateDelta&)>;
 
-class WaitForSwitchState : public AutoRegisterStateObserver {
+class WaitForSwitchState : public StateObserver {
  public:
-  explicit WaitForSwitchState(
+  WaitForSwitchState(
       SwSwitch* sw,
       SwitchStatePredicate predicate,
       const std::string& name);
@@ -417,6 +417,8 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
   std::condition_variable cv_;
   bool done_{false};
   std::string name_;
+  SwSwitch* sw_;
+  std::unique_ptr<folly::annotate_ignore_thread_sanitizer_guard> tsanGuard_;
 };
 
 void programRoutes(
