@@ -84,7 +84,7 @@ target_link_libraries(hw_olympic_qos_utils
   switch_config_cpp2
 )
 
-add_library(hw_dscp_marking_utils)(
+add_library(hw_dscp_marking_utils
   fboss/agent/hw/test/dataplane_tests/HwDscpMarkingTests.cpp
 )
 
