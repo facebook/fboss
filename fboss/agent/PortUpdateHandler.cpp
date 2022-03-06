@@ -19,9 +19,6 @@
 
 namespace facebook::fboss {
 
-PortUpdateHandler::PortUpdateHandler(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "PortUpdateHandler"), sw_(sw) {}
-
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
   // For now, the stateUpdated is only used to update the portName of PortStats
   // for all threads.

@@ -16,9 +16,14 @@ namespace facebook::fboss {
 class StateDelta;
 class SwSwitch;
 
-class PortUpdateHandler : public AutoRegisterStateObserver {
+class PortUpdateHandler : public StateObserver {
  public:
-  explicit PortUpdateHandler(SwSwitch* sw);
+  explicit PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "PortUpdateHandler");
+  }
+  ~PortUpdateHandler() override {
+    sw_->unregisterStateObserver(this);
+  }
   void stateUpdated(const StateDelta& delta) override;
 
  private:
