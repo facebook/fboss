@@ -84,9 +84,6 @@ struct IPv6Handler::ICMPHeaders {
   const ICMPHdr* icmp6;
 };
 
-IPv6Handler::IPv6Handler(SwSwitch* sw)
-    : AutoRegisterStateObserver(sw, "IPv6Handler"), sw_(sw) {}
-
 void IPv6Handler::stateUpdated(const StateDelta& delta) {
   for (const auto& entry : delta.getIntfsDelta()) {
     if (!entry.getOld()) {

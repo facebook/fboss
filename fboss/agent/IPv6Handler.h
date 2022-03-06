@@ -34,12 +34,17 @@ class StateDelta;
 class SwitchState;
 class Vlan;
 
-class IPv6Handler : public AutoRegisterStateObserver {
+class IPv6Handler : public StateObserver {
  public:
   enum : uint16_t { ETHERTYPE_IPV6 = 0x86dd };
   enum : uint32_t { IPV6_MIN_MTU = 1280 };
 
-  explicit IPv6Handler(SwSwitch* sw);
+  explicit IPv6Handler(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "IPv6Handler");
+  }
+  ~IPv6Handler() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& delta) override;
 

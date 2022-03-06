@@ -7,11 +7,14 @@
 
 namespace facebook::fboss {
 
-class AclNexthopHandler : public AutoRegisterStateObserver {
+class AclNexthopHandler : public StateObserver {
  public:
-  explicit AclNexthopHandler(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "AclNexthopHandler"), sw_(sw) {}
-  ~AclNexthopHandler() override {}
+  explicit AclNexthopHandler(SwSwitch* sw) : sw_(sw) {
+    sw_->registerStateObserver(this, "AclNexthopHandler");
+  }
+  ~AclNexthopHandler() override {
+    sw_->unregisterStateObserver(this);
+  }
 
   void stateUpdated(const StateDelta& delta) override;
 
