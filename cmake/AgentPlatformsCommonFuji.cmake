@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(fuji_platform_mapping
-  fboss/agent/platforms/common/fuji/FujiPlatformMapping.cpp
+  fboss/agent/platforms/common/fuji/oss/FujiPlatformMapping.cpp
   fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.cpp
 )
 
