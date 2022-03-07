@@ -2,8 +2,6 @@
 
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
 
-#include <sys/stat.h>
-
 namespace facebook::fboss::platform::helpers {
 /*
  *checkCmdStatus
@@ -23,8 +21,7 @@ void checkCmdStatus(const std::string& cmd, int exitStatus) {
 }
 
 bool isFilePresent(std::string file) {
-  struct stat buffer;
-  return stat(file.c_str(), &buffer) == 0;
+  return std::filesystem::exists(file);
 }
 
 void i2cRegWrite(
