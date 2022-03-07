@@ -30,7 +30,8 @@ enum class PlatformMode : char {
   ELBERT,
   CLOUDRIPPER,
   DARWIN,
-  LASSEN
+  LASSEN,
+  SANDIA
 };
 
 inline std::string toString(PlatformMode mode) {
@@ -67,6 +68,8 @@ inline std::string toString(PlatformMode mode) {
       return "DARWIN";
     case PlatformMode::LASSEN:
       return "LASSEN";
+    case PlatformMode::SANDIA:
+      return "SANDIA";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";
