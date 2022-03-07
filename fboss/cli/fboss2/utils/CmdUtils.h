@@ -12,6 +12,7 @@
 #include <folly/IPAddress.h>
 #include <string>
 #include <variant>
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 
 namespace facebook::fboss::utils {
 
@@ -36,6 +37,9 @@ const std::string parseTimeToTimeStamp(const long& timeToParse);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
 const std::string formatBandwidth(const unsigned long& bandwidth);
+std::vector<int32_t> getPortIDList(
+    const std::vector<std::string>& ifList,
+    std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);
 
 void setLogLevel(std::string logLevelStr);
 

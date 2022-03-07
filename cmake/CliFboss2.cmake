@@ -100,6 +100,7 @@ add_fbthrift_cpp_library(
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
+  fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h

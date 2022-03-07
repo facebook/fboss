@@ -12,6 +12,7 @@
 
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
@@ -143,6 +144,11 @@ const CommandTree& kCommandTree() {
               },
           },
       },
+      {"bounce",
+       "interface",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+       "Shut/No-Shut Interface",
+       commandHandler<CmdBounceInterface>},
   };
   return root;
 }

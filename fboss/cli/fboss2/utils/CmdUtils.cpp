@@ -144,4 +144,36 @@ const std::string formatBandwidth(const unsigned long& bw_bytes_ps) {
   return folly::to<std::string>(ceil(bw_bits_ps)) + "Gbps";
 }
 
+/* Takes a list of "friendly" interface names and returns a list of portID
+   integers.  This is an operation that is frequently needed so making this
+   available as a helper function
+
+   The only way to do this is to get all portInfo from Thrift, compare interface
+   name in the lambda function, and if they match add the PortID to the output
+   list
+*/
+std::vector<int32_t> getPortIDList(
+    const std::vector<std::string>& ifList,
+    std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries) {
+  std::vector<int32_t> portIDList;
+
+  if (ifList.size()) {
+    for (auto interface : ifList) {
+      auto it = std::find_if(
+          portEntries.begin(),
+          portEntries.end(),
+          [&interface](const auto& port) {
+            return port.second.get_name() == interface;
+          });
+      if (it != portEntries.end()) {
+        portIDList.push_back(it->first);
+      } else {
+        throw std::runtime_error(fmt::format(
+            "{} is not a valid interface name on this device", interface));
+      }
+    }
+  }
+  return portIDList;
+}
+
 } // namespace facebook::fboss::utils

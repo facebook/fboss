@@ -11,6 +11,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
@@ -117,6 +118,7 @@ template void
 CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
+template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
 
 static bool hasRun = false;
 
