@@ -47,6 +47,7 @@ struct OperDeltaUnit {
 struct OperDelta {
   1: list<OperDeltaUnit> changes;
   2: OperProtocol protocol;
+  3: optional OperMetadata metadata;
 }
 
 /*
