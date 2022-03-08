@@ -13,6 +13,7 @@ OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
   operPath.raw_ref() = publishPath_;
   OperPubRequest request;
   request.path_ref() = operPath;
+  request.publisherId_ref() = clientId();
   return request;
 }
 
