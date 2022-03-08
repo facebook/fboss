@@ -1,5 +1,6 @@
 add_executable(fsdb_client_test
   fboss/agent/test/oss/Main.cpp
+  fboss/fsdb/client/test/FsdbPubSubManagerTest.cpp
   fboss/fsdb/client/test/FsdbStreamClientTest.cpp
 )
 

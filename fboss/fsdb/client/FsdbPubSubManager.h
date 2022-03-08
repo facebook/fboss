@@ -54,6 +54,9 @@ class FsdbPubSubManager {
       const std::string& fsdbHost = "::1") {
     removeSubscriptionImpl(subscribePath, fsdbHost, false);
   }
+  size_t numSubscriptions() const {
+    return path2Subscriber_.rlock()->size();
+  }
 
  private:
   // Publisher helpers
