@@ -57,7 +57,15 @@ void FsdbStreamClient::setState(State state) {
           XLOG(INFO) << " Service loop done: " << clientId();
           serviceLoopRunning_.store(false);
         };
-        co_await serviceLoop();
+        try {
+          co_await serviceLoop();
+        } catch (const folly::OperationCancelled&) {
+          XLOG(DBG2) << "Service loop cancelled :" << clientId();
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << clientId()
+                    << " Server error: " << folly::exceptionStr(ex);
+          setState(State::DISCONNECTED);
+        }
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Service loop broken:" << ex.what();
         setState(State::DISCONNECTED);

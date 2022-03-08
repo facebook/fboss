@@ -14,4 +14,13 @@ void FsdbDeltaPublisher::write(const OperDelta& pubUnit) {
     throw ex;
   }
 }
+#if FOLLY_HAS_COROUTINES
+folly::coro::AsyncGenerator<OperDelta> FsdbDeltaPublisher::createGenerator() {
+  while (true) {
+    OperDelta delta;
+    toPublishQueue_.try_dequeue_for(delta, std::chrono::milliseconds(10));
+    co_yield delta;
+  }
+}
+#endif
 } // namespace facebook::fboss::fsdb
