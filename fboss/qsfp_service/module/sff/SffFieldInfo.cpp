@@ -55,15 +55,5 @@ FeatureState SffFieldInfo::getFeatureState(
   return enabled ? FeatureState::ENABLED : FeatureState::DISABLED;
 }
 
-SffFieldInfo SffFieldInfo::getSffFieldAddress(
-    const SffFieldMap& map,
-    const SffField field) {
-  auto info = map.find(field);
-  if (info == map.end()) {
-    throw FbossError("Invalid SFF Field ID");
-  }
-  return info->second;
-}
-
 } // namespace fboss
 } // namespace facebook

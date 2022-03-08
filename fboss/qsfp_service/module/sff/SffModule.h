@@ -10,11 +10,11 @@
 namespace facebook {
 namespace fboss {
 
-enum SffPages {
-  LOWER,
-  PAGE0,
-  PAGE3,
-  PAGE7,
+enum class SffPages : int {
+  LOWER = -1,
+  PAGE0 = 0,
+  PAGE3 = 3,
+  PAGE7 = 7,
 };
 
 enum class SffField;
@@ -342,7 +342,7 @@ class SffModule : public QsfpModule {
   /*
    * This function veifies the Module eeprom register checksum for a given page
    */
-  bool verifyEepromChecksum(int pageId);
+  bool verifyEepromChecksum(SffPages pageId);
 
   /*
    * Returns the current state of prbs (enabled/polynomial)

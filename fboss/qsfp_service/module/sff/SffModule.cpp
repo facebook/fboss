@@ -10,6 +10,7 @@
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 
@@ -44,7 +45,7 @@ namespace facebook {
 namespace fboss {
 
 // As per SFF-8636
-static SffFieldInfo::SffFieldMap qsfpFields = {
+static QsfpFieldInfo<SffField, SffPages>::QsfpFieldMap qsfpFields = {
     // Base page values, including alarms and sensors
     {SffField::IDENTIFIER, {SffPages::LOWER, 0, 1}},
     {SffField::STATUS, {SffPages::LOWER, 1, 2}},
@@ -130,7 +131,7 @@ struct checksumInfoStruct {
   SffField checksumValOffset;
 };
 
-static std::map<int, std::vector<checksumInfoStruct>> checksumInfoSff = {
+static std::map<SffPages, std::vector<checksumInfoStruct>> checksumInfoSff = {
     {
         SffPages::PAGE0,
         {
@@ -155,7 +156,8 @@ void getQsfpFieldAddress(
     int& dataAddress,
     int& offset,
     int& length) {
-  auto info = SffFieldInfo::getSffFieldAddress(qsfpFields, field);
+  auto info =
+      QsfpFieldInfo<SffField, SffPages>::getQsfpFieldAddress(qsfpFields, field);
   dataAddress = info.dataAddress;
   offset = info.offset;
   length = info.length;
@@ -196,7 +198,8 @@ double SffModule::getQsfpDACLength() const {
 }
 
 int SffModule::getQsfpDACGauge() const {
-  auto info = SffFieldInfo::getSffFieldAddress(qsfpFields, SffField::DAC_GAUGE);
+  auto info = QsfpFieldInfo<SffField, SffPages>::getQsfpFieldAddress(
+      qsfpFields, SffField::DAC_GAUGE);
   const uint8_t* val =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
   // Guard against FF default value
@@ -632,7 +635,8 @@ std::string SffModule::getQsfpString(SffField field) const {
 double SffModule::getQsfpSensor(
     SffField field,
     double (*conversion)(uint16_t value)) {
-  auto info = SffFieldInfo::getSffFieldAddress(qsfpFields, field);
+  auto info =
+      QsfpFieldInfo<SffField, SffPages>::getQsfpFieldAddress(qsfpFields, field);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
   return conversion(data[0] << 8 | data[1]);
@@ -649,7 +653,8 @@ double SffModule::getQsfpSensor(
  */
 double SffModule::getQsfpCableLength(SffField field) const {
   double length;
-  auto info = SffFieldInfo::getSffFieldAddress(qsfpFields, field);
+  auto info =
+      QsfpFieldInfo<SffField, SffPages>::getQsfpFieldAddress(qsfpFields, field);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
   auto multiplier = qsfpMultiplier.at(field);
@@ -662,8 +667,8 @@ double SffModule::getQsfpCableLength(SffField field) const {
 }
 
 TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
-  auto info =
-      SffFieldInfo::getSffFieldAddress(qsfpFields, SffField::DEVICE_TECHNOLOGY);
+  auto info = QsfpFieldInfo<SffField, SffPages>::getQsfpFieldAddress(
+      qsfpFields, SffField::DEVICE_TECHNOLOGY);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
 
@@ -771,7 +776,7 @@ SffModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
   if (!cacheIsValid()) {
     throw FbossError("Qsfp is either not present or the data is not read");
   }
-  if (dataAddress == SffPages::LOWER) {
+  if (dataAddress == static_cast<int>(SffPages::LOWER)) {
     CHECK_LE(offset + length, sizeof(lowerPage_));
     /* Copy data from the cache */
     return (lowerPage_ + offset);
@@ -779,11 +784,11 @@ SffModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
     offset -= MAX_QSFP_PAGE_SIZE;
     CHECK_GE(offset, 0);
     CHECK_LE(offset, MAX_QSFP_PAGE_SIZE);
-    if (dataAddress == SffPages::PAGE0) {
+    if (dataAddress == static_cast<int>(SffPages::PAGE0)) {
       CHECK_LE(offset + length, sizeof(page0_));
       /* Copy data from the cache */
       return (page0_ + offset);
-    } else if (dataAddress == SffPages::PAGE3 && !flatMem_) {
+    } else if (dataAddress == static_cast<int>(SffPages::PAGE3) && !flatMem_) {
       CHECK_LE(offset + length, sizeof(page3_));
       /* Copy data from the cache */
       return (page3_ + offset);
@@ -1323,7 +1328,7 @@ bool SffModule::verifyEepromChecksums() {
  * page. The checksum is 8 bit sum of all the 8 bit values in range of
  * registers
  */
-bool SffModule::verifyEepromChecksum(int pageId) {
+bool SffModule::verifyEepromChecksum(SffPages pageId) {
   int offset;
   int length;
   int dataAddress;
@@ -1343,13 +1348,13 @@ bool SffModule::verifyEepromChecksum(int pageId) {
     XLOG(WARN) << folly::sformat(
         "Module {} can't do eeprom checksum for page {:d}",
         qsfpImpl_->getName(),
-        pageId);
+        static_cast<int>(pageId));
     return false;
   }
 
   // Get the range of registers, compute checksum and compare
   for (auto& csumRange : checksumInfoSff[pageId]) {
-    dataAddress = pageId;
+    dataAddress = static_cast<int>(pageId);
     offset = csumRange.checksumRangeStartOffset;
     length = csumRange.checksumRangeStartLength;
     data = getQsfpValuePtr(dataAddress, offset, length);
@@ -1368,7 +1373,7 @@ bool SffModule::verifyEepromChecksum(int pageId) {
       XLOG(ERR) << folly::sformat(
           "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
           qsfpImpl_->getName(),
-          pageId,
+          static_cast<int>(pageId),
           expectedChecksum,
           checkSum);
       return false;
@@ -1376,7 +1381,7 @@ bool SffModule::verifyEepromChecksum(int pageId) {
       XLOG(DBG5) << folly::sformat(
           "Module {}: Page {:d}: checksum verified successfully {:#x}",
           qsfpImpl_->getName(),
-          pageId,
+          static_cast<int>(pageId),
           checkSum);
     }
   }

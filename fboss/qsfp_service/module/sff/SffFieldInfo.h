@@ -9,6 +9,7 @@
 #include <map>
 
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 
 /*
  * Parse transceiver data fields, as outlined in various documents
@@ -18,6 +19,8 @@
 
 namespace facebook {
 namespace fboss {
+
+enum class SffPages;
 
 enum class SffField {
   // Shared QSFP and SFP fields:
@@ -174,12 +177,8 @@ enum HalfByteMasks : uint8_t {
   LOWER_BITS_MASK = 0x0f,
 };
 
-class SffFieldInfo {
+class SffFieldInfo : public QsfpFieldInfo<SffField, SffPages> {
  public:
-  int dataAddress;
-  std::uint32_t offset;
-  std::uint32_t length;
-
   // Conversion routines used for both SFP and QSFP:
 
   // Render degrees Celcius from fix-point integer value
@@ -196,17 +195,6 @@ class SffFieldInfo {
 
   // Render result as a member of FeatureState enum
   static FeatureState getFeatureState(uint8_t support, uint8_t enabled = 1);
-
-  typedef std::map<SffField, SffFieldInfo> SffFieldMap;
-
-  /*
-   * This function takes the SfpIDPromField name and returns
-   * the dataAddress, offset and the length as per the SFP DOM
-   * Document mentioned above.
-   */
-  static SffFieldInfo getSffFieldAddress(
-      const SffFieldMap& map,
-      SffField field);
 };
 
 // Store multipliers for various conversion functions:
