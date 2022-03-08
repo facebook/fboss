@@ -1310,9 +1310,26 @@ void SaiSwitch::initLinkScanLocked(
     initThread("fbossSaiLnkScnBH");
     linkStateBottomHalfEventBase_.loopForever();
   });
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.registerPortStateChangeCallback(
-      switchId_, __glinkStateChangedNotification);
+  linkStateBottomHalfEventBase_.runInEventBaseThread([=]() {
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    switchApi.registerPortStateChangeCallback(
+        switchId_, __glinkStateChangedNotification);
+
+    /* report initial link status after registering link scan call back.  link
+     * state changes after reporting initial link state and before registering
+     * link scan callback, could get lost. to mitigate this, register link scan
+     * callback before reporting initial link state. doing this in context of
+     * same thread/event base ensures initial link state always preceedes any
+     * link state changes that may happen after registering link scan call back
+     * are reported in order. */
+    for (const auto& portIdAndHandle : managerTable_->portManager()) {
+      const auto& port = portIdAndHandle.second->port;
+      auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+          port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+      callback_->linkStateChanged(
+          portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
+    }
+  });
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
@@ -1843,13 +1860,6 @@ void SaiSwitch::switchRunStateChangedImplLocked(
          * registered, switch state will not reflect correct port status. as a
          * result invoke link scan call back for cold boot.
          */
-        for (const auto& portIdAndHandle : managerTable_->portManager()) {
-          const auto& port = portIdAndHandle.second->port;
-          auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-              port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
-          callback_->linkStateChanged(
-              portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
-        }
         initLinkScanLocked(lock);
       }
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
