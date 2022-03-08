@@ -44,7 +44,7 @@ class FsdbPubSubManager {
   // TODO - support multiple publishers?
   folly::Synchronized<std::unique_ptr<FsdbDeltaPublisher>> deltaPublisher_;
   folly::Synchronized<
-      std::unordered_map<std::string, std::unique_ptr<FsdbDeltaSubscriber>>>
+      std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
       path2Subscriber_;
 };
 } // namespace facebook::fboss::fsdb
