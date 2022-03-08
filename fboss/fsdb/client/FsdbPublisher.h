@@ -18,7 +18,7 @@ class FsdbPublisher : public FsdbStreamClient {
       folly::EventBase* connRetryEvb,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {})
-      : FsdbStreamClient(clientId, streamEvb, connRetryEvb),
+      : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
         publishPath_(publishPath) {}
 
   void write(const PubUnit& pubUnit);

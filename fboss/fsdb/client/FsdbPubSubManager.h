@@ -5,6 +5,7 @@
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
+#include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -29,13 +30,37 @@ class FsdbPubSubManager {
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
-
-  void removeSubscription(
+  void addSubscription(
       const std::vector<std::string>& subscribePath,
-      const std::string& fsdbHost = "::1");
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+
+  void removeDeltaSubscription(
+      const std::vector<std::string>& subscribePath,
+      const std::string& fsdbHost = "::1") {
+    removeSubscriptionImpl(subscribePath, fsdbHost, true);
+  }
+  void removeStateSubscription(
+      const std::vector<std::string>& subscribePath,
+      const std::string& fsdbHost = "::1") {
+    removeSubscriptionImpl(subscribePath, fsdbHost, false);
+  }
 
  private:
+  void removeSubscriptionImpl(
+      const std::vector<std::string>& subscribePath,
+      const std::string& fsdbHost,
+      bool isDelta);
   void stopDeltaPublisher(std::unique_ptr<FsdbDeltaPublisher>& deltaPublisher);
+  template <typename SubscriberT>
+  void addSubscriptionImpl(
+      const std::vector<std::string>& subscribePath,
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
+      const std::string& fsdbHost,
+      int32_t fsdbPort = FLAGS_fsdbPort);
 
   folly::ScopedEventBaseThread reconnectThread_;
   folly::ScopedEventBaseThread publisherStreamEvbThread_;
