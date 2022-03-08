@@ -27,11 +27,15 @@ void FsdbPublisher<PubUnit>::write(const PubUnit& pubUnit) {
 }
 #if FOLLY_HAS_COROUTINES
 template <typename PubUnit>
-folly::coro::AsyncGenerator<PubUnit> FsdbPublisher<PubUnit>::createGenerator() {
+folly::coro::AsyncGenerator<std::optional<PubUnit>>
+FsdbPublisher<PubUnit>::createGenerator() {
   while (true) {
-    PubUnit delta;
-    toPublishQueue_.try_dequeue_for(delta, std::chrono::milliseconds(10));
-    co_yield delta;
+    PubUnit pubUnit;
+    if (toPublishQueue_.try_dequeue_for(
+            pubUnit, std::chrono::milliseconds(10))) {
+      co_yield pubUnit;
+    }
+    co_yield std::nullopt;
   }
 }
 #endif

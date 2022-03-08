@@ -29,7 +29,7 @@ class FsdbPublisher : public FsdbStreamClient {
 
  protected:
 #if FOLLY_HAS_COROUTINES
-  folly::coro::AsyncGenerator<PubUnit> createGenerator();
+  folly::coro::AsyncGenerator<std::optional<PubUnit>> createGenerator();
 #endif
   OperPubRequest createRequest() const;
 
