@@ -16,6 +16,7 @@ from math import log10
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
 from neteng.fboss.ctrl.ttypes import PortLedExternalState
+from neteng.fboss.phy.ttypes import PrbsComponent, PortPrbsState
 from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
 from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
@@ -271,12 +272,39 @@ class PortPrbsCmd(cmds.FbossCmd):
         super(PortPrbsCmd, self).__init__(cli_opts)
 
     def clear_prbs_stats(self):
+        # TODO Try to call qsfp_service to handle xphy prbs logic first
+        # If it throws exception, probably due to unsupported, fall back to use
+        # wedge_agent
+        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+            with self._create_qsfp_client() as client:
+                try:
+                    for port in self.ports:
+                        print("Clearing PRBS stats for port %s" % port)
+                        client.clearPortPrbsStats(port, self.component)
+                    return
+                except Exception:
+                    pass
+
         with self._create_agent_client() as client:
             for port in self.ports:
                 print("Clearing PRBS stats for port %s" % port)
                 client.clearPortPrbsStats(port, self.component)
 
     def get_prbs_stats(self):
+        # TODO Try to call qsfp_service to handle xphy prbs logic first
+        # If it throws exception, probably due to unsupported, fall back to use
+        # wedge_agent
+        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+            with self._create_qsfp_client() as client:
+                try:
+                    for port in self.ports:
+                        print("Getting PRBS stats for port %s" % port)
+                        resp = client.getPortPrbsStats(port, self.component)
+                        self._print_prbs_stats(resp)
+                    return
+                except Exception:
+                    pass
+
         with self._create_agent_client() as client:
             for port in self.ports:
                 resp = client.getPortPrbsStats(port, self.component)
@@ -284,8 +312,24 @@ class PortPrbsCmd(cmds.FbossCmd):
                 self._print_prbs_stats(resp)
 
     def set_prbs(self, enable, polynominal=31):
+        enable_str = "Enabling" if enable else "Disabling"
+        # TODO Try to call qsfp_service to handle xphy prbs logic first
+        # If it throws exception, probably due to unsupported, fall back to use
+        # wedge_agent
+        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+            with self._create_qsfp_client() as client:
+                state = PortPrbsState()
+                state.enabled = enable
+                state.polynominal = polynominal
+                try:
+                    for port in self.ports:
+                        print("{} PRBS on port {}".format(enable_str, port))
+                        client.setPortPrbs(port, self.component, state)
+                    return
+                except Exception:
+                    pass
+
         with self._create_agent_client() as client:
-            enable_str = "Enabling" if enable else "Disabling"
             for port in self.ports:
                 print("{} PRBS on port {}".format(enable_str, port))
                 client.setPortPrbs(port, self.component, enable, polynominal)
