@@ -35,8 +35,9 @@ FsdbPublisher<PubUnit>::createGenerator() {
     if (toPublishQueue_.try_dequeue_for(
             pubUnit, std::chrono::milliseconds(10))) {
       co_yield pubUnit;
+    } else {
+      co_yield std::nullopt;
     }
-    co_yield std::nullopt;
   }
 }
 #endif
