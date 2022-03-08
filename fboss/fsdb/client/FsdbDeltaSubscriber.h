@@ -2,29 +2,16 @@
 
 #pragma once
 
-#include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/client/FsdbSubscriber.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
-#include <folly/experimental/coro/AsyncGenerator.h>
-
-#include <functional>
-
 namespace facebook::fboss::fsdb {
-class FsdbDeltaSubscriber : public FsdbStreamClient {
- public:
-  using FsdbOperDeltaUpdateCb = std::function<void(OperDelta&&)>;
-  FsdbDeltaSubscriber(
-      const std::string& clientId,
-      const std::vector<std::string>& subscribePath,
-      folly::EventBase* streamEvb,
-      folly::EventBase* connRetryEvb,
-      FsdbOperDeltaUpdateCb operDeltaUpdate,
-      FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                                 State /*newState*/) {})
-      : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
-        subscribePath_(subscribePath),
-        operDeltaUpdate_(operDeltaUpdate) {}
+class FsdbDeltaSubscriber : public FsdbSubscriber<OperDelta> {
+  using BaseT = FsdbSubscriber<OperDelta>;
 
+ public:
+  using FsdbOperDeltaUpdateCb = typename BaseT::FsdbSubUnitUpdateCb;
+  using BaseT::BaseT;
   ~FsdbDeltaSubscriber() override {
     cancel();
   }
@@ -33,7 +20,5 @@ class FsdbDeltaSubscriber : public FsdbStreamClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoop() override;
 #endif
-  std::vector<std::string> subscribePath_;
-  FsdbOperDeltaUpdateCb operDeltaUpdate_;
 };
 } // namespace facebook::fboss::fsdb
