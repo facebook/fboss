@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include <folly/CancellationToken.h>
 #include <folly/SocketAddress.h>
-#include <folly/Synchronized.h>
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 
 #include <atomic>
@@ -63,7 +61,6 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 
  protected:
   void setState(State state);
-  folly::CancellationSource cancelSource_;
 #ifndef IS_OSS
   std::unique_ptr<FsdbServiceAsyncClient> client_;
 #endif
@@ -77,6 +74,9 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   std::optional<folly::SocketAddress> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
+#if FOLLY_HAS_COROUTINES
+  folly::coro::CancellableAsyncScope serviceLoopScope_;
+#endif
 };
 
 } // namespace facebook::fboss::fsdb

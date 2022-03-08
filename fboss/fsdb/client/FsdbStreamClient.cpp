@@ -46,14 +46,15 @@ void FsdbStreamClient::setState(State state) {
   if (oldState == state) {
     return;
   }
+  state_.store(state);
   if (state == State::CONNECTED) {
 #if FOLLY_HAS_COROUTINES
     auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
       try {
-        XLOG(INFO) << " Service loop started: " << clientId_;
+        XLOG(INFO) << " Service loop started: " << clientId();
         serviceLoopRunning_.store(true);
         SCOPE_EXIT {
-          XLOG(INFO) << " Service loop done: " << clientId_;
+          XLOG(INFO) << " Service loop done: " << clientId();
           serviceLoopRunning_.store(false);
         };
         co_await serviceLoop();
@@ -63,10 +64,13 @@ void FsdbStreamClient::setState(State state) {
       }
       co_return;
     });
-    startServiceLoop().scheduleOn(streamEvb_).start();
+    serviceLoopScope_.add(startServiceLoop().scheduleOn(streamEvb_));
+#endif
+  } else if (state == State::CANCELLED) {
+#if FOLLY_HAS_COROUTINES
+    folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
 #endif
   }
-  state_.store(state);
   stateChangeCb_(oldState, state);
 }
 
@@ -107,13 +111,11 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 }
 
 void FsdbStreamClient::cancel() {
-  XLOG(DBG2) << "Cancel FsdbStreamClient: " << clientId();
-  cancelSource_.requestCancellation();
-  XLOG(DBG2) << "Requested FsdbStreamClient Cancellation for: " << clientId();
+  XLOG(DBG2) << "Canceling FsdbStreamClient: " << clientId();
 
   // already disconnected;
   if (getState() == State::CANCELLED) {
-    XLOG(WARNING) << clientId_ << " already cancelled";
+    XLOG(WARNING) << clientId() << " already cancelled";
     return;
   }
   serverAddress_.reset();
@@ -122,7 +124,7 @@ void FsdbStreamClient::cancel() {
   resetClient();
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
-  XLOG(DBG2) << " Cancelled: " << clientId_;
+  XLOG(DBG2) << " Cancelled: " << clientId();
 }
 
 bool FsdbStreamClient::isCancelled() const {

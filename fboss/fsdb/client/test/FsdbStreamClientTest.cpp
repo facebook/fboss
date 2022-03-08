@@ -34,8 +34,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
     try {
       auto [gen, pipe] = folly::coro::AsyncPipe<int>::create();
       pipe.write(1);
-      while (auto intgen = co_await folly::coro::co_withCancellation(
-                 cancelSource_.getToken(), gen.next())) {
+      while (auto intgen = co_await gen.next()) {
         if (isCancelled()) {
           XLOG(DBG2) << " Detected cancellation";
           break;
