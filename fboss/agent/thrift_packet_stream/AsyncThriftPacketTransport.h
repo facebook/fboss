@@ -28,10 +28,12 @@ class AsyncThriftPacketTransport : public AsyncPacketTransport {
   virtual ssize_t send(const std::unique_ptr<folly::IOBuf>& buf) override;
 
   void recvPacket(TPacket&& packet) {
-    if (!isReading()) {
-      return;
-    }
-    readCallback_->onDataAvailable(folly::IOBuf::copyBuffer(*packet.buf_ref()));
+    readCallback_.withRLock([&](auto& rdCallback) {
+      if (rdCallback) {
+        rdCallback->onDataAvailable(
+            folly::IOBuf::copyBuffer(*packet.buf_ref()));
+      }
+    });
   }
   /**
    * Stop listening on the socket.

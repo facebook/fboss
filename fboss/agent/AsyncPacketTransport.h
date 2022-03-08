@@ -57,16 +57,13 @@ class AsyncPacketTransport {
   virtual void close() = 0;
 
   virtual void setReadCallback(ReadCallback* readCallback) {
-    readCallback_ = readCallback;
-  }
-
-  virtual bool isReading() const {
-    return readCallback_ != nullptr;
+    readCallback_.withWLock(
+        [&](auto& rdCallback) { rdCallback = readCallback; });
   }
 
  protected:
   std::string iface_;
-  ReadCallback* readCallback_{nullptr};
+  folly::Synchronized<ReadCallback*> readCallback_{nullptr};
 
  private:
   AsyncPacketTransport(const AsyncPacketTransport&) = delete;
