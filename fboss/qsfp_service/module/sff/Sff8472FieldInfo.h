@@ -9,6 +9,7 @@
 #include <map>
 
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 
 /*
  * Parse transceiver data fields, as outlined in various documents
@@ -17,6 +18,8 @@
 
 namespace facebook {
 namespace fboss {
+
+enum class Sff8472Pages;
 
 enum class Sff8472Field {
   IDENTIFIER, // Type of Transceiver
@@ -45,19 +48,8 @@ enum FieldMasks : uint8_t {
   TX_DISABLE_STATE_MASK = 1 << 7,
 };
 
-class Sff8472FieldInfo {
+class Sff8472FieldInfo : public QsfpFieldInfo<Sff8472Field, Sff8472Pages> {
  public:
-  uint8_t transceiverI2CAddress;
-  int dataAddress;
-  std::uint32_t offset;
-  std::uint32_t length;
-
-  using Sff8472FieldMap = std::map<Sff8472Field, Sff8472FieldInfo>;
-
-  static Sff8472FieldInfo getSff8472FieldAddress(
-      const Sff8472FieldMap& map,
-      Sff8472Field field);
-
   // Render degrees Celcius from fix-point integer value
   static double getTemp(uint16_t temp);
 

@@ -18,16 +18,6 @@
 namespace facebook {
 namespace fboss {
 
-Sff8472FieldInfo Sff8472FieldInfo::getSff8472FieldAddress(
-    const Sff8472FieldMap& map,
-    const Sff8472Field field) {
-  auto info = map.find(field);
-  if (info == map.end()) {
-    throw FbossError("Invalid SFF8472 Field ID %d", field);
-  }
-  return info->second;
-}
-
 double Sff8472FieldInfo::getTemp(const uint16_t temp) {
   double data;
   data = temp / 256.0;

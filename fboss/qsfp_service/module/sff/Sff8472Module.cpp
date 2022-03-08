@@ -5,6 +5,7 @@
 #include <string>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/Sff8472FieldInfo.h"
 
@@ -17,17 +18,13 @@ namespace {}
 namespace facebook {
 namespace fboss {
 
-enum Sff8472Pages {
-  LOWER,
-};
-
 static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
         {Ethernet10GComplianceCode::LR_10G, MediaInterfaceCode::LR_10G},
 };
 
 // As per SFF-8472
-static Sff8472FieldInfo::Sff8472FieldMap sfpFields = {
+static QsfpFieldInfo<Sff8472Field, Sff8472Pages>::QsfpFieldMap sfpFields = {
     // Address A0h fields
     {Sff8472Field::IDENTIFIER,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 0, 1}},
@@ -71,7 +68,8 @@ void getSfpFieldAddress(
     int& offset,
     int& length,
     uint8_t& transceiverI2CAddress) {
-  auto info = Sff8472FieldInfo::getSff8472FieldAddress(sfpFields, field);
+  auto info = QsfpFieldInfo<Sff8472Field, Sff8472Pages>::getQsfpFieldAddress(
+      sfpFields, field);
   dataAddress = info.dataAddress;
   offset = info.offset;
   length = info.length;
@@ -87,7 +85,7 @@ const uint8_t* Sff8472Module::getSfpValuePtr(
   if (!cacheIsValid()) {
     throw FbossError("Sfp is either not present or the data is not read");
   }
-  if (dataAddress == Sff8472Pages::LOWER) {
+  if (dataAddress == static_cast<int>(Sff8472Pages::LOWER)) {
     if (transceiverI2CAddress == TransceiverI2CApi::ADDR_QSFP) {
       CHECK_LE(offset + length, sizeof(a0LowerPage_));
       return (a0LowerPage_ + offset);
@@ -221,7 +219,8 @@ Ethernet10GComplianceCode Sff8472Module::getEthernet10GComplianceCode() const {
 double Sff8472Module::getSfpSensor(
     Sff8472Field field,
     double (*conversion)(uint16_t value)) {
-  auto info = Sff8472FieldInfo::getSff8472FieldAddress(sfpFields, field);
+  auto info = QsfpFieldInfo<Sff8472Field, Sff8472Pages>::getQsfpFieldAddress(
+      sfpFields, field);
   const uint8_t* data = getSfpValuePtr(
       info.dataAddress, info.offset, info.length, info.transceiverI2CAddress);
   CHECK_EQ(info.length, 2);

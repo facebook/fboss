@@ -12,6 +12,10 @@ namespace fboss {
 
 enum class Sff8472Field;
 
+enum class Sff8472Pages : int {
+  LOWER = -1,
+};
+
 class Sff8472Module : public QsfpModule {
  public:
   explicit Sff8472Module(
