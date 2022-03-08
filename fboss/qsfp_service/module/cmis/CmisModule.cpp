@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
@@ -53,22 +54,6 @@ std::array<std::string, 9> channelConfigErrorMsg = {
 namespace facebook {
 namespace fboss {
 
-enum CmisPages {
-  LOWER,
-  PAGE00,
-  PAGE01,
-  PAGE02,
-  PAGE10,
-  PAGE11,
-  PAGE13,
-  PAGE14,
-  PAGE20,
-  PAGE21,
-  PAGE24,
-  PAGE25,
-  PAGE2F
-};
-
 enum DiagnosticFeatureEncoding {
   NONE = 0x0,
   BER = 0x1,
@@ -91,7 +76,7 @@ enum VdmConfigType {
 };
 
 // As per CMIS4.0
-static CmisFieldInfo::CmisFieldMap cmisFields = {
+static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Lower Page
     {CmisField::IDENTIFIER, {CmisPages::LOWER, 0, 1}},
     {CmisField::REVISION_COMPLIANCE, {CmisPages::LOWER, 1, 1}},
@@ -304,7 +289,7 @@ struct checksumInfoStruct {
   CmisField checksumValOffset;
 };
 
-static std::map<int, checksumInfoStruct> checksumInfoCmis = {
+static std::map<CmisPages, checksumInfoStruct> checksumInfoCmis = {
     {CmisPages::PAGE00,
      {kPage0CsumRangeStart, kPage0CsumRangeLength, CmisField::PAGE0_CSUM}},
     {CmisPages::PAGE01,
@@ -327,7 +312,8 @@ void getQsfpFieldAddress(
     int& dataAddress,
     int& offset,
     int& length) {
-  auto info = CmisFieldInfo::getCmisFieldAddress(cmisFields, field);
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, field);
   dataAddress = info.dataAddress;
   offset = info.offset;
   length = info.length;
@@ -1035,14 +1021,15 @@ std::string CmisModule::getQsfpString(CmisField field) const {
 double CmisModule::getQsfpSensor(
     CmisField field,
     double (*conversion)(uint16_t value)) {
-  auto info = CmisFieldInfo::getCmisFieldAddress(cmisFields, field);
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, field);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
   return conversion(data[0] << 8 | data[1]);
 }
 
 TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
-  auto info = CmisFieldInfo::getCmisFieldAddress(
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
       cmisFields, CmisField::MEDIA_INTERFACE_TECHNOLOGY);
   const uint8_t* data =
       getQsfpValuePtr(info.dataAddress, info.offset, info.length);
@@ -1264,7 +1251,7 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
   if (!cacheIsValid()) {
     throw FbossError("Qsfp is either not present or the data is not read");
   }
-  if (dataAddress == CmisPages::LOWER) {
+  if (dataAddress == static_cast<int>(CmisPages::LOWER)) {
     CHECK_LE(offset + length, sizeof(lowerPage_));
     /* Copy data from the cache */
     return (lowerPage_ + offset);
@@ -1276,7 +1263,7 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
     // If this is a flatMem module, we will only have PAGE00 here.
     // Only when flatMem is false will we have data for other pages.
 
-    if (dataAddress == CmisPages::PAGE00) {
+    if (dataAddress == static_cast<int>(CmisPages::PAGE00)) {
       CHECK_LE(offset + length, sizeof(page0_));
       return (page0_ + offset);
     }
@@ -1286,7 +1273,7 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
           "Accessing data address 0x%d on flatMem module.", dataAddress);
     }
 
-    switch (dataAddress) {
+    switch (static_cast<CmisPages>(dataAddress)) {
       case CmisPages::PAGE01:
         CHECK_LE(offset + length, sizeof(page01_));
         return (page01_ + offset);
@@ -2175,7 +2162,7 @@ bool CmisModule::verifyEepromChecksums() {
  * page. The checksum is 8 bit sum of all the 8 bit values in range of
  * registers
  */
-bool CmisModule::verifyEepromChecksum(int pageId) {
+bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
   int offset;
   int length;
   int dataAddress;
@@ -2195,12 +2182,12 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
     XLOG(WARN) << folly::sformat(
         "Module {} can't do eeprom checksum for page {:d}",
         qsfpImpl_->getName(),
-        pageId);
+        static_cast<int>(pageId));
     return false;
   }
 
   // Get the range of registers, compute checksum and compare
-  dataAddress = pageId;
+  dataAddress = static_cast<int>(pageId);
   offset = checksumInfoCmis[pageId].checksumRangeStartOffset;
   length = checksumInfoCmis[pageId].checksumRangeLength;
   data = getQsfpValuePtr(dataAddress, offset, length);
@@ -2218,7 +2205,7 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
     XLOG(ERR) << folly::sformat(
         "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
         qsfpImpl_->getName(),
-        pageId,
+        static_cast<int>(pageId),
         expectedChecksum,
         checkSum);
     return false;
@@ -2226,7 +2213,7 @@ bool CmisModule::verifyEepromChecksum(int pageId) {
     XLOG(DBG5) << folly::sformat(
         "Module {}: Page {:d}: checksum verified successfully {:#x}",
         qsfpImpl_->getName(),
-        pageId,
+        static_cast<int>(pageId),
         checkSum);
   }
   return true;

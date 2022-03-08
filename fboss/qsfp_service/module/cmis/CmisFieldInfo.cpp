@@ -83,16 +83,6 @@ FeatureState CmisFieldInfo::getFeatureState(
   return enabled ? FeatureState::ENABLED : FeatureState::DISABLED;
 }
 
-CmisFieldInfo CmisFieldInfo::getCmisFieldAddress(
-    const CmisFieldMap& map,
-    const CmisField field) {
-  auto info = map.find(field);
-  if (info == map.end()) {
-    throw FbossError("Invalid CMIS Field ID");
-  }
-  return info->second;
-}
-
 uint8_t CmisFieldInfo::getTxBiasMultiplier(const uint8_t data) {
   uint8_t multiplier = (data & FieldMasks::TX_BIAS_MULTIPLIER_MASK) >> 3;
   switch (multiplier) {

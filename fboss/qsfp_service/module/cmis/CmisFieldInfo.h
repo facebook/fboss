@@ -10,6 +10,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 
 /*
  * Parse transceiver data fields, as outlined in
@@ -19,6 +20,8 @@
 
 namespace facebook {
 namespace fboss {
+
+enum class CmisPages;
 
 enum class CmisField {
   // Lower Page
@@ -213,12 +216,8 @@ enum DeviceTechnologyCmis : uint8_t {
   UNKNOWN_VALUE_CMIS = 0b1000,
 };
 
-class CmisFieldInfo {
+class CmisFieldInfo : public QsfpFieldInfo<CmisField, CmisPages> {
  public:
-  int dataAddress;
-  std::uint32_t offset;
-  std::uint32_t length;
-
   // Render degrees Celcius from fix-point integer value
   static double getTemp(uint16_t temp);
 
@@ -245,17 +244,6 @@ class CmisFieldInfo {
 
   // Render result as a member of FeatureState enum
   static FeatureState getFeatureState(uint8_t support, uint8_t enabled = 1);
-
-  typedef std::map<CmisField, CmisFieldInfo> CmisFieldMap;
-
-  /*
-   * This function takes the CmisField name and returns
-   * the dataAddress, offset and the length as per the CMIS DOM
-   * Document mentioned above.
-   */
-  static CmisFieldInfo getCmisFieldAddress(
-      const CmisFieldMap& map,
-      CmisField field);
 
   // Get Tx Bias current multiplier
   static uint8_t getTxBiasMultiplier(const uint8_t data);

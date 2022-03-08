@@ -14,6 +14,22 @@ namespace fboss {
 
 enum class CmisField;
 
+enum class CmisPages : int {
+  LOWER = -1,
+  PAGE00 = 0,
+  PAGE01 = 1,
+  PAGE02 = 2,
+  PAGE10 = 0x10,
+  PAGE11 = 0x11,
+  PAGE13 = 0x13,
+  PAGE14 = 0x14,
+  PAGE20 = 0x20,
+  PAGE21 = 0x21,
+  PAGE24 = 0x24,
+  PAGE25 = 0x25,
+  PAGE2F = 0x2F
+};
+
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
@@ -336,7 +352,7 @@ class CmisModule : public QsfpModule {
   /*
    * This function veifies the Module eeprom register checksum for a given page
    */
-  bool verifyEepromChecksum(int pageId);
+  bool verifyEepromChecksum(CmisPages pageId);
 
   /*
    * Reads the CMIS standard L-Module State Changed latched register
