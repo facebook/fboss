@@ -6,6 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <string>
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
+#include "fboss/fsdb/client/FsdbStatePublisher.h"
 
 namespace {
 auto constexpr kDelta = "delta";
@@ -28,37 +29,77 @@ namespace facebook::fboss::fsdb {
 FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
     : clientId_(clientId) {}
 
-FsdbPubSubManager::~FsdbPubSubManager() {}
+FsdbPubSubManager::~FsdbPubSubManager() {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  stopPublisher(lk, std::move(deltaPublisher_));
+  stopPublisher(lk, std::move(statePublisher_));
+}
+
+void FsdbPubSubManager::stopPublisher(
+    const std::lock_guard<std::mutex>& /*lk*/,
+    std::unique_ptr<FsdbStreamClient> publisher) {
+  if (publisher) {
+    publisher->cancel();
+  }
+}
+
+template <typename PublisherT>
+std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
+    const std::lock_guard<std::mutex>& /*lk*/,
+    const std::vector<std::string>& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) const {
+  if (deltaPublisher_ || statePublisher_) {
+    throw std::runtime_error(
+        "Only one instance of delta or state publisher allowed");
+  }
+  auto publisher = std::make_unique<PublisherT>(
+      clientId_,
+      publishPath,
+      publisherStreamEvbThread_.getEventBase(),
+      reconnectThread_.getEventBase(),
+      publisherStateChangeCb);
+  publisher->setServerToConnect("::1", fsdbPort);
+  return publisher;
+}
 
 void FsdbPubSubManager::createDeltaPublisher(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) {
-  deltaPublisher_.withWLock([&](auto& deltaPublisher) {
-    stopDeltaPublisher(deltaPublisher);
-    deltaPublisher = std::make_unique<FsdbDeltaPublisher>(
-        clientId_,
-        publishPath,
-        publisherStreamEvbThread_.getEventBase(),
-        reconnectThread_.getEventBase(),
-        publisherStateChangeCb);
-    deltaPublisher->setServerToConnect("::1", fsdbPort);
-  });
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  deltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
+      lk, publishPath, publisherStateChangeCb, fsdbPort);
 }
 
-void FsdbPubSubManager::stopDeltaPublisher(
-    std::unique_ptr<FsdbDeltaPublisher>& deltaPublisher) {
-  if (deltaPublisher) {
-    deltaPublisher->cancel();
-    deltaPublisher.reset();
+void FsdbPubSubManager::createStatePublisher(
+    const std::vector<std::string>& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  statePublisher_ = createPublisherImpl<FsdbStatePublisher>(
+      lk, publishPath, publisherStateChangeCb, fsdbPort);
+}
+
+template <typename PublisherT, typename PubUnitT>
+void FsdbPubSubManager::publishImpl(
+    const std::lock_guard<std::mutex>& /*lk*/,
+    PublisherT* publisher,
+    const PubUnitT& pubUnit) {
+  if (!publisher) {
+    throw std::runtime_error("Publisher must be created before publishing");
   }
+  publisher->write(pubUnit);
 }
 
 void FsdbPubSubManager::publish(const OperDelta& pubUnit) {
-  deltaPublisher_.withWLock([&pubUnit](auto& deltaPublisher) {
-    CHECK(deltaPublisher);
-    deltaPublisher->write(pubUnit);
-  });
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  publishImpl(lk, deltaPublisher_.get(), pubUnit);
+}
+
+void FsdbPubSubManager::publish(const OperState& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  publishImpl(lk, statePublisher_.get(), pubUnit);
 }
 
 void FsdbPubSubManager::addSubscription(

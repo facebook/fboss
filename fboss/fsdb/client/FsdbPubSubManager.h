@@ -9,11 +9,13 @@
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <mutex>
 #include <string>
 #include <vector>
 
 namespace facebook::fboss::fsdb {
 class FsdbDeltaPublisher;
+class FsdbStatePublisher;
 class FsdbPubSubManager {
  public:
   explicit FsdbPubSubManager(const std::string& clientId);
@@ -23,7 +25,12 @@ class FsdbPubSubManager {
       const std::vector<std::string>& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
+  void createStatePublisher(
+      const std::vector<std::string>& publishPath,
+      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+      int32_t fsdbPort = FLAGS_fsdbPort);
   void publish(const OperDelta& pubUnit);
+  void publish(const OperState& pubUnit);
   void addSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
@@ -49,11 +56,27 @@ class FsdbPubSubManager {
   }
 
  private:
+  // Publisher helpers
+  template <typename PublisherT, typename PubUnitT>
+  void publishImpl(
+      const std::lock_guard<std::mutex>& /*lk*/,
+      PublisherT* publisher,
+      const PubUnitT& pubUnit);
+  template <typename PublisherT>
+  std::unique_ptr<PublisherT> createPublisherImpl(
+      const std::lock_guard<std::mutex>& /*lk*/,
+      const std::vector<std::string>& publishPath,
+      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+      int32_t fsdbPort) const;
+  void stopPublisher(
+      const std::lock_guard<std::mutex>& /*lk*/,
+      std::unique_ptr<FsdbStreamClient> publisher);
+
+  // Subscriber helpers
   void removeSubscriptionImpl(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost,
       bool isDelta);
-  void stopDeltaPublisher(std::unique_ptr<FsdbDeltaPublisher>& deltaPublisher);
   template <typename SubscriberT>
   void addSubscriptionImpl(
       const std::vector<std::string>& subscribePath,
@@ -66,8 +89,9 @@ class FsdbPubSubManager {
   folly::ScopedEventBaseThread publisherStreamEvbThread_;
   folly::ScopedEventBaseThread subscribersStreamEvbThread_;
   const std::string clientId_;
-  // TODO - support multiple publishers?
-  folly::Synchronized<std::unique_ptr<FsdbDeltaPublisher>> deltaPublisher_;
+  std::mutex publisherMutex_;
+  std::unique_ptr<FsdbDeltaPublisher> deltaPublisher_;
+  std::unique_ptr<FsdbStatePublisher> statePublisher_;
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
       path2Subscriber_;
