@@ -20,10 +20,7 @@ namespace facebook::fboss::fsdb {
 FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
     : clientId_(clientId) {}
 
-FsdbPubSubManager::~FsdbPubSubManager() {
-  deltaPublisher_.withWLock(
-      [this](auto& deltaPublisher) { stopDeltaPublisher(deltaPublisher); });
-}
+FsdbPubSubManager::~FsdbPubSubManager() {}
 
 void FsdbPubSubManager::createDeltaPublisher(
     const std::vector<std::string>& publishPath,
