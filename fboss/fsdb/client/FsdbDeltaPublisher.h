@@ -3,7 +3,6 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbPublisher.h"
-#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
 class FsdbDeltaPublisher : public FsdbPublisher<OperDelta> {

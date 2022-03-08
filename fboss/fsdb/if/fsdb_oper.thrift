@@ -5,6 +5,7 @@ namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb_oper
 
 include "fboss/agent/agent_config.thrift"
+include "fboss/fsdb/if/fsdb_common.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 
@@ -50,6 +51,21 @@ struct OperDelta {
   3: optional OperMetadata metadata;
 }
 
+struct OperPubRequest {
+  1: fsdb_oper.OperPath path;
+  2: fsdb_common.PublisherId publisherId;
+}
+
+struct OperPubInitResponse {}
+
+struct OperPubFinalResponse {}
+
+struct OperSubRequest {
+  1: fsdb_oper.OperPath path;
+  2: fsdb_oper.OperProtocol protocol = fsdb_oper.OperProtocol.BINARY;
+}
+
+struct OperSubInitResponse {}
 /*
  * The MODEL for the operational state should be defined below this line.
  */

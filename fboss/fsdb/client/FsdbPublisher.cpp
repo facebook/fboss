@@ -8,6 +8,15 @@
 namespace facebook::fboss::fsdb {
 
 template <typename PubUnit>
+OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
+  OperPath operPath;
+  operPath.raw_ref() = publishPath_;
+  OperPubRequest request;
+  request.path_ref() = operPath;
+  return request;
+}
+
+template <typename PubUnit>
 void FsdbPublisher<PubUnit>::write(const PubUnit& pubUnit) {
   if (!toPublishQueue_.try_enqueue(pubUnit)) {
     FsdbException ex;

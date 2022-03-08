@@ -17,4 +17,5 @@ add_fbthrift_cpp_library(
     json
   DEPENDS
     agent_config_cpp2
+    fsdb_common_cpp2
 )

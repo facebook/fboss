@@ -5,6 +5,7 @@
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 #include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
 template <typename PubUnit>
@@ -30,11 +31,12 @@ class FsdbPublisher : public FsdbStreamClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::AsyncGenerator<PubUnit> createGenerator();
 #endif
-  const std::vector<std::string> publishPath_;
+  OperPubRequest createRequest() const;
 
  private:
   static constexpr auto kPubQueueCapacity{2000};
   folly::DMPSCQueue<PubUnit, true /*may block*/> toPublishQueue_{
       kPubQueueCapacity};
+  const std::vector<std::string> publishPath_;
 };
 } // namespace facebook::fboss::fsdb
