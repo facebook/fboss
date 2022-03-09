@@ -23,6 +23,12 @@ std::unique_ptr<std::vector<utility::EthFrame>> getEthFrames(
 }
 } // namespace
 
+std::vector<std::string> toStringVec(const std::vector<std::string_view>& in) {
+  std::vector<std::string> ret(in.begin(), in.end());
+
+  return ret;
+}
+
 std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
     HwAsic::AsicType asic,
     bool isSai) {

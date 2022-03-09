@@ -7,7 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 
 namespace facebook::fboss {
-
+std::vector<std::string> toStringVec(const std::vector<std::string_view>& in);
 std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
     HwAsic::AsicType asic,
     bool isSai);
