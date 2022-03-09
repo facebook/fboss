@@ -102,7 +102,7 @@ void FsdbPubSubManager::publish(const OperState& pubUnit) {
   publishImpl(lk, statePublisher_.get(), pubUnit);
 }
 
-void FsdbPubSubManager::addSubscription(
+void FsdbPubSubManager::addDeltaSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
@@ -112,7 +112,7 @@ void FsdbPubSubManager::addSubscription(
       subscribePath, stateChangeCb, operDeltaCb, fsdbHost, fsdbPort);
 }
 
-void FsdbPubSubManager::addSubscription(
+void FsdbPubSubManager::addStateSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,

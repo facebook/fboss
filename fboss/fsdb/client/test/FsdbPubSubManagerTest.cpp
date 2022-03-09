@@ -24,12 +24,12 @@ class PubSubManagerTest : public ::testing::Test {
   void addDeltaSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
-    pubSubManager_.addSubscription(path, stateChangeCb, operDeltaCb, host);
+    pubSubManager_.addDeltaSubscription(path, stateChangeCb, operDeltaCb, host);
   }
   void addStateSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
-    pubSubManager_.addSubscription(path, stateChangeCb, operStateCb, host);
+    pubSubManager_.addStateSubscription(path, stateChangeCb, operStateCb, host);
   }
   FsdbPubSubManager pubSubManager_{"testMgr"};
 };

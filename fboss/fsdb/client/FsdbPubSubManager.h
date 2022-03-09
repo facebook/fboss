@@ -31,13 +31,13 @@ class FsdbPubSubManager {
       int32_t fsdbPort = FLAGS_fsdbPort);
   void publish(const OperDelta& pubUnit);
   void publish(const OperState& pubUnit);
-  void addSubscription(
+  void addDeltaSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
-  void addSubscription(
+  void addStateSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
