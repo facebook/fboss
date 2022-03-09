@@ -55,7 +55,17 @@ TransceiverManager::TransceiverManager(
     portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
     portToSwPortInfo_.emplace(portID, std::move(portInfo));
   }
+}
 
+TransceiverManager::~TransceiverManager() {
+  // Make sure if gracefulExit() is not called, we will still stop the threads
+  if (!isExiting_) {
+    isExiting_ = true;
+    stopThreads();
+  }
+}
+
+void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
   if (!FLAGS_can_qsfp_service_warm_boot) {
@@ -70,14 +80,11 @@ TransceiverManager::TransceiverManager(
 
   // Now we might need to start threads
   startThreads();
-}
 
-TransceiverManager::~TransceiverManager() {
-  // Make sure if gracefulExit() is not called, we will still stop the threads
-  if (!isExiting_) {
-    isExiting_ = true;
-    stopThreads();
-  }
+  // Initialize the PhyManager all ExternalPhy for the system
+  initExternalPhyMap();
+  // Initialize the I2c bus
+  initTransceiverMap();
 }
 
 void TransceiverManager::gracefulExit() {

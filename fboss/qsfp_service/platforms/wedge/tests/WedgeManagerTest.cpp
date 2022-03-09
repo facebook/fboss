@@ -41,7 +41,7 @@ class WedgeManagerTest : public ::testing::Test {
 
     // Create a wedge manager for 16 modules and 4 ports per module
     wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
-    wedgeManager_->initTransceiverMap();
+    wedgeManager_->init();
     gflags::SetCommandLineOptionWithMode(
         "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
@@ -323,7 +323,7 @@ TEST_F(WedgeManagerTest, coldBootTest) {
     for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
       EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(1);
     }
-    wedgeManager_->initTransceiverMap();
+    wedgeManager_->init();
 
     // Confirm that the cold boot file and warm boot flag file were deleted
     EXPECT_FALSE(checkFileExists(coldBootFileName));
@@ -363,16 +363,17 @@ TEST_F(WedgeManagerTest, warmBootTest) {
 
   wedgeManager_.reset();
   wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
-  // Confirm that the warm boot falg was still there
-  EXPECT_TRUE(checkFileExists(warmBootFlagFile));
-  EXPECT_TRUE(wedgeManager_->canWarmBoot());
 
   // We expect a warm boot in this case and that should NOT trigger hard resets
   // of QSFP modules
   for (int i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
     EXPECT_CALL(*wedgeManager_, triggerQsfpHardReset(i)).Times(0);
   }
-  wedgeManager_->initTransceiverMap();
+  wedgeManager_->init();
+
+  // Confirm that the warm boot falg was still there
+  EXPECT_TRUE(checkFileExists(warmBootFlagFile));
+  EXPECT_TRUE(wedgeManager_->canWarmBoot());
 }
 
 TEST_F(WedgeManagerTest, getAndClearTransceiversSignalFlagsTest) {

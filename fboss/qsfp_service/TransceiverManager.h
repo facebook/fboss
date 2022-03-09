@@ -43,7 +43,14 @@ class TransceiverManager {
   virtual ~TransceiverManager();
   void gracefulExit();
 
-  virtual void initTransceiverMap() = 0;
+  /*
+   * Initialize the qsfp_service components, which might include:
+   * - Check the warm boot flag
+   * - Set up state machine update threads
+   * - Initialize xphy if available
+   * - Initialize transceiver
+   */
+  void init();
   virtual void getTransceiversInfo(
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
@@ -130,6 +137,9 @@ class TransceiverManager {
   }
   /*
    * Virtual function to initialize all the Phy in the system
+   * TODO(joseph5wu) Will move to protected so that outside of
+   * TransceiverManager family won't call this function directly. Instead they
+   * should use init() directly
    */
   virtual bool initExternalPhyMap() = 0;
 
@@ -263,6 +273,22 @@ class TransceiverManager {
   void clearPortPrbsStats(PortID portId, phy::PrbsComponent component);
 
  protected:
+  /*
+   * Check to see if we can attempt a warm boot.
+   * Returns true if 2 conditions are met
+   *
+   * 1) User did not create cold_boot_once_qsfp_service file
+   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
+   *    state and shut down successfully.
+   *
+   * This function also remove the forceColdBoot file but keep the canWarmBoot
+   * file so that for future qsfp_service crash, we can still use warm boot
+   * without resetting the xphy or transceiver.
+   */
+  virtual bool checkWarmBootFlags();
+
+  virtual void initTransceiverMap() = 0;
+
   virtual void loadConfig() = 0;
 
   void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
@@ -421,19 +447,6 @@ class TransceiverManager {
 
   std::string warmBootStateFileName() const;
 
-  /*
-   * Check to see if we can attempt a warm boot.
-   * Returns true if 2 conditions are met
-   *
-   * 1) User did not create cold_boot_once_qsfp_service file
-   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
-   *    state and shut down successfully.
-   *
-   * This function also remove the forceColdBoot file but keep the canWarmBoot
-   * file so that for future qsfp_service crash, we can still use warm boot
-   * without resetting the xphy or transceiver.
-   */
-  bool checkWarmBootFlags();
   /*
    * ONLY REMOVE can_warm_boot flag file if there's a cold_boot
    */

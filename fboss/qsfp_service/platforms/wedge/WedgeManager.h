@@ -30,7 +30,6 @@ class WedgeManager : public TransceiverManager {
       PlatformMode mode);
   ~WedgeManager() override {}
 
-  void initTransceiverMap() override;
   void getTransceiversInfo(
       TransceiverMap& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -155,6 +154,8 @@ class WedgeManager : public TransceiverManager {
   void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
 
  protected:
+  void initTransceiverMap() override;
+
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
 
