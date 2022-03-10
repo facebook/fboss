@@ -613,21 +613,49 @@ void QsfpModule::updatePrbsStats() {
   // Initialize the stats if they didn't exist before
   if (!(*systemPrbs->laneStats_ref()).size()) {
     systemPrbs->portId_ref() = getID();
-    // TODO: Add later
-    // systemPrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
+    systemPrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
     systemPrbs->laneStats_ref() =
         std::vector<phy::PrbsLaneStats>(numHostLanes());
   }
   if (!(*linePrbs->laneStats_ref()).size()) {
     linePrbs->portId_ref() = getID();
-    // TODO: Add later
-    // linePrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_LINE;
+    linePrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_LINE;
     linePrbs->laneStats_ref() =
         std::vector<phy::PrbsLaneStats>(numMediaLanes());
   }
 
-  auto updatePrbsStatEntry = [](const phy::PrbsStats& /* oldStat */,
-                                phy::PrbsStats& /* newStat */) {};
+  auto updatePrbsStatEntry = [](const phy::PrbsStats& oldStat,
+                                phy::PrbsStats& newStat) {
+    for (const auto& oldLane : *oldStat.laneStats_ref()) {
+      for (auto& newLane : *newStat.laneStats_ref()) {
+        if (*newLane.laneId_ref() != *oldLane.laneId_ref()) {
+          continue;
+        }
+        // Update numLossOfLock
+        if (!(*newLane.locked_ref()) && *oldLane.locked_ref()) {
+          newLane.numLossOfLock_ref() = *oldLane.numLossOfLock_ref() + 1;
+        } else {
+          newLane.numLossOfLock_ref() = *oldLane.numLossOfLock_ref();
+        }
+        // Update maxBer only if there is a lock
+        if (*newLane.locked_ref() &&
+            *newLane.ber_ref() > *oldLane.maxBer_ref()) {
+          newLane.maxBer_ref() = *newLane.ber_ref();
+        } else {
+          newLane.maxBer_ref() = *oldLane.maxBer_ref();
+        }
+        // Update timeSinceLastLocked
+        // If previously there was no lock and now there is, update
+        // timeSinceLastLocked to now
+        if (!(*oldLane.locked_ref()) && *newLane.locked_ref()) {
+          newLane.timeSinceLastLocked_ref() = *newStat.timeCollected_ref();
+        } else {
+          newLane.timeSinceLastLocked_ref() =
+              *oldLane.timeSinceLastLocked_ref();
+        }
+      }
+    }
+  };
 
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
