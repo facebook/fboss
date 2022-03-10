@@ -562,7 +562,8 @@ std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>
 
 std::map<int, std::array<uint8_t, 128>> kSffFr1UpperPagesA0 = {
     {0, kSffFr1Page0},
-    {3, kSffFr1Page3}};
+    {3, kSffFr1Page3},
+    {7, kSffFr1Page3}}; // Picking random data for page 7
 std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> kSffFr1UpperPages = {
     {TransceiverI2CApi::ADDR_QSFP, kSffFr1UpperPagesA0}};
 

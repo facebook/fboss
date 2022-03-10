@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include <boost/assign.hpp>
+#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <iomanip>
 #include <string>
 #include "common/time/Time.h"
@@ -602,6 +603,46 @@ void QsfpModule::refreshLocked() {
   }
 
   updateCachedTransceiverInfoLocked(moduleStatus);
+  updatePrbsStats();
+}
+
+void QsfpModule::updatePrbsStats() {
+  auto systemPrbs = systemPrbsStats_.wlock();
+  auto linePrbs = linePrbsStats_.wlock();
+
+  // Initialize the stats if they didn't exist before
+  if (!(*systemPrbs->laneStats_ref()).size()) {
+    systemPrbs->portId_ref() = getID();
+    // TODO: Add later
+    // systemPrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
+    systemPrbs->laneStats_ref() =
+        std::vector<phy::PrbsLaneStats>(numHostLanes());
+  }
+  if (!(*linePrbs->laneStats_ref()).size()) {
+    linePrbs->portId_ref() = getID();
+    // TODO: Add later
+    // linePrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_LINE;
+    linePrbs->laneStats_ref() =
+        std::vector<phy::PrbsLaneStats>(numMediaLanes());
+  }
+
+  auto updatePrbsStatEntry = [](const phy::PrbsStats& /* oldStat */,
+                                phy::PrbsStats& /* newStat */) {};
+
+  auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
+  auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
+  if (*sysPrbsState.enabled_ref()) {
+    // Only update system prbs stats if it is enabled
+    auto stats = getPortPrbsStatsSideLocked(phy::Side::SYSTEM);
+    updatePrbsStatEntry(*systemPrbs, stats);
+    *systemPrbs = stats;
+  }
+  if (*linePrbsState.enabled_ref()) {
+    // Only update line prbs stats if it is enabled
+    auto stats = getPortPrbsStatsSideLocked(phy::Side::LINE);
+    updatePrbsStatEntry(*linePrbs, stats);
+    *linePrbs = stats;
+  }
 }
 
 bool QsfpModule::shouldRemediate() {

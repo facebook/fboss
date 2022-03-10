@@ -289,6 +289,8 @@ class QsfpModule : public Transceiver {
     return lastDownTime_;
   }
 
+  void updatePrbsStats();
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
@@ -604,6 +606,9 @@ class QsfpModule : public Transceiver {
   ModuleStatus moduleStatusCache_;
 
   std::atomic_bool captureVdmStats_{false};
+
+  folly::Synchronized<phy::PrbsStats> systemPrbsStats_;
+  folly::Synchronized<phy::PrbsStats> linePrbsStats_;
 
  private:
   // no copy or assignment
