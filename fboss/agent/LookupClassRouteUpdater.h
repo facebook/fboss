@@ -217,6 +217,15 @@ class LookupClassRouteUpdater : public StateObserver {
       VlanID vlanID);
 
   // Methods for blocked MACs processing
+  template <typename AddrT>
+  void removeBlockedNeighborIPfromSubnetCache(
+      VlanID vlanID,
+      const folly::MacAddress& blockedNeighborMac,
+      const StateDelta& stateDelta);
+  void processMacAddrsToBlockRemoved(
+      const StateDelta& stateDelta,
+      const std::vector<std::pair<VlanID, folly::MacAddress>>&
+          toBeRemovedMacAddrsToBlock);
   void processMacAddrsToBlockUpdates(const StateDelta& stateDelta);
 
   /*

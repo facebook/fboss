@@ -1250,6 +1250,55 @@ void LookupClassRouteUpdater::processBlockNeighborUpdates(
   processBlockNeighborAdded(stateDelta, toBeAddedBlockNeighbors);
 }
 
+template <typename AddrT>
+void LookupClassRouteUpdater::removeBlockedNeighborIPfromSubnetCache(
+    VlanID vlanID,
+    const folly::MacAddress& blockedNeighborMac,
+    const StateDelta& stateDelta) {
+  auto newState = stateDelta.newState();
+  auto vlan = newState->getVlans()->getVlanIf(vlanID);
+  for (const auto& neighborEntry :
+       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    if (neighborEntry->getMac() != blockedNeighborMac ||
+        isNoHostRoute(neighborEntry)) {
+      continue;
+    }
+
+    auto neighborIPToBlock = neighborEntry->getIP();
+    auto address =
+        getInterfaceSubnetForIPIf(newState, vlanID, neighborIPToBlock);
+    /*
+     * Remove subnet corresponding to IPs resovled to the unblocked MAC
+     * if and only if it would not be cached by other lookup class.
+     */
+    if (address.has_value() &&
+        !isSubnetCachedByLookupClasses(newState, vlanID, address.value())) {
+      auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+      removeNextHopsForSubnet(stateDelta, address.value(), vlan);
+      subnetsCache.erase(address.value());
+    }
+  }
+}
+
+void LookupClassRouteUpdater::processMacAddrsToBlockRemoved(
+    const StateDelta& stateDelta,
+    const std::vector<std::pair<VlanID, folly::MacAddress>>&
+        toBeRemovedMacAddrsToBlock) {
+  auto newState = stateDelta.newState();
+
+  for (const auto& [vlanID, blockedNeighborMac] : toBeRemovedMacAddrsToBlock) {
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    removeBlockedNeighborIPfromSubnetCache<folly::IPAddressV4>(
+        vlanID, blockedNeighborMac, stateDelta);
+    removeBlockedNeighborIPfromSubnetCache<folly::IPAddressV6>(
+        vlanID, blockedNeighborMac, stateDelta);
+  }
+}
+
 void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
     const StateDelta& stateDelta) {
   auto oldState = stateDelta.oldState();
@@ -1276,6 +1325,7 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
       newMacAddrsToBlock.end(),
       std::inserter(
           toBeRemovedMacAddrsToBlock, toBeRemovedMacAddrsToBlock.end()));
+  processMacAddrsToBlockRemoved(stateDelta, toBeRemovedMacAddrsToBlock);
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
