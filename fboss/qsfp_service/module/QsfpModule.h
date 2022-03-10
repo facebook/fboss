@@ -289,6 +289,13 @@ class QsfpModule : public Transceiver {
     return lastDownTime_;
   }
 
+  phy::PrbsStats getPortPrbsStats(phy::Side side) override {
+    if (side == phy::Side::SYSTEM) {
+      return systemPrbsStats_.copy();
+    }
+    return linePrbsStats_.copy();
+  };
+
   void updatePrbsStats();
 
  protected:

@@ -10,6 +10,7 @@
 #pragma once
 #include <cstdint>
 
+#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -150,6 +151,8 @@ class Transceiver {
    */
   virtual std::vector<prbs::PrbsPolynomial> getPrbsCapabilities(
       phy::Side side) const = 0;
+
+  virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) = 0;
 
   /*
    * Return true if such Transceiver can support remediation.
