@@ -216,6 +216,9 @@ class LookupClassRouteUpdater : public StateObserver {
       const std::shared_ptr<SwitchState>& newState,
       VlanID vlanID);
 
+  // Methods for blocked MACs processing
+  void processMacAddrsToBlockUpdates(const StateDelta& stateDelta);
+
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with

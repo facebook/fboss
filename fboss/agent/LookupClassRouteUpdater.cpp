@@ -1250,6 +1250,34 @@ void LookupClassRouteUpdater::processBlockNeighborUpdates(
   processBlockNeighborAdded(stateDelta, toBeAddedBlockNeighbors);
 }
 
+void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
+    const StateDelta& stateDelta) {
+  auto oldState = stateDelta.oldState();
+  auto newState = stateDelta.newState();
+
+  std::vector<std::pair<VlanID, folly::MacAddress>> oldMacAddrsToBlock(
+      oldState->getSwitchSettings()->getMacAddrsToBlock());
+
+  std::vector<std::pair<VlanID, folly::MacAddress>> newMacAddrsToBlock(
+      newState->getSwitchSettings()->getMacAddrsToBlock());
+
+  sort(oldMacAddrsToBlock.begin(), oldMacAddrsToBlock.end());
+  sort(newMacAddrsToBlock.begin(), newMacAddrsToBlock.end());
+
+  if (newMacAddrsToBlock.empty() && oldMacAddrsToBlock.empty()) {
+    return;
+  }
+
+  std::vector<std::pair<VlanID, folly::MacAddress>> toBeRemovedMacAddrsToBlock;
+  std::set_difference(
+      oldMacAddrsToBlock.begin(),
+      oldMacAddrsToBlock.end(),
+      newMacAddrsToBlock.begin(),
+      newMacAddrsToBlock.end(),
+      std::inserter(
+          toBeRemovedMacAddrsToBlock, toBeRemovedMacAddrsToBlock.end()));
+}
+
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*
    * If FLAGS_queue_per_host_route_fix is false:
@@ -1275,6 +1303,8 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   processInterfaceUpdates(stateDelta);
 
   processBlockNeighborUpdates(stateDelta);
+
+  processMacAddrsToBlockUpdates(stateDelta);
 
   /*
    * Only RSWs connected to MH-NIC (e.g. Yosemite) need queue-per-host fix, and
