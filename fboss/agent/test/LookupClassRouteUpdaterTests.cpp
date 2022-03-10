@@ -530,6 +530,33 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
   }
 
+  void blockMacThenIPResolveToSameMacHelper(
+      std::optional<cfg::AclLookupClass> expectedClassID) {
+    this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+    this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+
+    updateMacAddrsToBlock(
+        this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+
+    // Another IP address resolved to the same MAC address
+    this->addRoute(this->kroutePrefix2(), {this->kIpAddressB()});
+    this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressA());
+
+    this->verifyClassIDHelper(
+        this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
+    this->verifyClassIDHelper(
+        this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
+
+    updateMacAddrsToBlock(this->getSw(), {{}});
+    this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
+    this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID);
+  }
+
   const boost::container::
       flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>&
       getSubnetCache() const {
@@ -1380,6 +1407,11 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthopMac) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, BlockMacThenIPResolveToSameMac) {
+  this->blockMacThenIPResolveToSameMacHelper(
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
 template <typename AddressT>
 class LookupClassRouteUpdaterNoLookupClassTest
     : public LookupClassRouteUpdaterTest<AddressT> {
@@ -1469,6 +1501,12 @@ TYPED_TEST(
     LookupClassRouteUpdaterNoLookupClassTest,
     MultipleRoutesBlockUnblockNexthopMac) {
   this->multipleRoutesBlockUnblockNexthopMacHelper(std::nullopt, std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    BlockMacThenIPResolveToSameMac) {
+  this->blockMacThenIPResolveToSameMacHelper(std::nullopt);
 }
 
 } // namespace facebook::fboss
