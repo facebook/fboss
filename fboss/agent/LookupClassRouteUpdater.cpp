@@ -341,6 +341,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
 
+  // TODO(zecheng): Remove this logic once block neighbor support is removed.
   /*
    * processBlockNeighborUpdates would not cache subnet corresponding to newly
    * added blocked neighbor if there is no interface for that subnet.
@@ -356,6 +357,44 @@ void LookupClassRouteUpdater::processInterfaceAdded(
       if (blockedNeighborIP.inSubnet(address.first, address.second)) {
         auto& subnetsCache = vlan2SubnetsCache_[vlanID];
         subnetsCache.insert(address);
+      }
+    }
+  }
+
+  /*
+   * processMacAddrsToBlockUpdates would not cache subnet corresponding to newly
+   * added blocked mac address if there is no interface for that subnet.
+   * Thus, when an interface is added, process blocked mac address list again.
+   */
+  for (const auto& [blockedVlanID, blockedNeighborMac] :
+       switchState->getSwitchSettings()->getMacAddrsToBlock()) {
+    if (blockedVlanID != vlanID) {
+      continue;
+    }
+
+    std::vector<folly::IPAddress> neighborIPAddr;
+    for (const auto& neighborEntry :
+         *VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV4>(vlan)) {
+      if (neighborEntry->getMac() == blockedNeighborMac) {
+        neighborIPAddr.push_back(neighborEntry->getIP());
+      }
+    }
+
+    for (const auto& neighborEntry :
+         *VlanTableDeltaCallbackGenerator::getTable<folly::IPAddressV6>(vlan)) {
+      if (neighborEntry->getMac() == blockedNeighborMac &&
+          !isNoHostRoute(neighborEntry)) {
+        neighborIPAddr.push_back(neighborEntry->getIP());
+      }
+    }
+
+    for (const auto& address : addedInterface->getAddresses()) {
+      for (auto& neighborIP : neighborIPAddr) {
+        if (neighborIP.inSubnet(address.first, address.second)) {
+          auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+          subnetsCache.insert(address);
+          break;
+        }
       }
     }
   }
@@ -1251,6 +1290,31 @@ void LookupClassRouteUpdater::processBlockNeighborUpdates(
 }
 
 template <typename AddrT>
+bool LookupClassRouteUpdater::addBlockedNeighborIPtoSubnetCache(
+    VlanID vlanID,
+    const folly::MacAddress& blockedNeighborMac,
+    const std::shared_ptr<SwitchState>& newState) {
+  bool subnetCacheUpdated = false;
+  auto vlan = newState->getVlans()->getVlanIf(vlanID);
+  for (const auto& neighborEntry :
+       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    if (neighborEntry->getMac() != blockedNeighborMac ||
+        isNoHostRoute(neighborEntry)) {
+      continue;
+    }
+
+    auto neighborIPToBlock = neighborEntry->getIP();
+    auto address =
+        getInterfaceSubnetForIPIf(newState, vlanID, neighborIPToBlock);
+    if (address.has_value()) {
+      auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+      subnetCacheUpdated |= subnetsCache.insert(address.value()).second;
+    }
+  }
+  return subnetCacheUpdated;
+}
+
+template <typename AddrT>
 void LookupClassRouteUpdater::removeBlockedNeighborIPfromSubnetCache(
     VlanID vlanID,
     const folly::MacAddress& blockedNeighborMac,
@@ -1277,6 +1341,39 @@ void LookupClassRouteUpdater::removeBlockedNeighborIPfromSubnetCache(
       removeNextHopsForSubnet(stateDelta, address.value(), vlan);
       subnetsCache.erase(address.value());
     }
+  }
+}
+
+void LookupClassRouteUpdater::processMacAddrsToBlockAdded(
+    const StateDelta& stateDelta,
+    const std::vector<std::pair<VlanID, folly::MacAddress>>&
+        toBeAddedMacAddrsToBlock) {
+  auto newState = stateDelta.newState();
+
+  bool subnetCacheUpdated = false;
+
+  for (const auto& [vlanID, blockedNeighborMac] : toBeAddedMacAddrsToBlock) {
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    subnetCacheUpdated |=
+        (addBlockedNeighborIPtoSubnetCache<folly::IPAddressV4>(
+             vlanID, blockedNeighborMac, newState) |
+         addBlockedNeighborIPtoSubnetCache<folly::IPAddressV6>(
+             vlanID, blockedNeighborMac, newState));
+  }
+
+  if (subnetCacheUpdated) {
+    /*
+     * When a new subnet is added to the cache, the nextHops of existing
+     * routes may become eligible for caching in
+     * nextHopAndVlan2Prefixes_. Furthermore, such a nextHop may have
+     * classID associated with it, and in that case, the corresponding
+     * route could inherit that classID. Thus, re-add all the routes.
+     */
+    reAddAllRoutes(stateDelta);
   }
 }
 
@@ -1326,6 +1423,18 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
       std::inserter(
           toBeRemovedMacAddrsToBlock, toBeRemovedMacAddrsToBlock.end()));
   processMacAddrsToBlockRemoved(stateDelta, toBeRemovedMacAddrsToBlock);
+
+  /*
+   * It could be insufficient to only process the newly added MAC address.
+   * Consider the scenario:
+   * 1. MAC is added to the block list
+   * 2. Neighbor corresponding to blocked MAC is resolved after MAC address
+   *    is added to the block list.
+   * Route/neighbor entry would not exist at the time when MAC is added to the
+   * block list. To gurantee correctness, always process all currently blocked
+   * MAC address.
+   */
+  processMacAddrsToBlockAdded(stateDelta, newMacAddrsToBlock);
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
