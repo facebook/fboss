@@ -228,6 +228,7 @@ class SaiPortManager {
   void programMacsec(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void resetSamplePacket(SaiPortHandle* portHandle);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

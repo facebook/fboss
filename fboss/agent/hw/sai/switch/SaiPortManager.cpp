@@ -145,14 +145,29 @@ SaiPortManager::~SaiPortManager() {
   releasePorts();
 }
 
+void SaiPortManager::resetSamplePacket(SaiPortHandle* portHandle) {
+  if (portHandle->ingressSamplePacket) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressSamplePacketEnable{
+            SAI_NULL_OBJECT_ID});
+  }
+  if (portHandle->egressSamplePacket) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressSamplePacketEnable{
+            SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiPortManager::releasePorts() {
   if (!removePortsAtExit_) {
     for (const auto& handle : handles_) {
       const auto& saiPortHandle = handle.second;
+      resetSamplePacket(saiPortHandle.get());
       saiPortHandle->port->release();
     }
     for (const auto& handle : removedHandles_) {
       const auto& saiPortHandle = handle.second;
+      resetSamplePacket(saiPortHandle.get());
       saiPortHandle->port->release();
     }
   }
