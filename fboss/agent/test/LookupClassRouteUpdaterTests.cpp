@@ -376,7 +376,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
 
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
@@ -391,7 +391,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
@@ -405,7 +405,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
@@ -436,7 +436,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         this->getSw(), {{this->kVlan(), this->kMacAddressA()}});
     auto subnetCacheAfterBlocking = getSubnetCache();
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     auto subnetCacheAfterUnblocking = getSubnetCache();
 
     auto subnetCacheAfterBlockingForVlan =
@@ -481,7 +481,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
@@ -495,7 +495,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
 
     // route1's nexthop's mac unblocked, route2's nexthop's mac unblocked
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
     this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
 
@@ -525,7 +525,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
 
     // route1's nexthop's mac unblocked, route2's nexthop's mac unblocked
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID1);
     this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID2);
   }
@@ -535,7 +535,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
     this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
 
     updateMacAddrsToBlock(
@@ -552,7 +552,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateMacAddrsToBlock(this->getSw(), {{}});
+    updateMacAddrsToBlock(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
     this->verifyClassIDHelper(this->kroutePrefix2(), expectedClassID);
   }
