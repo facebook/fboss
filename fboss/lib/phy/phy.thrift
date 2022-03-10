@@ -255,6 +255,8 @@ enum PrbsComponent {
   ASIC = 0,
   GB_SYSTEM = 1,
   GB_LINE = 2,
+  TRANSCEIVER_SYSTEM = 3,
+  TRANSCEIVER_LINE = 4,
 }
 
 struct PrbsLaneStats {
@@ -271,6 +273,7 @@ struct PrbsStats {
   1: i32 portId;
   2: PrbsComponent component;
   3: list<PrbsLaneStats> laneStats;
+  4: i32 timeCollected;
 }
 
 // structs for Phy(both IPHY and XPHY) diagnostic info

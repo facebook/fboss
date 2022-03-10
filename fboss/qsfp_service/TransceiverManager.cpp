@@ -1302,8 +1302,10 @@ phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
     case phy::PrbsComponent::ASIC:
       throw FbossError("qsfp_service doesn't support program ASIC prbs");
     case phy::PrbsComponent::GB_SYSTEM:
+    case phy::PrbsComponent::TRANSCEIVER_SYSTEM:
       return phy::Side::SYSTEM;
     case phy::PrbsComponent::GB_LINE:
+    case phy::PrbsComponent::TRANSCEIVER_LINE:
       return phy::Side::LINE;
   };
   throw FbossError(
