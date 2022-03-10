@@ -22,4 +22,5 @@ void flashromBiosUpgrade(std::string, std::string, std::string, std::string);
 int runCmd(const std::string&);
 std::string i2cRegRead(std::string, std::string, std::string);
 std::string toLower(std::string);
+void printUsage(std::string);
 } // namespace facebook::fboss::platform::helpers

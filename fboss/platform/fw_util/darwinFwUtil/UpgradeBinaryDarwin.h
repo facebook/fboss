@@ -5,7 +5,7 @@
 #include <sysexits.h>
 #include <algorithm>
 #include <unordered_set>
-#include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
+#include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
 #include "fboss/platform/helpers/Utils.h"
 
@@ -17,8 +17,7 @@ namespace facebook::fboss::platform {
 class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
  public:
   UpgradeBinaryDarwin();
-  int parseCommandLine(int, char**);
-  void printUsage(void);
+  int parseCommandLine(int, char**, std::string);
   virtual ~UpgradeBinaryDarwin() override = default;
 
  protected:
@@ -39,8 +38,8 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   void upgradeThroughJam(std::string, std::string, std::string);
   void upgradeThroughXapp(std::string, std::string, std::string);
   void setJtagMux(std::string);
-  void printVersion(std::string);
-  void printAllVersion(void);
+  void printVersion(std::string, std::string);
+  void printAllVersion();
   void constructCpuCpldPath(std::string);
   std::string getBusNumber(std::string, std::string);
   std::string getSysfsCpldVersion(std::string, std::string, std::string);

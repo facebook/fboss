@@ -1,6 +1,6 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/fw_util/upgradeBinary/upgradeBinaryDarwin.h"
+#include "fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.h"
 #include <gflags/gflags.h>
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -30,21 +30,6 @@ std::string UpgradeBinaryDarwin::getBusNumber(
   std::string bus = execCommand(cmd);
   bus.erase(std::remove(bus.begin(), bus.end(), '\n'), bus.end());
   return bus;
-}
-void UpgradeBinaryDarwin::printUsage(void) {
-  std::cout << "usage:" << std::endl;
-  std::cout << "fw_util <all|binary_name> <action> <binary_file>" << std::endl;
-  std::cout << "<binary_name> : cpu_cpld, sc_scd, sc_cpld," << std::endl;
-  std::cout
-      << "sc_sat_cpld0, sc_sat_cpld1, fan_cpld, bios, all (only when pulling version)"
-      << std::endl;
-  std::cout << "<action> : program, verify, read, version" << std::endl;
-  std::cout
-      << "<binary_file> : path to binary file which is NOT supported when pulling fw version"
-      << std::endl;
-  std::cout
-      << "all: only supported when pulling fw version. Ex:fw_util all version"
-      << std::endl;
 }
 
 void UpgradeBinaryDarwin::setJtagMux(std::string fpga) {
@@ -211,7 +196,9 @@ void UpgradeBinaryDarwin::printAllVersion(void) {
   }
 }
 
-void UpgradeBinaryDarwin::printVersion(std::string binary) {
+void UpgradeBinaryDarwin::printVersion(
+    std::string binary,
+    std::string upgradable_components) {
   if (binary == "all") {
     printAllVersion();
   } else if (binary == "bios") {
@@ -248,16 +235,19 @@ void UpgradeBinaryDarwin::printVersion(std::string binary) {
   } else {
     std::cout << "unsupported binary option. please follow the usage"
               << std::endl;
-    printUsage();
+    printUsage(upgradable_components);
   }
 }
 
-int UpgradeBinaryDarwin::parseCommandLine(int argc, char* argv[]) {
+int UpgradeBinaryDarwin::parseCommandLine(
+    int argc,
+    char* argv[],
+    std::string upgradable_components) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   if (argc == 1 || FLAGS_h) {
-    printUsage();
+    printUsage(upgradable_components);
   } else if (
       argc >= 3 && std::string(argv[2]) == toLower(std::string("version"))) {
     if (argc > 3) {
@@ -268,11 +258,11 @@ int UpgradeBinaryDarwin::parseCommandLine(int argc, char* argv[]) {
           << std::endl;
       std::cout << "fw_util <all|binary_name> <action>" << std::endl;
     }
-    printVersion(toLower(std::string(argv[1])));
+    printVersion(toLower(std::string(argv[1])), upgradable_components);
   } else if (argc != 4) {
     std::cout << "missing argument" << std::endl;
     std::cout << "please follow the usage below" << std::endl;
-    printUsage();
+    printUsage(upgradable_components);
   } else if (
       toLower(std::string(argv[2])) == std::string("write") &&
       !isFilePresent(std::string(argv[3]))) {
@@ -311,11 +301,11 @@ int UpgradeBinaryDarwin::parseCommandLine(int argc, char* argv[]) {
     } else {
       std::cout << "fpga file name not supported" << std::endl;
       std::cout << "please follow the usage" << std::endl;
-      printUsage();
+      printUsage(upgradable_components);
     }
   } else {
     std::cout << "wrong usage. Please follow the usage" << std::endl;
-    printUsage();
+    printUsage(upgradable_components);
   }
 
   return EX_OK;

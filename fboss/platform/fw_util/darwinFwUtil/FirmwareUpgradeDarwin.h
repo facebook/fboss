@@ -9,7 +9,7 @@ namespace facebook::fboss::platform {
 class FirmwareUpgradeDarwin : public FirmwareUpgradeInterface {
  public:
   FirmwareUpgradeDarwin();
-  virtual void upgradeFirmware(int, char**) override;
+  virtual void upgradeFirmware(int, char**, std::string) override;
   virtual ~FirmwareUpgradeDarwin() override = default;
 
  protected:

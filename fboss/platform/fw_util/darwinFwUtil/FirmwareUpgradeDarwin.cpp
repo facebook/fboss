@@ -1,7 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/platform/fw_util/FirmwareUpgradeDarwin.h"
-#include "fboss/platform/fw_util/upgradeBinary/upgradeBinaryDarwin.h"
+#include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
+#include "fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.h"
 #include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
 #include "fboss/platform/helpers/Utils.h"
 
@@ -24,9 +24,12 @@ FirmwareUpgradeDarwin::FirmwareUpgradeDarwin() {
   helpers::execCommand(createLayoutCmd);
 }
 
-void FirmwareUpgradeDarwin::upgradeFirmware(int argc, char* argv[]) {
+void FirmwareUpgradeDarwin::upgradeFirmware(
+    int argc,
+    char* argv[],
+    std::string upgradable_components) {
   auto upgradeBinaryObj = UpgradeBinaryDarwin();
-  upgradeBinaryObj.parseCommandLine(argc, argv);
+  upgradeBinaryObj.parseCommandLine(argc, argv, upgradable_components);
 }
 
 } // namespace facebook::fboss::platform

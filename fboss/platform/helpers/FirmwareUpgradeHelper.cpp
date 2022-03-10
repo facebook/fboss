@@ -8,6 +8,19 @@ namespace facebook::fboss::platform::helpers {
  *Validate the command exit status of system() for errors
  */
 
+void printUsage(std::string upgradable_components) {
+  std::cout << "usage:" << std::endl;
+  std::cout << "fw_util <all|binary_name> <action> <binary_file>" << std::endl;
+  std::cout << "<binary_name> : " << upgradable_components << std::endl;
+  std::cout << "<action> : program, verify, read, version" << std::endl;
+  std::cout
+      << "<binary_file> : path to binary file which is NOT supported when pulling fw version"
+      << std::endl;
+  std::cout
+      << "all: only supported when pulling fw version. Ex:fw_util all version"
+      << std::endl;
+}
+
 void checkCmdStatus(const std::string& cmd, int exitStatus) {
   if (exitStatus < 0) {
     throw std::runtime_error(
