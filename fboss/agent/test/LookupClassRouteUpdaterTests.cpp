@@ -1430,4 +1430,45 @@ TYPED_TEST(
   this->modifyBlockListDifferentSubnetHelper(std::nullopt, std::nullopt);
 }
 
+// MAC addrs to block unit tests
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    AddRouteResolveNeighborBlockUnblockMac) {
+  this->addRouteResolveNeighborBlockUnblockMacHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    ResolveNeighborBlockMacAddRouteUnblockMac) {
+  this->resolveNeighborBlockMacAddRouteUnblockMacHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    BlockMacResolveNeighborAddRouteUnblock) {
+  this->blockMacResolveNeighborAddRouteUnblockHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    ApplySameMacBlockListTwice) {
+  this->applySameMacBlockListTwiceHelper(std::nullopt);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterNoLookupClassTest, SetAndClearMacBlockList) {
+  this->setAndClearMacBlockListHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    AddRouteThenResolveNextHopBlockMacForFirstNextHop) {
+  this->blockMacForFirstNextHopHelper(std::nullopt);
+}
+
+TYPED_TEST(
+    LookupClassRouteUpdaterNoLookupClassTest,
+    MultipleRoutesBlockUnblockNexthopMac) {
+  this->multipleRoutesBlockUnblockNexthopMacHelper(std::nullopt, std::nullopt);
+}
+
 } // namespace facebook::fboss
