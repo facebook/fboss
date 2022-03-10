@@ -48,5 +48,10 @@ const std::optional<int> SffModule::getPrbsLockStatusOverrideLocked(
     Side /* side */) {
   return std::nullopt;
 }
+
+const std::optional<phy::PrbsStats> SffModule::getPortPrbsStatsOverrideLocked(
+    phy::Side /* side */) {
+  return std::nullopt;
+}
 } // namespace fboss
 } // namespace facebook

@@ -912,6 +912,10 @@ phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(phy::Side side) {
       *linePrbsSnapshot = snapshot;
     }
   }
+
+  if (auto prbsStats = getPortPrbsStatsOverrideLocked(side)) {
+    return *prbsStats;
+  }
   return phy::PrbsStats();
 }
 

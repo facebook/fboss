@@ -321,6 +321,18 @@ class SffModule : public QsfpModule {
       const phy::PortPrbsState& /* prbs */);
 
   /*
+   * Provides the option to override the implementation of getPortPrbsStats for
+   * certain transceivers
+   */
+  const std::optional<phy::PrbsStats> getPortPrbsStatsOverrideLocked(
+      phy::Side /* side */);
+  /*
+   * 100G-FR1 modules have a proprietary method to get prbs stats
+   */
+  const std::optional<phy::PrbsStats> getFr1PortPrbsStatsOverrideLocked(
+      phy::Side /* side */);
+
+  /*
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
