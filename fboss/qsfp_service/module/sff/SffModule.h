@@ -395,6 +395,29 @@ class SffModule : public QsfpModule {
    * This function expects the caller to hold the qsfp module level lock
    */
   int getPrbsLockStatusLocked(Side side);
+
+  /*
+   * Get the PRBS stats for a module
+   */
+  phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
+
+  /*
+   * Helper struct to hold the total prbs bit count and total bit error count
+   */
+  struct PrbsBitCount {
+    std::vector<long long> totalBitCount;
+    std::vector<long long> bitErrorCount;
+  };
+
+  /*
+   * These snapshots hold the reference point from where the BER calculation is
+   * done. The current BER is calculated by doing a difference of current bit
+   * count values with the one in the snapshot. These need to be synchronized
+   * because they will be read in the refresh thread to figure out the BER and
+   * written by the thrift thread when user wants to clear the prbs stats
+   */
+  folly::Synchronized<PrbsBitCount> systemPrbsSnapshot_;
+  folly::Synchronized<PrbsBitCount> linePrbsSnapshot_;
 };
 
 } // namespace fboss

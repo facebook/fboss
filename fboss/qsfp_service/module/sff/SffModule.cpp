@@ -889,6 +889,32 @@ void SffModule::updateQsfpData(bool allPages) {
   }
 }
 
+phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(phy::Side side) {
+  // Initialize the counter snapshots if they are not already
+  auto hostLanes = numHostLanes();
+  auto mediaLanes = numMediaLanes();
+  if (side == Side::SYSTEM) {
+    auto systemPrbsSnapshot = systemPrbsSnapshot_.wlock();
+    if (systemPrbsSnapshot->bitErrorCount.size() <= hostLanes) {
+      // Assume if one field is uninitialized, the other is also
+      PrbsBitCount snapshot;
+      snapshot.bitErrorCount = std::vector<long long>(hostLanes, 0);
+      snapshot.totalBitCount = std::vector<long long>(hostLanes, 0);
+      *systemPrbsSnapshot = snapshot;
+    }
+  } else {
+    auto linePrbsSnapshot = linePrbsSnapshot_.wlock();
+    if (linePrbsSnapshot->bitErrorCount.size() <= mediaLanes) {
+      // Assume if one field is uninitialized, the other is also
+      PrbsBitCount snapshot;
+      snapshot.bitErrorCount = std::vector<long long>(mediaLanes, 0);
+      snapshot.totalBitCount = std::vector<long long>(mediaLanes, 0);
+      *linePrbsSnapshot = snapshot;
+    }
+  }
+  return phy::PrbsStats();
+}
+
 // Returns the total prbs bit count
 // This function expects caller to hold the qsfp module level lock
 long long SffModule::getPrbsTotalBitCountLocked(Side side, uint8_t lane) {
