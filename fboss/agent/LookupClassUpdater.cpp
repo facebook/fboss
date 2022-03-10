@@ -10,6 +10,7 @@
 
 #include "fboss/agent/LookupClassUpdater.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
@@ -202,26 +203,6 @@ void LookupClassUpdater::updateNeighborClassID(
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
   }
-}
-
-template <typename NeighborEntryT>
-bool LookupClassUpdater::isNoHostRoute(
-    const std::shared_ptr<NeighborEntryT>& entry) const {
-  /*
-   * classID could be associated with a Host entry. However, there is no
-   * Neighbor entry for Link Local addresses, thus don't assign classID for
-   * Link Local addresses.
-   * SAI implementations typically fail creation of SAI Neighbor Entry with
-   * both classID and NoHostRoute (set for IPv6 link local only) are set.
-   */
-  if constexpr (std::is_same_v<NeighborEntryT, NdpEntry>) {
-    if (entry->getIP().isLinkLocal()) {
-      XLOG(DBG2) << "No classID for IPv6 linkLocal: " << entry->str();
-      return true;
-    }
-  }
-
-  return false;
 }
 
 template <typename NeighborEntryT>

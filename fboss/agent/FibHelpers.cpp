@@ -72,6 +72,24 @@ std::pair<uint64_t, uint64_t> getRouteCount(
   return std::make_pair(v4Count, v6Count);
 }
 
+template <typename NeighborEntryT>
+bool isNoHostRoute(const std::shared_ptr<NeighborEntryT>& entry) {
+  /*
+   * classID could be associated with a Host entry. However, there is no
+   * Neighbor entry for Link Local addresses, thus don't assign classID for
+   * Link Local addresses.
+   * SAI implementations typically fail creation of SAI Neighbor Entry with
+   * both classID and NoHostRoute (set for IPv6 link local only) are set.
+   */
+  if constexpr (std::is_same_v<NeighborEntryT, NdpEntry>) {
+    if (entry->getIP().isLinkLocal()) {
+      XLOG(DBG2) << "No classID for IPv6 linkLocal: " << entry->str();
+      return true;
+    }
+  }
+  return false;
+}
+
 // Explicit instantiations
 template std::shared_ptr<Route<folly::IPAddressV6>> findRoute(
     RouterID rid,
@@ -94,5 +112,9 @@ template std::shared_ptr<Route<folly::IPAddressV6>> findLongestMatchRoute(
     RouterID rid,
     const folly::IPAddressV6& addr,
     const std::shared_ptr<SwitchState>& state);
+
+template bool isNoHostRoute(const std::shared_ptr<MacEntry>& entry);
+template bool isNoHostRoute(const std::shared_ptr<NdpEntry>& entry);
+template bool isNoHostRoute(const std::shared_ptr<ArpEntry>& entry);
 
 } // namespace facebook::fboss

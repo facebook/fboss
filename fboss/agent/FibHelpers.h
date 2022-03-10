@@ -28,6 +28,9 @@ namespace facebook::fboss {
 class SwitchState;
 class RoutingInformationBase;
 
+template <typename NeighborEntryT>
+bool isNoHostRoute(const std::shared_ptr<NeighborEntryT>& entry);
+
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> findRoute(
     RouterID rid,
