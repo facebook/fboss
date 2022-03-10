@@ -4,9 +4,9 @@
 # cmake/FooBar.cmake
 
 add_executable(fw_util
-  fboss/platform/fw_util/FirmwareUpgradeDarwin.cpp
+  fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.cpp
   fboss/platform/fw_util/fw_util.cpp
-  fboss/platform/fw_util/upgradeBinary/upgradeBinaryDarwin.cpp
+  fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.cpp
 )
 
 target_link_libraries(fw_util
