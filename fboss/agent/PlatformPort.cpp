@@ -159,6 +159,8 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
           apache::thrift::util::enumNameSafe(profileID));
     }
   }
+  XLOG(WARN) << "Can't find supported profile for port=" << getPortID()
+             << ", speed=" << apache::thrift::util::enumNameSafe(speed);
   return std::nullopt;
 }
 
