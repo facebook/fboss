@@ -277,6 +277,17 @@ SaiMacsecManager::~SaiMacsecManager() {
     for (const auto& port : macsec.second->ports) {
       auto portId = port.first;
 
+      // unbind acl tables from the port, and delete acl entries
+      auto portHandle = managerTable_->portManager().getPortHandle(portId);
+      if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+        portHandle->port->setOptionalAttribute(
+            SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
+      } else {
+        portHandle->port->setOptionalAttribute(
+            SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+      }
+      XLOG(DBG2) << "removeScAcls: Unbound ACL table from line port " << portId;
+
       // Remove the ACL related to SC
       removeScAcls(portId, direction);
 
@@ -765,54 +776,11 @@ void SaiMacsecManager::setupMacsec(
         "Failed to get portHandle for non-existent linePort: ", linePort);
   }
 
-  // Get the reverse direction also because we need to find the macsec handle
-  // of other direction also
-  auto reverseDirection =
-      (direction == SAI_MACSEC_DIRECTION_INGRESS
-           ? SAI_MACSEC_DIRECTION_EGRESS
-           : SAI_MACSEC_DIRECTION_INGRESS);
-
-  if (auto dirMacsecHandle = getMacsecHandle(direction)) {
-    // If the macsec handle already exist for this direction then check the
-    // current bypass state. If current macsec's bypass_enable is True then
-    // update the attribute to make it False
-    //    otherwise no issue
-    auto bypassEnable = GET_OPT_ATTR(
-        Macsec, PhysicalBypass, dirMacsecHandle->macsec->attributes());
-
-    if (bypassEnable) {
-      dirMacsecHandle->macsec->setOptionalAttribute(
-          SaiMacsecTraits::Attributes::PhysicalBypass{false});
-      XLOG(DBG2) << "For direction " << direction
-                 << ", set macsec pipeline object w/ ID: " << dirMacsecHandle
-                 << ", bypass enable as False";
-    }
-  } else {
-    // If the macsec handle does not exist for this direction then create the
-    // macsec handle with bypass_enable as False for this direction
-    auto macsecId = addMacsec(direction, false);
-    XLOG(DBG2) << "For direction " << direction
-               << ", created macsec pipeline object w/ ID: " << macsecId
-               << ", bypass enable as False";
-  }
-
-  // Also check if the reverse direction macsec handle exist. If it does not
-  // exist then we need to create reverse direction macsec handle with
-  // bypass_enable as True
-  if (!getMacsecHandle(reverseDirection)) {
-    auto macsecId = addMacsec(reverseDirection, true);
-    XLOG(DBG2) << "For direction " << reverseDirection
-               << ", created macsec pipeline object w/ ID: " << macsecId
-               << ", bypass enable as True";
-  }
-
-  // Check if the macsec port exists for lineport
-  if (!getMacsecPortHandle(linePort, direction)) {
-    // Step1: Create Macsec egress port (it is not present)
-    auto macsecPortId = addMacsecPort(linePort, direction);
-    XLOG(DBG2) << "For lineport: " << linePort << ", created macsec "
-               << direction << " port " << macsecPortId;
-  }
+  // Setup basic Macsec state: Macsec pipeline, Macsec vPort, ACL table,
+  // default ACL rules for this line port in the given direction
+  setupMacsecState(linePort, sak.dropUnencrypted_ref().value(), direction);
+  XLOG(DBG2) << "Setting up basic Macsec state failed for linePort: "
+             << linePort;
 
   // Create the egress flow and ingress sc
   std::string sciKeyString =
@@ -896,40 +864,6 @@ void SaiMacsecManager::setupMacsec(
   // format for table and entry name
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
-  if (!aclTable) {
-    auto table = std::make_shared<AclTable>(
-        0, aclName); // TODO(saranicholas): set appropriate table priority
-    auto aclTableId = managerTable_->aclTableManager().addAclTable(
-        table,
-        direction == SAI_MACSEC_DIRECTION_INGRESS
-            ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
-    XLOG(DBG2) << "For linePort: " << linePort << ", created " << direction
-               << " ACL table with sai ID " << aclTableId;
-    aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
-
-    // After creating ACL table, create couple of control packet rules
-    // Rule for MKA
-    cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
-    auto aclEntry = createMacsecControlAclEntry(
-        kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
-    auto aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
-    XLOG(DBG2) << "For linePort: " << linePort << ", direction " << direction
-               << " ACL entry for MKA " << aclEntryId;
-
-    // Rule for LLDP
-    cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
-    aclEntry = createMacsecControlAclEntry(
-        kMacsecLldpAclPriority,
-        aclName,
-        std::nullopt /* dstMac */,
-        ethTypeLldp);
-    aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
-    XLOG(DBG2) << "For linePort: " << linePort << ", direction " << direction
-               << " ACL entry for LLDP " << aclEntryId;
-  }
   CHECK_NOTNULL(aclTable);
   auto aclTableId = aclTable->aclTable->adapterKey();
 
@@ -954,20 +888,6 @@ void SaiMacsecManager::setupMacsec(
           managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
-
-      // Create the default lower priority ACL rule for rest of the data packets
-      cfg::MacsecFlowPacketAction action = sak.dropUnencrypted_ref().value()
-          ? cfg::MacsecFlowPacketAction::DROP
-          : cfg::MacsecFlowPacketAction::FORWARD;
-      aclEntry = createMacsecRxDefaultAclEntry(
-          kMacsecDefaultAclPriority, aclName, action);
-
-      aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
-      XLOG(DBG2) << "For SCI: " << sciKeyString
-                 << ", created macsec default Rx packet rule "
-                 << (sak.dropUnencrypted_ref().value() ? "Drop" : "Forward")
-                 << " ACL entry " << aclEntryId;
     } else {
       // For egress direction create the ACL rule to match all data packets with
       // Action as MacSec Flow
@@ -1368,18 +1288,7 @@ void SaiMacsecManager::deleteMacsec(
 void SaiMacsecManager::removeScAcls(
     PortID linePort,
     sai_macsec_direction_t direction) {
-  // unbind acl tables from the port, and delete acl entries
-  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
-
-  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
-  } else {
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
-  }
-  XLOG(DBG2) << "removeScAcls: Unbound ACL table from line port " << linePort;
-
+  // delete acl entries
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (aclTable) {
@@ -1390,20 +1299,6 @@ void SaiMacsecManager::removeScAcls(
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
       XLOG(DBG2) << "removeScAcls: Removed ACL entry from ACL table "
                  << aclName;
-
-      // Remove the entry for default Rx packet rule also
-      if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-        aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-            aclTable, kMacsecDefaultAclPriority);
-        if (aclEntryHandle) {
-          aclEntry =
-              std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclName);
-          managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
-          XLOG(DBG2)
-              << "removeScAcls: Removed default packet ACL entry from ACL table "
-              << aclName;
-        }
-      }
     }
   }
 }
