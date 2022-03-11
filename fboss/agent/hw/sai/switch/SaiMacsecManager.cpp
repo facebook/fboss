@@ -779,8 +779,7 @@ void SaiMacsecManager::setupMacsec(
   // Setup basic Macsec state: Macsec pipeline, Macsec vPort, ACL table,
   // default ACL rules for this line port in the given direction
   setupMacsecState(linePort, sak.dropUnencrypted_ref().value(), direction);
-  XLOG(DBG2) << "Setting up basic Macsec state failed for linePort: "
-             << linePort;
+  XLOG(DBG2) << "Set up basic Macsec state for linePort: " << linePort;
 
   // Create the egress flow and ingress sc
   std::string sciKeyString =
@@ -1222,6 +1221,134 @@ void SaiMacsecManager::setupMacsecState(
 }
 
 /*
+ * removeMacsecPipeline
+ *
+ * Helper function to remove the Macsec pipeline object from the port. After
+ * this the port will send/recieve plaintext packets
+ */
+void SaiMacsecManager::removeMacsecPipeline(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // If Macsec (pipeline) object exists then delete it
+  if (getMacsecHandle(direction)) {
+    removeMacsec(direction);
+    XLOG(DBG2) << "For lineport: " << linePort << ", deleted macsec "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << " Pipeline object";
+  }
+}
+
+/*
+ * removeMacsecVport
+ *
+ * Helper function to remove Macsec vPort from a line port. The line port still
+ * remains in Macsec mode after removal of Macsec vPort
+ */
+void SaiMacsecManager::removeMacsecVport(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // If the macsec vPort exists for lineport then delete it
+  if (getMacsecPortHandle(linePort, direction)) {
+    // Delete Macsec vPort
+    removeMacsecPort(linePort, direction);
+    XLOG(DBG2) << "For lineport: " << linePort << ", deleted macsec "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress vPort"
+                                                             : "Egress vPort");
+  }
+}
+
+/*
+ * removeAclTable
+ *
+ * Helper function to delete the ACL table from the port ingress/egress stage
+ */
+void SaiMacsecManager::removeAclTable(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Delete the default control packet and data packet rules in ACL table
+  std::string aclTableName = getAclName(linePort, direction);
+  auto aclTable =
+      managerTable_->aclTableManager().getAclTableHandle(aclTableName);
+
+  if (aclTable) {
+    // Finally delete the ACL table
+    auto table = std::make_shared<AclTable>(0, aclTableName);
+    managerTable_->aclTableManager().removeAclTable(
+        table,
+        direction == SAI_MACSEC_DIRECTION_INGRESS
+            ? cfg::AclStage::INGRESS_MACSEC
+            : cfg::AclStage::EGRESS_MACSEC);
+    XLOG(DBG2) << "Removed ACL table " << aclTableName;
+  }
+}
+
+/*
+ * removeAclControlPacketRules
+ *
+ * Helper function to remove the control packet (MKA and LLDP) related ACL rule
+ * from ACL table
+ */
+void SaiMacsecManager::removeAclControlPacketRules(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Delete the default control packet and data packet rules in ACL table
+  std::string aclTableName = getAclName(linePort, direction);
+  auto aclTable =
+      managerTable_->aclTableManager().getAclTableHandle(aclTableName);
+
+  if (aclTable) {
+    // Delete the control packet rules:
+    // ACL table LLDP rule
+    auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+        aclTable, kMacsecLldpAclPriority);
+    if (aclEntryHandle) {
+      auto aclEntry =
+          std::make_shared<AclEntry>(kMacsecLldpAclPriority, aclTableName);
+      managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
+      XLOG(DBG2) << "Removed LLDP ACL entry from ACL table " << aclTableName;
+    }
+
+    // MKA rule
+    aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+        aclTable, kMacsecMkaAclPriority);
+    if (aclEntryHandle) {
+      auto aclEntry =
+          std::make_shared<AclEntry>(kMacsecMkaAclPriority, aclTableName);
+      managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
+      XLOG(DBG2) << "Removed MKA ACL entry from ACL table " << aclTableName;
+    }
+  }
+}
+
+/*
+ * removeDropUnencryptedRule
+ *
+ * Helper function to remove the default data packet dropUnencrypted ACL rule.
+ */
+void SaiMacsecManager::removeDropUnencryptedRule(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Delete the default control packet and data packet rules in ACL table
+  std::string aclTableName = getAclName(linePort, direction);
+  auto aclTable =
+      managerTable_->aclTableManager().getAclTableHandle(aclTableName);
+
+  if (aclTable) {
+    // Remove the entry for default packet rule
+    auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+        aclTable, kMacsecDefaultAclPriority);
+    if (aclEntryHandle) {
+      auto aclEntry =
+          std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclTableName);
+      managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
+      XLOG(DBG2) << "Removed default packet ACL entry from ACL table "
+                 << aclTableName;
+    }
+  }
+}
+
+/*
  * removeMacsecState
  *
  * This function:
@@ -1232,9 +1359,43 @@ void SaiMacsecManager::setupMacsecState(
  * 5. Remove Macsec (pipeline) object
  */
 void SaiMacsecManager::removeMacsecState(
-    PortID /* linePort */,
-    sai_macsec_direction_t /* direction */) {
-  // TODO(rajank): Implement
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // 1. unbind acl tables from the line port
+  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
+  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
+  }
+  XLOG(DBG2) << "removeScAcls: Unbound ACL table from line port " << linePort;
+
+  // Remove the ACL related to SC (if any)
+  removeScAcls(linePort, direction);
+
+  // Delete the default control packet and data packet rules in ACL table
+  std::string aclTableName = getAclName(linePort, direction);
+  auto aclTable =
+      managerTable_->aclTableManager().getAclTableHandle(aclTableName);
+
+  if (aclTable) {
+    // 2. Delete the control packet rules
+    removeAclControlPacketRules(linePort, direction);
+
+    // 2. Remove the entry for default packet rule
+    removeDropUnencryptedRule(linePort, direction);
+
+    // 3. Finally delete the ACL table
+    removeAclTable(linePort, direction);
+  }
+
+  // 4. If the macsec vPort exists for lineport then delete it
+  removeMacsecVport(linePort, direction);
+
+  // 5. If Macsec (pipeline) object exists then delete it
+  removeMacsecPipeline(linePort, direction);
 }
 
 /* Perform the following:
