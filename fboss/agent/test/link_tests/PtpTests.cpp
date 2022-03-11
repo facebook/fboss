@@ -118,8 +118,12 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
           << kStartTtl;
     } else {
       EXPECT_GT(correctionField, 0);
+      // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
+      uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
       XLOG(INFO) << "PTP packet found with CorrectionField (CF) set "
-                 << std::hex << correctionField;
+                 << std::hex << cfInNsecs << ", ttl: " << hopLimit;
+      // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
+      EXPECT_LT(cfInNsecs, 2000);
       validated = true;
       break;
     }
