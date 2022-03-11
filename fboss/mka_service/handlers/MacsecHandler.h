@@ -74,14 +74,6 @@ class MacsecHandler {
   }
 
   /*
-   * Prune Macsec config from list of ports
-   */
-  virtual bool pruneMacsecConfig(
-      const std::vector<std::string>& /* portList */) {
-    return true;
-  }
-
-  /*
    * Set the Macsec state for port as per the fields provided
    */
   virtual bool setupMacsecState(

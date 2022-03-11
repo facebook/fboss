@@ -66,12 +66,6 @@ class FbossMacsecHandler : public mka::MacsecHandler {
     return false;
   }
 
-  // Virtual function to Prune Macsec config from list of ports
-  virtual bool pruneMacsecConfig(
-      const std::vector<std::string>& /* portList */) override {
-    return true;
-  }
-
   virtual bool setupMacsecState(
       const std::vector<std::string>& /* portList */,
       bool /* macsecDesired */,
