@@ -272,61 +272,27 @@ SaiMacsecManager::SaiMacsecManager(
     : saiStore_(saiStore), managerTable_(managerTable) {}
 
 SaiMacsecManager::~SaiMacsecManager() {
+  // Collect the list of port and direction before calling
+  // removeBasicMacsecState because that function will modify macsecHandles_
+  // and related data structure
+  std::vector<std::tuple<PortID, sai_macsec_direction_t>> portAndDirectionList;
   for (const auto& macsec : macsecHandles_) {
     auto direction = macsec.first;
     for (const auto& port : macsec.second->ports) {
       auto portId = port.first;
+      std::tuple<PortID, sai_macsec_direction_t> portAndDir;
+      std::get<sai_macsec_direction_t>(portAndDir) = direction;
+      std::get<PortID>(portAndDir) = portId;
 
-      // unbind acl tables from the port, and delete acl entries
-      auto portHandle = managerTable_->portManager().getPortHandle(portId);
-      if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-        portHandle->port->setOptionalAttribute(
-            SaiPortTraits::Attributes::IngressMacSecAcl{SAI_NULL_OBJECT_ID});
-      } else {
-        portHandle->port->setOptionalAttribute(
-            SaiPortTraits::Attributes::EgressMacSecAcl{SAI_NULL_OBJECT_ID});
-      }
-      XLOG(DBG2) << "removeScAcls: Unbound ACL table from line port " << portId;
-
-      // Remove the ACL related to SC
-      removeScAcls(portId, direction);
-
-      // Delete the default control packet rules in ACL table
-      std::string aclTableName = getAclName(portId, direction);
-      auto aclTable =
-          managerTable_->aclTableManager().getAclTableHandle(aclTableName);
-      if (aclTable) {
-        // Delete the control packet rules which are created by default for the
-        // ACL table LLDP rule
-        auto aclEntryHandle =
-            managerTable_->aclTableManager().getAclEntryHandle(
-                aclTable, kMacsecLldpAclPriority);
-        if (aclEntryHandle) {
-          auto aclEntry =
-              std::make_shared<AclEntry>(kMacsecLldpAclPriority, aclTableName);
-          managerTable_->aclTableManager().removeAclEntry(
-              aclEntry, aclTableName);
-        }
-
-        // MKA rule
-        aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-            aclTable, kMacsecMkaAclPriority);
-        if (aclEntryHandle) {
-          auto aclEntry =
-              std::make_shared<AclEntry>(kMacsecMkaAclPriority, aclTableName);
-          managerTable_->aclTableManager().removeAclEntry(
-              aclEntry, aclTableName);
-        }
-
-        // Delete the table
-        auto table = std::make_shared<AclTable>(0, aclTableName);
-        managerTable_->aclTableManager().removeAclTable(
-            table,
-            direction == SAI_MACSEC_DIRECTION_INGRESS
-                ? cfg::AclStage::INGRESS_MACSEC
-                : cfg::AclStage::EGRESS_MACSEC);
-      }
+      portAndDirectionList.push_back(portAndDir);
     }
+  }
+
+  for (auto& portAndDir : portAndDirectionList) {
+    auto direction = std::get<sai_macsec_direction_t>(portAndDir);
+    auto portId = std::get<PortID>(portAndDir);
+    // Remove ACL entries, ACL table, Macsec vPort, Macsec pipeline objects
+    removeMacsecState(portId, direction);
   }
 }
 
@@ -1250,6 +1216,16 @@ void SaiMacsecManager::removeMacsecVport(
     sai_macsec_direction_t direction) {
   // If the macsec vPort exists for lineport then delete it
   if (getMacsecPortHandle(linePort, direction)) {
+    // Put the port in Macsec bypass mode before deleting it
+    auto macsecHandle = getMacsecHandle(direction);
+    macsecHandle->macsec->setOptionalAttribute(
+        SaiMacsecTraits::Attributes::PhysicalBypass{true});
+    XLOG(DBG2) << "For "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << ", set macsec pipeline object w/ ID: " << macsecHandle
+               << ", bypass enable as True";
+
     // Delete Macsec vPort
     removeMacsecPort(linePort, direction);
     XLOG(DBG2) << "For lineport: " << linePort << ", deleted macsec "
