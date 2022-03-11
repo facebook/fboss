@@ -1219,6 +1219,21 @@ void SaiPortManager::programMacsec(
   CHECK(newPort);
   auto portId = newPort->getID();
   auto& macsecManager = managerTable_->macsecManager();
+
+  auto oldMacsecDesired = oldPort ? oldPort->getMacsecDesired() : false;
+  auto newMacsecDesired = newPort->getMacsecDesired();
+
+  // If macsecDesired changed from True to False then first we need to remove
+  // any existing Rx/Tx SAK already present in this port
+  if (oldMacsecDesired && !newMacsecDesired) {
+    XLOG(INFO) << "programMacsec setting macsecDesired=false on port = "
+               << newPort->getName() << ", Deleting all Rx and Tx SAK";
+    auto rxSaks = newPort->getRxSaks();
+    rxSaks.clear();
+    newPort->setRxSaks(rxSaks);
+    newPort->setTxSak(std::nullopt);
+  }
+
   // TX SAKs
   std::optional<mka::MKASak> oldTxSak =
       oldPort ? oldPort->getTxSak() : std::nullopt;
@@ -1302,6 +1317,12 @@ void SaiPortManager::programMacsec(
                << " port=" << key.sci.port_ref().value();
     macsecManager.deleteMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
+  }
+  // If macsecDesired changed from True to False then cleanup Macsec states
+  // including ACL
+  if (oldMacsecDesired && !newMacsecDesired) {
+    // TODO(rajank): vvv
+    // macsecManager.setupMacsecState(portId, false, false);
   }
 }
 

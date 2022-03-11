@@ -111,7 +111,9 @@ void SaiPortManager::changePort(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   auto nonMacsecFieldsChange = [](const auto& l, const auto& r) {
-    if (l.getTxSak() == r.getTxSak() && l.getRxSaks() == r.getRxSaks()) {
+    if (l.getTxSak() == r.getTxSak() && l.getRxSaks() == r.getRxSaks() &&
+        l.getMacsecDesired() == r.getMacsecDesired() &&
+        l.getDropUnencrypted() == r.getDropUnencrypted()) {
       // We got a port change, while MACSEC fields did not change
       return true;
     }

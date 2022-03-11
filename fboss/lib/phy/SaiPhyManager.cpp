@@ -253,9 +253,33 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
 }
 
 bool SaiPhyManager::setupMacsecState(
-    const std::vector<std::string>& /* portList */,
-    bool /* macsecDesired */,
-    bool /* dropUnencrypted */) {
+    const std::vector<std::string>& portList,
+    bool macsecDesired,
+    bool dropUnencrypted) {
+  for (const auto& port : portList) {
+    auto portId = getPortId(port);
+    auto saiPlatform = getSaiPlatform(portId);
+
+    auto updatePortsFn =
+        [saiPlatform, this, portId, macsecDesired, dropUnencrypted](
+            std::shared_ptr<SwitchState> in) {
+          return portUpdateHelper(
+              in,
+              portId,
+              saiPlatform,
+              [macsecDesired, dropUnencrypted](auto& port) {
+                port->setDropUnencrypted(dropUnencrypted);
+                port->setMacsecDesired(macsecDesired);
+              });
+        };
+    getPlatformInfo(portId)->applyUpdate(
+        folly::sformat(
+            "Setup Macsec state for port: {:s} Macsec desired: {:s} Drop unencrypted: {:s}",
+            port,
+            (macsecDesired ? "True" : "False"),
+            (dropUnencrypted ? "True" : "False")),
+        updatePortsFn);
+  }
   return true;
 }
 
@@ -448,9 +472,9 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
  * getAllMacsecPortStats
  *
  * Get the macsec stats for all ports in the system. This function will loop
- * through all pim platforms and then all xphy in the pim platform and then get
- * macsec stats for all ports. This function returns the map of port name to
- * MacsecStats structure which contains port, flow and SA stats
+ * through all pim platforms and then all xphy in the pim platform and then
+ * get macsec stats for all ports. This function returns the map of port name
+ * to MacsecStats structure which contains port, flow and SA stats
  */
 std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats(
     bool readFromHw) {

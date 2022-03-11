@@ -123,6 +123,8 @@ struct PortFields : public ThriftyFields {
   // Macsec configs
   RxSaks rxSecureAssociationKeys;
   std::optional<mka::MKASak> txSecureAssociationKey;
+  bool macsecDesired{false};
+  bool dropUnencrypted{false};
 };
 
 /*
@@ -227,6 +229,21 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   void setRxSaks(const RxSaks& rxSaks) {
     writableFields()->rxSecureAssociationKeys = rxSaks;
   }
+
+  bool getMacsecDesired() const {
+    return getFields()->macsecDesired;
+  }
+  void setMacsecDesired(bool macsecDesired) {
+    writableFields()->macsecDesired = macsecDesired;
+  }
+
+  bool getDropUnencrypted() const {
+    return getFields()->dropUnencrypted;
+  }
+  void setDropUnencrypted(bool dropUnencrypted) {
+    writableFields()->dropUnencrypted = dropUnencrypted;
+  }
+
   /**
    * Tells you Oper+Admin state of port. Will be UP only if both admin and
    * oper state is UP.
