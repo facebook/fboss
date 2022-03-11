@@ -1367,11 +1367,13 @@ void SaiMacsecManager::removeMacsecState(
     removeAclTable(linePort, direction);
   }
 
-  // 4. If the macsec vPort exists for lineport then delete it
-  removeMacsecVport(linePort, direction);
+  if (getMacsecHandle(direction)) {
+    // 4. If the macsec vPort exists for lineport then delete it
+    removeMacsecVport(linePort, direction);
 
-  // 5. If Macsec (pipeline) object exists then delete it
-  removeMacsecPipeline(linePort, direction);
+    // 5. If Macsec (pipeline) object exists then delete it
+    removeMacsecPipeline(linePort, direction);
+  }
 }
 
 /* Perform the following:

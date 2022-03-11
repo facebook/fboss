@@ -1222,9 +1222,12 @@ void SaiPortManager::programMacsec(
 
   auto oldMacsecDesired = oldPort ? oldPort->getMacsecDesired() : false;
   auto newMacsecDesired = newPort->getMacsecDesired();
+  auto oldDropUnencrypted = oldPort ? oldPort->getDropUnencrypted() : false;
+  auto newDropUnencrypted = newPort->getDropUnencrypted();
 
-  // If macsecDesired changed from True to False then first we need to remove
-  // any existing Rx/Tx SAK already present in this port
+  // If macsecDesired changes from True to False then first we need to remove
+  // any existing Rx/Tx SAK already present in this port and then later at the
+  // bottom of this function, remove Macsec default config from port
   if (oldMacsecDesired && !newMacsecDesired) {
     XLOG(INFO) << "programMacsec setting macsecDesired=false on port = "
                << newPort->getName() << ", Deleting all Rx and Tx SAK";
@@ -1232,6 +1235,15 @@ void SaiPortManager::programMacsec(
     rxSaks.clear();
     newPort->setRxSaks(rxSaks);
     newPort->setTxSak(std::nullopt);
+  } else if (
+      newMacsecDesired &&
+      (!oldMacsecDesired || (oldDropUnencrypted != newDropUnencrypted))) {
+    // If MacsecDesired changed to True or the dropUnencrypted value has changed
+    // then configure dropUnencrypted as per the config
+    macsecManager.setMacsecState(portId, true, newDropUnencrypted);
+    XLOG(INFO) << "programMacsec with macsecDesired=true on port = "
+               << newPort->getName() << ", setting dropUnencrypted = "
+               << (newDropUnencrypted ? "True" : "False");
   }
 
   // TX SAKs
@@ -1318,8 +1330,7 @@ void SaiPortManager::programMacsec(
     macsecManager.deleteMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }
-  // If macsecDesired changed from True to False then cleanup Macsec states
-  // including ACL
+  // If macsecDesired changed to False then cleanup Macsec states including ACL
   if (oldMacsecDesired && !newMacsecDesired) {
     macsecManager.setMacsecState(portId, false, false);
   }
