@@ -184,13 +184,26 @@ class SaiMacsecManager {
 
   void removeScAcls(PortID linePort, sai_macsec_direction_t direction);
 
-  void setupBasicMacsecState(
+  void setupMacsecState(
       PortID linePort,
       bool dropUnencrypted,
       sai_macsec_direction_t direction);
 
-  void removeBasicMacsecState(
+  void removeMacsecState(PortID linePort, sai_macsec_direction_t direction);
+
+  void setupMacsecPipeline(PortID linePort, sai_macsec_direction_t direction);
+
+  void setupMacsecPort(PortID linePort, sai_macsec_direction_t direction);
+
+  void setupAclTable(PortID linePort, sai_macsec_direction_t direction);
+
+  void setupAclControlPacketRules(
       PortID linePort,
+      sai_macsec_direction_t direction);
+
+  void setupDropUnencryptedRule(
+      PortID linePort,
+      bool dropUnencrypted,
       sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;

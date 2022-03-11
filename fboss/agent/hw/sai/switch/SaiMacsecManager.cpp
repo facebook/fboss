@@ -1008,7 +1008,7 @@ std::string SaiMacsecManager::getAclName(
 }
 
 /*
- * setupMacsecState
+ * setMacsecState
  *
  * This function sets up the Macsec state. If Macsec is desired then it will
  * call function to set the Macsec default objects. If Macsec is not desired
@@ -1022,23 +1022,227 @@ void SaiMacsecManager::setMacsecState(
     // If no Macsec is needed then unbind ACL table from port, remove the
     // default ACL rules (MKA, LLDP, Default data packet), remove ACL table.
     // Then remove Macsec port and Macsec (pipeline)
-    removeBasicMacsecState(linePort, SAI_MACSEC_DIRECTION_INGRESS);
-    removeBasicMacsecState(linePort, SAI_MACSEC_DIRECTION_EGRESS);
+    removeMacsecState(linePort, SAI_MACSEC_DIRECTION_INGRESS);
+    removeMacsecState(linePort, SAI_MACSEC_DIRECTION_EGRESS);
   } else {
     // If Macsec is needed then add Macsec (Pipeline), Macsec port, Create ACL
     // table, create ACL rules (MKA, LLDP and default data packet rules as per
     // dropEncrypted), bind ACL table to port
-    setupBasicMacsecState(
-        linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_INGRESS);
-    setupBasicMacsecState(
-        linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_EGRESS);
+    setupMacsecState(linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_INGRESS);
+    setupMacsecState(linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_EGRESS);
   }
   XLOG(INFO) << "For Port " << linePort << "Basic Macsec state "
              << (macsecDesired ? "Setup" : "Deletion") << " Successfull";
 }
 
 /*
- * setupBasicMacsecState
+ * setupMacsecPipeline
+ *
+ * A helper function to create the Macsec pipeline object for a given direction.
+ * Please note that the Macsec enabled per port. So if we create the Macsec
+ * pipeline object in one direction then for other direction we need to create
+ * the Macsec pipeline object with bypass as enabled, otherwise the traffic will
+ * stop in other direction
+ */
+void SaiMacsecManager::setupMacsecPipeline(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Get the reverse direction because we need to find the macsec handle of
+  // other direction also
+  auto reverseDirection =
+      (direction == SAI_MACSEC_DIRECTION_INGRESS
+           ? SAI_MACSEC_DIRECTION_EGRESS
+           : SAI_MACSEC_DIRECTION_INGRESS);
+
+  if (auto dirMacsecHandle = getMacsecHandle(direction)) {
+    // If the macsec handle already exist for this direction then check the
+    // current bypass state. If current macsec's bypass_enable is True then
+    // update the attribute to make it False
+    //    otherwise no issue
+    auto bypassEnable = GET_OPT_ATTR(
+        Macsec, PhysicalBypass, dirMacsecHandle->macsec->attributes());
+
+    if (bypassEnable) {
+      dirMacsecHandle->macsec->setOptionalAttribute(
+          SaiMacsecTraits::Attributes::PhysicalBypass{false});
+      XLOG(DBG2) << "For lineport: " << linePort
+                 << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                               : "Egress")
+                 << ", set macsec pipeline object w/ ID: " << dirMacsecHandle
+                 << ", bypass enable as False";
+    }
+  } else {
+    // If the macsec handle does not exist for this direction then create the
+    // macsec handle with bypass_enable as False for this direction
+    auto macsecId = addMacsec(direction, false);
+    XLOG(DBG2) << "For "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << ", created macsec pipeline object w/ ID: " << macsecId
+               << ", bypass enable as False";
+  }
+
+  // Also check if the reverse direction macsec handle exist. If it does not
+  // exist then we need to create reverse direction macsec handle with
+  // bypass_enable as True
+  if (!getMacsecHandle(reverseDirection)) {
+    auto macsecId = addMacsec(reverseDirection, true);
+    XLOG(DBG2) << "For "
+               << (reverseDirection == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                                    : "Egress")
+               << ", created macsec pipeline object w/ ID: " << macsecId
+               << ", bypass enable as True";
+  }
+}
+
+/*
+ * setupMacsecPort
+ *
+ * The helper function to add Macsec vport in a given direction
+ */
+void SaiMacsecManager::setupMacsecPort(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Check if the macsec port exists for lineport. If not present then create
+  // Macsec vPort
+  if (!getMacsecPortHandle(linePort, direction)) {
+    auto macsecPortId = addMacsecPort(linePort, direction);
+    XLOG(DBG2) << "For lineport: " << linePort << ", created macsec "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << " port " << macsecPortId;
+  }
+}
+
+/*
+ * setupAclTable
+ *
+ * The helper function to add ACL table on a port in a given direction. Each
+ * table has default control packet rules which does not change later, these
+ * rules are also created by this helper function
+ */
+void SaiMacsecManager::setupAclTable(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  // Right now we're just using one entry per table, so we're using the same
+  // format for table and entry name
+  std::string aclName = getAclName(linePort, direction);
+  auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  if (!aclTable) {
+    auto table = std::make_shared<AclTable>(
+        0, aclName); // TODO(saranicholas): set appropriate table priority
+    auto aclTableId = managerTable_->aclTableManager().addAclTable(
+        table,
+        direction == SAI_MACSEC_DIRECTION_INGRESS
+            ? cfg::AclStage::INGRESS_MACSEC
+            : cfg::AclStage::EGRESS_MACSEC);
+    XLOG(DBG2) << "For linePort: " << linePort << ", created "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << " ACL table with sai ID " << aclTableId;
+    aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+    CHECK_NOTNULL(aclTable);
+
+    // Create couple of control packet rules for MKA and LLDP
+    setupAclControlPacketRules(linePort, direction);
+  }
+}
+
+/*
+ * setupAclControlPacketRules
+ *
+ * Helper function to create the control packet ACL rules for LLDP and MKA PDU
+ */
+void SaiMacsecManager::setupAclControlPacketRules(
+    PortID linePort,
+    sai_macsec_direction_t direction) {
+  std::string aclName = getAclName(linePort, direction);
+
+  // Create ACL Rule for MKA PDU
+  cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
+  auto aclEntry = createMacsecControlAclEntry(
+      kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
+  auto aclEntryId =
+      managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  XLOG(DBG2) << "For linePort: " << linePort << ", direction "
+             << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                           : "Egress")
+             << " ACL entry for MKA " << aclEntryId;
+
+  // Create ACL Rule for LLDP packets
+  cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
+  aclEntry = createMacsecControlAclEntry(
+      kMacsecLldpAclPriority, aclName, std::nullopt /* dstMac */, ethTypeLldp);
+  aclEntryId = managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  XLOG(DBG2) << "For linePort: " << linePort << ", direction "
+             << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                           : "Egress")
+             << " ACL entry for LLDP " << aclEntryId;
+}
+
+/*
+ * setupDropUnencryptedRule
+ *
+ * Helper function to create the default data packet ACL rule as per
+ * dropUnencrypted value specified. In case the rule already exists and
+ * dropUnencrypted value has to change then this function will first delete the
+ * ACL rule and then add a new one
+ */
+void SaiMacsecManager::setupDropUnencryptedRule(
+    PortID linePort,
+    bool dropUnencrypted,
+    sai_macsec_direction_t direction) {
+  std::string aclName = getAclName(linePort, direction);
+  auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  CHECK_NOTNULL(aclTable);
+
+  // Create the default lower priority ACL rule for inital data packets as
+  // per dropUnencrypted value
+  auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
+      aclTable, kMacsecDefaultAclPriority);
+
+  // If aclEntryHandle exists for default data packet then it could be that the
+  // dropUnencrypted value has changed
+  if (aclEntryHandle) {
+    auto aclAttrs = aclEntryHandle->aclEntry->attributes();
+    auto pktAction = GET_OPT_ATTR(AclEntry, ActionPacketAction, aclAttrs);
+
+    if ((pktAction.getData() == SAI_PACKET_ACTION_FORWARD && dropUnencrypted) ||
+        (pktAction.getData() == SAI_PACKET_ACTION_DROP && !dropUnencrypted)) {
+      // Default data packet action needs to change soo first delete this
+      // entry
+      auto aclEntry =
+          std::make_shared<AclEntry>(kMacsecDefaultAclPriority, aclName);
+      managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
+      XLOG(DBG2) << "For linePort: " << linePort << ", direction "
+                 << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                               : "Egress")
+                 << " Removed default data packet entry";
+      aclEntryHandle = nullptr;
+    }
+  }
+
+  // If Acl Entry for the default data packet does not exist then add it
+  if (!aclEntryHandle) {
+    cfg::MacsecFlowPacketAction action = dropUnencrypted
+        ? cfg::MacsecFlowPacketAction::DROP
+        : cfg::MacsecFlowPacketAction::FORWARD;
+
+    auto aclEntry = createMacsecRxDefaultAclEntry(
+        kMacsecDefaultAclPriority, aclName, action);
+    auto aclEntryId =
+        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    XLOG(DBG2) << "For linePort " << linePort << " direction "
+               << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                             : "Egress")
+               << ", created macsec default packet rule "
+               << (dropUnencrypted ? "Drop" : "Forward") << " ACL entry "
+               << aclEntryId;
+  }
+}
+
+/*
+ * setupMacsecState
  *
  * This function:
  * 1. Creates Macsec (pipeline) object
@@ -1048,15 +1252,57 @@ void SaiMacsecManager::setMacsecState(
  *    dropUnencrypted value
  * 5. Bind ACL table to line port
  */
-void SaiMacsecManager::setupBasicMacsecState(
-    PortID /* linePort */,
-    bool /* dropUnencrypted */,
-    sai_macsec_direction_t /* direction */) {
-  // TODO(rajank): Implement
+void SaiMacsecManager::setupMacsecState(
+    PortID linePort,
+    bool dropUnencrypted,
+    sai_macsec_direction_t direction) {
+  auto portHandle = managerTable_->portManager().getPortHandle(linePort);
+  if (!portHandle) {
+    throw FbossError(
+        "Failed to get portHandle for non-existent linePort: ", linePort);
+  }
+
+  // 1. Creates Macsec (pipeline) object
+  setupMacsecPipeline(linePort, direction);
+
+  // 2. Create Macsec port (vPort) on the line port
+  setupMacsecPort(linePort, direction);
+
+  // 3. Create the ACL table if it does not exist
+  setupAclTable(linePort, direction);
+
+  // Get the table handle and throw if it is not found
+  std::string aclName = getAclName(linePort, direction);
+  auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
+  if (!aclTable) {
+    throw FbossError(folly::sformat(
+        "For linePort: {}, {:s} ACL table Not Found",
+        static_cast<int>(linePort),
+        (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress" : "Egress")));
+  }
+
+  // 4. Create default data packet rule as per dropUnencrypted value
+  setupDropUnencryptedRule(linePort, dropUnencrypted, direction);
+
+  // 5. Finally bind the ACL table to the line port (no need to do any prior
+  // check for this)
+  AclTableSaiId aclTableId = aclTable->aclTable->adapterKey();
+  if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressMacSecAcl{aclTableId});
+  } else {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::EgressMacSecAcl{aclTableId});
+  }
+
+  XLOG(DBG2) << "To linePort " << linePort << ", bound macsec "
+             << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                           : "Egress")
+             << " ACL table " << aclTableId;
 }
 
 /*
- * removeBasicMacsecState
+ * removeMacsecState
  *
  * This function:
  * 1. Unbind ACL table from line Port
@@ -1065,7 +1311,7 @@ void SaiMacsecManager::setupBasicMacsecState(
  * 4. Remove Macsec vPort
  * 5. Remove Macsec (pipeline) object
  */
-void SaiMacsecManager::removeBasicMacsecState(
+void SaiMacsecManager::removeMacsecState(
     PortID /* linePort */,
     sai_macsec_direction_t /* direction */) {
   // TODO(rajank): Implement
