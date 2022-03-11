@@ -1321,8 +1321,7 @@ void SaiPortManager::programMacsec(
   // If macsecDesired changed from True to False then cleanup Macsec states
   // including ACL
   if (oldMacsecDesired && !newMacsecDesired) {
-    // TODO(rajank): vvv
-    // macsecManager.setupMacsecState(portId, false, false);
+    macsecManager.setMacsecState(portId, false, false);
   }
 }
 

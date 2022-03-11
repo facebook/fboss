@@ -1007,6 +1007,70 @@ std::string SaiMacsecManager::getAclName(
       port);
 }
 
+/*
+ * setupMacsecState
+ *
+ * This function sets up the Macsec state. If Macsec is desired then it will
+ * call function to set the Macsec default objects. If Macsec is not desired
+ * then it will call function to delete the default Macsec objects
+ */
+void SaiMacsecManager::setMacsecState(
+    PortID linePort,
+    bool macsecDesired,
+    bool dropUnencrypted) {
+  if (!macsecDesired) {
+    // If no Macsec is needed then unbind ACL table from port, remove the
+    // default ACL rules (MKA, LLDP, Default data packet), remove ACL table.
+    // Then remove Macsec port and Macsec (pipeline)
+    removeBasicMacsecState(linePort, SAI_MACSEC_DIRECTION_INGRESS);
+    removeBasicMacsecState(linePort, SAI_MACSEC_DIRECTION_EGRESS);
+  } else {
+    // If Macsec is needed then add Macsec (Pipeline), Macsec port, Create ACL
+    // table, create ACL rules (MKA, LLDP and default data packet rules as per
+    // dropEncrypted), bind ACL table to port
+    setupBasicMacsecState(
+        linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_INGRESS);
+    setupBasicMacsecState(
+        linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_EGRESS);
+  }
+  XLOG(INFO) << "For Port " << linePort << "Basic Macsec state "
+             << (macsecDesired ? "Setup" : "Deletion") << " Successfull";
+}
+
+/*
+ * setupBasicMacsecState
+ *
+ * This function:
+ * 1. Creates Macsec (pipeline) object
+ * 2. Create Macsec port (vPort) on the line port
+ * 3. Create ACL table
+ * 4. Create default ACL rules for LLDP, MKA and data packet as per
+ *    dropUnencrypted value
+ * 5. Bind ACL table to line port
+ */
+void SaiMacsecManager::setupBasicMacsecState(
+    PortID /* linePort */,
+    bool /* dropUnencrypted */,
+    sai_macsec_direction_t /* direction */) {
+  // TODO(rajank): Implement
+}
+
+/*
+ * removeBasicMacsecState
+ *
+ * This function:
+ * 1. Unbind ACL table from line Port
+ * 2. Delete default ACL rules for LLDP, MKA and data packets
+ * 3. Delete ACL table
+ * 4. Remove Macsec vPort
+ * 5. Remove Macsec (pipeline) object
+ */
+void SaiMacsecManager::removeBasicMacsecState(
+    PortID /* linePort */,
+    sai_macsec_direction_t /* direction */) {
+  // TODO(rajank): Implement
+}
+
 /* Perform the following:
   1. Delete the secure association
   2. If we have no more secure associations on this secure channel:

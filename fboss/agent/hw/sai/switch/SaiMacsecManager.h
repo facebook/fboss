@@ -76,6 +76,9 @@ class SaiMacsecManager {
 
   void updateStats(PortID port, HwPortStats& portStats);
 
+  void
+  setMacsecState(PortID linePort, bool macsecDesired, bool dropUnencrypted);
+
  private:
   const SaiMacsecHandle* FOLLY_NULLABLE
   getMacsecHandle(sai_macsec_direction_t direction) const;
@@ -180,6 +183,15 @@ class SaiMacsecManager {
       uint8_t assocNum);
 
   void removeScAcls(PortID linePort, sai_macsec_direction_t direction);
+
+  void setupBasicMacsecState(
+      PortID linePort,
+      bool dropUnencrypted,
+      sai_macsec_direction_t direction);
+
+  void removeBasicMacsecState(
+      PortID linePort,
+      sai_macsec_direction_t direction);
 
   SaiStore* saiStore_;
 
