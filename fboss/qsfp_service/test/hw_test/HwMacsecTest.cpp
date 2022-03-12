@@ -96,13 +96,15 @@ class HwMacsecTest : public HwExternalPhyPortTest {
         portId);
     auto assocNum = *sak.assocNum_ref() % 4;
     std::array<uint8_t, 32> secureAssocKey;
-    std::copy(
-        sak.keyHex_ref()->begin(),
-        sak.keyHex_ref()->end(),
-        secureAssocKey.data());
+    std::vector<uint8_t> unhexedKey;
+    folly::unhexlify(*sak.keyHex(), unhexedKey);
+    EXPECT_EQ(unhexedKey.size(), 32);
+    std::copy(unhexedKey.begin(), unhexedKey.end(), secureAssocKey.data());
     std::array<uint8_t, 16> authKey;
-    std::copy(
-        sak.keyIdHex_ref()->begin(), sak.keyIdHex_ref()->end(), authKey.data());
+    std::vector<uint8_t> unhexedKeyId;
+    folly::unhexlify(*sak.keyIdHex(), unhexedKeyId);
+    EXPECT_EQ(unhexedKeyId.size(), 16);
+    std::copy(unhexedKeyId.begin(), unhexedKeyId.end(), authKey.data());
     // TODO(ccpowers): These are currently hard coded in the macsecManager
     // they should eventually be made dynamic
     auto shortSecureChannelId = 0x01000000;
@@ -278,19 +280,22 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
-    auto localSci = makeSci("00:00:00:00:00:00", port);
-    auto remoteSci = makeSci("11:11:11:11:11:11", port);
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+    auto localSci = makeSci(macGen.getNext().toString(), port);
+    auto remoteSci = makeSci(macGen.getNext().toString(), port);
     auto rxSak = makeSak(
         remoteSci,
         *platPort->second.mapping_ref()->name_ref(),
-        "01020304050607080910111213141516",
-        "0807060504030201",
+        sakKeyGen.getNext(),
+        sakKeyIdGen.getNext(),
         0);
     auto txSak = makeSak(
         localSci,
         *platPort->second.mapping_ref()->name_ref(),
-        "16151413121110090807060504030201",
-        "0102030405060708",
+        sakKeyGen.getNext(),
+        sakKeyIdGen.getNext(),
         0);
     wedgeManager->programXphyPort(port, profile);
 

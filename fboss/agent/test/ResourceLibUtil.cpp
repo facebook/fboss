@@ -102,15 +102,19 @@ template class RouteGenerator<folly::IPAddressV6>;
 
 SakKeyHexGenerator::ResourceT SakKeyHexGenerator::get(
     SakKeyHexGenerator::IdT id) const {
-  // Output is 32 hex chars. But we don't really need the full 128-bit range.
-  // Instead of using 2x uint64_t like in IPv6, just pad the front with 16
+  // Output is 64 hex chars. But we don't really need the full range.
+  // Instead of using 2x uint64_t like in IPv6, just pad the front with 48
   // fixed chars.
-  return fmt::format("faceb00cfaceb00c{:016x}", id);
+  return fmt::format(
+      "faceb00cfaceb00cfaceb00cfaceb00cfaceb00cfaceb00c{:016x}", id);
 }
 
 SakKeyIdHexGenerator::ResourceT SakKeyIdHexGenerator::get(
     SakKeyIdHexGenerator::IdT id) const {
-  return fmt::format("{:016x}", id);
+  // Output is 32 hex chars. But we don't really need the full range.
+  // Instead of using 2x uint64_t like in IPv6, just pad the front with 16
+  // fixed chars.
+  return fmt::format("faceb00cfaceb00c{:016x}", id);
 }
 
 } // namespace facebook::fboss::utility
