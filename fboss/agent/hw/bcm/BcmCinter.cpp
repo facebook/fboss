@@ -218,7 +218,7 @@ vector<string> BcmCinter::cintForAset(const bcm_field_aset_t& aset) const {
   vector<string> cintLines = {"BCM_FIELD_ASET_INIT(aset)"};
   for (auto act = 0; act < bcmFieldActionCount; ++act) {
     if (BCM_FIELD_ASET_TEST(aset, act)) {
-      cintLines.emplace_back(to<string>("BCM_FIELD_ASET_ADD(set, ", act, ")"));
+      cintLines.emplace_back(to<string>("BCM_FIELD_ASET_ADD(aset, ", act, ")"));
     }
   }
   return cintLines;
