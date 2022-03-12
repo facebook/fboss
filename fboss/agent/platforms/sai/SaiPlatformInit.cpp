@@ -24,6 +24,8 @@
 #include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
+#include "fboss/agent/platforms/sai/SaiLassenPlatform.h"
+#include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
 namespace facebook::fboss {
@@ -66,6 +68,12 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::FUJI) {
     return std::make_unique<SaiBcmFujiPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::LASSEN) {
+    return std::make_unique<SaiLassenPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::SANDIA) {
+    return std::make_unique<SaiSandiaPlatform>(
         std::move(productInfo), localMac);
   }
 
