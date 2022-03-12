@@ -27,6 +27,8 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
+using namespace std::chrono_literals;
+
 HwTest::HwTest(bool useNewStateMachine, bool setupOverrideTcvrToPortAndProfile)
     : useNewStateMachine_(useNewStateMachine),
       setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
@@ -157,7 +159,8 @@ std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
         }
         return true;
       };
-  checkWithRetry(refresh, numRetries);
+  checkWithRetry(
+      refresh, numRetries, 1s, "Never refreshed all expected transceivers");
 
   return transceiverIds;
 }
@@ -194,6 +197,7 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
   checkWithRetry(
       refreshStateMachinesTillTcvrProgrammed,
       numRetries /* retries */,
-      std::chrono::milliseconds(5000) /* msBetweenRetry */);
+      std::chrono::milliseconds(5000) /* msBetweenRetry */,
+      "Never got all transceivers programmed");
 }
 } // namespace facebook::fboss
