@@ -89,6 +89,9 @@ class MockAsic : public HwAsic {
   uint32_t getPacketBufferDescriptorSize() const override {
     return 0;
   }
+  AsicVendor getAsicVendor() const override {
+    return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
+  }
 };
 
 } // namespace facebook::fboss

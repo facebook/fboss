@@ -42,5 +42,8 @@ class CredoF104Asic : public HwAsic {
   }
   uint32_t getPacketBufferUnitSize() const override;
   uint32_t getPacketBufferDescriptorSize() const override;
+  AsicVendor getAsicVendor() const override {
+    return HwAsic::AsicVendor::ASIC_VENDOR_CREDO;
+  }
 };
 } // namespace facebook::fboss

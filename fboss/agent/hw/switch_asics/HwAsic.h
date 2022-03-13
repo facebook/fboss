@@ -109,9 +109,18 @@ class HwAsic {
     ASIC_MODE_HW,
   };
 
+  enum class AsicVendor {
+    ASIC_VENDOR_BCM,
+    ASIC_VENDOR_TAJO,
+    ASIC_VENDOR_CREDO,
+    ASIC_VENDOR_MOCK,
+    ASIC_VENDOR_FAKE,
+  };
+
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
+  virtual AsicVendor getAsicVendor() const = 0;
   virtual AsicMode getAsicMode() const {
     return AsicMode::ASIC_MODE_HW;
   }

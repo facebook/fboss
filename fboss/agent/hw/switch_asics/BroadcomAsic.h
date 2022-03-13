@@ -20,5 +20,8 @@ class BroadcomAsic : public HwAsic {
   std::optional<uint32_t> getPortSerdesPreemphasis() const override {
     return std::nullopt;
   }
+  AsicVendor getAsicVendor() const override {
+    return HwAsic::AsicVendor::ASIC_VENDOR_BCM;
+  }
 };
 } // namespace facebook::fboss

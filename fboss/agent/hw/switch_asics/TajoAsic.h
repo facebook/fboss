@@ -21,6 +21,9 @@ class TajoAsic : public HwAsic {
   uint32_t getSflowShimHeaderSize() const override {
     return 9;
   }
+  AsicVendor getAsicVendor() const override {
+    return HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
+  }
 };
 
 } // namespace facebook::fboss
