@@ -12,9 +12,6 @@ class EbroAsic : public TajoAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_EBRO;
   }
-  std::string getVendor() const override {
-    return "tajo";
-  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }
