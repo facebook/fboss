@@ -355,7 +355,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
      * The ECN/WRED threshold are rounded down for TAJO as opposed to
      * being rounded up to the next cell size for Broadcom.
      */
-    bool roundUp = getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO
+    bool roundUp = getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO
         ? false
         : true;
 

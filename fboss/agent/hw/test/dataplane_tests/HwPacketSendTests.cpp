@@ -135,7 +135,7 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
           *portStatsBefore[portId].outBytes__ref()) {
         return false;
       }
-      if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
         if (packetsAfter <= packetsBefore) {
           return false;
         }
@@ -173,7 +173,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
     EXPECT_EQ(
         pktLengthSent,
         *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
-    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           1,
           *portStatsAfter.outMulticastPkts__ref() -
@@ -222,7 +222,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
     EXPECT_EQ(
         pktLengthSent,
         *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
-    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           numPkts,
           *portStatsAfter.outMulticastPkts__ref() -
@@ -258,7 +258,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
                << ", after bytes:" << *portStatsAfter.outBytes__ref();
     EXPECT_NE(
         0, *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
-    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           1,
           *portStatsAfter.outBroadcastPkts__ref() -

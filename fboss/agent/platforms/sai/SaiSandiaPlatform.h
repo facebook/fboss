@@ -12,6 +12,7 @@
 #include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
 
 namespace facebook::fboss {
+class EbroAsic;
 
 class SaiSandiaPlatform : public SaiTajoPlatform {
  public:
@@ -20,6 +21,9 @@ class SaiSandiaPlatform : public SaiTajoPlatform {
       folly::MacAddress localMac);
   ~SaiSandiaPlatform() override;
   std::string getHwConfig() override;
+  HwAsic* getAsic() const override;
+
+  std::unique_ptr<EbroAsic> asic_;
 };
 
 } // namespace facebook::fboss

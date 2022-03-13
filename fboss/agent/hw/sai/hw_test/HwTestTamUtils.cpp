@@ -30,7 +30,7 @@ void triggerSaiBcmParityError(HwSwitchEnsemble* ensemble) {
 namespace utility {
 void triggerParityError(HwSwitchEnsemble* ensemble) {
   auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
-  if (asic != HwAsic::AsicType::ASIC_TYPE_TAJO) {
+  if (asic != HwAsic::AsicType::ASIC_TYPE_EBRO) {
     triggerSaiBcmParityError(ensemble);
     return;
   }

@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
-#include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
 
 #include <algorithm>
@@ -22,12 +22,18 @@ SaiSandiaPlatform::SaiSandiaPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<SandiaPlatformMapping>(),
-          localMac) {}
+          localMac) {
+  asic_ = std::make_unique<EbroAsic>();
+}
 
 std::string SaiSandiaPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
 }
 
 SaiSandiaPlatform::~SaiSandiaPlatform() {}
+
+HwAsic* SaiSandiaPlatform::getAsic() const {
+  return asic_.get();
+}
 
 } // namespace facebook::fboss

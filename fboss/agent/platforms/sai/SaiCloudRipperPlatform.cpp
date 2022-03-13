@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include <algorithm>
-#include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 #include "fboss/lib/phy/facebook/credo/cloudripper/CloudRipperPhyInterfaceHandler.h"
 
@@ -24,10 +24,15 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
           std::make_unique<CloudRipperPlatformMapping>(),
           localMac) {
   phyInterfaceHandler_ = std::make_unique<CloudRipperPhyInterfaceHandler>();
+  asic_ = std::make_unique<EbroAsic>();
 }
 
 std::string SaiCloudRipperPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+}
+
+HwAsic* SaiCloudRipperPlatform::getAsic() const {
+  return asic_.get();
 }
 
 SaiCloudRipperPlatform::~SaiCloudRipperPlatform() {}

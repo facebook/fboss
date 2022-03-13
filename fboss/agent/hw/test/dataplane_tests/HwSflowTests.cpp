@@ -57,7 +57,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         // TODO: Configure queue through hostif trap samplepacket
         getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                HwAsic::AsicType::ASIC_TYPE_TAJO
+                HwAsic::AsicType::ASIC_TYPE_EBRO
             ? utility::kCoppLowPriQueueId
             : utility::kCoppDefaultPriQueueId));
   }

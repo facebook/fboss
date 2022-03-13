@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
-#include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
@@ -24,13 +24,21 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<Wedge400CPlatformMapping>(),
-          localMac) {}
+          localMac) {
+  asic_ = std::make_unique<EbroAsic>();
+}
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping,
     folly::MacAddress localMac)
-    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {
+  asic_ = std::make_unique<EbroAsic>();
+}
+
+HwAsic* SaiWedge400CPlatform::getAsic() const {
+  return asic_.get();
+}
 
 std::string SaiWedge400CPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();

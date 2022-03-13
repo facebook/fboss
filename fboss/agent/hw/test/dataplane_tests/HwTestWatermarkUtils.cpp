@@ -19,16 +19,16 @@ int getRoundedBufferThreshold(
     int expectedThreshold,
     bool roundUp) {
   int threshold{};
-  if (HwAsic::AsicType::ASIC_TYPE_TAJO ==
+  if (HwAsic::AsicType::ASIC_TYPE_EBRO ==
       hwSwitch->getPlatform()->getAsic()->getAsicType()) {
     /*
-     * TAJO splits queue buffers into 16 blocks, watermarks and
+     * Ebro splits queue buffers into 16 blocks, watermarks and
      * ECN/WRED thresholds can only be reported / configured in
      * the order of these block thresholds as captured below.
      *
      * Doc: https://fburl.com/nil3f15m
      */
-    const std::vector<int> kTajoQuantizedThresholds{
+    const std::vector<int> kEbroQuantizedThresholds{
         (50 * 384),
         (256 * 384),
         (512 * 384),
@@ -45,20 +45,20 @@ int getRoundedBufferThreshold(
         (15 * 1024 * 384),
         (16000 * 384)};
     auto it = std::lower_bound(
-        kTajoQuantizedThresholds.begin(),
-        kTajoQuantizedThresholds.end(),
+        kEbroQuantizedThresholds.begin(),
+        kEbroQuantizedThresholds.end(),
         expectedThreshold);
 
     if (roundUp) {
-      if (it == kTajoQuantizedThresholds.end()) {
+      if (it == kEbroQuantizedThresholds.end()) {
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
       } else {
         threshold = *it;
       }
     } else {
-      if (it != kTajoQuantizedThresholds.end() && *it == expectedThreshold) {
+      if (it != kEbroQuantizedThresholds.end() && *it == expectedThreshold) {
         threshold = *it;
-      } else if (it != kTajoQuantizedThresholds.begin()) {
+      } else if (it != kEbroQuantizedThresholds.begin()) {
         threshold = *(std::prev(it));
       } else {
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);

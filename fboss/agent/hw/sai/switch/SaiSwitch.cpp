@@ -357,13 +357,13 @@ void SaiSwitch::processLinkStateChangeDelta(
 bool SaiSwitch::transactionsSupported() const {
   // FIXME : Stoo skipping for Tajo once T79717530 resolved
   return platform_->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TAJO;
+      HwAsic::AsicType::ASIC_TYPE_EBRO;
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
     const StateDelta& delta) {
   CHECK(
-      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO);
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO);
   try {
     return stateChanged(delta);
   } catch (const FbossError& e) {
@@ -1126,7 +1126,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
        * flaps
        */
-      if (asicType_ == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      if (asicType_ == HwAsic::AsicType::ASIC_TYPE_EBRO) {
         managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
       }
     }
@@ -1376,7 +1376,7 @@ void SaiSwitch::packetRxCallback(
    * and send it to sw switch for processing.
    */
   bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
-      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO &&
+      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO &&
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {

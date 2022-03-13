@@ -13,8 +13,6 @@
 
 namespace facebook::fboss {
 
-class TajoAsic;
-
 class SaiTajoPlatform : public SaiHwPlatform {
  public:
   explicit SaiTajoPlatform(
@@ -25,8 +23,6 @@ class SaiTajoPlatform : public SaiHwPlatform {
 
   std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
       const override;
-
-  HwAsic* getAsic() const override;
 
   std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
     return {};
@@ -47,9 +43,6 @@ class SaiTajoPlatform : public SaiHwPlatform {
     return false;
   }
   void initLEDs() override {}
-
- protected:
-  std::unique_ptr<TajoAsic> asic_;
 };
 
 } // namespace facebook::fboss

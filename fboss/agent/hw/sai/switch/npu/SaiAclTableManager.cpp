@@ -57,7 +57,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         addedAclTable->getActionTypes());
   } else {
     bool isTajo =
-        platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
+        platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO;
 
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,

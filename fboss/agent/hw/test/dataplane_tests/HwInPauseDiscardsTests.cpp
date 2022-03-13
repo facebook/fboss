@@ -81,7 +81,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
        */
       auto expectedPktCount = !enableRxPause &&
               getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                  HwAsic::AsicType::ASIC_TYPE_TAJO
+                  HwAsic::AsicType::ASIC_TYPE_EBRO
           ? 0
           : 1;
       EXPECT_EQ(

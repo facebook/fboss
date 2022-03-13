@@ -109,7 +109,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
    * |  TRIDENT2   |   RSW  |
    * |  TOMAHAWK   |   FSW  |
    * |  TOMAHAWK3  |    UU  |
-   * |  TAJO       |   RSW  |
+   * |  EBRO       |   RSW  |
    *
    * The benchmarks are categorized by chip and not by the route scale.
    * Pick the highest scale for that chip. For instance, any TH asic will
@@ -125,7 +125,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   } else if (
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+      asicType == HwAsic::AsicType::ASIC_TYPE_EBRO) {
     return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
         .getThriftRoutes();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {

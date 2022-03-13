@@ -19,13 +19,7 @@ SaiTajoPlatform::SaiTajoPlatform(
     : SaiHwPlatform(
           std::move(productInfo),
           std::move(platformMapping),
-          localMac) {
-  asic_ = std::make_unique<TajoAsic>();
-}
-
-HwAsic* SaiTajoPlatform::getAsic() const {
-  return asic_.get();
-}
+          localMac) {}
 
 std::optional<SaiSwitchTraits::Attributes::AclFieldList>
 SaiTajoPlatform::getAclFieldList() const {

@@ -13,6 +13,8 @@
 
 namespace facebook::fboss {
 
+class EbroAsic;
+
 class SaiLassenPlatform : public SaiTajoPlatform {
  public:
   explicit SaiLassenPlatform(
@@ -20,6 +22,10 @@ class SaiLassenPlatform : public SaiTajoPlatform {
       folly::MacAddress localMac);
   ~SaiLassenPlatform() override;
   std::string getHwConfig() override;
+  HwAsic* getAsic() const override;
+
+ protected:
+  std::unique_ptr<EbroAsic> asic_;
 };
 
 } // namespace facebook::fboss

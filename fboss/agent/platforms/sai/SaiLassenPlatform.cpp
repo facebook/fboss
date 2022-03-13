@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiLassenPlatform.h"
-#include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/lassen/LassenPlatformMapping.h"
 
 #include <algorithm>
@@ -22,7 +22,13 @@ SaiLassenPlatform::SaiLassenPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<LassenPlatformMapping>(),
-          localMac) {}
+          localMac) {
+  asic_ = std::make_unique<EbroAsic>();
+}
+
+HwAsic* SaiLassenPlatform::getAsic() const {
+  return asic_.get();
+}
 
 std::string SaiLassenPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();

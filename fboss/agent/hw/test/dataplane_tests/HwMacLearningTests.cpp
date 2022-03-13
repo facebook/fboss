@@ -859,8 +859,8 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
       // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
       // port2
       if (getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_TAJO) {
-        // TODO: Remove this once TajoAsic properly generates a
+          HwAsic::AsicType::ASIC_TYPE_EBRO) {
+        // TODO: Remove this once EbroAsic properly generates a
         // MAC move event.
         verifyL2TableCallback(
             l2LearningObserver_.waitForLearningUpdates().front(),

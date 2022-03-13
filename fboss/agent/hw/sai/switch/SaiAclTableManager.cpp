@@ -1089,11 +1089,11 @@ void SaiAclTableManager::updateStats() {
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     const {
   /*
-   * Tajo either does not support following qualifier or enabling those
-   * overflows max key width. Thus, disable those on Tajo for now.
+   * Ebro either does not support following qualifier or enabling those
+   * overflows max key width. Thus, disable those on Ebro for now.
    */
   bool isTajo =
-      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
+      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO;
   bool isTrident2 = platform_->getAsic()->getAsicType() ==
       HwAsic::AsicType::ASIC_TYPE_TRIDENT2;
 

@@ -14,6 +14,7 @@
 namespace facebook::fboss {
 
 class Wedge400CEbbLabPlatformMapping;
+class EbroAsic;
 
 class SaiWedge400CPlatform : public SaiTajoPlatform {
  public:
@@ -22,12 +23,15 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
       folly::MacAddress localMac);
   ~SaiWedge400CPlatform() override;
   std::string getHwConfig() override;
+  HwAsic* getAsic() const override;
 
  protected:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping,
       folly::MacAddress localMac);
+
+  std::unique_ptr<EbroAsic> asic_;
 };
 
 class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {

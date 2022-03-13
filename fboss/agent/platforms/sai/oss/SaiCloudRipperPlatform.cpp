@@ -21,10 +21,15 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>(),
-          localMac) {}
-
+          localMac) {
+  asic_ = std::make_unique<EbroAsic>();
+}
 std::string SaiCloudRipperPlatform::getHwConfig() {
   return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+}
+
+HwAsic* SaiCloudRipperPlatform::getAsic() const {
+  return asic_.get();
 }
 
 SaiCloudRipperPlatform::~SaiCloudRipperPlatform() {}

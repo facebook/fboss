@@ -13,14 +13,20 @@
 
 namespace facebook::fboss {
 
+class EbroAsic;
+
 class SaiCloudRipperPlatform : public SaiTajoPlatform {
  public:
   explicit SaiCloudRipperPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac);
   ~SaiCloudRipperPlatform() override;
+  HwAsic* getAsic() const override;
 
   std::string getHwConfig() override;
+
+ protected:
+  std::unique_ptr<EbroAsic> asic_;
 };
 
 } // namespace facebook::fboss

@@ -64,7 +64,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     return;
   }
   auto asic = platform->getAsic();
-  if (asic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+  if (asic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO) {
     return;
   }
   const auto switchId = saiSwitch->getSwitchId();
