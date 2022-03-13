@@ -29,7 +29,6 @@ class HwDiagShellStressTest : public HwLinkStateDependentTest {
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         // No diag shell to test for these ASICs
         break;
-      case HwAsic::AsicType::ASIC_TYPE_TAJO:
       case HwAsic::AsicType::ASIC_TYPE_EBRO:
         runTajoDiagCmds();
         break;

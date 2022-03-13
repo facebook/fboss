@@ -3374,7 +3374,6 @@ void BcmSwitch::disableHotSwap() const {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
-      case HwAsic::AsicType::ASIC_TYPE_TAJO:
       case HwAsic::AsicType::ASIC_TYPE_EBRO:
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:

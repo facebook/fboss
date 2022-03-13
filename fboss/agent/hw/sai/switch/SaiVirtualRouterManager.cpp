@@ -76,7 +76,6 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
   auto asicType = platform_->getAsic()->getAsicType();
 
   switch (asicType) {
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:

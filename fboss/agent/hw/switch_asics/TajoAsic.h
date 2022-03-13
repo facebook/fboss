@@ -8,7 +8,6 @@
 namespace facebook::fboss {
 
 class TajoAsic : public HwAsic {
-  bool isSupported(Feature) const override;
   std::string getVendor() const override {
     return "tajo";
   }

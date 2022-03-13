@@ -73,7 +73,6 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       XLOG(FATAL) << " Not supported";
@@ -106,7 +105,6 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   switch (asic->getAsicType()) {
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
       return asic->getMMUSizeBytes();
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {

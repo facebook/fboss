@@ -62,7 +62,6 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         XLOG(FATAL) << "Unsupported HwAsic";
         break;
-      case HwAsic::AsicType::ASIC_TYPE_TAJO:
       case HwAsic::AsicType::ASIC_TYPE_EBRO:
       case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:

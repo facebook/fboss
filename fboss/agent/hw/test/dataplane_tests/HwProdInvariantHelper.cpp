@@ -167,7 +167,6 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
   switch (ensemble_->getAsic()->getAsicType()) {
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
     case HwAsic::AsicType::ASIC_TYPE_MOCK:
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       break;

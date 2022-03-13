@@ -53,7 +53,6 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       return 9;
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
       return 7;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
@@ -71,7 +70,6 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-    case HwAsic::AsicType::ASIC_TYPE_TAJO:
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
       return cfg::ToCpuAction::COPY;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
