@@ -14,6 +14,7 @@ namespace facebook::fboss {
       ASIC_TYPE_TOMAHAWK4,  \
       ASIC_TYPE_TAJO,       \
       ASIC_TYPE_ELBERT_8DD, \
+      ASIC_TYPE_EBRO,       \
   };
 
 class HwAsic {

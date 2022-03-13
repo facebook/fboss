@@ -437,7 +437,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketCount) {
 
 TEST_F(HwSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
   size_t percentErrorThreshold = kDefaultPercentErrorThreshold;
-  // raise percent error threshold for Gibraltar to reduce test flakiness
+  // raise percent error threshold for Ebro to reduce test flakiness
   if (getPlatform()->getAsic()->getAsicType() ==
       HwAsic::AsicType::ASIC_TYPE_TAJO) {
     percentErrorThreshold += 2;

@@ -44,6 +44,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
       case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      case HwAsic::AsicType::ASIC_TYPE_EBRO:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         return nullptr;
     }
@@ -61,6 +62,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case HwAsic::AsicType::ASIC_TYPE_FAKE:
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
       case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      case HwAsic::AsicType::ASIC_TYPE_EBRO:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         return nullptr;
     }
