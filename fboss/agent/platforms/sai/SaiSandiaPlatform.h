@@ -12,7 +12,7 @@
 #include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
 
 namespace facebook::fboss {
-class EbroAsic;
+class GaronneAsic;
 
 class SaiSandiaPlatform : public SaiTajoPlatform {
  public:
@@ -23,7 +23,7 @@ class SaiSandiaPlatform : public SaiTajoPlatform {
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
 
-  std::unique_ptr<EbroAsic> asic_;
+  std::unique_ptr<GaronneAsic> asic_;
 };
 
 } // namespace facebook::fboss

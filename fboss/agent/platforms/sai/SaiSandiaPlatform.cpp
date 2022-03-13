@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
-#include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/hw/switch_asics/GaronneAsic.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
 
 #include <algorithm>
@@ -23,7 +23,7 @@ SaiSandiaPlatform::SaiSandiaPlatform(
           std::move(productInfo),
           std::make_unique<SandiaPlatformMapping>(),
           localMac) {
-  asic_ = std::make_unique<EbroAsic>();
+  asic_ = std::make_unique<GaronneAsic>();
 }
 
 std::string SaiSandiaPlatform::getHwConfig() {
