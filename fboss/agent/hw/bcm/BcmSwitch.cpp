@@ -3375,6 +3375,7 @@ void BcmSwitch::disableHotSwap() const {
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
       case HwAsic::AsicType::ASIC_TYPE_EBRO:
+      case HwAsic::AsicType::ASIC_TYPE_GARONNE:
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
         CHECK(0) << " Invalid ASIC type";

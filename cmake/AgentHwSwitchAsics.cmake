@@ -6,6 +6,7 @@
 add_library(switch_asics
   fboss/agent/hw/switch_asics/FakeAsic.h
   fboss/agent/hw/switch_asics/EbroAsic.cpp
+  fboss/agent/hw/switch_asics/GaronneAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.h
   fboss/agent/hw/switch_asics/Tomahawk4Asic.cpp
