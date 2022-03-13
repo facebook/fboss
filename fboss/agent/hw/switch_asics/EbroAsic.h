@@ -3,11 +3,11 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/TajoAsic.h"
 
 namespace facebook::fboss {
 
-class EbroAsic : public HwAsic {
+class EbroAsic : public TajoAsic {
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_EBRO;
