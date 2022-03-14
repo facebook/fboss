@@ -12,6 +12,7 @@ namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{folly::IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
 const facebook::fboss::RouterID kRid{0};
+auto constexpr kEcmpWidth4 = 4;
 } // namespace
 
 namespace facebook::fboss {
@@ -24,8 +25,26 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), kRid);
-    ports_[0] = masterLogicalPortIds()[0];
-    ports_[1] = masterLogicalPortIds()[1];
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      ports_[i] = masterLogicalPortIds()[i];
+    }
+
+    /* experiments revealed these which L4 ports map to which switch port */
+    tcpPorts_[0] = 10001;
+    tcpPorts_[1] = 10005;
+    tcpPorts_[2] = 10007;
+    tcpPorts_[3] = 10000;
+    udpPorts_ = tcpPorts_;
+
+    tcpPortsForSai_[0] = 10005;
+    tcpPortsForSai_[1] = 10002;
+    tcpPortsForSai_[2] = 10000;
+    tcpPortsForSai_[3] = 10004;
+
+    udpPortsForSai_[0] = 10000;
+    udpPortsForSai_[1] = 10005;
+    udpPortsForSai_[2] = 10003;
+    udpPortsForSai_[3] = 10010;
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -57,11 +76,19 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     resolve ? resolveNhops({ports_[index]}) : unresolveNhops({ports_[index]});
   }
 
-  void sendFlow(int index, FlowType type) {
+  uint16_t getFlowPort(int index, bool isSai, FlowType type) {
+    switch (type) {
+      case FlowType::TCP:
+        return isSai ? tcpPortsForSai_[index] : tcpPorts_[index];
+      case FlowType::UDP:
+        return isSai ? udpPortsForSai_[index] : udpPorts_[index];
+    }
+  }
+
+  void sendFlowWithPort(uint16_t port, FlowType type) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
-    auto port = 10004 + index;
     auto tcpPkt = utility::makeTCPTxPacket(
         getHwSwitch(),
         vlanId,
@@ -91,13 +118,20 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendFlow(int index, FlowType type) {
+    auto isSai = getHwSwitchEnsemble()->isSai();
+    auto port = getFlowPort(index, isSai, type);
+    sendFlowWithPort(port, type);
+  }
+
   void programRoute() {
-    std::vector<NextHopWeight> weights(2, ECMP_WEIGHT);
+    std::vector<NextHopWeight> weights(4, ECMP_WEIGHT);
+    boost::container::flat_set<PortDescriptor> ports{};
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      ports.insert(PortDescriptor(ports_[i]));
+    }
     ecmpHelper_->programRoutes(
-        getRouteUpdater(),
-        {PortDescriptor(ports_[0]), PortDescriptor(ports_[1])},
-        {kDefaultRoute},
-        weights);
+        getRouteUpdater(), ports, {kDefaultRoute}, weights);
   }
 
   void setLoadBalancerSeed(cfg::LoadBalancer& cfg) {
@@ -119,7 +153,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     auto ports = std::make_unique<std::vector<int32_t>>();
     ports->push_back(ports_[0]);
     ports->push_back(ports_[1]);
-
+    ports->push_back(ports_[2]);
+    ports->push_back(ports_[3]);
     getHwSwitch()->clearPortStats(std::move(ports));
   }
 
@@ -133,54 +168,37 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     programRoute();
   }
 
-  void verifyPortEgress(int egressPort) {
-    if (egressPort == 0) {
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 0);
-    } else {
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
+  void verifyFlowEgress(int index) {
+    ASSERT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[index])), 1);
+    uint8_t pktCnt = 0;
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      pktCnt += getPortOutPkts(this->getLatestPortStats(ports_[i]));
     }
-  }
-
-  void verifyFlowEgress(int index, FlowType type) {
-    auto isSai = getHwSwitchEnsemble()->isSai();
-    if (isSai && type == FlowType::TCP) {
-      /*
-       * SAI uses 5-tuple where as Native SDK uses 4-tuple for hashing
-       * So difference exists on which flow gets mapped to which port
-       *
-       * For TCP:
-       * Native SDK, 10004 maps to port 0 while 10005 maps to port 1
-       * SAI SDK, 10004 maps to port 1 while 10005 maps to port 0
-       *
-       * For UDP:
-       * Native and SAI SDK, 10004 maps to port 0 and 10005 maps to port 1
-       */
-      index == 0 ? verifyPortEgress(1) : verifyPortEgress(0);
-    } else {
-      index == 0 ? verifyPortEgress(0) : verifyPortEgress(1);
-    }
+    EXPECT_EQ(pktCnt, 1);
   }
 
  protected:
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
   std::array<PortID, 4> ports_{};
+  std::map<int, int> tcpPorts_{};
+  std::map<int, int> udpPorts_{};
+  std::map<int, int> tcpPortsForSai_{};
+  std::map<int, int> udpPortsForSai_{};
 };
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
   auto setup = [=]() {
     setupHashAndProgramRoute();
-    resolveNhop(0 /* nhop0 */, true /* resolve */);
-    resolveNhop(1 /* nhop1 */, true /* resolve */);
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      resolveNhop(i /* ith nhop */, true /* resolve */);
+    }
   };
   auto verify = [=]() {
-    clearPortStats();
-    sendFlow(0 /* flow 0 */, FlowType::TCP);
-    verifyFlowEgress(0 /* flow 0 */, FlowType::TCP);
-    clearPortStats();
-    sendFlow(1 /* flow 1 */, FlowType::TCP);
-    verifyFlowEgress(1 /* flow 1 */, FlowType::TCP);
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      clearPortStats();
+      sendFlow(i /* flow i */, FlowType::TCP);
+      verifyFlowEgress(i /* flow i */);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -218,16 +236,16 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
 TEST_F(HwHashConsistencyTest, UdpEgressLinks) {
   auto setup = [=]() {
     setupHashAndProgramRoute();
-    resolveNhop(0 /* nhop0 */, true /* resolve */);
-    resolveNhop(1 /* nhop1 */, true /* resolve */);
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      resolveNhop(i /* ith nhop */, true /* resolve */);
+    }
   };
   auto verify = [=]() {
-    clearPortStats();
-    sendFlow(0 /* flow 0 */, FlowType::UDP);
-    verifyFlowEgress(0 /* flow 0 */, FlowType::UDP);
-    clearPortStats();
-    sendFlow(1 /* flow 1 */, FlowType::UDP);
-    verifyFlowEgress(1 /* flow 0 */, FlowType::UDP);
+    for (auto i = 0; i < kEcmpWidth4; i++) {
+      clearPortStats();
+      sendFlow(i /* ith flow  */, FlowType::UDP);
+      verifyFlowEgress(i /* ith flow  */);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
