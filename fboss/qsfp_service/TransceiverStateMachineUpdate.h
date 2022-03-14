@@ -57,6 +57,12 @@ class TransceiverStateMachineUpdate {
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;
+
+  // Keep track of previous and new state so that we can use it to tell whether
+  // there is state changed after the update
+  std::optional<TransceiverStateMachineState> preState_;
+  std::optional<TransceiverStateMachineState> newState_;
+
   // TransceiverManager code needs access to our listHook_ member so it can
   // maintain the update list.
   friend class TransceiverManager;

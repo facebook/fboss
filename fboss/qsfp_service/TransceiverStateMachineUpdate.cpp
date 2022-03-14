@@ -28,43 +28,45 @@ TransceiverStateMachineUpdate::TransceiverStateMachineUpdate(
 
 void TransceiverStateMachineUpdate::applyUpdate(
     state_machine<TransceiverStateMachine>& curState) {
+  preState_ = getStateByOrder(*curState.current_state());
   switch (event_) {
     case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
       curState.process_event(DETECT_TRANSCEIVER);
-      return;
+      break;
     case TransceiverStateMachineEvent::READ_EEPROM:
       curState.process_event(READ_EEPROM);
-      return;
+      break;
     case TransceiverStateMachineEvent::PROGRAM_IPHY:
       curState.process_event(PROGRAM_IPHY);
-      return;
+      break;
     case TransceiverStateMachineEvent::PROGRAM_XPHY:
       curState.process_event(PROGRAM_XPHY);
-      return;
+      break;
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       curState.process_event(PROGRAM_TRANSCEIVER);
-      return;
+      break;
     case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
       curState.process_event(ALL_PORTS_DOWN);
-      return;
+      break;
     case TransceiverStateMachineEvent::PORT_UP:
       curState.process_event(PORT_UP);
-      return;
+      break;
     case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
       curState.process_event(RESET_TO_NOT_PRESENT);
-      return;
+      break;
     case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
       curState.process_event(RESET_TO_DISCOVERED);
-      return;
+      break;
     case TransceiverStateMachineEvent::REMOVE_TRANSCEIVER:
       curState.process_event(REMOVE_TRANSCEIVER);
-      return;
+      break;
     case TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER:
       curState.process_event(REMEDIATE_TRANSCEIVER);
-      return;
+      break;
     default:
       throw FbossError("Unsupported TransceiverStateMachine for ", name_);
   }
+  newState_ = getStateByOrder(*curState.current_state());
 }
 
 void TransceiverStateMachineUpdate::onError(const std::exception& ex) noexcept {
@@ -75,7 +77,8 @@ void TransceiverStateMachineUpdate::onError(const std::exception& ex) noexcept {
 }
 
 void TransceiverStateMachineUpdate::onSuccess() {
-  XLOG(INFO) << "Successfully applied state update for " << name_;
+  XLOG_IF(INFO, preState_ && newState_ && *preState_ != *newState_)
+      << "Successfully applied state update for " << name_;
   // TODO(joseph5wu) Need to figure out whether we need to notify anything when
   // the state is applied successfully
 }
