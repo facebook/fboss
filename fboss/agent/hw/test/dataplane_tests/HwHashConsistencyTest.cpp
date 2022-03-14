@@ -96,7 +96,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void programRoute() {
-    std::vector<NextHopWeight> weights{2, ECMP_WEIGHT};
+    std::vector<NextHopWeight> weights(2, ECMP_WEIGHT);
     ecmpHelper_->programRoutes(
         getRouteUpdater(),
         {PortDescriptor(port0_), PortDescriptor(port1_)},
@@ -190,6 +190,36 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
+  auto setup = [=]() {
+    setupHashAndProgramRoute();
+    resolveNhop(0 /* nhop0 */, true /* resolve */);
+    resolveNhop(1 /* nhop1 */, true /* resolve */);
+  };
+  auto verify = [=]() {
+    clearPortStats();
+    sendFlow(0 /* flow 0 */, FlowType::TCP);
+    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+
+    clearPortStats();
+    resolveNhop(0 /* nhop0 */, false /* unresolve */);
+    sendFlow(0 /* flow 0 */, FlowType::TCP);
+    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 0);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 2);
+
+    clearPortStats();
+    resolveNhop(0 /* nhop0 */, true /* resolve */);
+    sendFlow(0 /* flow 0 */, FlowType::TCP);
+    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwHashConsistencyTest, UdpEgressLinks) {
   auto setup = [=]() {
     setupHashAndProgramRoute();
@@ -203,6 +233,36 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinks) {
     clearPortStats();
     sendFlow(1 /* flow 1 */, FlowType::UDP);
     verifyFlowEgress(1 /* flow 0 */, FlowType::UDP);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
+  auto setup = [=]() {
+    setupHashAndProgramRoute();
+    resolveNhop(0 /* nhop0 */, true /* resolve */);
+    resolveNhop(1 /* nhop0 */, true /* resolve */);
+  };
+  auto verify = [=]() {
+    clearPortStats();
+    sendFlow(0 /* flow 0 */, FlowType::UDP);
+    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+
+    clearPortStats();
+    resolveNhop(0 /* nhop0 */, false /* unresolve */);
+    sendFlow(0 /* flow 0 */, FlowType::UDP);
+    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 0);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 2);
+
+    clearPortStats();
+    resolveNhop(0 /* nhop0 */, true /* resolve */);
+    sendFlow(0 /* flow 0 */, FlowType::UDP);
+    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
