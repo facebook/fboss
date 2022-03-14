@@ -21,6 +21,7 @@
 #include <vector>
 
 namespace facebook::fboss {
+class SwSwitch;
 
 template <typename RouteT>
 class RouteLoggerBase {

@@ -13,11 +13,19 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
+
+LookupClassUpdater::LookupClassUpdater(SwSwitch* sw) : sw_(sw) {
+  sw_->registerStateObserver(this, "LookupClassUpdater");
+}
+LookupClassUpdater::~LookupClassUpdater() {
+  sw_->unregisterStateObserver(this);
+}
 
 int LookupClassUpdater::getRefCnt(
     PortID portID,

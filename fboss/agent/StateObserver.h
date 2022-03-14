@@ -11,7 +11,6 @@
 
 #include <boost/core/noncopyable.hpp>
 
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {

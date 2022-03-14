@@ -24,6 +24,7 @@ extern "C" {
 #include <folly/logging/xlog.h>
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/TunIntf.h"
 #include "fboss/agent/state/Interface.h"

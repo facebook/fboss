@@ -17,6 +17,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/ExternalPhy.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 DECLARE_int32(gearbox_stat_interval);
 

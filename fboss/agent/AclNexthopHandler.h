@@ -6,15 +6,12 @@
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
+class SwSwitch;
 
 class AclNexthopHandler : public StateObserver {
  public:
-  explicit AclNexthopHandler(SwSwitch* sw) : sw_(sw) {
-    sw_->registerStateObserver(this, "AclNexthopHandler");
-  }
-  ~AclNexthopHandler() override {
-    sw_->unregisterStateObserver(this);
-  }
+  explicit AclNexthopHandler(SwSwitch* sw);
+  ~AclNexthopHandler() override;
 
   void stateUpdated(const StateDelta& delta) override;
 

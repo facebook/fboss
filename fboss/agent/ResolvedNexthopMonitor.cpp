@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"

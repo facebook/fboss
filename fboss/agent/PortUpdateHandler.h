@@ -18,12 +18,9 @@ class SwSwitch;
 
 class PortUpdateHandler : public StateObserver {
  public:
-  explicit PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
-    sw_->registerStateObserver(this, "PortUpdateHandler");
-  }
-  ~PortUpdateHandler() override {
-    sw_->unregisterStateObserver(this);
-  }
+  explicit PortUpdateHandler(SwSwitch* sw);
+  ~PortUpdateHandler();
+
   void stateUpdated(const StateDelta& delta) override;
 
  private:

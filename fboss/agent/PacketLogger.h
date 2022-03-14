@@ -19,6 +19,7 @@
 #include <vector>
 
 namespace facebook::fboss {
+class SwSwitch;
 
 class PacketLoggerBase {
  public:

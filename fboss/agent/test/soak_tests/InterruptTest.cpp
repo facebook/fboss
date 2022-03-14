@@ -1,5 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include "fboss/agent/test/soak_tests/InterruptTest.h"
+
 #include <chrono>
 #include <thread>
 
@@ -11,8 +13,8 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/CounterCache.h"
-#include "fboss/agent/test/soak_tests/InterruptTest.h"
 
 #include "common/process/Process.h"
 

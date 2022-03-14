@@ -48,6 +48,13 @@ using std::unique_ptr;
 
 namespace facebook::fboss {
 
+IPv6Handler::IPv6Handler(SwSwitch* sw) : sw_(sw) {
+  sw_->registerStateObserver(this, "IPv6Handler");
+}
+IPv6Handler::~IPv6Handler() {
+  sw_->unregisterStateObserver(this);
+}
+
 template <typename BodyFn>
 std::unique_ptr<TxPacket> createICMPv6Pkt(
     SwSwitch* sw,

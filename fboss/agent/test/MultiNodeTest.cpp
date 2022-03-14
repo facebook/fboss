@@ -11,6 +11,7 @@
 #include <folly/String.h>
 #include <gflags/gflags.h>
 
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "common/network/NetworkUtil.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"

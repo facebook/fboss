@@ -11,13 +11,20 @@
 #include "fboss/agent/LldpManager.h"
 
 #include "fboss/agent/PortStats.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
+
+PortUpdateHandler::PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
+  sw_->registerStateObserver(this, "PortUpdateHandler");
+}
+PortUpdateHandler::~PortUpdateHandler() {
+  sw_->unregisterStateObserver(this);
+}
 
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
   // For now, the stateUpdated is only used to update the portName of PortStats

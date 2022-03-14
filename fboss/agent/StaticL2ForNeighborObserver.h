@@ -10,22 +10,20 @@
 #pragma once
 
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
 
 namespace facebook::fboss {
 class SwitchState;
+class SwSWitch;
 class StateDelta;
 
 class StaticL2ForNeighborObserver : public StateObserver {
  public:
-  explicit StaticL2ForNeighborObserver(SwSwitch* sw) : sw_(sw) {
-    sw_->registerStateObserver(this, "StaticL2ForNeighborObserver");
-  }
-  ~StaticL2ForNeighborObserver() override {
-    sw_->unregisterStateObserver(this);
-  }
+  explicit StaticL2ForNeighborObserver(SwSwitch* sw);
+  ~StaticL2ForNeighborObserver() override;
 
   void stateUpdated(const StateDelta& stateDelta) override;
 

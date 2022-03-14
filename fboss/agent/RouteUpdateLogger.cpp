@@ -10,6 +10,7 @@
 
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 
 namespace facebook::fboss {

@@ -15,6 +15,7 @@
 
 #include <folly/Conv.h>
 #include <folly/ExceptionString.h>
+#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>
 #include <exception>

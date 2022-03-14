@@ -2,6 +2,7 @@
 
 #include "fboss/agent/AclNexthopHandler.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTable.h"
@@ -16,6 +17,12 @@ namespace facebook::fboss {
 
 using DeltaFunctions::isEmpty;
 
+AclNexthopHandler::AclNexthopHandler(SwSwitch* sw) : sw_(sw) {
+  sw_->registerStateObserver(this, "AclNexthopHandler");
+}
+AclNexthopHandler::~AclNexthopHandler() {
+  sw_->unregisterStateObserver(this);
+}
 bool AclNexthopHandler::hasAclChanges(const StateDelta& delta) {
   bool aclsChanged = (sw_->getState()->getAcls()->size() > 0) &&
       (!isEmpty(delta.getAclsDelta()));

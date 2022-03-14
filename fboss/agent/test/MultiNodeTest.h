@@ -11,6 +11,7 @@
 #include "fboss/agent/Main.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentTest.h"
 #include "fboss/agent/types.h"
 

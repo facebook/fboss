@@ -4,6 +4,7 @@
 
 #include "fboss/agent/MirrorManagerImpl.h"
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -11,15 +12,8 @@ namespace facebook::fboss {
 
 class MirrorManager : public StateObserver {
  public:
-  explicit MirrorManager(SwSwitch* sw)
-      : sw_(sw),
-        v4Manager_(std::make_unique<MirrorManagerV4>(sw)),
-        v6Manager_(std::make_unique<MirrorManagerV6>(sw)) {
-    sw_->registerStateObserver(this, "MirrorManager");
-  }
-  ~MirrorManager() override {
-    sw_->unregisterStateObserver(this);
-  }
+  explicit MirrorManager(SwSwitch* sw);
+  ~MirrorManager() override;
 
   void stateUpdated(const StateDelta& delta) override;
 

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <folly/container/F14Map.h>

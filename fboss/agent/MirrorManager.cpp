@@ -3,6 +3,7 @@
 
 #include <boost/container/flat_set.hpp>
 #include <tuple>
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
@@ -17,6 +18,15 @@ using std::optional;
 
 namespace facebook::fboss {
 
+MirrorManager::MirrorManager(SwSwitch* sw)
+    : sw_(sw),
+      v4Manager_(std::make_unique<MirrorManagerV4>(sw)),
+      v6Manager_(std::make_unique<MirrorManagerV6>(sw)) {
+  sw_->registerStateObserver(this, "MirrorManager");
+}
+MirrorManager::~MirrorManager() {
+  sw_->unregisterStateObserver(this);
+}
 void MirrorManager::stateUpdated(const StateDelta& delta) {
   if (!hasMirrorChanges(delta)) {
     return;

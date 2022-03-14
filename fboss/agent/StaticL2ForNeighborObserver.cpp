@@ -11,8 +11,16 @@
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 
 #include "fboss/agent/StaticL2ForNeighborSwSwitchUpdater.h"
+#include "fboss/agent/SwSwitch.h"
 namespace facebook::fboss {
 
+StaticL2ForNeighborObserver::StaticL2ForNeighborObserver(SwSwitch* sw)
+    : sw_(sw) {
+  sw_->registerStateObserver(this, "StaticL2ForNeighborObserver");
+}
+StaticL2ForNeighborObserver::~StaticL2ForNeighborObserver() {
+  sw_->unregisterStateObserver(this);
+}
 void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
   StaticL2ForNeighborSwSwitchUpdater updater(sw_);
   updater.stateUpdated(stateDelta);

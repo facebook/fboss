@@ -13,15 +13,12 @@
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
+class SwSwitch;
 
 class LookupClassUpdater : public StateObserver {
  public:
-  explicit LookupClassUpdater(SwSwitch* sw) : sw_(sw) {
-    sw_->registerStateObserver(this, "LookupClassUpdater");
-  }
-  ~LookupClassUpdater() override {
-    sw_->unregisterStateObserver(this);
-  }
+  explicit LookupClassUpdater(SwSwitch* sw);
+  ~LookupClassUpdater() override;
 
   void stateUpdated(const StateDelta& stateDelta) override;
 
