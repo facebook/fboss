@@ -24,8 +24,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), kRid);
-    port0_ = masterLogicalPortIds()[0];
-    port1_ = masterLogicalPortIds()[1];
+    ports_[0] = masterLogicalPortIds()[0];
+    ports_[1] = masterLogicalPortIds()[1];
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -54,18 +54,14 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void resolveNhop(int index, bool resolve) {
-    if (resolve) {
-      index == 0 ? resolveNhops({port0_}) : resolveNhops({port1_});
-    } else {
-      index == 0 ? unresolveNhops({port0_}) : unresolveNhops({port1_});
-    }
+    resolve ? resolveNhops({ports_[index]}) : unresolveNhops({ports_[index]});
   }
 
   void sendFlow(int index, FlowType type) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
-    auto port = index == 0 ? 10004 : 10005;
+    auto port = 10004 + index;
     auto tcpPkt = utility::makeTCPTxPacket(
         getHwSwitch(),
         vlanId,
@@ -99,7 +95,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     std::vector<NextHopWeight> weights(2, ECMP_WEIGHT);
     ecmpHelper_->programRoutes(
         getRouteUpdater(),
-        {PortDescriptor(port0_), PortDescriptor(port1_)},
+        {PortDescriptor(ports_[0]), PortDescriptor(ports_[1])},
         {kDefaultRoute},
         weights);
   }
@@ -121,8 +117,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
   void clearPortStats() {
     auto ports = std::make_unique<std::vector<int32_t>>();
-    ports->push_back(port0_);
-    ports->push_back(port1_);
+    ports->push_back(ports_[0]);
+    ports->push_back(ports_[1]);
 
     getHwSwitch()->clearPortStats(std::move(ports));
   }
@@ -139,11 +135,11 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
   void verifyPortEgress(int egressPort) {
     if (egressPort == 0) {
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 0);
+      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 0);
     } else {
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 0);
-      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
+      EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
     }
   }
 
@@ -169,8 +165,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
  protected:
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
-  PortID port0_{};
-  PortID port1_{};
+  std::array<PortID, 4> ports_{};
 };
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
@@ -200,22 +195,22 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 0);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 2);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -247,22 +242,22 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 0);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 2);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port0_)), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(port1_)), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
