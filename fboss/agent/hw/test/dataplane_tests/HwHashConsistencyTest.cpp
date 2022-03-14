@@ -36,15 +36,28 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     tcpPorts_[3] = 10000;
     udpPorts_ = tcpPorts_;
 
-    tcpPortsForSai_[0] = 10005;
-    tcpPortsForSai_[1] = 10002;
-    tcpPortsForSai_[2] = 10000;
-    tcpPortsForSai_[3] = 10004;
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_EBRO) {
+      tcpPortsForSai_[0] = 10002;
+      tcpPortsForSai_[1] = 10004;
+      tcpPortsForSai_[2] = 10000;
+      tcpPortsForSai_[3] = 10001;
 
-    udpPortsForSai_[0] = 10000;
-    udpPortsForSai_[1] = 10005;
-    udpPortsForSai_[2] = 10003;
-    udpPortsForSai_[3] = 10010;
+      udpPortsForSai_[0] = 10000;
+      udpPortsForSai_[1] = 10006;
+      udpPortsForSai_[2] = 10002;
+      udpPortsForSai_[3] = 10003;
+    } else {
+      tcpPortsForSai_[0] = 10005;
+      tcpPortsForSai_[1] = 10002;
+      tcpPortsForSai_[2] = 10000;
+      tcpPortsForSai_[3] = 10004;
+
+      udpPortsForSai_[0] = 10000;
+      udpPortsForSai_[1] = 10005;
+      udpPortsForSai_[2] = 10003;
+      udpPortsForSai_[3] = 10010;
+    }
   }
 
   cfg::SwitchConfig initialConfig() const override {
