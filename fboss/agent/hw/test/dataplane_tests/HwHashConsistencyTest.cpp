@@ -279,4 +279,30 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
+  auto setup = [=]() { setupHashAndProgramRoute(); };
+  auto verify = [=]() {
+    for (auto i = 0; i < 4; i++) {
+      resolveNhop(i /* nhop0 */, true /* resolve */);
+    }
+    clearPortStats();
+    sendFlow(0 /* flow 0 */, FlowType::TCP);
+    sendFlow(0 /* flow 0 */, FlowType::UDP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+
+    clearPortStats();
+
+    for (auto i = 0; i < 4; i++) {
+      resolveNhop(i /* nhopi */, false /* resolve */);
+    }
+    for (auto i = 3; i >= 0; i--) {
+      resolveNhop(i /* nhop0 */, true /* resolve */);
+    }
+    sendFlow(0 /* flow 0 */, FlowType::TCP);
+    sendFlow(0 /* flow 0 */, FlowType::UDP);
+    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
