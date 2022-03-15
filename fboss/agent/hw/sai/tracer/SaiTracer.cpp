@@ -97,6 +97,7 @@ extern "C" {
 sai_status_t __real_sai_api_initialize(
     uint64_t flags,
     const sai_service_method_table_t* services);
+sai_status_t __real_sai_api_uninitialize(void);
 
 sai_status_t __real_sai_api_query(
     sai_api_t sai_api_id,
@@ -130,6 +131,23 @@ sai_status_t __wrap_sai_api_initialize(
   }
 
   return rv;
+}
+
+sai_status_t __wrap_sai_api_uninitialize(void) {
+  if (FLAGS_enable_replayer) {
+    // Check if tracer is still there. If uninitialize() is called from
+    // a singleton's destructor, there's a chance the SaiTracer singleton
+    // is already destroyed as there's no ordering/dependency between the
+    // two.
+    //
+    // It's fine to omit this output if tracer is gone. This is just software
+    // cleanup and should have no effect in ASIC state reproduction to
+    // vendors.
+    if (auto tracer = SaiTracer::getInstance()) {
+      tracer->logApiUninitialize();
+    }
+  }
+  return __real_sai_api_uninitialize();
 }
 
 sai_status_t __wrap_sai_api_query(
@@ -452,6 +470,11 @@ void SaiTracer::logApiInitialize(
   }
 
   lines.push_back("sai_api_initialize(0, &kSaiServiceMethodTable)");
+  writeToFile(lines);
+}
+
+void SaiTracer::logApiUninitialize(void) {
+  vector<string> lines{"sai_api_uninitialize()"};
   writeToFile(lines);
 }
 

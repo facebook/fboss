@@ -57,6 +57,7 @@ class SaiTracer {
   void printHex(std::ostringstream& outStringStream, uint8_t u8);
 
   void logApiInitialize(const char** variables, const char** values, int size);
+  void logApiUninitialize(void);
 
   void logApiQuery(sai_api_t api_id, const std::string& api_var);
 

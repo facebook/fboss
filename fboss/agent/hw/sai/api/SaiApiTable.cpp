@@ -47,6 +47,10 @@ const std::set<sai_api_t>& SaiApiTable::getFullApiList() const {
   return fullApiList;
 }
 
+SaiApiTable::~SaiApiTable() {
+  sai_api_uninitialize();
+}
+
 template <typename SaiApiPtr>
 void SaiApiTable::initApiIfDesired(
     SaiApiPtr& /* api */,

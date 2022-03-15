@@ -43,7 +43,7 @@ namespace facebook::fboss {
 class SaiApiTable {
  public:
   SaiApiTable() = default;
-  ~SaiApiTable() = default;
+  ~SaiApiTable();
   SaiApiTable(const SaiApiTable& other) = delete;
   SaiApiTable& operator=(const SaiApiTable& other) = delete;
 

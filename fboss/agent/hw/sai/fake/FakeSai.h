@@ -100,6 +100,8 @@ sai_status_t sai_api_initialize(
     uint64_t flags,
     const sai_service_method_table_t* services);
 
+sai_status_t sai_api_uninitialize(void);
+
 sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table);
 
 sai_status_t sai_log_set(sai_api_t api, sai_log_level_t log_level);

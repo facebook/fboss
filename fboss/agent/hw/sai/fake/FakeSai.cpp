@@ -99,6 +99,10 @@ sai_status_t sai_api_initialize(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t sai_api_uninitialize(void) {
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
   auto fs = FakeSai::getInstance();
   if (!fs->initialized) {
