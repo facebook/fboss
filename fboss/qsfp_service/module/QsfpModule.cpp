@@ -205,11 +205,18 @@ bool QsfpModule::detectPresenceLocked() {
 
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   TransceiverInfo info;
-  auto channel_count = numMediaLanes();
   info.present_ref() = present_;
   info.transceiver_ref() = type();
   info.port_ref() = qsfpImpl_->getNum();
   if (present_) {
+    auto nMediaLanes = numMediaLanes();
+    info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(nMediaLanes);
+    if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
+      info.mediaLaneSignals_ref()->clear();
+    } else {
+      cacheMediaLaneSignals(*info.mediaLaneSignals_ref());
+    }
+
     info.sensor_ref() = getSensorInfo();
     info.vendor_ref() = getVendorInfo();
     info.cable_ref() = getCableInfo();
@@ -217,10 +224,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       info.thresholds_ref() = *threshold;
     }
     info.settings_ref() = getTransceiverSettingsInfo();
-    info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(channel_count);
-    info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
 
-    for (int i = 0; i < channel_count; i++) {
+    for (int i = 0; i < nMediaLanes; i++) {
       Channel chan;
       chan.channel_ref() = i;
       info.channels_ref()->push_back(chan);
@@ -229,12 +234,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       info.channels_ref()->clear();
     }
 
-    if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
-      info.mediaLaneSignals_ref()->clear();
-    }
-    if (auto mediaLaneSignals = info.mediaLaneSignals_ref()) {
-      cacheMediaLaneSignals(*mediaLaneSignals);
-    }
+    info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
     if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
       info.hostLaneSignals_ref()->clear();
     }
@@ -242,8 +242,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (auto transceiverStats = getTransceiverStats()) {
       info.stats_ref() = *transceiverStats;
     }
+
     info.signalFlag_ref() = getSignalFlagInfo();
-    cacheSignalFlags(getSignalFlagInfo());
+    cacheSignalFlags(*info.signalFlag_ref());
+
     if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
       info.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
     }

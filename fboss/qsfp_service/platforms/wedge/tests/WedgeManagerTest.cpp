@@ -39,6 +39,10 @@ class WedgeManagerTest : public ::testing::Test {
         qsfpSvcVolatileDir.c_str(),
         gflags::SET_FLAGS_DEFAULT);
 
+    // Use new state machine
+    gflags::SetCommandLineOptionWithMode(
+        "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
+
     // Create a wedge manager for 16 modules and 4 ports per module
     wedgeManager_ = std::make_unique<NiceMock<MockWedgeManager>>(16, 4);
     wedgeManager_->init();
@@ -74,7 +78,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   // Refresh transceivers again and make sure the collected time increments
   /* sleep override */
   std::this_thread::sleep_for(std::chrono::seconds(1));
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   transInfo.clear();
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
@@ -105,7 +109,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   // Remove a transceiver and make sure that port's transceiverInfo says
   // transceiver is absent
   wedgeManager_->overridePresence(5, false);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   transInfo.clear();
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
@@ -124,7 +128,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   auto cachedTransInfo = transInfo;
   wedgeManager_->setReadException(
       false, true); // Read exception only while doing DOM reads
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   /* sleep override */
   std::this_thread::sleep_for(std::chrono::seconds(1));
   transInfo.clear();
@@ -145,7 +149,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   // timeCollected timestamp to the transceiverInfo
   wedgeManager_->setReadException(
       true, false); // Read exception only while reading mgmt interface
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   /* sleep override */
   std::this_thread::sleep_for(std::chrono::seconds(1));
   transInfo.clear();
@@ -204,9 +208,9 @@ TEST_F(WedgeManagerTest, modulePresenceTest) {
     auto synchronizedTransceivers =
         wedgeManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
-      // Expected state is MODULE_STATE_DISCOVERED
-      EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 2);
+      EXPECT_EQ(
+          wedgeManager_->getCurrentState(TransceiverID(trans.first)),
+          TransceiverStateMachineState::DISCOVERED);
     }
   }
 }
@@ -214,7 +218,7 @@ TEST_F(WedgeManagerTest, modulePresenceTest) {
 TEST_F(WedgeManagerTest, moduleNotPresentTest) {
   // Tests that the module removal is handled smoothly
   wedgeManager_->overridePresence(1, false);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   auto currentModules = wedgeManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 15);
   EXPECT_EQ(
@@ -226,13 +230,11 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
         wedgeManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
       QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
-      if (trans.first == 0) { // id is 0 based here
-        // Expected state is MODULE_STATE_NOT_PRESENT
-        EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 0);
-      } else {
-        // Expected state is MODULE_STATE_DISCOVERED
-        EXPECT_EQ(qsfp->getLegacyModuleStateMachineCurrentState(), 2);
-      }
+      // id is 0 based here
+      EXPECT_EQ(
+          wedgeManager_->getCurrentState(TransceiverID(trans.first)),
+          trans.first == 0 ? TransceiverStateMachineState::NOT_PRESENT
+                           : TransceiverStateMachineState::DISCOVERED);
     }
   }
 }
@@ -240,11 +242,11 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
 TEST_F(WedgeManagerTest, mgmtInterfaceChangedTest) {
   // Simulate the case where a SFF module is swapped with a CMIS module
   wedgeManager_->overridePresence(1, false);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   wedgeManager_->overrideMgmtInterface(
       1, uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
   wedgeManager_->overridePresence(1, true);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   auto currentModules = wedgeManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 16);
   for (auto module : currentModules) {
@@ -260,7 +262,7 @@ TEST_F(WedgeManagerTest, miniphotonMgmtInterfaceDetectionTest) {
   wedgeManager_->overrideMgmtInterface(
       1, uint8_t(TransceiverModuleIdentifier::MINIPHOTON_OBO));
   wedgeManager_->overridePresence(1, true);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   auto currentModules = wedgeManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 16);
   for (auto module : currentModules) {
@@ -273,7 +275,7 @@ TEST_F(WedgeManagerTest, unknownMgmtInterfaceDetectionTest) {
   // some unused mgmt interface (not in TransceiverModuleIdentifier)
   wedgeManager_->overrideMgmtInterface(1, 0xFF);
   wedgeManager_->overridePresence(1, true);
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   auto currentModules = wedgeManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 16);
   for (auto module : currentModules) {
@@ -412,7 +414,7 @@ TEST_F(WedgeManagerTest, sfpMgmtInterfaceDetectionTest) {
         id, uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
     wedgeManager_->overridePresence(id, true);
   }
-  wedgeManager_->refreshTransceivers();
+  wedgeManager_->refreshStateMachines();
   auto currentModules = wedgeManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 16);
   for (auto module : currentModules) {
