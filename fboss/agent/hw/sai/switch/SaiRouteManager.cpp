@@ -391,6 +391,10 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
     // route is not yet created.
     return;
   }
+  auto& api = SaiApiTable::getInstance()->routeApi();
+  SaiRouteTraits::Attributes::Metadata currentMetadata = api.getAttribute(
+      route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
+
   auto attributes = route->attributes();
   sai_object_id_t nextHopId = nexthop->adapterKey();
   auto& currentNextHop =
@@ -398,7 +402,7 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
           attributes);
   currentNextHop = nextHopId;
   route->setAttributes(attributes);
-  updateMetadata();
+  updateMetadata(currentMetadata);
   XLOG(DBG2) << "ManagedRouteNextHop afterCreate: " << routeKey_.toString()
              << " assign nextHopId: " << nextHopId;
 }
@@ -427,7 +431,8 @@ sai_object_id_t ManagedRouteNextHop<NextHopTraitsT>::adapterKey() const {
 }
 
 template <typename NextHopTraitsT>
-void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
+void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata(
+    SaiRouteTraits::Attributes::Metadata currentMetadata) const {
   auto route = routeManager_->getRouteObject(routeKey_);
   CHECK(route);
 
@@ -435,14 +440,12 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(
           route->attributes());
   if (!expectedMetadata) {
+    // SAI object of route pointing to CPU, and directly reloaded from store may
+    // have reserved metadata (set by SDK) in its attributes.
     expectedMetadata = SaiRouteTraits::Attributes::Metadata::defaultValue();
   }
 
-  auto& api = SaiApiTable::getInstance()->routeApi();
-  SaiRouteTraits::Attributes::Metadata actualMetadata = api.getAttribute(
-      route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
-
-  if (expectedMetadata.value() != actualMetadata) {
+  if (expectedMetadata.value() != currentMetadata) {
     /*
      * Set Sai object attr to actual metadata and then update.
      * In BRCM-SAI there is a case where the SAI SDK itself updates
@@ -453,7 +456,7 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
      * expectedMetadata value
      */
     route->setOptionalAttribute(
-        SaiRouteTraits::Attributes::Metadata{actualMetadata},
+        SaiRouteTraits::Attributes::Metadata{currentMetadata},
         true /*skip HW write*/);
     route->setAttribute(expectedMetadata);
   }

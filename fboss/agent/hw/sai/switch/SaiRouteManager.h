@@ -54,7 +54,8 @@ class ManagedRouteNextHop
   typename NextHopTraitsT::AdapterHostKey adapterHostKey() const;
 
  private:
-  void updateMetadata() const;
+  void updateMetadata(
+      SaiRouteTraits::Attributes::Metadata currentMetadata) const;
 
   PortSaiId cpuPort_;
   SaiRouteManager* routeManager_;
