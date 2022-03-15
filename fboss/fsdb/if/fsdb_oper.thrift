@@ -80,7 +80,7 @@ struct QsfpServiceData {}
 
 struct OpenrData {}
 
-struct FsdbOperRoot {
+struct FsdbOperStateRoot {
   1: AgentData agent;
   2: BgpData bgp;
   3: OpenrData openr;
