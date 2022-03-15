@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include <algorithm>
-#include "fboss/agent/hw/switch_asics/TajoAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 
 namespace facebook::fboss {
