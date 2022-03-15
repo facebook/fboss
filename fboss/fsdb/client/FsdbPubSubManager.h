@@ -21,35 +21,35 @@ class FsdbPubSubManager {
   explicit FsdbPubSubManager(const std::string& clientId);
   ~FsdbPubSubManager();
 
-  void createDeltaPublisher(
+  void createStateDeltaPublisher(
       const std::vector<std::string>& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
-  void createStatePublisher(
+  void createStatePathPublisher(
       const std::vector<std::string>& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
-  void publish(const OperDelta& pubUnit);
-  void publish(const OperState& pubUnit);
-  void addDeltaSubscription(
+  void publishState(const OperDelta& pubUnit);
+  void publishState(const OperState& pubUnit);
+  void addStateDeltaSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
-  void addStateSubscription(
+  void addStatePathSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
 
-  void removeDeltaSubscription(
+  void removeStateDeltaSubscription(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost = "::1") {
     removeSubscriptionImpl(subscribePath, fsdbHost, true);
   }
-  void removeStateSubscription(
+  void removeStatePathSubscription(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost = "::1") {
     removeSubscriptionImpl(subscribePath, fsdbHost, false);
@@ -93,8 +93,8 @@ class FsdbPubSubManager {
   folly::ScopedEventBaseThread subscribersStreamEvbThread_;
   const std::string clientId_;
   std::mutex publisherMutex_;
-  std::unique_ptr<FsdbDeltaPublisher> deltaPublisher_;
-  std::unique_ptr<FsdbStatePublisher> statePublisher_;
+  std::unique_ptr<FsdbDeltaPublisher> stateDeltaPublisher_;
+  std::unique_ptr<FsdbStatePublisher> statePathPublisher_;
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
       path2Subscriber_;

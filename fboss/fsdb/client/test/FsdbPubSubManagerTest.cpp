@@ -21,74 +21,76 @@ void operStateCb(OperState /*state*/) {}
 
 class PubSubManagerTest : public ::testing::Test {
  protected:
-  void addDeltaSubscription(
+  void addStateDeltaSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
-    pubSubManager_.addDeltaSubscription(path, stateChangeCb, operDeltaCb, host);
+    pubSubManager_.addStateDeltaSubscription(
+        path, stateChangeCb, operDeltaCb, host);
   }
-  void addStateSubscription(
+  void addStatePathSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
-    pubSubManager_.addStateSubscription(path, stateChangeCb, operStateCb, host);
+    pubSubManager_.addStatePathSubscription(
+        path, stateChangeCb, operStateCb, host);
   }
   FsdbPubSubManager pubSubManager_{"testMgr"};
 };
 
-TEST_F(PubSubManagerTest, createDeltaPublisher) {
-  pubSubManager_.createDeltaPublisher({}, stateChangeCb);
+TEST_F(PubSubManagerTest, createStateDeltaPublisher) {
+  pubSubManager_.createStateDeltaPublisher({}, stateChangeCb);
   EXPECT_THROW(
-      pubSubManager_.createDeltaPublisher({}, stateChangeCb),
+      pubSubManager_.createStateDeltaPublisher({}, stateChangeCb),
       std::runtime_error);
   EXPECT_THROW(
-      pubSubManager_.createStatePublisher({}, stateChangeCb),
+      pubSubManager_.createStatePathPublisher({}, stateChangeCb),
       std::runtime_error);
 }
 
-TEST_F(PubSubManagerTest, createStatePublisher) {
-  pubSubManager_.createStatePublisher({}, stateChangeCb);
+TEST_F(PubSubManagerTest, createStatePathPublisher) {
+  pubSubManager_.createStatePathPublisher({}, stateChangeCb);
   EXPECT_THROW(
-      pubSubManager_.createStatePublisher({}, stateChangeCb),
+      pubSubManager_.createStatePathPublisher({}, stateChangeCb),
       std::runtime_error);
   EXPECT_THROW(
-      pubSubManager_.createDeltaPublisher({}, stateChangeCb),
+      pubSubManager_.createStateDeltaPublisher({}, stateChangeCb),
       std::runtime_error);
 }
 
 TEST_F(PubSubManagerTest, publishDelta) {
-  pubSubManager_.createDeltaPublisher({}, stateChangeCb);
-  pubSubManager_.publish(OperDelta{});
-  EXPECT_THROW(pubSubManager_.publish(OperState{}), std::runtime_error);
+  pubSubManager_.createStateDeltaPublisher({}, stateChangeCb);
+  pubSubManager_.publishState(OperDelta{});
+  EXPECT_THROW(pubSubManager_.publishState(OperState{}), std::runtime_error);
 }
 
 TEST_F(PubSubManagerTest, publishState) {
-  pubSubManager_.createStatePublisher({}, stateChangeCb);
-  pubSubManager_.publish(OperState{});
-  EXPECT_THROW(pubSubManager_.publish(OperDelta{}), std::runtime_error);
+  pubSubManager_.createStatePathPublisher({}, stateChangeCb);
+  pubSubManager_.publishState(OperState{});
+  EXPECT_THROW(pubSubManager_.publishState(OperDelta{}), std::runtime_error);
 }
 
 TEST_F(PubSubManagerTest, addRemoveSubscriptions) {
-  addDeltaSubscription({});
-  addDeltaSubscription({"foo"});
+  addStateDeltaSubscription({});
+  addStateDeltaSubscription({"foo"});
   // multiple delta subscriptions to same host, path
-  EXPECT_THROW(addDeltaSubscription({}), std::runtime_error);
+  EXPECT_THROW(addStateDeltaSubscription({}), std::runtime_error);
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 2);
-  pubSubManager_.removeDeltaSubscription({});
+  pubSubManager_.removeStateDeltaSubscription({});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 1);
-  addDeltaSubscription({});
+  addStateDeltaSubscription({});
   // Same subscripton path, different host
-  addDeltaSubscription({"foo"}, "::2");
+  addStateDeltaSubscription({"foo"}, "::2");
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
   // remove non existent state subscription. No effect
-  pubSubManager_.removeStateSubscription({});
+  pubSubManager_.removeStatePathSubscription({});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
 
   // Add state subscription for same path, host as delta
-  addStateSubscription({});
+  addStatePathSubscription({});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 4);
   // multiple delta subscriptions to same host, path
-  EXPECT_THROW(addStateSubscription({}), std::runtime_error);
+  EXPECT_THROW(addStatePathSubscription({}), std::runtime_error);
   // Same subscripton path, different host
-  addStateSubscription({}, "::2");
+  addStatePathSubscription({}, "::2");
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 5);
 }
 

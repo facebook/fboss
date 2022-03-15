@@ -31,8 +31,8 @@ FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
 
 FsdbPubSubManager::~FsdbPubSubManager() {
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  stopPublisher(lk, std::move(deltaPublisher_));
-  stopPublisher(lk, std::move(statePublisher_));
+  stopPublisher(lk, std::move(stateDeltaPublisher_));
+  stopPublisher(lk, std::move(statePathPublisher_));
 }
 
 void FsdbPubSubManager::stopPublisher(
@@ -49,7 +49,7 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) const {
-  if (deltaPublisher_ || statePublisher_) {
+  if (stateDeltaPublisher_ || statePathPublisher_) {
     throw std::runtime_error(
         "Only one instance of delta or state publisher allowed");
   }
@@ -63,21 +63,21 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
   return publisher;
 }
 
-void FsdbPubSubManager::createDeltaPublisher(
+void FsdbPubSubManager::createStateDeltaPublisher(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  deltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
+  stateDeltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
       lk, publishPath, publisherStateChangeCb, fsdbPort);
 }
 
-void FsdbPubSubManager::createStatePublisher(
+void FsdbPubSubManager::createStatePathPublisher(
     const std::vector<std::string>& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  statePublisher_ = createPublisherImpl<FsdbStatePublisher>(
+  statePathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
       lk, publishPath, publisherStateChangeCb, fsdbPort);
 }
 
@@ -92,17 +92,17 @@ void FsdbPubSubManager::publishImpl(
   publisher->write(pubUnit);
 }
 
-void FsdbPubSubManager::publish(const OperDelta& pubUnit) {
+void FsdbPubSubManager::publishState(const OperDelta& pubUnit) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  publishImpl(lk, deltaPublisher_.get(), pubUnit);
+  publishImpl(lk, stateDeltaPublisher_.get(), pubUnit);
 }
 
-void FsdbPubSubManager::publish(const OperState& pubUnit) {
+void FsdbPubSubManager::publishState(const OperState& pubUnit) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  publishImpl(lk, statePublisher_.get(), pubUnit);
+  publishImpl(lk, statePathPublisher_.get(), pubUnit);
 }
 
-void FsdbPubSubManager::addDeltaSubscription(
+void FsdbPubSubManager::addStateDeltaSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
@@ -112,7 +112,7 @@ void FsdbPubSubManager::addDeltaSubscription(
       subscribePath, stateChangeCb, operDeltaCb, fsdbHost, fsdbPort);
 }
 
-void FsdbPubSubManager::addStateSubscription(
+void FsdbPubSubManager::addStatePathSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,

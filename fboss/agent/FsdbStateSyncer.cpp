@@ -10,7 +10,7 @@ FsdbStateSyncer::FsdbStateSyncer(SwSwitch* sw)
     : sw_(sw),
       fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("wedge_agent")) {
   if (FLAGS_publish_state_to_fsdb) {
-    fsdbPubSubMgr_->createDeltaPublisher(
+    fsdbPubSubMgr_->createStateDeltaPublisher(
         {"agent"}, [this](auto oldState, auto newState) {
           fsdbConnectionStateChanged(oldState, newState);
         });
