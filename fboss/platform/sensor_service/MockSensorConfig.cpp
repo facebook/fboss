@@ -12,59 +12,83 @@ std::string getMockConfig() {
     "SCM" : {
       "CPU_PHYS_ID_0" : {
         "path" : "coretemp-isa-0000:Package id 0",
-        "maxVal" : 105,
-        "unit"  : "C"
+        "thresholdMap" : {
+          "5" : 105
+        },
+        "compute" : "@*1",
+        "type"  : 1
       },
       "CPU_CORE0_TEMP" : {
         "path" : "coretemp-isa-0000:Core 0",
-        "maxVal" : 105,
-        "unit" : "C"
+        "thresholdMap" : {
+           "5" : 105
+        },
+        "compute" : "@*1",
+        "type" : 3
       },
       "CPU_CORE1_TEMP" : {
         "path" : "coretemp-isa-0000:Core 0",
-        "maxVal" : 105,
-        "unit" : "C"
+        "thresholdMap" : {
+           "5" : 105
+        },
+        "compute" : "@*1",
+        "type" : 3
       }
     },
 
     "FAN1" : {
       "FAN1_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan1",
-        "maxVal" : 25500,
-        "minVal" : 2600,
-        "unit" : "RPM"
+        "thresholdMap" : {
+          "5" : 25500,
+          "6" : 2600
+        },
+        "compute" : "@*1",
+        "type" : 4
       }
     },
     "FAN2" : {
       "FAN2_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan2",
-        "maxVal" : 25500,
-        "minVal" : 2600,
-        "unit" : "RPM"
+        "thresholdMap" : {
+          "5" : 25500,
+          "6" : 2600
+        },
+        "compute" : "@*1",
+        "type" : 4
       }
     },
     "FAN3" : {
       "FAN3_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan3",
-        "maxVal" : 25500,
-        "minVal" : 2600,
-        "unit" : "RPM"
+        "thresholdMap" : {
+          "5" : 25500,
+          "6" : 2600
+        },
+        "compute" : "@*1",
+        "type" : 4
       }
     },
     "FAN4" : {
       "FAN4_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan4",
-        "maxVal" : 25500,
-        "minVal" : 2600,
-        "unit" : "RPM"
+        "thresholdMap" : {
+          "5" : 25500,
+          "6" : 2600
+        },
+        "compute" : "@*1",
+        "type" : 4
       }
     },
     "FAN5" : {
       "FAN5_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan5",
-        "maxVal" : 25500,
-        "minVal" : 2600,
-        "unit" : "RPM"
+        "thresholdMap" : {
+          "5" : 25500,
+          "6" : 2600
+        },
+        "compute" : "@*1",
+        "type" : 4
       }
     }
   }

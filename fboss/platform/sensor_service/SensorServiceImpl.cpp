@@ -7,15 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include <folly/FileUtil.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/GetSensorConfig.h"
-#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 
 namespace {
 
@@ -77,8 +76,11 @@ void SensorServiceImpl::init() {
   for (auto& pair : *sensorTable_.sensorMapList_ref()) {
     XLOG(INFO) << pair.first << ": ";
     for (auto& sensorPair : pair.second) {
-      XLOG(INFO) << *sensorPair.second.path_ref() << " "
-                 << *sensorPair.second.maxVal_ref() << " ";
+      XLOG(INFO) << *sensorPair.second.path_ref() << " ";
+      for (auto& sensorMap : *sensorPair.second.thresholdMap_ref()) {
+        XLOG(INFO) << static_cast<int>(sensorMap.first) << " : "
+                   << sensorMap.second;
+      }
     }
   }
 
