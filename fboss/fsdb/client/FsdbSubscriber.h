@@ -20,11 +20,17 @@ class FsdbSubscriber : public FsdbStreamClient {
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
       FsdbSubUnitUpdateCb operSubUnitUpdate,
+      bool subscribeStats,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {})
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
         operSubUnitUpdate_(operSubUnitUpdate),
-        subscribePath_(subscribePath) {}
+        subscribePath_(subscribePath),
+        subscribeStats_(subscribeStats) {}
+
+  bool subscribeStats() const {
+    return subscribeStats_;
+  }
 
  protected:
   OperSubRequest createRequest() const;
@@ -32,5 +38,6 @@ class FsdbSubscriber : public FsdbStreamClient {
 
  private:
   const std::vector<std::string> subscribePath_;
+  const bool subscribeStats_;
 };
 } // namespace facebook::fboss::fsdb

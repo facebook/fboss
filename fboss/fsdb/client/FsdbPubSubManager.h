@@ -86,6 +86,7 @@ class FsdbPubSubManager {
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
+      bool subscribeStats,
       const std::string& fsdbHost,
       int32_t fsdbPort = FLAGS_fsdbPort);
 

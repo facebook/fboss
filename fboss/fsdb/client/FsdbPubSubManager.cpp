@@ -111,7 +111,7 @@ void FsdbPubSubManager::addStateDeltaSubscription(
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath, stateChangeCb, operDeltaCb, fsdbHost, fsdbPort);
+      subscribePath, stateChangeCb, operDeltaCb, false, fsdbHost, fsdbPort);
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
@@ -121,7 +121,7 @@ void FsdbPubSubManager::addStatePathSubscription(
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbStateSubscriber>(
-      subscribePath, stateChangeCb, operStateCb, fsdbHost, fsdbPort);
+      subscribePath, stateChangeCb, operStateCb, false, fsdbHost, fsdbPort);
 }
 
 template <typename SubscriberT>
@@ -129,6 +129,7 @@ void FsdbPubSubManager::addSubscriptionImpl(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
+    bool subscribeStats,
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   auto isDelta = std::is_same_v<SubscriberT, FsdbDeltaSubscriber>;
@@ -142,6 +143,7 @@ void FsdbPubSubManager::addSubscriptionImpl(
             subscribersStreamEvbThread_.getEventBase(),
             reconnectThread_.getEventBase(),
             subUnitAvailableCb,
+            subscribeStats,
             stateChangeCb)));
     if (!inserted) {
       throw std::runtime_error(
