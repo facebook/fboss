@@ -5,6 +5,7 @@ namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb_oper
 
 include "fboss/agent/agent_config.thrift"
+include "fboss/agent/agent_stats.thrift"
 include "fboss/fsdb/if/fsdb_common.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
@@ -85,4 +86,8 @@ struct FsdbOperStateRoot {
   2: BgpData bgp;
   3: OpenrData openr;
   4: QsfpServiceData qsfp_service;
+} (thriftpath.root)
+
+struct FsdbOperStatsRoot {
+  1: agent_stats.AgentStats agent;
 } (thriftpath.root)

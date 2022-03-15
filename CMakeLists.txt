@@ -346,6 +346,14 @@ add_fbthrift_cpp_library(
     mka_structs_cpp2
 )
 add_fbthrift_cpp_library(
+  agent_stats_cpp2
+  fboss/agent/agent_stats.thrift
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_cpp2
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
