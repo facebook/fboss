@@ -16,15 +16,20 @@ class FsdbPublisher : public FsdbStreamClient {
       const std::vector<std::string>& publishPath,
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
+      bool publishStats = false,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {})
       : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
-        publishPath_(publishPath) {}
+        publishPath_(publishPath),
+        publishStats_(publishStats) {}
 
   void write(const PubUnit& pubUnit);
 
   ssize_t queueSize() const {
     return toPublishQueue_.size();
+  }
+  bool publishStats() const {
+    return publishStats_;
   }
 
  protected:
@@ -38,5 +43,6 @@ class FsdbPublisher : public FsdbStreamClient {
   folly::DMPSCQueue<PubUnit, true /*may block*/> toPublishQueue_{
       kPubQueueCapacity};
   const std::vector<std::string> publishPath_;
+  const bool publishStats_;
 };
 } // namespace facebook::fboss::fsdb

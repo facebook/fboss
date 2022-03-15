@@ -47,6 +47,7 @@ template <typename PublisherT>
 std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     const std::lock_guard<std::mutex>& /*lk*/,
     const std::vector<std::string>& publishPath,
+    bool publishStats,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) const {
   if (stateDeltaPublisher_ || statePathPublisher_) {
@@ -58,6 +59,7 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
       publishPath,
       publisherStreamEvbThread_.getEventBase(),
       reconnectThread_.getEventBase(),
+      publishStats,
       publisherStateChangeCb);
   publisher->setServerToConnect("::1", fsdbPort);
   return publisher;
@@ -69,7 +71,7 @@ void FsdbPubSubManager::createStateDeltaPublisher(
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   stateDeltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
-      lk, publishPath, publisherStateChangeCb, fsdbPort);
+      lk, publishPath, false, publisherStateChangeCb, fsdbPort);
 }
 
 void FsdbPubSubManager::createStatePathPublisher(
@@ -78,7 +80,7 @@ void FsdbPubSubManager::createStatePathPublisher(
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   statePathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
-      lk, publishPath, publisherStateChangeCb, fsdbPort);
+      lk, publishPath, false, publisherStateChangeCb, fsdbPort);
 }
 
 template <typename PublisherT, typename PubUnitT>

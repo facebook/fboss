@@ -69,6 +69,7 @@ class FsdbPubSubManager {
   std::unique_ptr<PublisherT> createPublisherImpl(
       const std::lock_guard<std::mutex>& /*lk*/,
       const std::vector<std::string>& publishPath,
+      bool publishStats,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort) const;
   void stopPublisher(
