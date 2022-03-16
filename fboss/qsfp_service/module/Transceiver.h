@@ -152,6 +152,12 @@ class Transceiver {
   virtual std::vector<prbs::PrbsPolynomial> getPrbsCapabilities(
       phy::Side side) const = 0;
 
+  virtual bool setPortPrbs(
+      phy::Side /* side */,
+      const phy::PortPrbsState& /* prbs */) = 0;
+
+  virtual phy::PortPrbsState getPortPrbsState(phy::Side /* side */) = 0;
+
   virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) = 0;
 
   /*

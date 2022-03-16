@@ -420,6 +420,45 @@ void QsfpModule::cacheMediaLaneSignals(
   }
 }
 
+bool QsfpModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
+  bool status = false;
+  auto setPrbsLambda = [&status, side, prbs, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    status = setPortPrbsLocked(side, prbs);
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    setPrbsLambda();
+  } else {
+    via(i2cEvb)
+        .thenValue([setPrbsLambda](auto&&) mutable { setPrbsLambda(); })
+        .get();
+  }
+  return status;
+}
+
+phy::PortPrbsState QsfpModule::getPortPrbsState(phy::Side side) {
+  phy::PortPrbsState state;
+  auto getPrbsStateLambda = [&state, side, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    state = getPortPrbsStateLocked(side);
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    getPrbsStateLambda();
+  } else {
+    via(i2cEvb)
+        .thenValue(
+            [getPrbsStateLambda](auto&&) mutable { getPrbsStateLambda(); })
+        .get();
+  }
+  return state;
+}
+
 void QsfpModule::transceiverPortsChanged(
     const std::map<uint32_t, PortStatus>& ports) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb

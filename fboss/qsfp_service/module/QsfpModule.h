@@ -298,6 +298,11 @@ class QsfpModule : public Transceiver {
 
   void updatePrbsStats();
 
+  bool setPortPrbs(phy::Side /* side */, const phy::PortPrbsState& /* prbs */)
+      override;
+
+  phy::PortPrbsState getPortPrbsState(phy::Side /* side */) override;
+
  protected:
   TransceiverManager* transceiverManager_{nullptr};
 
