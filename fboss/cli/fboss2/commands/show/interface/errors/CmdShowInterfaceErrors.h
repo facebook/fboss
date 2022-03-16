@@ -63,23 +63,22 @@ class CmdShowInterfaceErrors
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         cli::ErrorCounters counter;
 
-        counter.interfaceName_ref() = portInfo.get_name();
-        counter.inputErrors_ref() =
-            portInfo.get_input().get_errors().get_errors();
-        counter.inputDiscards_ref() =
+        counter.interfaceName() = portInfo.get_name();
+        counter.inputErrors() = portInfo.get_input().get_errors().get_errors();
+        counter.inputDiscards() =
             portInfo.get_input().get_errors().get_discards();
-        counter.outputErrors_ref() =
+        counter.outputErrors() =
             portInfo.get_output().get_errors().get_errors();
-        counter.outputDiscards_ref() =
+        counter.outputDiscards() =
             portInfo.get_output().get_errors().get_discards();
 
-        ret.error_counters_ref()->push_back(counter);
+        ret.error_counters()->push_back(counter);
       }
     }
 
     std::sort(
-        ret.error_counters_ref()->begin(),
-        ret.error_counters_ref()->end(),
+        ret.error_counters()->begin(),
+        ret.error_counters()->end(),
         [](cli::ErrorCounters& a, cli::ErrorCounters b) {
           return a.get_interfaceName() < b.get_interfaceName();
         });

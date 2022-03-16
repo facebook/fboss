@@ -179,13 +179,13 @@ void verifyInterfaceMode(
     // TODO - Feed other transmitter technology, speed and build a
     // exhaustive set of speed, transmitter tech to test for
     // All profiles should have medium info at this point
-    if (!expectedProfileConfig.medium_ref()) {
+    if (!expectedProfileConfig.medium()) {
       throw FbossError(
           "Missing medium info in profile ",
           apache::thrift::util::enumNameSafe(profileID));
     }
     auto expectedMode = getSpeedToTransmitterTechAndMode().at(speed).at(
-        *expectedProfileConfig.medium_ref());
+        *expectedProfileConfig.medium());
     EXPECT_EQ(expectedMode, curMode);
   } else {
     // On platforms that use port resource APIs, phy lane config determines
@@ -215,25 +215,25 @@ void verifyTxSettting(
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   int minLane = -1;
   for (const auto& pinCfg : expectedPinConfigs) {
-    auto lane = *pinCfg.id_ref()->lane_ref();
+    auto lane = *pinCfg.id()->lane();
     if (minLane < 0 || lane < minLane) {
       minLane = lane;
     }
   }
   for (const auto& pinCfg : expectedPinConfigs) {
-    auto expectedTx = pinCfg.tx_ref();
+    auto expectedTx = pinCfg.tx();
     if (!expectedTx.has_value()) {
       continue;
     }
 
-    auto lane = *pinCfg.id_ref()->lane_ref() - minLane;
+    auto lane = *pinCfg.id()->lane() - minLane;
     auto* bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
     auto programmedTx = bcmPort->getTxSettingsForLane(lane);
-    EXPECT_EQ(programmedTx.pre_ref(), expectedTx->pre_ref());
-    EXPECT_EQ(programmedTx.main_ref(), expectedTx->main_ref());
-    EXPECT_EQ(programmedTx.post_ref(), expectedTx->post_ref());
-    EXPECT_EQ(programmedTx.pre2_ref(), expectedTx->pre2_ref());
-    EXPECT_EQ(programmedTx.driveCurrent_ref(), expectedTx->driveCurrent_ref());
+    EXPECT_EQ(programmedTx.pre(), expectedTx->pre());
+    EXPECT_EQ(programmedTx.main(), expectedTx->main());
+    EXPECT_EQ(programmedTx.post(), expectedTx->post());
+    EXPECT_EQ(programmedTx.pre2(), expectedTx->pre2());
+    EXPECT_EQ(programmedTx.driveCurrent(), expectedTx->driveCurrent());
   }
 }
 
@@ -259,6 +259,6 @@ void verifyFec(
     const phy::ProfileSideConfig& expectedProfileConfig) {
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
-  EXPECT_EQ(*expectedProfileConfig.fec_ref(), bcmPort->getFECMode());
+  EXPECT_EQ(*expectedProfileConfig.fec(), bcmPort->getFECMode());
 }
 } // namespace facebook::fboss::utility

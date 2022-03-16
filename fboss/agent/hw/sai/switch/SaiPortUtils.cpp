@@ -13,11 +13,11 @@
 namespace facebook::fboss::utility {
 
 sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
-  if (*pause.tx_ref() && *pause.rx_ref()) {
+  if (*pause.tx() && *pause.rx()) {
     return SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
-  } else if (*pause.tx_ref()) {
+  } else if (*pause.tx()) {
     return SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
-  } else if (*pause.rx_ref()) {
+  } else if (*pause.rx()) {
     return SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
   } else {
     return SAI_PORT_FLOW_CONTROL_MODE_DISABLE;

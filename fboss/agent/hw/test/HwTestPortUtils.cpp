@@ -13,18 +13,18 @@ namespace facebook::fboss::utility {
 
 TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
   TransceiverInfo info;
-  info.present_ref() = true;
-  info.transceiver_ref() = TransceiverType::QSFP;
+  info.present() = true;
+  info.transceiver() = TransceiverType::QSFP;
 
   Cable cable;
   auto mediaType = getMediaType(profileID);
-  cable.transmitterTech_ref() = mediaType;
+  cable.transmitterTech() = mediaType;
   if (mediaType == TransmitterTechnology::COPPER) {
-    cable.length_ref() = 1.0;
+    cable.length() = 1.0;
   } else if (mediaType == TransmitterTechnology::OPTICAL) {
-    cable.length_ref() = 2000;
+    cable.length() = 2000;
   }
-  info.cable_ref() = cable;
+  info.cable() = cable;
 
   // Prepare mediaInterface and managementInterface
   auto speed = getSpeed(profileID);
@@ -47,17 +47,17 @@ TransceiverInfo getTransceiverInfo(cfg::PortProfileID profileID) {
         apache::thrift::util::enumNameSafe(speed));
   }
 
-  info.transceiverManagementInterface_ref() = mgmtInterface;
+  info.transceiverManagementInterface() = mgmtInterface;
   TransceiverSettings settings;
   std::vector<MediaInterfaceId> mediaInterfaces;
   for (auto i = 0; i < 4; i++) {
     MediaInterfaceId lane;
-    lane.lane_ref() = i;
-    lane.code_ref() = mediaInterface;
+    lane.lane() = i;
+    lane.code() = mediaInterface;
     mediaInterfaces.push_back(lane);
   }
-  settings.mediaInterface_ref() = mediaInterfaces;
-  info.settings_ref() = settings;
+  settings.mediaInterface() = mediaInterfaces;
+  info.settings() = settings;
 
   return info;
 }

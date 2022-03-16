@@ -47,11 +47,11 @@ MiscServiceImpl* MiscServiceTest::getService() {
 }
 
 TEST_F(MiscServiceTest, getCachedFruid) {
-  EXPECT_GT(getFruid(false).fruidData_ref()->size(), 0);
+  EXPECT_GT(getFruid(false).fruidData()->size(), 0);
 }
 
 TEST_F(MiscServiceTest, getUncachedFruid) {
-  EXPECT_GT(getFruid(true).fruidData_ref()->size(), 0);
+  EXPECT_GT(getFruid(true).fruidData()->size(), 0);
 }
 
 TEST_F(MiscServiceTest, testThrift) {
@@ -63,6 +63,6 @@ TEST_F(MiscServiceTest, testThrift) {
   auto client = MiscServiceThriftAsyncClient(std::move(channel));
   MiscFruidReadResponse response;
   client.sync_getFruid(response, false);
-  EXPECT_GT(response.fruidData_ref()->size(), 0);
+  EXPECT_GT(response.fruidData()->size(), 0);
 }
 } // namespace facebook::fboss::platform::misc_service

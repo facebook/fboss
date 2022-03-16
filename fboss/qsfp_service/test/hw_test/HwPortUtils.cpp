@@ -58,12 +58,12 @@ void verifyPhyPortConfig(
     EXPECT_EQ(expected.get_numLanes(), actual.get_numLanes());
     EXPECT_EQ(expected.get_fec(), actual.get_fec());
     EXPECT_EQ(expected.get_modulation(), actual.get_modulation());
-    if (auto interfaceType = actual.interfaceType_ref()) {
-      EXPECT_EQ(expected.interfaceType_ref(), interfaceType);
+    if (auto interfaceType = actual.interfaceType()) {
+      EXPECT_EQ(expected.interfaceType(), interfaceType);
     }
     // TODO(joseph5wu) Need to deprecate interfaceMode
-    if (auto interfaceMode = actual.interfaceMode_ref()) {
-      EXPECT_EQ(expected.interfaceMode_ref(), interfaceMode);
+    if (auto interfaceMode = actual.interfaceMode()) {
+      EXPECT_EQ(expected.interfaceMode(), interfaceMode);
     }
   };
   checkProfileSideConfig(
@@ -151,23 +151,23 @@ std::vector<TransceiverID> getTransceiverIds(
 PortStatus getPortStatus(PortID portId, const HwQsfpEnsemble* ensemble) {
   auto transceiverId = getTranscieverIdx(portId, ensemble);
   EXPECT_TRUE(transceiverId);
-  auto config = *ensemble->getWedgeManager()->getAgentConfig()->thrift.sw_ref();
+  auto config = *ensemble->getWedgeManager()->getAgentConfig()->thrift.sw();
   std::optional<cfg::Port> portCfg;
-  for (auto& port : *config.ports_ref()) {
-    if (*port.logicalID_ref() == static_cast<uint16_t>(portId)) {
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == static_cast<uint16_t>(portId)) {
       portCfg = port;
       break;
     }
   }
   CHECK(portCfg);
   PortStatus status;
-  status.enabled_ref() = *portCfg->state_ref() == cfg::PortState::ENABLED;
+  status.enabled() = *portCfg->state() == cfg::PortState::ENABLED;
   TransceiverIdxThrift idx;
-  idx.transceiverId_ref() = *transceiverId;
-  status.transceiverIdx_ref() = idx;
+  idx.transceiverId() = *transceiverId;
+  status.transceiverIdx() = idx;
   // Mark port down to force transceiver programming
-  status.up_ref() = false;
-  status.speedMbps_ref() = static_cast<int64_t>(*portCfg->speed_ref());
+  status.up() = false;
+  status.speedMbps() = static_cast<int64_t>(*portCfg->speed());
   return status;
 }
 
@@ -182,25 +182,25 @@ IphyAndXphyPorts findAvailablePorts(
   IphyAndXphyPorts ports;
   auto agentConfig = hwQsfpEnsemble->getWedgeManager()->getAgentConfig();
   auto cabledPorts = getCabledPorts(*agentConfig);
-  auto& swConfig = *agentConfig->thrift.sw_ref();
+  auto& swConfig = *agentConfig->thrift.sw();
   auto isPortCabled = [&cabledPorts](PortID port) -> bool {
     return cabledPorts.find(port) != cabledPorts.end();
   };
-  for (auto& port : *swConfig.ports_ref()) {
-    if (onlyCabled && !isPortCabled(PortID(*port.logicalID_ref()))) {
+  for (auto& port : *swConfig.ports()) {
+    if (onlyCabled && !isPortCabled(PortID(*port.logicalID()))) {
       continue;
     }
-    if (*port.state_ref() != cfg::PortState::ENABLED) {
+    if (*port.state() != cfg::PortState::ENABLED) {
       continue;
     }
-    if (profile && *port.profileID_ref() != *profile) {
+    if (profile && *port.profileID() != *profile) {
       continue;
     }
 
     auto portIDAndProfile =
-        std::make_pair(*port.logicalID_ref(), *port.profileID_ref());
+        std::make_pair(*port.logicalID(), *port.profileID());
     const auto& xphy = utility::getDataPlanePhyChips(
-        platformPorts.find(*port.logicalID_ref())->second,
+        platformPorts.find(*port.logicalID())->second,
         chips,
         phy::DataPlanePhyChipType::XPHY);
     if (!xphy.empty()) {
@@ -214,10 +214,10 @@ IphyAndXphyPorts findAvailablePorts(
 
 std::set<PortID> getCabledPorts(const AgentConfig& config) {
   std::set<PortID> cabledPorts;
-  auto& swConfig = *config.thrift.sw_ref();
-  for (auto& port : *swConfig.ports_ref()) {
-    if (!(*port.expectedLLDPValues_ref()).empty()) {
-      cabledPorts.insert(PortID(*port.logicalID_ref()));
+  auto& swConfig = *config.thrift.sw();
+  for (auto& port : *swConfig.ports()) {
+    if (!(*port.expectedLLDPValues()).empty()) {
+      cabledPorts.insert(PortID(*port.logicalID()));
     }
   }
   return cabledPorts;

@@ -63,7 +63,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(bool frontPanel, uint8_t ttl) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
@@ -100,12 +100,12 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
   void addTtlAclStat(cfg::SwitchConfig* config) const {
     auto acl = utility::addAcl(config, kAclName);
-    acl->srcIp_ref() = "2620:0:1cfe:face:b00c::/64";
-    acl->proto_ref() = 0x11;
-    acl->ipType_ref() = cfg::IpType::IP6;
-    acl->ttl_ref() = cfg::Ttl();
-    *acl->ttl_ref()->value_ref() = 128;
-    *acl->ttl_ref()->mask_ref() = 128;
+    acl->srcIp() = "2620:0:1cfe:face:b00c::/64";
+    acl->proto() = 0x11;
+    acl->ipType() = cfg::IpType::IP6;
+    acl->ttl() = cfg::Ttl();
+    *acl->ttl()->value() = 128;
+    *acl->ttl()->mask() = 128;
     utility::addAclStat(config, kAclName, kCounterName);
   }
 

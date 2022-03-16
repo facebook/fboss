@@ -18,6 +18,6 @@ void MiscServiceThriftHandler::getFruid(
     MiscFruidReadResponse& response,
     bool uncached) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  response.fruidData_ref() = miscService_->getFruid(uncached);
+  response.fruidData() = miscService_->getFruid(uncached);
 }
 } // namespace facebook::fboss::platform::misc_service

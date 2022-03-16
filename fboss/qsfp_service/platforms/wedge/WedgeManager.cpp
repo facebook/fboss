@@ -61,9 +61,9 @@ void WedgeManager::loadConfig() {
   agentConfig_ = AgentConfig::fromDefaultFile();
 
   // Process agent config info here.
-  for (const auto& port : *agentConfig_->thrift.sw_ref()->ports_ref()) {
+  for (const auto& port : *agentConfig_->thrift.sw()->ports()) {
     // Get the transceiver id based on the port info from config.
-    auto portId = *port.logicalID_ref();
+    auto portId = *port.logicalID();
     auto transceiverId = getTransceiverID(PortID(portId));
     if (!transceiverId) {
       XLOG(ERR) << "Did not find transceiver id for port id " << portId;
@@ -77,7 +77,7 @@ void WedgeManager::loadConfig() {
       portGroupIt->second.insert(port);
     }
     std::string portName = "";
-    if (auto name = port.name_ref()) {
+    if (auto name = port.name()) {
       portName = *name;
       portNameToModule_[portName] = transceiverId.value();
     }
@@ -151,7 +151,7 @@ void WedgeManager::getTransceiversInfo(
       auto tcvrID = TransceiverID(i);
       info.insert({i, getTransceiverInfo(tcvrID)});
       if (FLAGS_use_new_state_machine) {
-        info[i].stateMachineState_ref() = getCurrentState(tcvrID);
+        info[i].stateMachineState() = getCurrentState(tcvrID);
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Transceiver " << i
@@ -221,7 +221,7 @@ void WedgeManager::getTransceiversDOMDataUnion(
 void WedgeManager::readTransceiverRegister(
     std::map<int32_t, ReadResponse>& responses,
     std::unique_ptr<ReadRequest> request) {
-  auto ids = *(request->ids_ref());
+  auto ids = *(request->ids());
   XLOG(INFO) << "Received request for reading transceiver registers for ids: "
              << (ids.size() > 0 ? folly::join(",", ids) : "None");
   auto lockedTransceivers = transceivers_.rlock();
@@ -231,11 +231,11 @@ void WedgeManager::readTransceiverRegister(
   for (const auto& i : ids) {
     // Initialize responses with valid = false. This will be overwritten with
     // the correct valid flag later
-    responses[i].valid_ref() = false;
+    responses[i].valid() = false;
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
-        auto param = *(request->parameter_ref());
+        auto param = *(request->parameter());
         futResponses.push_back(it->second->futureReadTransceiver(param));
       }
     }
@@ -248,8 +248,8 @@ void WedgeManager::readTransceiverRegister(
         for (const auto& tryResponse : tries) {
           ReadResponse resp;
           auto tcvrId = tryResponse.value().first;
-          resp.data_ref() = *(tryResponse.value().second);
-          resp.valid_ref() = resp.data_ref()->length() > 0;
+          resp.data() = *(tryResponse.value().second);
+          resp.valid() = resp.data()->length() > 0;
           responses[tcvrId] = resp;
         }
       })
@@ -259,7 +259,7 @@ void WedgeManager::readTransceiverRegister(
 void WedgeManager::writeTransceiverRegister(
     std::map<int32_t, WriteResponse>& responses,
     std::unique_ptr<WriteRequest> request) {
-  auto ids = *(request->ids_ref());
+  auto ids = *(request->ids());
   XLOG(INFO) << "Received request for writing transceiver register for ids: "
              << (ids.size() > 0 ? folly::join(",", ids) : "None");
   auto lockedTransceivers = transceivers_.rlock();
@@ -269,14 +269,14 @@ void WedgeManager::writeTransceiverRegister(
   for (const auto& i : ids) {
     // Initialize responses with success = false. This will be overwritten with
     // the correct success flag later
-    responses[i].success_ref() = false;
+    responses[i].success() = false;
 
     if (isValidTransceiver(i)) {
       if (auto it = lockedTransceivers->find(TransceiverID(i));
           it != lockedTransceivers->end()) {
-        auto param = *(request->parameter_ref());
+        auto param = *(request->parameter());
         futResponses.push_back(
-            it->second->futureWriteTransceiver(param, *(request->data_ref())));
+            it->second->futureWriteTransceiver(param, *(request->data())));
       }
     }
   }
@@ -288,7 +288,7 @@ void WedgeManager::writeTransceiverRegister(
             for (const auto& tryResponse : tries) {
               WriteResponse resp;
               auto tcvrId = tryResponse.value().first;
-              resp.success_ref() = tryResponse.value().second;
+              resp.success() = tryResponse.value().second;
               responses[tcvrId] = resp;
             }
           })
@@ -325,8 +325,8 @@ void WedgeManager::syncPorts(
   if (FLAGS_use_new_state_machine) {
     std::set<TransceiverID> tcvrIDs;
     for (const auto& [portID, portStatus] : *ports) {
-      if (auto tcvrIdx = portStatus.transceiverIdx_ref()) {
-        tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId_ref()));
+      if (auto tcvrIdx = portStatus.transceiverIdx()) {
+        tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId()));
       }
     }
     // Update Transceiver active state
@@ -347,12 +347,12 @@ void WedgeManager::syncPorts(
   } else {
     auto groups = folly::gen::from(*ports) |
         folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
-                    return item.second.transceiverIdx_ref();
+                    return item.second.transceiverIdx();
                   }) |
         folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
-                    return *item.second.transceiverIdx_ref()
+                    return *item.second.transceiverIdx()
                                 .value_unchecked()
-                                .transceiverId_ref();
+                                .transceiverId();
                   }) |
         folly::gen::as<std::vector>();
 
@@ -558,12 +558,10 @@ void WedgeManager::updateTransceiverMap() {
         // Check if we have expected ports info synced over and if all of
         // the port is down. If any of them is not true then we will not
         // perform the reset.
-        safeToReset =
-            (iter->second.size() == portsPerTransceiver) &&
-            std::all_of(
-                iter->second.begin(), iter->second.end(), [](const auto& port) {
-                  return !(*port.second.up_ref());
-                });
+        safeToReset = (iter->second.size() == portsPerTransceiver) &&
+            std::all_of(iter->second.begin(),
+                        iter->second.end(),
+                        [](const auto& port) { return !(*port.second.up()); });
       }
       if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
         XLOG(INFO) << "A present transceiver with unknown interface at " << idx
@@ -620,28 +618,28 @@ void WedgeManager::publishI2cTransactionStats() {
     // Publish all the counters to FbAgent
 
     auto statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".readTotal");
-    tcData().setCounter(statName, *counter.readTotal__ref());
+        "qsfp.", *counter.controllerName_(), ".readTotal");
+    tcData().setCounter(statName, *counter.readTotal_());
 
     statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".readFailed");
-    tcData().setCounter(statName, *counter.readFailed__ref());
+        "qsfp.", *counter.controllerName_(), ".readFailed");
+    tcData().setCounter(statName, *counter.readFailed_());
 
     statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".readBytes");
-    tcData().setCounter(statName, *counter.readBytes__ref());
+        "qsfp.", *counter.controllerName_(), ".readBytes");
+    tcData().setCounter(statName, *counter.readBytes_());
 
     statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".writeTotal");
-    tcData().setCounter(statName, *counter.writeTotal__ref());
+        "qsfp.", *counter.controllerName_(), ".writeTotal");
+    tcData().setCounter(statName, *counter.writeTotal_());
 
     statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".writeFailed");
-    tcData().setCounter(statName, *counter.writeFailed__ref());
+        "qsfp.", *counter.controllerName_(), ".writeFailed");
+    tcData().setCounter(statName, *counter.writeFailed_());
 
     statName = folly::to<std::string>(
-        "qsfp.", *counter.controllerName__ref(), ".writeBytes");
-    tcData().setCounter(statName, *counter.writeBytes__ref());
+        "qsfp.", *counter.controllerName_(), ".writeBytes");
+    tcData().setCounter(statName, *counter.writeBytes_());
   }
 }
 
@@ -803,9 +801,9 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
   // From the above platform port entry, get the port config for the given port
   // profile id
   auto platformPortConfig =
-      platformPortEntry->second.supportedProfiles_ref()->find(portProfileId);
+      platformPortEntry->second.supportedProfiles()->find(portProfileId);
   if (platformPortConfig ==
-      platformPortEntry->second.supportedProfiles_ref()->end()) {
+      platformPortEntry->second.supportedProfiles()->end()) {
     XLOG(INFO) << "For port id " << portId << " port profile id "
                << portProfileIdStr
                << ", the supported profile not found in platform mapping";
@@ -822,7 +820,7 @@ std::optional<phy::PhyPortConfig> WedgeManager::getPhyPortConfigValues(
   // Build the PhyPortConfig using platform port config pins list, polrity swap
   // map, port profile config
   phyPortConfig.config = phy::ExternalPhyConfig::fromConfigeratorTypes(
-      *platformPortConfig->second.pins_ref(), linePolaritySwapMap);
+      *platformPortConfig->second.pins(), linePolaritySwapMap);
 
   phyPortConfig.profile =
       phy::ExternalPhyProfileConfig::fromPortProfileConfig(*portProfileConfig);
@@ -954,24 +952,24 @@ void WedgeManager::setOverrideTcvrToPortAndProfileForTest() {
   if (FLAGS_override_program_iphy_ports_for_test) {
     const auto& chips = platformMapping_->getChips();
     for (auto chip : chips) {
-      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
-      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
+      auto tcvrID = TransceiverID(*chip.second.physicalID());
       overrideTcvrToPortAndProfileForTest_[tcvrID] = {};
     }
     // Use Agent config to get the iphy port and profile
-    const auto& swConfig = agentConfig_->thrift.sw_ref();
-    for (const auto& port : *swConfig->ports_ref()) {
+    const auto& swConfig = agentConfig_->thrift.sw();
+    for (const auto& port : *swConfig->ports()) {
       // Only need ENABLED ports
-      if (*port.state_ref() != cfg::PortState::ENABLED) {
+      if (*port.state() != cfg::PortState::ENABLED) {
         continue;
       }
       // If the SW port has transceiver id, add it to
       // overrideTcvrToPortAndProfile
-      if (auto tcvrID = getTransceiverID(PortID(*port.logicalID_ref()))) {
+      if (auto tcvrID = getTransceiverID(PortID(*port.logicalID()))) {
         overrideTcvrToPortAndProfileForTest_[*tcvrID].emplace(
-            *port.logicalID_ref(), *port.profileID_ref());
+            *port.logicalID(), *port.profileID());
       }
     }
   }

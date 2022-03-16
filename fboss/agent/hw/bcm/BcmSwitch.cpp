@@ -652,7 +652,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     // Coldboot state can assume transceiver doesn't exist
     PlatformPortProfileConfigMatcher matcher{swPort->getProfileID(), portID};
     if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
-      swPort->setProfileConfig(*profileConfig->iphy_ref());
+      swPort->setProfileConfig(*profileConfig->iphy());
     } else {
       throw FbossError(
           "No port profile config found with matcher:", matcher.toString());
@@ -1611,8 +1611,8 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
 
         if (auto faultStatus = newPort->getIPhyLinkFaultStatus()) {
           XLOG(DBG1) << newPort->getName() << " Fault status on port " << id
-                     << " LocalFault: " << *(*faultStatus).localFault_ref()
-                     << ", RemoteFault: " << *(*faultStatus).remoteFault_ref();
+                     << " LocalFault: " << *(*faultStatus).localFault()
+                     << ", RemoteFault: " << *(*faultStatus).remoteFault();
           bcmPort->cacheFaultStatus(*faultStatus);
         }
       });
@@ -2437,8 +2437,8 @@ void BcmSwitch::linkscanCallback(
     BcmSwitch* hw = static_cast<BcmSwitch*>(unitObj->getCookie());
     bool up = info->linkstatus == BCM_PORT_LINK_STATUS_UP;
     phy::LinkFaultStatus linkFault;
-    linkFault.localFault_ref() = info->fault & BCM_PORT_FAULT_LOCAL;
-    linkFault.remoteFault_ref() = info->fault & BCM_PORT_FAULT_REMOTE;
+    linkFault.localFault() = info->fault & BCM_PORT_FAULT_LOCAL;
+    linkFault.remoteFault() = info->fault & BCM_PORT_FAULT_REMOTE;
 
     hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
         [hw, bcmPort, up, linkFault]() {
@@ -3142,17 +3142,16 @@ bool BcmSwitch::handleSflowPacket(BcmPacketT& bcmPacket) noexcept {
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto duration =
       duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch());
-  *info.timestamp_ref()->seconds_ref() =
+  *info.timestamp()->seconds() =
       duration_cast<std::chrono::seconds>(duration).count();
-  *info.timestamp_ref()->nanoseconds_ref() =
-      duration_cast<std::chrono::nanoseconds>(
-          duration % std::chrono::seconds(1))
-          .count();
-  *info.ingressSampled_ref() = ingressSample;
-  *info.egressSampled_ref() = egressSample;
-  info.srcPort_ref() = src_port;
-  info.dstPort_ref() = dest_port;
-  info.vlan_ref() = vlan;
+  *info.timestamp()->nanoseconds() = duration_cast<std::chrono::nanoseconds>(
+                                         duration % std::chrono::seconds(1))
+                                         .count();
+  *info.ingressSampled() = ingressSample;
+  *info.egressSampled() = egressSample;
+  info.srcPort() = src_port;
+  info.dstPort() = dest_port;
+  info.vlan() = vlan;
 
   auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt_len));
 
@@ -3162,16 +3161,15 @@ bool BcmSwitch::handleSflowPacket(BcmPacketT& bcmPacket) noexcept {
 
   {
     std::string packetData(pkt_data, pkt_data + snapLen);
-    *info.packetData_ref() = std::move(packetData);
+    *info.packetData() = std::move(packetData);
   }
 
   // Print it for debugging
-  XLOG(DBG6) << "sFlowSample: (" << *info.timestamp_ref()->seconds_ref() << ','
-             << *info.timestamp_ref()->nanoseconds_ref() << ','
-             << *info.ingressSampled_ref() << ',' << *info.egressSampled_ref()
-             << ',' << *info.srcPort_ref() << ',' << *info.dstPort_ref() << ','
-             << *info.vlan_ref() << ',' << info.packetData_ref()->length()
-             << ")\n";
+  XLOG(DBG6) << "sFlowSample: (" << *info.timestamp()->seconds() << ','
+             << *info.timestamp()->nanoseconds() << ','
+             << *info.ingressSampled() << ',' << *info.egressSampled() << ','
+             << *info.srcPort() << ',' << *info.dstPort() << ',' << *info.vlan()
+             << ',' << info.packetData()->length() << ")\n";
 
   sFlowExporterTable_->sendToAll(info);
 
@@ -3242,7 +3240,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
           user_data);
   auto [hw, l2Table] = *cookie;
-  *entry.mac_ref() = folly::sformat(
+  *entry.mac() = folly::sformat(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
       l2addr->mac[1],
@@ -3250,28 +3248,26 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       l2addr->mac[3],
       l2addr->mac[4],
       l2addr->mac[5]);
-  *entry.vlanID_ref() = l2addr->vid;
-  *entry.port_ref() = 0;
+  *entry.vlanID() = l2addr->vid;
+  *entry.port() = 0;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
-    entry.trunk_ref() = hw->getTrunkTable()->getAggregatePortId(l2addr->tgid);
-    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
-               << " Vid:" << *entry.vlanID_ref()
-               << " Trunk: " << entry.trunk_ref().value_or({});
+    entry.trunk() = hw->getTrunkTable()->getAggregatePortId(l2addr->tgid);
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac() << " Vid:" << *entry.vlanID()
+               << " Trunk: " << entry.trunk().value_or({});
   } else {
-    *entry.port_ref() = l2addr->port;
-    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
-               << " Vid:" << *entry.vlanID_ref()
-               << " Port: " << *entry.port_ref();
+    *entry.port() = l2addr->port;
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac() << " Vid:" << *entry.vlanID()
+               << " Port: " << *entry.port();
   }
 
-  *entry.l2EntryType_ref() = (l2addr->flags & BCM_L2_PENDING)
+  *entry.l2EntryType() = (l2addr->flags & BCM_L2_PENDING)
       ? L2EntryType::L2_ENTRY_TYPE_PENDING
       : L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 
   // If classID is not set, this field is set to 0 by default.
   // Set in L2EntryThrift only if set to non-default
   if (l2addr->group != 0) {
-    entry.classID_ref() = l2addr->group;
+    entry.classID() = l2addr->group;
   }
 
   l2Table->push_back(entry);

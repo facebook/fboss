@@ -579,8 +579,8 @@ TEST(ICMPTest, PacketTooBigV6) {
    * sender is on interface with MTU 9000
    * receiver is on interface with MTU 1500
    */
-  config.interfaces_ref()[0].mtu_ref() = 9000;
-  config.interfaces_ref()[1].mtu_ref() = 1500;
+  config.interfaces()[0].mtu() = 9000;
+  config.interfaces()[1].mtu() = 1500;
   auto handle = createTestHandle(&config);
   auto sw = handle->getSw();
 

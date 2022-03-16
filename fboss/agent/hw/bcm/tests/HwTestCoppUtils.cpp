@@ -54,8 +54,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // slow-protocols dst mac
   {
     cfg::AclEntry acl;
-    acl.name_ref() = "cpuPolicing-high-slow-protocols-mac";
-    acl.dstMac_ref() = LACPDU::kSlowProtocolsDstMac().toString();
+    acl.name() = "cpuPolicing-high-slow-protocols-mac";
+    acl.dstMac() = LACPDU::kSlowProtocolsDstMac().toString();
     acls.push_back(std::make_pair(
         acl,
         createQueueMatchAction(
@@ -67,9 +67,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     if (BCM_FIELD_QSET_TEST(
             getAclQset(hwAsic->getAsicType()), bcmFieldQualifyEtherType)) {
       cfg::AclEntry acl;
-      acl.name_ref() = "cpuPolicing-high-eapol";
-      acl.dstMac_ref() = "ff:ff:ff:ff:ff:ff";
-      acl.etherType_ref() = cfg::EtherType::EAPOL;
+      acl.name() = "cpuPolicing-high-eapol";
+      acl.dstMac() = "ff:ff:ff:ff:ff:ff";
+      acl.etherType() = cfg::EtherType::EAPOL;
       acls.push_back(std::make_pair(
           acl,
           createQueueMatchAction(
@@ -82,19 +82,19 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // to put locally destined traffic to these ports to hi-pri queue.
   auto addHighPriDstClassL3BgpAcl = [&](bool isV4, bool isSrcPort) {
     cfg::AclEntry acl;
-    acl.name_ref() = folly::to<std::string>(
+    acl.name() = folly::to<std::string>(
         "cpuPolicing-high-",
         isV4 ? "dstLocalIp4-" : "dstLocalIp6-",
         isSrcPort ? "srcPort:" : "dstPrt:",
         utility::kBgpPort);
-    acl.lookupClassNeighbor_ref() = isV4
+    acl.lookupClassNeighbor() = isV4
         ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
     if (isSrcPort) {
-      acl.l4SrcPort_ref() = utility::kBgpPort;
+      acl.l4SrcPort() = utility::kBgpPort;
     } else {
-      acl.l4DstPort_ref() = utility::kBgpPort;
+      acl.l4DstPort() = utility::kBgpPort;
     }
 
     acls.push_back(std::make_pair(
@@ -110,12 +110,12 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // Dst IP local + DSCP 48 to high pri queue
   auto addHigPriLocalIpNetworkControlAcl = [&](bool isV4) {
     cfg::AclEntry acl;
-    acl.name_ref() = folly::to<std::string>(
+    acl.name() = folly::to<std::string>(
         "cpuPolicing-high-",
         isV4 ? "dstLocalIp4" : "dstLocalIp6",
         "-network-control");
-    acl.dscp_ref() = 48;
-    acl.lookupClassNeighbor_ref() = isV4
+    acl.dscp() = 48;
+    acl.lookupClassNeighbor() = isV4
         ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
@@ -132,10 +132,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         cfg::AclEntry acl;
         auto dstNetworkStr =
             folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-        acl.name_ref() = folly::to<std::string>(
+        acl.name() = folly::to<std::string>(
             "cpuPolicing-high-", dstNetworkStr, "-network-control");
-        acl.dstIp_ref() = dstNetworkStr;
-        acl.dscp_ref() = 48;
+        acl.dstIp() = dstNetworkStr;
+        acl.dscp() = 48;
         acls.push_back(std::make_pair(
             acl,
             createQueueMatchAction(
@@ -150,8 +150,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     auto dstNetwork = kIPv6NdpSolicitNetwork();
     auto dstNetworkStr =
         folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-    acl.name_ref() = "cpuPolicing-high-ndp-solicit";
-    acl.dstIp_ref() = dstNetworkStr;
+    acl.name() = "cpuPolicing-high-ndp-solicit";
+    acl.dstIp() = dstNetworkStr;
     acls.push_back(std::make_pair(
         acl,
         createQueueMatchAction(
@@ -165,9 +165,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // go from more specific to less specific matches.
   auto addMidPriDstClassL3Acl = [&](bool isV4) {
     cfg::AclEntry acl;
-    acl.name_ref() = folly::to<std::string>(
+    acl.name() = folly::to<std::string>(
         "cpuPolicing-mid-", isV4 ? "dstLocalIp4" : "dstLocalIp6");
-    acl.lookupClassNeighbor_ref() = isV4
+    acl.lookupClassNeighbor() = isV4
         ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
         : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
 
@@ -191,8 +191,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     if (BCM_FIELD_QSET_TEST(
             getAclQset(hwAsic->getAsicType()), bcmFieldQualifyPacketRes)) {
       cfg::AclEntry acl;
-      acl.name_ref() = kMplsDestNoMatchAclName;
-      acl.packetLookupResult_ref() =
+      acl.name() = kMplsDestNoMatchAclName;
+      acl.packetLookupResult() =
           cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
       utility::addTrafficCounter(&config, kMplsDestNoMatchCounterName);
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
@@ -206,7 +206,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
           : utility::kCoppLowPriQueueId;
 #endif
       auto action = createQueueMatchAction(queue, getCpuActionType(hwAsic));
-      action.counter_ref() = kMplsDestNoMatchCounterName;
+      action.counter() = kMplsDestNoMatchCounterName;
       acls.push_back(std::make_pair(acl, action));
     }
   }
@@ -233,8 +233,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
           std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
   for (auto rxEntry : rxReasonToQueueMappings) {
     auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-    rxReasonToQueue.rxReason_ref() = rxEntry.first;
-    rxReasonToQueue.queueId_ref() = rxEntry.second;
+    rxReasonToQueue.rxReason() = rxEntry.first;
+    rxReasonToQueue.queueId() = rxEntry.second;
     rxReasonToQueues.push_back(rxReasonToQueue);
   }
   return rxReasonToQueues;
@@ -242,10 +242,10 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue) {
   // Set sharedBytes for Low and Default Pri-Queue
-  if (queue.id_ref() == kCoppLowPriQueueId) {
-    queue.sharedBytes_ref() = kCoppLowPriSharedBytes;
-  } else if (queue.id_ref() == kCoppDefaultPriQueueId) {
-    queue.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
+  if (queue.id() == kCoppLowPriQueueId) {
+    queue.sharedBytes() = kCoppLowPriSharedBytes;
+  } else if (queue.id() == kCoppDefaultPriQueueId) {
+    queue.sharedBytes() = kCoppDefaultPriSharedBytes;
   }
 }
 

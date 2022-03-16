@@ -21,19 +21,19 @@ namespace facebook::fboss {
 state::BufferPoolFields BufferPoolCfgFields::toThrift() const {
   state::BufferPoolFields bufferPool;
 
-  bufferPool.id_ref() = id;
-  bufferPool.sharedBytes_ref() = static_cast<int>(sharedBytes);
-  bufferPool.headroomBytes_ref() = static_cast<int>(headroomBytes);
+  bufferPool.id() = id;
+  bufferPool.sharedBytes() = static_cast<int>(sharedBytes);
+  bufferPool.headroomBytes() = static_cast<int>(headroomBytes);
   return bufferPool;
 }
 
 BufferPoolCfgFields BufferPoolCfgFields::fromThrift(
     state::BufferPoolFields const& bufferPoolConfig) {
   BufferPoolCfgFields bufferPool;
-  bufferPool.id = static_cast<std::string>(*bufferPoolConfig.id_ref());
+  bufferPool.id = static_cast<std::string>(*bufferPoolConfig.id());
 
-  bufferPool.sharedBytes = *bufferPoolConfig.sharedBytes_ref();
-  bufferPool.headroomBytes = *bufferPoolConfig.headroomBytes_ref();
+  bufferPool.sharedBytes = *bufferPoolConfig.sharedBytes();
+  bufferPool.headroomBytes = *bufferPoolConfig.headroomBytes();
   return bufferPool;
 }
 

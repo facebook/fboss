@@ -30,15 +30,15 @@ folly::dynamic LabelForwardingAction::toFollyDynamic() const {
 
 MplsAction LabelForwardingAction::toThrift() const {
   MplsAction mplsActionThrift;
-  *mplsActionThrift.action_ref() = type_;
+  *mplsActionThrift.action() = type_;
   if (swapWith_) {
-    mplsActionThrift.swapLabel_ref() = swapWith_.value();
+    mplsActionThrift.swapLabel() = swapWith_.value();
   } else if (pushStack_) {
     MplsLabelStack pushStack;
     for (const auto& label : pushStack_.value()) {
       pushStack.push_back(label);
     }
-    auto thriftPushStack = mplsActionThrift.pushLabels_ref();
+    auto thriftPushStack = mplsActionThrift.pushLabels();
     thriftPushStack = std::move(pushStack);
   }
   return mplsActionThrift;
@@ -46,14 +46,14 @@ MplsAction LabelForwardingAction::toThrift() const {
 
 LabelForwardingAction LabelForwardingAction::fromThrift(
     const MplsAction& mplsAction) {
-  if (mplsAction.swapLabel_ref()) {
+  if (mplsAction.swapLabel()) {
     return LabelForwardingAction(
-        *mplsAction.action_ref(), mplsAction.swapLabel_ref().value());
-  } else if (mplsAction.pushLabels_ref()) {
+        *mplsAction.action(), mplsAction.swapLabel().value());
+  } else if (mplsAction.pushLabels()) {
     return LabelForwardingAction(
-        *mplsAction.action_ref(), mplsAction.pushLabels_ref().value());
+        *mplsAction.action(), mplsAction.pushLabels().value());
   }
-  return LabelForwardingAction(*mplsAction.action_ref());
+  return LabelForwardingAction(*mplsAction.action());
 }
 
 LabelForwardingAction LabelForwardingAction::fromFollyDynamic(

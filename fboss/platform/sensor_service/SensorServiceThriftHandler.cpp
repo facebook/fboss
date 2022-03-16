@@ -20,7 +20,7 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
     std::unique_ptr<std::vector<std::string>> request) {
   auto log = LOG_THRIFT_CALL(DBG1);
 
-  response.timeStamp_ref() = helpers::nowInSecs();
+  response.timeStamp() = helpers::nowInSecs();
 
   // Request list is not empty
   if (!request->empty()) {
@@ -32,21 +32,21 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
           sensorService_->getSensorData(request->at(0));
       if (sensor) {
         SensorData sa;
-        sa.name_ref() = request->at(0);
-        sa.value_ref() = *sensor->value_ref();
-        sa.timeStamp_ref() = *sensor->timeStamp_ref();
+        sa.name() = request->at(0);
+        sa.value() = *sensor->value();
+        sa.timeStamp() = *sensor->timeStamp();
         v.push_back(sa);
       }
     } else {
       v = sensorService_->getSensorsData(*request);
     }
-    response.sensorData_ref() = v;
+    response.sensorData() = v;
 
   } else {
     // Request list is empty, we send all the sensor data
     std::vector<SensorData> sensorVec = sensorService_->getAllSensorData();
 
-    response.sensorData_ref() = sensorVec;
+    response.sensorData() = sensorVec;
   }
 }
 

@@ -495,23 +495,23 @@ TEST_F(QsfpModuleTest, readTransceiver) {
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
   EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
   TransceiverIOParameters param;
-  param.offset_ref() = 0;
+  param.offset() = 0;
   auto buf = qsfp_->readTransceiver(param);
   EXPECT_EQ(buf->length(), 1);
 
   // Test for a specific length
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
   EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
-  param.length_ref() = 10;
+  param.length() = 10;
   buf = qsfp_->readTransceiver(param);
-  EXPECT_EQ(buf->length(), *param.length_ref());
+  EXPECT_EQ(buf->length(), *param.length());
 
   // Set the page
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
   EXPECT_CALL(*transImpl_, readTransceiver(_, _)).Times(1);
-  param.page_ref() = 3;
+  param.page() = 3;
   buf = qsfp_->readTransceiver(param);
-  EXPECT_EQ(buf->length(), *param.length_ref());
+  EXPECT_EQ(buf->length(), *param.length());
 
   // Test on a transceiver that fails detection
   EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
@@ -525,12 +525,12 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
   // Expect a call to writeTransceiver and the result to be successful
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
   TransceiverIOParameters param;
-  param.offset_ref() = 0x23;
+  param.offset() = 0x23;
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xab), true);
 
   // Set the page
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
-  param.page_ref() = 3;
+  param.page() = 3;
   EXPECT_EQ(qsfp_->writeTransceiver(param, 0xde), true);
 
   // Test on a transceiver that fails detection, the result should be false

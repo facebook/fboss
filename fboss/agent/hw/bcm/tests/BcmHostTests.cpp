@@ -275,9 +275,9 @@ TEST_F(BcmHostTest, CreateInterfaceWithHostIp) {
   auto setup = [=]() {
     auto config = utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]);
-    config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/32";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::/128";
+    config.interfaces()[0].ipAddresses()->resize(2);
+    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/32";
+    config.interfaces()[0].ipAddresses()[1] = "1::/128";
     applyNewConfig(config);
   };
   auto verify = [=]() { checkSwHwBcmHostNum(2); };

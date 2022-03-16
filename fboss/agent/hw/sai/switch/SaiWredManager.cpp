@@ -51,10 +51,10 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
   for (const auto& [type, aqm] : queue.getAqms()) {
-    auto thresholds = (*aqm.detection_ref()).get_linear();
+    auto thresholds = (*aqm.detection()).get_linear();
     auto [minLen, maxLen] = std::make_pair(
-        *thresholds.minimumLength_ref(), *thresholds.maximumLength_ref());
-    auto probability = *thresholds.probability_ref();
+        *thresholds.minimumLength(), *thresholds.maximumLength());
+    auto probability = *thresholds.probability();
     switch (type) {
       case cfg::QueueCongestionBehavior::EARLY_DROP:
         std::get<Attributes::GreenEnable>(attrs) = true;

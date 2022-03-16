@@ -135,10 +135,8 @@ bcm_cosq_gport_discard_t cfgAqmToBcmAqm(
     discard.flags |= BCM_COSQ_DISCARD_ENABLE;
     switch (detection.value().getType()) {
       case cfg::QueueCongestionDetection::Type::linear:
-        discard.min_thresh =
-            *detection.value().get_linear().minimumLength_ref();
-        discard.max_thresh =
-            *detection.value().get_linear().maximumLength_ref();
+        discard.min_thresh = *detection.value().get_linear().minimumLength();
+        discard.max_thresh = *detection.value().get_linear().maximumLength();
         discard.drop_probability =
             detection.value().get_linear().get_probability();
         break;
@@ -147,10 +145,10 @@ bcm_cosq_gport_discard_t cfgAqmToBcmAqm(
         break;
     }
   } else {
-    auto defaultDetection = defaultAqm.detection_ref()->get_linear();
+    auto defaultDetection = defaultAqm.detection()->get_linear();
     // reset the threshold to default
-    discard.min_thresh = *defaultDetection.minimumLength_ref();
-    discard.max_thresh = *defaultDetection.maximumLength_ref();
+    discard.min_thresh = *defaultDetection.minimumLength();
+    discard.max_thresh = *defaultDetection.maximumLength();
   }
 
   return discard;
@@ -159,11 +157,11 @@ bcm_cosq_gport_discard_t cfgAqmToBcmAqm(
 std::optional<cfg::ActiveQueueManagement> bcmAqmToCfgAqm(
     const bcm_cosq_gport_discard_t& discard,
     const cfg::ActiveQueueManagement& defaultAqm) {
-  auto defaultDetection = defaultAqm.detection_ref()->get_linear();
+  auto defaultDetection = defaultAqm.detection()->get_linear();
   bool isMinThreshSet = discard.min_thresh &&
-      discard.min_thresh != *defaultDetection.minimumLength_ref();
+      discard.min_thresh != *defaultDetection.minimumLength();
   bool isMaxThreshSet = discard.max_thresh &&
-      discard.max_thresh != *defaultDetection.maximumLength_ref();
+      discard.max_thresh != *defaultDetection.maximumLength();
   // Profile isn't enabled or thresholds aren't set, skip this profile
   if (!(discard.flags & BCM_COSQ_DISCARD_ENABLE) ||
       !(isMinThreshSet && isMaxThreshSet)) {
@@ -174,12 +172,12 @@ std::optional<cfg::ActiveQueueManagement> bcmAqmToCfgAqm(
   cfg::QueueCongestionDetection detection;
   cfg::LinearQueueCongestionDetection linear;
   auto behavior = cfgQuenBehaviorFromBcmAqm(discard);
-  *linear.minimumLength_ref() = discard.min_thresh;
-  *linear.maximumLength_ref() = discard.max_thresh;
-  linear.probability_ref() = discard.drop_probability;
+  *linear.minimumLength() = discard.min_thresh;
+  *linear.maximumLength() = discard.max_thresh;
+  linear.probability() = discard.drop_probability;
   detection.linear_ref() = linear;
-  aqm.detection_ref() = detection;
-  aqm.behavior_ref() = behavior;
+  aqm.detection() = detection;
+  aqm.behavior() = behavior;
   return aqm;
 }
 

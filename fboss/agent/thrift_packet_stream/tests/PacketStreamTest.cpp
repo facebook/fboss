@@ -58,9 +58,9 @@ class DerivedPacketStreamClient : public PacketStreamClient {
   void recvPacket(TPacket&& packet) override {
     {
       std::lock_guard<std::mutex> gd(mutex_);
-      EXPECT_FALSE(g_ports.find(*packet.l2Port_ref()) == g_ports.end());
-      EXPECT_EQ(g_pktCnt, *packet.buf_ref());
-      pktCnt_[*packet.l2Port_ref()]++;
+      EXPECT_FALSE(g_ports.find(*packet.l2Port()) == g_ports.end());
+      EXPECT_EQ(g_pktCnt, *packet.buf());
+      pktCnt_[*packet.l2Port()]++;
     }
     if (baton_) {
       baton_->post();
@@ -134,8 +134,8 @@ class PacketStreamTest : public Test {
     EXPECT_TRUE(handler_->isClientConnected(g_client));
     EXPECT_TRUE(handler_->isPortRegistered(g_client, port));
     TPacket pkt;
-    *pkt.l2Port_ref() = port;
-    *pkt.buf_ref() = g_pktCnt;
+    *pkt.l2Port() = port;
+    *pkt.buf() = g_pktCnt;
     EXPECT_NO_THROW(handler_->send(g_client, std::move(pkt)));
   }
   std::shared_ptr<folly::Baton<>> baton_;
@@ -196,7 +196,7 @@ TEST_F(PacketStreamTest, UnregisterPortToServerFail) {
   EXPECT_TRUE(handler_->isClientConnected(g_client));
   EXPECT_FALSE(handler_->isPortRegistered(g_client, port));
   TPacket pkt;
-  *pkt.l2Port_ref() = port;
+  *pkt.l2Port() = port;
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   clientReset(std::move(streamClient));
 }
@@ -231,7 +231,7 @@ TEST_F(PacketStreamTest, clearPortFromServerSendFail) {
 
   EXPECT_NO_THROW(streamClient->clearPortFromServer(port));
   TPacket pkt;
-  *pkt.l2Port_ref() = port;
+  *pkt.l2Port() = port;
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), std::exception);
   EXPECT_FALSE(handler_->isPortRegistered(g_client, port));
   clientReset(std::move(streamClient));
@@ -308,8 +308,8 @@ TEST_F(PacketStreamTest, PacketSendMultiPortclearPortFromServer) {
   size_t count = 0;
   for (auto& port : g_ports) {
     TPacket pkt;
-    *pkt.l2Port_ref() = port;
-    *pkt.buf_ref() = g_pktCnt;
+    *pkt.l2Port() = port;
+    *pkt.buf() = g_pktCnt;
     EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   }
   count = streamClient->validatePctCnt(100);
@@ -368,10 +368,10 @@ TEST_F(PacketStreamTest, clearPortFromServerTest) {
 
 TEST_F(PacketStreamTest, SendHandlerFailTest) {
   TPacket pkt;
-  *pkt.l2Port_ref() = "testRandom";
+  *pkt.l2Port() = "testRandom";
   EXPECT_THROW(handler_->send("test123", std::move(pkt)), TPacketException);
   TPacket newpkt;
-  *newpkt.l2Port_ref() = "testRandom";
+  *newpkt.l2Port() = "testRandom";
   std::string port(*g_ports.begin());
   auto baton = std::make_shared<folly::Baton<>>();
   auto streamClient = std::make_unique<DerivedPacketStreamClient>(
@@ -457,8 +457,8 @@ TEST_F(PacketStreamTest, ServerSendClientDisconnected) {
   EXPECT_TRUE(handler_->isPortRegistered(g_client, port));
   streamClient.reset();
   TPacket pkt;
-  *pkt.l2Port_ref() = port;
-  *pkt.buf_ref() = g_pktCnt;
+  *pkt.l2Port() = port;
+  *pkt.buf() = g_pktCnt;
   EXPECT_THROW(handler_->send(g_client, std::move(pkt)), TPacketException);
   clientReset(std::move(streamClient));
 }

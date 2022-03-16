@@ -106,7 +106,7 @@ class HwRouteCounterOverflowTest : public HwOverflowTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = HwOverflowTest::initialConfig();
-    cfg.switchSettings_ref()->maxRouteCounterIDs_ref() = 1;
+    cfg.switchSettings()->maxRouteCounterIDs() = 1;
     return cfg;
   }
 };

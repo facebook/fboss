@@ -244,9 +244,9 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV4>();
 
     cfg::Fields v4EcmpHashFields;
-    v4EcmpHashFields.ipv4Fields_ref()->insert(
+    v4EcmpHashFields.ipv4Fields()->insert(
         newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
-    v4EcmpHashFields.transportFields_ref()->insert(
+    v4EcmpHashFields.transportFields()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
 
@@ -260,9 +260,9 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
         getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV6>();
 
     cfg::Fields v6EcmpHashFields;
-    v6EcmpHashFields.ipv6Fields_ref()->insert(
+    v6EcmpHashFields.ipv6Fields()->insert(
         newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
-    v6EcmpHashFields.transportFields_ref()->insert(
+    v6EcmpHashFields.transportFields()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
 
@@ -298,9 +298,9 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
   if (newLb->getIPv4Fields().size()) {
     // v4 LAG
     cfg::Fields v4LagHashFields;
-    v4LagHashFields.ipv4Fields_ref()->insert(
+    v4LagHashFields.ipv4Fields()->insert(
         newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
-    v4LagHashFields.transportFields_ref()->insert(
+    v4LagHashFields.transportFields()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     lagV4Hash_ = managerTable_->hashManager().getOrCreate(v4LagHashFields);
     // Set the new lag v4 hash attribute on switch obj
@@ -310,9 +310,9 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
   if (newLb->getIPv6Fields().size()) {
     // v6 LAG
     cfg::Fields v6LagHashFields;
-    v6LagHashFields.ipv6Fields_ref()->insert(
+    v6LagHashFields.ipv6Fields()->insert(
         newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
-    v6LagHashFields.transportFields_ref()->insert(
+    v6LagHashFields.transportFields()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     lagV6Hash_ = managerTable_->hashManager().getOrCreate(v6LagHashFields);
     // Set the new lag v6 hash attribute on switch obj

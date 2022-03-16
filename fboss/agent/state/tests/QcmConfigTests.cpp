@@ -24,20 +24,20 @@ TEST(QcmConfigTest, applyConfig) {
   cfg::SwitchConfig config;
   // make any random change, so that new state can be created
   // ensure that qcm is not configured
-  config.qosPolicies_ref()->resize(1);
-  auto& policy = config.qosPolicies_ref()[0];
-  *policy.name_ref() = "qosPolicy";
+  config.qosPolicies()->resize(1);
+  auto& policy = config.qosPolicies()[0];
+  *policy.name() = "qosPolicy";
   auto state0 = publishAndApplyConfig(state, &config, platform.get());
   EXPECT_EQ(state0->getQcmCfg(), nullptr);
 
   cfg::QcmConfig qcmCfg;
-  *qcmCfg.numFlowsClear_ref() = 22;
-  *qcmCfg.collectorDstIp_ref() = "10.10.10.10/32";
-  *qcmCfg.collectorSrcIp_ref() = "11.11.11.11/24";
-  qcmCfg.port2QosQueueIds_ref()[1] = {0, 1, 2};
-  qcmCfg.port2QosQueueIds_ref()[2] = {3, 4, 5};
+  *qcmCfg.numFlowsClear() = 22;
+  *qcmCfg.collectorDstIp() = "10.10.10.10/32";
+  *qcmCfg.collectorSrcIp() = "11.11.11.11/24";
+  qcmCfg.port2QosQueueIds()[1] = {0, 1, 2};
+  qcmCfg.port2QosQueueIds()[2] = {3, 4, 5};
 
-  config.qcmConfig_ref() = qcmCfg;
+  config.qcmConfig() = qcmCfg;
   auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   EXPECT_NE(nullptr, state1);
   auto qcmConfig1 = state1->getQcmCfg();
@@ -74,21 +74,21 @@ TEST(QcmConfigTest, applyConfig) {
 
   // re-program the map
   map.emplace(1, 9);
-  qcmCfg.flowWeights_ref()[cfg::BurstMonitorWeight::FLOW_SUM_RX_BYTES] = 9;
-  *qcmCfg.numFlowSamplesPerView_ref() = 11;
-  *qcmCfg.flowLimit_ref() = 13;
-  *qcmCfg.exportThreshold_ref() = 20;
-  *qcmCfg.agingIntervalInMsecs_ref() = 21;
-  *qcmCfg.monitorQcmPortList_ref() = {102, 103, 104, 105};
-  *qcmCfg.port2QosQueueIds_ref() = {};
-  qcmCfg.port2QosQueueIds_ref()[3] = {6, 7};
+  qcmCfg.flowWeights()[cfg::BurstMonitorWeight::FLOW_SUM_RX_BYTES] = 9;
+  *qcmCfg.numFlowSamplesPerView() = 11;
+  *qcmCfg.flowLimit() = 13;
+  *qcmCfg.exportThreshold() = 20;
+  *qcmCfg.agingIntervalInMsecs() = 21;
+  *qcmCfg.monitorQcmPortList() = {102, 103, 104, 105};
+  *qcmCfg.port2QosQueueIds() = {};
+  qcmCfg.port2QosQueueIds()[3] = {6, 7};
   int collectorDscp = 20;
-  qcmCfg.collectorDscp_ref() = collectorDscp;
+  qcmCfg.collectorDscp() = collectorDscp;
   int ppsToQcm = 1000;
-  qcmCfg.ppsToQcm_ref() = ppsToQcm;
-  qcmCfg.monitorQcmCfgPortsOnly_ref() = true;
+  qcmCfg.ppsToQcm() = ppsToQcm;
+  qcmCfg.monitorQcmCfgPortsOnly() = true;
 
-  config.qcmConfig_ref() = qcmCfg;
+  config.qcmConfig() = qcmCfg;
   auto state2 = publishAndApplyConfig(state1, &config, platform.get());
   EXPECT_NE(nullptr, state2);
   auto qcmConfig2 = state2->getQcmCfg();
@@ -113,7 +113,7 @@ TEST(QcmConfigTest, applyConfig) {
   }
 
   // remove the cfg
-  config.qcmConfig_ref().reset();
+  config.qcmConfig().reset();
   auto state3 = publishAndApplyConfig(state2, &config, platform.get());
   EXPECT_NE(nullptr, state3);
   EXPECT_FALSE(state3->getQcmCfg());
@@ -211,18 +211,17 @@ TEST(QcmConfigTest, verifyQcmWithSwitchSettingsChange) {
   // apply QCM config
   cfg::SwitchConfig config;
   cfg::QcmConfig qcmCfg;
-  qcmCfg.numFlowsClear_ref() = 22;
-  qcmCfg.collectorDstIp_ref() = "10.10.10.10/32";
-  qcmCfg.collectorSrcIp_ref() = "11.11.11.11/24";
-  config.qcmConfig_ref() = qcmCfg;
+  qcmCfg.numFlowsClear() = 22;
+  qcmCfg.collectorDstIp() = "10.10.10.10/32";
+  qcmCfg.collectorSrcIp() = "11.11.11.11/24";
+  config.qcmConfig() = qcmCfg;
   auto state0 = publishAndApplyConfig(state, &config, platform.get());
 
   // verify state is valid
   EXPECT_NE(nullptr, state0);
 
   // Toggle switch setting for l2 learn
-  config.switchSettings_ref()->l2LearningMode_ref() =
-      cfg::L2LearningMode::SOFTWARE;
+  config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   EXPECT_NE(nullptr, state1);
 

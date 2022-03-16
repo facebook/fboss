@@ -57,8 +57,8 @@ TEST_F(CredoMacsecUtilTest, getMacsecSaFromJsonTest) {
   CredoMacsecUtil macsec;
   bool rc = macsec.getMacsecSaFromJson(jsonTestFile, sak);
   ASSERT_EQ(rc, true);
-  ASSERT_EQ(sak.sci_ref()->get_macAddress(), "2c-54-91-88-c9-e3");
-  ASSERT_EQ(sak.sci_ref()->get_port(), 1);
+  ASSERT_EQ(sak.sci()->get_macAddress(), "2c-54-91-88-c9-e3");
+  ASSERT_EQ(sak.sci()->get_port(), 1);
   ASSERT_EQ(sak.get_l2Port(), "2");
   ASSERT_EQ(sak.get_assocNum(), 4);
   ASSERT_EQ(sak.get_keyHex(), "0xA");

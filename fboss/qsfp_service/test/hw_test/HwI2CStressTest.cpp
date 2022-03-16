@@ -29,11 +29,11 @@ TEST_F(HwTest, i2cStressRead) {
   std::map<int32_t, ReadResponse> previousResponse;
 
   ReadRequest request;
-  request.ids_ref() = transceivers;
+  request.ids() = transceivers;
   TransceiverIOParameters params;
-  params.offset_ref() =
+  params.offset() =
       0; // Identifier Byte 0 in all transceivers remains constant across reads
-  request.parameter_ref() = params;
+  request.parameter() = params;
 
   for (auto iteration = 1; iteration <= kI2cStressTestIterations; iteration++) {
     std::unique_ptr<ReadRequest> readRequest =
@@ -50,7 +50,7 @@ TEST_F(HwTest, i2cStressRead) {
       // transceiversInfo
       EXPECT_TRUE(currentResponse.find(tcvrId) != currentResponse.end());
       auto curr = currentResponse[tcvrId];
-      EXPECT_TRUE(*curr.valid_ref())
+      EXPECT_TRUE(*curr.valid())
           << "Invalid response on transceiver " << tcvrId;
       if (!curr.get_valid()) {
         // Don't access data if it's not valid.
@@ -58,14 +58,13 @@ TEST_F(HwTest, i2cStressRead) {
       }
 
       TransceiverModuleIdentifier identifier =
-          static_cast<TransceiverModuleIdentifier>(*(curr.data_ref()->data()));
-      EXPECT_EQ(
-          identifier, transceiversInfo[tcvrId].identifier_ref().value_or({}));
+          static_cast<TransceiverModuleIdentifier>(*(curr.data()->data()));
+      EXPECT_EQ(identifier, transceiversInfo[tcvrId].identifier().value_or({}));
       EXPECT_TRUE(identifier != TransceiverModuleIdentifier::UNKNOWN);
       if (iteration != 1) {
         auto prev = previousResponse[tcvrId];
         if (prev.get_valid()) {
-          EXPECT_EQ(*(prev.data_ref()->data()), *(curr.data_ref()->data()));
+          EXPECT_EQ(*(prev.data()->data()), *(curr.data()->data()));
         }
       }
     }
@@ -88,8 +87,7 @@ TEST_F(HwTest, i2cStressWrite) {
       folly::gen::from(transceivers) |
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
         auto tcvrInfo = transceiversInfo[tcvrId];
-        auto transmitterTech =
-            tcvrInfo.cable_ref().value_or({}).transmitterTech_ref();
+        auto transmitterTech = tcvrInfo.cable().value_or({}).transmitterTech();
         return transmitterTech == TransmitterTechnology::OPTICAL;
       }) |
       folly::gen::as<std::vector>();
@@ -97,15 +95,15 @@ TEST_F(HwTest, i2cStressWrite) {
   EXPECT_TRUE(!opticalTransceivers.empty());
 
   WriteRequest request;
-  request.ids_ref() = opticalTransceivers;
+  request.ids() = opticalTransceivers;
   TransceiverIOParameters params;
   // We can write to byte 123 which is password entry page register in both sff
   // and cmis
   // SFF: Password entry area = 123-126
   // CMIS: Password entry area = 122-125
-  params.offset_ref() = 123;
-  request.parameter_ref() = params;
-  request.data_ref() = 0;
+  params.offset() = 123;
+  request.parameter() = params;
+  request.data() = 0;
 
   for (auto iteration = 1; iteration <= kI2cStressTestIterations; iteration++) {
     std::unique_ptr<WriteRequest> writeRequest =
@@ -117,7 +115,7 @@ TEST_F(HwTest, i2cStressWrite) {
       // Assert that the write operation was successful
       EXPECT_TRUE(currentResponse.find(tcvrId) != currentResponse.end());
       auto curr = currentResponse[tcvrId];
-      EXPECT_TRUE(*curr.success_ref());
+      EXPECT_TRUE(*curr.success());
     }
   }
 }

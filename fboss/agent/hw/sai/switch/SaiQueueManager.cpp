@@ -30,25 +30,25 @@ void fillHwQueueStats(
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_QUEUE_STAT_PACKETS:
-        hwPortStats.queueOutPackets__ref()[queueId] = value;
+        hwPortStats.queueOutPackets_()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_BYTES:
-        hwPortStats.queueOutBytes__ref()[queueId] = value;
+        hwPortStats.queueOutBytes_()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_DROPPED_BYTES:
-        hwPortStats.queueOutDiscardBytes__ref()[queueId] = value;
+        hwPortStats.queueOutDiscardBytes_()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_DROPPED_PACKETS:
-        hwPortStats.queueOutDiscardPackets__ref()[queueId] = value;
+        hwPortStats.queueOutDiscardPackets_()[queueId] = value;
         /*
          * Out congestion packets on a port is a sum of all queue
          * out discards on a port
          */
-        hwPortStats.outCongestionDiscardPkts__ref() =
-            *hwPortStats.outCongestionDiscardPkts__ref() + value;
+        hwPortStats.outCongestionDiscardPkts_() =
+            *hwPortStats.outCongestionDiscardPkts_() + value;
         break;
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
-        hwPortStats.queueWatermarkBytes__ref()[queueId] = value;
+        hwPortStats.queueWatermarkBytes_()[queueId] = value;
         break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
@@ -214,7 +214,7 @@ void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats,
     bool updateWatermarks) {
-  hwPortStats.outCongestionDiscardPkts__ref() = 0;
+  hwPortStats.outCongestionDiscardPkts_() = 0;
   static std::vector<sai_stat_id_t> nonWatermarkStatsRead(
       SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToRead.end());

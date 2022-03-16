@@ -31,7 +31,7 @@ HwAsic* SaiLassenPlatform::getAsic() const {
 }
 
 std::string SaiLassenPlatform::getHwConfig() {
-  return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 SaiLassenPlatform::~SaiLassenPlatform() {}

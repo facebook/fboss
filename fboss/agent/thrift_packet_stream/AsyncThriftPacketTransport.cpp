@@ -13,8 +13,8 @@ ssize_t AsyncThriftPacketTransport::send(
     return 0;
   }
   TPacket packet;
-  *packet.l2Port_ref() = iface();
-  *packet.buf_ref() = buf->moveToFbString().toStdString();
+  *packet.l2Port() = iface();
+  *packet.buf() = buf->moveToFbString().toStdString();
   if (auto serverSharedPtr = server_.lock()) {
     return serverSharedPtr->send(std::move(packet));
   }

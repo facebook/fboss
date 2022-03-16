@@ -58,9 +58,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     std::map<PortID, HwPortStats> delta;
     for (auto& [portId, beforeStats] : before) {
       // We only care out out bytes for this test
-      delta[portId].outBytes__ref() =
-          *after.find(portId)->second.outBytes__ref() -
-          *beforeStats.outBytes__ref();
+      delta[portId].outBytes_() =
+          *after.find(portId)->second.outBytes_() - *beforeStats.outBytes_();
     }
     return delta;
   }
@@ -193,15 +192,15 @@ TEST_F(HwHashPolarizationTests, fullXfullHash) {
 
 TEST_F(HwHashPolarizationTests, fullXHalfHash) {
   auto firstHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
-  firstHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
-  firstHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("fe:bd:67:0e:09:db"));
 
   auto secondHashes = utility::getEcmpHalfTrunkFullHashConfig(getPlatform());
-  secondHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
-  secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
 
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
@@ -210,14 +209,14 @@ TEST_F(HwHashPolarizationTests, fullXHalfHash) {
 TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   // Setup 2 identical hashes with only the seed changed
   auto firstHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
-  firstHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
-  firstHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("fe:bd:67:0e:09:db"));
   auto secondHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
-  secondHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
-  secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+  secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
 }
@@ -244,9 +243,9 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
     auto verify = [=]() {
       auto secondHashes =
           utility::getEcmpFullTrunkFullHashConfig(getPlatform());
-      secondHashes[0].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
           LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
-      secondHashes[1].seed_ref() = getHwSwitch()->generateDeterministicSeed(
+      secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
           LoadBalancerID::AGGREGATE_PORT,
           folly::MacAddress("9a:5d:82:09:3a:d9"));
       auto frames = getFullHashedPackets(type, sai);

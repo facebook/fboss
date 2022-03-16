@@ -41,8 +41,8 @@ const MacsecShortSecureChannelId kTestSsci =
 
 mka::MKASci makeSci(std::string mac, PortID portId) {
   mka::MKASci sci;
-  sci.macAddress_ref() = mac;
-  sci.port_ref() = portId;
+  sci.macAddress() = mac;
+  sci.port() = portId;
   return sci;
 }
 
@@ -53,18 +53,18 @@ mka::MKASak makeSak(
     std::string keyIdHex,
     int assocNum) {
   mka::MKASak sak;
-  sak.sci_ref() = sci;
-  sak.l2Port_ref() = folly::to<std::string>(portId);
-  sak.keyHex_ref() = keyHex;
-  sak.keyIdHex_ref() = keyIdHex;
-  sak.assocNum_ref() = assocNum;
+  sak.sci() = sci;
+  sak.l2Port() = folly::to<std::string>(portId);
+  sak.keyHex() = keyHex;
+  sak.keyIdHex() = keyIdHex;
+  sak.assocNum() = assocNum;
   return sak;
 }
 
 // TODO(ccpowers): Split this back into a utility class
 MacsecSecureChannelId packSci(mka::MKASci& sci) {
-  auto mac = folly::MacAddress(*sci.macAddress_ref());
-  return MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+  auto mac = folly::MacAddress(*sci.macAddress());
+  return MacsecSecureChannelId(mac.u64NBO() | *sci.port());
 }
 } // namespace
 
@@ -105,12 +105,12 @@ class MacsecManagerTest : public ManagerTestBase {
         1);
 
     std::copy(
-        rxSak1.keyHex_ref()->begin(),
-        rxSak1.keyHex_ref()->end(),
+        rxSak1.keyHex()->begin(),
+        rxSak1.keyHex()->end(),
         rxSecureAssocKey.data());
     std::copy(
-        rxSak1.keyIdHex_ref()->begin(),
-        rxSak1.keyIdHex_ref()->end(),
+        rxSak1.keyIdHex()->begin(),
+        rxSak1.keyIdHex()->end(),
         rxSecureAssocAuthKey.data());
   }
 
@@ -416,7 +416,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureAssoc) {
       swPort->getID(),
       packSci(remoteSci),
       SAI_MACSEC_DIRECTION_INGRESS,
-      *rxSak1.assocNum_ref(),
+      *rxSak1.assocNum(),
       rxSecureAssocKey,
       kTestSalt,
       rxSecureAssocAuthKey,
@@ -427,7 +427,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureAssoc) {
           swPort->getID(),
           packSci(remoteSci),
           SAI_MACSEC_DIRECTION_INGRESS,
-          *rxSak1.assocNum_ref());
+          *rxSak1.assocNum());
 
   CHECK_NE(secureAssocHandle, nullptr);
 }
@@ -446,7 +446,7 @@ TEST_F(MacsecManagerTest, addMacsecSecureAssocForNonexistentSecureChannel) {
           swPort->getID(),
           packSci(remoteSci),
           SAI_MACSEC_DIRECTION_INGRESS,
-          *rxSak1.assocNum_ref(),
+          *rxSak1.assocNum(),
           rxSecureAssocKey,
           kTestSalt,
           rxSecureAssocAuthKey,
@@ -471,7 +471,7 @@ TEST_F(MacsecManagerTest, addDuplicateMacsecSecureAssoc) {
       swPort->getID(),
       packSci(remoteSci),
       SAI_MACSEC_DIRECTION_INGRESS,
-      *rxSak1.assocNum_ref(),
+      *rxSak1.assocNum(),
       rxSecureAssocKey,
       kTestSalt,
       rxSecureAssocAuthKey,
@@ -482,7 +482,7 @@ TEST_F(MacsecManagerTest, addDuplicateMacsecSecureAssoc) {
           swPort->getID(),
           packSci(remoteSci),
           SAI_MACSEC_DIRECTION_INGRESS,
-          *rxSak1.assocNum_ref(),
+          *rxSak1.assocNum(),
           rxSecureAssocKey,
           kTestSalt,
           rxSecureAssocAuthKey,
@@ -507,7 +507,7 @@ TEST_F(MacsecManagerTest, removeMacsecSecureAssoc) {
       swPort->getID(),
       packSci(remoteSci),
       SAI_MACSEC_DIRECTION_INGRESS,
-      *rxSak1.assocNum_ref(),
+      *rxSak1.assocNum(),
       rxSecureAssocKey,
       kTestSalt,
       rxSecureAssocAuthKey,
@@ -518,7 +518,7 @@ TEST_F(MacsecManagerTest, removeMacsecSecureAssoc) {
           swPort->getID(),
           packSci(remoteSci),
           SAI_MACSEC_DIRECTION_INGRESS,
-          *rxSak1.assocNum_ref());
+          *rxSak1.assocNum());
 
   CHECK_NE(secureAssocHandle, nullptr);
 
@@ -526,13 +526,13 @@ TEST_F(MacsecManagerTest, removeMacsecSecureAssoc) {
       swPort->getID(),
       packSci(remoteSci),
       SAI_MACSEC_DIRECTION_INGRESS,
-      *rxSak1.assocNum_ref());
+      *rxSak1.assocNum());
 
   secureAssocHandle = saiManagerTable->macsecManager().getMacsecSecureAssoc(
       swPort->getID(),
       packSci(remoteSci),
       SAI_MACSEC_DIRECTION_INGRESS,
-      *rxSak1.assocNum_ref());
+      *rxSak1.assocNum());
 
   CHECK_EQ(secureAssocHandle, nullptr);
 }
@@ -543,7 +543,7 @@ TEST_F(MacsecManagerTest, removeNonexistentMacsecSecureAssoc) {
           PortID(p0.id),
           packSci(remoteSci),
           SAI_MACSEC_DIRECTION_INGRESS,
-          *rxSak1.assocNum_ref()),
+          *rxSak1.assocNum()),
       FbossError);
 }
 
@@ -569,7 +569,7 @@ TEST_F(MacsecManagerTest, installKeys) {
 
   // Install TX
   saiManagerTable->macsecManager().setupMacsec(
-      swPort->getID(), txSak1, *txSak1.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+      swPort->getID(), txSak1, *txSak1.sci(), SAI_MACSEC_DIRECTION_EGRESS);
 
   auto verify = [this](
                     auto direction,
@@ -615,12 +615,12 @@ TEST_F(MacsecManagerTest, installKeys) {
       SAI_MACSEC_DIRECTION_INGRESS,
       swPort->getID(),
       packSci(remoteSci),
-      *rxSak1.assocNum_ref());
+      *rxSak1.assocNum());
   verify(
       SAI_MACSEC_DIRECTION_EGRESS,
       swPort->getID(),
       packSci(localSci),
-      *txSak1.assocNum_ref());
+      *txSak1.assocNum());
 }
 
 TEST_F(MacsecManagerTest, deleteNonexistentKeys) {
@@ -636,10 +636,7 @@ TEST_F(MacsecManagerTest, deleteNonexistentKeys) {
   // delete TX
   EXPECT_THROW(
       saiManagerTable->macsecManager().deleteMacsec(
-          swPort->getID(),
-          txSak1,
-          *txSak1.sci_ref(),
-          SAI_MACSEC_DIRECTION_EGRESS),
+          swPort->getID(), txSak1, *txSak1.sci(), SAI_MACSEC_DIRECTION_EGRESS),
       FbossError);
 }
 
@@ -653,7 +650,7 @@ TEST_F(MacsecManagerTest, deleteKeysWithOneSecureAssoc) {
 
   // Install TX
   saiManagerTable->macsecManager().setupMacsec(
-      swPort->getID(), txSak1, *txSak1.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+      swPort->getID(), txSak1, *txSak1.sci(), SAI_MACSEC_DIRECTION_EGRESS);
 
   // delete RX
   saiManagerTable->macsecManager().deleteMacsec(
@@ -665,12 +662,10 @@ TEST_F(MacsecManagerTest, deleteKeysWithOneSecureAssoc) {
 
   // delete TX
   saiManagerTable->macsecManager().deleteMacsec(
-      swPort->getID(), txSak1, *txSak1.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+      swPort->getID(), txSak1, *txSak1.sci(), SAI_MACSEC_DIRECTION_EGRESS);
   auto txChannel =
       saiManagerTable->macsecManager().getMacsecSecureChannelHandle(
-          swPort->getID(),
-          packSci(*txSak1.sci_ref()),
-          SAI_MACSEC_DIRECTION_EGRESS);
+          swPort->getID(), packSci(*txSak1.sci()), SAI_MACSEC_DIRECTION_EGRESS);
   EXPECT_EQ(txChannel, nullptr);
 }
 

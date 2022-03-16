@@ -57,18 +57,18 @@ class BcmMmuTests : public BcmTest {
     std::vector<cfg::PortQueue> cpuQueues;
 
     utility::addCpuQueueConfig(cfg, this->getAsic());
-    for (auto cpuQueue : *cfg_.cpuQueues_ref()) {
-      if (*cpuQueue.id_ref() == utility::kCoppLowPriQueueId ||
-          *cpuQueue.id_ref() == utility::kCoppMidPriQueueId ||
-          *cpuQueue.id_ref() == utility::kCoppDefaultPriQueueId) {
-        cpuQueue.reservedBytes_ref() = reservedBytes;
-      } else if (*cpuQueue.id_ref() == highPriorityCpuQueue) {
-        cpuQueue.reservedBytes_ref() = kHighPriCpuQueueCells * mmuBytesPerCell;
+    for (auto cpuQueue : *cfg_.cpuQueues()) {
+      if (*cpuQueue.id() == utility::kCoppLowPriQueueId ||
+          *cpuQueue.id() == utility::kCoppMidPriQueueId ||
+          *cpuQueue.id() == utility::kCoppDefaultPriQueueId) {
+        cpuQueue.reservedBytes() = reservedBytes;
+      } else if (*cpuQueue.id() == highPriorityCpuQueue) {
+        cpuQueue.reservedBytes() = kHighPriCpuQueueCells * mmuBytesPerCell;
       }
       cpuQueues.push_back(cpuQueue);
     }
     // update the cpu queues based on new values
-    cfg.cpuQueues_ref() = cpuQueues;
+    cfg.cpuQueues() = cpuQueues;
   }
 
   // Basic config with 2 L3 interface config
@@ -125,7 +125,7 @@ class BcmMmuTests : public BcmTest {
         } else {
           downlinkPorts.emplace_back(static_cast<PortID>(port));
           if (downlinkCount >= 2) {
-            portCfg->state_ref() = cfg::PortState::DISABLED;
+            portCfg->state() = cfg::PortState::DISABLED;
           }
           downlinkCount++;
         }

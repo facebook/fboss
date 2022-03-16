@@ -26,28 +26,28 @@ std::vector<facebook::fboss::NdpEntryThrift> createNdpEntries() {
   network::thrift::BinaryAddress binaryAddr1 =
       facebook::network::toBinaryAddress(ipv6_1);
 
-  ndpEntry1.ip_ref() = binaryAddr1;
-  ndpEntry1.mac_ref() = "50:6b:4b:28:8f:b0";
-  ndpEntry1.port_ref() = 46;
-  ndpEntry1.vlanName_ref() = "downlinks";
-  ndpEntry1.vlanID_ref() = 2000;
-  ndpEntry1.state_ref() = "REACHABLE";
-  ndpEntry1.ttl_ref() = 45013;
-  ndpEntry1.classID_ref() = 0;
+  ndpEntry1.ip() = binaryAddr1;
+  ndpEntry1.mac() = "50:6b:4b:28:8f:b0";
+  ndpEntry1.port() = 46;
+  ndpEntry1.vlanName() = "downlinks";
+  ndpEntry1.vlanID() = 2000;
+  ndpEntry1.state() = "REACHABLE";
+  ndpEntry1.ttl() = 45013;
+  ndpEntry1.classID() = 0;
 
   fboss::NdpEntryThrift ndpEntry2;
   folly::IPAddressV6 ipv6_2("fe80::464c:a8ff:fee4:1c3f");
   network::thrift::BinaryAddress binaryAddr2 =
       facebook::network::toBinaryAddress(ipv6_2);
 
-  ndpEntry2.ip_ref() = binaryAddr2;
-  ndpEntry2.mac_ref() = "44:4c:a8:e4:1c:3f";
-  ndpEntry2.port_ref() = 102;
-  ndpEntry2.vlanName_ref() = "uplink_1";
-  ndpEntry2.vlanID_ref() = 4001;
-  ndpEntry2.state_ref() = "REACHABLE";
-  ndpEntry2.ttl_ref() = 21045;
-  ndpEntry2.classID_ref() = 0;
+  ndpEntry2.ip() = binaryAddr2;
+  ndpEntry2.mac() = "44:4c:a8:e4:1c:3f";
+  ndpEntry2.port() = 102;
+  ndpEntry2.vlanName() = "uplink_1";
+  ndpEntry2.vlanID() = 4001;
+  ndpEntry2.state() = "REACHABLE";
+  ndpEntry2.ttl() = 21045;
+  ndpEntry2.classID() = 0;
 
   std::vector<fboss::NdpEntryThrift> entries{ndpEntry1, ndpEntry2};
   return entries;
@@ -57,12 +57,12 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createPortThriftEntries() {
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
 
   PortInfoThrift portEntry1;
-  portEntry1.portId_ref() = 46;
-  portEntry1.name_ref() = "eth1/1/1";
+  portEntry1.portId() = 46;
+  portEntry1.name() = "eth1/1/1";
 
   PortInfoThrift portEntry2;
-  portEntry2.portId_ref() = 102;
-  portEntry2.name_ref() = "eth2/1/1";
+  portEntry2.portId() = 102;
+  portEntry2.name() = "eth2/1/1";
 
   portEntries[portEntry1.get_portId()] = portEntry1;
   portEntries[portEntry2.get_portId()] = portEntry2;

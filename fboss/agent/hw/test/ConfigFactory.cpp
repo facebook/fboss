@@ -39,20 +39,20 @@ void removePort(
     PortID port,
     bool supportsAddRemovePort) {
   auto cfgPort = findCfgPortIf(config, port);
-  if (cfgPort == config.ports_ref()->end()) {
+  if (cfgPort == config.ports()->end()) {
     return;
   }
   if (supportsAddRemovePort) {
-    config.ports_ref()->erase(cfgPort);
+    config.ports()->erase(cfgPort);
     auto removed = std::remove_if(
-        config.vlanPorts_ref()->begin(),
-        config.vlanPorts_ref()->end(),
+        config.vlanPorts()->begin(),
+        config.vlanPorts()->end(),
         [port](auto vlanPort) {
-          return PortID(*vlanPort.logicalPort_ref()) == port;
+          return PortID(*vlanPort.logicalPort()) == port;
         });
-    config.vlanPorts_ref()->erase(removed, config.vlanPorts_ref()->end());
+    config.vlanPorts()->erase(removed, config.vlanPorts()->end());
   } else {
-    cfgPort->state_ref() = cfg::PortState::DISABLED;
+    cfgPort->state() = cfg::PortState::DISABLED;
   }
 }
 
@@ -60,7 +60,7 @@ void removeSubsumedPorts(
     cfg::SwitchConfig& config,
     const cfg::PlatformPortConfig& profile,
     bool supportsAddRemovePort) {
-  if (auto subsumedPorts = profile.subsumedPorts_ref()) {
+  if (auto subsumedPorts = profile.subsumedPorts()) {
     for (auto& subsumedPortID : subsumedPorts.value()) {
       removePort(config, PortID(subsumedPortID), supportsAddRemovePort);
     }
@@ -93,13 +93,13 @@ cfg::Port createDefaultPortConfig(
     cfg::PortProfileID defaultProfileID) {
   cfg::Port defaultConfig;
   const auto& entry = platform->getPlatformPort(id)->getPlatformPortEntry();
-  defaultConfig.name_ref() = *entry.mapping_ref()->name_ref();
-  defaultConfig.speed_ref() = getSpeed(defaultProfileID);
-  defaultConfig.profileID_ref() = defaultProfileID;
+  defaultConfig.name() = *entry.mapping()->name();
+  defaultConfig.speed() = getSpeed(defaultProfileID);
+  defaultConfig.profileID() = defaultProfileID;
 
-  defaultConfig.logicalID_ref() = id;
-  defaultConfig.ingressVlan_ref() = kDefaultVlanId;
-  defaultConfig.state_ref() = cfg::PortState::DISABLED;
+  defaultConfig.logicalID() = id;
+  defaultConfig.ingressVlan() = kDefaultVlanId;
+  defaultConfig.state() = cfg::PortState::DISABLED;
   return defaultConfig;
 }
 
@@ -115,8 +115,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     std::set<cfg::PortProfileID> safeProfiles;
     for (const auto& portID : ports) {
       for (const auto& profile :
-           *plarformEntries.at(portID).supportedProfiles_ref()) {
-        if (auto subsumedPorts = profile.second.subsumedPorts_ref();
+           *plarformEntries.at(portID).supportedProfiles()) {
+        if (auto subsumedPorts = profile.second.subsumedPorts();
             subsumedPorts && !subsumedPorts->empty()) {
           // as long as subsumedPorts doesn't overlap with portSet, also safe
           if (std::none_of(
@@ -178,7 +178,7 @@ void securePortsInConfig(
     if (const auto& entry = plarformEntries.find(portID);
         entry != plarformEntries.end()) {
       auto controllingPort =
-          PortID(*entry->second.mapping_ref()->controllingPort_ref());
+          PortID(*entry->second.mapping()->controllingPort());
       groupPortsByControllingPort[controllingPort].push_back(portID);
     } else {
       throw FbossError("Port:", portID, " doesn't exist in PlatformMapping");
@@ -192,7 +192,7 @@ void securePortsInConfig(
   for (auto group : groupPortsByControllingPort) {
     auto portSet = group.second;
     if (portSet.size() == 1 &&
-        findCfgPortIf(config, *portSet.begin()) != config.ports_ref()->end()) {
+        findCfgPortIf(config, *portSet.begin()) != config.ports()->end()) {
       continue;
     }
     portGroups.emplace(group.first, std::move(group.second));
@@ -203,11 +203,11 @@ void securePortsInConfig(
     for (const auto& [portID, profileID] :
          getSafeProfileIDs(platform, portGroups)) {
       auto portCfg = findCfgPortIf(config, portID);
-      if (portCfg != config.ports_ref()->end()) {
-        portCfg->profileID_ref() = profileID;
-        portCfg->speed_ref() = getSpeed(profileID);
+      if (portCfg != config.ports()->end()) {
+        portCfg->profileID() = profileID;
+        portCfg->speed() = getSpeed(profileID);
       } else {
-        config.ports_ref()->push_back(
+        config.ports()->push_back(
             createDefaultPortConfig(platform, portID, profileID));
       }
     }
@@ -235,7 +235,7 @@ cfg::SwitchConfig genPortVlanCfg(
   const auto& portToDefaultProfileID = getPortToDefaultProfileIDMap();
   CHECK_GT(portToDefaultProfileID.size(), 0);
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    config.ports_ref()->push_back(
+    config.ports()->push_back(
         createDefaultPortConfig(hwSwitch->getPlatform(), portID, profileID));
   }
 
@@ -245,38 +245,38 @@ cfg::SwitchConfig genPortVlanCfg(
   // Port config
   for (auto portID : ports) {
     auto portCfg = findCfgPort(config, portID);
-    portCfg->maxFrameSize_ref() = 9412;
-    portCfg->state_ref() = cfg::PortState::ENABLED;
-    portCfg->loopbackMode_ref() = lbMode;
-    portCfg->ingressVlan_ref() = port2vlan.find(portID)->second;
-    portCfg->routable_ref() = true;
-    portCfg->parserType_ref() = cfg::ParserType::L3;
+    portCfg->maxFrameSize() = 9412;
+    portCfg->state() = cfg::PortState::ENABLED;
+    portCfg->loopbackMode() = lbMode;
+    portCfg->ingressVlan() = port2vlan.find(portID)->second;
+    portCfg->routable() = true;
+    portCfg->parserType() = cfg::ParserType::L3;
   }
 
   // Vlan config
   for (auto vlanID : vlans) {
     cfg::Vlan vlan;
-    vlan.id_ref() = vlanID;
-    vlan.name_ref() = "vlan" + std::to_string(vlanID);
-    vlan.routable_ref() = true;
-    config.vlans_ref()->push_back(vlan);
+    vlan.id() = vlanID;
+    vlan.name() = "vlan" + std::to_string(vlanID);
+    vlan.routable() = true;
+    config.vlans()->push_back(vlan);
   }
 
   cfg::Vlan defaultVlan;
-  defaultVlan.id_ref() = kDefaultVlanId;
-  defaultVlan.name_ref() = folly::sformat("vlan{}", kDefaultVlanId);
-  defaultVlan.routable_ref() = true;
-  config.vlans_ref()->push_back(defaultVlan);
-  config.defaultVlan_ref() = kDefaultVlanId;
+  defaultVlan.id() = kDefaultVlanId;
+  defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+  defaultVlan.routable() = true;
+  config.vlans()->push_back(defaultVlan);
+  config.defaultVlan() = kDefaultVlanId;
 
   // Vlan port config
   for (auto vlanPortPair : port2vlan) {
     cfg::VlanPort vlanPort;
-    vlanPort.logicalPort_ref() = vlanPortPair.first;
-    vlanPort.vlanID_ref() = vlanPortPair.second;
-    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
-    vlanPort.emitTags_ref() = false;
-    config.vlanPorts_ref()->push_back(vlanPort);
+    vlanPort.logicalPort() = vlanPortPair.first;
+    vlanPort.vlanID() = vlanPortPair.second;
+    vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+    vlanPort.emitTags() = false;
+    config.vlanPorts()->push_back(vlanPort);
   }
 
   return config;
@@ -361,19 +361,19 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   auto config = genPortVlanCfg(
       hwSwitch, vlanPorts, port2vlan, vlans, lbMode, optimizePortProfile);
 
-  config.interfaces_ref()->resize(1);
-  config.interfaces_ref()[0].intfID_ref() = baseVlanId;
-  config.interfaces_ref()[0].vlanID_ref() = baseVlanId;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
+  config.interfaces()->resize(1);
+  config.interfaces()[0].intfID() = baseVlanId;
+  config.interfaces()[0].vlanID() = baseVlanId;
+  *config.interfaces()[0].routerID() = 0;
   if (setInterfaceMac) {
-    config.interfaces_ref()[0].mac_ref() = getLocalCpuMacStr();
+    config.interfaces()[0].mac() = getLocalCpuMacStr();
   }
-  config.interfaces_ref()[0].mtu_ref() = 9000;
+  config.interfaces()[0].mtu() = 9000;
   if (interfaceHasSubnet) {
-    config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] =
+    config.interfaces()[0].ipAddresses()->resize(2);
+    config.interfaces()[0].ipAddresses()[0] =
         FLAGS_nodeZ ? "1.1.1.2/24" : "1.1.1.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] =
+    config.interfaces()[0].ipAddresses()[1] =
         FLAGS_nodeZ ? "1::1/64" : "1::/64";
   }
   return config;
@@ -421,22 +421,22 @@ cfg::SwitchConfig multiplePortsPerVlanConfig(
     }
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
-  config.interfaces_ref()->resize(vlans.size());
+  config.interfaces()->resize(vlans.size());
   for (auto i = 0; i < vlans.size(); ++i) {
-    *config.interfaces_ref()[i].intfID_ref() = baseVlanId + i;
-    *config.interfaces_ref()[i].vlanID_ref() = baseVlanId + i;
-    *config.interfaces_ref()[i].routerID_ref() = 0;
+    *config.interfaces()[i].intfID() = baseVlanId + i;
+    *config.interfaces()[i].vlanID() = baseVlanId + i;
+    *config.interfaces()[i].routerID() = 0;
     if (setInterfaceMac) {
-      config.interfaces_ref()[i].mac_ref() = getLocalCpuMacStr();
+      config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
-    config.interfaces_ref()[i].mtu_ref() = 9000;
+    config.interfaces()[i].mtu() = 9000;
     if (interfaceHasSubnet) {
-      config.interfaces_ref()[i].ipAddresses_ref()->resize(2);
+      config.interfaces()[i].ipAddresses()->resize(2);
       auto ipDecimal = folly::sformat("{}", i + 1);
-      config.interfaces_ref()[i].ipAddresses_ref()[0] = FLAGS_nodeZ
+      config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
           ? folly::sformat("{}.0.0.2/24", ipDecimal)
           : folly::sformat("{}.0.0.1/24", ipDecimal);
-      config.interfaces_ref()[i].ipAddresses_ref()[1] = FLAGS_nodeZ
+      config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
           ? folly::sformat("{}::1/64", ipDecimal)
           : folly::sformat("{}::0/64", ipDecimal);
     }
@@ -458,22 +458,22 @@ cfg::SwitchConfig twoL3IntfConfig(
   std::vector<VlanID> vlans = {VlanID(kBaseVlanId), VlanID(kBaseVlanId + 1)};
   auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans, lbMode);
 
-  config.interfaces_ref()->resize(2);
-  *config.interfaces_ref()[0].intfID_ref() = kBaseVlanId;
-  *config.interfaces_ref()[0].vlanID_ref() = kBaseVlanId;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::1/64";
-  *config.interfaces_ref()[1].intfID_ref() = kBaseVlanId + 1;
-  *config.interfaces_ref()[1].vlanID_ref() = kBaseVlanId + 1;
-  *config.interfaces_ref()[1].routerID_ref() = 0;
-  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
-  config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/64";
-  for (auto& interface : *config.interfaces_ref()) {
-    interface.mac_ref() = getLocalCpuMacStr();
-    interface.mtu_ref() = 9000;
+  config.interfaces()->resize(2);
+  *config.interfaces()[0].intfID() = kBaseVlanId;
+  *config.interfaces()[0].vlanID() = kBaseVlanId;
+  *config.interfaces()[0].routerID() = 0;
+  config.interfaces()[0].ipAddresses()->resize(2);
+  config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
+  config.interfaces()[0].ipAddresses()[1] = "1::1/64";
+  *config.interfaces()[1].intfID() = kBaseVlanId + 1;
+  *config.interfaces()[1].vlanID() = kBaseVlanId + 1;
+  *config.interfaces()[1].routerID() = 0;
+  config.interfaces()[1].ipAddresses()->resize(2);
+  config.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
+  config.interfaces()[1].ipAddresses()[1] = "2::1/64";
+  for (auto& interface : *config.interfaces()) {
+    interface.mac() = getLocalCpuMacStr();
+    interface.mtu() = 9000;
   }
   return config;
 }
@@ -483,16 +483,16 @@ void addMatcher(
     const std::string& matcherName,
     const cfg::MatchAction& matchAction) {
   cfg::MatchToAction action = cfg::MatchToAction();
-  *action.matcher_ref() = matcherName;
-  *action.action_ref() = matchAction;
+  *action.matcher() = matcherName;
+  *action.action() = matchAction;
   cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy_ref()) {
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
     egressTrafficPolicy = *dataPlaneTrafficPolicy;
   }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction_ref()->size();
-  egressTrafficPolicy.matchToAction_ref()->resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction_ref()[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
+  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
+  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
 }
 
 void updatePortSpeed(
@@ -506,13 +506,13 @@ void updatePortSpeed(
   auto platformPort = platform->getPlatformPort(portID);
   const auto& platPortEntry = platformPort->getPlatformPortEntry();
   auto profileID = platformPort->getProfileIDBySpeed(speed);
-  const auto& supportedProfiles = *platPortEntry.supportedProfiles_ref();
+  const auto& supportedProfiles = *platPortEntry.supportedProfiles();
   auto profile = supportedProfiles.find(profileID);
   if (profile == supportedProfiles.end()) {
     throw FbossError("No profile ", profileID, " found for port ", portID);
   }
-  cfgPort->profileID_ref() = profileID;
-  cfgPort->speed_ref() = speed;
+  cfgPort->profileID() = profileID;
+  cfgPort->speed() = speed;
   removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
 }
 
@@ -520,7 +520,7 @@ std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
     PortID portID) {
   auto port = findCfgPortIf(cfg, portID);
-  if (port == cfg.ports_ref()->end()) {
+  if (port == cfg.ports()->end()) {
     throw FbossError("No cfg found for port ", portID);
   }
   return port;
@@ -530,8 +530,8 @@ std::vector<cfg::Port>::iterator findCfgPortIf(
     cfg::SwitchConfig& cfg,
     PortID portID) {
   return std::find_if(
-      cfg.ports_ref()->begin(), cfg.ports_ref()->end(), [&portID](auto& port) {
-        return PortID(*port.logicalID_ref()) == portID;
+      cfg.ports()->begin(), cfg.ports()->end(), [&portID](auto& port) {
+        return PortID(*port.logicalID()) == portID;
       });
 }
 
@@ -548,7 +548,7 @@ void configurePortGroup(
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
     auto cfgPort = findCfgPortIf(config, portID);
-    if (cfgPort == config.ports_ref()->end()) {
+    if (cfgPort == config.ports()->end()) {
       continue;
     }
 
@@ -560,20 +560,20 @@ void configurePortGroup(
                     << "Doesn't support speed " << static_cast<int>(speed)
                     << ", disabling it instead";
       // Port doesn't support this speed, just disable it.
-      cfgPort->state_ref() = cfg::PortState::DISABLED;
+      cfgPort->state() = cfg::PortState::DISABLED;
       continue;
     }
 
-    auto supportedProfiles = *platPortEntry.supportedProfiles_ref();
+    auto supportedProfiles = *platPortEntry.supportedProfiles();
     auto profile = supportedProfiles.find(profileID.value());
     if (profile == supportedProfiles.end()) {
       throw std::runtime_error(folly::to<std::string>(
           "No profile ", profileID.value(), " found for port ", portID));
     }
 
-    cfgPort->profileID_ref() = profileID.value();
-    cfgPort->speed_ref() = speed;
-    cfgPort->state_ref() = cfg::PortState::ENABLED;
+    cfgPort->profileID() = profileID.value();
+    cfgPort->speed() = speed;
+    cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
 }
@@ -591,13 +591,13 @@ void configurePortProfile(
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
     auto cfgPort = findCfgPortIf(config, portID);
-    if (cfgPort == config.ports_ref()->end()) {
+    if (cfgPort == config.ports()->end()) {
       return;
     }
 
     auto platformPort = platform->getPlatformPort(portID);
     const auto& platPortEntry = platformPort->getPlatformPortEntry();
-    auto supportedProfiles = *platPortEntry.supportedProfiles_ref();
+    auto supportedProfiles = *platPortEntry.supportedProfiles();
     auto profile = supportedProfiles.find(profileID);
     if (profile == supportedProfiles.end()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)
@@ -605,13 +605,13 @@ void configurePortProfile(
                     << apache::thrift::util::enumNameSafe(profileID)
                     << ", disabling it instead";
       // Port doesn't support this speed, just disable it.
-      cfgPort->state_ref() = cfg::PortState::DISABLED;
+      cfgPort->state() = cfg::PortState::DISABLED;
       continue;
     }
-    cfgPort->profileID_ref() = profileID;
-    cfgPort->speed_ref() = getSpeed(profileID);
-    cfgPort->ingressVlan_ref() = *controllingPort->ingressVlan_ref();
-    cfgPort->state_ref() = cfg::PortState::ENABLED;
+    cfgPort->profileID() = profileID;
+    cfgPort->speed() = getSpeed(profileID);
+    cfgPort->ingressVlan() = *controllingPort->ingressVlan();
+    cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
 }
@@ -625,7 +625,7 @@ std::vector<PortID> getAllPortsInGroup(
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
+      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
     }
   }
   return allPortsinGroup;
@@ -659,7 +659,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
   // we do for RTSW in production
   for (auto& port : disabledLinks) {
     auto portCfg = utility::findCfgPort(cfg, port);
-    portCfg->state_ref() = cfg::PortState::DISABLED;
+    portCfg->state() = cfg::PortState::DISABLED;
   }
 
   return cfg;
@@ -731,7 +731,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         utility::getAllPortsInGroup(hwSwitch, masterDownlinkPort);
     for (auto logicalPortId : allDownlinkPortsInGroup) {
       auto portConfig = findCfgPortIf(config, masterDownlinkPort);
-      if (portConfig != config.ports_ref()->end()) {
+      if (portConfig != config.ports()->end()) {
         allDownlinkPorts.push_back(logicalPortId);
       }
     }
@@ -741,42 +741,42 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
 
   // Vlan config
   cfg::Vlan vlan;
-  vlan.id_ref() = kDownlinkBaseVlanId;
-  vlan.name_ref() = "vlan" + std::to_string(kDownlinkBaseVlanId);
-  vlan.routable_ref() = true;
-  config.vlans_ref()->push_back(vlan);
+  vlan.id() = kDownlinkBaseVlanId;
+  vlan.name() = "vlan" + std::to_string(kDownlinkBaseVlanId);
+  vlan.routable() = true;
+  config.vlans()->push_back(vlan);
 
   // Vlan port config
   for (auto logicalPortId : allDownlinkPorts) {
     auto portConfig = utility::findCfgPortIf(config, logicalPortId);
-    if (portConfig == config.ports_ref()->end()) {
+    if (portConfig == config.ports()->end()) {
       continue;
     }
-    portConfig->loopbackMode_ref() = lbMode;
-    portConfig->ingressVlan_ref() = kDownlinkBaseVlanId;
-    portConfig->routable_ref() = true;
-    portConfig->parserType_ref() = cfg::ParserType::L3;
-    portConfig->maxFrameSize_ref() = 9412;
+    portConfig->loopbackMode() = lbMode;
+    portConfig->ingressVlan() = kDownlinkBaseVlanId;
+    portConfig->routable() = true;
+    portConfig->parserType() = cfg::ParserType::L3;
+    portConfig->maxFrameSize() = 9412;
     cfg::VlanPort vlanPort;
-    vlanPort.logicalPort_ref() = logicalPortId;
-    vlanPort.vlanID_ref() = kDownlinkBaseVlanId;
-    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
-    vlanPort.emitTags_ref() = false;
-    config.vlanPorts_ref()->push_back(vlanPort);
+    vlanPort.logicalPort() = logicalPortId;
+    vlanPort.vlanID() = kDownlinkBaseVlanId;
+    vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+    vlanPort.emitTags() = false;
+    config.vlanPorts()->push_back(vlanPort);
   }
 
   cfg::Interface interface;
-  interface.intfID_ref() = kDownlinkBaseVlanId;
-  interface.vlanID_ref() = kDownlinkBaseVlanId;
-  interface.routerID_ref() = 0;
-  interface.mac_ref() = utility::kLocalCpuMac().toString();
-  interface.mtu_ref() = 9000;
+  interface.intfID() = kDownlinkBaseVlanId;
+  interface.vlanID() = kDownlinkBaseVlanId;
+  interface.routerID() = 0;
+  interface.mac() = utility::kLocalCpuMac().toString();
+  interface.mtu() = 9000;
   if (interfaceHasSubnet) {
-    interface.ipAddresses_ref()->resize(2);
-    interface.ipAddresses_ref()[0] = "192.1.1.1/24";
-    interface.ipAddresses_ref()[1] = "2192::1/64";
+    interface.ipAddresses()->resize(2);
+    interface.ipAddresses()[0] = "192.1.1.1/24";
+    interface.ipAddresses()[1] = "2192::1/64";
   }
-  config.interfaces_ref()->push_back(interface);
+  config.interfaces()->push_back(interface);
 
   return config;
 }
@@ -795,7 +795,7 @@ UplinkDownlinkPair getRswUplinkDownlinkPorts(
     const int ecmpWidth) {
   std::vector<PortID> uplinks, downlinks;
 
-  auto confPorts = *config.ports_ref();
+  auto confPorts = *config.ports();
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
@@ -823,7 +823,7 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
     const int ecmpWidth) {
   std::vector<PortID> uplinks, downlinks;
 
-  auto confPorts = *config.ports_ref();
+  auto confPorts = *config.ports();
   XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
 
   for (const auto& port : confPorts) {
@@ -837,9 +837,9 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
     // substantial changes to the setup for RTSW. Avoiding that
     // used
     auto portId = PortID(logId);
-    if (port.pfc_ref().has_value()) {
-      auto pfc = port.pfc_ref().value();
-      auto pgName = pfc.portPgConfigName_ref().value();
+    if (port.pfc().has_value()) {
+      auto pfc = port.pfc().value();
+      auto pgName = pfc.portPgConfigName().value();
       if (pgName.find("downlinks") != std::string::npos) {
         downlinks.push_back(portId);
       } else if (
@@ -898,7 +898,7 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   using PortList = std::vector<PortID>;
   PortList masterPorts;
 
-  for (const auto& port : *config.ports_ref()) {
+  for (const auto& port : *config.ports()) {
     if (port.get_state() == cfg::PortState::ENABLED) {
       masterPorts.push_back(PortID(port.get_logicalID()));
     }
@@ -920,13 +920,13 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
     const cfg::SwitchConfig& config) {
   std::map<int, std::vector<uint8_t>> queueToDscp;
 
-  for (const auto& qosPolicy : *config.qosPolicies_ref()) {
+  for (const auto& qosPolicy : *config.qosPolicies()) {
     auto qosName = qosPolicy.get_name();
     XLOG(INFO) << "Iterating over QoS policies: found qosPolicy " << qosName;
 
     // Optional thrift field access
-    if (auto qosMap = qosPolicy.qosMap_ref()) {
-      auto dscpMaps = *qosMap->dscpMaps_ref();
+    if (auto qosMap = qosPolicy.qosMap()) {
+      auto dscpMaps = *qosMap->dscpMaps();
 
       for (const auto& dscpMap : dscpMaps) {
         auto queueId = dscpMap.get_internalTrafficClass();
@@ -937,7 +937,7 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
         // Trying to assign vector<uint8_t> to a vector<int8_t> makes the STL
         // unhappy, so we can just loop through and construct one on our own.
         std::vector<uint8_t> dscps;
-        for (auto val : *dscpMap.fromDscpToTrafficClass_ref()) {
+        for (auto val : *dscpMap.fromDscpToTrafficClass()) {
           dscps.push_back((uint8_t)val);
         }
         queueToDscp[(int)queueId] = std::move(dscps);

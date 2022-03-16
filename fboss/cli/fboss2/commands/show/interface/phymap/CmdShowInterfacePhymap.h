@@ -53,7 +53,7 @@ class CmdShowInterfacePhymap
   RetType createModel(
       const facebook::fboss::mka::MacsecPortPhyMap& portsPhyMap) {
     RetType model;
-    model.portsPhyMap_ref() = portsPhyMap;
+    model.portsPhyMap() = portsPhyMap;
 
     return model;
   }
@@ -73,24 +73,24 @@ class CmdShowInterfacePhymap
       for (auto& phyMap : portsPhyMap) {
         table.addRow(
             {std::to_string(phyMap.first),
-             phyMap.second.portName_ref().value(),
-             std::to_string(phyMap.second.slotId_ref().value()),
-             std::to_string(phyMap.second.mdioId_ref().value()),
-             std::to_string(phyMap.second.phyId_ref().value()),
-             std::to_string(phyMap.second.saiSwitchId_ref().value()),
-             std::to_string(phyMap.second.saiSwitchId_ref().value() - 1)});
+             phyMap.second.portName().value(),
+             std::to_string(phyMap.second.slotId().value()),
+             std::to_string(phyMap.second.mdioId().value()),
+             std::to_string(phyMap.second.phyId().value()),
+             std::to_string(phyMap.second.saiSwitchId().value()),
+             std::to_string(phyMap.second.saiSwitchId().value() - 1)});
       }
       out << table << std::endl;
     };
 
     auto& portsPhyMap = model.get_portsPhyMap();
-    if (!portsPhyMap.macsecPortPhyMap_ref().is_set()) {
+    if (!portsPhyMap.macsecPortPhyMap().is_set()) {
       out << "No Phy port map for this platform" << std::endl;
       return;
     }
 
     out << "Printing Port PHY map for system:" << std::endl;
-    printPortMap(portsPhyMap.macsecPortPhyMap_ref().value());
+    printPortMap(portsPhyMap.macsecPortPhyMap().value());
   }
 };
 

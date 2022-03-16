@@ -358,8 +358,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programMplsRoutes(
       setupMplsNexthops(portDescriptors, stacks, labelActionType, weights);
   for (const auto& label : labels) {
     MplsRoute route;
-    route.topLabel_ref() = label;
-    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    route.topLabel() = label;
+    route.nextHops() = util::fromRouteNextHopSet(nhops);
     updater->addRoute(ClientID::BGPD, route);
   }
   updater->program();

@@ -34,8 +34,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
         cfg::PortLoopbackMode::MAC);
-    cfg.switchSettings_ref()->l2LearningMode_ref() =
-        cfg::L2LearningMode::SOFTWARE;
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addQueuePerHostQueueConfig(&cfg);
@@ -137,7 +136,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
   std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt(uint8_t ttl) {
     return utility::makeUDPTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts()[0].vlanID()),
         kMac1(),
         kMac0(), // dstMac: packet to port0 (from CPU/port1)
         folly::IPAddressV6("1::1"), // srcIPv6
@@ -153,7 +152,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
   }
 
   VlanID kVlanID() {
-    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    return VlanID(*initialConfig().vlanPorts()[0].vlanID());
   }
 
   int kQueueID() {

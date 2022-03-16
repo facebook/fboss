@@ -109,16 +109,16 @@ void QsfpServiceHandler::readTransceiverRegister(
     std::map<int32_t, ReadResponse>& response,
     std::unique_ptr<ReadRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO);
-  auto param = *(request->parameter_ref());
-  auto offset = *(param.offset_ref());
+  auto param = *(request->parameter());
+  auto offset = *(param.offset());
   if (offset < 0 || offset > 255) {
     throw FbossError("Offset cannot be < 0 or > 255");
   }
-  auto page_ref = param.page_ref();
+  auto page_ref = param.page();
   if (page_ref.has_value() && *page_ref < 0) {
     throw FbossError("Page cannot be < 0");
   }
-  auto length_ref = param.length_ref();
+  auto length_ref = param.length();
   if (length_ref.has_value()) {
     if (*length_ref < 0 || *length_ref > 255) {
       throw FbossError("Length cannot be < 0 or > 255");
@@ -133,12 +133,12 @@ void QsfpServiceHandler::writeTransceiverRegister(
     std::map<int32_t, WriteResponse>& response,
     std::unique_ptr<WriteRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO);
-  auto param = *(request->parameter_ref());
-  auto offset = *(param.offset_ref());
+  auto param = *(request->parameter());
+  auto offset = *(param.offset());
   if (offset < 0 || offset > 255) {
     throw FbossError("Offset cannot be < 0 or > 255");
   }
-  auto page_ref = param.page_ref();
+  auto page_ref = param.page();
   if (page_ref.has_value() && *page_ref < 0) {
     throw FbossError("Page cannot be < 0");
   }

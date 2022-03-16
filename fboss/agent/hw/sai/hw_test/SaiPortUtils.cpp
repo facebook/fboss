@@ -107,10 +107,10 @@ void cleanPortConfig(
     std::vector<PortID> allPortsinGroup) {
   // remove portCfg not in allPortsinGroup
   auto removed = std::remove_if(
-      config->ports_ref()->begin(),
-      config->ports_ref()->end(),
+      config->ports()->begin(),
+      config->ports()->end(),
       [&allPortsinGroup](auto portCfg) {
-        auto portID = static_cast<PortID>(*portCfg.logicalID_ref());
+        auto portID = static_cast<PortID>(*portCfg.logicalID());
         for (auto id : allPortsinGroup) {
           if (portID == id) {
             return false;
@@ -118,7 +118,7 @@ void cleanPortConfig(
         }
         return true;
       });
-  config->ports_ref()->erase(removed, config->ports_ref()->end());
+  config->ports()->erase(removed, config->ports()->end());
 }
 
 void assertQUADMode(
@@ -169,12 +169,12 @@ void verifyInterfaceMode(
   auto speed = portApi.getAttribute(
       saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::Speed{});
 
-  if (!expectedProfileConfig.medium_ref()) {
+  if (!expectedProfileConfig.medium()) {
     throw FbossError(
         "Missing medium info in profile ",
         apache::thrift::util::enumNameSafe(profileID));
   }
-  auto transmitterTech = *expectedProfileConfig.medium_ref();
+  auto transmitterTech = *expectedProfileConfig.medium();
   auto expectedInterfaceType = saiPlatform->getInterfaceType(
       transmitterTech, static_cast<cfg::PortSpeed>(speed));
   auto programmedInterfaceType = portApi.getAttribute(
@@ -195,7 +195,7 @@ void verifyTxSettting(
 
   auto numExpectedTxLanes = 0;
   for (const auto& pinConfig : expectedPinConfigs) {
-    if (auto tx = pinConfig.tx_ref()) {
+    if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
     }
   }
@@ -285,7 +285,7 @@ void verifyRxSettting(
 
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : expectedPinConfigs) {
-    if (auto tx = pinConfig.rx_ref()) {
+    if (auto tx = pinConfig.rx()) {
       ++numExpectedRxLanes;
     }
   }
@@ -352,8 +352,7 @@ void verifyFec(
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
   // retrive configured fec.
-  auto expectedFec =
-      utility::getSaiPortFecMode(*expectedProfileConfig.fec_ref());
+  auto expectedFec = utility::getSaiPortFecMode(*expectedProfileConfig.fec());
 
   // retrive programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();

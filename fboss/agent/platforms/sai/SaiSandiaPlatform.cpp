@@ -27,7 +27,7 @@ SaiSandiaPlatform::SaiSandiaPlatform(
 }
 
 std::string SaiSandiaPlatform::getHwConfig() {
-  return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 SaiSandiaPlatform::~SaiSandiaPlatform() {}

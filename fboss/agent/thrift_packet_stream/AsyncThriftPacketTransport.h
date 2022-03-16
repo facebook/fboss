@@ -30,8 +30,7 @@ class AsyncThriftPacketTransport : public AsyncPacketTransport {
   void recvPacket(TPacket&& packet) {
     readCallback_.withRLock([&](auto& rdCallback) {
       if (rdCallback) {
-        rdCallback->onDataAvailable(
-            folly::IOBuf::copyBuffer(*packet.buf_ref()));
+        rdCallback->onDataAvailable(folly::IOBuf::copyBuffer(*packet.buf()));
       }
     });
   }

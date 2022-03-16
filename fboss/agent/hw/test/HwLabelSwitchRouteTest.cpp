@@ -37,31 +37,31 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   void configureStaticMplsRoute(
       cfg::SwitchConfig& config,
       LabelForwardingAction::LabelForwardingType labelAction) {
-    config.staticMplsRoutesWithNhops_ref()->resize(1);
-    auto& route = config.staticMplsRoutesWithNhops_ref()[0];
-    route.ingressLabel_ref() = kTopLabel.value();
+    config.staticMplsRoutesWithNhops()->resize(1);
+    auto& route = config.staticMplsRoutesWithNhops()[0];
+    route.ingressLabel() = kTopLabel.value();
 
     auto helper = setupECMPHelper(kTopLabel, labelAction);
 
     if (labelAction ==
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {
       NextHopThrift nexthop;
-      nexthop.address_ref() = network::toBinaryAddress(folly::IPAddress("::"));
+      nexthop.address() = network::toBinaryAddress(folly::IPAddress("::"));
       MplsAction action;
-      action.action_ref() = labelAction;
-      nexthop.mplsAction_ref() = action;
-      route.nexthops_ref()->push_back(nexthop);
+      action.action() = labelAction;
+      nexthop.mplsAction() = action;
+      route.nexthops()->push_back(nexthop);
       return;
     }
 
     for (auto i = 0; i < kWidth; i++) {
       NextHopThrift nexthop;
       auto ecmpHelperNhop = getNextHop(helper.get(), i);
-      nexthop.address_ref() = network::toBinaryAddress(ecmpHelperNhop.ip);
-      nexthop.mplsAction_ref() = ecmpHelperNhop.action.toThrift();
-      nexthop.address_ref()->ifName_ref() =
+      nexthop.address() = network::toBinaryAddress(ecmpHelperNhop.ip);
+      nexthop.mplsAction() = ecmpHelperNhop.action.toThrift();
+      nexthop.address()->ifName() =
           folly::to<std::string>("fboss", ecmpHelperNhop.intf);
-      route.nexthops_ref()->push_back(nexthop);
+      route.nexthops()->push_back(nexthop);
     }
   }
 

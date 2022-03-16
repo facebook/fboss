@@ -59,7 +59,7 @@ class CmdShowInterfaceStatus
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries) {
     std::vector<int32_t> requiredTransceivers;
     for (const auto& port : portEntries) {
-      if (auto transIdx = port.second.transceiverIdx_ref()) {
+      if (auto transIdx = port.second.transceiverIdx()) {
         requiredTransceivers.push_back(transIdx->get_transceiverId());
       }
     }
@@ -97,27 +97,27 @@ class CmdShowInterfaceStatus
         const auto& transceiver = transceiverEntries[transceiverId];
         const auto operState = portInfo.get_operState();
 
-        ifStatus.name_ref() = portInfo.get_name();
-        ifStatus.description_ref() = portInfo.get_description();
-        ifStatus.status_ref() =
+        ifStatus.name() = portInfo.get_name();
+        ifStatus.description() = portInfo.get_description();
+        ifStatus.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-        ifStatus.vlan_ref() = portInfo.get_vlans()[0];
-        ifStatus.speed_ref() =
+        ifStatus.vlan() = portInfo.get_vlans()[0];
+        ifStatus.speed() =
             std::to_string(portInfo.get_speedMbps() / 1000) + "G";
         if (transceiver.get_vendor()) {
-          ifStatus.vendor_ref() = transceiver.get_vendor()->get_name();
-          ifStatus.mpn_ref() = transceiver.get_vendor()->get_partNumber();
+          ifStatus.vendor() = transceiver.get_vendor()->get_name();
+          ifStatus.mpn() = transceiver.get_vendor()->get_partNumber();
         } else {
-          ifStatus.vendor_ref() = "Not Present";
-          ifStatus.mpn_ref() = "Not Present";
+          ifStatus.vendor() = "Not Present";
+          ifStatus.mpn() = "Not Present";
         }
 
-        model.interfaces_ref()->push_back(ifStatus);
+        model.interfaces()->push_back(ifStatus);
       }
     }
     std::sort(
-        model.interfaces_ref()->begin(),
-        model.interfaces_ref()->end(),
+        model.interfaces()->begin(),
+        model.interfaces()->end(),
         [](cli::InterfaceStatus& a, cli::InterfaceStatus b) {
           return a.get_name() < b.get_name();
         });

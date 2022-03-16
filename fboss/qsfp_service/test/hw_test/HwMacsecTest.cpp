@@ -28,8 +28,8 @@ using namespace facebook::fboss;
 
 mka::MKASci makeSci(std::string mac, PortID portId) {
   mka::MKASci sci;
-  sci.macAddress_ref() = mac;
-  sci.port_ref() = portId;
+  sci.macAddress() = mac;
+  sci.port() = portId;
   return sci;
 }
 
@@ -40,11 +40,11 @@ mka::MKASak makeSak(
     std::string keyIdHex,
     int assocNum) {
   mka::MKASak sak;
-  sak.sci_ref() = sci;
-  sak.l2Port_ref() = portName;
-  sak.keyHex_ref() = keyHex;
-  sak.keyIdHex_ref() = keyIdHex;
-  sak.assocNum_ref() = assocNum;
+  sak.sci() = sci;
+  sak.l2Port() = portName;
+  sak.keyHex() = keyHex;
+  sak.keyIdHex() = keyIdHex;
+  sak.assocNum() = assocNum;
   return sak;
 }
 
@@ -87,14 +87,14 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     auto& aclManager = managerTable->aclTableManager();
 
     // Some parameters that we'll verify are set correctly
-    auto mac = folly::MacAddress(*sci.macAddress_ref());
-    auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+    auto mac = folly::MacAddress(*sci.macAddress());
+    auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port());
     auto aclName = folly::to<std::string>(
         "macsec-",
         direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
         "-port",
         portId);
-    auto assocNum = *sak.assocNum_ref() % 4;
+    auto assocNum = *sak.assocNum() % 4;
     std::array<uint8_t, 32> secureAssocKey;
     std::vector<uint8_t> unhexedKey;
     folly::unhexlify(*sak.keyHex(), unhexedKey);
@@ -118,7 +118,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     auto macsecSecureChannelHandle = macsecManager.getMacsecSecureChannelHandle(
         portId, scIdentifier, direction);
     auto macsecSecureAssoc = macsecManager.getMacsecSecureAssoc(
-        portId, scIdentifier, direction, *sak.assocNum_ref() % 4);
+        portId, scIdentifier, direction, *sak.assocNum() % 4);
 
     // Verify all macsec objects were created/destroyed
     if (!expectAbsent) {
@@ -287,13 +287,13 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
     auto remoteSci = makeSci(macGen.getNext().toString(), port);
     auto rxSak = makeSak(
         remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
+        *platPort->second.mapping()->name(),
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         0);
     auto txSak = makeSak(
         localSci,
-        *platPort->second.mapping_ref()->name_ref(),
+        *platPort->second.mapping()->name(),
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         0);
@@ -333,14 +333,14 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
     auto remoteSci = makeSci(macGen.getNext().toString(), port);
     auto rxSak = makeSak(
         remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
+        *platPort->second.mapping()->name(),
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         0);
     // 2nd key with new association number
     auto rxSak2 = makeSak(
         remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
+        *platPort->second.mapping()->name(),
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         1);
@@ -396,7 +396,7 @@ TEST_F(HwMacsecTest, idempotentRx) {
     auto remoteSci = makeSci(macGen.getNext().toString(), port);
     auto rxSak = makeSak(
         remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
+        *platPort->second.mapping()->name(),
         sakKeyGen.getNext(),
         sakKeyIdGen.getNext(),
         0);
@@ -459,20 +459,12 @@ TEST_F(HwMacsecTest, updateRxKeys) {
     auto sakKey1 = sakKeyGen.getNext();
     auto sakKeyId1 = sakKeyIdGen.getNext();
     auto rxSak1 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        1);
+        localSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 1);
     XLOG(INFO) << "updateRxKeys: Installing RX SAK1 for port " << port;
     phyManager->sakInstallRx(rxSak1, localSci);
 
     auto rxSak2 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        2);
+        localSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 2);
     XLOG(INFO) << "updateRxKeys: Installing RX SAK2 for port " << port;
     phyManager->sakInstallRx(rxSak2, localSci);
 
@@ -488,11 +480,7 @@ TEST_F(HwMacsecTest, updateRxKeys) {
     auto sakKey3 = sakKeyGen.getNext();
     auto sakKeyId3 = sakKeyIdGen.getNext();
     auto rxSak3 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey3,
-        sakKeyId3,
-        1);
+        localSci, *platPort->second.mapping()->name(), sakKey3, sakKeyId3, 1);
     XLOG(INFO) << "updateRxKeys: Installing RX SAK3 for port " << port;
     phyManager->sakInstallRx(rxSak3, localSci);
     XLOG(INFO) << "updateRxKeys: Verifying RX SAK3 present for port " << port;
@@ -551,20 +539,12 @@ TEST_F(HwMacsecTest, updateTxKeys) {
     auto sakKey1 = sakKeyGen.getNext();
     auto sakKeyId1 = sakKeyIdGen.getNext();
     auto txSak1 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        1);
+        localSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 1);
     XLOG(INFO) << "updateTxKeys: Installing TX SAK1 for port " << port;
     phyManager->sakInstallTx(txSak1);
 
     auto txSak2 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        2);
+        localSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 2);
     XLOG(INFO) << "updateTxKeys: Installing TX SAK2 for port " << port;
     phyManager->sakInstallTx(txSak2);
 
@@ -577,11 +557,7 @@ TEST_F(HwMacsecTest, updateTxKeys) {
     auto sakKey3 = sakKeyGen.getNext();
     auto sakKeyId3 = sakKeyIdGen.getNext();
     auto txSak3 = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey3,
-        sakKeyId3,
-        2);
+        localSci, *platPort->second.mapping()->name(), sakKey3, sakKeyId3, 2);
     XLOG(INFO) << "updateTxKeys: Installing TX SAK3 for port " << port;
     phyManager->sakInstallTx(txSak3);
     XLOG(INFO) << "updateTxKeys: Verifying TX SAK3 for port " << port;

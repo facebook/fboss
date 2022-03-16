@@ -171,17 +171,16 @@ void Sff8472Module::updateQsfpData(bool allPages) {
 
 TransceiverSettings Sff8472Module::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.powerControl_ref() = getPowerControlValue();
-  settings.mediaInterface_ref() =
-      std::vector<MediaInterfaceId>(numMediaLanes());
-  if (!getMediaInterfaceId(*(settings.mediaInterface_ref()))) {
-    settings.mediaInterface_ref().reset();
+  settings.powerControl() = getPowerControlValue();
+  settings.mediaInterface() = std::vector<MediaInterfaceId>(numMediaLanes());
+  if (!getMediaInterfaceId(*(settings.mediaInterface()))) {
+    settings.mediaInterface().reset();
   }
 
-  settings.mediaLaneSettings_ref() =
+  settings.mediaLaneSettings() =
       std::vector<MediaLaneSettings>(numMediaLanes());
-  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
-    settings.mediaLaneSettings_ref().reset();
+  if (!getMediaLaneSettings(*(settings.mediaLaneSettings()))) {
+    settings.mediaLaneSettings().reset();
   }
   return settings;
 }
@@ -192,20 +191,20 @@ bool Sff8472Module::getMediaInterfaceId(
 
   auto ethernet10GCompliance = getEthernet10GComplianceCode();
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
-    mediaInterface[lane].lane_ref() = lane;
+    mediaInterface[lane].lane() = lane;
     MediaInterfaceUnion media;
     media.ethernet10GComplianceCode_ref() = ethernet10GCompliance;
     if (auto it = mediaInterfaceMapping.find(ethernet10GCompliance);
         it != mediaInterfaceMapping.end()) {
-      mediaInterface[lane].code_ref() = it->second;
+      mediaInterface[lane].code() = it->second;
     } else {
       XLOG(ERR) << folly::sformat(
           "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
           qsfpImpl_->getName(),
           apache::thrift::util::enumNameSafe(ethernet10GCompliance));
-      mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
+      mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
-    mediaInterface[lane].media_ref() = media;
+    mediaInterface[lane].media() = media;
   }
 
   return true;
@@ -229,9 +228,9 @@ double Sff8472Module::getSfpSensor(
 
 GlobalSensors Sff8472Module::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  info.temp_ref()->value_ref() =
+  info.temp()->value() =
       getSfpSensor(Sff8472Field::TEMPERATURE, Sff8472FieldInfo::getTemp);
-  info.vcc_ref()->value_ref() =
+  info.vcc()->value() =
       getSfpSensor(Sff8472Field::VCC, Sff8472FieldInfo::getVcc);
   return info;
 }
@@ -255,7 +254,7 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   CHECK_EQ(channels.size(), 1);
   CHECK_EQ(numMediaLanes(), 1);
   auto firstChannel = channels.begin();
-  firstChannel->sensors_ref()->txBias_ref()->value_ref() =
+  firstChannel->sensors()->txBias()->value() =
       Sff8472FieldInfo::getTxBias(value);
 
   // TX Power
@@ -268,10 +267,10 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
   value = data[0] << 8 | data[1];
   auto pwr = Sff8472FieldInfo::getPwr(value);
-  firstChannel->sensors_ref()->txPwr_ref()->value_ref() = pwr;
+  firstChannel->sensors()->txPwr()->value() = pwr;
   Sensor txDbm;
-  txDbm.value_ref() = mwToDb(pwr);
-  firstChannel->sensors_ref()->txPwrdBm_ref() = txDbm;
+  txDbm.value() = mwToDb(pwr);
+  firstChannel->sensors()->txPwrdBm() = txDbm;
 
   // RX Power
   getSfpFieldAddress(
@@ -283,10 +282,10 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getSfpValuePtr(dataAddress, offset, length, transceiverI2CAddress);
   value = data[0] << 8 | data[1];
   pwr = Sff8472FieldInfo::getPwr(value);
-  firstChannel->sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+  firstChannel->sensors()->rxPwr()->value() = pwr;
   Sensor rxDbm;
-  rxDbm.value_ref() = mwToDb(pwr);
-  firstChannel->sensors_ref()->rxPwrdBm_ref() = rxDbm;
+  rxDbm.value() = mwToDb(pwr);
+  firstChannel->sensors()->rxPwrdBm() = rxDbm;
 
   return true;
 }
@@ -294,7 +293,7 @@ bool Sff8472Module::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 SignalFlags Sff8472Module::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  signalFlags.rxLos_ref() = getSettingsValue(
+  signalFlags.rxLos() = getSettingsValue(
       Sff8472Field::STATUS_AND_CONTROL_BITS, FieldMasks::RX_LOS_MASK);
 
   return signalFlags;
@@ -313,9 +312,9 @@ bool Sff8472Module::getSignalsPerMediaLane(
   CHECK_EQ(signals.size(), 1);
   CHECK_EQ(numMediaLanes(), 1);
   auto firstSignal = signals.begin();
-  firstSignal->lane_ref() = 0;
-  firstSignal->rxLos_ref() = rxLos;
-  firstSignal->txFault_ref() = txFault;
+  firstSignal->lane() = 0;
+  firstSignal->rxLos() = rxLos;
+  firstSignal->txFault() = txFault;
 
   return true;
 }
@@ -327,8 +326,8 @@ bool Sff8472Module::getMediaLaneSettings(
 
   CHECK_EQ(laneSettings.size(), 1);
   auto firstLane = laneSettings.begin();
-  firstLane->lane_ref() = 0;
-  firstLane->txDisable_ref() = txDisable;
+  firstLane->lane() = 0;
+  firstLane->txDisable() = txDisable;
   return true;
 }
 
@@ -352,12 +351,12 @@ std::string Sff8472Module::getSfpString(Sff8472Field field) const {
 
 Vendor Sff8472Module::getVendorInfo() {
   Vendor vendor = Vendor();
-  vendor.name_ref() = getSfpString(Sff8472Field::VENDOR_NAME);
-  vendor.oui_ref() = getSfpString(Sff8472Field::VENDOR_OUI);
-  vendor.partNumber_ref() = getSfpString(Sff8472Field::VENDOR_PART_NUMBER);
-  vendor.rev_ref() = getSfpString(Sff8472Field::VENDOR_REVISION_NUMBER);
-  vendor.serialNumber_ref() = getSfpString(Sff8472Field::VENDOR_SERIAL_NUMBER);
-  vendor.dateCode_ref() = getSfpString(Sff8472Field::VENDOR_MFG_DATE);
+  vendor.name() = getSfpString(Sff8472Field::VENDOR_NAME);
+  vendor.oui() = getSfpString(Sff8472Field::VENDOR_OUI);
+  vendor.partNumber() = getSfpString(Sff8472Field::VENDOR_PART_NUMBER);
+  vendor.rev() = getSfpString(Sff8472Field::VENDOR_REVISION_NUMBER);
+  vendor.serialNumber() = getSfpString(Sff8472Field::VENDOR_SERIAL_NUMBER);
+  vendor.dateCode() = getSfpString(Sff8472Field::VENDOR_MFG_DATE);
   return vendor;
 }
 

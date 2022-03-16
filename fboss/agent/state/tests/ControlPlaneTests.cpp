@@ -26,8 +26,8 @@ constexpr auto kNumCPUQueues = 48;
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
-  range.minimum_ref() = minimum;
-  range.maximum_ref() = maximum;
+  range.minimum() = minimum;
+  range.maximum() = maximum;
 
   return range;
 }
@@ -42,43 +42,43 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 std::vector<cfg::PortQueue> getConfigCPUQueues() {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
-  *high.id_ref() = 9;
-  high.name_ref() = "cpuQueue-high";
-  *high.streamType_ref() = cfg::StreamType::MULTICAST;
-  *high.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  high.weight_ref() = 4;
+  *high.id() = 9;
+  high.name() = "cpuQueue-high";
+  *high.streamType() = cfg::StreamType::MULTICAST;
+  *high.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  high.weight() = 4;
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
-  *mid.id_ref() = 2;
-  mid.name_ref() = "cpuQueue-mid";
-  *mid.streamType_ref() = cfg::StreamType::MULTICAST;
-  *mid.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  mid.weight_ref() = 2;
+  *mid.id() = 2;
+  mid.name() = "cpuQueue-mid";
+  *mid.streamType() = cfg::StreamType::MULTICAST;
+  *mid.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  mid.weight() = 2;
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
-  *defaultQ.id_ref() = 1;
-  defaultQ.name_ref() = "cpuQueue-default";
-  *defaultQ.streamType_ref() = cfg::StreamType::MULTICAST;
-  *defaultQ.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  defaultQ.weight_ref() = 1;
-  defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
-  defaultQ.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 200);
-  defaultQ.reservedBytes_ref() = 1040;
-  defaultQ.sharedBytes_ref() = 10192;
+  *defaultQ.id() = 1;
+  defaultQ.name() = "cpuQueue-default";
+  *defaultQ.streamType() = cfg::StreamType::MULTICAST;
+  *defaultQ.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  defaultQ.weight() = 1;
+  defaultQ.portQueueRate() = cfg::PortQueueRate();
+  defaultQ.portQueueRate()->pktsPerSec_ref() = getRange(0, 200);
+  defaultQ.reservedBytes() = 1040;
+  defaultQ.sharedBytes() = 10192;
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
-  *low.id_ref() = 0;
-  low.name_ref() = "cpuQueue-low";
-  *low.streamType_ref() = cfg::StreamType::MULTICAST;
-  *low.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  low.weight_ref() = 1;
-  low.portQueueRate_ref() = cfg::PortQueueRate();
-  low.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 100);
-  low.reservedBytes_ref() = 1040;
-  low.sharedBytes_ref() = 10192;
+  *low.id() = 0;
+  low.name() = "cpuQueue-low";
+  *low.streamType() = cfg::StreamType::MULTICAST;
+  *low.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  low.weight() = 1;
+  low.portQueueRate() = cfg::PortQueueRate();
+  low.portQueueRate()->pktsPerSec_ref() = getRange(0, 100);
+  low.reservedBytes() = 1040;
+  low.sharedBytes() = 10192;
   cpuQueues.push_back(low);
   return cpuQueues;
 }
@@ -210,7 +210,7 @@ TEST(ControlPlane, applyDefaultConfig) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  *config.cpuQueues_ref() = cfgCpuQueues;
+  *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -238,7 +238,7 @@ TEST(ControlPlane, applySameConfig) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  *config.cpuQueues_ref() = cfgCpuQueues;
+  *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -253,14 +253,14 @@ TEST(ControlPlane, resetLowPrioQueue) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  *config.cpuQueues_ref() = cfgCpuQueues;
+  *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
   cfg::SwitchConfig newConfig;
-  *newConfig.cpuQueues_ref() = newCfgCpuQueues;
+  *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
 
@@ -291,18 +291,18 @@ TEST(ControlPlane, changeLowPrioQueue) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  *config.cpuQueues_ref() = cfgCpuQueues;
+  *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
   auto& lowQueue = newCfgCpuQueues.at(newCfgCpuQueues.size() - 1);
-  lowQueue.portQueueRate_ref() = cfg::PortQueueRate();
-  lowQueue.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 1000);
+  lowQueue.portQueueRate() = cfg::PortQueueRate();
+  lowQueue.portQueueRate()->pktsPerSec_ref() = getRange(0, 1000);
 
   cfg::SwitchConfig newConfig;
-  *newConfig.cpuQueues_ref() = newCfgCpuQueues;
+  *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
 
@@ -330,7 +330,7 @@ TEST(ControlPlane, checkSwConfPortQueueMatch) {
   auto cfgCpuQueues = getConfigCPUQueues();
   auto swCpuQueuesMap = getCPUQueuesMap();
   for (const auto& cfgQueue : cfgCpuQueues) {
-    auto swQueueItr = swCpuQueuesMap.find(*cfgQueue.id_ref());
+    auto swQueueItr = swCpuQueuesMap.find(*cfgQueue.id());
     EXPECT_NE(swQueueItr, swCpuQueuesMap.end());
     EXPECT_TRUE(checkSwConfPortQueueMatch(swQueueItr->second, &cfgQueue));
   }
@@ -341,9 +341,9 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
   auto stateV0 = genCPUSwitchState();
 
   cfg::SwitchConfig config;
-  config.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+  config.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
   // only set old version of mapping (map instead of ordereded list)
-  config.cpuTrafficPolicy_ref()->rxReasonToCPUQueue_ref() = {
+  config.cpuTrafficPolicy()->rxReasonToCPUQueue() = {
       {cfg::PacketRxReason::ARP, 9}};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
@@ -351,6 +351,6 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
   const auto reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
   EXPECT_EQ(reasonToQueue1.size(), 1);
   const auto entry1 = reasonToQueue1.at(0);
-  EXPECT_EQ(*entry1.rxReason_ref(), cfg::PacketRxReason::ARP);
-  EXPECT_EQ(*entry1.queueId_ref(), 9);
+  EXPECT_EQ(*entry1.rxReason(), cfg::PacketRxReason::ARP);
+  EXPECT_EQ(*entry1.queueId(), 9);
 }

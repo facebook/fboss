@@ -41,7 +41,7 @@ HwAsic* SaiWedge400CPlatform::getAsic() const {
 }
 
 std::string SaiWedge400CPlatform::getHwConfig() {
-  return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 SaiWedge400CPlatform::~SaiWedge400CPlatform() {}

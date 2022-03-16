@@ -87,10 +87,10 @@ class MockSffModule : public SffModule {
 
   TransceiverSettings getTransceiverSettingsInfo() override {
     TransceiverSettings settings = TransceiverSettings();
-    settings.cdrTx_ref() = cdrTx_;
-    settings.cdrRx_ref() = cdrRx_;
-    settings.rateSelect_ref() = state_;
-    settings.rateSelectSetting_ref() = setting_;
+    settings.cdrTx() = cdrTx_;
+    settings.cdrRx() = cdrRx_;
+    settings.rateSelect() = state_;
+    settings.rateSelectSetting() = setting_;
     return settings;
   }
 
@@ -99,8 +99,8 @@ class MockSffModule : public SffModule {
     Vendor vendor = Vendor();
     // shouldRemediate will check the vendor PN to skip doing it on Miniphoton
     // modules. Here we take a PN other than Miniphoton.
-    vendor.partNumber_ref() = vendorPN;
-    info.vendor_ref() = vendor;
+    vendor.partNumber() = vendorPN;
+    info.vendor() = vendor;
     fakeInfo_ = info;
   }
 

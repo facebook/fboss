@@ -82,18 +82,16 @@ class MultiNodeLacpTest : public MultiNodeTest {
     for (const auto& aggId : getAggPorts()) {
       addAggPort(aggId, {portList[idx++], portList[idx++]}, &config, rate);
     }
-    config.loadBalancers_ref() =
+    config.loadBalancers() =
         utility::getEcmpFullTrunkHalfHashConfig(platform());
-    config.staticRoutesWithNhops_ref()->resize(2);
-    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "::/0";
+    config.staticRoutesWithNhops()->resize(2);
+    config.staticRoutesWithNhops()[0].prefix() = "::/0";
     for (const auto& entry : getNeighborIpAddrs<folly::IPAddressV6>()) {
-      config.staticRoutesWithNhops_ref()[0].nexthops_ref()->push_back(
-          entry.str());
+      config.staticRoutesWithNhops()[0].nexthops()->push_back(entry.str());
     }
-    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "0.0.0.0/0";
+    config.staticRoutesWithNhops()[1].prefix() = "0.0.0.0/0";
     for (const auto& entry : getNeighborIpAddrs<folly::IPAddressV4>()) {
-      config.staticRoutesWithNhops_ref()[1].nexthops_ref()->push_back(
-          entry.str());
+      config.staticRoutesWithNhops()[1].nexthops()->push_back(entry.str());
     }
     return config;
   }
@@ -177,7 +175,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
           aggId,
           dstIpV4s[idx],
           dstIpV6s[idx],
-          VlanID(*getConfigWithAggPort().interfaces_ref()[idx].vlanID_ref()));
+          VlanID(*getConfigWithAggPort().interfaces()[idx].vlanID()));
       idx++;
     }
   }

@@ -20,15 +20,15 @@ namespace facebook::fboss {
 
 state::PortPgFields PortPgFields::toThrift() const {
   state::PortPgFields portPg;
-  portPg.id_ref() = id;
-  portPg.minLimitBytes_ref() = minLimitBytes;
+  portPg.id() = id;
+  portPg.minLimitBytes() = minLimitBytes;
   if (headroomLimitBytes) {
-    portPg.headroomLimitBytes_ref() = headroomLimitBytes.value();
+    portPg.headroomLimitBytes() = headroomLimitBytes.value();
   }
   if (resumeOffsetBytes) {
-    portPg.resumeOffsetBytes_ref() = resumeOffsetBytes.value();
+    portPg.resumeOffsetBytes() = resumeOffsetBytes.value();
   }
-  portPg.bufferPoolName_ref() = bufferPoolName;
+  portPg.bufferPoolName() = bufferPoolName;
 
   if (scalingFactor) {
     auto scalingFactorName = apache::thrift::util::enumName(*scalingFactor);
@@ -36,15 +36,14 @@ state::PortPgFields PortPgFields::toThrift() const {
       CHECK(false) << "Unexpected MMU scaling factor: "
                    << static_cast<int>(*scalingFactor);
     }
-    portPg.scalingFactor_ref() = scalingFactorName;
+    portPg.scalingFactor() = scalingFactorName;
   }
   if (name) {
-    portPg.name_ref() = name.value();
+    portPg.name() = name.value();
   }
   if (bufferPoolConfigPtr) {
     state::BufferPoolFields bufferPoolFields;
-    portPg.bufferPoolConfig_ref() =
-        (*bufferPoolConfigPtr)->getFields()->toThrift();
+    portPg.bufferPoolConfig() = (*bufferPoolConfigPtr)->getFields()->toThrift();
   }
   return portPg;
 }
@@ -52,30 +51,30 @@ state::PortPgFields PortPgFields::toThrift() const {
 // static, public
 PortPgFields PortPgFields::fromThrift(state::PortPgFields const& portPgThrift) {
   PortPgFields portPg;
-  portPg.id = static_cast<uint8_t>(*portPgThrift.id_ref());
-  portPg.minLimitBytes = portPgThrift.minLimitBytes_ref().value();
+  portPg.id = static_cast<uint8_t>(*portPgThrift.id());
+  portPg.minLimitBytes = portPgThrift.minLimitBytes().value();
 
-  if (portPgThrift.headroomLimitBytes_ref()) {
-    portPg.headroomLimitBytes = portPgThrift.headroomLimitBytes_ref().value();
+  if (portPgThrift.headroomLimitBytes()) {
+    portPg.headroomLimitBytes = portPgThrift.headroomLimitBytes().value();
   }
-  if (portPgThrift.resumeOffsetBytes_ref()) {
-    portPg.resumeOffsetBytes = portPgThrift.resumeOffsetBytes_ref().value();
+  if (portPgThrift.resumeOffsetBytes()) {
+    portPg.resumeOffsetBytes = portPgThrift.resumeOffsetBytes().value();
   }
 
-  if (portPgThrift.scalingFactor_ref()) {
+  if (portPgThrift.scalingFactor()) {
     cfg::MMUScalingFactor scalingFactor;
     if (!TEnumTraits<cfg::MMUScalingFactor>::findValue(
-            portPgThrift.scalingFactor_ref()->c_str(), &scalingFactor)) {
+            portPgThrift.scalingFactor()->c_str(), &scalingFactor)) {
       CHECK(false) << "Invalid MMU scaling factor: "
-                   << portPgThrift.scalingFactor_ref()->c_str();
+                   << portPgThrift.scalingFactor()->c_str();
     }
     portPg.scalingFactor = scalingFactor;
   }
-  if (portPgThrift.name_ref()) {
-    portPg.name = portPgThrift.name_ref().value();
+  if (portPgThrift.name()) {
+    portPg.name = portPgThrift.name().value();
   }
-  portPg.bufferPoolName = portPgThrift.bufferPoolName_ref().value();
-  if (auto bufferPoolConfig = portPgThrift.bufferPoolConfig_ref()) {
+  portPg.bufferPoolName = portPgThrift.bufferPoolName().value();
+  if (auto bufferPoolConfig = portPgThrift.bufferPoolConfig()) {
     portPg.bufferPoolConfigPtr = std::make_shared<BufferPoolCfg>(
         BufferPoolCfgFields::fromThrift(*bufferPoolConfig));
   }

@@ -45,7 +45,7 @@ class PlatformMappingTest : public ::testing::Test {
     std::vector<cfg::PlatformPortConfigFactor> profileFactors;
     for (auto profile : profiles) {
       cfg::PlatformPortConfigFactor factor;
-      factor.profileID_ref() = profile;
+      factor.profileID() = profile;
       profileFactors.push_back(factor);
     }
     setExpectation(numPort, numIphy, numXphy, numTcvr, profileFactors);
@@ -54,7 +54,7 @@ class PlatformMappingTest : public ::testing::Test {
   void verify(PlatformMapping* mapping) {
     EXPECT_EQ(expectedNumPort_, mapping->getPlatformPorts().size());
     for (auto factor : expectedProfileFactors_) {
-      if (auto pimIDs = factor.pimIDs_ref()) {
+      if (auto pimIDs = factor.pimIDs()) {
         std::optional<phy::PortProfileConfig> prevProfile;
         for (auto pimID : *pimIDs) {
           auto platformSupportedProfile =
@@ -77,7 +77,7 @@ class PlatformMappingTest : public ::testing::Test {
 
     int numIphy = 0, numXphy = 0, numTcvr = 0;
     for (const auto& chip : mapping->getChips()) {
-      switch (*chip.second.type_ref()) {
+      switch (*chip.second.type()) {
         case phy::DataPlanePhyChipType::IPHY:
           numIphy++;
           break;
@@ -100,13 +100,13 @@ class PlatformMappingTest : public ::testing::Test {
       phy::TxSettings tx,
       std::array<int, 6> expected,
       bool hasDriveCurrent = false) {
-    EXPECT_EQ(*tx.pre2_ref(), expected[0]);
-    EXPECT_EQ(*tx.pre_ref(), expected[1]);
-    EXPECT_EQ(*tx.main_ref(), expected[2]);
-    EXPECT_EQ(*tx.post_ref(), expected[3]);
-    EXPECT_EQ(*tx.post2_ref(), expected[4]);
-    EXPECT_EQ(*tx.post3_ref(), expected[5]);
-    EXPECT_EQ(tx.driveCurrent_ref().has_value(), hasDriveCurrent);
+    EXPECT_EQ(*tx.pre2(), expected[0]);
+    EXPECT_EQ(*tx.pre(), expected[1]);
+    EXPECT_EQ(*tx.main(), expected[2]);
+    EXPECT_EQ(*tx.post(), expected[3]);
+    EXPECT_EQ(*tx.post2(), expected[4]);
+    EXPECT_EQ(*tx.post3(), expected[5]);
+    EXPECT_EQ(tx.driveCurrent().has_value(), hasDriveCurrent);
   }
 
   void verifyTxSettingsByProfile(
@@ -114,12 +114,12 @@ class PlatformMappingTest : public ::testing::Test {
       std::map<int32_t, cfg::PlatformPortEntry> platformPorts,
       std::map<cfg::PortProfileID, std::array<int, 6>> txSettingsMap) {
     for (auto& [portID, portEntry] : platformPorts) {
-      const auto& profiles = *portEntry.supportedProfiles_ref();
+      const auto& profiles = *portEntry.supportedProfiles();
       for (auto [profileID, profileConfig] : profiles) {
         auto pinCfgs = platformMapping->getPortIphyPinConfigs(
             PlatformPortProfileConfigMatcher(profileID, PortID(portID)));
         for (auto pinCfg : pinCfgs) {
-          auto tx = pinCfg.tx_ref();
+          auto tx = pinCfg.tx();
           if (txSettingsMap.find(profileID) != txSettingsMap.end()) {
             EXPECT_TRUE(tx.has_value());
             verifyTxSettings(*tx, txSettingsMap[profileID]);
@@ -140,7 +140,7 @@ class PlatformMappingTest : public ::testing::Test {
       const std::map<cfg::PortProfileID, std::map<LaneID, phy::PolaritySwap>>&
           expectedPolaritySwapMap) {
     for (auto& [portId, portEntry] : platformPorts) {
-      const auto& profiles = *portEntry.supportedProfiles_ref();
+      const auto& profiles = *portEntry.supportedProfiles();
       for (auto [profileID, profileConfig] : profiles) {
         const auto& chips = platformMapping->getChips();
         if (chips.empty()) {
@@ -174,8 +174,8 @@ class PlatformMappingTest : public ::testing::Test {
           auto actualLane = lane + baseLane->first;
           auto actualPs = actualPsMap.find(actualLane);
           CHECK(actualPs != actualPsMap.end());
-          EXPECT_EQ(*actualPs->second.rx_ref(), *expectedPs.rx_ref());
-          EXPECT_EQ(*actualPs->second.tx_ref(), *expectedPs.tx_ref());
+          EXPECT_EQ(*actualPs->second.rx(), *expectedPs.rx());
+          EXPECT_EQ(*actualPs->second.tx(), *expectedPs.tx());
         }
       }
     }

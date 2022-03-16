@@ -127,7 +127,7 @@ class PortQueue
   void resetAqms(std::vector<cfg::ActiveQueueManagement> aqms) {
     writableFields()->aqms.clear();
     for (auto& aqm : aqms) {
-      writableFields()->aqms.emplace(*aqm.behavior_ref(), aqm);
+      writableFields()->aqms.emplace(*aqm.behavior(), aqm);
     }
   }
 

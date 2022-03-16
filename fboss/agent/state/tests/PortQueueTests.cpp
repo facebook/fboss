@@ -26,8 +26,8 @@ namespace {
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
-  range.minimum_ref() = minimum;
-  range.maximum_ref() = maximum;
+  range.minimum() = minimum;
+  range.maximum() = maximum;
 
   return range;
 }
@@ -42,52 +42,52 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
-  earlyDropLQCD.minimumLength_ref() = 208;
-  earlyDropLQCD.maximumLength_ref() = 416;
-  earlyDropLQCD.probability_ref() = 100;
-  earlyDropAQM.detection_ref()->linear_ref() = earlyDropLQCD;
-  earlyDropAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  earlyDropLQCD.minimumLength() = 208;
+  earlyDropLQCD.maximumLength() = 416;
+  earlyDropLQCD.probability() = 100;
+  earlyDropAQM.detection()->linear_ref() = earlyDropLQCD;
+  earlyDropAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
 
 cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength_ref() = 624;
-  ecnLQCD.maximumLength_ref() = 624;
-  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
-  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
+  ecnLQCD.minimumLength() = 624;
+  ecnLQCD.maximumLength() = 624;
+  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
 cfg::PortQueue generateTestQueueConfig(const int id) {
   cfg::PortQueue queue0;
-  queue0.id_ref() = id;
-  queue0.name_ref() = folly::to<std::string>("queue_", id);
-  queue0.streamType_ref() = cfg::StreamType::UNICAST;
-  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = 9;
-  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-  queue0.reservedBytes_ref() = 19968;
-  queue0.sharedBytes_ref() = 19968;
-  queue0.portQueueRate_ref() = cfg::PortQueueRate();
-  queue0.portQueueRate_ref()->pktsPerSec_ref() = getRange(0, 100);
-  queue0.aqms_ref() = {};
-  queue0.aqms_ref()->push_back(getECNAqmConfig());
-  queue0.aqms_ref()->push_back(getEarlyDropAqmConfig());
+  queue0.id() = id;
+  queue0.name() = folly::to<std::string>("queue_", id);
+  queue0.streamType() = cfg::StreamType::UNICAST;
+  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = 9;
+  queue0.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  queue0.reservedBytes() = 19968;
+  queue0.sharedBytes() = 19968;
+  queue0.portQueueRate() = cfg::PortQueueRate();
+  queue0.portQueueRate()->pktsPerSec_ref() = getRange(0, 100);
+  queue0.aqms() = {};
+  queue0.aqms()->push_back(getECNAqmConfig());
+  queue0.aqms()->push_back(getEarlyDropAqmConfig());
   return queue0;
 }
 
 cfg::SwitchConfig generateTestConfig(int queueCount = 1) {
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
   // program multiple queues if needed, settings can be default
   for (int i = 0; i < queueCount; ++i) {
     auto queue0 = generateTestQueueConfig(i);
-    config.portQueueConfigs_ref()["queue_config"].push_back(queue0);
+    config.portQueueConfigs()["queue_config"].push_back(queue0);
   }
-  config.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  config.ports()[0].portQueueConfigName() = "queue_config";
   return config;
 }
 
@@ -95,10 +95,10 @@ cfg::QosPolicy generateQosPolicy(const std::map<uint16_t, uint16_t>& map) {
   cfg::QosPolicy policy;
   cfg::QosMap qosMap;
   for (auto entry : map) {
-    qosMap.trafficClassToQueueId_ref()->emplace(entry.first, entry.second);
+    qosMap.trafficClassToQueueId()->emplace(entry.first, entry.second);
   }
-  *policy.name_ref() = "policy";
-  policy.qosMap_ref() = qosMap;
+  *policy.name() = "policy";
+  policy.qosMap() = qosMap;
   return policy;
 }
 
@@ -107,10 +107,10 @@ cfg::QosPolicy generateQosPolicyWithPfcAndTrafficClass(
     std::map<int16_t, int16_t> pfcPriority) {
   cfg::QosPolicy policy;
   cfg::QosMap qosMap;
-  qosMap.pfcPriorityToQueueId_ref() = pfcPriority;
-  qosMap.trafficClassToQueueId_ref() = trafficClass;
-  policy.name_ref() = "policy";
-  policy.qosMap_ref() = qosMap;
+  qosMap.pfcPriorityToQueueId() = pfcPriority;
+  qosMap.trafficClassToQueueId() = trafficClass;
+  policy.name() = "policy";
+  policy.qosMap() = qosMap;
   return policy;
 }
 
@@ -197,14 +197,14 @@ TEST(PortQueue, stateDelta) {
   auto stateV0 = applyInitConfig();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     cfg::PortQueue queue;
-    queue.id_ref() = i;
-    queue.weight_ref() = i;
-    config.portQueueConfigs_ref()["queue_config"].push_back(queue);
-    config.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    queue.id() = i;
+    queue.weight() = i;
+    config.portQueueConfigs()["queue_config"].push_back(queue);
+    config.ports()[0].portQueueConfigName() = "queue_config";
   }
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -228,7 +228,7 @@ TEST(PortQueue, stateDelta) {
     EXPECT_EQ(*defaultQ, *(queues1.at(i)));
   }
 
-  config.portQueueConfigs_ref()["queue_config"][0].weight_ref() = 5;
+  config.portQueueConfigs()["queue_config"][0].weight() = 5;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -239,7 +239,7 @@ TEST(PortQueue, stateDelta) {
       queues2.size());
   EXPECT_EQ(5, queues2.at(0)->getWeight());
 
-  config.portQueueConfigs_ref()["queue_config"].pop_back();
+  config.portQueueConfigs()["queue_config"].pop_back();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
@@ -249,9 +249,9 @@ TEST(PortQueue, stateDelta) {
   EXPECT_EQ(1, queues3.at(3)->getWeight());
 
   cfg::PortQueue queueExtra;
-  queueExtra.id_ref() = 11;
-  queueExtra.weight_ref() = 5;
-  config.portQueueConfigs_ref()["queue_config"].push_back(queueExtra);
+  queueExtra.id() = 11;
+  queueExtra.weight() = 5;
+  config.portQueueConfigs()["queue_config"].push_back(queueExtra);
   EXPECT_THROW(
       publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
 }
@@ -261,15 +261,15 @@ TEST(PortQueue, aqmState) {
   auto stateV0 = applyInitConfig();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
   cfg::PortQueue queue;
-  queue.id_ref() = 0;
-  queue.weight_ref() = 1;
-  queue.aqms_ref() = {};
-  queue.aqms_ref()->push_back(getEarlyDropAqmConfig());
-  config.portQueueConfigs_ref()["queue_config"].push_back(queue);
-  config.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  queue.id() = 0;
+  queue.weight() = 1;
+  queue.aqms() = {};
+  queue.aqms()->push_back(getEarlyDropAqmConfig());
+  config.portQueueConfigs()["queue_config"].push_back(queue);
+  config.ports()[0].portQueueConfigName() = "queue_config";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -289,21 +289,21 @@ TEST(PortQueue, aqmBadState) {
   auto stateV0 = applyInitConfig();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
   cfg::PortQueue queue;
-  queue.id_ref() = 0;
-  queue.weight_ref() = 1;
+  queue.id() = 0;
+  queue.weight() = 1;
 
   // create bad ECN AQM state w/o specifying thresholds
   cfg::ActiveQueueManagement ecnAQM;
-  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
-  queue.aqms_ref() = {};
-  queue.aqms_ref()->push_back(getEarlyDropAqmConfig());
-  queue.aqms_ref()->push_back(ecnAQM);
+  ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
+  queue.aqms() = {};
+  queue.aqms()->push_back(getEarlyDropAqmConfig());
+  queue.aqms()->push_back(ecnAQM);
 
-  config.portQueueConfigs_ref()["queue_config"].push_back(queue);
-  config.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  config.portQueueConfigs()["queue_config"].push_back(queue);
+  config.ports()[0].portQueueConfigName() = "queue_config";
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -321,9 +321,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_TRUE(queues1.at(0)->getReservedBytes().has_value());
 
     // reset reservedBytes
-    config.portQueueConfigs_ref()["queue_config"][0]
-        .reservedBytes_ref()
-        .reset();
+    config.portQueueConfigs()["queue_config"][0].reservedBytes().reset();
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -338,9 +336,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_TRUE(queues1.at(0)->getScalingFactor().has_value());
 
     // reset scalingFactor
-    config.portQueueConfigs_ref()["queue_config"][0]
-        .scalingFactor_ref()
-        .reset();
+    config.portQueueConfigs()["queue_config"][0].scalingFactor().reset();
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -355,7 +351,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     EXPECT_EQ(2, queues1.at(0)->getAqms().size());
 
     // reset aqm
-    config.portQueueConfigs_ref()["queue_config"][0].aqms_ref().reset();
+    config.portQueueConfigs()["queue_config"][0].aqms().reset();
 
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
@@ -372,7 +368,7 @@ TEST(PortQueue, checkSwConfPortQueueMatch) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto& swQueues = stateV1->getPort(PortID(1))->getPortQueues();
-  auto& cfgQueue = config.portQueueConfigs_ref()["queue_config"][0];
+  auto& cfgQueue = config.portQueueConfigs()["queue_config"][0];
   EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues.at(0), &cfgQueue));
 }
 
@@ -381,21 +377,21 @@ TEST(PortQueue, checkValidPortQueueConfigRef) {
   auto stateV0 = applyInitConfig();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
 
   cfg::PortQueue queue0;
-  queue0.id_ref() = 0;
-  queue0.name_ref() = "queue0";
-  queue0.streamType_ref() = cfg::StreamType::UNICAST;
-  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.id() = 0;
+  queue0.name() = "queue0";
+  queue0.streamType() = cfg::StreamType::UNICAST;
+  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
 
   /*
    * portQueueConfigs map has entry for "queue_config", but the port is
    * referencing invalid entry "queue_config2"
    */
-  config.portQueueConfigs_ref()["queue_config"].push_back(queue0);
-  config.ports_ref()[0].portQueueConfigName_ref() = "queue_config2";
+  config.portQueueConfigs()["queue_config"].push_back(queue0);
+  config.ports()[0].portQueueConfigName() = "queue_config2";
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -417,10 +413,10 @@ TEST(PortQueue, checkPortQueueTrafficClass) {
   auto state = applyInitConfig();
   auto config = generateTestConfig();
   auto policy = generateQosPolicy({{9, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 
@@ -438,10 +434,10 @@ TEST(PortQueue, addPortQueueTrafficClass) {
   EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
 
   auto policy = generateQosPolicy({{9, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
@@ -453,20 +449,14 @@ TEST(PortQueue, updatePortQueueTrafficClass) {
   auto state = applyInitConfig();
   auto config = generateTestConfig();
   auto policy = generateQosPolicy({{9, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
 
-  config.qosPolicies_ref()[0]
-      .qosMap_ref()
-      ->trafficClassToQueueId_ref()
-      ->clear();
-  config.qosPolicies_ref()[0]
-      .qosMap_ref()
-      ->trafficClassToQueueId_ref()
-      ->emplace(7, 0);
+  config.qosPolicies()[0].qosMap()->trafficClassToQueueId()->clear();
+  config.qosPolicies()[0].qosMap()->trafficClassToQueueId()->emplace(7, 0);
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
@@ -478,16 +468,13 @@ TEST(PortQueue, removePortQueueTrafficClass) {
   auto state = applyInitConfig();
   auto config = generateTestConfig();
   auto policy = generateQosPolicy({{9, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
 
-  config.qosPolicies_ref()[0]
-      .qosMap_ref()
-      ->trafficClassToQueueId_ref()
-      ->clear();
+  config.qosPolicies()[0].qosMap()->trafficClassToQueueId()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
@@ -504,11 +491,11 @@ TEST(PortQueue, verifyPfcPriorityToQueue) {
   EXPECT_FALSE(swQueues[0]->getPfcPrioritySet().has_value());
 
   auto policy = generateQosPolicyWithPfcAndTrafficClass({}, {{7, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
 
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
 
@@ -516,13 +503,12 @@ TEST(PortQueue, verifyPfcPriorityToQueue) {
   pfcPrisForQueue0.insert(static_cast<PfcPriority>(7));
   EXPECT_EQ(swQueues[0]->getPfcPrioritySet().value(), pfcPrisForQueue0);
 
-  config.qosPolicies_ref()[0].qosMap_ref()->pfcPriorityToQueueId_ref()->clear();
+  config.qosPolicies()[0].qosMap()->pfcPriorityToQueueId()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_FALSE(swQueues[0]->getPfcPrioritySet().has_value());
 
-  config.qosPolicies_ref()[0].qosMap_ref()->pfcPriorityToQueueId_ref()->emplace(
-      2, 0);
+  config.qosPolicies()[0].qosMap()->pfcPriorityToQueueId()->emplace(2, 0);
 
   pfcPrisForQueue0.clear();
   pfcPrisForQueue0.insert(static_cast<PfcPriority>(2));
@@ -547,11 +533,11 @@ TEST(PortQueue, verifyMultiplePfcPriorityToSingleQueue) {
   // {4} for queue 1
   auto policy = generateQosPolicyWithPfcAndTrafficClass(
       {}, {{7, 0}, {2, 0}, {3, 0}, {4, 1}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
 
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
 
@@ -574,11 +560,11 @@ TEST(PortQueue, verifyPfcPriorityAndTrafficClass) {
   auto config = generateTestConfig();
 
   auto policy = generateQosPolicyWithPfcAndTrafficClass({{7, 0}}, {{2, 0}});
-  config.qosPolicies_ref()->push_back(policy);
+  config.qosPolicies()->push_back(policy);
 
   cfg::TrafficPolicyConfig policyConfig;
-  policyConfig.defaultQosPolicy_ref() = *policy.name_ref();
-  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  policyConfig.defaultQosPolicy() = *policy.name();
+  config.dataPlaneTrafficPolicy() = policyConfig;
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 

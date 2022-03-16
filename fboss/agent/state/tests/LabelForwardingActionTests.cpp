@@ -27,9 +27,9 @@ NextHopThrift getMplsNextHop(
     InterfaceID interface,
     const LabelForwardingAction& action) {
   NextHopThrift nhop;
-  nhop.address_ref() = toBinaryAddress(ip);
-  nhop.address_ref()->ifName_ref() = folly::to<std::string>("fboss", interface);
-  nhop.mplsAction_ref() = action.toThrift();
+  nhop.address() = toBinaryAddress(ip);
+  nhop.address()->ifName() = folly::to<std::string>("fboss", interface);
+  nhop.mplsAction() = action.toThrift();
   return nhop;
 }
 } // namespace

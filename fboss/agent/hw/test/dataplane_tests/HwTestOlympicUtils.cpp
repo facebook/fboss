@@ -16,10 +16,10 @@ namespace facebook::fboss::utility {
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(int minLength, int maxLength) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength_ref() = minLength;
-  ecnLQCD.maximumLength_ref() = maxLength;
-  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
-  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
+  ecnLQCD.minimumLength() = minLength;
+  ecnLQCD.maximumLength() = maxLength;
+  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
@@ -27,11 +27,11 @@ cfg::ActiveQueueManagement
 kGetWredConfig(int minLength, int maxLength, int probability) {
   cfg::ActiveQueueManagement wredAQM;
   cfg::LinearQueueCongestionDetection wredLQCD;
-  wredLQCD.minimumLength_ref() = minLength;
-  wredLQCD.maximumLength_ref() = maxLength;
-  wredLQCD.probability_ref() = probability;
-  wredAQM.detection_ref()->linear_ref() = wredLQCD;
-  wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  wredLQCD.minimumLength() = minLength;
+  wredLQCD.maximumLength() = maxLength;
+  wredLQCD.probability() = probability;
+  wredAQM.detection()->linear_ref() = wredLQCD;
+  wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
 }
 
@@ -41,11 +41,11 @@ void addQueueShaperConfig(
     const uint32_t minKbps,
     const uint32_t maxKbps) {
   cfg::Range kbpsRange;
-  kbpsRange.minimum_ref() = minKbps;
-  kbpsRange.maximum_ref() = maxKbps;
-  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
-  queue.portQueueRate_ref() = cfg::PortQueueRate();
-  queue.portQueueRate_ref()->kbitsPerSec_ref() = kbpsRange;
+  kbpsRange.minimum() = minKbps;
+  kbpsRange.maximum() = maxKbps;
+  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  queue.portQueueRate() = cfg::PortQueueRate();
+  queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
 }
 
 void addQueueBurstSizeConfig(
@@ -53,9 +53,9 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits) {
-  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
-  queue.bandwidthBurstMinKbits_ref() = minKbits;
-  queue.bandwidthBurstMaxKbits_ref() = maxKbits;
+  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  queue.bandwidthBurstMinKbits() = minKbits;
+  queue.bandwidthBurstMaxKbits() = maxKbits;
 }
 
 void addQueueEcnConfig(
@@ -63,11 +63,11 @@ void addQueueEcnConfig(
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen) {
-  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
-  if (!queue.aqms_ref().has_value()) {
-    queue.aqms_ref() = {};
+  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  if (!queue.aqms().has_value()) {
+    queue.aqms() = {};
   }
-  queue.aqms_ref()->push_back(kGetOlympicEcnConfig(minLen, maxLen));
+  queue.aqms()->push_back(kGetOlympicEcnConfig(minLen, maxLen));
 }
 
 void addQueueWredConfig(
@@ -76,11 +76,11 @@ void addQueueWredConfig(
     const uint32_t minLen,
     const uint32_t maxLen,
     const int probability) {
-  auto& queue = config->portQueueConfigs_ref()["queue_config"][queueId];
-  if (!queue.aqms_ref().has_value()) {
-    queue.aqms_ref() = {};
+  auto& queue = config->portQueueConfigs()["queue_config"][queueId];
+  if (!queue.aqms().has_value()) {
+    queue.aqms() = {};
   }
-  queue.aqms_ref()->push_back(kGetWredConfig(minLen, maxLen, probability));
+  queue.aqms()->push_back(kGetWredConfig(minLen, maxLen, probability));
 }
 
 void addNetworkAIQueueConfig(
@@ -89,29 +89,29 @@ void addNetworkAIQueueConfig(
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  queue0.id_ref() = kNetworkAIMonitoringQueueId;
-  queue0.name_ref() = "queue0.monitoring";
-  queue0.streamType_ref() = streamType;
-  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue0.id() = kNetworkAIMonitoringQueueId;
+  queue0.name() = "queue0.monitoring";
+  queue0.streamType() = streamType;
+  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue0.id_ref() = kNetworkAIRdmaQueueId;
-  queue0.name_ref() = "queue6.rdma";
-  queue0.streamType_ref() = streamType;
-  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue0.id() = kNetworkAIRdmaQueueId;
+  queue0.name() = "queue6.rdma";
+  queue0.streamType() = streamType;
+  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
-  queue0.id_ref() = kNetworkAINCQueueId;
-  queue0.name_ref() = "queue7.nc";
-  queue0.streamType_ref() = streamType;
-  queue0.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue0.id() = kNetworkAINCQueueId;
+  queue0.name() = "queue7.nc";
+  queue0.streamType() = streamType;
+  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue2);
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
   }
 }
 
@@ -124,72 +124,72 @@ void addOlympicQueueConfig(
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  *queue0.id_ref() = kOlympicSilverQueueId;
-  queue0.name_ref() = "queue0.silver";
-  queue0.streamType_ref() = streamType;
-  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = kOlympicSilverWeight;
-  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
+  *queue0.id() = kOlympicSilverQueueId;
+  queue0.name() = "queue0.silver";
+  queue0.streamType() = streamType;
+  *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = kOlympicSilverWeight;
+  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
   if (!asic->mmuQgroupsEnabled()) {
-    queue0.reservedBytes_ref() = 3328;
+    queue0.reservedBytes() = 3328;
   }
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  *queue1.id_ref() = kOlympicGoldQueueId;
-  queue1.name_ref() = "queue1.gold";
-  queue1.streamType_ref() = streamType;
-  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight_ref() = kOlympicGoldWeight;
-  queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+  *queue1.id() = kOlympicGoldQueueId;
+  queue1.name() = "queue1.gold";
+  queue1.streamType() = streamType;
+  *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue1.weight() = kOlympicGoldWeight;
+  queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
   if (!asic->mmuQgroupsEnabled()) {
-    queue1.reservedBytes_ref() = 9984;
+    queue1.reservedBytes() = 9984;
   }
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
-  *queue2.id_ref() = kOlympicEcn1QueueId;
-  queue2.name_ref() = "queue2.ecn1";
-  queue2.streamType_ref() = streamType;
-  *queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue2.weight_ref() = kOlympicEcn1Weight;
-  queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue2.aqms_ref() = {};
-  queue2.aqms_ref()->push_back(kGetOlympicEcnConfig());
+  *queue2.id() = kOlympicEcn1QueueId;
+  queue2.name() = "queue2.ecn1";
+  queue2.streamType() = streamType;
+  *queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue2.weight() = kOlympicEcn1Weight;
+  queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  queue2.aqms() = {};
+  queue2.aqms()->push_back(kGetOlympicEcnConfig());
   if (addWredConfig) {
-    queue2.aqms_ref()->push_back(kGetWredConfig());
+    queue2.aqms()->push_back(kGetWredConfig());
   }
   portQueues.push_back(queue2);
 
   cfg::PortQueue queue4;
-  *queue4.id_ref() = kOlympicBronzeQueueId;
-  queue4.name_ref() = "queue4.bronze";
-  queue4.streamType_ref() = streamType;
-  *queue4.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue4.weight_ref() = kOlympicBronzeWeight;
+  *queue4.id() = kOlympicBronzeQueueId;
+  queue4.name() = "queue4.bronze";
+  queue4.streamType() = streamType;
+  *queue4.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue4.weight() = kOlympicBronzeWeight;
   portQueues.push_back(queue4);
 
   cfg::PortQueue queue6;
-  *queue6.id_ref() = kOlympicICPQueueId;
-  queue6.name_ref() = "queue6.platinum";
-  queue6.streamType_ref() = streamType;
-  *queue6.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue6.id() = kOlympicICPQueueId;
+  queue6.name() = "queue6.platinum";
+  queue6.streamType() = streamType;
+  *queue6.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   if (!asic->mmuQgroupsEnabled()) {
-    queue6.reservedBytes_ref() = 9984;
+    queue6.reservedBytes() = 9984;
   }
-  queue6.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+  queue6.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
   portQueues.push_back(queue6);
 
   cfg::PortQueue queue7;
-  *queue7.id_ref() = kOlympicNCQueueId;
-  queue7.name_ref() = "queue7.network_control";
-  queue7.streamType_ref() = streamType;
-  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.id() = kOlympicNCQueueId;
+  queue7.name() = "queue7.network_control";
+  queue7.streamType() = streamType;
+  *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
   }
 }
 
@@ -205,30 +205,30 @@ void addQueueWredDropConfig(
   auto constexpr maxThresh = 7000 * 256;
 
   cfg::PortQueue queue0;
-  queue0.id_ref() = kOlympicSilverQueueId;
-  queue0.name_ref() = "queue0";
-  queue0.streamType_ref() = streamType;
-  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = kOlympicEcn1Weight;
-  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue0.aqms_ref() = {};
-  queue0.aqms_ref()->push_back(kGetWredConfig(0, maxThresh, 0));
+  queue0.id() = kOlympicSilverQueueId;
+  queue0.name() = "queue0";
+  queue0.streamType() = streamType;
+  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = kOlympicEcn1Weight;
+  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  queue0.aqms() = {};
+  queue0.aqms()->push_back(kGetWredConfig(0, maxThresh, 0));
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue2;
-  queue2.id_ref() = kOlympicEcn1QueueId;
-  queue2.name_ref() = "queue2";
-  queue2.streamType_ref() = streamType;
-  queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue2.weight_ref() = kOlympicEcn1Weight;
-  queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue2.aqms_ref() = {};
-  queue2.aqms_ref()->push_back(kGetWredConfig(0, maxThresh, 5));
+  queue2.id() = kOlympicEcn1QueueId;
+  queue2.name() = "queue2";
+  queue2.streamType() = streamType;
+  queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue2.weight() = kOlympicEcn1Weight;
+  queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  queue2.aqms() = {};
+  queue2.aqms()->push_back(kGetWredConfig(0, maxThresh, 5));
   portQueues.push_back(queue2);
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
   }
 }
 
@@ -252,16 +252,16 @@ void addOlympicAllSPQueueConfig(
 
   for (const auto& [queueId, queueName] : kOlympicAllSPQueueIdToQueueName()) {
     cfg::PortQueue queue;
-    queue.id_ref() = queueId;
-    queue.name_ref() = queueName;
-    queue.streamType_ref() = streamType;
-    queue.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+    queue.id() = queueId;
+    queue.name() = queueName;
+    queue.streamType() = streamType;
+    queue.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
     portQueues.push_back(queue);
   }
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
   }
 }
 
@@ -370,30 +370,29 @@ void addOlympicQosMapsHelper(
     cfg::SwitchConfig& cfg,
     const std::map<int, std::vector<uint8_t>>& queueToDscpMap) {
   cfg::QosMap qosMap;
-  qosMap.dscpMaps_ref()->resize(queueToDscpMap.size());
+  qosMap.dscpMaps()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
     auto [q, dscps] = q2dscps;
-    *qosMap.dscpMaps_ref()[qosMapIdx].internalTrafficClass_ref() = q;
+    *qosMap.dscpMaps()[qosMapIdx].internalTrafficClass() = q;
     for (auto dscp : dscps) {
-      qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
-          dscp);
+      qosMap.dscpMaps()[qosMapIdx].fromDscpToTrafficClass()->push_back(dscp);
     }
-    qosMap.trafficClassToQueueId_ref()->emplace(q, q);
+    qosMap.trafficClassToQueueId()->emplace(q, q);
     ++qosMapIdx;
   }
-  cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies_ref()[0].name_ref() = "olympic";
-  cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+  cfg.qosPolicies()->resize(1);
+  *cfg.qosPolicies()[0].name() = "olympic";
+  cfg.qosPolicies()[0].qosMap() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "olympic";
-  cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy() = "olympic";
+  cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
-  cpuTrafficPolicy.defaultQosPolicy_ref() = "olympic";
-  cpuConfig.trafficPolicy_ref() = cpuTrafficPolicy;
-  cfg.cpuTrafficPolicy_ref() = cpuConfig;
+  cpuTrafficPolicy.defaultQosPolicy() = "olympic";
+  cpuConfig.trafficPolicy() = cpuTrafficPolicy;
+  cfg.cpuTrafficPolicy() = cpuConfig;
 }
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg) {

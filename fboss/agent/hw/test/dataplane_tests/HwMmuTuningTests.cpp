@@ -54,10 +54,10 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
 
     auto portStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
-    auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes__ref();
-    auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets__ref();
-    auto queueWaterMarks = *portStats.queueWatermarkBytes__ref();
-    XLOG(INFO) << " Port discards: " << *portStats.outDiscards__ref()
+    auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes_();
+    auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets_();
+    auto queueWaterMarks = *portStats.queueWatermarkBytes_();
+    XLOG(INFO) << " Port discards: " << *portStats.outDiscards_()
                << " low pri queue discards, bytes: "
                << queueOutDiscardBytes[lowPriQueue]
                << " packets: " << queueOutDiscardPackets[lowPriQueue]
@@ -70,7 +70,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
                << " ) watermark: " << lowPriWatermark << " High pri queue ( "
                << highPriQueue << " ) watermark: " << highPriWatermark;
     EXPECT_GE(highPriWatermark, lowPriWatermark);
-    EXPECT_GT(*portStats.outDiscards__ref(), 0);
+    EXPECT_GT(*portStats.outDiscards_(), 0);
     EXPECT_GT(queueOutDiscardBytes[lowPriQueue], 0);
     EXPECT_GT(queueOutDiscardBytes[highPriQueue], 0);
     EXPECT_GT(queueOutDiscardPackets[lowPriQueue], 0);
@@ -110,7 +110,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     // Block until packets sent and stats updated
     auto countIncremented = [&](const auto& newStats) {
       auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
-      auto outDiscard = *portStatsIter->second.outDiscards__ref();
+      auto outDiscard = *portStatsIter->second.outDiscards_();
       XLOG(DBG0) << "Out discard : " << outDiscard;
       return outDiscard > 0;
     };
@@ -151,31 +151,29 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     for (auto dscp = 4; dscp < 64; ++dscp) {
       queue2Dscp[0].push_back(dscp);
     }
-    qosMap.dscpMaps_ref()->resize(queue2Dscp.size());
+    qosMap.dscpMaps()->resize(queue2Dscp.size());
     ssize_t qosMapIdx = 0;
     for (const auto& q2dscps : queue2Dscp) {
       auto [q, dscps] = q2dscps;
-      qosMap.dscpMaps_ref()[qosMapIdx].internalTrafficClass_ref() = q;
+      qosMap.dscpMaps()[qosMapIdx].internalTrafficClass() = q;
       for (auto dscp : dscps) {
-        qosMap.dscpMaps_ref()[qosMapIdx]
-            .fromDscpToTrafficClass_ref()
-            ->push_back(dscp);
+        qosMap.dscpMaps()[qosMapIdx].fromDscpToTrafficClass()->push_back(dscp);
       }
-      qosMap.trafficClassToQueueId_ref()->emplace(q, q);
+      qosMap.trafficClassToQueueId()->emplace(q, q);
       ++qosMapIdx;
     }
-    cfg->qosPolicies_ref()->resize(1);
-    cfg->qosPolicies_ref()[0].name_ref() = "qp";
-    cfg->qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    cfg->qosPolicies()->resize(1);
+    cfg->qosPolicies()[0].name() = "qp";
+    cfg->qosPolicies()[0].qosMap() = qosMap;
 
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
-    cfg->dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy() = "qp";
+    cfg->dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig cpuTrafficPolicy;
-    cpuTrafficPolicy.defaultQosPolicy_ref() = "qp";
-    cpuConfig.trafficPolicy_ref() = cpuTrafficPolicy;
-    cfg->cpuTrafficPolicy_ref() = cpuConfig;
+    cpuTrafficPolicy.defaultQosPolicy() = "qp";
+    cpuConfig.trafficPolicy() = cpuTrafficPolicy;
+    cfg->cpuTrafficPolicy() = cpuConfig;
   }
 
   void addQueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType)
@@ -184,46 +182,46 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
 
     // Queue 0 and 1 tune reserved bytes
     cfg::PortQueue queue0;
-    queue0.id_ref() = 0;
-    queue0.name_ref() = "queue0";
-    queue0.streamType_ref() = streamType;
-    queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue0.weight_ref() = 1;
+    queue0.id() = 0;
+    queue0.name() = "queue0";
+    queue0.streamType() = streamType;
+    queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue0.weight() = 1;
     portQueues.push_back(queue0);
 
     cfg::PortQueue queue1;
-    queue1.id_ref() = 1;
-    queue1.name_ref() = "queue1";
-    queue1.streamType_ref() = streamType;
-    queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue1.weight_ref() = 1;
+    queue1.id() = 1;
+    queue1.name() = "queue1";
+    queue1.streamType() = streamType;
+    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue1.weight() = 1;
     if (!getPlatform()->getAsic()->mmuQgroupsEnabled()) {
-      queue1.reservedBytes_ref() = 9984;
+      queue1.reservedBytes() = 9984;
     }
     portQueues.push_back(queue1);
 
     // Queue 2 and 3 tune scaling factor
     cfg::PortQueue queue2;
-    queue2.id_ref() = 2;
-    queue2.name_ref() = "queue2";
-    queue2.streamType_ref() = streamType;
-    queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue2.weight_ref() = 1;
-    queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
+    queue2.id() = 2;
+    queue2.name() = "queue2";
+    queue2.streamType() = streamType;
+    queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue2.weight() = 1;
+    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
     portQueues.push_back(queue2);
 
     cfg::PortQueue queue3;
-    queue3.id_ref() = 3;
-    queue3.name_ref() = "queue3";
-    queue3.streamType_ref() = streamType;
-    queue3.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue3.weight_ref() = 1;
-    queue3.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+    queue3.id() = 3;
+    queue3.name() = "queue3";
+    queue3.streamType() = streamType;
+    queue3.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue3.weight() = 1;
+    queue3.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
     portQueues.push_back(queue3);
 
-    config->portQueueConfigs_ref()["queue_config"] = portQueues;
-    for (auto& port : *config->ports_ref()) {
-      port.portQueueConfigName_ref() = "queue_config";
+    config->portQueueConfigs()["queue_config"] = portQueues;
+    for (auto& port : *config->ports()) {
+      port.portQueueConfigName() = "queue_config";
     }
   }
 };

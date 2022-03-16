@@ -10,10 +10,10 @@ namespace facebook::fboss::fsdb {
 template <typename PubUnit>
 OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
   OperPath operPath;
-  operPath.raw_ref() = publishPath_;
+  operPath.raw() = publishPath_;
   OperPubRequest request;
-  request.path_ref() = operPath;
-  request.publisherId_ref() = clientId();
+  request.path() = operPath;
+  request.publisherId() = clientId();
   return request;
 }
 

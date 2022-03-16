@@ -48,7 +48,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
         config, kDscpCounterAclName(), utility::kIcpDscp());
     utility::addTrafficCounter(config, kCounterName());
     cfg::MatchAction matchAction = cfg::MatchAction();
-    matchAction.counter_ref() = kCounterName();
+    matchAction.counter() = kCounterName();
     utility::addMatcher(config, kDscpCounterAclName(), matchAction);
   }
 
@@ -187,7 +187,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 

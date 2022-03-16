@@ -74,7 +74,7 @@ void HwSwitchEnsembleRouteUpdateWrapper::programRoutesImpl(
           if (add) {
             addRoute(rid, client, route);
           } else {
-            delRoute(rid, *route.dest_ref(), client);
+            delRoute(rid, *route.dest(), client);
           }
         });
     program();

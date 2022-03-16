@@ -329,7 +329,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
  private:
   template <typename AddrT>
   void sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(

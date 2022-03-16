@@ -16,10 +16,10 @@ void addDscpAclToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  *config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].dscp() = dscp;
 }
 
 void addL4SrcPortAclToCfg(
@@ -27,11 +27,11 @@ void addL4SrcPortAclToCfg(
     const std::string& aclName,
     IP_PROTO proto,
     uint32_t l4SrcPort) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].proto_ref() = static_cast<int>(proto);
-  config->acls_ref()[numCfgAcls].l4SrcPort_ref() = l4SrcPort;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].proto() = static_cast<int>(proto);
+  config->acls()[numCfgAcls].l4SrcPort() = l4SrcPort;
 }
 
 void addL4DstPortAclToCfg(
@@ -39,11 +39,11 @@ void addL4DstPortAclToCfg(
     const std::string& aclName,
     IP_PROTO proto,
     uint32_t l4DstPort) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].proto_ref() = static_cast<int>(proto);
-  config->acls_ref()[numCfgAcls].l4DstPort_ref() = l4DstPort;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].proto() = static_cast<int>(proto);
+  config->acls()[numCfgAcls].l4DstPort() = l4DstPort;
 }
 
 void addSetDscpAndEgressQueueActionToCfg(
@@ -55,13 +55,13 @@ void addSetDscpAndEgressQueueActionToCfg(
 
   // set specific dscp value action
   cfg::SetDscpMatchAction setDscpMatchAction;
-  setDscpMatchAction.dscpValue_ref() = dscp;
-  matchAction.setDscp_ref() = setDscpMatchAction;
+  setDscpMatchAction.dscpValue() = dscp;
+  matchAction.setDscp() = setDscpMatchAction;
 
   // egress via specific queue action
   cfg::QueueMatchAction queueAction;
-  queueAction.queueId_ref() = queueId;
-  matchAction.sendToQueue_ref() = queueAction;
+  queueAction.queueId() = queueId;
+  matchAction.sendToQueue() = queueAction;
 
   utility::addMatcher(config, aclName, matchAction);
 }
@@ -71,13 +71,13 @@ void addL2ClassIDAndTtlAcl(
     const std::string& aclName,
     cfg::AclLookupClass lookupClassL2,
     std::optional<cfg::Ttl> ttl) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  *config->acls()[numCfgAcls].name() = aclName;
 
-  config->acls_ref()[numCfgAcls].lookupClassL2_ref() = lookupClassL2;
+  config->acls()[numCfgAcls].lookupClassL2() = lookupClassL2;
   if (ttl.has_value()) {
-    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+    config->acls()[numCfgAcls].ttl() = ttl.value();
   }
 }
 
@@ -86,14 +86,13 @@ void addNeighborClassIDAndTtlAcl(
     const std::string& aclName,
     cfg::AclLookupClass lookupClassNeighbor,
     std::optional<cfg::Ttl> ttl) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  *config->acls()[numCfgAcls].name() = aclName;
 
-  config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() =
-      lookupClassNeighbor;
+  config->acls()[numCfgAcls].lookupClassNeighbor() = lookupClassNeighbor;
   if (ttl.has_value()) {
-    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+    config->acls()[numCfgAcls].ttl() = ttl.value();
   }
 }
 
@@ -101,34 +100,33 @@ void addL2ClassIDDropAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     cfg::AclLookupClass lookupClassL2) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].lookupClassL2_ref() = lookupClassL2;
-  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].lookupClassL2() = lookupClassL2;
+  config->acls()[numCfgAcls].actionType() = cfg::AclActionType::DENY;
 }
 
 void addNeighborClassIDDropAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     cfg::AclLookupClass lookupClassNeighbor) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].lookupClassNeighbor_ref() =
-      lookupClassNeighbor;
-  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].lookupClassNeighbor() = lookupClassNeighbor;
+  config->acls()[numCfgAcls].actionType() = cfg::AclActionType::DENY;
 }
 
 void addRouteClassIDDropAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     cfg::AclLookupClass lookupClassRoute) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  config->acls_ref()[numCfgAcls].name_ref() = aclName;
-  config->acls_ref()[numCfgAcls].lookupClassRoute_ref() = lookupClassRoute;
-  config->acls_ref()[numCfgAcls].actionType_ref() = cfg::AclActionType::DENY;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  config->acls()[numCfgAcls].name() = aclName;
+  config->acls()[numCfgAcls].lookupClassRoute() = lookupClassRoute;
+  config->acls()[numCfgAcls].actionType() = cfg::AclActionType::DENY;
 }
 
 void addRouteClassIDAndTtlAcl(
@@ -136,13 +134,13 @@ void addRouteClassIDAndTtlAcl(
     const std::string& aclName,
     cfg::AclLookupClass lookupClassRoute,
     std::optional<cfg::Ttl> ttl) {
-  auto numCfgAcls = config->acls_ref()->size();
-  config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
+  auto numCfgAcls = config->acls()->size();
+  config->acls()->resize(numCfgAcls + 1);
+  *config->acls()[numCfgAcls].name() = aclName;
 
-  config->acls_ref()[numCfgAcls].lookupClassRoute_ref() = lookupClassRoute;
+  config->acls()[numCfgAcls].lookupClassRoute() = lookupClassRoute;
   if (ttl.has_value()) {
-    config->acls_ref()[numCfgAcls].ttl_ref() = ttl.value();
+    config->acls()[numCfgAcls].ttl() = ttl.value();
   }
 }
 
@@ -152,12 +150,12 @@ void addQueueMatcher(
     int queueId,
     const std::optional<std::string>& counterName) {
   cfg::QueueMatchAction queueAction;
-  *queueAction.queueId_ref() = queueId;
+  *queueAction.queueId() = queueId;
   cfg::MatchAction matchAction = cfg::MatchAction();
-  matchAction.sendToQueue_ref() = queueAction;
+  matchAction.sendToQueue() = queueAction;
 
   if (counterName.has_value()) {
-    matchAction.counter_ref() = counterName.value();
+    matchAction.counter() = counterName.value();
   }
 
   utility::addMatcher(config, matcherName, matchAction);
@@ -167,9 +165,9 @@ void addTrafficCounter(
     cfg::SwitchConfig* config,
     const std::string& counterName) {
   auto counter = cfg::TrafficCounter();
-  *counter.name_ref() = counterName;
-  *counter.types_ref() = {cfg::CounterType::PACKETS};
-  config->trafficCounters_ref()->push_back(counter);
+  *counter.name() = counterName;
+  *counter.types() = {cfg::CounterType::PACKETS};
+  config->trafficCounters()->push_back(counter);
 }
 
 /*
@@ -226,37 +224,37 @@ cfg::QosPolicy* addDscpQosPolicy(
   std::vector<cfg::QosRule> rules;
   for (auto& pair : map) {
     auto qosRule = cfg::QosRule();
-    *qosRule.queueId_ref() = pair.first;
-    *qosRule.dscp_ref() = pair.second;
+    *qosRule.queueId() = pair.first;
+    *qosRule.dscp() = pair.second;
     rules.push_back(qosRule);
   }
   auto qosPolicy = cfg::QosPolicy();
-  *qosPolicy.name_ref() = name;
-  *qosPolicy.rules_ref() = rules;
-  cfg->qosPolicies_ref()->push_back(qosPolicy);
-  return &cfg->qosPolicies_ref()->back();
+  *qosPolicy.name() = name;
+  *qosPolicy.rules() = rules;
+  cfg->qosPolicies()->push_back(qosPolicy);
+  return &cfg->qosPolicies()->back();
 }
 
 void delQosPolicy(cfg::SwitchConfig* cfg, const std::string& name) {
-  cfg->qosPolicies_ref()->erase(
+  cfg->qosPolicies()->erase(
       std::remove_if(
-          cfg->qosPolicies_ref()->begin(),
-          cfg->qosPolicies_ref()->end(),
-          [&](auto qosPolicy) { return *qosPolicy.name_ref() == name; }),
-      cfg->qosPolicies_ref()->end());
+          cfg->qosPolicies()->begin(),
+          cfg->qosPolicies()->end(),
+          [&](auto qosPolicy) { return *qosPolicy.name() == name; }),
+      cfg->qosPolicies()->end());
 }
 
 void setDefaultQosPolicy(cfg::SwitchConfig* cfg, const std::string& name) {
-  auto trafficPolicy = cfg->dataPlaneTrafficPolicy_ref();
+  auto trafficPolicy = cfg->dataPlaneTrafficPolicy();
   if (!trafficPolicy) {
     trafficPolicy = cfg::TrafficPolicyConfig();
   }
-  trafficPolicy->defaultQosPolicy_ref() = name;
+  trafficPolicy->defaultQosPolicy() = name;
 }
 
 void unsetDefaultQosPolicy(cfg::SwitchConfig* cfg) {
-  if (auto trafficPolicy = cfg->dataPlaneTrafficPolicy_ref()) {
-    if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy_ref()) {
+  if (auto trafficPolicy = cfg->dataPlaneTrafficPolicy()) {
+    if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
       defaultQosPolicy.reset();
     }
   }
@@ -266,11 +264,11 @@ void overrideQosPolicy(
     cfg::SwitchConfig* cfg,
     int port,
     const std::string& name) {
-  auto trafficPolicy = cfg->dataPlaneTrafficPolicy_ref();
+  auto trafficPolicy = cfg->dataPlaneTrafficPolicy();
   if (!trafficPolicy) {
     trafficPolicy = cfg::TrafficPolicyConfig();
   }
-  auto portIdToQosPolicy = trafficPolicy->portIdToQosPolicy_ref();
+  auto portIdToQosPolicy = trafficPolicy->portIdToQosPolicy();
   if (!portIdToQosPolicy) {
     portIdToQosPolicy = std::map<int, std::string>();
   }
@@ -278,21 +276,21 @@ void overrideQosPolicy(
 }
 
 void setCPUQosPolicy(cfg::SwitchConfig* cfg, const std::string& name) {
-  auto cpuTrafficPolicy = cfg->cpuTrafficPolicy_ref();
+  auto cpuTrafficPolicy = cfg->cpuTrafficPolicy();
   if (!cpuTrafficPolicy) {
     cpuTrafficPolicy = cfg::CPUTrafficPolicyConfig();
   }
-  auto trafficPolicy = cpuTrafficPolicy->trafficPolicy_ref();
+  auto trafficPolicy = cpuTrafficPolicy->trafficPolicy();
   if (!trafficPolicy) {
     trafficPolicy = cfg::TrafficPolicyConfig();
   }
-  trafficPolicy->defaultQosPolicy_ref() = name;
+  trafficPolicy->defaultQosPolicy() = name;
 }
 
 void unsetCPUQosPolicy(cfg::SwitchConfig* cfg) {
-  if (auto cpuTrafficPolicy = cfg->cpuTrafficPolicy_ref()) {
-    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy_ref()) {
-      trafficPolicy->defaultQosPolicy_ref().reset();
+  if (auto cpuTrafficPolicy = cfg->cpuTrafficPolicy()) {
+    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
+      trafficPolicy->defaultQosPolicy().reset();
     }
   }
 }

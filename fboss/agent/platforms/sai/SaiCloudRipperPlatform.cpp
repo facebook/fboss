@@ -28,7 +28,7 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
 }
 
 std::string SaiCloudRipperPlatform::getHwConfig() {
-  return *config()->thrift.platform_ref()->get_chip().get_asic().config_ref();
+  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 HwAsic* SaiCloudRipperPlatform::getAsic() const {

@@ -415,7 +415,7 @@ std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
   }
 
   for (const auto& response : readResp) {
-    const auto moduleId = *(response.second.data_ref()->data());
+    const auto moduleId = *(response.second.data()->data());
     const TransceiverManagementInterface modType =
         getTransceiverManagementInterface(moduleId, response.first + 1);
 
@@ -619,25 +619,25 @@ std::map<int32_t, ReadResponse> doReadRegViaService(
   auto client = getQsfpClient(evb);
   ReadRequest request;
   TransceiverIOParameters param;
-  request.ids_ref() = ports;
-  param.offset_ref() = offset;
-  param.length_ref() = length;
+  request.ids() = ports;
+  param.offset() = offset;
+  param.length() = length;
   if (page != -1) {
-    param.page_ref() = page;
+    param.page() = page;
   }
-  request.parameter_ref() = param;
+  request.parameter() = param;
   std::map<int32_t, ReadResponse> response;
 
   try {
     client->sync_readTransceiverRegister(response, request);
     for (const auto& iterator : response) {
       printf("Port Id : %d\n", iterator.first + 1);
-      auto data = iterator.second.data_ref()->data();
-      if (iterator.second.data_ref()->length() < length) {
+      auto data = iterator.second.data()->data();
+      if (iterator.second.data()->length() < length) {
         fprintf(stderr, "QSFP %d: fail to read module\n", iterator.first + 1);
         return std::map<int32_t, ReadResponse>();
       } else {
-        displayReadRegData(data, offset, iterator.second.data_ref()->length());
+        displayReadRegData(data, offset, iterator.second.data()->length());
       }
     }
   } catch (const std::exception& ex) {
@@ -729,19 +729,19 @@ bool doWriteRegViaService(
   auto client = getQsfpClient(evb);
   WriteRequest request;
   TransceiverIOParameters param;
-  request.ids_ref() = ports;
-  param.offset_ref() = offset;
+  request.ids() = ports;
+  param.offset() = offset;
   if (page != -1) {
-    param.page_ref() = page;
+    param.page() = page;
   }
-  request.parameter_ref() = param;
-  request.data_ref() = value;
+  request.parameter() = param;
+  request.data() = value;
   std::map<int32_t, WriteResponse> response;
 
   try {
     client->sync_writeTransceiverRegister(response, request);
     for (const auto& iterator : response) {
-      if (*(response[iterator.first].success_ref())) {
+      if (*(response[iterator.first].success())) {
         printf(
             "QSFP %d: successfully write 0x%02x to %d.\n",
             iterator.first + 1,
@@ -884,7 +884,7 @@ std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
 
   std::vector<int32_t> presentPorts;
   for (auto& qsfpInfo : qsfpInfoMap) {
-    if (*qsfpInfo.second.present_ref()) {
+    if (*qsfpInfo.second.present()) {
       presentPorts.push_back(qsfpInfo.first);
     }
   }
@@ -1033,11 +1033,9 @@ void printChannelMonitor(
 
 uint8_t getSensorMonitors(const Sensor& sensor) {
   uint8_t value = 0;
-  if (auto flags = sensor.flags_ref()) {
-    value = (*(flags->alarm_ref()->high_ref()) << 3) |
-        (*(flags->alarm_ref()->low_ref()) << 2) |
-        (*(flags->warn_ref()->high_ref()) << 1) |
-        (*(flags->warn_ref()->low_ref()));
+  if (auto flags = sensor.flags()) {
+    value = (*(flags->alarm()->high()) << 3) | (*(flags->alarm()->low()) << 2) |
+        (*(flags->warn()->high()) << 1) | (*(flags->warn()->low()));
   }
   return value;
 }
@@ -1070,8 +1068,8 @@ void printLaneLine(const char* detail, unsigned int numChannels) {
 
 void printGlobalInterruptFlags(const GlobalSensors& sensors) {
   printf("  Global Interrupt Flags: \n");
-  printf("    Temp: 0x%02x\n", getSensorMonitors(*(sensors.temp_ref())));
-  printf("    Vcc: 0x%02x\n", getSensorMonitors(*(sensors.vcc_ref())));
+  printf("    Temp: 0x%02x\n", getSensorMonitors(*(sensors.temp())));
+  printf("    Vcc: 0x%02x\n", getSensorMonitors(*(sensors.vcc())));
 }
 
 void printChannelInterruptFlags(const std::vector<Channel>& channels) {
@@ -1079,67 +1077,67 @@ void printChannelInterruptFlags(const std::vector<Channel>& channels) {
   printLaneLine("  Lane Interrupts: ", numChannels);
 
   auto getHighAlarm = [](const Sensor& sensor) {
-    return *(sensor.flags_ref()->alarm_ref()->high_ref());
+    return *(sensor.flags()->alarm()->high());
   };
   auto getHighWarn = [](const Sensor& sensor) {
-    return *(sensor.flags_ref()->warn_ref()->high_ref());
+    return *(sensor.flags()->warn()->high());
   };
   auto getLowAlarm = [](const Sensor& sensor) {
-    return *(sensor.flags_ref()->alarm_ref()->low_ref());
+    return *(sensor.flags()->alarm()->low());
   };
   auto getLowWarn = [](const Sensor& sensor) {
-    return *(sensor.flags_ref()->warn_ref()->low_ref());
+    return *(sensor.flags()->warn()->low());
   };
 
   printf("\n    %-22s", "Tx Pwr High Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighAlarm(*(channel.sensors_ref()->txPwr_ref())));
+    printf(" %-12d", getHighAlarm(*(channel.sensors()->txPwr())));
   }
   printf("\n    %-22s", "Tx Pwr High Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighWarn(*(channel.sensors_ref()->txPwr_ref())));
+    printf(" %-12d", getHighWarn(*(channel.sensors()->txPwr())));
   }
   printf("\n    %-22s", "Tx Pwr Low Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowAlarm(*(channel.sensors_ref()->txPwr_ref())));
+    printf(" %-12d", getLowAlarm(*(channel.sensors()->txPwr())));
   }
   printf("\n    %-22s", "Tx Pwr Low Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowWarn(*(channel.sensors_ref()->txPwr_ref())));
+    printf(" %-12d", getLowWarn(*(channel.sensors()->txPwr())));
   }
 
   printf("\n    %-22s", "Tx Bias High Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighAlarm(*(channel.sensors_ref()->txBias_ref())));
+    printf(" %-12d", getHighAlarm(*(channel.sensors()->txBias())));
   }
   printf("\n    %-22s", "Tx Bias High Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighWarn(*(channel.sensors_ref()->txBias_ref())));
+    printf(" %-12d", getHighWarn(*(channel.sensors()->txBias())));
   }
   printf("\n    %-22s", "Tx Bias Low Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowAlarm(*(channel.sensors_ref()->txBias_ref())));
+    printf(" %-12d", getLowAlarm(*(channel.sensors()->txBias())));
   }
   printf("\n    %-22s", "Tx Bias Low Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowWarn(*(channel.sensors_ref()->txBias_ref())));
+    printf(" %-12d", getLowWarn(*(channel.sensors()->txBias())));
   }
 
   printf("\n    %-22s", "Rx Pwr High Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighAlarm(*(channel.sensors_ref()->rxPwr_ref())));
+    printf(" %-12d", getHighAlarm(*(channel.sensors()->rxPwr())));
   }
   printf("\n    %-22s", "Rx Pwr High Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getHighWarn(*(channel.sensors_ref()->rxPwr_ref())));
+    printf(" %-12d", getHighWarn(*(channel.sensors()->rxPwr())));
   }
   printf("\n    %-22s", "Rx Pwr Low Alarm");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowAlarm(*(channel.sensors_ref()->rxPwr_ref())));
+    printf(" %-12d", getLowAlarm(*(channel.sensors()->rxPwr())));
   }
   printf("\n    %-22s", "Rx Pwr Low Warn");
   for (const auto& channel : channels) {
-    printf(" %-12d", getLowWarn(*(channel.sensors_ref()->rxPwr_ref())));
+    printf(" %-12d", getLowWarn(*(channel.sensors()->rxPwr())));
   }
 
   printf("\n");
@@ -1153,18 +1151,18 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
   printLaneLine("  Host Lane Signals: ", numLanes);
   // Assumption: If a signal is valid for first lane, it is also valid for other
   // lanes.
-  if (signals[0].dataPathDeInit_ref()) {
+  if (signals[0].dataPathDeInit()) {
     printf("\n    %-22s", "Datapath de-init");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.dataPathDeInit_ref()));
+      printf(" %-12d", *(signal.dataPathDeInit()));
     }
   }
-  if (signals[0].cmisLaneState_ref()) {
+  if (signals[0].cmisLaneState()) {
     printf("\n    %-22s", "Lane state");
     for (const auto& signal : signals) {
       printf(
           " %-12s",
-          apache::thrift::util::enumNameSafe(*(signal.cmisLaneState_ref()))
+          apache::thrift::util::enumNameSafe(*(signal.cmisLaneState()))
               .c_str());
     }
   }
@@ -1179,40 +1177,40 @@ void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
   printLaneLine("  Media Lane Signals: ", numLanes);
   // Assumption: If a signal is valid for first lane, it is also valid for other
   // lanes.
-  if (signals[0].txLos_ref()) {
+  if (signals[0].txLos()) {
     printf("\n    %-22s", "Tx LOS");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txLos_ref()));
+      printf(" %-12d", *(signal.txLos()));
     }
   }
-  if (signals[0].txLol_ref()) {
+  if (signals[0].txLol()) {
     printf("\n    %-22s", "Tx LOL");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txLol_ref()));
+      printf(" %-12d", *(signal.txLol()));
     }
   }
-  if (signals[0].rxLos_ref()) {
+  if (signals[0].rxLos()) {
     printf("\n    %-22s", "Rx LOS");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.rxLos_ref()));
+      printf(" %-12d", *(signal.rxLos()));
     }
   }
-  if (signals[0].rxLol_ref()) {
+  if (signals[0].rxLol()) {
     printf("\n    %-22s", "Rx LOL");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.rxLol_ref()));
+      printf(" %-12d", *(signal.rxLol()));
     }
   }
-  if (signals[0].txFault_ref()) {
+  if (signals[0].txFault()) {
     printf("\n    %-22s", "Tx Fault");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txFault_ref()));
+      printf(" %-12d", *(signal.txFault()));
     }
   }
-  if (signals[0].txAdaptEqFault_ref()) {
+  if (signals[0].txAdaptEqFault()) {
     printf("\n    %-22s", "Tx Adaptive Eq Fault");
     for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txAdaptEqFault_ref()));
+      printf(" %-12d", *(signal.txAdaptEqFault()));
     }
   }
   printf("\n");
@@ -1224,49 +1222,49 @@ void printHostLaneSettings(const std::vector<HostLaneSettings>& settings) {
     return;
   }
   printLaneLine("  Host Lane Settings:", numLanes);
-  if (settings[0].txInputEqualization_ref()) {
+  if (settings[0].txInputEqualization()) {
     printf("\n    %-22s", "Tx Input Equalization");
     for (const auto& setting : settings) {
-      printf(" 0x%-10x", *(setting.txInputEqualization_ref()));
+      printf(" 0x%-10x", *(setting.txInputEqualization()));
     }
   }
-  if (settings[0].rxOutputEmphasis_ref()) {
+  if (settings[0].rxOutputEmphasis()) {
     printf("\n    %-22s", "Rx Output Emphasis");
     for (const auto& setting : settings) {
-      printf(" 0x%-10x", *(setting.rxOutputEmphasis_ref()));
+      printf(" 0x%-10x", *(setting.rxOutputEmphasis()));
     }
   }
-  if (settings[0].rxOutputPreCursor_ref()) {
+  if (settings[0].rxOutputPreCursor()) {
     printf("\n    %-22s", "Rx Out Precursor");
     for (const auto& setting : settings) {
-      auto pre = *(setting.rxOutputPreCursor_ref());
+      auto pre = *(setting.rxOutputPreCursor());
       printf(" %-12d", pre);
     }
   }
-  if (settings[0].rxOutputPostCursor_ref()) {
+  if (settings[0].rxOutputPostCursor()) {
     printf("\n    %-22s", "Rx Out Postcursor");
     for (const auto& setting : settings) {
-      auto post = *(setting.rxOutputPostCursor_ref());
+      auto post = *(setting.rxOutputPostCursor());
       printf(" %-12d", post);
     }
   }
-  if (settings[0].rxOutputAmplitude_ref()) {
+  if (settings[0].rxOutputAmplitude()) {
     printf("\n    %-22s", "Rx Out Amplitude");
     for (const auto& setting : settings) {
-      auto amp = *(setting.rxOutputAmplitude_ref());
+      auto amp = *(setting.rxOutputAmplitude());
       printf(" %-12d", amp);
     }
   }
-  if (settings[0].rxOutput_ref()) {
+  if (settings[0].rxOutput()) {
     printf("\n    %-22s", "Rx Output Disable");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.rxOutput_ref()));
+      printf(" %-12d", *(setting.rxOutput()));
     }
   }
-  if (settings[0].rxSquelch_ref()) {
+  if (settings[0].rxSquelch()) {
     printf("\n    %-22s", "Rx Squelch Disable");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.rxSquelch_ref()));
+      printf(" %-12d", *(setting.rxSquelch()));
     }
   }
   printf("\n");
@@ -1278,28 +1276,28 @@ void printMediaLaneSettings(const std::vector<MediaLaneSettings>& settings) {
     return;
   }
   printLaneLine("  Media Lane Settings:", numLanes);
-  if (settings[0].txDisable_ref()) {
+  if (settings[0].txDisable()) {
     printf("\n    %-22s", "Tx Disable");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.txDisable_ref()));
+      printf(" %-12d", *(setting.txDisable()));
     }
   }
-  if (settings[0].txSquelch_ref()) {
+  if (settings[0].txSquelch()) {
     printf("\n    %-22s", "Tx Squelch Disable");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.txSquelch_ref()));
+      printf(" %-12d", *(setting.txSquelch()));
     }
   }
-  if (settings[0].txAdaptiveEqControl_ref()) {
+  if (settings[0].txAdaptiveEqControl()) {
     printf("\n    %-22s", "Tx Adaptive Eq Ctrl");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.txAdaptiveEqControl_ref()));
+      printf(" %-12d", *(setting.txAdaptiveEqControl()));
     }
   }
-  if (settings[0].txSquelchForce_ref()) {
+  if (settings[0].txSquelchForce()) {
     printf("\n    %-22s", "Tx Forced Squelch");
     for (const auto& setting : settings) {
-      printf(" %-12d", *(setting.txSquelchForce_ref()));
+      printf(" %-12d", *(setting.txSquelchForce()));
     }
   }
   printf("\n");
@@ -1307,8 +1305,8 @@ void printMediaLaneSettings(const std::vector<MediaLaneSettings>& settings) {
 
 void printGlobalDomMonitors(const GlobalSensors& sensors) {
   printf("  Global DOM Monitors:\n");
-  printf("    Temperature: %.2f C\n", *(sensors.temp_ref()->value_ref()));
-  printf("    Supply Voltage: %.2f V\n", *(sensors.vcc_ref()->value_ref()));
+  printf("    Temperature: %.2f C\n", *(sensors.temp()->value()));
+  printf("    Supply Voltage: %.2f V\n", *(sensors.vcc()->value()));
 }
 
 void printLaneDomMonitors(const std::vector<Channel>& channels) {
@@ -1320,33 +1318,33 @@ void printLaneDomMonitors(const std::vector<Channel>& channels) {
 
   printf("\n    %-22s", "Tx Pwr (mW)");
   for (const auto& channel : channels) {
-    printf(" %-12.2f", *(channel.sensors_ref()->txPwr_ref()->value_ref()));
+    printf(" %-12.2f", *(channel.sensors()->txPwr()->value()));
   }
-  if (channels[0].sensors_ref()->txPwrdBm_ref()) {
+  if (channels[0].sensors()->txPwrdBm()) {
     printf("\n    %-22s", "Tx Pwr (dBm)");
     for (const auto& channel : channels) {
-      printf(" %-12.2f", *(channel.sensors_ref()->txPwrdBm_ref()->value_ref()));
+      printf(" %-12.2f", *(channel.sensors()->txPwrdBm()->value()));
     }
   }
   printf("\n    %-22s", "Rx Pwr (mW)");
   for (const auto& channel : channels) {
-    printf(" %-12.2f", *(channel.sensors_ref()->rxPwr_ref()->value_ref()));
+    printf(" %-12.2f", *(channel.sensors()->rxPwr()->value()));
   }
-  if (channels[0].sensors_ref()->rxPwrdBm_ref()) {
+  if (channels[0].sensors()->rxPwrdBm()) {
     printf("\n    %-22s", "Rx Pwr (dBm)");
     for (const auto& channel : channels) {
-      printf(" %-12.2f", *(channel.sensors_ref()->rxPwrdBm_ref()->value_ref()));
+      printf(" %-12.2f", *(channel.sensors()->rxPwrdBm()->value()));
     }
   }
   printf("\n    %-22s", "Tx Bias (mA)");
   for (const auto& channel : channels) {
-    printf(" %-12.2f", *(channel.sensors_ref()->txBias_ref()->value_ref()));
+    printf(" %-12.2f", *(channel.sensors()->txBias()->value()));
   }
-  if (auto rxSnrCh0 = channels[0].sensors_ref()->rxSnr_ref()) {
+  if (auto rxSnrCh0 = channels[0].sensors()->rxSnr()) {
     printf("\n    %-22s", "Rx SNR");
     for (const auto& channel : channels) {
-      if (auto snr = channel.sensors_ref()->rxSnr_ref()) {
-        printf(" %-12.2f", *((*snr).value_ref()));
+      if (auto snr = channel.sensors()->rxSnr()) {
+        printf(" %-12.2f", *((*snr).value()));
       }
     }
   }
@@ -1361,60 +1359,56 @@ void printThresholds(const AlarmThreshold& thresholds) {
         "  %-15s %-14s %.2f\n",
         monitor,
         "High Alarm",
-        *(levels.alarm_ref()->high_ref()));
+        *(levels.alarm()->high()));
     printf(
         "  %-15s %-14s %.2f\n",
         monitor,
         "High Warning",
-        *(levels.warn_ref()->high_ref()));
+        *(levels.warn()->high()));
     printf(
         "  %-15s %-14s %.2f\n",
         monitor,
         "Low Warning",
-        *(levels.warn_ref()->low_ref()));
+        *(levels.warn()->low()));
     printf(
-        "  %-15s %-14s %.2f\n",
-        monitor,
-        "Low Alarm",
-        *(levels.alarm_ref()->low_ref()));
+        "  %-15s %-14s %.2f\n", monitor, "Low Alarm", *(levels.alarm()->low()));
   };
-  printMonitorThreshold("  Temp (C)", *(thresholds.temp_ref()));
-  printMonitorThreshold("  Vcc (V)", *(thresholds.vcc_ref()));
-  printMonitorThreshold("  Rx Power (mW)", *(thresholds.rxPwr_ref()));
-  printMonitorThreshold("  Tx Power (mW)", *(thresholds.txPwr_ref()));
-  printMonitorThreshold("  Tx Bias (mA)", *(thresholds.txBias_ref()));
+  printMonitorThreshold("  Temp (C)", *(thresholds.temp()));
+  printMonitorThreshold("  Vcc (V)", *(thresholds.vcc()));
+  printMonitorThreshold("  Rx Power (mW)", *(thresholds.rxPwr()));
+  printMonitorThreshold("  Tx Power (mW)", *(thresholds.txPwr()));
+  printMonitorThreshold("  Tx Bias (mA)", *(thresholds.txBias()));
 }
 
 void printManagementInterface(
     const TransceiverInfo& transceiverInfo,
     const char* fmt) {
-  if (auto mgmtInterface =
-          transceiverInfo.transceiverManagementInterface_ref()) {
+  if (auto mgmtInterface = transceiverInfo.transceiverManagementInterface()) {
     printf(fmt, apache::thrift::util::enumNameSafe(*mgmtInterface).c_str());
   }
 }
 
 void printVerboseInfo(const TransceiverInfo& transceiverInfo) {
-  auto globalSensors = transceiverInfo.sensor_ref();
+  auto globalSensors = transceiverInfo.sensor();
 
   if (globalSensors) {
     printGlobalInterruptFlags(*globalSensors);
   }
-  printChannelInterruptFlags(*(transceiverInfo.channels_ref()));
-  if (auto thresholds = transceiverInfo.thresholds_ref()) {
+  printChannelInterruptFlags(*(transceiverInfo.channels()));
+  if (auto thresholds = transceiverInfo.thresholds()) {
     printThresholds(*thresholds);
   }
 }
 
 void printVendorInfo(const TransceiverInfo& transceiverInfo) {
-  if (auto vendor = transceiverInfo.vendor_ref()) {
+  if (auto vendor = transceiverInfo.vendor()) {
     auto vendorInfo = *vendor;
     printf("  Vendor Info:\n");
-    auto name = *(vendorInfo.name_ref());
-    auto pn = *(vendorInfo.partNumber_ref());
-    auto rev = *(vendorInfo.rev_ref());
-    auto sn = *(vendorInfo.serialNumber_ref());
-    auto dateCode = *(vendorInfo.dateCode_ref());
+    auto name = *(vendorInfo.name());
+    auto pn = *(vendorInfo.partNumber());
+    auto rev = *(vendorInfo.rev());
+    auto sn = *(vendorInfo.serialNumber());
+    auto dateCode = *(vendorInfo.dateCode());
     printf("    Vendor: %s\n", name.c_str());
     printf("    Vendor PN: %s\n", pn.c_str());
     printf("    Vendor Rev: %s\n", rev.c_str());
@@ -1425,55 +1419,55 @@ void printVendorInfo(const TransceiverInfo& transceiverInfo) {
 
 void printCableInfo(const Cable& cable) {
   printf("  Cable Settings:\n");
-  if (auto sm = cable.singleMode_ref()) {
+  if (auto sm = cable.singleMode()) {
     printf("    Length (SMF): %d m\n", *sm);
   }
-  if (auto om5 = cable.om5_ref()) {
+  if (auto om5 = cable.om5()) {
     printf("    Length (OM5): %d m\n", *om5);
   }
-  if (auto om4 = cable.om4_ref()) {
+  if (auto om4 = cable.om4()) {
     printf("    Length (OM4): %d m\n", *om4);
   }
-  if (auto om3 = cable.om3_ref()) {
+  if (auto om3 = cable.om3()) {
     printf("    Length (OM3): %d m\n", *om3);
   }
-  if (auto om2 = cable.om2_ref()) {
+  if (auto om2 = cable.om2()) {
     printf("    Length (OM2): %d m\n", *om2);
   }
-  if (auto om1 = cable.om1_ref()) {
+  if (auto om1 = cable.om1()) {
     printf("    Length (OM1): %d m\n", *om1);
   }
-  if (auto copper = cable.copper_ref()) {
+  if (auto copper = cable.copper()) {
     printf("    Length (Copper): %d m\n", *copper);
   }
-  if (auto copperLength = cable.length_ref()) {
+  if (auto copperLength = cable.length()) {
     printf("    Length (Copper dM): %.1f m\n", *copperLength);
   }
-  if (auto gauge = cable.gauge_ref()) {
+  if (auto gauge = cable.gauge()) {
     printf("    DAC Cable Gauge: %d\n", *gauge);
   }
 }
 
 void printDomMonitors(const TransceiverInfo& transceiverInfo) {
-  auto globalSensors = transceiverInfo.sensor_ref();
-  printLaneDomMonitors(*(transceiverInfo.channels_ref()));
+  auto globalSensors = transceiverInfo.sensor();
+  printLaneDomMonitors(*(transceiverInfo.channels()));
   if (globalSensors) {
     printGlobalDomMonitors(*globalSensors);
   }
 }
 
 void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
-  auto settings = *(transceiverInfo.settings_ref());
-  if (auto hostSignals = transceiverInfo.hostLaneSignals_ref()) {
+  auto settings = *(transceiverInfo.settings());
+  if (auto hostSignals = transceiverInfo.hostLaneSignals()) {
     printHostLaneSignals(*hostSignals);
   }
-  if (auto mediaSignals = transceiverInfo.mediaLaneSignals_ref()) {
+  if (auto mediaSignals = transceiverInfo.mediaLaneSignals()) {
     printMediaLaneSignals(*mediaSignals);
   }
-  if (auto hostSettings = settings.hostLaneSettings_ref()) {
+  if (auto hostSettings = settings.hostLaneSettings()) {
     printHostLaneSettings(*hostSettings);
   }
-  if (auto mediaSettings = settings.mediaLaneSettings_ref()) {
+  if (auto mediaSettings = settings.mediaLaneSettings()) {
     printMediaLaneSettings(*mediaSettings);
   }
 }
@@ -1482,18 +1476,18 @@ void printSff8472DetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool /* verbose */) {
-  auto settings = *(transceiverInfo.settings_ref());
+  auto settings = *(transceiverInfo.settings());
 
   printf("Port %d\n", port);
 
   // ------ Module Status -------
   printf("  Module Status:\n");
-  if (auto identifier = transceiverInfo.identifier_ref()) {
+  if (auto identifier = transceiverInfo.identifier()) {
     printf(
         "    Transceiver Identifier: %s\n",
         apache::thrift::util::enumNameSafe(*identifier).c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
@@ -1501,11 +1495,11 @@ void printSff8472DetailService(
 
   printManagementInterface(
       transceiverInfo, "    Transceiver Management Interface: %s\n");
-  if (auto mediaInterfaceId = settings.mediaInterface_ref()) {
+  if (auto mediaInterfaceId = settings.mediaInterface()) {
     printf(
         "  Media Interface: %s\n",
         apache::thrift::util::enumNameSafe(
-            (*mediaInterfaceId)[0].media_ref()->get_ethernet10GComplianceCode())
+            (*mediaInterfaceId)[0].media()->get_ethernet10GComplianceCode())
             .c_str());
   }
   printSignalsAndSettings(transceiverInfo);
@@ -1517,7 +1511,7 @@ void printSff8472DetailService(
 
   printVendorInfo(transceiverInfo);
 
-  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+  if (auto timeCollected = transceiverInfo.timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
   }
 }
@@ -1526,27 +1520,27 @@ void printSffDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  auto settings = *(transceiverInfo.settings_ref());
+  auto settings = *(transceiverInfo.settings());
 
   printf("Port %d\n", port);
 
   // ------ Module Status -------
   printf("  Module Status:\n");
-  if (auto identifier = transceiverInfo.identifier_ref()) {
+  if (auto identifier = transceiverInfo.identifier()) {
     printf(
         "    Transceiver Identifier: %s\n",
         apache::thrift::util::enumNameSafe(*identifier).c_str());
   }
-  if (auto status = transceiverInfo.status_ref()) {
-    printf("    InterruptL: 0x%02x\n", *(status->interruptL_ref()));
-    printf("    Data_Not_Ready: 0x%02x\n", *(status->dataNotReady_ref()));
+  if (auto status = transceiverInfo.status()) {
+    printf("    InterruptL: 0x%02x\n", *(status->interruptL()));
+    printf("    Data_Not_Ready: 0x%02x\n", *(status->dataNotReady()));
   }
-  if (auto ext = transceiverInfo.extendedSpecificationComplianceCode_ref()) {
+  if (auto ext = transceiverInfo.extendedSpecificationComplianceCode()) {
     printf(
         "    Extended Specification Compliance Code: %s\n",
         apache::thrift::util::enumNameSafe(*(ext)).c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
@@ -1563,43 +1557,42 @@ void printSffDetailService(
 
   printVendorInfo(transceiverInfo);
 
-  if (auto cable = transceiverInfo.cable_ref()) {
+  if (auto cable = transceiverInfo.cable()) {
     printCableInfo(*cable);
   }
-  if (transceiverInfo.eepromCsumValid_ref().has_value()) {
+  if (transceiverInfo.eepromCsumValid().has_value()) {
     printf(
         "  EEPROM Checksum: %s\n",
-        *transceiverInfo.eepromCsumValid_ref() ? "Valid" : "Invalid");
+        *transceiverInfo.eepromCsumValid() ? "Valid" : "Invalid");
   }
   printf("  Module Control:\n");
   printf(
       "    Rate Select: %s\n",
-      apache::thrift::util::enumNameSafe(*(settings.rateSelect_ref())).c_str());
+      apache::thrift::util::enumNameSafe(*(settings.rateSelect())).c_str());
   printf(
       "    Rate Select Setting: %s\n",
-      apache::thrift::util::enumNameSafe(*(settings.rateSelectSetting_ref()))
+      apache::thrift::util::enumNameSafe(*(settings.rateSelectSetting()))
           .c_str());
   printf(
       "    CDR support:  TX: %s\tRX: %s\n",
-      apache::thrift::util::enumNameSafe(*(settings.cdrTx_ref())).c_str(),
-      apache::thrift::util::enumNameSafe(*(settings.cdrRx_ref())).c_str());
+      apache::thrift::util::enumNameSafe(*(settings.cdrTx())).c_str(),
+      apache::thrift::util::enumNameSafe(*(settings.cdrRx())).c_str());
   printf(
       "    Power Measurement: %s\n",
-      apache::thrift::util::enumNameSafe(*(settings.powerMeasurement_ref()))
+      apache::thrift::util::enumNameSafe(*(settings.powerMeasurement()))
           .c_str());
   printf(
       "    Power Control: %s\n",
-      apache::thrift::util::enumNameSafe(*(settings.powerControl_ref()))
-          .c_str());
-  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+      apache::thrift::util::enumNameSafe(*(settings.powerControl())).c_str());
+  if (auto timeCollected = transceiverInfo.timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
   }
 }
 
 void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   Sff8636Data sffData = domDataUnion.get_sff8636();
-  auto lowerBuf = sffData.lower_ref()->data();
-  auto page0Buf = sffData.page0_ref()->data();
+  auto lowerBuf = sffData.lower()->data();
+  auto page0Buf = sffData.page0()->data();
 
   printf("Port %d\n", port);
   printf("  ID: %#04x\n", lowerBuf[0]);
@@ -1778,11 +1771,11 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("  Date Code: %s\n", vendorDate.str().c_str());
 
   // print page3 values
-  if (!sffData.page3_ref()) {
+  if (!sffData.page3()) {
     return;
   }
 
-  auto page3Buf = sffData.page3_ref().value_unchecked().data();
+  auto page3Buf = sffData.page3().value_unchecked().data();
 
   printThresholds("Temp", &page3Buf[0], [](const uint16_t u16_temp) {
     double data;
@@ -1811,7 +1804,7 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
     return data;
   });
 
-  if (auto timeCollected = sffData.timeCollected_ref()) {
+  if (auto timeCollected = sffData.timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
   }
 }
@@ -1820,43 +1813,42 @@ void printCmisDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  auto moduleStatus = transceiverInfo.status_ref();
-  auto channels = *(transceiverInfo.channels_ref());
+  auto moduleStatus = transceiverInfo.status();
+  auto channels = *(transceiverInfo.channels());
   printf("Port %d\n", port);
-  auto settings = *(transceiverInfo.settings_ref());
+  auto settings = *(transceiverInfo.settings());
 
   printManagementInterface(
       transceiverInfo, "  Transceiver Management Interface: %s\n");
 
-  if (moduleStatus && moduleStatus->cmisModuleState_ref()) {
+  if (moduleStatus && moduleStatus->cmisModuleState()) {
     printf(
         "  Module State: %s\n",
-        apache::thrift::util::enumNameSafe(
-            *(moduleStatus->cmisModuleState_ref()))
+        apache::thrift::util::enumNameSafe(*(moduleStatus->cmisModuleState()))
             .c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState_ref()) {
+  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
-  if (auto mediaInterfaceId = settings.mediaInterface_ref()) {
+  if (auto mediaInterfaceId = settings.mediaInterface()) {
     printf(
         "  Media Interface: %s\n",
         apache::thrift::util::enumNameSafe(
-            (*mediaInterfaceId)[0].media_ref()->get_smfCode())
+            (*mediaInterfaceId)[0].media()->get_smfCode())
             .c_str());
   }
   printf(
       "  Power Control: %s\n",
-      apache::thrift::util::enumNameSafe(*settings.powerControl_ref()).c_str());
+      apache::thrift::util::enumNameSafe(*settings.powerControl()).c_str());
 
-  if (moduleStatus && moduleStatus->fwStatus_ref()) {
-    auto fwStatus = *(moduleStatus->fwStatus_ref());
-    if (auto version = fwStatus.version_ref()) {
+  if (moduleStatus && moduleStatus->fwStatus()) {
+    auto fwStatus = *(moduleStatus->fwStatus());
+    if (auto version = fwStatus.version()) {
       printf("  FW Version: %s\n", (*version).c_str());
     }
-    if (auto fwFault = fwStatus.fwFault_ref()) {
+    if (auto fwFault = fwStatus.fwFault()) {
       printf("  Firmware fault: 0x%x\n", *fwFault);
     }
   }
@@ -1864,15 +1856,15 @@ void printCmisDetailService(
   if (verbose) {
     printVerboseInfo(transceiverInfo);
   }
-  if (transceiverInfo.eepromCsumValid_ref().has_value()) {
+  if (transceiverInfo.eepromCsumValid().has_value()) {
     printf(
         "  EEPROM Checksum: %s\n",
-        *transceiverInfo.eepromCsumValid_ref() ? "Valid" : "Invalid");
+        *transceiverInfo.eepromCsumValid() ? "Valid" : "Invalid");
   }
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
-  if (auto timeCollected = transceiverInfo.timeCollected_ref()) {
+  if (auto timeCollected = transceiverInfo.timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(*timeCollected).c_str());
   }
 }
@@ -1882,18 +1874,18 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   CmisData cmisData = domDataUnion.get_cmis();
   const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf, *page11Buf,
       *page14Buf;
-  lowerBuf = cmisData.lower_ref()->data();
-  page0Buf = cmisData.page0_ref()->data();
+  lowerBuf = cmisData.lower()->data();
+  page0Buf = cmisData.page0()->data();
 
   // Some CMIS optics like Blanco bypass modules have flat memory so we need
   // to exclude other pages for these modules
   bool flatMem = ((lowerBuf[2] & 0x80) != 0);
 
   if (!flatMem) {
-    page01Buf = can_throw(cmisData.page01_ref())->data();
-    page10Buf = can_throw(cmisData.page10_ref())->data();
-    page11Buf = can_throw(cmisData.page11_ref())->data();
-    page14Buf = can_throw(cmisData.page14_ref())->data();
+    page01Buf = can_throw(cmisData.page01())->data();
+    page10Buf = can_throw(cmisData.page10())->data();
+    page11Buf = can_throw(cmisData.page11())->data();
+    page14Buf = can_throw(cmisData.page14())->data();
   }
 
   printf("Port %d\n", port);
@@ -2067,7 +2059,7 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
       printf("%s", rangeStr);
     }
   }
-  if (auto timeCollected = cmisData.timeCollected_ref()) {
+  if (auto timeCollected = cmisData.timeCollected()) {
     printf("\nTime collected: %s", getLocalTime(*timeCollected).c_str());
   }
   printf("\n\n");
@@ -2092,8 +2084,7 @@ void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  if (auto mgmtInterface =
-          transceiverInfo.transceiverManagementInterface_ref()) {
+  if (auto mgmtInterface = transceiverInfo.transceiverManagementInterface()) {
     if (*mgmtInterface == TransceiverManagementInterface::SFF) {
       printSffDetailService(transceiverInfo, port, verbose);
     } else if (*mgmtInterface == TransceiverManagementInterface::SFF8472) {
@@ -2319,7 +2310,7 @@ bool cliModulefirmwareUpgrade(
 
   auto domData = fetchDataFromLocalI2CBus(bus, port);
   CmisData cmisData = domData.get_cmis();
-  auto dataUpper = cmisData.page0_ref()->data();
+  auto dataUpper = cmisData.page0()->data();
 
   // Confirm module type is CMIS
   auto moduleType = getModuleType(bus, port);
@@ -2457,7 +2448,7 @@ bool cliModulefirmwareUpgrade(
     // module info frm first module in the list
     auto domData = fetchDataFromLocalI2CBus(bus, bucket[0][0]);
     CmisData cmisData = domData.get_cmis();
-    auto dataUpper = cmisData.page0_ref()->data();
+    auto dataUpper = cmisData.page0()->data();
 
     std::array<uint8_t, 16> modPartNo;
     for (int i = 0; i < 16; i++) {
@@ -2775,8 +2766,8 @@ void get_module_fw_info(
 
     DOMDataUnion tempDomData = fetchDataFromLocalI2CBus(bus, module);
     CmisData cmisData = tempDomData.get_cmis();
-    auto dataLower = cmisData.lower_ref()->data();
-    auto dataUpper = cmisData.page0_ref()->data();
+    auto dataLower = cmisData.lower()->data();
+    auto dataUpper = cmisData.page0()->data();
 
     fwVer[0] = dataLower[39];
     fwVer[1] = dataLower[40];
@@ -2899,11 +2890,11 @@ bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
   }
 
   CmisData cmisData = domDataUnion.get_cmis();
-  auto page01Buf = can_throw(cmisData.page01_ref())->data();
-  auto page20Buf = can_throw(cmisData.page20_ref())->data();
-  auto page24Buf = can_throw(cmisData.page24_ref())->data();
-  auto page21Buf = can_throw(cmisData.page21_ref())->data();
-  auto page25Buf = can_throw(cmisData.page25_ref())->data();
+  auto page01Buf = can_throw(cmisData.page01())->data();
+  auto page20Buf = can_throw(cmisData.page20())->data();
+  auto page24Buf = can_throw(cmisData.page24())->data();
+  auto page21Buf = can_throw(cmisData.page21())->data();
+  auto page25Buf = can_throw(cmisData.page25())->data();
 
   // Check for VDM presence first
   if (!(page01Buf[14] & 0x40)) {
@@ -2996,7 +2987,7 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
 
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
     Sff8636Data sffData = domDataUnion.get_sff8636();
-    auto page0IOBuf = sffData.page0_ref().value();
+    auto page0IOBuf = sffData.page0().value();
     auto page0Buf = page0IOBuf.data();
 
     // Page0: csum(Reg_128..190) => Reg_191)
@@ -3021,10 +3012,10 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
 
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
     CmisData cmisData = domDataUnion.get_cmis();
-    auto lowerPageBuf = cmisData.lower_ref()->data();
+    auto lowerPageBuf = cmisData.lower()->data();
     bool flatMem = ((lowerPageBuf[2] & 0x80) != 0);
 
-    auto page0IOBuf = cmisData.page0_ref().value();
+    auto page0IOBuf = cmisData.page0().value();
     auto page0Buf = page0IOBuf.data();
 
     // Page0: csum(Reg_128..221) => Reg_222)
@@ -3038,9 +3029,9 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
     checkSumGood = checkSumGood && (computedCsum == recordedCsum);
 
     if (!flatMem) {
-      auto page01IOBuf = can_throw(cmisData.page01_ref()).value();
+      auto page01IOBuf = can_throw(cmisData.page01()).value();
       auto page01Buf = page01IOBuf.data();
-      auto page02IOBuf = can_throw(cmisData.page02_ref()).value();
+      auto page02IOBuf = can_throw(cmisData.page02()).value();
       auto page02Buf = page02IOBuf.data();
 
       // Page1: csum(Reg_130..254) => Reg_255)

@@ -25,37 +25,37 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   std::map<int32_t, PortInfoThrift> portMap;
 
   PortInfoThrift portEntry1;
-  portEntry1.portId_ref() = 1;
-  portEntry1.name_ref() = "eth1/5/1";
-  portEntry1.adminState_ref() = PortAdminState::ENABLED;
-  portEntry1.operState_ref() = PortOperState::DOWN;
-  portEntry1.speedMbps_ref() = 100000;
-  portEntry1.profileID_ref() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  portEntry1.portId() = 1;
+  portEntry1.name() = "eth1/5/1";
+  portEntry1.adminState() = PortAdminState::ENABLED;
+  portEntry1.operState() = PortOperState::DOWN;
+  portEntry1.speedMbps() = 100000;
+  portEntry1.profileID() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   TransceiverIdxThrift tcvr1;
-  tcvr1.transceiverId_ref() = 0;
-  portEntry1.transceiverIdx_ref() = tcvr1;
+  tcvr1.transceiverId() = 0;
+  portEntry1.transceiverIdx() = tcvr1;
 
   PortInfoThrift portEntry2;
-  portEntry2.portId_ref() = 2;
-  portEntry2.name_ref() = "eth1/5/2";
-  portEntry2.adminState_ref() = PortAdminState::DISABLED;
-  portEntry2.operState_ref() = PortOperState::DOWN;
-  portEntry2.speedMbps_ref() = 25000;
-  portEntry2.profileID_ref() = "PROFILE_25G_1_NRZ_CL74_COPPER";
+  portEntry2.portId() = 2;
+  portEntry2.name() = "eth1/5/2";
+  portEntry2.adminState() = PortAdminState::DISABLED;
+  portEntry2.operState() = PortOperState::DOWN;
+  portEntry2.speedMbps() = 25000;
+  portEntry2.profileID() = "PROFILE_25G_1_NRZ_CL74_COPPER";
   TransceiverIdxThrift tcvr2;
-  tcvr2.transceiverId_ref() = 1;
-  portEntry2.transceiverIdx_ref() = tcvr2;
+  tcvr2.transceiverId() = 1;
+  portEntry2.transceiverIdx() = tcvr2;
 
   PortInfoThrift portEntry3;
-  portEntry3.portId_ref() = 3;
-  portEntry3.name_ref() = "eth1/5/3";
-  portEntry3.adminState_ref() = PortAdminState::ENABLED;
-  portEntry3.operState_ref() = PortOperState::UP;
-  portEntry3.speedMbps_ref() = 100000;
-  portEntry3.profileID_ref() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  portEntry3.portId() = 3;
+  portEntry3.name() = "eth1/5/3";
+  portEntry3.adminState() = PortAdminState::ENABLED;
+  portEntry3.operState() = PortOperState::UP;
+  portEntry3.speedMbps() = 100000;
+  portEntry3.profileID() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   TransceiverIdxThrift tcvr3;
-  tcvr3.transceiverId_ref() = 2;
-  portEntry3.transceiverIdx_ref() = tcvr3;
+  tcvr3.transceiverId() = 2;
+  portEntry3.transceiverIdx() = tcvr3;
 
   portMap[portEntry1.get_portId()] = portEntry1;
   portMap[portEntry2.get_portId()] = portEntry2;
@@ -67,31 +67,31 @@ cli::ShowPortModel createPortModel() {
   cli::ShowPortModel model;
 
   cli::PortEntry entry1, entry2, entry3;
-  entry1.id_ref() = 1;
-  entry1.name_ref() = "eth1/5/1";
-  entry1.adminState_ref() = "Enabled";
-  entry1.operState_ref() = "Down";
-  entry1.speed_ref() = "100G";
-  entry1.profileId_ref() = "PROFILE_100G_4_NRZ_CL91_COPPER";
-  entry1.tcvrID_ref() = 0;
+  entry1.id() = 1;
+  entry1.name() = "eth1/5/1";
+  entry1.adminState() = "Enabled";
+  entry1.operState() = "Down";
+  entry1.speed() = "100G";
+  entry1.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  entry1.tcvrID() = 0;
 
-  entry2.id_ref() = 2;
-  entry2.name_ref() = "eth1/5/2";
-  entry2.adminState_ref() = "Disabled";
-  entry2.operState_ref() = "Down";
-  entry2.speed_ref() = "25G";
-  entry2.profileId_ref() = "PROFILE_25G_1_NRZ_CL74_COPPER";
-  entry2.tcvrID_ref() = 1;
+  entry2.id() = 2;
+  entry2.name() = "eth1/5/2";
+  entry2.adminState() = "Disabled";
+  entry2.operState() = "Down";
+  entry2.speed() = "25G";
+  entry2.profileId() = "PROFILE_25G_1_NRZ_CL74_COPPER";
+  entry2.tcvrID() = 1;
 
-  entry3.id_ref() = 3;
-  entry3.name_ref() = "eth1/5/3";
-  entry3.adminState_ref() = "Enabled";
-  entry3.operState_ref() = "Up";
-  entry3.speed_ref() = "100G";
-  entry3.profileId_ref() = "PROFILE_100G_4_NRZ_CL91_COPPER";
-  entry3.tcvrID_ref() = 2;
+  entry3.id() = 3;
+  entry3.name() = "eth1/5/3";
+  entry3.adminState() = "Enabled";
+  entry3.operState() = "Up";
+  entry3.speed() = "100G";
+  entry3.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  entry3.tcvrID() = 2;
 
-  model.portEntries_ref() = {entry1, entry2, entry3};
+  model.portEntries() = {entry1, entry2, entry3};
   return model;
 }
 

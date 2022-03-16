@@ -97,7 +97,7 @@ std::vector<PortID> BcmTestPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
+      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
     }
   } else {
     auto portItr = std::find(
@@ -133,8 +133,7 @@ BcmTestPlatform::getPortProfileConfig(
   }
   // change the return config to use override ipg
   phy::PortProfileConfig newConfig = *originalConfig;
-  newConfig.iphy_ref()->interPacketGapBits_ref() =
-      *overridePortInterPacketGapBits_;
+  newConfig.iphy()->interPacketGapBits() = *overridePortInterPacketGapBits_;
   return newConfig;
 }
 

@@ -220,52 +220,50 @@ int SffModule::getQsfpDACGauge() const {
 
 GlobalSensors SffModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  info.temp_ref()->value_ref() =
+  info.temp()->value() =
       getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
-  info.temp_ref()->flags_ref() =
-      getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
-  info.vcc_ref()->value_ref() =
-      getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
-  info.vcc_ref()->flags_ref() = getQsfpSensorFlags(SffField::VCC_ALARMS);
+  info.temp()->flags() = getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
+  info.vcc()->value() = getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
+  info.vcc()->flags() = getQsfpSensorFlags(SffField::VCC_ALARMS);
   return info;
 }
 
 Vendor SffModule::getVendorInfo() {
   Vendor vendor = Vendor();
-  *vendor.name_ref() = getQsfpString(SffField::VENDOR_NAME);
-  *vendor.oui_ref() = getQsfpString(SffField::VENDOR_OUI);
-  *vendor.partNumber_ref() = getQsfpString(SffField::PART_NUMBER);
-  *vendor.rev_ref() = getQsfpString(SffField::REVISION_NUMBER);
-  *vendor.serialNumber_ref() = getQsfpString(SffField::VENDOR_SERIAL_NUMBER);
-  *vendor.dateCode_ref() = getQsfpString(SffField::MFG_DATE);
+  *vendor.name() = getQsfpString(SffField::VENDOR_NAME);
+  *vendor.oui() = getQsfpString(SffField::VENDOR_OUI);
+  *vendor.partNumber() = getQsfpString(SffField::PART_NUMBER);
+  *vendor.rev() = getQsfpString(SffField::REVISION_NUMBER);
+  *vendor.serialNumber() = getQsfpString(SffField::VENDOR_SERIAL_NUMBER);
+  *vendor.dateCode() = getQsfpString(SffField::MFG_DATE);
   return vendor;
 }
 
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
-  cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
+  cable.transmitterTech() = getQsfpTransmitterTechnology();
 
-  cable.singleMode_ref() = getQsfpCableLength(SffField::LENGTH_SM_KM);
-  if (cable.singleMode_ref().value_or({}) == 0) {
-    cable.singleMode_ref().reset();
+  cable.singleMode() = getQsfpCableLength(SffField::LENGTH_SM_KM);
+  if (cable.singleMode().value_or({}) == 0) {
+    cable.singleMode().reset();
   }
-  cable.om3_ref() = getQsfpCableLength(SffField::LENGTH_OM3);
-  if (cable.om3_ref().value_or({}) == 0) {
-    cable.om3_ref().reset();
+  cable.om3() = getQsfpCableLength(SffField::LENGTH_OM3);
+  if (cable.om3().value_or({}) == 0) {
+    cable.om3().reset();
   }
-  cable.om2_ref() = getQsfpCableLength(SffField::LENGTH_OM2);
-  if (cable.om2_ref().value_or({}) == 0) {
-    cable.om2_ref().reset();
+  cable.om2() = getQsfpCableLength(SffField::LENGTH_OM2);
+  if (cable.om2().value_or({}) == 0) {
+    cable.om2().reset();
   }
-  cable.om1_ref() = getQsfpCableLength(SffField::LENGTH_OM1);
-  if (cable.om1_ref().value_or({}) == 0) {
-    cable.om1_ref().reset();
+  cable.om1() = getQsfpCableLength(SffField::LENGTH_OM1);
+  if (cable.om1().value_or({}) == 0) {
+    cable.om1().reset();
   }
-  cable.copper_ref() = getQsfpCableLength(SffField::LENGTH_COPPER);
-  if (cable.copper_ref().value_or({}) == 0) {
-    cable.copper_ref().reset();
+  cable.copper() = getQsfpCableLength(SffField::LENGTH_COPPER);
+  if (cable.copper().value_or({}) == 0) {
+    cable.copper().reset();
   }
-  if (!cable.copper_ref()) {
+  if (!cable.copper()) {
     // length and gauge fields currently only supported for copper
     // TODO: migrate all cable types
     return cable;
@@ -273,17 +271,17 @@ Cable SffModule::getCableInfo() {
 
   auto overrideDacCableInfo = getDACCableOverride();
   if (overrideDacCableInfo) {
-    cable.length_ref() = overrideDacCableInfo->first;
-    cable.gauge_ref() = overrideDacCableInfo->second;
+    cable.length() = overrideDacCableInfo->first;
+    cable.gauge() = overrideDacCableInfo->second;
   } else {
-    cable.length_ref() = getQsfpDACLength();
-    cable.gauge_ref() = getQsfpDACGauge();
+    cable.length() = getQsfpDACLength();
+    cable.gauge() = getQsfpDACGauge();
   }
-  if (cable.length_ref().value_or({}) == 0) {
-    cable.length_ref().reset();
+  if (cable.length().value_or({}) == 0) {
+    cable.length().reset();
   }
-  if (cable.gauge_ref().value_or({}) == 0) {
-    cable.gauge_ref().reset();
+  if (cable.gauge().value_or({}) == 0) {
+    cable.gauge().reset();
   }
   return cable;
 }
@@ -307,10 +305,10 @@ ThresholdLevels SffModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
-  thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
-  thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
-  thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
+  thresh.alarm()->high() = conversion(data[0] << 8 | data[1]);
+  thresh.alarm()->low() = conversion(data[2] << 8 | data[3]);
+  thresh.warn()->high() = conversion(data[4] << 8 | data[5]);
+  thresh.warn()->low() = conversion(data[6] << 8 | data[7]);
 
   return thresh;
 }
@@ -320,15 +318,15 @@ std::optional<AlarmThreshold> SffModule::getThresholdInfo() {
     return {};
   }
   AlarmThreshold threshold = AlarmThreshold();
-  threshold.temp_ref() =
+  threshold.temp() =
       getThresholdValues(SffField::TEMPERATURE_THRESH, SffFieldInfo::getTemp);
-  threshold.vcc_ref() =
+  threshold.vcc() =
       getThresholdValues(SffField::VCC_THRESH, SffFieldInfo::getVcc);
-  threshold.rxPwr_ref() =
+  threshold.rxPwr() =
       getThresholdValues(SffField::RX_PWR_THRESH, SffFieldInfo::getPwr);
-  threshold.txBias_ref() =
+  threshold.txBias() =
       getThresholdValues(SffField::TX_BIAS_THRESH, SffFieldInfo::getTxBias);
-  threshold.txPwr_ref() =
+  threshold.txPwr() =
       getThresholdValues(SffField::TX_PWR_THRESH, SffFieldInfo::getPwr);
   return threshold;
 }
@@ -350,36 +348,33 @@ TransceiverModuleIdentifier SffModule::getIdentifier() {
 
 TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.cdrTx_ref() = SffFieldInfo::getFeatureState(
+  settings.cdrTx() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, UPPER_BITS_MASK));
-  settings.cdrRx_ref() = SffFieldInfo::getFeatureState(
+  settings.cdrRx() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, LOWER_BITS_MASK));
-  settings.powerMeasurement_ref() =
-      SffFieldInfo::getFeatureState(getSettingsValue(
-          SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
-  settings.powerControl_ref() = getPowerControlValue();
-  settings.rateSelect_ref() = getRateSelectValue();
-  settings.rateSelectSetting_ref() =
-      getRateSelectSettingValue(*settings.rateSelect_ref());
+  settings.powerMeasurement() = SffFieldInfo::getFeatureState(getSettingsValue(
+      SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
+  settings.powerControl() = getPowerControlValue();
+  settings.rateSelect() = getRateSelectValue();
+  settings.rateSelectSetting() =
+      getRateSelectSettingValue(*settings.rateSelect());
 
-  settings.mediaInterface_ref() =
-      std::vector<MediaInterfaceId>(numMediaLanes());
-  if (!getMediaInterfaceId(*(settings.mediaInterface_ref()))) {
-    settings.mediaInterface_ref().reset();
+  settings.mediaInterface() = std::vector<MediaInterfaceId>(numMediaLanes());
+  if (!getMediaInterfaceId(*(settings.mediaInterface()))) {
+    settings.mediaInterface().reset();
   }
 
-  settings.mediaLaneSettings_ref() =
+  settings.mediaLaneSettings() =
       std::vector<MediaLaneSettings>(numMediaLanes());
-  settings.hostLaneSettings_ref() =
-      std::vector<HostLaneSettings>(numHostLanes());
+  settings.hostLaneSettings() = std::vector<HostLaneSettings>(numHostLanes());
   if (!flatMem_) {
-    if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
-      settings.mediaLaneSettings_ref().reset();
+    if (!getMediaLaneSettings(*(settings.mediaLaneSettings()))) {
+      settings.mediaLaneSettings().reset();
     }
-    if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
-      settings.hostLaneSettings_ref().reset();
+    if (!getHostLaneSettings(*(settings.hostLaneSettings()))) {
+      settings.hostLaneSettings().reset();
     }
   }
   return settings;
@@ -508,13 +503,13 @@ bool SffModule::getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) {
 
   for (int lane = 0; lane < signals.size(); lane++) {
     auto laneMask = (1 << lane);
-    signals[lane].lane_ref() = lane;
-    signals[lane].txLos_ref() = txLos & laneMask;
-    signals[lane].rxLos_ref() = rxLos & laneMask;
-    signals[lane].txLol_ref() = txLol & laneMask;
-    signals[lane].rxLol_ref() = rxLol & laneMask;
-    signals[lane].txFault_ref() = txFault & laneMask;
-    signals[lane].txAdaptEqFault_ref() = txAdaptEqFault & laneMask;
+    signals[lane].lane() = lane;
+    signals[lane].txLos() = txLos & laneMask;
+    signals[lane].rxLos() = rxLos & laneMask;
+    signals[lane].txLol() = txLol & laneMask;
+    signals[lane].rxLol() = rxLol & laneMask;
+    signals[lane].txFault() = txFault & laneMask;
+    signals[lane].txAdaptEqFault() = txAdaptEqFault & laneMask;
   }
 
   return true;
@@ -550,7 +545,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < channel_count; channel++) {
-    channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
+    channels[channel].sensors()->rxPwr()->flags() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -559,7 +554,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < channel_count; channel++) {
-    channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
+    channels[channel].sensors()->txBias()->flags() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -568,7 +563,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < channel_count; channel++) {
-    channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
+    channels[channel].sensors()->txPwr()->flags() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -578,10 +573,10 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = SffFieldInfo::getPwr(value);
-    channel.sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+    channel.sensors()->rxPwr()->value() = pwr;
     Sensor rxDbm;
-    rxDbm.value_ref() = mwToDb(pwr);
-    channel.sensors_ref()->rxPwrdBm_ref() = rxDbm;
+    rxDbm.value() = mwToDb(pwr);
+    channel.sensors()->rxPwrdBm() = rxDbm;
     data += 2;
     length--;
   }
@@ -591,8 +586,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->txBias_ref()->value_ref() =
-        SffFieldInfo::getTxBias(value);
+    channel.sensors()->txBias()->value() = SffFieldInfo::getTxBias(value);
     data += 2;
     length--;
   }
@@ -604,10 +598,10 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = SffFieldInfo::getPwr(value);
-    channel.sensors_ref()->txPwr_ref()->value_ref() = pwr;
+    channel.sensors()->txPwr()->value() = pwr;
     Sensor txDbm;
-    txDbm.value_ref() = mwToDb(pwr);
-    channel.sensors_ref()->txPwrdBm_ref() = txDbm;
+    txDbm.value() = mwToDb(pwr);
+    channel.sensors()->txPwrdBm() = txDbm;
     data += 2;
     length--;
   }
@@ -685,12 +679,12 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
 SignalFlags SffModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, UPPER_BITS_MASK);
-  *signalFlags.txLos_ref() >>= 4;
-  signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
-  signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, UPPER_BITS_MASK);
-  *signalFlags.txLol_ref() >>= 4;
-  signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, LOWER_BITS_MASK);
+  signalFlags.txLos() = getSettingsValue(SffField::LOS, UPPER_BITS_MASK);
+  *signalFlags.txLos() >>= 4;
+  signalFlags.rxLos() = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
+  signalFlags.txLol() = getSettingsValue(SffField::LOL, UPPER_BITS_MASK);
+  *signalFlags.txLol() >>= 4;
+  signalFlags.rxLol() = getSettingsValue(SffField::LOL, LOWER_BITS_MASK);
 
   return signalFlags;
 }
@@ -714,20 +708,20 @@ bool SffModule::getMediaInterfaceId(
     return false;
   }
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
-    mediaInterface[lane].lane_ref() = lane;
+    mediaInterface[lane].lane() = lane;
     MediaInterfaceUnion media;
     media.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
     if (auto it = mediaInterfaceMapping.find(*extSpecCompliance);
         it != mediaInterfaceMapping.end()) {
-      mediaInterface[lane].code_ref() = it->second;
+      mediaInterface[lane].code() = it->second;
     } else {
       XLOG(ERR) << folly::sformat(
           "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
           qsfpImpl_->getName(),
           apache::thrift::util::enumNameSafe(*extSpecCompliance));
-      mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
+      mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
-    mediaInterface[lane].media_ref() = media;
+    mediaInterface[lane].media() = media;
   }
 
   return true;
@@ -742,8 +736,8 @@ ModuleStatus SffModule::getModuleStatus() {
 
   getQsfpFieldAddress(SffField::STATUS, dataAddress, offset, length);
   getQsfpValue(dataAddress, offset, length, status.data());
-  moduleStatus.dataNotReady_ref() = status[1] & (1 << 0);
-  moduleStatus.interruptL_ref() = status[1] & (1 << 1);
+  moduleStatus.dataNotReady() = status[1] & (1 << 0);
+  moduleStatus.interruptL() = status[1] & (1 << 1);
 
   return moduleStatus;
 }
@@ -802,11 +796,10 @@ RawDOMData SffModule::getRawDOMData() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   RawDOMData data;
   if (present_) {
-    *data.lower_ref() =
-        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    *data.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *data.lower() = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *data.page0() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      data.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
+      data.page3() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
   }
   return data;
@@ -816,15 +809,13 @@ DOMDataUnion SffModule::getDOMDataUnion() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   Sff8636Data sffData;
   if (present_) {
-    *sffData.lower_ref() =
-        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    *sffData.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *sffData.lower() = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *sffData.page0() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      sffData.page3_ref() =
-          IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
+      sffData.page3() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
   }
-  sffData.timeCollected_ref() = lastRefreshTime_;
+  sffData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
   data.sff8636_ref() = sffData;
   return data;
@@ -1210,10 +1201,10 @@ bool SffModule::getMediaLaneSettings(
 
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     auto laneMask = (1 << lane);
-    laneSettings[lane].lane_ref() = lane;
-    laneSettings[lane].txSquelch_ref() = txSquelch & laneMask;
-    laneSettings[lane].txAdaptiveEqControl_ref() = txAdaptEq & laneMask;
-    laneSettings[lane].txDisable_ref() = txDisable & laneMask;
+    laneSettings[lane].lane() = lane;
+    laneSettings[lane].txSquelch() = txSquelch & laneMask;
+    laneSettings[lane].txAdaptiveEqControl() = txAdaptEq & laneMask;
+    laneSettings[lane].txDisable() = txDisable & laneMask;
   }
   return true;
 }
@@ -1243,15 +1234,15 @@ bool SffModule::getHostLaneSettings(
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     bool evenLane = (lane % 2 == 0);
     auto laneMask = (1 << lane);
-    laneSettings[lane].lane_ref() = lane;
-    laneSettings[lane].txInputEqualization_ref() =
+    laneSettings[lane].lane() = lane;
+    laneSettings[lane].txInputEqualization() =
         evenLane ? txEq[lane / 2] >> 4 : txEq[lane / 2] & 0xf;
-    laneSettings[lane].rxOutputEmphasis_ref() =
+    laneSettings[lane].rxOutputEmphasis() =
         evenLane ? rxEmp[lane / 2] >> 4 : rxEmp[lane / 2] & 0xf;
-    laneSettings[lane].rxOutputAmplitude_ref() =
+    laneSettings[lane].rxOutputAmplitude() =
         evenLane ? rxAmp[lane / 2] >> 4 : rxAmp[lane / 2] & 0xf;
-    laneSettings[lane].rxSquelch_ref() = rxSquelch & laneMask;
-    laneSettings[lane].rxOutput_ref() = rxOutput & laneMask;
+    laneSettings[lane].rxSquelch() = rxSquelch & laneMask;
+    laneSettings[lane].rxOutput() = rxOutput & laneMask;
   }
   return true;
 }
@@ -1311,12 +1302,12 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     }
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl_ref());
+    setPowerOverrideIfSupported(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setCdrIfSupported(speed, *settings.cdrTx_ref(), *settings.cdrRx_ref());
+      setCdrIfSupported(speed, *settings.cdrTx(), *settings.cdrRx());
       setRateSelectIfSupported(
-          speed, *settings.rateSelect_ref(), *settings.rateSelectSetting_ref());
+          speed, *settings.rateSelect(), *settings.rateSelectSetting());
     }
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
@@ -1424,12 +1415,12 @@ bool SffModule::supportRemediate() {
   // have side effect on the neighbor port as well. So we don't do
   // remediation as suggested by our HW optic team.
   const auto& cachedTcvrInfo = getTransceiverInfo();
-  if (cachedTcvrInfo.vendor_ref().has_value() &&
-      *cachedTcvrInfo.vendor_ref()->partNumber_ref() == kMiniphotonPartNumber) {
+  if (cachedTcvrInfo.vendor().has_value() &&
+      *cachedTcvrInfo.vendor()->partNumber() == kMiniphotonPartNumber) {
     return false;
   } else if (
-      cachedTcvrInfo.cable_ref() &&
-      *cachedTcvrInfo.cable_ref()->transmitterTech_ref() ==
+      cachedTcvrInfo.cable() &&
+      *cachedTcvrInfo.cable()->transmitterTech() ==
           TransmitterTechnology::COPPER) {
     return false;
   }
@@ -1461,13 +1452,13 @@ void SffModule::moduleDiagsCapabilitySet() {
 bool SffModule::setPortPrbsLocked(
     phy::Side side,
     const phy::PortPrbsState& prbs) {
-  auto enable = *(prbs.enabled_ref());
-  auto polynomial = *(prbs.polynominal_ref());
+  auto enable = *(prbs.enabled());
+  auto polynomial = *(prbs.polynominal());
   {
     auto lockedDiagsCapability = diagsCapability_.rlock();
     if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem_ref())) ||
-          (side == Side::LINE && !*(diagsCapability->prbsLine_ref()))) {
+      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
+          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
         // Check if there is an override function available for setting prbs
         // state
         if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
@@ -1496,8 +1487,8 @@ phy::PortPrbsState SffModule::getPortPrbsStateLocked(Side side) {
     // Return a default PortPrbsState(with PRBS state as disabled) if the module
     // is not capable of PRBS
     if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem_ref())) ||
-          (side == Side::LINE && !*(diagsCapability->prbsLine_ref()))) {
+      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
+          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
         return phy::PortPrbsState();
       }
     }

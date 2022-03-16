@@ -44,69 +44,69 @@ void fillHwPortStats(
     const SaiDebugCounterManager& debugCounterManager,
     HwPortStats& hwPortStats) {
   // TODO fill these in when we have debug counter support in SAI
-  hwPortStats.inDstNullDiscards__ref() = 0;
+  hwPortStats.inDstNullDiscards_() = 0;
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
-        hwPortStats.inBytes__ref() = value;
+        hwPortStats.inBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        hwPortStats.inUnicastPkts__ref() = value;
+        hwPortStats.inUnicastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
-        hwPortStats.inMulticastPkts__ref() = value;
+        hwPortStats.inMulticastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_BROADCAST_PKTS:
-        hwPortStats.inBroadcastPkts__ref() = value;
+        hwPortStats.inBroadcastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_DISCARDS:
         // Fill into inDiscards raw, we will then compute
         // inDiscards by subtracting dst null and in pause
         // discards from these
-        hwPortStats.inDiscardsRaw__ref() = value;
+        hwPortStats.inDiscardsRaw_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_ERRORS:
-        hwPortStats.inErrors__ref() = value;
+        hwPortStats.inErrors_() = value;
         break;
       case SAI_PORT_STAT_PAUSE_RX_PKTS:
-        hwPortStats.inPause__ref() = value;
+        hwPortStats.inPause_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_OCTETS:
-        hwPortStats.outBytes__ref() = value;
+        hwPortStats.outBytes_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        hwPortStats.outUnicastPkts__ref() = value;
+        hwPortStats.outUnicastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
-        hwPortStats.outMulticastPkts__ref() = value;
+        hwPortStats.outMulticastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS:
-        hwPortStats.outBroadcastPkts__ref() = value;
+        hwPortStats.outBroadcastPkts_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_DISCARDS:
-        hwPortStats.outDiscards__ref() = value;
+        hwPortStats.outDiscards_() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_ERRORS:
-        hwPortStats.outErrors__ref() = value;
+        hwPortStats.outErrors_() = value;
         break;
       case SAI_PORT_STAT_PAUSE_TX_PKTS:
-        hwPortStats.outPause__ref() = value;
+        hwPortStats.outPause_() = value;
         break;
       case SAI_PORT_STAT_ECN_MARKED_PACKETS:
-        hwPortStats.outEcnCounter__ref() = value;
+        hwPortStats.outEcnCounter_() = value;
         break;
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
-        hwPortStats.wredDroppedPackets__ref() = value;
+        hwPortStats.wredDroppedPackets_() = value;
         break;
       default:
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {
-          hwPortStats.inDstNullDiscards__ref() = value;
+          hwPortStats.inDstNullDiscards_() = value;
         } else if (
             counterId ==
             debugCounterManager.getMPLSLookupFailedCounterStatId()) {
-          hwPortStats.inLabelMissDiscards__ref() = value;
+          hwPortStats.inLabelMissDiscards_() = value;
         } else {
           throw FbossError("Got unexpected port counter id: ", counterId);
         }
@@ -526,7 +526,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
   PlatformPortProfileConfigMatcher matcher{port->getProfileID(), portID};
   if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
-    port->setProfileConfig(*profileConfig->iphy_ref());
+    port->setProfileConfig(*profileConfig->iphy());
   } else {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
@@ -544,10 +544,10 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   cfg::PortPause pause;
   auto globalFlowControlMode =
       GET_OPT_ATTR(Port, GlobalFlowControlMode, attributes);
-  pause.rx_ref() =
+  pause.rx() =
       (globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE ||
        globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY);
-  pause.tx_ref() =
+  pause.tx() =
       (globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE ||
        globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY);
   port->setPause(pause);
@@ -635,20 +635,19 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   // All stats start with a unitialized (-1) value. If there are no in
   // discards (first collection) we will just report that -1 as the monotonic
   // counter. Instead set it to 0 if uninintialized
-  *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
+  *curPortStats.inDiscards_() = *curPortStats.inDiscards_() ==
           hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
-      : *curPortStats.inDiscards__ref();
-  curPortStats.timestamp__ref() = now.count();
+      : *curPortStats.inDiscards_();
+  curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
   const auto& counters = handle->port->getStats();
   fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {*prevPortStats.inDstNullDiscards__ref(),
-       *curPortStats.inDstNullDiscards__ref()},
-      {*prevPortStats.inPause__ref(), *curPortStats.inPause__ref()}};
-  *curPortStats.inDiscards__ref() += utility::subtractIncrements(
-      {*prevPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
+      {*prevPortStats.inDstNullDiscards_(), *curPortStats.inDstNullDiscards_()},
+      {*prevPortStats.inPause_(), *curPortStats.inPause_()}};
+  *curPortStats.inDiscards_() += utility::subtractIncrements(
+      {*prevPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},
       toSubtractFromInDiscardsRaw);
   managerTable_->queueManager().updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
@@ -809,10 +808,10 @@ void SaiPortManager::programSerdes(
   auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : swPort->getPinConfigs()) {
-    if (auto tx = pinConfig.tx_ref()) {
+    if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
     }
-    if (auto rx = pinConfig.rx_ref()) {
+    if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
     }
   }
@@ -870,27 +869,27 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
-    if (auto tx = pinConfig.tx_ref()) {
+    if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
-      txPre1.push_back(*tx->pre_ref());
-      txMain.push_back(*tx->main_ref());
-      txPost1.push_back(*tx->post_ref());
-      if (auto driveCurrent = tx->driveCurrent_ref()) {
+      txPre1.push_back(*tx->pre());
+      txMain.push_back(*tx->main());
+      txPost1.push_back(*tx->post());
+      if (auto driveCurrent = tx->driveCurrent()) {
         txIDriver.push_back(driveCurrent.value());
       }
     }
-    if (auto rx = pinConfig.rx_ref()) {
+    if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
-      if (auto ctlCode = rx->ctlCode_ref()) {
+      if (auto ctlCode = rx->ctlCode()) {
         rxCtleCode.push_back(*ctlCode);
       }
-      if (auto dscpMode = rx->dspMode_ref()) {
+      if (auto dscpMode = rx->dspMode()) {
         rxDspMode.push_back(*dscpMode);
       }
-      if (auto afeTrim = rx->afeTrim_ref()) {
+      if (auto afeTrim = rx->afeTrim()) {
         rxAfeTrim.push_back(*afeTrim);
       }
-      if (auto acCouplingByPass = rx->acCouplingBypass_ref()) {
+      if (auto acCouplingByPass = rx->acCouplingBypass()) {
         rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
     }
@@ -1254,37 +1253,36 @@ void SaiPortManager::programMacsec(
     if (!newTxSak) {
       auto txSak = *oldTxSak;
       XLOG(INFO) << "Deleting old Tx SAK for MAC="
-                 << txSak.sci_ref()->macAddress_ref().value()
-                 << " port=" << txSak.sci_ref()->port_ref().value();
+                 << txSak.sci()->macAddress().value()
+                 << " port=" << txSak.sci()->port().value();
 
       // We are about to prune MACSEC SAK/SCI, do a round of stat collection
       // to get SA, SCI counters since last stat collection. After delete,
       // we won't have access to this SAK/SCI counters
       updateStats(portId, false);
       macsecManager.deleteMacsec(
-          portId, txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+          portId, txSak, *txSak.sci(), SAI_MACSEC_DIRECTION_EGRESS);
     } else {
       // TX SAK mismatch between old and new. Reprogram SAK TX
       auto txSak = *newTxSak;
       if (oldTxSak &&
-          ((oldTxSak->sci_ref().value() == txSak.sci_ref().value()) &&
-           (oldTxSak->assocNum_ref().value() ==
-            txSak.assocNum_ref().value()))) {
+          ((oldTxSak->sci().value() == txSak.sci().value()) &&
+           (oldTxSak->assocNum().value() == txSak.assocNum().value()))) {
         // The old Tx SAK is present and new Tx SAK with same key but different
         // value is to be added. So delete the old Tx SAK first and then add new
         // Tx SAK
         auto oldSak = *oldTxSak;
         XLOG(INFO) << "Updating Tx SAK by Deleting and Adding. MAC="
-                   << oldSak.sci_ref()->macAddress_ref().value()
-                   << " port=" << oldSak.sci_ref()->port_ref().value();
+                   << oldSak.sci()->macAddress().value()
+                   << " port=" << oldSak.sci()->port().value();
         macsecManager.deleteMacsec(
-            portId, oldSak, *oldSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+            portId, oldSak, *oldSak.sci(), SAI_MACSEC_DIRECTION_EGRESS);
       }
       XLOG(INFO) << "Setup Egress Macsec for MAC="
-                 << txSak.sci_ref()->macAddress_ref().value()
-                 << " port=" << txSak.sci_ref()->port_ref().value();
+                 << txSak.sci()->macAddress().value()
+                 << " port=" << txSak.sci()->port().value();
       macsecManager.setupMacsec(
-          portId, txSak, *txSak.sci_ref(), SAI_MACSEC_DIRECTION_EGRESS);
+          portId, txSak, *txSak.sci(), SAI_MACSEC_DIRECTION_EGRESS);
     }
   }
   // RX SAKS
@@ -1307,8 +1305,8 @@ void SaiPortManager::programMacsec(
       // Use the SCI from the key. Since for RX we use SCI of peer, which
       // is stored in MKASakKey
       XLOG(INFO) << "Setup Ingress Macsec for MAC="
-                 << key.sci.macAddress_ref().value()
-                 << " port=" << key.sci.port_ref().value();
+                 << key.sci.macAddress().value()
+                 << " port=" << key.sci.port().value();
       macsecManager.setupMacsec(
           portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
     }
@@ -1324,9 +1322,8 @@ void SaiPortManager::programMacsec(
     updateStats(portId, false);
     // Use the SCI from the key. Since for RX we use SCI of peer, which
     // is stored in MKASakKey
-    XLOG(INFO) << "Deleting old Rx SAK for MAC="
-               << key.sci.macAddress_ref().value()
-               << " port=" << key.sci.port_ref().value();
+    XLOG(INFO) << "Deleting old Rx SAK for MAC=" << key.sci.macAddress().value()
+               << " port=" << key.sci.port().value();
     macsecManager.deleteMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }

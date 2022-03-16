@@ -78,15 +78,15 @@ class SaiAclTableGroupTest : public HwTest {
   void addAclTable1Entry1(cfg::SwitchConfig& cfg) {
     auto* acl1 = utility::addAcl(
         &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, kAclTable1());
-    acl1->dscp_ref() = 0x20;
+    acl1->dscp() = 0x20;
   }
 
   void addAclTable2Entry1(cfg::SwitchConfig& cfg) {
     auto* acl2 = utility::addAcl(
         &cfg, kAclTable2Entry1(), cfg::AclActionType::DENY, kAclTable2());
     cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
-    acl2->ttl_ref() = ttl;
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+    acl2->ttl() = ttl;
   }
 
   void verifyMultipleTableWithEntriesHelper() {

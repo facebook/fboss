@@ -60,23 +60,23 @@ TEST_F(SensorsTest, getAllSensors) {
 }
 
 TEST_F(SensorsTest, getBogusSensor) {
-  EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData_ref()->size(), 0);
+  EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData()->size(), 0);
 }
 
 TEST_F(SensorsTest, getSomeSensors) {
   auto response1 = getSensors({"PCH_TEMP"});
-  EXPECT_EQ(response1.sensorData_ref()->size(), 1);
+  EXPECT_EQ(response1.sensorData()->size(), 1);
   // Burn a second
   std::this_thread::sleep_for(std::chrono::seconds(1));
   // Refresh sensors
   getService()->fetchSensorData();
   auto response2 = getSensors({"PCH_TEMP"});
-  EXPECT_EQ(response2.sensorData_ref()->size(), 1);
+  EXPECT_EQ(response2.sensorData()->size(), 1);
   // Response2 sensor collection time stamp should be later
-  EXPECT_GT(response2.timeStamp_ref(), response1.timeStamp_ref());
+  EXPECT_GT(response2.timeStamp(), response1.timeStamp());
   EXPECT_GT(
-      response2.sensorData_ref()->begin()->timeStamp_ref(),
-      response1.sensorData_ref()->begin()->timeStamp_ref());
+      response2.sensorData()->begin()->timeStamp(),
+      response1.sensorData()->begin()->timeStamp());
 }
 
 TEST_F(SensorsTest, getSensorsByFruTypes) {
@@ -85,7 +85,7 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
   thriftHandler_->getSensorValuesByFruTypes(
       response, std::make_unique<std::vector<FruType>>(fruTypes));
   // TODO assert for non empty response once this thrift API is implemented
-  EXPECT_EQ(response.sensorData_ref()->size(), 0);
+  EXPECT_EQ(response.sensorData()->size(), 0);
 }
 
 TEST_F(SensorsTest, testThrift) {
@@ -97,6 +97,6 @@ TEST_F(SensorsTest, testThrift) {
   auto client = SensorServiceThriftAsyncClient(std::move(channel));
   SensorReadResponse response;
   client.sync_getSensorValuesByNames(response, {"PCH_TEMP"});
-  EXPECT_EQ(response.sensorData_ref()->size(), 1);
+  EXPECT_EQ(response.sensorData()->size(), 1);
 }
 } // namespace facebook::fboss::platform::sensor_service

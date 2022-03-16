@@ -38,54 +38,52 @@ auto kStaticClient = ClientID::STATIC_ROUTE;
 class StaticRouteTest : public ::testing::TestWithParam<bool> {
   cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
-    config.vlans_ref()->resize(1);
-    config.vlans_ref()[0].id_ref() = 1;
-    config.vlans_ref()[0].name_ref() = "Vlan1";
-    config.vlans_ref()[0].intfID_ref() = 1;
-    config.interfaces_ref()->resize(1);
-    config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[2] =
-        "2401:db00:2110:3001::0001/64";
-    config.interfaces_ref()[0].intfID_ref() = 1;
-    config.interfaces_ref()[0].routerID_ref() = 0;
-    config.interfaces_ref()[0].vlanID_ref() = 1;
-    config.interfaces_ref()[0].name_ref() = "interface1";
-    config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
-    config.interfaces_ref()[0].mtu_ref() = 9000;
-    config.staticRoutesToNull_ref()->resize(2);
-    config.staticRoutesToNull_ref()[0].prefix_ref() = "1.1.1.1/32";
-    config.staticRoutesToNull_ref()[1].prefix_ref() = "2001::1/128";
-    config.staticRoutesToCPU_ref()->resize(2);
-    config.staticRoutesToCPU_ref()[0].prefix_ref() = "2.2.2.2/32";
-    config.staticRoutesToCPU_ref()[1].prefix_ref() = "2001::2/128";
-    config.staticRoutesWithNhops_ref()->resize(4);
-    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "3.3.3.3/32";
-    config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "1.1.1.1";
-    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "4.4.4.4/32";
-    config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.2";
+    config.vlans()->resize(1);
+    config.vlans()[0].id() = 1;
+    config.vlans()[0].name() = "Vlan1";
+    config.vlans()[0].intfID() = 1;
+    config.interfaces()->resize(1);
+    config.interfaces()[0].ipAddresses()->resize(3);
+    config.interfaces()[0].ipAddresses()[0] = "10.0.0.1/24";
+    config.interfaces()[0].ipAddresses()[1] = "192.168.0.1/24";
+    config.interfaces()[0].ipAddresses()[2] = "2401:db00:2110:3001::0001/64";
+    config.interfaces()[0].intfID() = 1;
+    config.interfaces()[0].routerID() = 0;
+    config.interfaces()[0].vlanID() = 1;
+    config.interfaces()[0].name() = "interface1";
+    config.interfaces()[0].mac() = "00:02:00:00:00:01";
+    config.interfaces()[0].mtu() = 9000;
+    config.staticRoutesToNull()->resize(2);
+    config.staticRoutesToNull()[0].prefix() = "1.1.1.1/32";
+    config.staticRoutesToNull()[1].prefix() = "2001::1/128";
+    config.staticRoutesToCPU()->resize(2);
+    config.staticRoutesToCPU()[0].prefix() = "2.2.2.2/32";
+    config.staticRoutesToCPU()[1].prefix() = "2001::2/128";
+    config.staticRoutesWithNhops()->resize(4);
+    config.staticRoutesWithNhops()[0].prefix() = "3.3.3.3/32";
+    config.staticRoutesWithNhops()[0].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[0].nexthops()[0] = "1.1.1.1";
+    config.staticRoutesWithNhops()[1].prefix() = "4.4.4.4/32";
+    config.staticRoutesWithNhops()[1].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[1].nexthops()[0] = "2.2.2.2";
     // Now add v6 recursive routes
-    config.staticRoutesWithNhops_ref()[2].prefix_ref() = "2001::3/128";
-    config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[2].nexthops_ref()[0] = "2001::1";
-    config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::4/128";
-    config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "2001::2";
+    config.staticRoutesWithNhops()[2].prefix() = "2001::3/128";
+    config.staticRoutesWithNhops()[2].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[2].nexthops()[0] = "2001::1";
+    config.staticRoutesWithNhops()[3].prefix() = "2001::4/128";
+    config.staticRoutesWithNhops()[3].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[3].nexthops()[0] = "2001::2";
 
     // Now add v6 route with stack
-    config.staticIp2MplsRoutes_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "2001::5/128";
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].address_ref() =
+    config.staticIp2MplsRoutes()->resize(1);
+    config.staticIp2MplsRoutes()[0].prefix() = "2001::5/128";
+    config.staticIp2MplsRoutes()[0].nexthops()->resize(1);
+    config.staticIp2MplsRoutes()[0].nexthops()[0].address() =
         toBinaryAddress(folly::IPAddress("2001::1"));
     MplsAction action;
-    action.action_ref() = MplsActionCode::PUSH;
-    action.pushLabels_ref() = {101, 102};
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0].mplsAction_ref() =
-        action;
+    action.action() = MplsActionCode::PUSH;
+    action.pushLabels() = {101, 102};
+    config.staticIp2MplsRoutes()[0].nexthops()[0].mplsAction() = action;
     return config;
   }
 
@@ -113,26 +111,26 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
         labelTable,
         {},
         folly::range(
-            config.staticRoutesToCPU_ref()->begin(),
-            config.staticRoutesToCPU_ref()->end()),
+            config.staticRoutesToCPU()->begin(),
+            config.staticRoutesToCPU()->end()),
         folly::range(
-            config.staticRoutesToNull_ref()->begin(),
-            config.staticRoutesToNull_ref()->end()),
+            config.staticRoutesToNull()->begin(),
+            config.staticRoutesToNull()->end()),
         folly::range(
-            config.staticRoutesWithNhops_ref()->begin(),
-            config.staticRoutesWithNhops_ref()->end()),
+            config.staticRoutesWithNhops()->begin(),
+            config.staticRoutesWithNhops()->end()),
         folly::range(
-            config.staticIp2MplsRoutes_ref()->begin(),
-            config.staticIp2MplsRoutes_ref()->end()),
+            config.staticIp2MplsRoutes()->begin(),
+            config.staticIp2MplsRoutes()->end()),
         folly::range(
-            config.staticMplsRoutesWithNhops_ref()->begin(),
-            config.staticMplsRoutesWithNhops_ref()->end()),
+            config.staticMplsRoutesWithNhops()->begin(),
+            config.staticMplsRoutesWithNhops()->end()),
         folly::range(
-            config.staticMplsRoutesToNull_ref()->begin(),
-            config.staticMplsRoutesToNull_ref()->end()),
+            config.staticMplsRoutesToNull()->begin(),
+            config.staticMplsRoutesToNull()->end()),
         folly::range(
-            config.staticMplsRoutesToCPU_ref()->begin(),
-            config.staticMplsRoutesToCPU_ref()->end()));
+            config.staticMplsRoutesToCPU()->begin(),
+            config.staticMplsRoutesToCPU()->end()));
   }
 
  protected:
@@ -273,31 +271,31 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config0;
-  config0.vlans_ref()->resize(1);
-  config0.vlans_ref()[0].id_ref() = 1;
-  config0.interfaces_ref()->resize(1);
-  auto* intfConfig = &config0.interfaces_ref()[0];
-  intfConfig->name_ref() = "fboss1";
-  intfConfig->intfID_ref() = 1;
-  intfConfig->vlanID_ref() = 1;
-  intfConfig->mac_ref() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses_ref()->resize(3);
-  intfConfig->ipAddresses_ref()[0] = "10.0.0.0/24";
-  intfConfig->ipAddresses_ref()[1] = "1::/64";
-  intfConfig->ipAddresses_ref()[2] = "2::/64";
+  config0.vlans()->resize(1);
+  config0.vlans()[0].id() = 1;
+  config0.interfaces()->resize(1);
+  auto* intfConfig = &config0.interfaces()[0];
+  intfConfig->name() = "fboss1";
+  intfConfig->intfID() = 1;
+  intfConfig->vlanID() = 1;
+  intfConfig->mac() = "00:02:00:11:22:33";
+  intfConfig->ipAddresses()->resize(3);
+  intfConfig->ipAddresses()[0] = "10.0.0.0/24";
+  intfConfig->ipAddresses()[1] = "1::/64";
+  intfConfig->ipAddresses()[2] = "2::/64";
 
   // try to set link local nhop without interface
-  config0.staticMplsRoutesWithNhops_ref()->resize(1);
-  config0.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = 100;
+  config0.staticMplsRoutesWithNhops()->resize(1);
+  config0.staticMplsRoutesWithNhops()[0].ingressLabel() = 100;
   std::vector<NextHopThrift> nexthops;
   nexthops.resize(1);
   MplsAction swap;
-  swap.action_ref() = MplsActionCode::SWAP;
-  swap.swapLabel_ref() = 101;
-  nexthops[0].mplsAction_ref() = swap;
-  nexthops[0].address_ref() =
+  swap.action() = MplsActionCode::SWAP;
+  swap.swapLabel() = 101;
+  nexthops[0].mplsAction() = swap;
+  nexthops[0].address() =
       toBinaryAddress(folly::IPAddress("fe80:abcd:1234:dcab::1"));
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   RoutingInformationBase rib;
   if (FLAGS_mpls_rib) {
     auto v4Table = IPv4NetworkToRouteMap();
@@ -313,8 +311,8 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   }
 
   // try to set non-link local without interface and unreachable via interface
-  nexthops[0].address_ref() = toBinaryAddress(folly::IPAddress("3::1"));
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  nexthops[0].address() = toBinaryAddress(folly::IPAddress("3::1"));
+  config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   if (!FLAGS_mpls_rib) {
     EXPECT_THROW(
         publishAndApplyConfig(stateV0, &config0, platform.get(), &rib),
@@ -331,14 +329,14 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
   // setup link local with interface and non-link local without interface
   // reachable via interface
   nexthops.resize(2);
-  nexthops[0].address_ref() =
+  nexthops[0].address() =
       toBinaryAddress(folly::IPAddress("fe80:abcd:1234:dcab::1"));
-  nexthops[0].address_ref()->ifName_ref() = *intfConfig->name_ref();
+  nexthops[0].address()->ifName() = *intfConfig->name();
 
-  swap.swapLabel_ref() = 102;
-  nexthops[1].mplsAction_ref() = swap;
-  nexthops[1].address_ref() = toBinaryAddress(folly::IPAddress("1::10"));
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  swap.swapLabel() = 102;
+  nexthops[1].mplsAction() = swap;
+  nexthops[1].address() = toBinaryAddress(folly::IPAddress("1::10"));
+  config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   auto stateV1 = publishAndApplyConfig(stateV0, &config0, platform.get(), &rib);
   auto entry =
       stateV1->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
@@ -348,11 +346,11 @@ TEST_P(StaticRouteTest, MplsStaticRoutes) {
 
   // setup non-link local with interface, still valid
   nexthops.resize(3);
-  swap.swapLabel_ref() = 103;
-  nexthops[2].mplsAction_ref() = swap;
-  nexthops[2].address_ref() = toBinaryAddress(folly::IPAddress("2::10"));
-  nexthops[2].address_ref()->ifName_ref() = *intfConfig->name_ref();
-  config0.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  swap.swapLabel() = 103;
+  nexthops[2].mplsAction() = swap;
+  nexthops[2].address() = toBinaryAddress(folly::IPAddress("2::10"));
+  nexthops[2].address()->ifName() = *intfConfig->name();
+  config0.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
   auto stateV2 = publishAndApplyConfig(stateV1, &config0, platform.get(), &rib);
   entry =
       stateV2->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(

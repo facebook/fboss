@@ -17,21 +17,21 @@ namespace facebook::fboss {
  */
 std::vector<facebook::fboss::AclEntryThrift> createAclEntries() {
   facebook::fboss::AclEntryThrift aclEntry1;
-  aclEntry1.name_ref() = "cpuPolicing-CPU-Port-Mcast-v6";
-  aclEntry1.priority_ref() = 7;
-  aclEntry1.actionType_ref() = "permit";
+  aclEntry1.name() = "cpuPolicing-CPU-Port-Mcast-v6";
+  aclEntry1.priority() = 7;
+  aclEntry1.actionType() = "permit";
 
   fboss::AclEntryThrift aclEntry2;
-  aclEntry2.name_ref() = "cpuPolicing-high-BGPDstPort-dstLocalIp4";
-  aclEntry2.priority_ref() = 2;
-  aclEntry2.l4DstPort_ref() = 179;
-  aclEntry2.actionType_ref() = "permit";
+  aclEntry2.name() = "cpuPolicing-high-BGPDstPort-dstLocalIp4";
+  aclEntry2.priority() = 2;
+  aclEntry2.l4DstPort() = 179;
+  aclEntry2.actionType() = "permit";
 
   fboss::AclEntryThrift aclEntry3;
-  aclEntry3.name_ref() = "cpuPolicing-high-slow-protocols-mac";
-  aclEntry3.priority_ref() = 14;
-  aclEntry3.dstMac_ref() = "01:80:c2:00:00:02";
-  aclEntry3.actionType_ref() = "permit";
+  aclEntry3.name() = "cpuPolicing-high-slow-protocols-mac";
+  aclEntry3.priority() = 14;
+  aclEntry3.dstMac() = "01:80:c2:00:00:02";
+  aclEntry3.actionType() = "permit";
 
   return {aclEntry1, aclEntry2, aclEntry3};
 }

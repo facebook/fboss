@@ -34,12 +34,12 @@ class HwStateMachineTest : public HwTest {
     // Get all transceivers from platform mapping
     const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
     for (const auto& chip : chips) {
-      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
-      auto id = *chip.second.physicalID_ref();
+      auto id = *chip.second.physicalID();
       if (auto tcvrIt = presentTcvrs.find(id);
-          tcvrIt != presentTcvrs.end() && *tcvrIt->second.present_ref()) {
+          tcvrIt != presentTcvrs.end() && *tcvrIt->second.present()) {
         presentTransceivers_.push_back(TransceiverID(id));
       } else {
         absentTransceivers_.push_back(TransceiverID(id));
@@ -93,7 +93,7 @@ class HwStateMachineTest : public HwTest {
           // happen
           const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
           auto mgmtInterface = apache::thrift::can_throw(
-              *transceiver.transceiverManagementInterface_ref());
+              *transceiver.transceiverManagementInterface());
           if (mgmtInterface == TransceiverManagementInterface::CMIS) {
             // CMIS will hard reset the module in
             // remediateFlakyTransceiver() Without clear hard reset, we
@@ -431,9 +431,9 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       ConfigAppliedInfo configAppliedInfo;
       auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::system_clock::now().time_since_epoch());
-      configAppliedInfo.lastAppliedInMs_ref() = currentInMs.count();
+      configAppliedInfo.lastAppliedInMs() = currentInMs.count();
       if (isAgentColdboot) {
-        configAppliedInfo.lastColdbootAppliedInMs_ref() = currentInMs.count();
+        configAppliedInfo.lastColdbootAppliedInMs() = currentInMs.count();
       }
       wedgeMgr->setOverrideAgentConfigAppliedInfoForTesting(configAppliedInfo);
 

@@ -35,7 +35,7 @@ class HwAclStatTest : public HwTest {
       const std::string& aclName) {
     auto* acl = utility::addAcl(cfg, aclName);
     // ACL requires at least one qualifier
-    acl->dscp_ref() = 0x24;
+    acl->dscp() = 0x24;
 
     return acl;
   }
@@ -202,13 +202,13 @@ TEST_F(HwAclStatTest, AclStatMultipleActions) {
     /* The ACL will have 2 actions: a counter and a queue */
     utility::addAclStat(&newCfg, "acl0", "stat0");
     cfg::QueueMatchAction queueAction;
-    *queueAction.queueId_ref() = 0;
+    *queueAction.queueId() = 0;
     cfg::MatchAction matchAction = cfg::MatchAction();
-    matchAction.sendToQueue_ref() = queueAction;
+    matchAction.sendToQueue() = queueAction;
     cfg::MatchToAction action = cfg::MatchToAction();
-    *action.matcher_ref() = "acl0";
-    *action.action_ref() = matchAction;
-    newCfg.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->push_back(action);
+    *action.matcher() = "acl0";
+    *action.action() = matchAction;
+    newCfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(action);
     applyNewConfig(newCfg);
   };
 
@@ -400,7 +400,7 @@ TEST_F(HwAclStatTest, AclStatModify) {
   auto setupPostWB = [=]() {
     auto newCfg = initialConfig();
     auto acl = addDscpAcl(&newCfg, "acl0");
-    acl->proto_ref() = 58;
+    acl->proto() = 58;
     utility::addAclStat(&newCfg, "acl0", "stat0");
     applyNewConfig(newCfg);
   };

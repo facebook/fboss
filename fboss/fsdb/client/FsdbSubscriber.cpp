@@ -7,9 +7,9 @@ namespace facebook::fboss::fsdb {
 template <typename SubUnit>
 OperSubRequest FsdbSubscriber<SubUnit>::createRequest() const {
   OperPath operPath;
-  operPath.raw_ref() = subscribePath_;
+  operPath.raw() = subscribePath_;
   OperSubRequest request;
-  request.path_ref() = operPath;
+  request.path() = operPath;
   return request;
 }
 

@@ -75,9 +75,9 @@ void PacketStreamService::send(const std::string& clientId, TPacket&& packet) {
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
     const auto& clientInfo = iter->second;
-    auto portIter = clientInfo.portList_.find(*packet.l2Port_ref());
+    auto portIter = clientInfo.portList_.find(*packet.l2Port());
     if (portIter == clientInfo.portList_.end()) {
-      XLOG(ERR) << "Port '" << *packet.l2Port_ref() << "'Not Registered";
+      XLOG(ERR) << "Port '" << *packet.l2Port() << "'Not Registered";
       throw createTPacketException(
           TPacketErrorCode::PORT_NOT_REGISTERED, "PORT not registered");
     }

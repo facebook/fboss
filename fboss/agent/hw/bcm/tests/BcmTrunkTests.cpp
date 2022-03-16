@@ -136,7 +136,7 @@ TEST_F(BcmTrunkTest, packetSendReceiveSrcPort) {
     applyConfigAndEnableTrunks(cfg);
   };
   auto verify = [=]() {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;

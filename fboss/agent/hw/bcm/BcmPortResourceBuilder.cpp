@@ -88,10 +88,10 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
                                         ->getPlatformPort(port->getID())
                                         ->getPlatformPortEntry();
     const auto& itProfile =
-        platformPortEntry.supportedProfiles_ref()->find(port->getProfileID());
-    if (itProfile != platformPortEntry.supportedProfiles_ref()->end()) {
+        platformPortEntry.supportedProfiles()->find(port->getProfileID());
+    if (itProfile != platformPortEntry.supportedProfiles()->end()) {
       // Gather all subsumed ports in the same group and remove them later
-      if (auto subsumedPorts = itProfile->second.subsumedPorts_ref()) {
+      if (auto subsumedPorts = itProfile->second.subsumedPorts()) {
         for (auto portID : *subsumedPorts) {
           subsumedPortSet.insert(PortID(portID));
         }
@@ -100,7 +100,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
       // Make sure enabled port profile is allowed in the supported profile
       throw FbossError(
           "Enabled Port: ",
-          *platformPortEntry.mapping_ref()->name_ref(),
+          *platformPortEntry.mapping()->name(),
           " does not support speed profile: ",
           apache::thrift::util::enumNameSafe(port->getProfileID()));
     }
@@ -124,7 +124,7 @@ int BcmPortResourceBuilder::getBaseLane(std::shared_ptr<Port> port) {
       platformPortEntry,
       hw_->getPlatform()->getDataPlanePhyChips(),
       port->getProfileID());
-  return *iphyLanes[0].lane_ref();
+  return *iphyLanes[0].lane();
 }
 
 std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
@@ -168,7 +168,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     newPortRes.speed = static_cast<int>(port->getSpeed());
     newPortRes.fec_type = utility::phyFecModeToBcmPortPhyFec(
         platformPort->shouldDisableFEC() ? phy::FecMode::NONE
-                                         : *profileConf.fec_ref());
+                                         : *profileConf.fec());
     newPortRes.phy_lane_config = utility::getDesiredPhyLaneConfig(profileConf);
     newPortRes.link_training = 0; /* turn off link training as default */
     portResources_.push_back(newPortRes);

@@ -94,29 +94,29 @@ NextHopThrift getSwapNextHopThrift(int offset) {
   auto nexthopIp = folly::IPAddressV6::tryFromString(
       folly::to<std::string>("fe80::", offset));
   NextHopThrift nexthop;
-  nexthop.address_ref()->addr_ref()->append(
+  nexthop.address()->addr()->append(
       reinterpret_cast<const char*>(nexthopIp->bytes()),
       folly::IPAddressV6::byteCount());
-  nexthop.address_ref()->ifName_ref() = "fboss1";
+  nexthop.address()->ifName() = "fboss1";
   MplsAction action;
-  *action.action_ref() = MplsActionCode::SWAP;
-  action.swapLabel_ref() = 601;
-  nexthop.mplsAction_ref() = action;
+  *action.action() = MplsActionCode::SWAP;
+  action.swapLabel() = 601;
+  nexthop.mplsAction() = action;
   return nexthop;
 }
 
 MplsRoute getMplsRoute(MplsLabel label, AdminDistance distance) {
   MplsRoute route;
-  *route.topLabel_ref() = label;
-  route.adminDistance_ref() = distance;
+  *route.topLabel() = label;
+  route.adminDistance() = distance;
   for (auto i = 1; i < 5; i++) {
-    route.nextHops_ref()->emplace_back(getSwapNextHopThrift(i));
+    route.nextHops()->emplace_back(getSwapNextHopThrift(i));
   }
   return route;
 }
 
 void modifyMplsRoute(MplsRoute& route, int index) {
-  route.nextHops_ref()->emplace_back(getSwapNextHopThrift(index));
+  route.nextHops()->emplace_back(getSwapNextHopThrift(index));
 }
 
 std::vector<MplsRoute> getTestRoutes(int base, int count) {
@@ -135,11 +135,11 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string nxtHop,
     AdminDistance distance) {
   auto nr = std::make_unique<UnicastRoute>();
-  nr->dest_ref()->ip_ref() = network::toBinaryAddress(folly::IPAddress(prefix));
-  nr->dest_ref()->prefixLength_ref() = prefixLen;
-  nr->nextHopAddrs_ref()->push_back(
+  nr->dest()->ip() = network::toBinaryAddress(folly::IPAddress(prefix));
+  nr->dest()->prefixLength() = prefixLen;
+  nr->nextHopAddrs()->push_back(
       network::toBinaryAddress(folly::IPAddress(nxtHop)));
-  nr->adminDistance_ref() = distance;
+  nr->adminDistance() = distance;
   return nr;
 }
 

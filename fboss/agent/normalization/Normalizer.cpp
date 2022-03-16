@@ -33,10 +33,10 @@ void print(const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap) {
     XLOGF(
         DBG6,
         "ts: {}, port name: {}, inBytes: {}, outBytes: {}",
-        *hwPortStats.timestamp__ref(),
+        *hwPortStats.timestamp_(),
         portName,
-        *hwPortStats.inBytes__ref(),
-        *hwPortStats.outBytes__ref());
+        *hwPortStats.inBytes_(),
+        *hwPortStats.outBytes_());
   }
 }
 

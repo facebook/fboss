@@ -49,9 +49,9 @@ UnicastRoute makeUnicastRouteHelper(
     RouteForwardAction action,
     AdminDistance admin) {
   UnicastRoute nr;
-  nr.dest_ref() = toIpPrefix(nw);
-  nr.action_ref() = action;
-  nr.adminDistance_ref() = admin;
+  nr.dest() = toIpPrefix(nw);
+  nr.action() = action;
+  nr.adminDistance() = admin;
   return nr;
 }
 } // namespace
@@ -184,8 +184,8 @@ std::vector<NextHopThrift> thriftNextHopsFromAddresses(
   nhs.reserve(addrs.size());
   for (const auto& addr : addrs) {
     NextHopThrift nh;
-    nh.address_ref() = addr;
-    nh.weight_ref() = 0;
+    nh.address() = addr;
+    nh.weight() = 0;
     nhs.emplace_back(std::move(nh));
   }
   return nhs;
@@ -193,8 +193,8 @@ std::vector<NextHopThrift> thriftNextHopsFromAddresses(
 
 IpPrefix toIpPrefix(const folly::CIDRNetwork& nw) {
   IpPrefix pfx;
-  pfx.ip_ref() = network::toBinaryAddress(nw.first);
-  pfx.prefixLength_ref() = nw.second;
+  pfx.ip() = network::toBinaryAddress(nw.first);
+  pfx.prefixLength() = nw.second;
   return pfx;
 }
 
@@ -219,7 +219,7 @@ UnicastRoute makeUnicastRoute(
       nhops.begin(), nhops.end(), [&addrs](const folly::IPAddress& ip) {
         addrs.emplace_back(facebook::network::toBinaryAddress(ip));
       });
-  route.nextHops_ref() = thriftNextHopsFromAddresses(addrs);
+  route.nextHops() = thriftNextHopsFromAddresses(addrs);
   return route;
 }
 

@@ -69,67 +69,64 @@ cfg::SwitchConfig createSwitchConfig(
     bool createAggPort = false) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
-  config.vlans_ref()->resize(2);
-  *config.vlans_ref()[0].name_ref() = "PrimaryVlan";
-  *config.vlans_ref()[0].id_ref() = 5;
-  *config.vlans_ref()[0].routable_ref() = true;
-  config.vlans_ref()[0].intfID_ref() = 1234;
-  *config.vlans_ref()[1].name_ref() = "DefaultHWVlan";
-  *config.vlans_ref()[1].id_ref() = 1;
-  *config.vlans_ref()[1].routable_ref() = true;
-  config.vlans_ref()[1].intfID_ref() = 4321;
+  config.vlans()->resize(2);
+  *config.vlans()[0].name() = "PrimaryVlan";
+  *config.vlans()[0].id() = 5;
+  *config.vlans()[0].routable() = true;
+  config.vlans()[0].intfID() = 1234;
+  *config.vlans()[1].name() = "DefaultHWVlan";
+  *config.vlans()[1].id() = 1;
+  *config.vlans()[1].routable() = true;
+  config.vlans()[1].intfID() = 4321;
 
-  config.vlanPorts_ref()->resize(10);
-  config.ports_ref()->resize(10);
+  config.vlanPorts()->resize(10);
+  config.ports()->resize(10);
   for (int n = 0; n < 10; ++n) {
-    preparedMockPortConfig(config.ports_ref()[n], n + 1);
-    *config.ports_ref()[n].minFrameSize_ref() = 64;
-    *config.ports_ref()[n].maxFrameSize_ref() = 9000;
-    *config.ports_ref()[n].routable_ref() = true;
-    *config.ports_ref()[n].ingressVlan_ref() = 5;
+    preparedMockPortConfig(config.ports()[n], n + 1);
+    *config.ports()[n].minFrameSize() = 64;
+    *config.ports()[n].maxFrameSize() = 9000;
+    *config.ports()[n].routable() = true;
+    *config.ports()[n].ingressVlan() = 5;
 
-    *config.vlanPorts_ref()[n].vlanID_ref() = 5;
-    *config.vlanPorts_ref()[n].logicalPort_ref() = n + 1;
-    *config.vlanPorts_ref()[n].spanningTreeState_ref() =
+    *config.vlanPorts()[n].vlanID() = 5;
+    *config.vlanPorts()[n].logicalPort() = n + 1;
+    *config.vlanPorts()[n].spanningTreeState() =
         cfg::SpanningTreeState::FORWARDING;
-    *config.vlanPorts_ref()[n].emitTags_ref() = 0;
+    *config.vlanPorts()[n].emitTags() = 0;
   }
 
-  config.interfaces_ref()->resize(2);
-  *config.interfaces_ref()[0].intfID_ref() = 1234;
-  *config.interfaces_ref()[0].vlanID_ref() = 5;
-  config.interfaces_ref()[0].name_ref() = "PrimaryInterface";
-  config.interfaces_ref()[0].mtu_ref() = 9000;
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(5);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.164.4.10/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "10.164.4.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[2] = "10.164.4.2/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[3] = "2401:db00:2110:3004::/64";
-  config.interfaces_ref()[0].ipAddresses_ref()[4] =
-      "2401:db00:2110:3004::000a/64";
-  config.interfaces_ref()[0].ndp_ref() = cfg::NdpConfig();
-  *config.interfaces_ref()[0].ndp_ref()->routerAdvertisementSeconds_ref() =
+  config.interfaces()->resize(2);
+  *config.interfaces()[0].intfID() = 1234;
+  *config.interfaces()[0].vlanID() = 5;
+  config.interfaces()[0].name() = "PrimaryInterface";
+  config.interfaces()[0].mtu() = 9000;
+  config.interfaces()[0].ipAddresses()->resize(5);
+  config.interfaces()[0].ipAddresses()[0] = "10.164.4.10/24";
+  config.interfaces()[0].ipAddresses()[1] = "10.164.4.1/24";
+  config.interfaces()[0].ipAddresses()[2] = "10.164.4.2/24";
+  config.interfaces()[0].ipAddresses()[3] = "2401:db00:2110:3004::/64";
+  config.interfaces()[0].ipAddresses()[4] = "2401:db00:2110:3004::000a/64";
+  config.interfaces()[0].ndp() = cfg::NdpConfig();
+  *config.interfaces()[0].ndp()->routerAdvertisementSeconds() =
       raInterval.count();
-  *config.interfaces_ref()[1].intfID_ref() = 4321;
-  *config.interfaces_ref()[1].vlanID_ref() = 1;
-  config.interfaces_ref()[1].name_ref() = "DefaultHWInterface";
-  config.interfaces_ref()[1].mtu_ref() = 9000;
-  config.interfaces_ref()[1].ipAddresses_ref()->resize(0);
+  *config.interfaces()[1].intfID() = 4321;
+  *config.interfaces()[1].vlanID() = 1;
+  config.interfaces()[1].name() = "DefaultHWInterface";
+  config.interfaces()[1].mtu() = 9000;
+  config.interfaces()[1].ipAddresses()->resize(0);
 
   if (ndpTimeout.count() > 0) {
-    *config.arpTimeoutSeconds_ref() = ndpTimeout.count();
+    *config.arpTimeoutSeconds() = ndpTimeout.count();
   }
 
   if (createAggPort) {
-    config.aggregatePorts_ref()->resize(1);
-    config.aggregatePorts_ref()[0].key_ref() =
-        static_cast<uint16_t>(kAggregatePortID);
-    config.aggregatePorts_ref()[0].name_ref() = "AggPort";
-    config.aggregatePorts_ref()[0].description_ref() = "Test Aggport";
-    config.aggregatePorts_ref()[0].memberPorts_ref()->resize(kSubportCount);
+    config.aggregatePorts()->resize(1);
+    config.aggregatePorts()[0].key() = static_cast<uint16_t>(kAggregatePortID);
+    config.aggregatePorts()[0].name() = "AggPort";
+    config.aggregatePorts()[0].description() = "Test Aggport";
+    config.aggregatePorts()[0].memberPorts()->resize(kSubportCount);
     for (auto i = 0; i < kSubportCount; i++) {
-      config.aggregatePorts_ref()[0].memberPorts_ref()[i].memberPortID_ref() =
-          i + 1;
+      config.aggregatePorts()[0].memberPorts()[i].memberPortID() = i + 1;
     }
   }
 
@@ -276,11 +273,11 @@ TxMatchFn checkRouterAdvert(
     Cursor start(*cursor);
     Cursor end = start + length;
     auto parsedHopLimit = cursor->read<uint8_t>();
-    checkField(*ndp.curHopLimit_ref(), parsedHopLimit, "cur hop limit");
+    checkField(*ndp.curHopLimit(), parsedHopLimit, "cur hop limit");
     auto parsedFlags = cursor->read<uint8_t>();
     checkField(0, parsedFlags, "NDP RA flags");
     auto parsedLifetime = cursor->readBE<uint16_t>();
-    checkField(*ndp.routerLifetime_ref(), parsedLifetime, "router lifetime");
+    checkField(*ndp.routerLifetime(), parsedLifetime, "router lifetime");
     auto parsedReachableTime = cursor->readBE<uint32_t>();
     checkField(0, parsedReachableTime, "reachable time");
     auto parsedRetransTimer = cursor->readBE<uint32_t>();
@@ -313,12 +310,12 @@ TxMatchFn checkRouterAdvert(
           checkField(0xc0, prefixFlags, "prefix flags");
           auto prefixValidLifetime = cursor->readBE<uint32_t>();
           checkField(
-              *ndp.prefixValidLifetimeSeconds_ref(),
+              *ndp.prefixValidLifetimeSeconds(),
               prefixValidLifetime,
               "prefix valid lifetime");
           auto prefixPreferredLifetime = cursor->readBE<uint32_t>();
           checkField(
-              *ndp.prefixPreferredLifetimeSeconds_ref(),
+              *ndp.prefixPreferredLifetimeSeconds(),
               prefixPreferredLifetime,
               "prefix preferred lifetime");
           auto reserved2 = cursor->readBE<uint32_t>();
@@ -426,8 +423,8 @@ class NdpTest : public ::testing::Test {
       seconds ndpInterval = seconds(0)) {
     auto config = createSwitchConfig(raInterval, ndpInterval);
 
-    *config.maxNeighborProbes_ref() = 1;
-    *config.staleEntryInterval_ref() = 1;
+    *config.maxNeighborProbes() = 1;
+    *config.staleEntryInterval() = 1;
     auto handle = createTestHandle(&config);
     sw_ = handle->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
@@ -663,7 +660,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
   auto config = createSwitchConfig(raInterval, seconds(0));
   // Add an interface with a /128 mask, to make sure it isn't included
   // in the generated RA packets.
-  config.interfaces_ref()[0].ipAddresses_ref()->push_back(
+  config.interfaces()[0].ipAddresses()->push_back(
       "2401:db00:2000:1234:1::/128");
   auto handle = createTestHandle(&config);
   auto sw = handle->getSw();

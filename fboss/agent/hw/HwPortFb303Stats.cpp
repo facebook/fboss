@@ -195,63 +195,52 @@ void HwPortFb303Stats::updateStats(
     const HwPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
   timeRetrieved_ = retrievedAt;
-  updateStat(timeRetrieved_, kInBytes(), *curPortStats.inBytes__ref());
+  updateStat(timeRetrieved_, kInBytes(), *curPortStats.inBytes_());
+  updateStat(timeRetrieved_, kInUnicastPkts(), *curPortStats.inUnicastPkts_());
   updateStat(
-      timeRetrieved_, kInUnicastPkts(), *curPortStats.inUnicastPkts__ref());
+      timeRetrieved_, kInMulticastPkts(), *curPortStats.inMulticastPkts_());
   updateStat(
-      timeRetrieved_, kInMulticastPkts(), *curPortStats.inMulticastPkts__ref());
+      timeRetrieved_, kInBroadcastPkts(), *curPortStats.inBroadcastPkts_());
+  updateStat(timeRetrieved_, kInDiscardsRaw(), *curPortStats.inDiscardsRaw_());
+  updateStat(timeRetrieved_, kInDiscards(), *curPortStats.inDiscards_());
+  updateStat(timeRetrieved_, kInErrors(), *curPortStats.inErrors_());
+  updateStat(timeRetrieved_, kInPause(), *curPortStats.inPause_());
   updateStat(
-      timeRetrieved_, kInBroadcastPkts(), *curPortStats.inBroadcastPkts__ref());
+      timeRetrieved_, kInIpv4HdrErrors(), *curPortStats.inIpv4HdrErrors_());
   updateStat(
-      timeRetrieved_, kInDiscardsRaw(), *curPortStats.inDiscardsRaw__ref());
-  updateStat(timeRetrieved_, kInDiscards(), *curPortStats.inDiscards__ref());
-  updateStat(timeRetrieved_, kInErrors(), *curPortStats.inErrors__ref());
-  updateStat(timeRetrieved_, kInPause(), *curPortStats.inPause__ref());
+      timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors_());
   updateStat(
-      timeRetrieved_, kInIpv4HdrErrors(), *curPortStats.inIpv4HdrErrors__ref());
-  updateStat(
-      timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors__ref());
-  updateStat(
-      timeRetrieved_,
-      kInDstNullDiscards(),
-      *curPortStats.inDstNullDiscards__ref());
+      timeRetrieved_, kInDstNullDiscards(), *curPortStats.inDstNullDiscards_());
   // Egress Stats
-  updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes__ref());
+  updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes_());
   updateStat(
-      timeRetrieved_, kOutUnicastPkts(), *curPortStats.outUnicastPkts__ref());
+      timeRetrieved_, kOutUnicastPkts(), *curPortStats.outUnicastPkts_());
   updateStat(
-      timeRetrieved_,
-      kOutMulticastPkts(),
-      *curPortStats.outMulticastPkts__ref());
+      timeRetrieved_, kOutMulticastPkts(), *curPortStats.outMulticastPkts_());
   updateStat(
-      timeRetrieved_,
-      kOutBroadcastPkts(),
-      *curPortStats.outBroadcastPkts__ref());
-  updateStat(timeRetrieved_, kOutDiscards(), *curPortStats.outDiscards__ref());
-  updateStat(timeRetrieved_, kOutErrors(), *curPortStats.outErrors__ref());
-  updateStat(timeRetrieved_, kOutPause(), *curPortStats.outPause__ref());
+      timeRetrieved_, kOutBroadcastPkts(), *curPortStats.outBroadcastPkts_());
+  updateStat(timeRetrieved_, kOutDiscards(), *curPortStats.outDiscards_());
+  updateStat(timeRetrieved_, kOutErrors(), *curPortStats.outErrors_());
+  updateStat(timeRetrieved_, kOutPause(), *curPortStats.outPause_());
   updateStat(
       timeRetrieved_,
       kOutCongestionDiscards(),
-      *curPortStats.outCongestionDiscardPkts__ref());
+      *curPortStats.outCongestionDiscardPkts_());
   updateStat(
       timeRetrieved_,
       kWredDroppedPackets(),
-      *curPortStats.wredDroppedPackets__ref());
+      *curPortStats.wredDroppedPackets_());
+  updateStat(timeRetrieved_, kOutEcnCounter(), *curPortStats.outEcnCounter_());
   updateStat(
-      timeRetrieved_, kOutEcnCounter(), *curPortStats.outEcnCounter__ref());
-  updateStat(
-      timeRetrieved_,
-      kFecCorrectable(),
-      *curPortStats.fecCorrectableErrors_ref());
+      timeRetrieved_, kFecCorrectable(), *curPortStats.fecCorrectableErrors());
   updateStat(
       timeRetrieved_,
       kFecUncorrectable(),
-      *curPortStats.fecUncorrectableErrors_ref());
+      *curPortStats.fecUncorrectableErrors());
   updateStat(
       timeRetrieved_,
       kInLabelMissDiscards(),
-      *curPortStats.inLabelMissDiscards__ref());
+      *curPortStats.inLabelMissDiscards_());
 
   // Update queue stats
   auto updateQueueStat = [this](
@@ -268,21 +257,21 @@ void HwPortFb303Stats::updateStats(
     updateQueueStat(
         kOutCongestionDiscardsBytes(),
         queueIdAndName.first,
-        *curPortStats.queueOutDiscardBytes__ref());
+        *curPortStats.queueOutDiscardBytes_());
     updateQueueStat(
         kOutCongestionDiscards(),
         queueIdAndName.first,
-        *curPortStats.queueOutDiscardPackets__ref());
+        *curPortStats.queueOutDiscardPackets_());
     updateQueueStat(
-        kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes__ref());
+        kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes_());
     updateQueueStat(
-        kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets__ref());
+        kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets_());
   }
-  if (curPortStats.queueWatermarkBytes__ref()->size()) {
-    updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes__ref());
+  if (curPortStats.queueWatermarkBytes_()->size()) {
+    updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes_());
   }
   // Macsec stats
-  if (curPortStats.macsecStats_ref()) {
+  if (curPortStats.macsecStats()) {
     if (!macsecStatsInited_) {
       reinitMacsecStats(std::nullopt);
     }
@@ -290,79 +279,79 @@ void HwPortFb303Stats::updateStats(
       updateStat(
           timeRetrieved_,
           ingress ? kInPreMacsecDropPkts() : kOutPreMacsecDropPkts(),
-          *macsecPortStats.preMacsecDropPkts_ref());
+          *macsecPortStats.preMacsecDropPkts());
       updateStat(
           timeRetrieved_,
           ingress ? kInMacsecDataPkts() : kOutMacsecDataPkts(),
-          *macsecPortStats.dataPkts_ref());
+          *macsecPortStats.dataPkts());
       updateStat(
           timeRetrieved_,
           ingress ? kInMacsecControlPkts() : kOutMacsecControlPkts(),
-          *macsecPortStats.controlPkts_ref());
+          *macsecPortStats.controlPkts());
       updateStat(
           timeRetrieved_,
           ingress ? kInMacsecDecryptedBytes() : kOutMacsecEncryptedBytes(),
-          *macsecPortStats.octetsEncrypted_ref());
+          *macsecPortStats.octetsEncrypted());
       if (ingress) {
         updateStat(
             timeRetrieved_,
             kInMacsecBadOrNoTagDroppedPkts(),
-            *macsecPortStats.inBadOrNoMacsecTagDroppedPkts_ref());
+            *macsecPortStats.inBadOrNoMacsecTagDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecNoSciDroppedPkts(),
-            *macsecPortStats.inNoSciDroppedPkts_ref());
+            *macsecPortStats.inNoSciDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecUnknownSciPkts(),
-            *macsecPortStats.inUnknownSciPkts_ref());
+            *macsecPortStats.inUnknownSciPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecOverrunDroppedPkts(),
-            *macsecPortStats.inOverrunDroppedPkts_ref());
+            *macsecPortStats.inOverrunDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecDelayedPkts(),
-            *macsecPortStats.inDelayedPkts_ref());
+            *macsecPortStats.inDelayedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecLateDroppedPkts(),
-            *macsecPortStats.inLateDroppedPkts_ref());
+            *macsecPortStats.inLateDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecNotValidDroppedPkts(),
-            *macsecPortStats.inNotValidDroppedPkts_ref());
+            *macsecPortStats.inNotValidDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecInvalidPkts(),
-            *macsecPortStats.inInvalidPkts_ref());
+            *macsecPortStats.inInvalidPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecNoSADroppedPkts(),
-            *macsecPortStats.inNoSaDroppedPkts_ref());
+            *macsecPortStats.inNoSaDroppedPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecUnusedSAPkts(),
-            *macsecPortStats.inUnusedSaPkts_ref());
+            *macsecPortStats.inUnusedSaPkts());
         updateStat(
             timeRetrieved_,
             kInMacsecUntaggedPkts(),
-            *macsecPortStats.noMacsecTagPkts_ref());
+            *macsecPortStats.noMacsecTagPkts());
       } else {
         updateStat(
             timeRetrieved_,
             kOutMacsecUntaggedPkts(),
-            *macsecPortStats.noMacsecTagPkts_ref());
+            *macsecPortStats.noMacsecTagPkts());
         updateStat(
             timeRetrieved_,
             kOutMacsecTooLongDroppedPkts(),
-            *macsecPortStats.outTooLongDroppedPkts_ref());
+            *macsecPortStats.outTooLongDroppedPkts());
       }
     };
     updateMacsecPortStats(
-        *curPortStats.macsecStats_ref()->ingressPortStats_ref(), true);
+        *curPortStats.macsecStats()->ingressPortStats(), true);
     updateMacsecPortStats(
-        *curPortStats.macsecStats_ref()->egressPortStats_ref(), false);
+        *curPortStats.macsecStats()->egressPortStats(), false);
   }
   portStats_ = curPortStats;
 }

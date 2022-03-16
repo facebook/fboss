@@ -203,9 +203,9 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
   auto retries = 5;
   while (retries--) {
-    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets__ref();
+    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
     sleep(1);
-    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets__ref();
+    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets_();
     auto maxWeightQueueBytes = queueStatsAfter.find(maxWeightQueueId)->second -
         queueStatsBefore.find(maxWeightQueueId)->second;
     auto maxWeightQueueWeight = wrrQueueToWeight.at(maxWeightQueueId);
@@ -263,9 +263,9 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   auto retries = 5;
   while (retries--) {
     auto distributionOk = true;
-    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets__ref();
+    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
     sleep(1);
-    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets__ref();
+    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets_();
     for (const auto& queueStat : queueStatsAfter) {
       auto queueId = queueStat.first;
       auto statVal = queueStat.second - queueStatsBefore[queueId];

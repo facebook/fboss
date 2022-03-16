@@ -23,46 +23,46 @@ constexpr auto kDefaultXphyChipName = "XPHY8";
 cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
   cfg::PlatformPortEntry entry;
 
-  *entry.mapping_ref()->id_ref() = 4;
-  *entry.mapping_ref()->name_ref() = "eth2/2/1";
-  *entry.mapping_ref()->controllingPort_ref() = 3;
+  *entry.mapping()->id() = 4;
+  *entry.mapping()->name() = "eth2/2/1";
+  *entry.mapping()->controllingPort() = 3;
 
   int xphySysLaneStart = 6;
   int xphyLineLaneStart = 12;
   for (int i = 0; i < 2; i++) {
     phy::PinConnection pin;
     phy::PinID iphy;
-    *iphy.chip_ref() = kDefaultIphyChipName;
-    *iphy.lane_ref() = kDefaultAsicLaneStart + i;
-    *pin.a_ref() = iphy;
+    *iphy.chip() = kDefaultIphyChipName;
+    *iphy.lane() = kDefaultAsicLaneStart + i;
+    *pin.a() = iphy;
 
     phy::Pin xphyPin;
     phy::PinJunction xphy;
     phy::PinID xphySys;
-    *xphySys.chip_ref() = kDefaultXphyChipName;
-    *xphySys.lane_ref() = xphySysLaneStart + i;
-    *xphy.system_ref() = xphySys;
+    *xphySys.chip() = kDefaultXphyChipName;
+    *xphySys.lane() = xphySysLaneStart + i;
+    *xphy.system() = xphySys;
 
     for (int j = 0; j < 2; j++) {
       phy::PinConnection linePin;
       phy::PinID xphyLine;
-      *xphyLine.chip_ref() = kDefaultXphyChipName;
-      *xphyLine.lane_ref() = xphyLineLaneStart + i * 2 + j;
-      *linePin.a_ref() = xphyLine;
+      *xphyLine.chip() = kDefaultXphyChipName;
+      *xphyLine.lane() = xphyLineLaneStart + i * 2 + j;
+      *linePin.a() = xphyLine;
 
       phy::Pin tcvrPin;
       phy::PinID tcvr;
-      *tcvr.chip_ref() = kDefaultTcvrChipName;
-      *tcvr.lane_ref() = i * 2 + j;
+      *tcvr.chip() = kDefaultTcvrChipName;
+      *tcvr.lane() = i * 2 + j;
       tcvrPin.end_ref() = tcvr;
-      linePin.z_ref() = tcvrPin;
+      linePin.z() = tcvrPin;
 
-      xphy.line_ref()->push_back(linePin);
+      xphy.line()->push_back(linePin);
     }
     xphyPin.junction_ref() = xphy;
-    pin.z_ref() = xphyPin;
+    pin.z() = xphyPin;
 
-    entry.mapping_ref()->pins_ref()->push_back(pin);
+    entry.mapping()->pins()->push_back(pin);
   }
 
   // prepare PortPinConfig for profiles
@@ -72,31 +72,31 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
   std::vector<phy::PinConfig> transceiver;
   for (int i = 0; i < 2; i++) {
     phy::PinConfig iphyCfg;
-    *iphyCfg.id_ref()->chip_ref() = kDefaultIphyChipName;
-    *iphyCfg.id_ref()->lane_ref() = kDefaultAsicLaneStart + i;
-    portCfg.pins_ref()->iphy_ref()->push_back(iphyCfg);
+    *iphyCfg.id()->chip() = kDefaultIphyChipName;
+    *iphyCfg.id()->lane() = kDefaultAsicLaneStart + i;
+    portCfg.pins()->iphy()->push_back(iphyCfg);
 
     phy::PinConfig xphySysCfg;
-    *xphySysCfg.id_ref()->chip_ref() = kDefaultXphyChipName;
-    *xphySysCfg.id_ref()->lane_ref() = xphySysLaneStart + i;
+    *xphySysCfg.id()->chip() = kDefaultXphyChipName;
+    *xphySysCfg.id()->lane() = xphySysLaneStart + i;
     xphySys.push_back(xphySysCfg);
 
     for (int j = 0; j < 2; j++) {
       phy::PinConfig xphyLineCfg;
-      *xphyLineCfg.id_ref()->chip_ref() = kDefaultXphyChipName;
-      *xphyLineCfg.id_ref()->lane_ref() = xphyLineLaneStart + i * 2 + j;
+      *xphyLineCfg.id()->chip() = kDefaultXphyChipName;
+      *xphyLineCfg.id()->lane() = xphyLineLaneStart + i * 2 + j;
       xphyLine.push_back(xphyLineCfg);
 
       phy::PinConfig tcvrCfg;
-      *tcvrCfg.id_ref()->chip_ref() = kDefaultTcvrChipName;
-      *tcvrCfg.id_ref()->lane_ref() = i * 2 + j;
+      *tcvrCfg.id()->chip() = kDefaultTcvrChipName;
+      *tcvrCfg.id()->lane() = i * 2 + j;
       transceiver.push_back(tcvrCfg);
     }
   }
-  portCfg.pins_ref()->transceiver_ref() = transceiver;
-  portCfg.pins_ref()->xphySys_ref() = xphySys;
-  portCfg.pins_ref()->xphyLine_ref() = xphyLine;
-  entry.supportedProfiles_ref()[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
+  portCfg.pins()->transceiver() = transceiver;
+  portCfg.pins()->xphySys() = xphySys;
+  portCfg.pins()->xphyLine() = xphyLine;
+  entry.supportedProfiles()[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
       portCfg;
 
   return entry;
@@ -105,25 +105,25 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
 cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
   cfg::PlatformPortEntry entry;
 
-  *entry.mapping_ref()->id_ref() = 4;
-  *entry.mapping_ref()->name_ref() = "eth2/2/1";
-  *entry.mapping_ref()->controllingPort_ref() = 3;
+  *entry.mapping()->id() = 4;
+  *entry.mapping()->name() = "eth2/2/1";
+  *entry.mapping()->controllingPort() = 3;
 
   for (int i = 0; i < 4; i++) {
     phy::PinConnection pin;
     phy::PinID iphy;
-    *iphy.chip_ref() = kDefaultIphyChipName;
-    *iphy.lane_ref() = kDefaultAsicLaneStart + i;
-    *pin.a_ref() = iphy;
+    *iphy.chip() = kDefaultIphyChipName;
+    *iphy.lane() = kDefaultAsicLaneStart + i;
+    *pin.a() = iphy;
 
     phy::Pin tcvrPin;
     phy::PinID tcvr;
-    *tcvr.chip_ref() = kDefaultTcvrChipName;
-    *tcvr.lane_ref() = i;
+    *tcvr.chip() = kDefaultTcvrChipName;
+    *tcvr.lane() = i;
     tcvrPin.end_ref() = tcvr;
-    pin.z_ref() = tcvrPin;
+    pin.z() = tcvrPin;
 
-    entry.mapping_ref()->pins_ref()->push_back(pin);
+    entry.mapping()->pins()->push_back(pin);
   }
 
   // prepare PortPinConfig for profiles
@@ -131,17 +131,17 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
   std::vector<phy::PinConfig> transceiver;
   for (int i = 0; i < 4; i++) {
     phy::PinConfig iphyCfg;
-    *iphyCfg.id_ref()->chip_ref() = kDefaultIphyChipName;
-    *iphyCfg.id_ref()->lane_ref() = kDefaultAsicLaneStart + i;
-    portCfg.pins_ref()->iphy_ref()->push_back(iphyCfg);
+    *iphyCfg.id()->chip() = kDefaultIphyChipName;
+    *iphyCfg.id()->lane() = kDefaultAsicLaneStart + i;
+    portCfg.pins()->iphy()->push_back(iphyCfg);
 
     phy::PinConfig tcvrCfg;
-    *tcvrCfg.id_ref()->chip_ref() = kDefaultTcvrChipName;
-    *tcvrCfg.id_ref()->lane_ref() = i;
+    *tcvrCfg.id()->chip() = kDefaultTcvrChipName;
+    *tcvrCfg.id()->lane() = i;
     transceiver.push_back(tcvrCfg);
   }
-  portCfg.pins_ref()->transceiver_ref() = transceiver;
-  entry.supportedProfiles_ref()[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
+  portCfg.pins()->transceiver() = transceiver;
+  entry.supportedProfiles()[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
       portCfg;
 
   return entry;
@@ -150,29 +150,29 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
 cfg::PlatformPortEntry getPlatformPortEntryWithoutTransceiver() {
   cfg::PlatformPortEntry entry;
 
-  entry.mapping_ref()->id_ref() = 4;
-  entry.mapping_ref()->name_ref() = "eth2/2/1";
-  entry.mapping_ref()->controllingPort_ref() = 3;
+  entry.mapping()->id() = 4;
+  entry.mapping()->name() = "eth2/2/1";
+  entry.mapping()->controllingPort() = 3;
 
   for (int i = 0; i < 4; i++) {
     phy::PinConnection pin;
     phy::PinID iphy;
-    iphy.chip_ref() = kDefaultIphyChipName;
-    iphy.lane_ref() = kDefaultAsicLaneStart + i;
-    pin.a_ref() = iphy;
+    iphy.chip() = kDefaultIphyChipName;
+    iphy.lane() = kDefaultAsicLaneStart + i;
+    pin.a() = iphy;
 
-    entry.mapping_ref()->pins_ref()->push_back(pin);
+    entry.mapping()->pins()->push_back(pin);
   }
 
   // prepare PortPinConfig for profiles
   cfg::PlatformPortConfig portCfg;
   for (int i = 0; i < 4; i++) {
     phy::PinConfig iphyCfg;
-    iphyCfg.id_ref()->chip_ref() = kDefaultIphyChipName;
-    iphyCfg.id_ref()->lane_ref() = kDefaultAsicLaneStart + i;
-    portCfg.pins_ref()->iphy_ref()->push_back(iphyCfg);
+    iphyCfg.id()->chip() = kDefaultIphyChipName;
+    iphyCfg.id()->lane() = kDefaultAsicLaneStart + i;
+    portCfg.pins()->iphy()->push_back(iphyCfg);
   }
-  entry.supportedProfiles_ref()
+  entry.supportedProfiles()
       [cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER] = portCfg;
 
   return entry;
@@ -181,22 +181,22 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutTransceiver() {
 std::map<std::string, phy::DataPlanePhyChip> getPlatformChips() {
   std::map<std::string, phy::DataPlanePhyChip> chips;
   phy::DataPlanePhyChip iphy;
-  *iphy.name_ref() = kDefaultIphyChipName;
-  *iphy.type_ref() = phy::DataPlanePhyChipType::IPHY;
-  *iphy.physicalID_ref() = 0;
-  chips[*iphy.name_ref()] = iphy;
+  *iphy.name() = kDefaultIphyChipName;
+  *iphy.type() = phy::DataPlanePhyChipType::IPHY;
+  *iphy.physicalID() = 0;
+  chips[*iphy.name()] = iphy;
 
   phy::DataPlanePhyChip xphy;
-  *xphy.name_ref() = kDefaultXphyChipName;
-  *xphy.type_ref() = phy::DataPlanePhyChipType::XPHY;
-  *xphy.physicalID_ref() = 8;
-  chips[*xphy.name_ref()] = xphy;
+  *xphy.name() = kDefaultXphyChipName;
+  *xphy.type() = phy::DataPlanePhyChipType::XPHY;
+  *xphy.physicalID() = 8;
+  chips[*xphy.name()] = xphy;
 
   phy::DataPlanePhyChip tcvr;
-  *tcvr.name_ref() = kDefaultTcvrChipName;
-  *tcvr.type_ref() = phy::DataPlanePhyChipType::TRANSCEIVER;
-  *tcvr.physicalID_ref() = 2;
-  chips[*tcvr.name_ref()] = tcvr;
+  *tcvr.name() = kDefaultTcvrChipName;
+  *tcvr.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+  *tcvr.physicalID() = 2;
+  chips[*tcvr.name()] = tcvr;
 
   return chips;
 }
@@ -211,8 +211,8 @@ TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromProfilesWithXPHY) {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
   EXPECT_EQ(transeiverLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*transeiverLanes[i].chip_ref(), kDefaultTcvrChipName);
-    EXPECT_EQ(*transeiverLanes[i].lane_ref(), i);
+    EXPECT_EQ(*transeiverLanes[i].chip(), kDefaultTcvrChipName);
+    EXPECT_EQ(*transeiverLanes[i].lane(), i);
   }
 }
 
@@ -223,8 +223,8 @@ TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromProfilesWithoutXPHY) {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
   EXPECT_EQ(transeiverLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*transeiverLanes[i].chip_ref(), kDefaultTcvrChipName);
-    EXPECT_EQ(*transeiverLanes[i].lane_ref(), i);
+    EXPECT_EQ(*transeiverLanes[i].chip(), kDefaultTcvrChipName);
+    EXPECT_EQ(*transeiverLanes[i].lane(), i);
   }
 }
 
@@ -233,8 +233,8 @@ TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromMappingWithXPHY) {
       getPlatformPortEntryWithXPHY(), getPlatformChips());
   EXPECT_EQ(transeiverLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*transeiverLanes[i].chip_ref(), kDefaultTcvrChipName);
-    EXPECT_EQ(*transeiverLanes[i].lane_ref(), i);
+    EXPECT_EQ(*transeiverLanes[i].chip(), kDefaultTcvrChipName);
+    EXPECT_EQ(*transeiverLanes[i].lane(), i);
   }
 }
 
@@ -243,8 +243,8 @@ TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromMappingWithoutXPHY) {
       getPlatformPortEntryWithoutXPHY(), getPlatformChips());
   EXPECT_EQ(transeiverLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*transeiverLanes[i].chip_ref(), kDefaultTcvrChipName);
-    EXPECT_EQ(*transeiverLanes[i].lane_ref(), i);
+    EXPECT_EQ(*transeiverLanes[i].chip(), kDefaultTcvrChipName);
+    EXPECT_EQ(*transeiverLanes[i].lane(), i);
   }
 }
 
@@ -262,9 +262,9 @@ TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDs) {
   for (auto controllingPort : {1, 5}) {
     for (int i = 0; i < 4; i++) {
       auto portEntry = getPlatformPortEntryWithXPHY();
-      *portEntry.mapping_ref()->id_ref() = controllingPort + i;
-      *portEntry.mapping_ref()->controllingPort_ref() = controllingPort;
-      platformPorts[*portEntry.mapping_ref()->id_ref()] = portEntry;
+      *portEntry.mapping()->id() = controllingPort + i;
+      *portEntry.mapping()->controllingPort() = controllingPort;
+      platformPorts[*portEntry.mapping()->id()] = portEntry;
     }
   }
   auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformPorts);
@@ -291,8 +291,8 @@ TEST(PlatformConfigUtilsTests, GetOrderedIphyLanesFromProfilesWithXPHY) {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
   EXPECT_EQ(iphyLanes.size(), 2);
   for (int i = 0; i < 2; i++) {
-    EXPECT_EQ(*iphyLanes[i].chip_ref(), kDefaultIphyChipName);
-    EXPECT_EQ(*iphyLanes[i].lane_ref(), kDefaultAsicLaneStart + i);
+    EXPECT_EQ(*iphyLanes[i].chip(), kDefaultIphyChipName);
+    EXPECT_EQ(*iphyLanes[i].lane(), kDefaultAsicLaneStart + i);
   }
 }
 
@@ -303,8 +303,8 @@ TEST(PlatformConfigUtilsTests, GetOrderedIphyLanesFromProfilesWithoutXPHY) {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
   EXPECT_EQ(iphyLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*iphyLanes[i].chip_ref(), kDefaultIphyChipName);
-    EXPECT_EQ(*iphyLanes[i].lane_ref(), kDefaultAsicLaneStart + i);
+    EXPECT_EQ(*iphyLanes[i].chip(), kDefaultIphyChipName);
+    EXPECT_EQ(*iphyLanes[i].lane(), kDefaultAsicLaneStart + i);
   }
 }
 
@@ -313,8 +313,8 @@ TEST(PlatformConfigUtilsTests, GetOrderedIphyLanesFromMappingWithXPHY) {
       getPlatformPortEntryWithXPHY(), getPlatformChips());
   EXPECT_EQ(iphyLanes.size(), 2);
   for (int i = 0; i < 2; i++) {
-    EXPECT_EQ(*iphyLanes[i].chip_ref(), kDefaultIphyChipName);
-    EXPECT_EQ(*iphyLanes[i].lane_ref(), kDefaultAsicLaneStart + i);
+    EXPECT_EQ(*iphyLanes[i].chip(), kDefaultIphyChipName);
+    EXPECT_EQ(*iphyLanes[i].lane(), kDefaultAsicLaneStart + i);
   }
 }
 
@@ -323,8 +323,8 @@ TEST(PlatformConfigUtilsTests, GetOrderedIphyLanesFromMappingWithoutXPHY) {
       getPlatformPortEntryWithoutXPHY(), getPlatformChips());
   EXPECT_EQ(iphyLanes.size(), 4);
   for (int i = 0; i < 4; i++) {
-    EXPECT_EQ(*iphyLanes[i].chip_ref(), kDefaultIphyChipName);
-    EXPECT_EQ(*iphyLanes[i].lane_ref(), kDefaultAsicLaneStart + i);
+    EXPECT_EQ(*iphyLanes[i].chip(), kDefaultIphyChipName);
+    EXPECT_EQ(*iphyLanes[i].lane(), kDefaultAsicLaneStart + i);
   }
 }
 
@@ -342,9 +342,9 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByControllingPort) {
   for (auto controllingPort : {1, 5}) {
     for (int i = 0; i < 4; i++) {
       auto portEntry = getPlatformPortEntryWithXPHY();
-      *portEntry.mapping_ref()->id_ref() = controllingPort + i;
-      *portEntry.mapping_ref()->controllingPort_ref() = controllingPort;
-      platformPorts[*portEntry.mapping_ref()->id_ref()] = portEntry;
+      *portEntry.mapping()->id() = controllingPort + i;
+      *portEntry.mapping()->controllingPort() = controllingPort;
+      platformPorts[*portEntry.mapping()->id()] = portEntry;
     }
   }
 
@@ -353,11 +353,9 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByControllingPort) {
       platformPorts, PortID(controllingPortID));
   EXPECT_EQ(subsidiaryPorts.size(), 4);
   for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(*subsidiaryPorts[i].mapping()->id(), controllingPortID + i);
     EXPECT_EQ(
-        *subsidiaryPorts[i].mapping_ref()->id_ref(), controllingPortID + i);
-    EXPECT_EQ(
-        *subsidiaryPorts[i].mapping_ref()->controllingPort_ref(),
-        controllingPortID);
+        *subsidiaryPorts[i].mapping()->controllingPort(), controllingPortID);
   }
 }
 
@@ -384,9 +382,8 @@ TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsXphy) {
       phy::DataPlanePhyChipType::XPHY);
   EXPECT_EQ(portChips.size(), 1);
   EXPECT_EQ(portChips.begin()->first, kDefaultXphyChipName);
-  EXPECT_EQ(
-      *portChips.begin()->second.type_ref(), phy::DataPlanePhyChipType::XPHY);
-  EXPECT_EQ(*portChips.begin()->second.physicalID_ref(), 8);
+  EXPECT_EQ(*portChips.begin()->second.type(), phy::DataPlanePhyChipType::XPHY);
+  EXPECT_EQ(*portChips.begin()->second.physicalID(), 8);
 }
 
 TEST(PlatformConfigUtilsTests, GetTransceiverId) {
@@ -405,17 +402,17 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
 
   auto portWithXphy = getPlatformPortEntryWithXPHY();
   static const auto kPortWithXphyID = 1000;
-  portWithXphy.mapping_ref()->id_ref() = kPortWithXphyID;
+  portWithXphy.mapping()->id() = kPortWithXphyID;
   platformPorts.emplace(kPortWithXphyID, portWithXphy);
 
   auto portWithoutXphy = getPlatformPortEntryWithoutXPHY();
   static const auto kPortWithoutXphyID = 1001;
-  portWithoutXphy.mapping_ref()->id_ref() = kPortWithoutXphyID;
+  portWithoutXphy.mapping()->id() = kPortWithoutXphyID;
   platformPorts.emplace(kPortWithoutXphyID, portWithoutXphy);
 
   auto portWithoutXphyAndTcvr = getPlatformPortEntryWithoutTransceiver();
   static const auto kPortWithoutXphyAndTcvr = 1002;
-  portWithoutXphyAndTcvr.mapping_ref()->id_ref() = kPortWithoutXphyAndTcvr;
+  portWithoutXphyAndTcvr.mapping()->id() = kPortWithoutXphyAndTcvr;
   platformPorts.emplace(kPortWithoutXphyAndTcvr, portWithoutXphyAndTcvr);
 
   const auto& platformChips = getPlatformChips();
@@ -454,7 +451,7 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
 
   // make a fake chip
   phy::DataPlanePhyChip fake;
-  fake.name_ref() = "fake";
+  fake.name() = "fake";
   const auto& portsWithFakeChip =
       utility::getPlatformPortsByChip(platformPorts, fake);
   EXPECT_TRUE(portsWithFakeChip.empty());

@@ -649,7 +649,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setupPrbs(port);
 
   // Update Inter-packet frame if needed.
-  if (auto ipgBits = port->getProfileConfig().interPacketGapBits_ref()) {
+  if (auto ipgBits = port->getProfileConfig().interPacketGapBits()) {
     setInterPacketGapBits(*ipgBits);
   }
 
@@ -703,12 +703,12 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
   const auto profileID = swPort->getProfileID();
   const auto& portProfileConfig = swPort->getProfileConfig();
   // All profiles should have medium info at this point
-  if (!portProfileConfig.medium_ref()) {
+  if (!portProfileConfig.medium()) {
     throw FbossError(
         "Missing medium info in profile ",
         apache::thrift::util::enumNameSafe(profileID));
   }
-  TransmitterTechnology transmitterTech = *portProfileConfig.medium_ref();
+  TransmitterTechnology transmitterTech = *portProfileConfig.medium();
 
   // If speed or transmitter type isn't in map
   try {
@@ -998,12 +998,12 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
 
 void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
   auto prbsState = swPort->getAsicPrbs();
-  if (*prbsState.enabled_ref()) {
+  if (*prbsState.enabled()) {
     auto asicPrbsPolynominalIter =
-        asicPrbsPolynominalMap.find(*prbsState.polynominal_ref());
+        asicPrbsPolynominalMap.find(*prbsState.polynominal());
     if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.end()) {
       throw FbossError(
-          "Polynominal value not supported: ", *prbsState.polynominal_ref());
+          "Polynominal value not supported: ", *prbsState.polynominal());
     } else {
       auto rv = bcm_port_phy_control_set(
           unit_,
@@ -1016,7 +1016,7 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
     }
   }
 
-  std::string enableStr = *prbsState.enabled_ref() ? "enable" : "disable";
+  std::string enableStr = *prbsState.enabled() ? "enable" : "disable";
 
   auto setPrbsIfNeeded = [&](bcm_port_phy_control_t type) {
     std::string typeStr = (type == BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE)
@@ -1034,10 +1034,9 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
               bcm_errmsg(rv)));
     }
 
-    if (rv == BCM_E_NOT_FOUND ||
-        currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
+    if (rv == BCM_E_NOT_FOUND || currVal != (*prbsState.enabled() ? 1 : 0)) {
       rv = bcm_port_phy_control_set(
-          unit_, port_, type, ((*prbsState.enabled_ref()) ? 1 : 0));
+          unit_, port_, type, ((*prbsState.enabled()) ? 1 : 0));
 
       bcmCheckError(
           rv,
@@ -1096,13 +1095,13 @@ std::string BcmPort::statName(
 phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::PhyInfo info;
 
-  info.name_ref() = getPortName();
+  info.name() = getPortName();
 
   // Global phy parameters
   phy::DataPlanePhyChip phyChip;
-  phyChip.type_ref() = phy::DataPlanePhyChipType::IPHY;
-  info.phyChip_ref() = phyChip;
-  info.linkState_ref() = isUp();
+  phyChip.type() = phy::DataPlanePhyChipType::IPHY;
+  info.phyChip() = phyChip;
+  info.linkState() = isUp();
 
   // PCS parameters
   phy::PcsInfo pcs;
@@ -1112,11 +1111,9 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
         fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
       phy::RsFecInfo rsFec;
-      rsFec.correctedCodewords_ref() =
-          *((*portStats).fecCorrectableErrors_ref());
-      rsFec.uncorrectedCodewords_ref() =
-          *((*portStats).fecUncorrectableErrors_ref());
-      pcs.rsFec_ref() = rsFec;
+      rsFec.correctedCodewords() = *((*portStats).fecCorrectableErrors());
+      rsFec.uncorrectedCodewords() = *((*portStats).fecUncorrectableErrors());
+      pcs.rsFec() = rsFec;
     }
   }
 
@@ -1142,26 +1139,26 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
 
   // Line side parameters
   phy::PhySideInfo lineSideInfo;
-  lineSideInfo.side_ref() = phy::Side::LINE;
-  lineSideInfo.pcs_ref() = pcs;
-  lineSideInfo.pmd_ref() = pmd;
+  lineSideInfo.side() = phy::Side::LINE;
+  lineSideInfo.pcs() = pcs;
+  lineSideInfo.pmd() = pmd;
 
   // Local/Remote Fault Status
   auto faultStatusPtr = cachedFaultStatus.wlock();
   if (*faultStatusPtr) {
     phy::RsInfo rsInfo;
-    rsInfo.faultStatus_ref() = **faultStatusPtr;
-    lineSideInfo.rs_ref() = rsInfo;
+    rsInfo.faultStatus() = **faultStatusPtr;
+    lineSideInfo.rs() = rsInfo;
     // Reset the cached status back to nullopt. We want to only update
     // the fault status in PhyInfo when port state update happens
     *faultStatusPtr = std::nullopt;
   }
 
-  info.line_ref() = lineSideInfo;
+  info.line() = lineSideInfo;
 
   // PhyInfo update timestamp
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  info.timeCollected_ref() = now.count();
+  info.timeCollected() = now.count();
 
   return info;
 }
@@ -1181,78 +1178,68 @@ void BcmPort::updateStats() {
   // All stats start with a unitialized (-1) value. If there are no in discards
   // we will just report that as the monotonic counter. Instead set it to
   // 0 if uninintialized
-  *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
+  *curPortStats.inDiscards_() = *curPortStats.inDiscards_() ==
           hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
-      : *curPortStats.inDiscards__ref();
-  curPortStats.timestamp__ref() = now.count();
+      : *curPortStats.inDiscards_();
+  curPortStats.timestamp_() = now.count();
 
-  updateStat(
-      now, kInBytes(), snmpIfHCInOctets, &(*curPortStats.inBytes__ref()));
+  updateStat(now, kInBytes(), snmpIfHCInOctets, &(*curPortStats.inBytes_()));
   updateStat(
       now,
       kInUnicastPkts(),
       snmpIfHCInUcastPkts,
-      &(*curPortStats.inUnicastPkts__ref()));
+      &(*curPortStats.inUnicastPkts_()));
   updateStat(
       now,
       kInMulticastPkts(),
       snmpIfHCInMulticastPkts,
-      &(*curPortStats.inMulticastPkts__ref()));
+      &(*curPortStats.inMulticastPkts_()));
   updateStat(
       now,
       kInBroadcastPkts(),
       snmpIfHCInBroadcastPkts,
-      &(*curPortStats.inBroadcastPkts__ref()));
+      &(*curPortStats.inBroadcastPkts_()));
   updateStat(
       now,
       kInDiscardsRaw(),
       snmpIfInDiscards,
-      &(*curPortStats.inDiscardsRaw__ref()));
-  updateStat(
-      now, kInErrors(), snmpIfInErrors, &(*curPortStats.inErrors__ref()));
+      &(*curPortStats.inDiscardsRaw_()));
+  updateStat(now, kInErrors(), snmpIfInErrors, &(*curPortStats.inErrors_()));
   updateStat(
       now,
       kInIpv4HdrErrors(),
       snmpIpInHdrErrors,
-      &(*curPortStats.inIpv4HdrErrors__ref()));
+      &(*curPortStats.inIpv4HdrErrors_()));
   updateStat(
       now,
       kInIpv6HdrErrors(),
       snmpIpv6IfStatsInHdrErrors,
-      &(*curPortStats.inIpv6HdrErrors__ref()));
+      &(*curPortStats.inIpv6HdrErrors_()));
   updateStat(
-      now, kInPause(), snmpDot3InPauseFrames, &(*curPortStats.inPause__ref()));
+      now, kInPause(), snmpDot3InPauseFrames, &(*curPortStats.inPause_()));
   // Egress Stats
-  updateStat(
-      now, kOutBytes(), snmpIfHCOutOctets, &(*curPortStats.outBytes__ref()));
+  updateStat(now, kOutBytes(), snmpIfHCOutOctets, &(*curPortStats.outBytes_()));
   updateStat(
       now,
       kOutUnicastPkts(),
       snmpIfHCOutUcastPkts,
-      &(*curPortStats.outUnicastPkts__ref()));
+      &(*curPortStats.outUnicastPkts_()));
   updateStat(
       now,
       kOutMulticastPkts(),
       snmpIfHCOutMulticastPkts,
-      &(*curPortStats.outMulticastPkts__ref()));
+      &(*curPortStats.outMulticastPkts_()));
   updateStat(
       now,
       kOutBroadcastPkts(),
       snmpIfHCOutBroadcastPckts,
-      &(*curPortStats.outBroadcastPkts__ref()));
+      &(*curPortStats.outBroadcastPkts_()));
   updateStat(
-      now,
-      kOutDiscards(),
-      snmpIfOutDiscards,
-      &(*curPortStats.outDiscards__ref()));
+      now, kOutDiscards(), snmpIfOutDiscards, &(*curPortStats.outDiscards_()));
+  updateStat(now, kOutErrors(), snmpIfOutErrors, &(*curPortStats.outErrors_()));
   updateStat(
-      now, kOutErrors(), snmpIfOutErrors, &(*curPortStats.outErrors__ref()));
-  updateStat(
-      now,
-      kOutPause(),
-      snmpDot3OutPauseFrames,
-      &(*curPortStats.outPause__ref()));
+      now, kOutPause(), snmpDot3OutPauseFrames, &(*curPortStats.outPause_()));
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
     // ECN stats not supported by TD2
@@ -1260,13 +1247,13 @@ void BcmPort::updateStats() {
         now,
         kOutEcnCounter(),
         snmpBcmTxEcnErrors,
-        &(*curPortStats.outEcnCounter__ref()));
+        &(*curPortStats.outEcnCounter_()));
   }
   updateStat(
       now,
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
-      &(*curPortStats.inDstNullDiscards__ref()));
+      &(*curPortStats.inDstNullDiscards_()));
 
   auto settings = getProgrammedSettings();
   if (settings && settings->getPfc().has_value()) {
@@ -1274,12 +1261,12 @@ void BcmPort::updateStats() {
   }
   updateFecStats(now, curPortStats);
   updateFdrStats(now);
-  updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
+  updateWredStats(now, &(*curPortStats.wredDroppedPackets_()));
   queueManager_->updateQueueStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {*lastPortStats.inDstNullDiscards__ref(),
-       *curPortStats.inDstNullDiscards__ref()}};
+      {*lastPortStats.inDstNullDiscards_(),
+       *curPortStats.inDstNullDiscards_()}};
   if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
@@ -1287,22 +1274,22 @@ void BcmPort::updateStats() {
     // by subtracting the pause frames received from in_discards.
     // TODO: Test if this is true when rx pause is enabled
     toSubtractFromInDiscardsRaw.emplace_back(
-        *lastPortStats.inPause__ref(), *curPortStats.inPause__ref());
+        *lastPortStats.inPause_(), *curPortStats.inPause_());
   }
   // as with pause, remove incoming PFC frames from the discards
   // as well
-  if (curPortStats.inPfcCtrl__ref() !=
+  if (curPortStats.inPfcCtrl_() !=
       hardware_stats_constants::STAT_UNINITIALIZED()) {
     toSubtractFromInDiscardsRaw.emplace_back(
-        *lastPortStats.inPfcCtrl__ref(), *curPortStats.inPfcCtrl__ref());
+        *lastPortStats.inPfcCtrl_(), *curPortStats.inPfcCtrl_());
   }
 
-  *curPortStats.inDiscards__ref() += utility::subtractIncrements(
-      {*lastPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
+  *curPortStats.inDiscards_() += utility::subtractIncrements(
+      {*lastPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},
       toSubtractFromInDiscardsRaw);
 
   auto inDiscards = getPortCounterIf(kInDiscards());
-  inDiscards->updateValue(now, *curPortStats.inDiscards__ref());
+  inDiscards->updateValue(now, *curPortStats.inDiscards_());
 
   *lockedPortStatsPtr = BcmPortStats(curPortStats, now);
 
@@ -1346,7 +1333,7 @@ void BcmPort::updateFecStats(
     fec = utility::phyFecModeToBcmPortPhyFec(
         platformPort_->shouldDisableFEC()
             ? phy::FecMode::NONE
-            : *settings->getProfileConfig().fec_ref());
+            : *settings->getProfileConfig().fec());
   } else {
     fec = getCurrentPortResource(unit_, gport_).fec_type;
   }
@@ -1363,20 +1350,17 @@ void BcmPort::updateFecStats(
   }
 
   fec_stat_accumulate(
-      unit_,
-      port_,
-      corrected_ctrl,
-      &(*curPortStats.fecCorrectableErrors_ref()));
+      unit_, port_, corrected_ctrl, &(*curPortStats.fecCorrectableErrors()));
   fec_stat_accumulate(
       unit_,
       port_,
       uncorrected_ctrl,
-      &(*curPortStats.fecUncorrectableErrors_ref()));
+      &(*curPortStats.fecUncorrectableErrors()));
 
   getPortCounterIf(kFecCorrectable())
-      ->updateValue(now, *curPortStats.fecCorrectableErrors_ref());
+      ->updateValue(now, *curPortStats.fecCorrectableErrors());
   getPortCounterIf(kFecUncorrectable())
-      ->updateValue(now, *curPortStats.fecUncorrectableErrors_ref());
+      ->updateValue(now, *curPortStats.fecUncorrectableErrors());
 }
 
 void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
@@ -1434,7 +1418,7 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
 
 void BcmPort::BcmPortStats::setQueueWaterMarks(
     std::map<int16_t, int64_t> queueId2WatermarkBytes) {
-  *portStats_.queueWatermarkBytes__ref() = std::move(queueId2WatermarkBytes);
+  *portStats_.queueWatermarkBytes_() = std::move(queueId2WatermarkBytes);
 }
 
 void BcmPort::setQueueWaterMarks(
@@ -1464,28 +1448,25 @@ void BcmPort::updatePortPfcStats(
           now,
           getPfcPriorityStatsKey(kInPfc(), pri),
           kInPfcStats.at(pri),
-          &(portStats.inPfc__ref()[pri]));
+          &(portStats.inPfc_()[pri]));
       updateStat(
           now,
           getPfcPriorityStatsKey(kInPfcXon(), pri),
           kInPfcXonStats.at(pri),
-          &(portStats.inPfcXon__ref()[pri]));
+          &(portStats.inPfcXon_()[pri]));
       updateStat(
           now,
           getPfcPriorityStatsKey(kOutPfc(), pri),
           kOutPfcStats.at(pri),
-          &(portStats.outPfc__ref()[pri]));
+          &(portStats.outPfc_()[pri]));
     }
   }
 
   // Update per port PFC statistics
   updateStat(
-      now, kInPfc(), snmpBcmRxPFCControlFrame, &(*portStats.inPfcCtrl__ref()));
+      now, kInPfc(), snmpBcmRxPFCControlFrame, &(*portStats.inPfcCtrl_()));
   updateStat(
-      now,
-      kOutPfc(),
-      snmpBcmTxPFCControlFrame,
-      &(*portStats.outPfcCtrl__ref()));
+      now, kOutPfc(), snmpBcmTxPFCControlFrame, &(*portStats.outPfcCtrl_()));
 }
 
 void BcmPort::updateStat(
@@ -1564,14 +1545,14 @@ void BcmPort::updatePktLenHist(
 }
 
 BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
-  auto queueInitStats = folly::copy(*portStats_.queueOutDiscardBytes__ref());
+  auto queueInitStats = folly::copy(*portStats_.queueOutDiscardBytes_());
   for (auto cosq = 0; cosq < numUnicastQueues; ++cosq) {
     queueInitStats.emplace(cosq, 0);
   }
-  portStats_.queueOutDiscardBytes__ref() = queueInitStats;
-  portStats_.queueOutBytes__ref() = queueInitStats;
-  portStats_.queueOutPackets__ref() = queueInitStats;
-  portStats_.queueWatermarkBytes__ref() = queueInitStats;
+  portStats_.queueOutDiscardBytes_() = queueInitStats;
+  portStats_.queueOutBytes_() = queueInitStats;
+  portStats_.queueOutPackets_() = queueInitStats;
+  portStats_.queueWatermarkBytes_() = queueInitStats;
 }
 
 BcmPort::BcmPortStats::BcmPortStats(
@@ -1797,7 +1778,7 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  const auto desiredFecMode = *swPort->getProfileConfig().fec_ref();
+  const auto desiredFecMode = *swPort->getProfileConfig().fec();
   bool shouldEnableFec = !platformPort_->shouldDisableFEC() &&
       desiredFecMode != phy::FecMode::NONE;
   auto desiredFecStatus = shouldEnableFec ? BCM_PORT_PHY_CONTROL_FEC_ON
@@ -1859,12 +1840,12 @@ phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
     bcmCheckError(
         rv, "Unable to get tx settings on lane ", lane, " for port ", port_);
     phy::TxSettings txSettings;
-    txSettings.pre2_ref() = tx.pre2;
-    txSettings.pre_ref() = tx.pre;
-    txSettings.main_ref() = tx.main;
-    txSettings.post_ref() = tx.post;
-    txSettings.post2_ref() = tx.post2;
-    txSettings.post3_ref() = tx.post3;
+    txSettings.pre2() = tx.pre2;
+    txSettings.pre() = tx.pre;
+    txSettings.main() = tx.main;
+    txSettings.post() = tx.post;
+    txSettings.post2() = tx.post2;
+    txSettings.post3() = tx.post3;
     return txSettings;
   } else {
     uint32_t dc, preTap, mainTap, postTap;
@@ -1881,10 +1862,10 @@ phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
         unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, &postTap);
     bcmCheckError(post, "failed to get post-tap");
     phy::TxSettings txSettings;
-    txSettings.driveCurrent_ref() = dc;
-    txSettings.pre_ref() = preTap;
-    txSettings.main_ref() = mainTap;
-    txSettings.post_ref() = postTap;
+    txSettings.driveCurrent() = dc;
+    txSettings.pre() = preTap;
+    txSettings.main() = mainTap;
+    txSettings.post() = postTap;
     return txSettings;
   }
 }
@@ -1911,7 +1892,7 @@ void BcmPort::setTxSettingViaPhyControl(
   // so it's safe to not check for port status
 
   // All the pins use the same config so just use the first one
-  const auto tx = iphyPinConfigs.front().tx_ref();
+  const auto tx = iphyPinConfigs.front().tx();
   if (!tx.has_value()) {
     // If TxSetting returns no values, it means that we don't need to update
     // tx setting for the port. So do nothing
@@ -1945,7 +1926,7 @@ void BcmPort::setTxSettingViaPhyControl(
 
   // only perform an overwrite if the current setting doesn't match the
   // current one
-  if (auto correctDc = correctTx.driveCurrent_ref()) {
+  if (auto correctDc = correctTx.driveCurrent()) {
     // const auto correctDc =
     //     static_cast<uint32_t>(correctTx.driveCurrent_ref().value());
     if (dc != correctDc && correctDc != 0) {
@@ -1956,25 +1937,24 @@ void BcmPort::setTxSettingViaPhyControl(
                  << static_cast<uint32_t>(*correctDc) << " from " << dc;
     }
   }
-  if (preTap != *correctTx.pre_ref() && *correctTx.pre_ref() != 0) {
+  if (preTap != *correctTx.pre() && *correctTx.pre() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, *correctTx.pre_ref());
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, *correctTx.pre());
     XLOG(DBG1) << "Set pre-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(*correctTx.pre_ref()) << " from "
-               << preTap;
+               << static_cast<uint32_t>(*correctTx.pre()) << " from " << preTap;
   }
-  if (mainTap != *correctTx.main_ref() && *correctTx.main_ref() != 0) {
+  if (mainTap != *correctTx.main() && *correctTx.main() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, *correctTx.main_ref());
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, *correctTx.main());
     XLOG(DBG1) << "Set main-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(*correctTx.main_ref()) << " from "
+               << static_cast<uint32_t>(*correctTx.main()) << " from "
                << mainTap;
   }
-  if (postTap != *correctTx.post_ref() && *correctTx.post_ref() != 0) {
+  if (postTap != *correctTx.post() && *correctTx.post() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, *correctTx.post_ref());
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, *correctTx.post());
     XLOG(DBG1) << "Set post-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(*correctTx.post_ref()) << " from "
+               << static_cast<uint32_t>(*correctTx.post()) << " from "
                << postTap;
   }
 }
@@ -1998,7 +1978,7 @@ void BcmPort::setTxSettingViaPhyTx(
   }
 
   auto portProfileConfig = swPort->getProfileConfig();
-  auto modulation = *portProfileConfig.modulation_ref();
+  auto modulation = *portProfileConfig.modulation();
   auto desiredSignalling = (modulation == phy::IpModulation::PAM4)
       ? bcmPortPhySignallingModePAM4
       : bcmPortPhySignallingModeNRZ;
@@ -2040,12 +2020,9 @@ void BcmPort::setTxSettingViaPhyTx(
         swPort->getName());
 
     if (desiredSignalling != tx.signalling_mode ||
-        tx.pre2 != *txSettings->pre2_ref() ||
-        tx.pre != *txSettings->pre_ref() ||
-        tx.main != *txSettings->main_ref() ||
-        tx.post != *txSettings->post_ref() ||
-        tx.post2 != *txSettings->post2_ref() ||
-        tx.post3 != *txSettings->post3_ref()) {
+        tx.pre2 != *txSettings->pre2() || tx.pre != *txSettings->pre() ||
+        tx.main != *txSettings->main() || tx.post != *txSettings->post() ||
+        tx.post2 != *txSettings->post2() || tx.post3 != *txSettings->post3()) {
       // settings don't match, reprogram all lanes
       needsReprogramming = true;
       break;
@@ -2066,12 +2043,12 @@ void BcmPort::setTxSettingViaPhyTx(
     bcm_port_phy_tx_t tx;
     bcm_port_phy_tx_t_init(&tx);
 
-    tx.pre2 = *txSettings->pre2_ref();
-    tx.pre = *txSettings->pre_ref();
-    tx.main = *txSettings->main_ref();
-    tx.post = *txSettings->post_ref();
-    tx.post2 = *txSettings->post2_ref();
-    tx.post3 = *txSettings->post3_ref();
+    tx.pre2 = *txSettings->pre2();
+    tx.pre = *txSettings->pre();
+    tx.main = *txSettings->main();
+    tx.post = *txSettings->post();
+    tx.post2 = *txSettings->post2();
+    tx.post3 = *txSettings->post3();
     tx.tx_tap_mode = bcmPortPhyTxTapMode6Tap;
     tx.signalling_mode = desiredSignalling;
 
@@ -2233,13 +2210,12 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
   int newPfcDeadlockDetectionTimer{};
   std::map<bcm_cosq_pfc_deadlock_control_t, int> programmedPfcWatchdogMap;
 
-  if (port->getPfc().has_value() &&
-      port->getPfc()->watchdog_ref().has_value()) {
-    auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
+  if (port->getPfc().has_value() && port->getPfc()->watchdog().has_value()) {
+    auto pfcWatchdog = port->getPfc()->watchdog().value();
     newPfcDeadlockDetectionTimer =
         utility::getAdjustedPfcDeadlockDetectionTimerValue(
-            *pfcWatchdog.detectionTimeMsecs_ref());
-    newPfcDeadlockRecoveryTimer = *pfcWatchdog.recoveryTimeMsecs_ref();
+            *pfcWatchdog.detectionTimeMsecs());
+    newPfcDeadlockRecoveryTimer = *pfcWatchdog.recoveryTimeMsecs();
     pfcWatchdogEnabledInSw = 1;
   }
 
@@ -2350,7 +2326,7 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
 
   auto populatePfcWatchdogParams = [&](const cfg::PfcWatchdog& pfcWd) {
     pfcDeadlockDetectionAndRecoveryEnable = 1;
-    pfcDeadlockDetectionTimer = *pfcWd.detectionTimeMsecs_ref();
+    pfcDeadlockDetectionTimer = *pfcWd.detectionTimeMsecs();
     if (pfcDeadlockDetectionTimer > kPfcDeadlockDetectionTimeMsecMax) {
       XLOG(WARNING) << "Unsupported PFC deadlock detection timer value "
                     << pfcDeadlockDetectionTimer
@@ -2367,9 +2343,9 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
     pfcDeadlockTimerGranularity =
         utility::getPfcDeadlockDetectionTimerGranularity(
             pfcDeadlockDetectionTimer);
-    pfcDeadlockRecoveryTimer = *pfcWd.recoveryTimeMsecs_ref();
+    pfcDeadlockRecoveryTimer = *pfcWd.recoveryTimeMsecs();
 
-    switch (*pfcWd.recoveryAction_ref()) {
+    switch (*pfcWd.recoveryAction()) {
       case cfg::PfcWatchdogRecoveryAction::DROP:
         pfcDeadlockRecoveryAction = bcmSwitchPFCDeadlockActionDrop;
         break;
@@ -2382,8 +2358,8 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
 
   std::vector<PfcPriority> enabledPfcPriorities;
   if (swPort->getPfc().has_value() &&
-      swPort->getPfc()->watchdog_ref().has_value()) {
-    populatePfcWatchdogParams(swPort->getPfc()->watchdog_ref().value());
+      swPort->getPfc()->watchdog().has_value()) {
+    populatePfcWatchdogParams(swPort->getPfc()->watchdog().value());
     enabledPfcPriorities = swPort->getPfcPriorities().value();
   } else {
     // Default values initialized will be used, expected for unconfig cases.
@@ -2453,8 +2429,8 @@ void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {
   bool pfcConfigChanged = false;
 
   if (pfc.has_value()) {
-    expectTxPfc = (*pfc->tx_ref()) ? 1 : 0;
-    expectRxPfc = (*pfc->rx_ref()) ? 1 : 0;
+    expectTxPfc = (*pfc->tx()) ? 1 : 0;
+    expectRxPfc = (*pfc->rx()) ? 1 : 0;
   }
 
   int currTxPfcEnabled = 0;
@@ -2498,8 +2474,8 @@ void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {
 
 void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {
   auto pause = swPort->getPause();
-  int expectTx = (*pause.tx_ref()) ? 1 : 0;
-  int expectRx = (*pause.rx_ref()) ? 1 : 0;
+  int expectTx = (*pause.tx()) ? 1 : 0;
+  int expectRx = (*pause.rx()) ? 1 : 0;
 
   int curTx = 0;
   int curRx = 0;
@@ -2590,7 +2566,7 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   desiredPortResource.speed = static_cast<int>(swPort->getSpeed());
   desiredPortResource.fec_type = utility::phyFecModeToBcmPortPhyFec(
       platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
-                                        : *profileConf.fec_ref());
+                                        : *profileConf.fec());
   desiredPortResource.phy_lane_config =
       utility::getDesiredPhyLaneConfig(profileConf);
 

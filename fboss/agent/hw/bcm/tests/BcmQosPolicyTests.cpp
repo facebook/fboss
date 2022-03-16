@@ -384,19 +384,19 @@ TEST_F(BcmQosPolicyTest, QosPolicySdkAssertions) {
 TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
   auto setup = [=]() {
     auto config = initialConfig();
-    config.qosPolicies_ref()->resize(1);
-    *config.qosPolicies_ref()[0].name_ref() = "qp";
-    config.qosPolicies_ref()[0].rules_ref()->resize(8);
+    config.qosPolicies()->resize(1);
+    *config.qosPolicies()[0].name() = "qp";
+    config.qosPolicies()[0].rules()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      *config.qosPolicies_ref()[0].rules_ref()[i].queueId_ref() = i;
-      config.qosPolicies_ref()[0].rules_ref()[i].dscp_ref()->resize(8);
+      *config.qosPolicies()[0].rules()[i].queueId() = i;
+      config.qosPolicies()[0].rules()[i].dscp()->resize(8);
       for (auto j = 0; j < 8; j++) {
-        config.qosPolicies_ref()[0].rules_ref()[i].dscp_ref()[j] = 8 * i + j;
+        config.qosPolicies()[0].rules()[i].dscp()[j] = 8 * i + j;
       }
     }
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
-    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy() = "qp";
+    config.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
     applyNewConfig(config);
   };
 
@@ -410,32 +410,31 @@ TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
   auto setupPostWb = [=]() {
     auto config = initialConfig();
     cfg::QosMap qosMap;
-    qosMap.dscpMaps_ref()->resize(8);
+    qosMap.dscpMaps()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      *qosMap.dscpMaps_ref()[i].internalTrafficClass_ref() = i;
+      *qosMap.dscpMaps()[i].internalTrafficClass() = i;
       for (auto j = 0; j < 8; j++) {
-        qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
-            8 * i + j);
+        qosMap.dscpMaps()[i].fromDscpToTrafficClass()->push_back(8 * i + j);
       }
     }
-    qosMap.expMaps_ref()->resize(8);
+    qosMap.expMaps()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      *qosMap.expMaps_ref()[i].internalTrafficClass_ref() = i;
-      qosMap.expMaps_ref()[i].fromExpToTrafficClass_ref()->push_back(i);
-      qosMap.expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
+      *qosMap.expMaps()[i].internalTrafficClass() = i;
+      qosMap.expMaps()[i].fromExpToTrafficClass()->push_back(i);
+      qosMap.expMaps()[i].fromTrafficClassToExp() = i;
     }
 
     for (auto i = 0; i < 8; i++) {
-      qosMap.trafficClassToQueueId_ref()->emplace(i, i);
+      qosMap.trafficClassToQueueId()->emplace(i, i);
     }
 
-    config.qosPolicies_ref()->resize(1);
-    *config.qosPolicies_ref()[0].name_ref() = "qp";
-    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    config.qosPolicies()->resize(1);
+    *config.qosPolicies()[0].name() = "qp";
+    config.qosPolicies()[0].qosMap() = qosMap;
 
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
-    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy() = "qp";
+    config.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
     applyNewConfig(config);
   };
   verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);

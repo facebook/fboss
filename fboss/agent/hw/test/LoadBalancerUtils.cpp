@@ -31,9 +31,9 @@ namespace facebook::fboss::utility {
 namespace {
 cfg::Fields getHalfHashFields() {
   cfg::Fields hashFields;
-  hashFields.ipv4Fields_ref() = std::set<cfg::IPv4Field>(
+  hashFields.ipv4Fields() = std::set<cfg::IPv4Field>(
       {cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS});
-  hashFields.ipv6Fields_ref() = std::set<cfg::IPv6Field>(
+  hashFields.ipv6Fields() = std::set<cfg::IPv6Field>(
       {cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS});
 
   return hashFields;
@@ -41,7 +41,7 @@ cfg::Fields getHalfHashFields() {
 
 cfg::Fields getFullHashFields() {
   auto hashFields = getHalfHashFields();
-  hashFields.transportFields_ref() = std::set<cfg::TransportField>(
+  hashFields.transportFields() = std::set<cfg::TransportField>(
       {cfg::TransportField::SOURCE_PORT,
        cfg::TransportField::DESTINATION_PORT});
   return hashFields;
@@ -51,24 +51,24 @@ cfg::LoadBalancer getHalfHashConfig(
     const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
-  *loadBalancer.id_ref() = id;
+  *loadBalancer.id() = id;
   if (platform->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    *loadBalancer.fieldSelection_ref() = getHalfHashFields();
+    *loadBalancer.fieldSelection() = getHalfHashFields();
   }
-  *loadBalancer.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
+  *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getFullHashConfig(
     const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
-  *loadBalancer.id_ref() = id;
+  *loadBalancer.id() = id;
   if (platform->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    *loadBalancer.fieldSelection_ref() = getFullHashFields();
+    *loadBalancer.fieldSelection() = getFullHashFields();
   }
-  *loadBalancer.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
+  *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getTrunkHalfHashConfig(const Platform* platform) {
@@ -305,7 +305,7 @@ bool isLoadBalancedImpl(
 
   auto portBytes = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
-                     return *portIdAndStats.second.outBytes__ref();
+                     return *portIdAndStats.second.outBytes_();
                    }) |
       folly::gen::as<std::set<uint64_t>>();
 
@@ -318,8 +318,7 @@ bool isLoadBalancedImpl(
   if (!weights.empty()) {
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
     for (auto i = 0; i < portIdToStats.size(); ++i) {
-      auto portOutBytes =
-          *portIdToStats.find(ecmpPorts[i])->second.outBytes__ref();
+      auto portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
       auto weightPercent = (static_cast<float>(weights[i]) / maxWeight) * 100.0;
       auto portOutBytesPercent =
           (static_cast<float>(portOutBytes) / highest) * 100.0;

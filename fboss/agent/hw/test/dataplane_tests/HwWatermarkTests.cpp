@@ -86,7 +86,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     do {
       auto queueWaterMarks = *getHwSwitchEnsemble()
                                   ->getLatestPortStats(port)
-                                  .queueWatermarkBytes__ref();
+                                  .queueWatermarkBytes_();
       auto portName =
           getProgrammedState()->getPorts()->getPort(port)->getName();
       XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
@@ -293,7 +293,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     // Now we are at line rate on port, get queue watermark
     auto queueWaterMarks = *getHwSwitchEnsemble()
                                 ->getLatestPortStats(masterLogicalPortIds()[0])
-                                .queueWatermarkBytes__ref();
+                                .queueWatermarkBytes_();
     // Get device watermark
     auto deviceWaterMark =
         getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
@@ -344,7 +344,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
     // Clear any watermark stats
     (void)getHwSwitchEnsemble()
         ->getLatestPortStats(masterLogicalPortIds()[0])
-        .queueWatermarkBytes__ref();
+        .queueWatermarkBytes_();
 
     auto sendPackets = [=](PortID port, int numPacketsToSend) {
       sendUdpPkts(
@@ -363,7 +363,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
 
     auto portStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
-    auto queueWaterMarks = *portStats.queueWatermarkBytes__ref();
+    auto queueWaterMarks = *portStats.queueWatermarkBytes_();
     auto expectedWatermarkBytes =
         utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
         kNumberOfPacketsToSend;

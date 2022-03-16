@@ -38,8 +38,8 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
 
   auto fillSideStatsFromInfo = [](ExternalPhyPortSideStats& sideStats,
                                   const PhySideInfo& sideInfo) {
-    if (auto pcsInfo = sideInfo.pcs_ref()) {
-      if (auto fecInfo = pcsInfo->rsFec_ref()) {
+    if (auto pcsInfo = sideInfo.pcs()) {
+      if (auto fecInfo = pcsInfo->rsFec()) {
         sideStats.fecCorrectableErrors = fecInfo->get_correctedCodewords();
         sideStats.fecUncorrectableErrors = fecInfo->get_uncorrectedCodewords();
       }
@@ -49,14 +49,14 @@ ExternalPhyPortStats ExternalPhyPortStats::fromPhyInfo(const PhyInfo& phyInfo) {
       ExternalPhyLaneStats laneStats;
       laneStats.signalDetect = laneInfo.get_signalDetectLive();
       laneStats.cdrLock = laneInfo.get_cdrLockLive();
-      if (auto snrInfo = laneInfo.snr_ref()) {
+      if (auto snrInfo = laneInfo.snr()) {
         laneStats.signalToNoiseRatio = *snrInfo;
       }
       sideStats.lanes[lane] = laneStats;
     }
   };
 
-  if (auto sysSideInfo = phyInfo.system_ref()) {
+  if (auto sysSideInfo = phyInfo.system()) {
     fillSideStatsFromInfo(phyStats.system, *sysSideInfo);
   }
   fillSideStatsFromInfo(phyStats.line, phyInfo.get_line());
@@ -87,10 +87,10 @@ ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
     const std::map<int32_t, PolaritySwap>& linePolaritySwapMap) {
   ExternalPhyConfig xphyCfg;
 
-  if (!portPinConfig.xphySys_ref()) {
+  if (!portPinConfig.xphySys()) {
     throw MdioError("Port pin config is missing xphySys");
   }
-  if (!portPinConfig.xphyLine_ref()) {
+  if (!portPinConfig.xphyLine()) {
     throw MdioError("Port pin config is missing xphyLine");
   }
 
@@ -100,20 +100,20 @@ ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
          std::map<LaneID, LaneConfig>& laneConfigs) {
         for (auto pinCfg : pinConfigs) {
           LaneConfig laneCfg;
-          if (pinCfg.tx_ref()) {
-            laneCfg.tx = *pinCfg.tx_ref();
+          if (pinCfg.tx()) {
+            laneCfg.tx = *pinCfg.tx();
           }
-          if (auto it = polaritySwapMap.find(*pinCfg.id_ref()->lane_ref());
+          if (auto it = polaritySwapMap.find(*pinCfg.id()->lane());
               it != polaritySwapMap.end()) {
             laneCfg.polaritySwap = it->second;
           }
-          laneConfigs.emplace(*pinCfg.id_ref()->lane_ref(), laneCfg);
+          laneConfigs.emplace(*pinCfg.id()->lane(), laneCfg);
         }
       };
 
-  fillLaneConfigs(*portPinConfig.xphySys_ref(), {}, xphyCfg.system.lanes);
+  fillLaneConfigs(*portPinConfig.xphySys(), {}, xphyCfg.system.lanes);
   fillLaneConfigs(
-      *portPinConfig.xphyLine_ref(), linePolaritySwapMap, xphyCfg.line.lanes);
+      *portPinConfig.xphyLine(), linePolaritySwapMap, xphyCfg.line.lanes);
 
   return xphyCfg;
 }
@@ -128,18 +128,18 @@ bool PhyPortConfig::operator!=(const PhyPortConfig& rhs) const {
 
 ExternalPhyProfileConfig ExternalPhyProfileConfig::fromPortProfileConfig(
     const PortProfileConfig& portCfg) {
-  if (!portCfg.xphySystem_ref()) {
+  if (!portCfg.xphySystem()) {
     throw MdioError(
         "Attempted to create xphy config without xphy system settings");
   }
-  if (!portCfg.xphyLine_ref()) {
+  if (!portCfg.xphyLine()) {
     throw MdioError(
         "Attempted to create xphy config without xphy line settings");
   }
   ExternalPhyProfileConfig xphyCfg;
-  xphyCfg.speed = *portCfg.speed_ref();
-  xphyCfg.system = *portCfg.xphySystem_ref();
-  xphyCfg.line = *portCfg.xphyLine_ref();
+  xphyCfg.speed = *portCfg.speed();
+  xphyCfg.system = *portCfg.xphySystem();
+  xphyCfg.line = *portCfg.xphyLine();
   return xphyCfg;
 }
 
@@ -165,12 +165,12 @@ std::vector<PinConfig> PhySideConfig::getPinConfigs() const {
   std::vector<phy::PinConfig> pinCfgs;
   for (const auto& lane : lanes) {
     PinConfig pinConfig;
-    pinConfig.id_ref()->lane_ref() = lane.first;
+    pinConfig.id()->lane() = lane.first;
     if (auto tx = lane.second.tx) {
-      pinConfig.tx_ref() = *tx;
+      pinConfig.tx() = *tx;
     }
     if (auto polaritySwap = lane.second.polaritySwap) {
-      pinConfig.polaritySwap_ref() = *polaritySwap;
+      pinConfig.polaritySwap() = *polaritySwap;
     }
     pinCfgs.push_back(pinConfig);
   }
@@ -204,9 +204,9 @@ folly::dynamic PhyPortConfig::toDynamic() const {
 int PhyPortConfig::getLaneSpeedInMb(Side side) const {
   switch (side) {
     case Side::SYSTEM:
-      return static_cast<int>(profile.speed) / *profile.system.numLanes_ref();
+      return static_cast<int>(profile.speed) / *profile.system.numLanes();
     case Side::LINE:
-      return static_cast<int>(profile.speed) / *profile.line.numLanes_ref();
+      return static_cast<int>(profile.speed) / *profile.line.numLanes();
   }
   throw FbossError(
       "Unrecognized side:", apache::thrift::util::enumNameSafe(side));

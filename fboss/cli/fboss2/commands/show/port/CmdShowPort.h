@@ -138,18 +138,17 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
 
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
         cli::PortEntry portDetails;
-        portDetails.id_ref() = portInfo.get_portId();
-        portDetails.name_ref() = portInfo.get_name();
-        portDetails.adminState_ref() =
-            getAdminStateStr(portInfo.get_adminState());
-        portDetails.operState_ref() = operState;
-        portDetails.speed_ref() = getSpeedGbps(portInfo.get_speedMbps());
-        portDetails.profileId_ref() = portInfo.get_profileID();
-        if (auto tcvrId = portInfo.transceiverIdx_ref()) {
-          portDetails.tcvrID_ref() = tcvrId->get_transceiverId();
+        portDetails.id() = portInfo.get_portId();
+        portDetails.name() = portInfo.get_name();
+        portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
+        portDetails.operState() = operState;
+        portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
+        portDetails.profileId() = portInfo.get_profileID();
+        if (auto tcvrId = portInfo.transceiverIdx()) {
+          portDetails.tcvrID() = tcvrId->get_transceiverId();
         }
 
-        model.portEntries_ref()->push_back(portDetails);
+        model.portEntries()->push_back(portDetails);
       }
     }
     return model;

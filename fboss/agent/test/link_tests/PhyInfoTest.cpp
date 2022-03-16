@@ -24,55 +24,55 @@ void validatePhyInfo(
   SCOPED_TRACE(folly::to<std::string>("port ", *prev.name()));
 
   // Assert that a phy info update happened
-  EXPECT_TRUE(*curr.timeCollected_ref() > *prev.timeCollected_ref());
-  EXPECT_EQ(*curr.phyChip_ref()->type_ref(), chipType);
-  EXPECT_EQ(*prev.phyChip_ref()->type_ref(), chipType);
+  EXPECT_TRUE(*curr.timeCollected() > *prev.timeCollected());
+  EXPECT_EQ(*curr.phyChip()->type(), chipType);
+  EXPECT_EQ(*prev.phyChip()->type(), chipType);
   if (chipType == phy::DataPlanePhyChipType::IPHY) {
     // both current and previous linkState should be true for iphy
-    if (auto linkState = prev.linkState_ref()) {
+    if (auto linkState = prev.linkState()) {
       EXPECT_TRUE(*linkState);
     } else {
       throw FbossError("linkState of previous iphy info is not set");
     }
-    if (auto linkState = curr.linkState_ref()) {
+    if (auto linkState = curr.linkState()) {
       EXPECT_TRUE(*linkState);
     } else {
       throw FbossError("linkState of current iphy info is not set");
     }
   }
 
-  if (auto prevPcsInfo = prev.line_ref()->pcs_ref()) {
+  if (auto prevPcsInfo = prev.line()->pcs()) {
     // If previous has pcs info, current should also have such info
-    EXPECT_TRUE(curr.line_ref()->pcs_ref());
-    if (auto prevRsFecInfo = prevPcsInfo->rsFec_ref()) {
-      EXPECT_TRUE(curr.line_ref()->pcs_ref()->rsFec_ref());
+    EXPECT_TRUE(curr.line()->pcs());
+    if (auto prevRsFecInfo = prevPcsInfo->rsFec()) {
+      EXPECT_TRUE(curr.line()->pcs()->rsFec());
       auto currRsFecInfo =
-          apache::thrift::can_throw(curr.line_ref()->pcs_ref()->rsFec_ref());
+          apache::thrift::can_throw(curr.line()->pcs()->rsFec());
       // Assert that fec uncorrectable error count didn't increase
       EXPECT_EQ(
-          *prevRsFecInfo->uncorrectedCodewords_ref(),
-          *currRsFecInfo->uncorrectedCodewords_ref());
+          *prevRsFecInfo->uncorrectedCodewords(),
+          *currRsFecInfo->uncorrectedCodewords());
 
       // Assert that fec correctable error count is the same or increased
       EXPECT_LE(
-          *prevRsFecInfo->correctedCodewords_ref(),
-          *currRsFecInfo->correctedCodewords_ref());
+          *prevRsFecInfo->correctedCodewords(),
+          *currRsFecInfo->correctedCodewords());
     }
   }
 
   // PMD checks
   auto checkPmd = [](phy::PmdInfo pmdInfo) {
-    for (const auto& lane : *pmdInfo.lanes_ref()) {
+    for (const auto& lane : *pmdInfo.lanes()) {
       SCOPED_TRACE(folly::to<std::string>("lane ", lane.first));
-      if (auto cdrLiveStatus = lane.second.cdrLockLive_ref()) {
+      if (auto cdrLiveStatus = lane.second.cdrLockLive()) {
         EXPECT_TRUE(*cdrLiveStatus);
       }
-      if (const auto eyesRef = lane.second.eyes_ref()) {
+      if (const auto eyesRef = lane.second.eyes()) {
         for (const auto& eye : *eyesRef) {
-          if (const auto widthRef = eye.width_ref()) {
+          if (const auto widthRef = eye.width()) {
             EXPECT_GT(*widthRef, 0);
           }
-          if (const auto heightRef = eye.height_ref()) {
+          if (const auto heightRef = eye.height()) {
             EXPECT_GT(*heightRef, 0);
           }
         }
@@ -87,15 +87,15 @@ void validatePhyInfo(
 
   {
     SCOPED_TRACE("line side");
-    checkPmd(prev.line_ref()->get_pmd());
-    checkPmd(curr.line_ref()->get_pmd());
+    checkPmd(prev.line()->get_pmd());
+    checkPmd(curr.line()->get_pmd());
   }
   if (chipType == phy::DataPlanePhyChipType::XPHY) {
     SCOPED_TRACE("system side");
-    if (auto sysInfo = prev.system_ref()) {
+    if (auto sysInfo = prev.system()) {
       checkPmd(sysInfo->get_pmd());
-      EXPECT_TRUE(curr.system_ref());
-      checkPmd(apache::thrift::can_throw(curr.system_ref())->get_pmd());
+      EXPECT_TRUE(curr.system());
+      checkPmd(apache::thrift::can_throw(curr.system())->get_pmd());
     }
     // TODO: Expect system side info always on XPHY when every XPHY supports
     // publishing phy infos
@@ -136,8 +136,8 @@ TEST_F(LinkTest, iPhyInfoTest) {
     phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
     for (const auto& port : cabledPorts) {
       if (phyInfoBefore.find(port) == phyInfoBefore.end() ||
-          *(phyInfoBefore[port].timeCollected_ref()) == 0 ||
-          !phyInfoBefore[port].linkState_ref().value_or({})) {
+          *(phyInfoBefore[port].timeCollected()) == 0 ||
+          !phyInfoBefore[port].linkState().value_or({})) {
         return false;
       }
     }
@@ -155,8 +155,8 @@ TEST_F(LinkTest, iPhyInfoTest) {
     phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
     for (const auto& port : cabledPorts) {
       if (phyInfoAfter.find(port) == phyInfoAfter.end() ||
-          *(phyInfoAfter[port].timeCollected_ref()) -
-                  *(phyInfoBefore[port].timeCollected_ref()) <
+          *(phyInfoAfter[port].timeCollected()) -
+                  *(phyInfoBefore[port].timeCollected()) <
               20) {
         return false;
       }

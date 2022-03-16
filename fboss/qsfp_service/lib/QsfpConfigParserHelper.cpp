@@ -12,16 +12,16 @@ bool overrideFactorMatchFound(
     const cfg::TransceiverConfigOverrideFactor& moduleFactor) {
   // Returns true when all the set factors match the factors passed in the args
   bool matchFound = true;
-  if (auto cfgFactorAppCode = cfgFactor.applicationCode_ref()) {
+  if (auto cfgFactorAppCode = cfgFactor.applicationCode()) {
     // Confirm that the appCode passed in the args is set and matches that in
     // config
-    auto moduleAppCode = moduleFactor.applicationCode_ref();
+    auto moduleAppCode = moduleFactor.applicationCode();
     matchFound &= (moduleAppCode && (*cfgFactorAppCode == *moduleAppCode));
   }
-  if (auto cfgPartNumber = cfgFactor.transceiverPartNumber_ref()) {
+  if (auto cfgPartNumber = cfgFactor.transceiverPartNumber()) {
     // Confirm that the partNumber passed in the args is set and matches that in
     // config
-    auto modulePartNumber = moduleFactor.transceiverPartNumber_ref();
+    auto modulePartNumber = moduleFactor.transceiverPartNumber();
     matchFound &= (modulePartNumber && (*cfgPartNumber == *modulePartNumber));
   }
   return matchFound;
@@ -30,7 +30,7 @@ bool overrideFactorMatchFound(
 std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
     const cfg::TransceiverOverrides& overrides) {
   if (auto cmisOverride = overrides.cmis_ref()) {
-    if (auto rxEqSetting = cmisOverride->rxEqualizerSettings_ref()) {
+    if (auto rxEqSetting = cmisOverride->rxEqualizerSettings()) {
       return *rxEqSetting;
     }
   }
@@ -40,7 +40,7 @@ std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
 std::optional<unsigned int> sffRxPreemphasisOverride(
     const cfg::TransceiverOverrides& overrides) {
   if (auto sffOverride = overrides.sff_ref()) {
-    if (auto preemph = sffOverride->rxPreemphasis_ref()) {
+    if (auto preemph = sffOverride->rxPreemphasis()) {
       return *preemph;
     }
   }

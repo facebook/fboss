@@ -160,7 +160,7 @@ void BcmBstStatsMgr::updateStats() {
             BufferStatsLogger::Direction::Egress,
             queue,
             peakBytes,
-            curPortStatsOptional->queueOutDiscardBytes__ref()->at(queue),
+            curPortStatsOptional->queueOutDiscardBytes_()->at(queue),
             bcmPort->getPlatformPort()->getEgressXPEs());
       }
     }
@@ -200,7 +200,7 @@ void BcmBstStatsMgr::updateStats() {
     auto controlPlane = hw_->getControlPlane();
     HwPortStats cpuStats;
     controlPlane->updateQueueWatermarks(&cpuStats);
-    for (const auto& [cosQ, stats] : *cpuStats.queueWatermarkBytes__ref()) {
+    for (const auto& [cosQ, stats] : *cpuStats.queueWatermarkBytes_()) {
       publishCpuQueueWatermark(cosQ, stats);
     }
   }

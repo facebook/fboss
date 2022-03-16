@@ -136,7 +136,7 @@ uint32_t getDesiredPhyLaneConfig(const phy::ProfileSideConfig& profileCfg) {
 
   // PortResource setting needs interface mode from profile config
   uint32_t medium = 0;
-  if (auto interfaceMode = profileCfg.interfaceMode_ref()) {
+  if (auto interfaceMode = profileCfg.interfaceMode()) {
     switch (*interfaceMode) {
       case phy::InterfaceMode::KR:
       case phy::InterfaceMode::KR2:
@@ -244,12 +244,12 @@ std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
     }
     auto& platformPortEntry = platformPorts.at(portID);
     auto profileID = port.get_profileID();
-    if (portID != platformPortEntry.mapping_ref()->get_controllingPort()) {
+    if (portID != platformPortEntry.mapping()->get_controllingPort()) {
       continue;
     }
     const auto& chip = platformMapping->getPortIphyChip(PortID(portID));
     cfg::PlatformPortConfigOverrideFactor factor;
-    factor.chips_ref() = {chip};
+    factor.chips() = {chip};
     corePinMapping[chip] = platformMapping->getPortIphyPinConfigs(
         PlatformPortProfileConfigMatcher(profileID, std::nullopt, factor));
   }

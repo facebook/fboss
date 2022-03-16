@@ -84,19 +84,19 @@ class CmdShowInterfaceFlaps
         std::string oneHour = interface + ".link_state.flap.sum.3600";
         std::string totalFlaps = interface + ".link_state.flap.sum";
 
-        counter.interfaceName_ref() = interface;
-        counter.oneMinute_ref() = wedgeCounters[oneMinute];
-        counter.tenMinute_ref() = wedgeCounters[tenMinutes];
-        counter.oneHour_ref() = wedgeCounters[oneHour];
-        counter.totalFlaps_ref() = wedgeCounters[totalFlaps];
+        counter.interfaceName() = interface;
+        counter.oneMinute() = wedgeCounters[oneMinute];
+        counter.tenMinute() = wedgeCounters[tenMinutes];
+        counter.oneHour() = wedgeCounters[oneHour];
+        counter.totalFlaps() = wedgeCounters[totalFlaps];
 
-        ret.flap_counters_ref()->push_back(counter);
+        ret.flap_counters()->push_back(counter);
       }
     }
 
     std::sort(
-        ret.flap_counters_ref()->begin(),
-        ret.flap_counters_ref()->end(),
+        ret.flap_counters()->begin(),
+        ret.flap_counters()->end(),
         [](cli::FlapCounters& a, cli::FlapCounters b) {
           return a.get_interfaceName() < b.get_interfaceName();
         });

@@ -36,8 +36,8 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
     switch (portQueueRate.getType()) {
       case PortQueueRate::Type::pktsPerSec:
         meterType = SAI_METER_TYPE_PACKETS;
-        minBwRate = *portQueueRate.get_pktsPerSec().minimum_ref();
-        maxBwRate = *portQueueRate.get_pktsPerSec().maximum_ref();
+        minBwRate = *portQueueRate.get_pktsPerSec().minimum();
+        maxBwRate = *portQueueRate.get_pktsPerSec().maximum();
         break;
       case PortQueueRate::Type::kbitsPerSec:
         /*
@@ -45,11 +45,11 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
          * expects it in bytes per second.
          */
         meterType = SAI_METER_TYPE_BYTES;
-        minBwRate = static_cast<uint64_t>(
-                        *portQueueRate.get_kbitsPerSec().minimum_ref()) *
+        minBwRate =
+            static_cast<uint64_t>(*portQueueRate.get_kbitsPerSec().minimum()) *
             1000 / 8;
-        maxBwRate = static_cast<uint64_t>(
-                        *portQueueRate.get_kbitsPerSec().maximum_ref()) *
+        maxBwRate =
+            static_cast<uint64_t>(*portQueueRate.get_kbitsPerSec().maximum()) *
             1000 / 8;
         break;
       default:
@@ -103,8 +103,8 @@ void SaiSchedulerManager::fillSchedulerSettings(
           ? QueueScheduling::WEIGHTED_ROUND_ROBIN
           : QueueScheduling::STRICT_PRIORITY);
   cfg::Range range;
-  range.minimum_ref() = minBwRate;
-  range.maximum_ref() = maxBwRate;
+  range.minimum() = minBwRate;
+  range.maximum() = maxBwRate;
   cfg::PortQueueRate portQueueRate;
   if (meterType == SAI_METER_TYPE_BYTES) {
     portQueueRate.kbitsPerSec_ref() = range;

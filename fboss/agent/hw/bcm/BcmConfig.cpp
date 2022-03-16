@@ -60,7 +60,7 @@ BcmConfig::ConfigMap BcmConfig::loadFromFile(const std::string& path) {
     }
   }
 
-  return *cfg.config_ref();
+  return *cfg.config();
 }
 
 namespace {

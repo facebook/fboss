@@ -131,7 +131,7 @@ TEST_F(HwResourceStatsTest, aclStats) {
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     auto newCfg = initialConfig();
     auto acl = utility::addAcl(&newCfg, "acl0");
-    acl->dscp_ref() = 0x10;
+    acl->dscp() = 0x10;
     utility::addAclStat(&newCfg, "acl0", "stat0");
     applyNewConfig(newCfg);
     // Trigger a stats collection

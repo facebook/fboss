@@ -38,8 +38,8 @@ folly::CIDRNetwork kIPv6NdpSolicitNetwork() {
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
-  range.minimum_ref() = minimum;
-  range.maximum_ref() = maximum;
+  range.minimum() = minimum;
+  range.maximum() = maximum;
 
   return range;
 }
@@ -144,53 +144,52 @@ void addCpuQueueConfig(
   std::vector<cfg::PortQueue> cpuQueues;
 
   cfg::PortQueue queue0;
-  queue0.id_ref() = kCoppLowPriQueueId;
-  queue0.name_ref() = "cpuQueue-low";
-  queue0.streamType_ref() = getCpuDefaultStreamType(hwAsic);
-  queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = kCoppLowPriWeight;
+  queue0.id() = kCoppLowPriQueueId;
+  queue0.name() = "cpuQueue-low";
+  queue0.streamType() = getCpuDefaultStreamType(hwAsic);
+  queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
-    queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
+    queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
   }
   if (!hwAsic->mmuQgroupsEnabled()) {
-    queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
+    queue0.reservedBytes() = kCoppLowPriReservedBytes;
   }
   setPortQueueSharedBytes(queue0);
   cpuQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue1.id_ref() = kCoppDefaultPriQueueId;
-  queue1.name_ref() = "cpuQueue-default";
-  queue1.streamType_ref() = getCpuDefaultStreamType(hwAsic);
-  queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight_ref() = kCoppDefaultPriWeight;
+  queue1.id() = kCoppDefaultPriQueueId;
+  queue1.name() = "cpuQueue-default";
+  queue1.streamType() = getCpuDefaultStreamType(hwAsic);
+  queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue1.weight() = kCoppDefaultPriWeight;
   if (setQueueRate) {
-    queue1.portQueueRate_ref() =
-        setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+    queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
   }
   if (!hwAsic->mmuQgroupsEnabled()) {
-    queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
+    queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
   }
   setPortQueueSharedBytes(queue1);
   cpuQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
-  queue2.id_ref() = kCoppMidPriQueueId;
-  queue2.name_ref() = "cpuQueue-mid";
-  queue2.streamType_ref() = getCpuDefaultStreamType(hwAsic);
-  queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue2.weight_ref() = kCoppMidPriWeight;
+  queue2.id() = kCoppMidPriQueueId;
+  queue2.name() = "cpuQueue-mid";
+  queue2.streamType() = getCpuDefaultStreamType(hwAsic);
+  queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue2.weight() = kCoppMidPriWeight;
   cpuQueues.push_back(queue2);
 
   cfg::PortQueue queue9;
-  queue9.id_ref() = getCoppHighPriQueueId(hwAsic);
-  queue9.name_ref() = "cpuQueue-high";
-  queue9.streamType_ref() = getCpuDefaultStreamType(hwAsic);
-  queue9.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue9.weight_ref() = kCoppHighPriWeight;
+  queue9.id() = getCoppHighPriQueueId(hwAsic);
+  queue9.name() = "cpuQueue-high";
+  queue9.streamType() = getCpuDefaultStreamType(hwAsic);
+  queue9.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue9.weight() = kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
-  *config.cpuQueues_ref() = cpuQueues;
+  *config.cpuQueues() = cpuQueues;
 }
 
 void setDefaultCpuTrafficPolicyConfig(
@@ -198,38 +197,33 @@ void setDefaultCpuTrafficPolicyConfig(
     const HwAsic* hwAsic) {
   auto cpuAcls = utility::defaultCpuAcls(hwAsic, config);
   // insert cpu acls into global acl field
-  int curNumAcls = config.acls_ref()->size();
-  config.acls_ref()->resize(curNumAcls + cpuAcls.size());
+  int curNumAcls = config.acls()->size();
+  config.acls()->resize(curNumAcls + cpuAcls.size());
   for (int i = 0; i < cpuAcls.size(); i++) {
-    config.acls_ref()[curNumAcls + i] = cpuAcls[i].first;
+    config.acls()[curNumAcls + i] = cpuAcls[i].first;
   }
 
   // prepare cpu traffic config
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cfg::TrafficPolicyConfig trafficConfig;
-  trafficConfig.matchToAction_ref()->resize(cpuAcls.size());
+  trafficConfig.matchToAction()->resize(cpuAcls.size());
   for (int i = 0; i < cpuAcls.size(); i++) {
-    *trafficConfig.matchToAction_ref()[i].matcher_ref() =
-        *cpuAcls[i].first.name_ref();
-    *trafficConfig.matchToAction_ref()[i].action_ref() = cpuAcls[i].second;
+    *trafficConfig.matchToAction()[i].matcher() = *cpuAcls[i].first.name();
+    *trafficConfig.matchToAction()[i].action() = cpuAcls[i].second;
   }
 
-  if (config.cpuTrafficPolicy_ref() &&
-      config.cpuTrafficPolicy_ref()->trafficPolicy_ref() &&
-      config.cpuTrafficPolicy_ref()
-          ->trafficPolicy_ref()
-          ->defaultQosPolicy_ref()) {
-    trafficConfig.defaultQosPolicy_ref() = *config.cpuTrafficPolicy_ref()
-                                                ->trafficPolicy_ref()
-                                                ->defaultQosPolicy_ref();
+  if (config.cpuTrafficPolicy() && config.cpuTrafficPolicy()->trafficPolicy() &&
+      config.cpuTrafficPolicy()->trafficPolicy()->defaultQosPolicy()) {
+    trafficConfig.defaultQosPolicy() =
+        *config.cpuTrafficPolicy()->trafficPolicy()->defaultQosPolicy();
   }
 
-  cpuConfig.trafficPolicy_ref() = trafficConfig;
+  cpuConfig.trafficPolicy() = trafficConfig;
   auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);
   if (rxReasonToQueues.size()) {
-    cpuConfig.rxReasonToQueueOrderedList_ref() = rxReasonToQueues;
+    cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
   }
-  config.cpuTrafficPolicy_ref() = cpuConfig;
+  config.cpuTrafficPolicy() = cpuConfig;
 }
 
 cfg::MatchAction createQueueMatchAction(
@@ -237,15 +231,15 @@ cfg::MatchAction createQueueMatchAction(
     cfg::ToCpuAction toCpuAction) {
   cfg::MatchAction action;
   cfg::QueueMatchAction queueAction;
-  queueAction.queueId_ref() = queueId;
-  action.sendToQueue_ref() = queueAction;
+  queueAction.queueId() = queueId;
+  action.sendToQueue() = queueAction;
 
   switch (toCpuAction) {
     case cfg::ToCpuAction::COPY:
-      action.toCpuAction_ref() = cfg::ToCpuAction::COPY;
+      action.toCpuAction() = cfg::ToCpuAction::COPY;
       break;
     case cfg::ToCpuAction::TRAP:
-      action.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+      action.toCpuAction() = cfg::ToCpuAction::TRAP;
       break;
     default:
       throw FbossError("Unsupported CounterType for ACL");
@@ -259,11 +253,10 @@ void addNoActionAclForNw(
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
   auto dstIp = folly::to<std::string>(nw.first, "/", nw.second);
-  acl.name_ref() =
-      folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
+  acl.name() = folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
 
-  acl.dstIp_ref() = dstIp;
-  acl.srcPort_ref() = kCPUPort;
+  acl.dstIp() = dstIp;
+  acl.srcPort() = kCPUPort;
   acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
 }
 
@@ -275,10 +268,10 @@ void addHighPriAclForNwAndNetworkControlDscp(
   cfg::AclEntry acl;
   auto dstNetworkStr =
       folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-  acl.name_ref() = folly::to<std::string>(
+  acl.name() = folly::to<std::string>(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
-  acl.dstIp_ref() = dstNetworkStr;
-  acl.dscp_ref() = 48;
+  acl.dstIp() = dstNetworkStr;
+  acl.dscp() = 48;
   acls.push_back(
       std::make_pair(acl, createQueueMatchAction(highPriQueueId, toCpuAction)));
 }
@@ -289,8 +282,8 @@ void addMidPriAclForNw(
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-  acl.name_ref() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
-  acl.dstIp_ref() = dstIp;
+  acl.name() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
+  acl.dstIp() = dstIp;
 
   acls.push_back(std::make_pair(
       acl, createQueueMatchAction(utility::kCoppMidPriQueueId, toCpuAction)));
@@ -352,12 +345,12 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId) {
   auto hwPortStats = getCpuQueueStats(hwSwitch);
-  auto queueIter = hwPortStats.queueOutPackets__ref()->find(queueId);
-  auto outPackets = (queueIter != hwPortStats.queueOutPackets__ref()->end())
+  auto queueIter = hwPortStats.queueOutPackets_()->find(queueId);
+  auto outPackets = (queueIter != hwPortStats.queueOutPackets_()->end())
       ? queueIter->second
       : 0;
-  queueIter = hwPortStats.queueOutBytes__ref()->find(queueId);
-  auto outBytes = (queueIter != hwPortStats.queueOutBytes__ref()->end())
+  queueIter = hwPortStats.queueOutBytes_()->find(queueId);
+  auto outBytes = (queueIter != hwPortStats.queueOutBytes_()->end())
       ? queueIter->second
       : 0;
   return std::pair(outPackets, outBytes);
@@ -367,14 +360,14 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId) {
   auto hwPortStats = getCpuQueueStats(hwSwitch);
-  auto queueIter = hwPortStats.queueOutDiscardPackets__ref()->find(queueId);
+  auto queueIter = hwPortStats.queueOutDiscardPackets_()->find(queueId);
   auto outDiscardPackets =
-      (queueIter != hwPortStats.queueOutDiscardPackets__ref()->end())
+      (queueIter != hwPortStats.queueOutDiscardPackets_()->end())
       ? queueIter->second
       : 0;
-  queueIter = hwPortStats.queueOutDiscardBytes__ref()->find(queueId);
+  queueIter = hwPortStats.queueOutDiscardBytes_()->find(queueId);
   auto outDiscardBytes =
-      (queueIter != hwPortStats.queueOutDiscardBytes__ref()->end())
+      (queueIter != hwPortStats.queueOutDiscardBytes_()->end())
       ? queueIter->second
       : 0;
   return std::pair(outDiscardPackets, outDiscardBytes);
@@ -386,9 +379,9 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
  * purpose is to return per queue WatermarkBytes from HwPortStats.
  */
 uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
-  auto queueIter = hwPortStats.queueWatermarkBytes__ref()->find(queueId);
+  auto queueIter = hwPortStats.queueWatermarkBytes_()->find(queueId);
   return (
-      (queueIter != hwPortStats.queueWatermarkBytes__ref()->end())
+      (queueIter != hwPortStats.queueWatermarkBytes_()->end())
           ? queueIter->second
           : 0);
 }

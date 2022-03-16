@@ -40,33 +40,33 @@ cfg::SwitchConfig getTestConfig() {
   auto platformMapping = std::make_unique<Wedge100PlatformMapping>();
   const auto& platformPorts = platformMapping->getPlatformPorts();
   cfg::SwitchConfig cfg;
-  cfg.ports_ref()->resize(platformPorts.size());
-  cfg.vlans_ref()->resize(platformPorts.size());
-  cfg.vlanPorts_ref()->resize(platformPorts.size());
-  cfg.interfaces_ref()->resize(platformPorts.size());
+  cfg.ports()->resize(platformPorts.size());
+  cfg.vlans()->resize(platformPorts.size());
+  cfg.vlanPorts()->resize(platformPorts.size());
+  cfg.interfaces()->resize(platformPorts.size());
   auto i = 0;
   for (const auto& entry : platformPorts) {
     auto id = entry.first;
     // port
-    preparedMockPortConfig(cfg.ports_ref()[i], id);
+    preparedMockPortConfig(cfg.ports()[i], id);
     // vlans
-    *cfg.vlans_ref()[i].id_ref() = id;
-    *cfg.vlans_ref()[i].name_ref() = folly::to<string>("Vlan", id);
-    cfg.vlans_ref()[i].intfID_ref() = id;
+    *cfg.vlans()[i].id() = id;
+    *cfg.vlans()[i].name() = folly::to<string>("Vlan", id);
+    cfg.vlans()[i].intfID() = id;
     // vlan ports
-    *cfg.vlanPorts_ref()[i].logicalPort_ref() = id;
-    *cfg.vlanPorts_ref()[i].vlanID_ref() = id;
+    *cfg.vlanPorts()[i].logicalPort() = id;
+    *cfg.vlanPorts()[i].vlanID() = id;
     // interfaces
-    *cfg.interfaces_ref()[i].intfID_ref() = id;
-    *cfg.interfaces_ref()[i].routerID_ref() = 0;
-    *cfg.interfaces_ref()[i].vlanID_ref() = id;
-    cfg.interfaces_ref()[i].name_ref() = folly::to<string>("interface", id);
-    cfg.interfaces_ref()[i].mac_ref() = fmt::format("00:02:00:00:00:{:x}", i);
-    cfg.interfaces_ref()[i].mtu_ref() = 9000;
-    cfg.interfaces_ref()[i].ipAddresses_ref()->resize(2);
-    cfg.interfaces_ref()[i].ipAddresses_ref()[0] =
+    *cfg.interfaces()[i].intfID() = id;
+    *cfg.interfaces()[i].routerID() = 0;
+    *cfg.interfaces()[i].vlanID() = id;
+    cfg.interfaces()[i].name() = folly::to<string>("interface", id);
+    cfg.interfaces()[i].mac() = fmt::format("00:02:00:00:00:{:x}", i);
+    cfg.interfaces()[i].mtu() = 9000;
+    cfg.interfaces()[i].ipAddresses()->resize(2);
+    cfg.interfaces()[i].ipAddresses()[0] =
         folly::to<std::string>("10.0.", i, ".0/24");
-    cfg.interfaces_ref()[i].ipAddresses_ref()[1] =
+    cfg.interfaces()[i].ipAddresses()[1] =
         folly::to<std::string>("2400:", i, "::/64");
 
     ++i;

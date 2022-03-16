@@ -394,20 +394,19 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
   auto setup = [=]() {
     auto config = this->initialConfig();
 
-    config.staticIp2MplsRoutes_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].prefix_ref() =
-        this->kGetRoutePrefix1().str();
+    config.staticIp2MplsRoutes()->resize(1);
+    config.staticIp2MplsRoutes()[0].prefix() = this->kGetRoutePrefix1().str();
 
     NextHopThrift nexthop;
-    nexthop.address_ref() = toBinaryAddress(folly::IPAddress(
+    nexthop.address() = toBinaryAddress(folly::IPAddress(
         this->kStaticIp2MplsNextHop().str())); // in prefix 0 subnet
     MplsAction action;
-    action.action_ref() = MplsActionCode::PUSH;
-    action.pushLabels_ref() = {1001, 1002};
-    nexthop.mplsAction_ref() = action;
+    action.action() = MplsActionCode::PUSH;
+    action.pushLabels() = {1001, 1002};
+    nexthop.mplsAction() = action;
 
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
-    config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0] = nexthop;
+    config.staticIp2MplsRoutes()[0].nexthops()->resize(1);
+    config.staticIp2MplsRoutes()[0].nexthops()[0] = nexthop;
     this->applyNewConfig(config);
 
     // resolve prefix 0 subnet

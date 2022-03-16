@@ -35,21 +35,21 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
       pims_[portPimID]->setChip(itChip.first, itChip.second);
     }
 
-    for (auto& portProfile : *port.second.supportedProfiles_ref()) {
+    for (auto& portProfile : *port.second.supportedProfiles()) {
       if (auto platformProfile =
               getPortProfileConfig(PlatformPortProfileConfigMatcher(
                   portProfile.first, PimID(portPimID)))) {
         cfg::PlatformPortProfileConfigEntry configEntry;
         cfg::PlatformPortConfigFactor factor;
-        factor.profileID_ref() = portProfile.first;
-        factor.pimIDs_ref() = {portPimID};
-        configEntry.profile_ref() = platformProfile.value();
-        configEntry.factor_ref() = factor;
+        factor.profileID() = portProfile.first;
+        factor.pimIDs() = {portPimID};
+        configEntry.profile() = platformProfile.value();
+        configEntry.factor() = factor;
         pims_[portPimID]->mergePlatformSupportedProfile(configEntry);
       } else {
         throw FbossError(
             "Port:",
-            *port.second.mapping_ref()->name_ref(),
+            *port.second.mapping()->name(),
             " uses unsupported platform profile:",
             apache::thrift::util::enumNameSafe(portProfile.first));
       }

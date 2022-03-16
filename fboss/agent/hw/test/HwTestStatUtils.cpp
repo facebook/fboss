@@ -36,8 +36,8 @@ void updateHwSwitchStats(HwSwitch* hw) {
 }
 
 uint64_t getPortOutPkts(const HwPortStats& portStats) {
-  return *portStats.outUnicastPkts__ref() + *portStats.outMulticastPkts__ref() +
-      *portStats.outBroadcastPkts__ref();
+  return *portStats.outUnicastPkts_() + *portStats.outMulticastPkts_() +
+      *portStats.outBroadcastPkts_();
 }
 
 uint64_t getPortOutPkts(const std::map<PortID, HwPortStats>& port2Stats) {
@@ -48,8 +48,8 @@ uint64_t getPortOutPkts(const std::map<PortID, HwPortStats>& port2Stats) {
 }
 
 uint64_t getPortInPkts(const HwPortStats& portStats) {
-  return *portStats.inUnicastPkts__ref() + *portStats.inMulticastPkts__ref() +
-      *portStats.inBroadcastPkts__ref();
+  return *portStats.inUnicastPkts_() + *portStats.inMulticastPkts_() +
+      *portStats.inBroadcastPkts_();
 }
 
 uint64_t getPortInPkts(const std::map<PortID, HwPortStats>& port2Stats) {

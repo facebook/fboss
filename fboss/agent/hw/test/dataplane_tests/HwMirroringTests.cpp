@@ -136,9 +136,8 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
             return false;
           }
           auto& portStats = iter->second;
-          auto newOutPkt = *portStats.outUnicastPkts__ref() +
-              *portStats.outMulticastPkts__ref() +
-              *portStats.outBroadcastPkts__ref();
+          auto newOutPkt = *portStats.outUnicastPkts_() +
+              *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
           return (newOutPkt > oldOutPkts) &&
               ((newOutPkt - oldOutPkts) >= count);
         });
@@ -289,8 +288,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
       this->verify(mirrorName, 8000);
       auto statsAfter = getLatestPortStats(mirrorToPort_);
 
-      auto outBytes =
-          (*statsAfter.outBytes__ref() - *statsBefore.outBytes__ref());
+      auto outBytes = (*statsAfter.outBytes_() - *statsBefore.outBytes_());
       // mirror is on both ingress and egress, packet loops back and gets
       // mirrored twice
       if (getHwSwitch()->getPlatform()->getAsic()->isSupported(

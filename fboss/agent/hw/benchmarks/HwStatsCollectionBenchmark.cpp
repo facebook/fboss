@@ -55,7 +55,7 @@ BENCHMARK(HwStatsCollection) {
   // this is due to the fact that in some platforms, route class id
   // (8 bits) is overloaded to support counter id.
   int numRouteCounters = 255;
-  config.switchSettings_ref()->maxRouteCounterIDs_ref() = numRouteCounters;
+  config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
   ensemble->applyInitialConfig(config);
   auto updater = ensemble->getRouteUpdater();
   for (auto i = 0; i < numRouteCounters; i++) {

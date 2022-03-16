@@ -37,13 +37,13 @@ struct LearningModeAndPortTypesT {
   static constexpr auto kLearningMode = mode;
   static constexpr auto kIsTrunk = trunk;
   static cfg::SwitchConfig initialConfig(cfg::SwitchConfig config) {
-    config.switchSettings_ref()->l2LearningMode_ref() = kLearningMode;
+    config.switchSettings()->l2LearningMode() = kLearningMode;
     if (kIsTrunk) {
       auto addTrunk = [&config](auto aggId, auto startIdx) {
         std::vector<int> ports;
-        auto configPorts = config.vlanPorts_ref();
+        auto configPorts = config.vlanPorts();
         for (auto i = startIdx; i < startIdx + 2; ++i) {
-          ports.push_back(*(configPorts[i].logicalPort_ref()));
+          ports.push_back(*(configPorts[i].logicalPort()));
         }
         utility::addAggPort(aggId, ports, &config);
       };

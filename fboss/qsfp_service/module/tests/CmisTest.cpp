@@ -68,15 +68,13 @@ TEST(CmisTest, transceiverInfoTest) {
       CmisLaneState::TX_ON,
       CmisLaneState::DEINIT};
 
-  EXPECT_EQ(
-      xcvr->numHostLanes(), info.hostLaneSignals_ref().value_or({}).size());
-  for (auto& signal : *info.hostLaneSignals_ref()) {
+  EXPECT_EQ(xcvr->numHostLanes(), info.hostLaneSignals().value_or({}).size());
+  for (auto& signal : *info.hostLaneSignals()) {
     EXPECT_EQ(
-        expectedDatapathDeinit[*signal.lane_ref()],
-        signal.dataPathDeInit_ref().value_or({}));
+        expectedDatapathDeinit[*signal.lane()],
+        signal.dataPathDeInit().value_or({}));
     EXPECT_EQ(
-        expectedLaneState[*signal.lane_ref()],
-        signal.cmisLaneState_ref().value_or({}));
+        expectedLaneState[*signal.lane()], signal.cmisLaneState().value_or({}));
   }
 
   std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
@@ -93,13 +91,12 @@ TEST(CmisTest, transceiverInfoTest) {
       {"RxEqMain", {3, 3, 3, 3}},
   };
 
-  auto settings = info.settings_ref().value_or({});
+  auto settings = info.settings().value_or({});
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, xcvr->numMediaLanes());
   tests.verifyHostLaneSettings(expectedHostLaneSettings, xcvr->numHostLanes());
 
-  EXPECT_EQ(
-      PowerControlState::HIGH_POWER_OVERRIDE, settings.powerControl_ref());
+  EXPECT_EQ(PowerControlState::HIGH_POWER_OVERRIDE, settings.powerControl());
 
   std::map<std::string, std::vector<bool>> laneInterrupts = {
       {"TxPwrHighAlarm", {0, 1, 0, 0}},
@@ -121,26 +118,25 @@ TEST(CmisTest, transceiverInfoTest) {
 
   EXPECT_EQ(
       xcvr->numMediaLanes(),
-      info.settings_ref()->mediaInterface_ref().value_or({}).size());
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
-    EXPECT_EQ(
-        media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::FR4_200G);
+      info.settings()->mediaInterface().value_or({}).size());
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr.get());
 
   auto diagsCap = xcvr->moduleDiagsCapabilityGet();
   EXPECT_TRUE(diagsCap.has_value());
-  EXPECT_TRUE(*diagsCap->diagnostics_ref());
-  EXPECT_FALSE(*diagsCap->vdm_ref());
-  EXPECT_TRUE(*diagsCap->cdb_ref());
-  EXPECT_FALSE(*diagsCap->prbsLine_ref());
-  EXPECT_FALSE(*diagsCap->prbsSystem_ref());
-  EXPECT_FALSE(*diagsCap->loopbackLine_ref());
-  EXPECT_TRUE(*diagsCap->loopbackSystem_ref());
+  EXPECT_TRUE(*diagsCap->diagnostics());
+  EXPECT_FALSE(*diagsCap->vdm());
+  EXPECT_TRUE(*diagsCap->cdb());
+  EXPECT_FALSE(*diagsCap->prbsLine());
+  EXPECT_FALSE(*diagsCap->prbsSystem());
+  EXPECT_FALSE(*diagsCap->loopbackLine());
+  EXPECT_TRUE(*diagsCap->loopbackSystem());
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR4_200G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout
@@ -428,14 +424,13 @@ TEST(Cmis400GLr4Test, transceiverInfoTest) {
   TransceiverTestsHelper tests(info);
 
   tests.verifyVendorName("FACETEST");
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
-    EXPECT_EQ(
-        media.media_ref()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::LR4_400G_10KM);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
   }
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::LR4_400G_10KM);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
 }
 
 TEST(CmisFlatMemTest, transceiverInfoTest) {

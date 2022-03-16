@@ -35,7 +35,7 @@ void prepareDefaultSwPort(Platform* platform, shared_ptr<Port> port) {
   port->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER);
   PlatformPortProfileConfigMatcher matcher{port->getProfileID(), port->getID()};
   if (auto profileConfig = platform->getPortProfileConfig(matcher)) {
-    port->setProfileConfig(*profileConfig->iphy_ref());
+    port->setProfileConfig(*profileConfig->iphy());
   } else {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
@@ -62,8 +62,8 @@ TEST(Port, checkPortLoopbackMode) {
 
   // set all ports in the configuration to loopback
   // all interfaces should also point to these loopbacks
-  for (auto& port : *config.ports_ref()) {
-    port.loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+  for (auto& port : *config.ports()) {
+    port.loopbackMode() = cfg::PortLoopbackMode::PHY;
   }
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
@@ -90,27 +90,27 @@ TEST(Port, applyConfig) {
   EXPECT_TRUE(portV0->isPublished());
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
-  config.ports_ref()[0].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-  *config.ports_ref()[0].sFlowIngressRate_ref() = 10;
-  config.vlans_ref()->resize(2);
-  *config.vlans_ref()[0].id_ref() = 2;
-  *config.vlans_ref()[1].id_ref() = 5;
-  config.vlanPorts_ref()->resize(2);
-  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
-  *config.vlanPorts_ref()[0].vlanID_ref() = 2;
-  *config.vlanPorts_ref()[0].emitTags_ref() = false;
-  *config.vlanPorts_ref()[1].logicalPort_ref() = 1;
-  *config.vlanPorts_ref()[1].vlanID_ref() = 5;
-  *config.vlanPorts_ref()[1].emitTags_ref() = true;
-  config.interfaces_ref()->resize(2);
-  *config.interfaces_ref()[0].intfID_ref() = 2;
-  *config.interfaces_ref()[0].vlanID_ref() = 2;
-  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:22";
-  *config.interfaces_ref()[1].intfID_ref() = 5;
-  *config.interfaces_ref()[1].vlanID_ref() = 5;
-  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:55";
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  config.ports()[0].sampleDest() = cfg::SampleDestination::MIRROR;
+  *config.ports()[0].sFlowIngressRate() = 10;
+  config.vlans()->resize(2);
+  *config.vlans()[0].id() = 2;
+  *config.vlans()[1].id() = 5;
+  config.vlanPorts()->resize(2);
+  *config.vlanPorts()[0].logicalPort() = 1;
+  *config.vlanPorts()[0].vlanID() = 2;
+  *config.vlanPorts()[0].emitTags() = false;
+  *config.vlanPorts()[1].logicalPort() = 1;
+  *config.vlanPorts()[1].vlanID() = 5;
+  *config.vlanPorts()[1].emitTags() = true;
+  config.interfaces()->resize(2);
+  *config.interfaces()[0].intfID() = 2;
+  *config.interfaces()[0].vlanID() = 2;
+  config.interfaces()[0].mac() = "00:00:00:00:00:22";
+  *config.interfaces()[1].intfID() = 5;
+  *config.interfaces()[1].vlanID() = 5;
+  config.interfaces()[1].mac() = "00:00:00:00:00:55";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portV1 = stateV1->getPort(PortID(1));
@@ -139,10 +139,10 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Applying the same config with a new VLAN list should result in changes
-  config.vlanPorts_ref()->resize(1);
-  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
-  *config.vlanPorts_ref()[0].vlanID_ref() = 2021;
-  *config.vlanPorts_ref()[0].emitTags_ref() = false;
+  config.vlanPorts()->resize(1);
+  *config.vlanPorts()[0].logicalPort() = 1;
+  *config.vlanPorts()[0].vlanID() = 2021;
+  *config.vlanPorts()[0].emitTags() = false;
 
   Port::VlanMembership expectedVlansV2;
   expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));
@@ -166,8 +166,8 @@ TEST(Port, applyConfig) {
       cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
   // Applying the same config with a different speed should result in changes
-  config.ports_ref()[0].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
-  config.ports_ref()[0].profileID_ref() =
+  config.ports()[0].speed() = cfg::PortSpeed::TWENTYFIVEG;
+  config.ports()[0].profileID() =
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -399,7 +399,7 @@ TEST(Port, ToFromJSON) {
   auto vlans = port->getVlans();
   EXPECT_EQ(1, vlans.size());
   EXPECT_TRUE(vlans.at(VlanID(2000)).tagged);
-  EXPECT_TRUE(*port->getPause().rx_ref());
+  EXPECT_TRUE(*port->getPause().rx());
   EXPECT_EQ(cfg::PortState::ENABLED, port->getAdminState());
   EXPECT_EQ("TEST", port->getDescription());
   EXPECT_EQ("eth1/1/1", port->getName());
@@ -408,7 +408,7 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
   EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
-  EXPECT_TRUE(*port->getPause().tx_ref());
+  EXPECT_TRUE(*port->getPause().tx());
   EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
   EXPECT_TRUE(port->getSampleDestination().has_value());
   EXPECT_EQ(
@@ -460,14 +460,14 @@ TEST(Port, ToFromJSON) {
       port->getLookupClassesToDistributeTrafficOn(), expectedLookupClasses);
 
   EXPECT_TRUE(port->getPfc().has_value());
-  EXPECT_FALSE(*port->getPfc()->rx_ref());
-  EXPECT_FALSE(*port->getPfc()->tx_ref());
-  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
-  auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
-  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs_ref());
-  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs_ref());
+  EXPECT_FALSE(*port->getPfc()->rx());
+  EXPECT_FALSE(*port->getPfc()->tx());
+  EXPECT_TRUE(port->getPfc()->watchdog().has_value());
+  auto pfcWatchdog = port->getPfc()->watchdog().value();
+  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs());
+  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs());
   EXPECT_EQ(
-      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction_ref());
+      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction());
   auto dyn1 = port->toFollyDynamic();
   dyn1.erase(ThriftyUtils::kThriftySchemaUpToDate);
   auto dyn2 = folly::parseJson(jsonStr);
@@ -693,7 +693,7 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
   auto vlans = port->getVlans();
   EXPECT_EQ(1, vlans.size());
   EXPECT_TRUE(vlans.at(VlanID(2000)).tagged);
-  EXPECT_TRUE(*port->getPause().rx_ref());
+  EXPECT_TRUE(*port->getPause().rx());
   EXPECT_EQ(cfg::PortState::ENABLED, port->getAdminState());
   EXPECT_EQ("TEST", port->getDescription());
   EXPECT_EQ("eth1/1/1", port->getName());
@@ -702,7 +702,7 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
   EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
-  EXPECT_TRUE(*port->getPause().tx_ref());
+  EXPECT_TRUE(*port->getPause().tx());
   EXPECT_EQ(cfg::PortLoopbackMode::NONE, port->getLoopbackMode());
 
   auto queues = port->getPortQueues();
@@ -735,9 +735,9 @@ TEST(Port, emptyConfig) {
 
   // Applying same config should result in no change.
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
+  config.ports()->resize(1);
   preparedMockPortConfig(
-      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // If platform does not support addRemovePort (by default),
@@ -765,14 +765,14 @@ TEST(Port, verifyPfcWithPauseConfig) {
   cfg::PortPause pause;
 
   // enable pfc, pause
-  pfc.tx_ref() = true;
-  pause.rx_ref() = true;
+  pfc.tx() = true;
+  pause.rx() = true;
 
-  config.ports_ref()->resize(1);
+  config.ports()->resize(1);
   preparedMockPortConfig(
-      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
-  config.ports_ref()[0].pfc_ref() = pfc;
-  config.ports_ref()[0].pause_ref() = pause;
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  config.ports()[0].pfc() = pfc;
+  config.ports()[0].pause() = pause;
 
   EXPECT_THROW(
       publishAndApplyConfig(state, &config, platform.get()), FbossError);
@@ -789,30 +789,30 @@ TEST(Port, verifyPfcConfig) {
   cfg::SwitchConfig config;
   cfg::PortPfc pfc;
 
-  config.ports_ref()->resize(1);
+  config.ports()->resize(1);
   preparedMockPortConfig(
-      config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
-  config.ports_ref()[0].pfc_ref() = pfc;
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  config.ports()[0].pfc() = pfc;
   auto newState = publishAndApplyConfig(state, &config, platform.get());
 
   port = newState->getPort(PortID(1));
   EXPECT_TRUE(port->getPfc().has_value());
-  EXPECT_FALSE(*port->getPfc().value().tx_ref());
-  EXPECT_FALSE(*port->getPfc().value().rx_ref());
-  EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "");
-  EXPECT_FALSE(port->getPfc().value().watchdog_ref().has_value());
+  EXPECT_FALSE(*port->getPfc().value().tx());
+  EXPECT_FALSE(*port->getPfc().value().rx());
+  EXPECT_EQ(port->getPfc().value().portPgConfigName(), "");
+  EXPECT_FALSE(port->getPfc().value().watchdog().has_value());
 
-  pfc.tx_ref() = true;
-  pfc.rx_ref() = true;
-  pfc.portPgConfigName_ref() = "foo";
+  pfc.tx() = true;
+  pfc.rx() = true;
+  pfc.portPgConfigName() = "foo";
 
   cfg::PfcWatchdog watchdog;
-  watchdog.detectionTimeMsecs_ref() = 15;
-  watchdog.recoveryTimeMsecs_ref() = 16;
-  watchdog.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::DROP;
-  pfc.watchdog_ref() = watchdog;
+  watchdog.detectionTimeMsecs() = 15;
+  watchdog.recoveryTimeMsecs() = 16;
+  watchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::DROP;
+  pfc.watchdog() = watchdog;
 
-  config.ports_ref()[0].pfc_ref() = pfc;
+  config.ports()[0].pfc() = pfc;
   // pgConfigName exists, but can't be found in cfg, throw exception
   EXPECT_THROW(
       publishAndApplyConfig(newState, &config, platform.get()), FbossError);
@@ -820,42 +820,41 @@ TEST(Port, verifyPfcConfig) {
   // create an empty pgConfig for "foo"
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   portPgConfigMap["foo"] = {};
-  config.portPgConfigs_ref() = portPgConfigMap;
+  config.portPgConfigs() = portPgConfigMap;
 
   auto newState2 = publishAndApplyConfig(newState, &config, platform.get());
   port = newState2->getPort(PortID(1));
 
   EXPECT_TRUE(port->getPfc().has_value());
-  EXPECT_TRUE(*port->getPfc().value().tx_ref());
-  EXPECT_TRUE(*port->getPfc().value().rx_ref());
-  EXPECT_EQ(port->getPfc().value().portPgConfigName_ref(), "foo");
+  EXPECT_TRUE(*port->getPfc().value().tx());
+  EXPECT_TRUE(*port->getPfc().value().rx());
+  EXPECT_EQ(port->getPfc().value().portPgConfigName(), "foo");
 
-  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
-  auto pfcWatchdog = port->getPfc()->watchdog_ref().value();
-  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs_ref());
-  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs_ref());
+  EXPECT_TRUE(port->getPfc()->watchdog().has_value());
+  auto pfcWatchdog = port->getPfc()->watchdog().value();
+  EXPECT_EQ(15, *pfcWatchdog.detectionTimeMsecs());
+  EXPECT_EQ(16, *pfcWatchdog.recoveryTimeMsecs());
   EXPECT_EQ(
-      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction_ref());
+      cfg::PfcWatchdogRecoveryAction::DROP, *pfcWatchdog.recoveryAction());
 
   // Modify watchdog config and make sure it gets saved
   port = newState2->getPort(PortID(1));
   auto pfc2 = port->getPfc().value();
-  cfg::PfcWatchdog watchdog2 = pfc2.watchdog_ref().value();
+  cfg::PfcWatchdog watchdog2 = pfc2.watchdog().value();
   // Change the recoveryAction to NO_DROP
-  watchdog2.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
-  pfc2.watchdog_ref() = watchdog2;
-  config.ports_ref()[0].pfc_ref() = pfc2;
+  watchdog2.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  pfc2.watchdog() = watchdog2;
+  config.ports()[0].pfc() = pfc2;
 
   auto newState3 = publishAndApplyConfig(newState2, &config, platform.get());
   port = newState3->getPort(PortID(1));
-  EXPECT_TRUE(port->getPfc()->watchdog_ref().has_value());
-  auto pfcWatchdog2 = port->getPfc()->watchdog_ref().value();
-  EXPECT_EQ(15, *pfcWatchdog2.detectionTimeMsecs_ref());
-  EXPECT_EQ(16, *pfcWatchdog2.recoveryTimeMsecs_ref());
+  EXPECT_TRUE(port->getPfc()->watchdog().has_value());
+  auto pfcWatchdog2 = port->getPfc()->watchdog().value();
+  EXPECT_EQ(15, *pfcWatchdog2.detectionTimeMsecs());
+  EXPECT_EQ(16, *pfcWatchdog2.recoveryTimeMsecs());
   // Verify that the recoveryAction is NO_DROP as expected
   EXPECT_EQ(
-      cfg::PfcWatchdogRecoveryAction::NO_DROP,
-      *pfcWatchdog2.recoveryAction_ref());
+      cfg::PfcWatchdogRecoveryAction::NO_DROP, *pfcWatchdog2.recoveryAction());
 }
 
 TEST(Port, pauseConfig) {
@@ -886,10 +885,10 @@ TEST(Port, pauseConfig) {
   auto changePause = [&](cfg::PortPause newPause) {
     auto oldPause = state->getPort(PortID(1))->getPause();
     cfg::SwitchConfig config;
-    config.ports_ref()->resize(1);
+    config.ports()->resize(1);
     preparedMockPortConfig(
-        config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
-    config.ports_ref()[0].pause_ref() = newPause;
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    config.ports()[0].pause() = newPause;
     auto newState = publishAndApplyConfig(state, &config, platform.get());
 
     if (oldPause != newPause) {
@@ -908,16 +907,16 @@ TEST(Port, pauseConfig) {
   // Now change it each time
   changePause(expected);
 
-  *expected.tx_ref() = false;
-  *expected.rx_ref() = true;
+  *expected.tx() = false;
+  *expected.rx() = true;
   changePause(expected);
 
-  *expected.tx_ref() = true;
-  *expected.rx_ref() = false;
+  *expected.tx() = true;
+  *expected.rx() = false;
   changePause(expected);
 
-  *expected.tx_ref() = true;
-  *expected.rx_ref() = true;
+  *expected.tx() = true;
+  *expected.rx() = true;
   changePause(expected);
 }
 
@@ -935,10 +934,10 @@ TEST(Port, loopbackModeConfig) {
       [&](cfg::PortLoopbackMode newLoopbackMode) {
         auto oldLoopbackMode = state->getPort(PortID(1))->getLoopbackMode();
         cfg::SwitchConfig config;
-        config.ports_ref()->resize(1);
+        config.ports()->resize(1);
         preparedMockPortConfig(
-            config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
-        *config.ports_ref()[0].loopbackMode_ref() = newLoopbackMode;
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+        *config.ports()[0].loopbackMode() = newLoopbackMode;
         auto newState = publishAndApplyConfig(state, &config, platform.get());
 
         if (oldLoopbackMode != newLoopbackMode) {
@@ -976,11 +975,11 @@ TEST(Port, sampleDestinationConfig) {
          std::optional<cfg::SampleDestination> newDestination) {
         auto oldDestination = state->getPort(PortID(1))->getSampleDestination();
         cfg::SwitchConfig config;
-        config.ports_ref()->resize(1);
+        config.ports()->resize(1);
         preparedMockPortConfig(
-            config.ports_ref()[0], 1, "port1", cfg::PortState::DISABLED);
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
         if (newDestination.has_value()) {
-          config.ports_ref()[0].sampleDest_ref() = newDestination.value();
+          config.ports()[0].sampleDest() = newDestination.value();
         }
         auto newState = publishAndApplyConfig(state, &config, platform.get());
 
@@ -1121,10 +1120,10 @@ TEST(PortMap, applyConfig) {
 
   // Applying an empty config shouldn't change a newly-constructed PortMap
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(4);
+  config.ports()->resize(4);
   for (int i = 0; i < 4; ++i) {
     preparedMockPortConfig(
-        config.ports_ref()[i],
+        config.ports()[i],
         i + 1,
         fmt::format("port{}", i + 1),
         cfg::PortState::DISABLED);
@@ -1132,7 +1131,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
-  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  *config.ports()[1].state() = cfg::PortState::ENABLED;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portsV1 = stateV1->getPorts();
   ASSERT_NE(nullptr, portsV1);
@@ -1169,10 +1168,10 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Now mark all ports up
-  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[2].state_ref() = cfg::PortState::ENABLED;
-  *config.ports_ref()[3].state_ref() = cfg::PortState::ENABLED;
+  *config.ports()[0].state() = cfg::PortState::ENABLED;
+  *config.ports()[1].state() = cfg::PortState::ENABLED;
+  *config.ports()[2].state() = cfg::PortState::ENABLED;
+  *config.ports()[3].state() = cfg::PortState::ENABLED;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portsV2 = stateV2->getPorts();
@@ -1205,11 +1204,11 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(portsV2->getPort(PortID(4))->isPublished());
 
   // If we disable port3 from the config, it should be marked down
-  preparedMockPortConfig(config.ports_ref()[0], 1);
-  preparedMockPortConfig(config.ports_ref()[1], 2);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
   preparedMockPortConfig(
-      config.ports_ref()[2], 3, "port3", cfg::PortState::DISABLED);
-  preparedMockPortConfig(config.ports_ref()[3], 4);
+      config.ports()[2], 3, "port3", cfg::PortState::DISABLED);
+  preparedMockPortConfig(config.ports()[3], 4);
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);

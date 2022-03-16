@@ -25,7 +25,7 @@ int publishToOds(
   XLOG(INFO) << "ODS Streamer : Publisher : Entered. ";
   try {
     facebook::maestro::SetOdsRawValuesRequest request;
-    *request.dataPoints_ref() = std::move(values);
+    *request.dataPoints() = std::move(values);
     /* logging counters of type double */
     /* prepare the client */
     auto odsClient = folly::to_shared_ptr(
@@ -45,11 +45,11 @@ int publishToOds(
 facebook::maestro::ODSAppValue
 getOdsAppValue(std::string key, int64_t value, uint64_t timeStampSec) {
   facebook::maestro::ODSAppValue retVal;
-  retVal.key_ref() = key;
-  retVal.value_ref() = value;
-  retVal.unixTime_ref() = static_cast<int64_t>(timeStampSec);
-  retVal.entity_ref() = facebook::network::NetworkUtil::getLocalHost(true);
-  retVal.category_id_ref() = folly::to_signed(
+  retVal.key() = key;
+  retVal.value() = value;
+  retVal.unixTime() = static_cast<int64_t>(timeStampSec);
+  retVal.entity() = facebook::network::NetworkUtil::getLocalHost(true);
+  retVal.category_id() = folly::to_signed(
       static_cast<int32_t>(facebook::monitoring::OdsCategoryId::ODS_FBOSS));
   return retVal;
 }

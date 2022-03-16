@@ -52,13 +52,13 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
     }
 
     auto agentConfig = AgentConfig::fromFile(FLAGS_config);
-    auto config = *agentConfig->thrift.sw_ref();
+    auto config = *agentConfig->thrift.sw();
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
     // If we're passed a config, there's a high probability that it's a prod
     // config and the ports are not in loopback mode.
-    for (auto& port : *config.ports_ref()) {
-      port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+    for (auto& port : *config.ports()) {
+      port.loopbackMode() = cfg::PortLoopbackMode::MAC;
     }
 
     return config;

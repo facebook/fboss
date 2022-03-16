@@ -28,18 +28,18 @@ void RouteUpdateWrapper::addRoute(
     ClientID clientId,
     RouteNextHopEntry nhop) {
   UnicastRoute tempRoute;
-  tempRoute.dest_ref()->ip_ref() = network::toBinaryAddress(network);
-  tempRoute.dest_ref()->prefixLength_ref() = mask;
+  tempRoute.dest()->ip() = network::toBinaryAddress(network);
+  tempRoute.dest()->prefixLength() = mask;
   if (nhop.getAction() == RouteForwardAction::NEXTHOPS) {
-    tempRoute.nextHops_ref() = util::fromRouteNextHopSet(nhop.getNextHopSet());
-    tempRoute.action_ref() = RouteForwardAction::NEXTHOPS;
+    tempRoute.nextHops() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+    tempRoute.action() = RouteForwardAction::NEXTHOPS;
   } else {
-    tempRoute.action_ref() = nhop.getAction() == RouteForwardAction::DROP
+    tempRoute.action() = nhop.getAction() == RouteForwardAction::DROP
         ? RouteForwardAction::DROP
         : RouteForwardAction::TO_CPU;
   }
   if (nhop.getCounterID().has_value()) {
-    tempRoute.counterID_ref() = *nhop.getCounterID();
+    tempRoute.counterID() = *nhop.getCounterID();
   }
   addRoute(vrf, clientId, std::move(tempRoute));
 }
@@ -57,8 +57,8 @@ void RouteUpdateWrapper::delRoute(
     uint8_t mask,
     ClientID clientId) {
   IpPrefix pfx;
-  pfx.ip_ref() = network::toBinaryAddress(network);
-  pfx.prefixLength_ref() = mask;
+  pfx.ip() = network::toBinaryAddress(network);
+  pfx.prefixLength() = mask;
   delRoute(vrf, pfx, clientId);
 }
 

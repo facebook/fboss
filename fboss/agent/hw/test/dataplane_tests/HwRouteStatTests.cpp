@@ -58,7 +58,7 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
     };
     auto config = utility::onePortPerVlanConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
-    config.switchSettings_ref()->maxRouteCounterIDs_ref() = 3;
+    config.switchSettings()->maxRouteCounterIDs() = 3;
     return config;
   }
 

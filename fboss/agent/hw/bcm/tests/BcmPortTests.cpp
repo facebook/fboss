@@ -90,8 +90,8 @@ TEST_F(BcmPortTest, PortSflowConfig) {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->sFlowIngressRate_ref() = kIngressRate;
-      portCfg->sFlowEgressRate_ref() = kEgressRate;
+      portCfg->sFlowIngressRate() = kIngressRate;
+      portCfg->sFlowEgressRate() = kEgressRate;
     }
     applyNewConfig(newCfg);
   };
@@ -115,7 +115,7 @@ TEST_F(BcmPortTest, PortLoopbackMode) {
     for (auto index : {0, 1}) {
       auto portId = initialConfiguredPorts()[index];
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = loopbackModes[index];
+      portCfg->loopbackMode() = loopbackModes[index];
     }
     applyNewConfig(newCfg);
   };
@@ -147,7 +147,7 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      portCfg->loopbackMode() = cfg::PortLoopbackMode::MAC;
       utility::updatePortSpeed(
           *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
     }
@@ -172,7 +172,7 @@ TEST_F(BcmPortTest, PortLoopbackModePHY40G) {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+      portCfg->loopbackMode() = cfg::PortLoopbackMode::PHY;
       utility::updatePortSpeed(
           *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
     }
@@ -197,7 +197,7 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC100G) {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      portCfg->loopbackMode() = cfg::PortLoopbackMode::MAC;
       utility::updatePortSpeed(
           *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
     }
@@ -223,7 +223,7 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+      portCfg->loopbackMode() = cfg::PortLoopbackMode::PHY;
       utility::updatePortSpeed(
           *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
     }
@@ -252,20 +252,20 @@ TEST_F(BcmPortTest, SampleDestination) {
     for (auto index : {0, 1}) {
       auto portId = initialConfiguredPorts()[index];
       auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->sampleDest_ref() = sampleDestinations[index];
+      portCfg->sampleDest() = sampleDestinations[index];
       if (sampleDestinations[index] == cfg::SampleDestination::MIRROR) {
-        portCfg->ingressMirror_ref() = "sflow";
+        portCfg->ingressMirror() = "sflow";
       }
     }
     cfg::MirrorTunnel tunnel;
     cfg::SflowTunnel sflowTunnel;
-    *sflowTunnel.ip_ref() = "10.0.0.1";
-    sflowTunnel.udpSrcPort_ref() = 6545;
-    sflowTunnel.udpDstPort_ref() = 5343;
-    tunnel.sflowTunnel_ref() = sflowTunnel;
-    newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors_ref()[0].name_ref() = "sflow";
-    newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
+    *sflowTunnel.ip() = "10.0.0.1";
+    sflowTunnel.udpSrcPort() = 6545;
+    sflowTunnel.udpDstPort() = 5343;
+    tunnel.sflowTunnel() = sflowTunnel;
+    newCfg.mirrors()->resize(1);
+    *newCfg.mirrors()[0].name() = "sflow";
+    newCfg.mirrors()[0].destination()->tunnel() = tunnel;
     return applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -298,17 +298,17 @@ TEST_F(BcmPortTest, NoSampleDestinationSet) {
 TEST_F(BcmPortTest, IngressMirror) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors_ref()[0].name_ref() = "mirror";
+    newCfg.mirrors()->resize(1);
+    *newCfg.mirrors()[0].name() = "mirror";
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
-    *greTunnel.ip_ref() = "1.1.1.10";
-    tunnel.greTunnel_ref() = greTunnel;
-    newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
+    *greTunnel.ip() = "1.1.1.10";
+    tunnel.greTunnel() = greTunnel;
+    newCfg.mirrors()[0].destination()->tunnel() = tunnel;
 
     auto portId = masterLogicalPortIds()[1];
     auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->ingressMirror_ref() = "mirror";
+    portCfg->ingressMirror() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
@@ -323,17 +323,17 @@ TEST_F(BcmPortTest, IngressMirror) {
 TEST_F(BcmPortTest, EgressMirror) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors_ref()[0].name_ref() = "mirror";
+    newCfg.mirrors()->resize(1);
+    *newCfg.mirrors()[0].name() = "mirror";
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
-    *greTunnel.ip_ref() = "1.1.1.10";
-    tunnel.greTunnel_ref() = greTunnel;
-    newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
+    *greTunnel.ip() = "1.1.1.10";
+    tunnel.greTunnel() = greTunnel;
+    newCfg.mirrors()[0].destination()->tunnel() = tunnel;
 
     auto portId = masterLogicalPortIds()[1];
     auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->egressMirror_ref() = "mirror";
+    portCfg->egressMirror() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
@@ -351,18 +351,18 @@ TEST_F(BcmPortTest, SampleDestinationMirror) {
     cfg::Mirror mirror;
     cfg::MirrorTunnel tunnel;
     cfg::SflowTunnel sflowTunnel;
-    *sflowTunnel.ip_ref() = "10.0.0.1";
-    sflowTunnel.udpSrcPort_ref() = 6545;
-    sflowTunnel.udpDstPort_ref() = 5343;
-    tunnel.sflowTunnel_ref() = sflowTunnel;
-    *mirror.name_ref() = "mirror";
-    mirror.destination_ref()->tunnel_ref() = tunnel;
-    newCfg.mirrors_ref()->push_back(mirror);
+    *sflowTunnel.ip() = "10.0.0.1";
+    sflowTunnel.udpSrcPort() = 6545;
+    sflowTunnel.udpDstPort() = 5343;
+    tunnel.sflowTunnel() = sflowTunnel;
+    *mirror.name() = "mirror";
+    mirror.destination()->tunnel() = tunnel;
+    newCfg.mirrors()->push_back(mirror);
 
     auto portId = masterLogicalPortIds()[1];
     auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->ingressMirror_ref() = "mirror";
-    portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+    portCfg->ingressMirror() = "mirror";
+    portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
     return applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -380,16 +380,16 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
     cfg::Mirror mirror;
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
-    *greTunnel.ip_ref() = "1.1.1.10";
-    tunnel.greTunnel_ref() = greTunnel;
-    *mirror.name_ref() = "mirror";
-    mirror.destination_ref()->tunnel_ref() = tunnel;
-    newCfg.mirrors_ref()->push_back(mirror);
+    *greTunnel.ip() = "1.1.1.10";
+    tunnel.greTunnel() = greTunnel;
+    *mirror.name() = "mirror";
+    mirror.destination()->tunnel() = tunnel;
+    newCfg.mirrors()->push_back(mirror);
 
     auto portId = masterLogicalPortIds()[1];
     auto portCfg = utility::findCfgPort(newCfg, portId);
-    portCfg->ingressMirror_ref() = "mirror";
-    portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
+    portCfg->ingressMirror() = "mirror";
+    portCfg->sampleDest() = cfg::SampleDestination::CPU;
     return applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -472,9 +472,9 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
       }
       // Due to the override port IPG is set, so the profileConfig should have
       // the override value
-      EXPECT_TRUE(port->getProfileConfig().interPacketGapBits_ref());
+      EXPECT_TRUE(port->getProfileConfig().interPacketGapBits());
       EXPECT_EQ(
-          *port->getProfileConfig().interPacketGapBits_ref(),
+          *port->getProfileConfig().interPacketGapBits(),
           expectedInterPacketGapBits);
 
       // Check BcmPort is also programmed to use the override IGP

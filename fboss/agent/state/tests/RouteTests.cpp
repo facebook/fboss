@@ -286,14 +286,14 @@ TEST(RouteTypes, toFromRouteNextHops) {
                     std::optional<InterfaceID> intf) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
     if (intf.has_value()) {
-      bAddr.ifName_ref() = util::createTunIntfName(intf.value());
+      bAddr.ifName() = util::createTunIntfName(intf.value());
     }
     bool found = false;
     for (const auto& entry : nhts) {
-      if (*entry.address_ref() == bAddr) {
+      if (*entry.address() == bAddr) {
         if (intf.has_value()) {
-          EXPECT_TRUE(entry.address_ref()->ifName_ref());
-          EXPECT_EQ(*bAddr.ifName_ref(), *entry.address_ref()->ifName_ref());
+          EXPECT_TRUE(entry.address()->ifName());
+          EXPECT_EQ(*bAddr.ifName(), *entry.address()->ifName());
         }
         found = true;
         break;
@@ -319,9 +319,9 @@ TEST(RouteTypes, toFromRouteNextHops) {
   facebook::network::thrift::BinaryAddress addr;
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
-  addr.ifName_ref() = "fboss10";
+  addr.ifName() = "fboss10";
   NextHopThrift nht;
-  *nht.address_ref() = addr;
+  *nht.address() = addr;
   {
     NextHop nh = util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
@@ -329,8 +329,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
-  addr.ifName_ref() = "fboss10";
-  *nht.address_ref() = addr;
+  addr.ifName() = "fboss10";
+  *nht.address() = addr;
   {
     NextHop nh = util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
@@ -338,8 +338,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("fe80::1"));
-  addr.ifName_ref() = "fboss10";
-  *nht.address_ref() = addr;
+  addr.ifName() = "fboss10";
+  *nht.address() = addr;
   {
     NextHop nh = util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("fe80::1"), nh.addr());
@@ -370,13 +370,13 @@ TEST(Route, nextHopTest) {
 TEST(Route, nexthopFromThriftAndDynamic) {
   IPAddressV6 ip{"fe80::1"};
   NextHopThrift nexthop;
-  nexthop.address_ref()->addr_ref()->append(
+  nexthop.address()->addr()->append(
       reinterpret_cast<const char*>(ip.bytes()),
       folly::IPAddressV6::byteCount());
-  nexthop.address_ref()->ifName_ref() = "fboss100";
+  nexthop.address()->ifName() = "fboss100";
   MplsAction action;
-  *action.action_ref() = MplsActionCode::PUSH;
-  action.pushLabels_ref() = MplsLabelStack{501, 502, 503};
+  *action.action() = MplsActionCode::PUSH;
+  action.pushLabels() = MplsLabelStack{501, 502, 503};
   EXPECT_EQ(util::fromThrift(nexthop).toThrift(), nexthop);
   EXPECT_EQ(
       util::nextHopFromFollyDynamic(util::fromThrift(nexthop).toFollyDynamic()),
@@ -391,10 +391,10 @@ TEST(RouteNextHopEntry, toUnicastRouteDrop) {
   EXPECT_EQ(
       nw,
       folly::CIDRNetwork(
-          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
-          *unicastRoute.dest_ref()->prefixLength_ref()));
-  EXPECT_EQ(RouteForwardAction::DROP, unicastRoute.action_ref());
-  EXPECT_EQ(0, unicastRoute.nextHops_ref()->size());
+          facebook::network::toIPAddress(*unicastRoute.dest()->ip()),
+          *unicastRoute.dest()->prefixLength()));
+  EXPECT_EQ(RouteForwardAction::DROP, unicastRoute.action());
+  EXPECT_EQ(0, unicastRoute.nextHops()->size());
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteCPU) {
@@ -405,10 +405,10 @@ TEST(RouteNextHopEntry, toUnicastRouteCPU) {
   EXPECT_EQ(
       nw,
       folly::CIDRNetwork(
-          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
-          *unicastRoute.dest_ref()->prefixLength_ref()));
-  EXPECT_EQ(RouteForwardAction::TO_CPU, unicastRoute.action_ref());
-  EXPECT_EQ(0, unicastRoute.nextHops_ref()->size());
+          facebook::network::toIPAddress(*unicastRoute.dest()->ip()),
+          *unicastRoute.dest()->prefixLength()));
+  EXPECT_EQ(RouteForwardAction::TO_CPU, unicastRoute.action());
+  EXPECT_EQ(0, unicastRoute.nextHops()->size());
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteNhopsNonEcmp) {
@@ -420,10 +420,10 @@ TEST(RouteNextHopEntry, toUnicastRouteNhopsNonEcmp) {
   EXPECT_EQ(
       nw,
       folly::CIDRNetwork(
-          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
-          *unicastRoute.dest_ref()->prefixLength_ref()));
-  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action_ref());
-  EXPECT_EQ(1, unicastRoute.nextHops_ref()->size());
+          facebook::network::toIPAddress(*unicastRoute.dest()->ip()),
+          *unicastRoute.dest()->prefixLength()));
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action());
+  EXPECT_EQ(1, unicastRoute.nextHops()->size());
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteNhopsEcmp) {
@@ -435,8 +435,8 @@ TEST(RouteNextHopEntry, toUnicastRouteNhopsEcmp) {
   EXPECT_EQ(
       nw,
       folly::CIDRNetwork(
-          facebook::network::toIPAddress(*unicastRoute.dest_ref()->ip_ref()),
-          *unicastRoute.dest_ref()->prefixLength_ref()));
-  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action_ref());
-  EXPECT_EQ(2, unicastRoute.nextHops_ref()->size());
+          facebook::network::toIPAddress(*unicastRoute.dest()->ip()),
+          *unicastRoute.dest()->prefixLength()));
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action());
+  EXPECT_EQ(2, unicastRoute.nextHops()->size());
 }

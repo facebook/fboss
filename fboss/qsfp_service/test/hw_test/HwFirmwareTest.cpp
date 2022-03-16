@@ -38,28 +38,28 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::SANDIA:
       throw FbossError("No xphys to check FW version on");
     case PlatformMode::ELBERT:
-      desiredFw.version_ref() = 1;
-      desiredFw.versionStr_ref() = "1.93";
-      desiredFw.minorVersion_ref() = 93;
+      desiredFw.version() = 1;
+      desiredFw.versionStr() = "1.93";
+      desiredFw.minorVersion() = 93;
       break;
     case PlatformMode::FUJI:
-      desiredFw.version_ref() = 0xD008;
-      desiredFw.crc_ref() = 0x4dcf6a59;
+      desiredFw.version() = 0xD008;
+      desiredFw.crc() = 0x4dcf6a59;
       break;
     case PlatformMode::CLOUDRIPPER:
-      desiredFw.version_ref() = 1;
-      desiredFw.versionStr_ref() = "1.92";
-      desiredFw.minorVersion_ref() = 92;
+      desiredFw.version() = 1;
+      desiredFw.versionStr() = "1.92";
+      desiredFw.minorVersion() = 92;
       break;
     case PlatformMode::MINIPACK:
-      desiredFw.version_ref() = 0xD037;
-      desiredFw.crc_ref() = 0xbf86d423;
+      desiredFw.version() = 0xD037;
+      desiredFw.crc() = 0xbf86d423;
       break;
     case PlatformMode::YAMP:
-      desiredFw.version_ref() = 0x3894F5;
-      desiredFw.versionStr_ref() = "2.18.2";
-      desiredFw.crc_ref() = 0x5B4C;
-      desiredFw.dateCode_ref() = 18423;
+      desiredFw.version() = 0x3894F5;
+      desiredFw.versionStr() = "2.18.2";
+      desiredFw.crc() = 0x5B4C;
+      desiredFw.dateCode() = 18423;
       break;
   }
 
@@ -74,11 +74,11 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     auto xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
         GlobalXphyID(chip.second.get_physicalID()));
     const auto& actualFw = xphy->fwVersion();
-    EXPECT_EQ(actualFw.version_ref(), desiredFw.version_ref());
-    EXPECT_EQ(actualFw.versionStr_ref(), desiredFw.versionStr_ref());
-    EXPECT_EQ(actualFw.crc_ref(), desiredFw.crc_ref());
-    EXPECT_EQ(actualFw.minorVersion_ref(), desiredFw.minorVersion_ref());
-    EXPECT_EQ(actualFw.dateCode_ref(), desiredFw.dateCode_ref());
+    EXPECT_EQ(actualFw.version(), desiredFw.version());
+    EXPECT_EQ(actualFw.versionStr(), desiredFw.versionStr());
+    EXPECT_EQ(actualFw.crc(), desiredFw.crc());
+    EXPECT_EQ(actualFw.minorVersion(), desiredFw.minorVersion());
+    EXPECT_EQ(actualFw.dateCode(), desiredFw.dateCode());
   }
 }
 } // namespace facebook::fboss

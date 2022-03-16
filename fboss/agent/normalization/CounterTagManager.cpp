@@ -16,11 +16,11 @@ namespace facebook::fboss::normalization {
 
 void CounterTagManager::reloadCounterTags(const cfg::SwitchConfig& curConfig) {
   PortCounterTagsMap newPortCounterTags;
-  for (auto& port : *curConfig.ports_ref()) {
-    if (port.name_ref() && port.counterTags_ref()) {
+  for (auto& port : *curConfig.ports()) {
+    if (port.name() && port.counterTags()) {
       auto tags =
-          std::make_shared<std::vector<std::string>>(*port.counterTags_ref());
-      newPortCounterTags.emplace(*port.name_ref(), std::move(tags));
+          std::make_shared<std::vector<std::string>>(*port.counterTags());
+      newPortCounterTags.emplace(*port.name(), std::move(tags));
     }
   }
 

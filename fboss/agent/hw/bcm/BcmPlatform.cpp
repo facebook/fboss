@@ -70,8 +70,8 @@ const BufferPoolCfg& BcmPlatform::getDefaultPortIngressPoolSettings() const {
 
 phy::VCOFrequency BcmPlatform::getVCOFrequency(
     phy::VCOFrequencyFactor& factor) const {
-  auto speed = *factor.speed_ref();
-  auto fecMode = *factor.fecMode_ref();
+  auto speed = *factor.speed();
+  auto fecMode = *factor.fecMode();
   switch (speed) {
     case cfg::PortSpeed::FOURHUNDREDG:
       return phy::VCOFrequency::VCO_26_5625GHZ;

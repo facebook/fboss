@@ -101,19 +101,18 @@ void BcmYamlConfig::modifyCoreMaps(
     auto coreNum = chip.get_physicalID();
     int rxMap = 0, txMap = 0, rxPolaritySwap = 0, txPolaritySwap = 0;
     for (auto pin = pins.rbegin(); pin != pins.rend(); pin++) {
-      if (!pin->laneMap_ref().has_value() ||
-          !pin->polaritySwap_ref().has_value()) {
+      if (!pin->laneMap().has_value() || !pin->polaritySwap().has_value()) {
         throw FbossError(
             "LaneMap and PolaritySwap information is required for dynamic bcm config");
       }
       // for lane map, each hex digit represents 1 lane, hence bit shift by 4
-      rxMap = (rxMap << 4) + can_throw(*pin->laneMap_ref()->rx_ref());
-      txMap = (txMap << 4) + can_throw(*pin->laneMap_ref()->tx_ref());
+      rxMap = (rxMap << 4) + can_throw(*pin->laneMap()->rx());
+      txMap = (txMap << 4) + can_throw(*pin->laneMap()->tx());
       // for pn swap, each bit represents 1 lane
       rxPolaritySwap =
-          (rxPolaritySwap << 1) | can_throw(*pin->polaritySwap_ref()->rx_ref());
+          (rxPolaritySwap << 1) | can_throw(*pin->polaritySwap()->rx());
       txPolaritySwap =
-          (txPolaritySwap << 1) | can_throw(*pin->polaritySwap_ref()->tx_ref());
+          (txPolaritySwap << 1) | can_throw(*pin->polaritySwap()->tx());
     }
     auto node = coreMapNode_[CoreKey(coreNum + 1, 0)];
     node[kRxLaneMapKey] = fmt::format("0x{:08X}", rxMap);

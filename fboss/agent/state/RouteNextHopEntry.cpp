@@ -30,8 +30,8 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
   nhs.reserve(addrs.size());
   for (const auto& addr : addrs) {
     facebook::fboss::NextHopThrift nh;
-    *nh.address_ref() = addr;
-    *nh.weight_ref() = 0;
+    *nh.address() = addr;
+    *nh.weight() = 0;
     nhs.emplace_back(std::move(nh));
   }
   return nhs;
@@ -68,14 +68,14 @@ UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,
     const RouteNextHopEntry& nhopEntry) {
   UnicastRoute thriftRoute;
-  thriftRoute.dest_ref()->ip_ref() = network::toBinaryAddress(nw.first);
-  thriftRoute.dest_ref()->prefixLength_ref() = nw.second;
-  thriftRoute.action_ref() = nhopEntry.getAction();
+  thriftRoute.dest()->ip() = network::toBinaryAddress(nw.first);
+  thriftRoute.dest()->prefixLength() = nw.second;
+  thriftRoute.action() = nhopEntry.getAction();
   if (nhopEntry.getCounterID().has_value()) {
-    thriftRoute.counterID_ref() = nhopEntry.getCounterID().value();
+    thriftRoute.counterID() = nhopEntry.getCounterID().value();
   }
   if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
-    thriftRoute.nextHops_ref() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
+    thriftRoute.nextHops() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
   }
   return thriftRoute;
 }
@@ -468,27 +468,27 @@ RouteNextHopEntry RouteNextHopEntry::from(
     AdminDistance defaultAdminDistance,
     std::optional<RouteCounterID> counterID) {
   std::vector<NextHopThrift> nhts;
-  if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
-    nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
+  if (route.nextHops()->empty() && !route.nextHopAddrs()->empty()) {
+    nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs());
   } else {
-    nhts = *route.nextHops_ref();
+    nhts = *route.nextHops();
   }
 
   RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
 
-  auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
+  auto adminDistance = route.adminDistance().value_or(defaultAdminDistance);
 
   if (nexthops.size()) {
-    if (route.action_ref() &&
-        *route.action_ref() != facebook::fboss::RouteForwardAction::NEXTHOPS) {
+    if (route.action() &&
+        *route.action() != facebook::fboss::RouteForwardAction::NEXTHOPS) {
       throw FbossError(
-          "Nexthops specified, but action is set to : ", *route.action_ref());
+          "Nexthops specified, but action is set to : ", *route.action());
     }
     return RouteNextHopEntry(std::move(nexthops), adminDistance, counterID);
   }
 
-  if (!route.action_ref() ||
-      *route.action_ref() == facebook::fboss::RouteForwardAction::DROP) {
+  if (!route.action() ||
+      *route.action() == facebook::fboss::RouteForwardAction::DROP) {
     return RouteNextHopEntry(
         RouteForwardAction::DROP, adminDistance, counterID);
   }
@@ -500,8 +500,8 @@ RouteNextHopEntry RouteNextHopEntry::from(
     const facebook::fboss::MplsRoute& route,
     AdminDistance defaultAdminDistance,
     std::optional<RouteCounterID> counterID) {
-  RouteNextHopSet nexthops = util::toRouteNextHopSet(*route.nextHops_ref());
-  auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
+  RouteNextHopSet nexthops = util::toRouteNextHopSet(*route.nextHops());
+  auto adminDistance = route.adminDistance().value_or(defaultAdminDistance);
   if (nexthops.size()) {
     return {std::move(nexthops), adminDistance, counterID};
   }
@@ -526,7 +526,7 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
   // routes, that may lead to unexpected behavior where some interface
   // gets more traffic.  If necessary, in the future, we can make it
   // possible to configure strictly ECMP static routes
-  for (auto& nhopStr : *route.nexthops_ref()) {
+  for (auto& nhopStr : *route.nexthops()) {
     nhops.emplace(
         UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
   }
@@ -538,7 +538,7 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticIp2MplsRoute(
     const cfg::StaticIp2MplsRoute& route) {
   RouteNextHopSet nhops;
 
-  for (auto& nexthop : *route.nexthops_ref()) {
+  for (auto& nexthop : *route.nexthops()) {
     nhops.emplace(util::fromThrift(nexthop));
   }
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
@@ -548,7 +548,7 @@ RouteNextHopEntry RouteNextHopEntry::fromStaticMplsRoute(
     const cfg::StaticMplsRouteWithNextHops& route) {
   RouteNextHopSet nhops;
 
-  for (auto& nexthop : *route.nexthops_ref()) {
+  for (auto& nexthop : *route.nexthops()) {
     nhops.emplace(util::fromThrift(nexthop));
   }
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);

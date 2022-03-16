@@ -53,16 +53,16 @@ class BcmAclNexthopTest : public BcmTest {
   cfg::SwitchConfig testConfig(std::string vipIp, std::string nexthopIp) const {
     auto cfg = initialConfig();
     cfg::AclEntry acl;
-    auto numCfgAcls = cfg.acls_ref()->size();
-    cfg.acls_ref()->resize(numCfgAcls + 1);
-    cfg.acls_ref()[numCfgAcls].name_ref() = kAclName;
-    cfg.acls_ref()[numCfgAcls].dstIp_ref() = vipIp;
-    cfg.acls_ref()[numCfgAcls].vlanID_ref() = 2001;
+    auto numCfgAcls = cfg.acls()->size();
+    cfg.acls()->resize(numCfgAcls + 1);
+    cfg.acls()[numCfgAcls].name() = kAclName;
+    cfg.acls()[numCfgAcls].dstIp() = vipIp;
+    cfg.acls()[numCfgAcls].vlanID() = 2001;
 
     auto redirect = cfg::RedirectToNextHopAction();
-    redirect.nexthops_ref()->push_back(nexthopIp);
+    redirect.nexthops()->push_back(nexthopIp);
     auto action = cfg::MatchAction();
-    action.redirectToNextHop_ref() = redirect;
+    action.redirectToNextHop() = redirect;
     utility::addMatcher(&cfg, kAclName, action);
     return cfg;
   }

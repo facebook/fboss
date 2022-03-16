@@ -81,11 +81,9 @@ class CmdShowPortQueue
             queue.get_id(),
             queue.get_name(),
             queue.get_mode(),
-            queue.weight_ref() ? std::to_string(*queue.weight_ref()) : "",
-            queue.reservedBytes_ref()
-                ? std::to_string(*queue.reservedBytes_ref())
-                : "",
-            queue.scalingFactor_ref() ? *queue.scalingFactor_ref() : "");
+            queue.weight() ? std::to_string(*queue.weight()) : "",
+            queue.reservedBytes() ? std::to_string(*queue.reservedBytes()) : "",
+            queue.scalingFactor() ? *queue.scalingFactor() : "");
       }
 
       std::cout << "\n";

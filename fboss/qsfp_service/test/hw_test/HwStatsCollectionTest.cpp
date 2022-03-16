@@ -124,10 +124,10 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
                             ->getPortInfo(sysLanes, lineLanes);
 
         // Sanity check the info we received
-        auto chipInfo = portInfo.phyChip_ref();
+        auto chipInfo = portInfo.phyChip();
         EXPECT_EQ(chipInfo->get_type(), phy::DataPlanePhyChipType::XPHY);
         EXPECT_FALSE(chipInfo->get_name().empty());
-        if (auto sysInfo = portInfo.system_ref()) {
+        if (auto sysInfo = portInfo.system()) {
           EXPECT_EQ(sysInfo->get_side(), phy::Side::SYSTEM);
           for (auto const& [lane, laneInfo] : sysInfo->get_pmd().get_lanes()) {
             EXPECT_EQ(lane, laneInfo.get_lane());
@@ -167,9 +167,9 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
         wedgeManager->programXphyPort(port, profile);
         // Then program this xphy port with a common prbs polynominal
         phy::PortPrbsState prbs;
-        prbs.enabled_ref() = true;
+        prbs.enabled() = true;
         static constexpr auto kCommonPolynominal = 9;
-        prbs.polynominal_ref() = kCommonPolynominal;
+        prbs.polynominal() = kCommonPolynominal;
         wedgeManager->programXphyPortPrbs(port, side, prbs);
       }
     };
@@ -215,11 +215,11 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
             getHwQsfpEnsemble()->getPhyManager()->getHwPhyPortConfig(port);
         auto modulation =
             (side == phy::Side::SYSTEM
-                 ? *phyPortConfig.profile.system.modulation_ref()
-                 : *phyPortConfig.profile.line.modulation_ref());
+                 ? *phyPortConfig.profile.system.modulation()
+                 : *phyPortConfig.profile.line.modulation());
         for (const auto& lanePrbsStats : prbsStats) {
-          EXPECT_TRUE(*lanePrbsStats.timeSinceLastLocked_ref() >= sleepSeconds);
-          EXPECT_TRUE(*lanePrbsStats.timeSinceLastClear_ref() >= sleepSeconds);
+          EXPECT_TRUE(*lanePrbsStats.timeSinceLastLocked() >= sleepSeconds);
+          EXPECT_TRUE(*lanePrbsStats.timeSinceLastClear() >= sleepSeconds);
           // NRZ on short channels can have 0 errors.
           // Expecting PAM4 to be BER 0 is not reasonable.
           // xphy and optics are both on the pim so the channel is short
@@ -227,11 +227,11 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
           // that adds loss
           if (modulation == phy::IpModulation::PAM4 &&
               side == phy::Side::SYSTEM) {
-            EXPECT_TRUE(*lanePrbsStats.ber_ref() > 0);
+            EXPECT_TRUE(*lanePrbsStats.ber() > 0);
           }
-          EXPECT_TRUE(*lanePrbsStats.maxBer_ref() >= *lanePrbsStats.ber_ref());
-          EXPECT_TRUE(*lanePrbsStats.locked_ref());
-          EXPECT_TRUE(*lanePrbsStats.numLossOfLock_ref() == 0);
+          EXPECT_TRUE(*lanePrbsStats.maxBer() >= *lanePrbsStats.ber());
+          EXPECT_TRUE(*lanePrbsStats.locked());
+          EXPECT_TRUE(*lanePrbsStats.numLossOfLock() == 0);
         }
       }
     };

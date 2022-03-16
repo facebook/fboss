@@ -125,16 +125,16 @@ class ExternalPhyPort {
         auto newGbSystemPrbsState = newPort->getGbSystemPrbs();
         setupPortPrbsAndCollection(
             phy::Side::SYSTEM,
-            *newGbSystemPrbsState.enabled_ref(),
-            *newGbSystemPrbsState.polynominal_ref());
+            *newGbSystemPrbsState.enabled(),
+            *newGbSystemPrbsState.polynominal());
       }
 
       if (oldPort->getGbLinePrbs() != newPort->getGbLinePrbs()) {
         auto newGbLinePrbsState = newPort->getGbLinePrbs();
         setupPortPrbsAndCollection(
             phy::Side::LINE,
-            *newGbLinePrbsState.enabled_ref(),
-            *newGbLinePrbsState.polynominal_ref());
+            *newGbLinePrbsState.enabled(),
+            *newGbLinePrbsState.polynominal());
       }
     }
 

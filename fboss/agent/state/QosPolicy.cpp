@@ -139,13 +139,13 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
 DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)
     : TrafficClassToQosAttributeMap<DSCP>() {
   for (auto map : cfg) {
-    auto trafficClass = *map.internalTrafficClass_ref();
+    auto trafficClass = *map.internalTrafficClass();
 
-    for (auto dscp : *map.fromDscpToTrafficClass_ref()) {
+    for (auto dscp : *map.fromDscpToTrafficClass()) {
       addFromEntry(
           static_cast<TrafficClass>(trafficClass), static_cast<DSCP>(dscp));
     }
-    if (auto fromTrafficClassToDscp = map.fromTrafficClassToDscp_ref()) {
+    if (auto fromTrafficClassToDscp = map.fromTrafficClassToDscp()) {
       addToEntry(
           static_cast<TrafficClass>(trafficClass),
           static_cast<DSCP>(fromTrafficClassToDscp.value()));
@@ -156,13 +156,13 @@ DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)
 ExpMap::ExpMap(std::vector<cfg::ExpQosMap> cfg)
     : TrafficClassToQosAttributeMap<EXP>() {
   for (auto map : cfg) {
-    auto trafficClass = *map.internalTrafficClass_ref();
+    auto trafficClass = *map.internalTrafficClass();
 
-    for (auto dscp : *map.fromExpToTrafficClass_ref()) {
+    for (auto dscp : *map.fromExpToTrafficClass()) {
       addFromEntry(
           static_cast<TrafficClass>(trafficClass), static_cast<EXP>(dscp));
     }
-    if (auto fromTrafficClassToExp = map.fromTrafficClassToExp_ref()) {
+    if (auto fromTrafficClassToExp = map.fromTrafficClassToExp()) {
       addToEntry(
           static_cast<TrafficClass>(trafficClass),
           static_cast<EXP>(fromTrafficClassToExp.value()));

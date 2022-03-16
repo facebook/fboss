@@ -22,7 +22,7 @@ std::shared_ptr<AclEntry> getTrapAclEntry(
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
   MatchAction matchAction;
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
-  queueAction.queueId_ref() = 0;
+  queueAction.queueId() = 0;
   matchAction.setSendToQueue(std::make_pair(queueAction, true));
   matchAction.setToCpuAction(cfg::ToCpuAction::COPY);
   aclEntry->setAclAction(matchAction);
@@ -72,7 +72,7 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
   MatchAction matchAction;
   cfg::QueueMatchAction queueAction = cfg::QueueMatchAction();
-  queueAction.queueId_ref() = 0;
+  queueAction.queueId() = 0;
   matchAction.setSendToQueue(std::make_pair(queueAction, true));
   matchAction.setToCpuAction(cfg::ToCpuAction::COPY);
   aclEntry->setAclAction(matchAction);

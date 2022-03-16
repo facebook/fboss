@@ -436,23 +436,21 @@ bool HwSwitchEnsemble::waitForRateOnPort(
   auto retries = 5;
   while (retries--) {
     const auto prevPortStats = getLatestPortStats(port);
-    auto prevPortBytes = *prevPortStats.outBytes__ref();
+    auto prevPortBytes = *prevPortStats.outBytes_();
     auto prevPortPackets =
-        (*prevPortStats.outUnicastPkts__ref() +
-         *prevPortStats.outMulticastPkts__ref() +
-         *prevPortStats.outBroadcastPkts__ref());
+        (*prevPortStats.outUnicastPkts_() + *prevPortStats.outMulticastPkts_() +
+         *prevPortStats.outBroadcastPkts_());
 
     sleep(secondsToWaitPerIteration);
     const auto curPortStats = getLatestPortStats(port);
     auto curPortPackets =
-        (*curPortStats.outUnicastPkts__ref() +
-         *curPortStats.outMulticastPkts__ref() +
-         *curPortStats.outBroadcastPkts__ref());
+        (*curPortStats.outUnicastPkts_() + *curPortStats.outMulticastPkts_() +
+         *curPortStats.outBroadcastPkts_());
 
     // 20 bytes are consumed by ethernet preamble, start of frame and
     // interpacket gap. Account for that in linerate.
     auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
-    auto curPortBytes = *curPortStats.outBytes__ref() + packetPaddingBytes;
+    auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
     auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
         secondsToWaitPerIteration;
     if (rate >= desiredBps) {

@@ -43,11 +43,11 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
   if (auto transceiver =
           getPlatform()->getOverrideTransceiverInfo(getPortID())) {
     // Override should always set media type
-    CHECK(transceiver->cable_ref());
-    return *(transceiver->cable_ref()->transmitterTech_ref());
+    CHECK(transceiver->cable());
+    return *(transceiver->cable()->transmitterTech());
   }
   const auto& entry = getPlatformPortEntry();
-  if (entry.mapping_ref()->name_ref()->find("fab") == 0) {
+  if (entry.mapping()->name()->find("fab") == 0) {
     return folly::makeFuture<TransmitterTechnology>(
         TransmitterTechnology::COPPER);
   }

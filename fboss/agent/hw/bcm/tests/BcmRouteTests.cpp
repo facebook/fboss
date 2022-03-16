@@ -826,14 +826,14 @@ TEST_F(BcmRouteTest, HostRouteStat) {
       expectedV4HostRouteIncrement = 0;
     }
     EXPECT_EQ(
-        *postUpdateStat.l3_host_used_ref(),
-        *preUpdateStat.l3_host_used_ref() + expectedV4HostRouteIncrement);
+        *postUpdateStat.l3_host_used(),
+        *preUpdateStat.l3_host_used() + expectedV4HostRouteIncrement);
     EXPECT_EQ(
-        *postUpdateStat.l3_ipv4_host_used_ref(),
-        *preUpdateStat.l3_ipv4_host_used_ref() + expectedV4HostRouteIncrement);
+        *postUpdateStat.l3_ipv4_host_used(),
+        *preUpdateStat.l3_ipv4_host_used() + expectedV4HostRouteIncrement);
     EXPECT_EQ(
-        *postUpdateStat.l3_ipv6_host_used_ref(),
-        *preUpdateStat.l3_ipv6_host_used_ref());
+        *postUpdateStat.l3_ipv6_host_used(),
+        *preUpdateStat.l3_ipv6_host_used());
   };
   setup();
   verify();
@@ -852,27 +852,24 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
   auto verify = [&]() {
     HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
+    EXPECT_EQ(*postUpdateStat.lpm_ipv4_max(), *preUpdateStat.lpm_ipv4_max());
     EXPECT_EQ(
-        *postUpdateStat.lpm_ipv4_max_ref(), *preUpdateStat.lpm_ipv4_max_ref());
+        *postUpdateStat.lpm_ipv6_mask_65_127_max(),
+        *preUpdateStat.lpm_ipv6_mask_65_127_max());
+    EXPECT_EQ(*postUpdateStat.lpm_ipv4_used(), *preUpdateStat.lpm_ipv4_used());
     EXPECT_EQ(
-        *postUpdateStat.lpm_ipv6_mask_65_127_max_ref(),
-        *preUpdateStat.lpm_ipv6_mask_65_127_max_ref());
-    EXPECT_EQ(
-        *postUpdateStat.lpm_ipv4_used_ref(),
-        *preUpdateStat.lpm_ipv4_used_ref());
-    EXPECT_EQ(
-        *postUpdateStat.lpm_ipv6_mask_0_64_used_ref(),
-        *preUpdateStat.lpm_ipv6_mask_0_64_used_ref());
+        *postUpdateStat.lpm_ipv6_mask_0_64_used(),
+        *preUpdateStat.lpm_ipv6_mask_0_64_used());
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
       EXPECT_EQ(
-          *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
-          *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 1);
+          *postUpdateStat.lpm_ipv6_mask_65_127_used(),
+          *preUpdateStat.lpm_ipv6_mask_65_127_used() + 1);
     } else {
       // one more 1::10/128 host entry is programmed to route table
       EXPECT_EQ(
-          *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
-          *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 2);
+          *postUpdateStat.lpm_ipv6_mask_65_127_used(),
+          *preUpdateStat.lpm_ipv6_mask_65_127_used() + 2);
     }
   };
   setup();

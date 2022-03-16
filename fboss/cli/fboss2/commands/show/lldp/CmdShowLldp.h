@@ -207,24 +207,24 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
         const auto expected_peer =
             extractExpectedPort(portInfo.get_description());
 
-        lldpDetails.localPort_ref() = *entry.get_localPortName();
-        lldpDetails.systemName_ref() = entry.get_systemName()
+        lldpDetails.localPort() = *entry.get_localPortName();
+        lldpDetails.systemName() = entry.get_systemName()
             ? *entry.get_systemName()
             : entry.get_printableChassisId();
-        lldpDetails.remotePort_ref() = entry.get_printablePortId();
-        lldpDetails.remotePlatform_ref() = *entry.get_systemDescription();
-        lldpDetails.remotePortDescription_ref() = portInfo.get_description();
-        lldpDetails.status_ref() =
+        lldpDetails.remotePort() = entry.get_printablePortId();
+        lldpDetails.remotePlatform() = *entry.get_systemDescription();
+        lldpDetails.remotePortDescription() = portInfo.get_description();
+        lldpDetails.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-        lldpDetails.expectedPeer_ref() = expected_peer;
+        lldpDetails.expectedPeer() = expected_peer;
 
-        model.lldpEntries_ref()->push_back(lldpDetails);
+        model.lldpEntries()->push_back(lldpDetails);
       }
     }
 
     std::sort(
-        model.lldpEntries_ref()->begin(),
-        model.lldpEntries_ref()->end(),
+        model.lldpEntries()->begin(),
+        model.lldpEntries()->end(),
         [](cli::LldpEntry& a, cli::LldpEntry b) {
           return a.get_localPort() < b.get_localPort();
         });

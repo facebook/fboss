@@ -21,7 +21,7 @@ LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
     const cfg::LoadBalancer& loadBalancerConfig) const {
   // LoadBalancerID is an alias for the type of loadBalancerConfig.id so no
   // validation is necessary
-  return *loadBalancerConfig.id_ref();
+  return *loadBalancerConfig.id();
 }
 
 std::tuple<
@@ -32,17 +32,17 @@ std::tuple<
 LoadBalancerConfigParser::parseFields(
     const cfg::LoadBalancer& loadBalancer) const {
   LoadBalancer::IPv4Fields v4Fields(
-      loadBalancer.fieldSelection_ref()->ipv4Fields_ref()->begin(),
-      loadBalancer.fieldSelection_ref()->ipv4Fields_ref()->end());
+      loadBalancer.fieldSelection()->ipv4Fields()->begin(),
+      loadBalancer.fieldSelection()->ipv4Fields()->end());
   LoadBalancer::IPv6Fields v6Fields(
-      loadBalancer.fieldSelection_ref()->ipv6Fields_ref()->begin(),
-      loadBalancer.fieldSelection_ref()->ipv6Fields_ref()->end());
+      loadBalancer.fieldSelection()->ipv6Fields()->begin(),
+      loadBalancer.fieldSelection()->ipv6Fields()->end());
   LoadBalancer::TransportFields transportFields(
-      loadBalancer.fieldSelection_ref()->transportFields_ref()->begin(),
-      loadBalancer.fieldSelection_ref()->transportFields_ref()->end());
+      loadBalancer.fieldSelection()->transportFields()->begin(),
+      loadBalancer.fieldSelection()->transportFields()->end());
   LoadBalancer::MPLSFields mplsFields(
-      loadBalancer.fieldSelection_ref()->mplsFields_ref()->begin(),
-      loadBalancer.fieldSelection_ref()->mplsFields_ref()->end());
+      loadBalancer.fieldSelection()->mplsFields()->begin(),
+      loadBalancer.fieldSelection()->mplsFields()->end());
 
   return std::make_tuple(v4Fields, v6Fields, transportFields, mplsFields);
 }
@@ -51,10 +51,10 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
     const cfg::LoadBalancer& cfg) const {
   auto loadBalancerID = parseLoadBalancerID(cfg);
   auto fields = parseFields(cfg);
-  auto algorithm = *cfg.algorithm_ref(); // TODO(samank): handle not being set
+  auto algorithm = *cfg.algorithm(); // TODO(samank): handle not being set
   auto hwSeed =
       platform_->getHwSwitch()->generateDeterministicSeed(loadBalancerID);
-  auto seed = cfg.seed_ref() ? *cfg.seed_ref() : hwSeed;
+  auto seed = cfg.seed() ? *cfg.seed() : hwSeed;
 
   return std::make_shared<LoadBalancer>(
       loadBalancerID,

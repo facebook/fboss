@@ -75,8 +75,8 @@ VCOFrequency getVCOFrequency(
         "Unsupported speed profile: ",
         apache::thrift::util::enumNameSafe(profile));
   }
-  factor.speed_ref() = *config->speed_ref();
-  factor.fecMode_ref() = *config->iphy_ref()->fec_ref();
+  factor.speed() = *config->speed();
+  factor.fecMode() = *config->iphy()->fec();
   return platform->getVCOFrequency(factor);
 }
 
@@ -192,24 +192,21 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
           ", doesn't have corresponding PlatformPortEntry");
     }
     auto itPortProfileCfg =
-        itPlatformPort->second.supportedProfiles_ref()->find(
-            port->getProfileID());
-    if (itPortProfileCfg ==
-        itPlatformPort->second.supportedProfiles_ref()->end()) {
+        itPlatformPort->second.supportedProfiles()->find(port->getProfileID());
+    if (itPortProfileCfg == itPlatformPort->second.supportedProfiles()->end()) {
       throw FbossError(
           "Port: ",
           port->getName(),
           ", uses port-unsupported speed profile: ",
           apache::thrift::util::enumNameSafe(port->getProfileID()));
     }
-    if (auto subsumedPorts = itPortProfileCfg->second.subsumedPorts_ref()) {
+    if (auto subsumedPorts = itPortProfileCfg->second.subsumedPorts()) {
       for (auto subsumedPort : *subsumedPorts) {
         needSubsumedPorts.insert(subsumedPort);
       }
     }
 
-    auto neededMode =
-        numLanesToLaneMode(*profileCfg->iphy_ref()->numLanes_ref());
+    auto neededMode = numLanesToLaneMode(*profileCfg->iphy()->numLanes());
     if (neededMode > desiredMode) {
       desiredMode = neededMode;
     }
@@ -238,8 +235,7 @@ std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
     const auto& portList = utility::getPlatformPortsByControllingPort(
         platformPorts, controllingPort_->getPortID());
     for (const auto& port : portList) {
-      auto swPort =
-          state->getPorts()->getPortIf(PortID(*port.mapping_ref()->id_ref()));
+      auto swPort = state->getPorts()->getPortIf(PortID(*port.mapping()->id()));
       // Platform port doesn't exist in sw config, no need to program
       if (swPort) {
         ports.push_back(swPort);

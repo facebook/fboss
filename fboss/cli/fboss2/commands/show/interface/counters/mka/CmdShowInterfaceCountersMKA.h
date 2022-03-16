@@ -57,7 +57,7 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
   RetType createModel(const std::map<std::string, facebook::fboss::MacsecStats>&
                           intfsMKAStatsMap) {
     RetType model;
-    model.intfMKAStats_ref() = intfsMKAStatsMap;
+    model.intfMKAStats() = intfsMKAStatsMap;
 
     return model;
   }
@@ -66,82 +66,80 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
     Table table;
 
     auto printPortStats = [&out](const auto& modelIntfMKAStats) {
-      const auto& inStats = *modelIntfMKAStats.ingressPortStats_ref();
-      const auto& outStats = *modelIntfMKAStats.egressPortStats_ref();
+      const auto& inStats = *modelIntfMKAStats.ingressPortStats();
+      const auto& outStats = *modelIntfMKAStats.egressPortStats();
 
       Table table;
       table.setHeader({"Counter Name", "IN", "OUT"});
       table.addRow(
           {"PreMacsecDropPackets",
-           std::to_string(*inStats.preMacsecDropPkts_ref()),
-           std::to_string(*outStats.preMacsecDropPkts_ref())});
+           std::to_string(*inStats.preMacsecDropPkts()),
+           std::to_string(*outStats.preMacsecDropPkts())});
       table.addRow(
           {"ControlPackets",
-           std::to_string(*inStats.controlPkts_ref()),
-           std::to_string(*outStats.controlPkts_ref())});
+           std::to_string(*inStats.controlPkts()),
+           std::to_string(*outStats.controlPkts())});
       table.addRow(
           {"DataPackets",
-           std::to_string(*inStats.dataPkts_ref()),
-           std::to_string(*outStats.dataPkts_ref())});
+           std::to_string(*inStats.dataPkts()),
+           std::to_string(*outStats.dataPkts())});
       table.addRow(
           {"(En/De)cryptedOctets",
-           std::to_string(*inStats.octetsEncrypted_ref()),
-           std::to_string(*outStats.octetsEncrypted_ref())});
+           std::to_string(*inStats.octetsEncrypted()),
+           std::to_string(*outStats.octetsEncrypted())});
       table.addRow(
           {"MacsecTagPkts",
-           std::to_string(*inStats.noMacsecTagPkts_ref()),
-           std::to_string(*outStats.noMacsecTagPkts_ref())});
+           std::to_string(*inStats.noMacsecTagPkts()),
+           std::to_string(*outStats.noMacsecTagPkts())});
       table.addRow(
           {"BadOrNoMacsecTagDroppedPkts",
-           std::to_string(*outStats.inBadOrNoMacsecTagDroppedPkts_ref()),
+           std::to_string(*outStats.inBadOrNoMacsecTagDroppedPkts()),
            "--"});
       table.addRow(
           {"NoSciDroppedPkts",
-           std::to_string(*inStats.inNoSciDroppedPkts_ref()),
+           std::to_string(*inStats.inNoSciDroppedPkts()),
            "--"});
       table.addRow(
           {"UnknownSciPkts",
-           std::to_string(*inStats.inUnknownSciPkts_ref()),
+           std::to_string(*inStats.inUnknownSciPkts()),
            "--"});
       table.addRow(
           {"OverrunDroppedPkts",
-           std::to_string(*inStats.inOverrunDroppedPkts_ref()),
+           std::to_string(*inStats.inOverrunDroppedPkts()),
            "--"});
       table.addRow(
-          {"DelayedPkts", std::to_string(*inStats.inDelayedPkts_ref()), "--"});
+          {"DelayedPkts", std::to_string(*inStats.inDelayedPkts()), "--"});
       table.addRow(
           {"LateDroppedPkts",
-           std::to_string(*inStats.inLateDroppedPkts_ref()),
+           std::to_string(*inStats.inLateDroppedPkts()),
            "--"});
       table.addRow(
           {"NotValidDroppedPkts",
-           std::to_string(*inStats.inNotValidDroppedPkts_ref()),
+           std::to_string(*inStats.inNotValidDroppedPkts()),
            "--"});
       table.addRow(
-          {"InvalidPkts", std::to_string(*inStats.inInvalidPkts_ref()), "--"});
+          {"InvalidPkts", std::to_string(*inStats.inInvalidPkts()), "--"});
       table.addRow(
           {"NoSaDroppedPkts",
-           std::to_string(*inStats.inNoSaDroppedPkts_ref()),
+           std::to_string(*inStats.inNoSaDroppedPkts()),
            "--"});
       table.addRow(
-          {"UnusedSaPkts",
-           std::to_string(*inStats.inUnusedSaPkts_ref()),
-           "--"});
+          {"UnusedSaPkts", std::to_string(*inStats.inUnusedSaPkts()), "--"});
       table.addRow(
           {"TooLongDroppedPkts",
            "--",
-           std::to_string(*outStats.outTooLongDroppedPkts_ref())});
+           std::to_string(*outStats.outTooLongDroppedPkts())});
 
       out << table << std::endl;
     };
 
     auto printFlowStatsMap = [&out](const auto& modelIntfMKAStats) {
-      const auto& inStatsList = *modelIntfMKAStats.ingressFlowStats_ref();
-      const auto& outStatsList = *modelIntfMKAStats.egressFlowStats_ref();
+      const auto& inStatsList = *modelIntfMKAStats.ingressFlowStats();
+      const auto& outStatsList = *modelIntfMKAStats.egressFlowStats();
 
       auto printFlowStats = [&out](const auto& flowStat, bool ingress) {
-        const auto& sci = *flowStat.sci_ref();
-        const auto& stats = *flowStat.flowStats_ref();
+        const auto& sci = *flowStat.sci();
+        const auto& stats = *flowStat.flowStats();
 
         out << "SCI INFO: " << std::endl;
         out << "MAC: " << sci.get_macAddress() << std::endl;
@@ -150,48 +148,44 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
         table.setHeader({"Flow Counter Name", "Value"});
         table.addRow(
             {"UnicastUncontrolledPackets",
-             std::to_string(*stats.ucastUncontrolledPkts_ref())});
+             std::to_string(*stats.ucastUncontrolledPkts())});
         table.addRow(
             {"UnicastControlledPackets",
-             std::to_string(*stats.ucastControlledPkts_ref())});
+             std::to_string(*stats.ucastControlledPkts())});
         table.addRow(
             {"MulticastUncontrolledPackets",
-             std::to_string(*stats.mcastUncontrolledPkts_ref())});
+             std::to_string(*stats.mcastUncontrolledPkts())});
         table.addRow(
             {"MulticastControlledPackets",
-             std::to_string(*stats.mcastControlledPkts_ref())});
+             std::to_string(*stats.mcastControlledPkts())});
         table.addRow(
             {"BroadcastUncontrolledPackets",
-             std::to_string(*stats.bcastUncontrolledPkts_ref())});
+             std::to_string(*stats.bcastUncontrolledPkts())});
         table.addRow(
             {"BroadcastControlledPackets",
-             std::to_string(*stats.bcastControlledPkts_ref())});
+             std::to_string(*stats.bcastControlledPkts())});
+        table.addRow({"ControlPackets", std::to_string(*stats.controlPkts())});
         table.addRow(
-            {"ControlPackets", std::to_string(*stats.controlPkts_ref())});
-        table.addRow(
-            {"OtherErroredPackets", std::to_string(*stats.otherErrPkts_ref())});
+            {"OtherErroredPackets", std::to_string(*stats.otherErrPkts())});
         table.addRow(
             {"OctetsUncontrolled",
-             std::to_string(*stats.octetsUncontrolled_ref())});
+             std::to_string(*stats.octetsUncontrolled())});
         table.addRow(
-            {"OctetsControlled",
-             std::to_string(*stats.octetsControlled_ref())});
+            {"OctetsControlled", std::to_string(*stats.octetsControlled())});
 
         if (ingress) {
           table.addRow(
-              {"UntaggedPackets", std::to_string(*stats.untaggedPkts_ref())});
+              {"UntaggedPackets", std::to_string(*stats.untaggedPkts())});
           table.addRow(
-              {"BadTagPackets", std::to_string(*stats.inBadTagPkts_ref())});
+              {"BadTagPackets", std::to_string(*stats.inBadTagPkts())});
+          table.addRow({"NoSciPackets", std::to_string(*stats.noSciPkts())});
           table.addRow(
-              {"NoSciPackets", std::to_string(*stats.noSciPkts_ref())});
-          table.addRow(
-              {"UnknownSciPackets",
-               std::to_string(*stats.unknownSciPkts_ref())});
+              {"UnknownSciPackets", std::to_string(*stats.unknownSciPkts())});
         } else {
           table.addRow(
-              {"CommonOctets", std::to_string(*stats.outCommonOctets_ref())});
+              {"CommonOctets", std::to_string(*stats.outCommonOctets())});
           table.addRow(
-              {"TooLongPackets", std::to_string(*stats.outTooLongPkts_ref())});
+              {"TooLongPackets", std::to_string(*stats.outTooLongPkts())});
         }
         out << table << std::endl;
       };
@@ -214,10 +208,8 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
     };
 
     auto printSaStatsMap = [&out](const auto& modelIntfMKAStats) {
-      const auto& inStatsList =
-          *modelIntfMKAStats.rxSecureAssociationStats_ref();
-      const auto& outStatsList =
-          *modelIntfMKAStats.txSecureAssociationStats_ref();
+      const auto& inStatsList = *modelIntfMKAStats.rxSecureAssociationStats();
+      const auto& outStatsList = *modelIntfMKAStats.txSecureAssociationStats();
 
       auto printSaStats = [&out](const auto& saStat, bool ingress) {
         const auto& stats = saStat.get_saStats();
@@ -232,35 +224,29 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
         Table table;
         table.setHeader({"SA Counter Name", "Value"});
         table.addRow(
-            {"OctetsEncrypted", std::to_string(*stats.octetsEncrypted_ref())});
+            {"OctetsEncrypted", std::to_string(*stats.octetsEncrypted())});
         table.addRow(
-            {"OctetsProtected", std::to_string(*stats.octetsProtected_ref())});
+            {"OctetsProtected", std::to_string(*stats.octetsProtected())});
         if (ingress) {
           table.addRow(
-              {"UncheckedPacktes",
-               std::to_string(*stats.inUncheckedPkts_ref())});
+              {"UncheckedPacktes", std::to_string(*stats.inUncheckedPkts())});
           table.addRow(
-              {"DelayedPacktes", std::to_string(*stats.inDelayedPkts_ref())});
+              {"DelayedPacktes", std::to_string(*stats.inDelayedPkts())});
+          table.addRow({"LatePacktes", std::to_string(*stats.inLatePkts())});
+          table.addRow({"LatePacktes", std::to_string(*stats.inLatePkts())});
           table.addRow(
-              {"LatePacktes", std::to_string(*stats.inLatePkts_ref())});
+              {"InvalidPacktes", std::to_string(*stats.inInvalidPkts())});
           table.addRow(
-              {"LatePacktes", std::to_string(*stats.inLatePkts_ref())});
+              {"NotValidPacktes", std::to_string(*stats.inNotValidPkts())});
+          table.addRow({"NoSaPacktes", std::to_string(*stats.inNoSaPkts())});
           table.addRow(
-              {"InvalidPacktes", std::to_string(*stats.inInvalidPkts_ref())});
-          table.addRow(
-              {"NotValidPacktes", std::to_string(*stats.inNotValidPkts_ref())});
-          table.addRow(
-              {"NoSaPacktes", std::to_string(*stats.inNoSaPkts_ref())});
-          table.addRow(
-              {"UnusedSaPacktes", std::to_string(*stats.inUnusedSaPkts_ref())});
-          table.addRow({"OkPacktes", std::to_string(*stats.inOkPkts_ref())});
+              {"UnusedSaPacktes", std::to_string(*stats.inUnusedSaPkts())});
+          table.addRow({"OkPacktes", std::to_string(*stats.inOkPkts())});
         } else {
           table.addRow(
-              {"EncryptedPacktes",
-               std::to_string(*stats.outEncryptedPkts_ref())});
+              {"EncryptedPacktes", std::to_string(*stats.outEncryptedPkts())});
           table.addRow(
-              {"ProtectedPacktes",
-               std::to_string(*stats.outProtectedPkts_ref())});
+              {"ProtectedPacktes", std::to_string(*stats.outProtectedPkts())});
         }
         out << table << std::endl;
       };
@@ -283,13 +269,13 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
     };
 
     auto printAclStats = [&out](const auto& modelIntfMKAStats) {
-      const auto& inStats = *modelIntfMKAStats.ingressAclStats_ref();
+      const auto& inStats = *modelIntfMKAStats.ingressAclStats();
 
       Table table;
       table.setHeader({"Counter Name", "IN", "OUT"});
       table.addRow(
           {"DefaultAclPackets",
-           std::to_string(*inStats.defaultAclStats_ref()),
+           std::to_string(*inStats.defaultAclStats()),
            "0"});
       out << table << std::endl;
     };

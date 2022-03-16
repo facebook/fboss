@@ -28,43 +28,43 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(
     const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
-  *high.id_ref() = utility::getCoppHighPriQueueId(hwAsic);
-  high.name_ref() = "cpuQueue-high";
-  *high.streamType_ref() = cfg::StreamType::MULTICAST;
-  *high.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  high.weight_ref() = 4;
+  *high.id() = utility::getCoppHighPriQueueId(hwAsic);
+  high.name() = "cpuQueue-high";
+  *high.streamType() = cfg::StreamType::MULTICAST;
+  *high.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  high.weight() = 4;
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
-  *mid.id_ref() = utility::kCoppMidPriQueueId;
-  mid.name_ref() = "cpuQueue-mid";
-  *mid.streamType_ref() = cfg::StreamType::MULTICAST;
-  *mid.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  mid.weight_ref() = 2;
+  *mid.id() = utility::kCoppMidPriQueueId;
+  mid.name() = "cpuQueue-mid";
+  *mid.streamType() = cfg::StreamType::MULTICAST;
+  *mid.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  mid.weight() = 2;
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
-  *defaultQ.id_ref() = utility::kCoppDefaultPriQueueId;
-  defaultQ.name_ref() = "cpuQueue-default";
-  *defaultQ.streamType_ref() = cfg::StreamType::MULTICAST;
-  *defaultQ.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  defaultQ.weight_ref() = 1;
-  defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
-  defaultQ.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 200);
-  defaultQ.reservedBytes_ref() = 5 * mmuCellBytes;
-  defaultQ.sharedBytes_ref() = 50 * mmuCellBytes;
+  *defaultQ.id() = utility::kCoppDefaultPriQueueId;
+  defaultQ.name() = "cpuQueue-default";
+  *defaultQ.streamType() = cfg::StreamType::MULTICAST;
+  *defaultQ.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  defaultQ.weight() = 1;
+  defaultQ.portQueueRate() = cfg::PortQueueRate();
+  defaultQ.portQueueRate()->pktsPerSec_ref() = utility::getRange(0, 200);
+  defaultQ.reservedBytes() = 5 * mmuCellBytes;
+  defaultQ.sharedBytes() = 50 * mmuCellBytes;
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
-  *low.id_ref() = utility::kCoppLowPriQueueId;
-  low.name_ref() = "cpuQueue-low";
-  *low.streamType_ref() = cfg::StreamType::MULTICAST;
-  *low.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  low.weight_ref() = kLowCpuQueueWeight;
-  low.portQueueRate_ref() = cfg::PortQueueRate();
-  low.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 100);
-  low.reservedBytes_ref() = kLowCpuQueueReservedMmuCellNum * mmuCellBytes;
-  low.sharedBytes_ref() = kLowCpuQueueSharedMmuCellNum * mmuCellBytes;
+  *low.id() = utility::kCoppLowPriQueueId;
+  low.name() = "cpuQueue-low";
+  *low.streamType() = cfg::StreamType::MULTICAST;
+  *low.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  low.weight() = kLowCpuQueueWeight;
+  low.portQueueRate() = cfg::PortQueueRate();
+  low.portQueueRate()->pktsPerSec_ref() = utility::getRange(0, 100);
+  low.reservedBytes() = kLowCpuQueueReservedMmuCellNum * mmuCellBytes;
+  low.sharedBytes() = kLowCpuQueueSharedMmuCellNum * mmuCellBytes;
   cpuQueues.push_back(low);
   return cpuQueues;
 }
@@ -78,16 +78,16 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
     auto cfg =
         utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
     // init cputTrafficPolicy here since some tests will use it
-    if (!cfg.cpuTrafficPolicy_ref()) {
-      cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+    if (!cfg.cpuTrafficPolicy()) {
+      cfg.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
     }
     return cfg;
   }
 
   std::optional<cfg::PortQueue> getCfgQueue(int queueID) override {
     std::optional<cfg::PortQueue> cfgQueue{std::nullopt};
-    for (const auto& queue : *programmedCfg_.cpuQueues_ref()) {
-      if (*queue.id_ref() == queueID) {
+    for (const auto& queue : *programmedCfg_.cpuQueues()) {
+      if (*queue.id() == queueID) {
         cfgQueue = queue;
         break;
       }
@@ -153,7 +153,7 @@ TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
 TEST_F(BcmControlPlaneTest, ConfigCPUQueuesSetup) {
   auto setup = [=]() {
     auto cfg = initialConfig();
-    *cfg.cpuQueues_ref() =
+    *cfg.cpuQueues() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
   };
@@ -168,7 +168,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    *cfg.cpuQueues_ref() =
+    *cfg.cpuQueues() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
@@ -177,9 +177,9 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     }
 
     // change low queue pps from 100 to 1000. the last one is low queue
-    auto& lowQueue = cfg.cpuQueues_ref()->at(cfg.cpuQueues_ref()->size() - 1);
-    lowQueue.portQueueRate_ref() = cfg::PortQueueRate();
-    lowQueue.portQueueRate_ref()->pktsPerSec_ref() = utility::getRange(0, 1000);
+    auto& lowQueue = cfg.cpuQueues()->at(cfg.cpuQueues()->size() - 1);
+    lowQueue.portQueueRate() = cfg::PortQueueRate();
+    lowQueue.portQueueRate()->pktsPerSec_ref() = utility::getRange(0, 1000);
 
     applyNewConfig(cfg);
   };
@@ -204,10 +204,9 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     EXPECT_EQ(
         lowQ->getPortQueueRate().value().getType(),
         cfg::PortQueueRate::Type::pktsPerSec);
+    EXPECT_EQ(*lowQ->getPortQueueRate().value().get_pktsPerSec().minimum(), 0);
     EXPECT_EQ(
-        *lowQ->getPortQueueRate().value().get_pktsPerSec().minimum_ref(), 0);
-    EXPECT_EQ(
-        *lowQ->getPortQueueRate().value().get_pktsPerSec().maximum_ref(), 1000);
+        *lowQ->getPortQueueRate().value().get_pktsPerSec().maximum(), 1000);
 
     // other queues shouldn't be affected
     for (int i = 1; i < swQueuesAfter.size(); i++) {
@@ -224,7 +223,7 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    *cfg.cpuQueues_ref() =
+    *cfg.cpuQueues() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
@@ -233,7 +232,7 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
     }
 
     // remove the low-prio queue
-    cfg.cpuQueues_ref()->erase(cfg.cpuQueues_ref()->begin() + 3);
+    cfg.cpuQueues()->erase(cfg.cpuQueues()->begin() + 3);
     applyNewConfig(cfg);
   };
 
@@ -294,8 +293,7 @@ TEST_F(BcmControlPlaneTest, VerifyReasonToQueueMapping) {
           cfg::PacketRxReason::BPDU, utility::kCoppDefaultPriQueueId)};
   auto setup = [&]() {
     auto cfg = initialConfig();
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
-        cfgReasonToQueue;
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = cfgReasonToQueue;
     applyNewConfig(cfg);
   };
 
@@ -329,8 +327,7 @@ TEST_F(BcmControlPlaneTest, WriteOverReasonToQueue) {
 
   auto setup = [&]() {
     auto cfg = initialConfig();
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
-        cfgReasonToQueue1;
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = cfgReasonToQueue1;
     applyNewConfig(cfg);
 
     auto hwReasonToQueue =
@@ -338,8 +335,7 @@ TEST_F(BcmControlPlaneTest, WriteOverReasonToQueue) {
     EXPECT_EQ(hwReasonToQueue, cfgReasonToQueue1);
 
     cfg = initialConfig();
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
-        cfgReasonToQueue2;
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = cfgReasonToQueue2;
     applyNewConfig(cfg);
 
     hwReasonToQueue = getHwSwitch()->getControlPlane()->getRxReasonToQueue();

@@ -143,26 +143,24 @@ fan_config_structs::AccessMethod ServiceConfig::parseAccessMethod(
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSource:
         if (convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceSysfs) {
-          returnVal.accessType_ref() =
-              fan_config_structs::SourceType::kSrcSysfs;
+          returnVal.accessType() = fan_config_structs::SourceType::kSrcSysfs;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceThrift) {
-          returnVal.accessType_ref() =
-              fan_config_structs::SourceType::kSrcThrift;
+          returnVal.accessType() = fan_config_structs::SourceType::kSrcThrift;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceUtil) {
-          returnVal.accessType_ref() = fan_config_structs::SourceType::kSrcUtil;
+          returnVal.accessType() = fan_config_structs::SourceType::kSrcUtil;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::kFsvcCfgSourceRest) {
-          returnVal.accessType_ref() = fan_config_structs::SourceType::kSrcRest;
+          returnVal.accessType() = fan_config_structs::SourceType::kSrcRest;
         } else if (
             convertKeywordToIndex(value.asString()) ==
             fan_config_structs::FsvcConfigDictIndex::
                 kFsvcCfgSourceQsfpService) {
-          returnVal.accessType_ref() =
+          returnVal.accessType() =
               fan_config_structs::SourceType::kSrcQsfpService;
         } else {
           throw facebook::fboss::FbossError(
@@ -170,7 +168,7 @@ fan_config_structs::AccessMethod ServiceConfig::parseAccessMethod(
         }
         break;
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgAccessPath:
-        returnVal.path_ref() = value.asString();
+        returnVal.path() = value.asString();
         break;
       default:
         XLOG(ERR) << "Invalid Key in Access Method Parsing : " << key;

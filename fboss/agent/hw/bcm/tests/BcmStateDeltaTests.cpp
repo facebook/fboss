@@ -22,60 +22,53 @@ using namespace facebook::fboss;
 
 void addQosPolicyWithRules(cfg::SwitchConfig& cfg, const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  *qosPolicy.name_ref() = name;
-  qosPolicy.rules_ref()->resize(8);
+  *qosPolicy.name() = name;
+  qosPolicy.rules()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    *qosPolicy.rules_ref()[i].queueId_ref() = i;
+    *qosPolicy.rules()[i].queueId() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.rules_ref()[i].dscp_ref()->push_back(8 * i + j);
+      qosPolicy.rules()[i].dscp()->push_back(8 * i + j);
     }
   }
-  cfg.qosPolicies_ref()->push_back(qosPolicy);
+  cfg.qosPolicies()->push_back(qosPolicy);
 }
 
 void addQosPolicyWithDscpMap(cfg::SwitchConfig& cfg, const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  *qosPolicy.name_ref() = name;
-  qosPolicy.qosMap_ref() = cfg::QosMap();
-  qosPolicy.qosMap_ref()->dscpMaps_ref()->resize(8);
+  *qosPolicy.name() = name;
+  qosPolicy.qosMap() = cfg::QosMap();
+  qosPolicy.qosMap()->dscpMaps()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    *qosPolicy.qosMap_ref()->dscpMaps_ref()[i].internalTrafficClass_ref() = i;
+    *qosPolicy.qosMap()->dscpMaps()[i].internalTrafficClass() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.qosMap_ref()
-          ->dscpMaps_ref()[i]
-          .fromDscpToTrafficClass_ref()
-          ->push_back(8 * i + j);
+      qosPolicy.qosMap()->dscpMaps()[i].fromDscpToTrafficClass()->push_back(
+          8 * i + j);
     }
   }
-  cfg.qosPolicies_ref()->push_back(qosPolicy);
+  cfg.qosPolicies()->push_back(qosPolicy);
 }
 
 void addQosPolicyWithDscpAndExpMap(
     cfg::SwitchConfig& cfg,
     const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  *qosPolicy.name_ref() = name;
-  qosPolicy.qosMap_ref() = cfg::QosMap();
-  qosPolicy.qosMap_ref()->dscpMaps_ref()->resize(8);
-  qosPolicy.qosMap_ref()->expMaps_ref()->resize(8);
+  *qosPolicy.name() = name;
+  qosPolicy.qosMap() = cfg::QosMap();
+  qosPolicy.qosMap()->dscpMaps()->resize(8);
+  qosPolicy.qosMap()->expMaps()->resize(8);
   for (auto i = 0; i < 8; i++) {
     // dscp map
-    *qosPolicy.qosMap_ref()->dscpMaps_ref()[i].internalTrafficClass_ref() = i;
+    *qosPolicy.qosMap()->dscpMaps()[i].internalTrafficClass() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.qosMap_ref()
-          ->dscpMaps_ref()[i]
-          .fromDscpToTrafficClass_ref()
-          ->push_back(8 * i + j);
+      qosPolicy.qosMap()->dscpMaps()[i].fromDscpToTrafficClass()->push_back(
+          8 * i + j);
     }
     // exp map
-    *qosPolicy.qosMap_ref()->expMaps_ref()[i].internalTrafficClass_ref() = i;
-    qosPolicy.qosMap_ref()
-        ->expMaps_ref()[i]
-        .fromExpToTrafficClass_ref()
-        ->push_back(i);
-    qosPolicy.qosMap_ref()->expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
+    *qosPolicy.qosMap()->expMaps()[i].internalTrafficClass() = i;
+    qosPolicy.qosMap()->expMaps()[i].fromExpToTrafficClass()->push_back(i);
+    qosPolicy.qosMap()->expMaps()[i].fromTrafficClassToExp() = i;
   }
-  cfg.qosPolicies_ref()->push_back(qosPolicy);
+  cfg.qosPolicies()->push_back(qosPolicy);
 }
 
 void setDataPlaneTrafficPolicy(
@@ -83,19 +76,19 @@ void setDataPlaneTrafficPolicy(
     const std::string& name) {
   cfg::TrafficPolicyConfig trafficPolicy;
 
-  trafficPolicy.defaultQosPolicy_ref() = name;
-  cfg.dataPlaneTrafficPolicy_ref() = trafficPolicy;
+  trafficPolicy.defaultQosPolicy() = name;
+  cfg.dataPlaneTrafficPolicy() = trafficPolicy;
 }
 
 void setDataPlaneTrafficPolicyForPort(
     cfg::SwitchConfig& cfg,
     const std::string& name,
     int port) {
-  if (auto policy = cfg.dataPlaneTrafficPolicy_ref()) {
-    if (auto portIdToQosPolicy = policy->portIdToQosPolicy_ref()) {
+  if (auto policy = cfg.dataPlaneTrafficPolicy()) {
+    if (auto portIdToQosPolicy = policy->portIdToQosPolicy()) {
       portIdToQosPolicy->emplace(port, name);
     } else {
-      policy->portIdToQosPolicy_ref() = {{port, name}};
+      policy->portIdToQosPolicy() = {{port, name}};
     }
   }
 }
@@ -144,8 +137,7 @@ TEST_F(BcmTest, validQosPolicyConfigWithRulesAndDifferentPolicyForPort) {
   addQosPolicyWithRules(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithRules(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(
-      cfg, "qp1", *cfg.ports_ref()[0].logicalID_ref());
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports()[0].logicalID());
   auto newState = applyNewConfig(cfg);
   EXPECT_TRUE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
@@ -167,8 +159,7 @@ TEST_F(BcmTest, dscpQosMapForPort) {
   addQosPolicyWithDscpAndExpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithDscpMap(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(
-      cfg, "qp1", *cfg.ports_ref()[0].logicalID_ref());
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports()[0].logicalID());
   auto newState = applyNewConfig(cfg);
   EXPECT_TRUE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
@@ -180,8 +171,7 @@ TEST_F(BcmTest, expQosMapForPort) {
   addQosPolicyWithDscpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithDscpAndExpMap(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(
-      cfg, "qp1", *cfg.ports_ref()[0].logicalID_ref());
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports()[0].logicalID());
   auto newState = applyNewConfig(cfg);
   EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
@@ -196,14 +186,14 @@ TEST_F(BcmTest, validInterfaceConfig) {
   auto oldState = applyNewConfig(cfg);
   // move a port to default vlan
   auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[1]);
-  portCfg->ingressVlan_ref() = utility::kDefaultVlanId;
-  cfg.interfaces_ref()->resize(2);
-  cfg.interfaces_ref()[1].intfID_ref() = utility::kDefaultVlanId;
-  cfg.interfaces_ref()[1].vlanID_ref() = utility::kDefaultVlanId;
-  cfg.interfaces_ref()[1].routerID_ref() = 0;
-  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-  cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
-  cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/64";
+  portCfg->ingressVlan() = utility::kDefaultVlanId;
+  cfg.interfaces()->resize(2);
+  cfg.interfaces()[1].intfID() = utility::kDefaultVlanId;
+  cfg.interfaces()[1].vlanID() = utility::kDefaultVlanId;
+  cfg.interfaces()[1].routerID() = 0;
+  cfg.interfaces()[1].ipAddresses()->resize(2);
+  cfg.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
+  cfg.interfaces()[1].ipAddresses()[1] = "2::1/64";
   EXPECT_THROW(applyNewConfig(cfg), FbossError);
 }
 

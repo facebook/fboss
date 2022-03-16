@@ -357,13 +357,13 @@ void BcmCosQueueManager::updateQueueStat(
 
   if (portStats) {
     if (statType == BcmCosQueueStatType::DROPPED_BYTES) {
-      portStats->queueOutDiscardBytes__ref()[cosQ] = value;
+      portStats->queueOutDiscardBytes_()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::DROPPED_PACKETS) {
-      portStats->queueOutDiscardPackets__ref()[cosQ] = value;
+      portStats->queueOutDiscardPackets_()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_BYTES) {
-      portStats->queueOutBytes__ref()[cosQ] = value;
+      portStats->queueOutBytes_()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {
-      portStats->queueOutPackets__ref()[cosQ] = value;
+      portStats->queueOutPackets_()[cosQ] = value;
     }
   }
 }
@@ -587,11 +587,11 @@ void BcmCosQueueManager::getBandwidth(
       *defaultQueueSettings.getPortQueueRate()
               .value()
               .get_pktsPerSec()
-              .minimum_ref() == ppsMin &&
+              .minimum() == ppsMin &&
       *defaultQueueSettings.getPortQueueRate()
               .value()
               .get_pktsPerSec()
-              .maximum_ref() == ppsMax) {
+              .maximum() == ppsMax) {
     XLOG(DBG1) << "Configured pps equals default ppsMin: " << ppsMin
                << " and default ppsMax: " << ppsMax;
     return;
@@ -604,11 +604,11 @@ void BcmCosQueueManager::getBandwidth(
       *defaultQueueSettings.getPortQueueRate()
               .value()
               .get_kbitsPerSec()
-              .minimum_ref() == ppsMin &&
+              .minimum() == ppsMin &&
       *defaultQueueSettings.getPortQueueRate()
               .value()
               .get_kbitsPerSec()
-              .maximum_ref() == ppsMax) {
+              .maximum() == ppsMax) {
     XLOG(DBG1) << "Configured kbps equals default ppsMin: " << ppsMin
                << " and default ppsMax: " << ppsMax;
     return;
@@ -617,8 +617,8 @@ void BcmCosQueueManager::getBandwidth(
   cfg::PortQueueRate portQueueRate;
 
   cfg::Range range;
-  *range.minimum_ref() = ppsMin;
-  *range.maximum_ref() = ppsMax;
+  *range.minimum() = ppsMin;
+  *range.maximum() = ppsMax;
 
   flags != BCM_COSQ_BW_PACKET_MODE
       ? portQueueRate.kbitsPerSec_ref().emplace(range)
@@ -642,12 +642,12 @@ void BcmCosQueueManager::programBandwidth(
   }
 
   if (portQueueRate.getType() == cfg::PortQueueRate::Type::pktsPerSec) {
-    rateMin = *portQueueRate.get_pktsPerSec().minimum_ref();
-    rateMax = *portQueueRate.get_pktsPerSec().maximum_ref();
+    rateMin = *portQueueRate.get_pktsPerSec().minimum();
+    rateMax = *portQueueRate.get_pktsPerSec().maximum();
     flags = BCM_COSQ_BW_PACKET_MODE;
   } else { // cfg::PortQueueRate::Type::pktsPerSec
-    rateMin = *portQueueRate.get_kbitsPerSec().minimum_ref();
-    rateMax = *portQueueRate.get_kbitsPerSec().maximum_ref();
+    rateMin = *portQueueRate.get_kbitsPerSec().minimum();
+    rateMax = *portQueueRate.get_kbitsPerSec().maximum();
     flags = 0;
   }
 
@@ -691,7 +691,7 @@ void BcmCosQueueManager::updateQueueAggregatedStat(
 
   // right now HwPortStats only supports returning pkt stat for aggregated
   if (statType == BcmCosQueueStatType::DROPPED_PACKETS && portStats) {
-    *portStats->outCongestionDiscardPkts__ref() = value;
+    *portStats->outCongestionDiscardPkts_() = value;
   }
 }
 

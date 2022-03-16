@@ -21,11 +21,10 @@ cfg::Mirror getSPANMirror(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portID));
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
+  mirror.name() = name;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portID));
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
   return mirror;
 }
 
@@ -35,17 +34,16 @@ cfg::Mirror getSPANMirror(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portName));
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
+  mirror.name() = name;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portName));
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
   return mirror;
 }
 
 cfg::GreTunnel getGreTunnelConfig(folly::IPAddress dstAddress) {
   cfg::GreTunnel greTunnel;
-  greTunnel.ip_ref() = dstAddress.str();
+  greTunnel.ip() = dstAddress.str();
   return greTunnel;
 }
 
@@ -54,9 +52,9 @@ cfg::SflowTunnel getSflowTunnelConfig(
     uint16_t sPort,
     uint16_t dPort) {
   cfg::SflowTunnel sflowTunnel;
-  sflowTunnel.ip_ref() = dstAddress.str();
-  sflowTunnel.udpSrcPort_ref() = sPort;
-  sflowTunnel.udpDstPort_ref() = dPort;
+  sflowTunnel.ip() = dstAddress.str();
+  sflowTunnel.udpSrcPort() = sPort;
+  sflowTunnel.udpDstPort() = dPort;
   return sflowTunnel;
 }
 
@@ -64,9 +62,9 @@ cfg::MirrorTunnel getGREMirrorTunnelConfig(
     folly::IPAddress dstAddress,
     std::optional<folly::IPAddress> srcAddress) {
   cfg::MirrorTunnel mirrorTunnel;
-  mirrorTunnel.greTunnel_ref().emplace(getGreTunnelConfig(dstAddress));
+  mirrorTunnel.greTunnel().emplace(getGreTunnelConfig(dstAddress));
   if (srcAddress) {
-    mirrorTunnel.srcIp_ref().emplace(srcAddress->str());
+    mirrorTunnel.srcIp().emplace(srcAddress->str());
   }
   return mirrorTunnel;
 }
@@ -77,10 +75,10 @@ cfg::MirrorTunnel getSflowMirrorTunnelConfig(
     uint16_t dPort,
     std::optional<folly::IPAddress> srcAddress) {
   cfg::MirrorTunnel mirrorTunnel;
-  mirrorTunnel.sflowTunnel_ref().emplace(
+  mirrorTunnel.sflowTunnel().emplace(
       getSflowTunnelConfig(dstAddress, sPort, dPort));
   if (srcAddress) {
-    mirrorTunnel.srcIp_ref().emplace(srcAddress->str());
+    mirrorTunnel.srcIp().emplace(srcAddress->str());
   }
   return mirrorTunnel;
 }
@@ -92,10 +90,10 @@ cfg::Mirror getGREMirror(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->tunnel().emplace(
       getGREMirrorTunnelConfig(dstAddress, srcAddress));
   return mirror;
 }
@@ -108,12 +106,11 @@ cfg::Mirror getGREMirrorWithPort(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portID));
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portID));
+  mirror.destination()->tunnel().emplace(
       getGREMirrorTunnelConfig(dstAddress, srcAddress));
   return mirror;
 }
@@ -126,12 +123,11 @@ cfg::Mirror getGREMirrorWithPort(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portName));
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portName));
+  mirror.destination()->tunnel().emplace(
       getGREMirrorTunnelConfig(dstAddress, srcAddress));
   return mirror;
 }
@@ -145,10 +141,10 @@ cfg::Mirror getSFlowMirror(
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->tunnel().emplace(
       getSflowMirrorTunnelConfig(dstAddress, sPort, dPort, srcAddress));
   return mirror;
 }
@@ -165,12 +161,11 @@ cfg::Mirror getSFlowMirrorWithPort(
 
 ) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portID));
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portID));
+  mirror.destination()->tunnel().emplace(
       getSflowMirrorTunnelConfig(dstAddress, sPort, dPort, srcAddress));
   return mirror;
 }
@@ -187,12 +182,11 @@ cfg::Mirror getSFlowMirrorWithPortName(
 
 ) {
   cfg::Mirror mirror;
-  mirror.name_ref() = name;
-  mirror.dscp_ref() = dscp;
-  mirror.truncate_ref() = truncate;
-  mirror.destination_ref()->egressPort_ref().emplace(
-      getMirrorEgressPort(portName));
-  mirror.destination_ref()->tunnel_ref().emplace(
+  mirror.name() = name;
+  mirror.dscp() = dscp;
+  mirror.truncate() = truncate;
+  mirror.destination()->egressPort().emplace(getMirrorEgressPort(portName));
+  mirror.destination()->tunnel().emplace(
       getSflowMirrorTunnelConfig(dstAddress, sPort, dPort, srcAddress));
   return mirror;
 }

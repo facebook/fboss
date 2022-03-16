@@ -67,13 +67,13 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
       platformPortEntry, dataPlanePhyChips, profileID);
   std::vector<uint32_t> hwLaneList;
   for (auto iphy : iphys) {
-    auto chipIter = dataPlanePhyChips.find(*iphy.chip_ref());
+    auto chipIter = dataPlanePhyChips.find(*iphy.chip());
     if (chipIter == dataPlanePhyChips.end()) {
       throw FbossError(
-          "dataplane chip does not exist for chip: ", *iphy.chip_ref());
+          "dataplane chip does not exist for chip: ", *iphy.chip());
     }
-    hwLaneList.push_back(getPhysicalLaneId(
-        *chipIter->second.physicalID_ref(), *iphy.lane_ref()));
+    hwLaneList.push_back(
+        getPhysicalLaneId(*chipIter->second.physicalID(), *iphy.lane()));
   }
   return hwLaneList;
 }
@@ -83,16 +83,15 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
   auto profileID = getProfileIDBySpeed(speed);
   const auto& platformPortEntry = getPlatformPortEntry();
   auto supportedProfilesIter =
-      platformPortEntry.supportedProfiles_ref()->find(profileID);
-  if (supportedProfilesIter ==
-      platformPortEntry.supportedProfiles_ref()->end()) {
+      platformPortEntry.supportedProfiles()->find(profileID);
+  if (supportedProfilesIter == platformPortEntry.supportedProfiles()->end()) {
     throw FbossError(
         "Port: ",
-        *platformPortEntry.mapping_ref()->name_ref(),
+        *platformPortEntry.mapping()->name(),
         " doesn't support the speed profile:");
   }
   std::vector<PortID> subsumedPortList;
-  for (auto portId : *supportedProfilesIter->second.subsumedPorts_ref()) {
+  for (auto portId : *supportedProfilesIter->second.subsumedPorts()) {
     subsumedPortList.push_back(PortID(portId));
   }
   return subsumedPortList;
@@ -106,8 +105,8 @@ SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
   }
   int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
-    if (auto cable = info.cable_ref()) {
-      return *cable->transmitterTech_ref();
+    if (auto cable = info.cable()) {
+      return *cable->transmitterTech();
     }
     return TransmitterTechnology::UNKNOWN;
   };
@@ -137,11 +136,11 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   auto transceiverLanes = utility::getTransceiverLanes(
       platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
   for (auto entry : transceiverLanes) {
-    lanes.push_back(*entry.lane_ref());
+    lanes.push_back(*entry.lane());
   }
   TransceiverIdxThrift xcvr;
-  xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
-  xcvr.channels_ref() = lanes;
+  xcvr.transceiverId() = static_cast<int32_t>(*getTransceiverID());
+  xcvr.channels() = lanes;
   return xcvr;
 }
 
@@ -162,7 +161,7 @@ std::optional<ChannelID> SaiPlatformPort::getChannel() const {
   auto tcvrList = getTransceiverLanes();
   if (!tcvrList.empty()) {
     // All the transceiver lanes should use the same transceiver id
-    return ChannelID(*tcvrList[0].lane_ref());
+    return ChannelID(*tcvrList[0].lane());
   }
   return std::nullopt;
 }

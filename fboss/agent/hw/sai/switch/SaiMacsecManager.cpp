@@ -65,8 +65,8 @@ const std::shared_ptr<AclEntry> createMacsecAclEntry(
   }
   auto macsecAction = MatchAction();
   auto macsecFlowAction = cfg::MacsecFlowAction();
-  macsecFlowAction.action_ref() = cfg::MacsecFlowPacketAction::MACSEC_FLOW;
-  macsecFlowAction.flowId_ref() = flowId;
+  macsecFlowAction.action() = cfg::MacsecFlowPacketAction::MACSEC_FLOW;
+  macsecFlowAction.flowId() = flowId;
   macsecAction.setMacsecFlow(macsecFlowAction);
   entry->setActionType(cfg::AclActionType::PERMIT);
   entry->setAclAction(macsecAction);
@@ -89,8 +89,8 @@ const std::shared_ptr<AclEntry> createMacsecControlAclEntry(
 
   auto macsecAction = MatchAction();
   auto macsecFlowAction = cfg::MacsecFlowAction();
-  macsecFlowAction.action_ref() = cfg::MacsecFlowPacketAction::FORWARD;
-  macsecFlowAction.flowId_ref() = 0;
+  macsecFlowAction.action() = cfg::MacsecFlowPacketAction::FORWARD;
+  macsecFlowAction.flowId() = 0;
   macsecAction.setMacsecFlow(macsecFlowAction);
   entry->setActionType(cfg::AclActionType::PERMIT);
   entry->setAclAction(macsecAction);
@@ -106,8 +106,8 @@ const std::shared_ptr<AclEntry> createMacsecRxDefaultAclEntry(
 
   auto macsecAction = MatchAction();
   auto macsecFlowAction = cfg::MacsecFlowAction();
-  macsecFlowAction.action_ref() = action;
-  macsecFlowAction.flowId_ref() = 0;
+  macsecFlowAction.action() = action;
+  macsecFlowAction.flowId() = 0;
   macsecAction.setMacsecFlow(macsecFlowAction);
   if (action == cfg::MacsecFlowPacketAction::DROP) {
     entry->setActionType(cfg::AclActionType::DENY);
@@ -117,9 +117,9 @@ const std::shared_ptr<AclEntry> createMacsecRxDefaultAclEntry(
 
   // Add traffic counter for packet hitting default ACL
   auto counter = cfg::TrafficCounter();
-  counter.name_ref() =
+  counter.name() =
       folly::to<std::string>(entryName, ".", priority, ".defaultAcl.packets");
-  counter.types_ref() = {cfg::CounterType::PACKETS};
+  counter.types() = {cfg::CounterType::PACKETS};
   macsecAction.setTrafficCounter(counter);
   entry->setAclAction(macsecAction);
 
@@ -133,13 +133,13 @@ void fillHwPortStats(
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_MACSEC_PORT_STAT_PRE_MACSEC_DROP_PKTS:
-        portStats.preMacsecDropPkts_ref() = value;
+        portStats.preMacsecDropPkts() = value;
         break;
       case SAI_MACSEC_PORT_STAT_CONTROL_PKTS:
-        portStats.controlPkts_ref() = value;
+        portStats.controlPkts() = value;
         break;
       case SAI_MACSEC_PORT_STAT_DATA_PKTS:
-        portStats.dataPkts_ref() = value;
+        portStats.dataPkts() = value;
         break;
     }
   }
@@ -148,66 +148,66 @@ mka::MacsecFlowStats fillFlowStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     sai_macsec_direction_t direction) {
   mka::MacsecFlowStats flowStats{};
-  flowStats.directionIngress_ref() = direction == SAI_MACSEC_DIRECTION_INGRESS;
+  flowStats.directionIngress() = direction == SAI_MACSEC_DIRECTION_INGRESS;
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_MACSEC_FLOW_STAT_UCAST_PKTS_UNCONTROLLED:
-        flowStats.ucastUncontrolledPkts_ref() = value;
+        flowStats.ucastUncontrolledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_UCAST_PKTS_CONTROLLED:
-        flowStats.ucastControlledPkts_ref() = value;
+        flowStats.ucastControlledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_UNCONTROLLED:
-        flowStats.mcastUncontrolledPkts_ref() = value;
+        flowStats.mcastUncontrolledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_MULTICAST_PKTS_CONTROLLED:
-        flowStats.mcastControlledPkts_ref() = value;
+        flowStats.mcastControlledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_UNCONTROLLED:
-        flowStats.bcastUncontrolledPkts_ref() = value;
+        flowStats.bcastUncontrolledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_BROADCAST_PKTS_CONTROLLED:
-        flowStats.bcastControlledPkts_ref() = value;
+        flowStats.bcastControlledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_CONTROL_PKTS:
-        flowStats.controlPkts_ref() = value;
+        flowStats.controlPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_PKTS_UNTAGGED:
-        flowStats.untaggedPkts_ref() = value;
+        flowStats.untaggedPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_OTHER_ERR:
-        flowStats.otherErrPkts_ref() = value;
+        flowStats.otherErrPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_OCTETS_UNCONTROLLED:
-        flowStats.octetsUncontrolled_ref() = value;
+        flowStats.octetsUncontrolled() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_OCTETS_CONTROLLED:
-        flowStats.octetsControlled_ref() = value;
+        flowStats.octetsControlled() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_OUT_OCTETS_COMMON:
-        flowStats.outCommonOctets_ref() = value;
+        flowStats.outCommonOctets() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_OUT_PKTS_TOO_LONG:
-        flowStats.outTooLongPkts_ref() = value;
+        flowStats.outTooLongPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_TAGGED_CONTROL_PKTS:
-        flowStats.inTaggedControlledPkts_ref() = value;
+        flowStats.inTaggedControlledPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_TAG:
-        flowStats.inNoTagPkts_ref() = value;
+        flowStats.inNoTagPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_BAD_TAG:
-        flowStats.inBadTagPkts_ref() = value;
+        flowStats.inBadTagPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_NO_SCI:
-        flowStats.noSciPkts_ref() = value;
+        flowStats.noSciPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_UNKNOWN_SCI:
-        flowStats.unknownSciPkts_ref() = value;
+        flowStats.unknownSciPkts() = value;
         break;
       case SAI_MACSEC_FLOW_STAT_IN_PKTS_OVERRUN:
-        flowStats.overrunPkts_ref() = value;
+        flowStats.overrunPkts() = value;
         break;
     }
   }
@@ -218,45 +218,45 @@ mka::MacsecSaStats fillSaStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     sai_macsec_direction_t direction) {
   mka::MacsecSaStats saStats{};
-  saStats.directionIngress_ref() = direction == SAI_MACSEC_DIRECTION_INGRESS;
+  saStats.directionIngress() = direction == SAI_MACSEC_DIRECTION_INGRESS;
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_MACSEC_SA_STAT_OCTETS_ENCRYPTED:
-        saStats.octetsEncrypted_ref() = value;
+        saStats.octetsEncrypted() = value;
         break;
       case SAI_MACSEC_SA_STAT_OCTETS_PROTECTED:
-        saStats.octetsProtected_ref() = value;
+        saStats.octetsProtected() = value;
         break;
       case SAI_MACSEC_SA_STAT_OUT_PKTS_ENCRYPTED:
-        saStats.outEncryptedPkts_ref() = value;
+        saStats.outEncryptedPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_OUT_PKTS_PROTECTED:
-        saStats.outProtectedPkts_ref() = value;
+        saStats.outProtectedPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_UNCHECKED:
-        saStats.inUncheckedPkts_ref() = value;
+        saStats.inUncheckedPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_DELAYED:
-        saStats.inDelayedPkts_ref() = value;
+        saStats.inDelayedPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_LATE:
-        saStats.inLatePkts_ref() = value;
+        saStats.inLatePkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_INVALID:
-        saStats.inInvalidPkts_ref() = value;
+        saStats.inInvalidPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_NOT_VALID:
-        saStats.inNotValidPkts_ref() = value;
+        saStats.inNotValidPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_NOT_USING_SA:
-        saStats.inNoSaPkts_ref() = value;
+        saStats.inNoSaPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_UNUSED_SA:
-        saStats.inUnusedSaPkts_ref() = value;
+        saStats.inUnusedSaPkts() = value;
         break;
       case SAI_MACSEC_SA_STAT_IN_PKTS_OK:
-        saStats.inOkPkts_ref() = value;
+        saStats.inOkPkts() = value;
         break;
     }
   }
@@ -744,16 +744,16 @@ void SaiMacsecManager::setupMacsec(
 
   // Setup basic Macsec state: Macsec pipeline, Macsec vPort, ACL table,
   // default ACL rules for this line port in the given direction
-  setupMacsecState(linePort, sak.dropUnencrypted_ref().value(), direction);
+  setupMacsecState(linePort, sak.dropUnencrypted().value(), direction);
   XLOG(DBG2) << "Set up basic Macsec state for linePort: " << linePort;
 
   // Create the egress flow and ingress sc
   std::string sciKeyString =
-      folly::to<std::string>(*sci.macAddress_ref(), ".", *sci.port_ref());
+      folly::to<std::string>(*sci.macAddress(), ".", *sci.port());
 
   // First convert sci mac address string and the port id to a uint64
-  folly::MacAddress mac = folly::MacAddress(*sci.macAddress_ref());
-  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+  folly::MacAddress mac = folly::MacAddress(*sci.macAddress());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port());
 
   // Step2/3: Create flow and SC if it they do not exist
   auto secureChannelHandle =
@@ -790,32 +790,32 @@ void SaiMacsecManager::setupMacsec(
     }
   };
 
-  if (sak.keyHex_ref()->size() < 32) {
+  if (sak.keyHex()->size() < 32) {
     XLOG(ERR) << "Macsec key can't be lesser than 32 bytes";
     return;
   }
   std::array<uint8_t, 32> key{0};
-  hexStringToBytes(sak.keyHex_ref().value(), key.data(), 32);
+  hexStringToBytes(sak.keyHex().value(), key.data(), 32);
 
   // Input macsec keyid (auth key) is provided in string which needs to be
   // converted to 16 byte array for passing to sai
-  if (sak.keyIdHex_ref()->size() < 16) {
+  if (sak.keyIdHex()->size() < 16) {
     XLOG(ERR) << "Macsec key Id can't be lesser than 16 bytes";
     return;
   }
 
   std::array<uint8_t, 16> keyId{0};
-  hexStringToBytes(sak.keyIdHex_ref().value(), keyId.data(), 16);
+  hexStringToBytes(sak.keyIdHex().value(), keyId.data(), 16);
 
   auto secureAssoc = getMacsecSecureAssoc(
-      linePort, scIdentifier, direction, *sak.assocNum_ref() % 4);
+      linePort, scIdentifier, direction, *sak.assocNum() % 4);
   if (!secureAssoc) {
     // Add the new SA now
     auto secureAssocSaiId = addMacsecSecureAssoc(
         linePort,
         scIdentifier,
         direction,
-        *sak.assocNum_ref() % 4,
+        *sak.assocNum() % 4,
         key,
         kDefaultSaltValue,
         keyId,
@@ -1389,12 +1389,12 @@ void SaiMacsecManager::deleteMacsec(
     const mka::MKASci& sci,
     sai_macsec_direction_t direction) {
   std::string sciString =
-      folly::to<std::string>(*sci.macAddress_ref(), ".", *sci.port_ref());
+      folly::to<std::string>(*sci.macAddress(), ".", *sci.port());
   // TODO(ccpowers): Break this back out into a helper method
-  auto mac = folly::MacAddress(*sci.macAddress_ref());
-  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port_ref());
+  auto mac = folly::MacAddress(*sci.macAddress());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port());
 
-  auto assocNum = *sak.assocNum_ref() % 4;
+  auto assocNum = *sak.assocNum() % 4;
 
   auto secureChannelHandle =
       getMacsecSecureChannelHandle(linePort, scIdentifier, direction);
@@ -1447,33 +1447,33 @@ void updateMacsecPortStats(
     const std::optional<mka::MacsecFlowStats>& prev,
     const mka::MacsecFlowStats& cur,
     mka::MacsecPortStats& portStats) {
-  *portStats.inBadOrNoMacsecTagDroppedPkts_ref() +=
+  *portStats.inBadOrNoMacsecTagDroppedPkts() +=
       (utility::CounterPrevAndCur(
-           prev ? *prev->inNoTagPkts_ref() : 0L, *cur.inNoTagPkts_ref())
+           prev ? *prev->inNoTagPkts() : 0L, *cur.inNoTagPkts())
            .incrementFromPrev() +
        utility::CounterPrevAndCur(
-           prev ? *prev->inBadTagPkts_ref() : 0L, *cur.inBadTagPkts_ref())
+           prev ? *prev->inBadTagPkts() : 0L, *cur.inBadTagPkts())
            .incrementFromPrev());
-  *portStats.inNoSciDroppedPkts_ref() +=
+  *portStats.inNoSciDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->noSciPkts_ref() : 0L, *cur.noSciPkts_ref())
+          prev ? *prev->noSciPkts() : 0L, *cur.noSciPkts())
           .incrementFromPrev();
-  *portStats.inUnknownSciPkts_ref() +=
+  *portStats.inUnknownSciPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->unknownSciPkts_ref() : 0L, *cur.unknownSciPkts_ref())
+          prev ? *prev->unknownSciPkts() : 0L, *cur.unknownSciPkts())
           .incrementFromPrev();
-  *portStats.inOverrunDroppedPkts_ref() +=
+  *portStats.inOverrunDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->overrunPkts_ref() : 0L, *cur.overrunPkts_ref())
+          prev ? *prev->overrunPkts() : 0L, *cur.overrunPkts())
           .incrementFromPrev();
 
-  *portStats.outTooLongDroppedPkts_ref() +=
+  *portStats.outTooLongDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->outTooLongPkts_ref() : 0L, *cur.untaggedPkts_ref())
+          prev ? *prev->outTooLongPkts() : 0L, *cur.untaggedPkts())
           .incrementFromPrev();
-  *portStats.noMacsecTagPkts_ref() +=
+  *portStats.noMacsecTagPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->untaggedPkts_ref() : 0L, *cur.untaggedPkts_ref())
+          prev ? *prev->untaggedPkts() : 0L, *cur.untaggedPkts())
           .incrementFromPrev();
 }
 
@@ -1481,33 +1481,33 @@ void updateMacsecPortStats(
     const std::optional<mka::MacsecSaStats>& prev,
     const mka::MacsecSaStats& cur,
     mka::MacsecPortStats& portStats) {
-  *portStats.octetsEncrypted_ref() +=
+  *portStats.octetsEncrypted() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->octetsEncrypted_ref() : 0L, *cur.octetsEncrypted_ref())
+          prev ? *prev->octetsEncrypted() : 0L, *cur.octetsEncrypted())
           .incrementFromPrev();
-  *portStats.inDelayedPkts_ref() +=
+  *portStats.inDelayedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inDelayedPkts_ref() : 0L, *cur.inDelayedPkts_ref())
+          prev ? *prev->inDelayedPkts() : 0L, *cur.inDelayedPkts())
           .incrementFromPrev();
-  *portStats.inLateDroppedPkts_ref() +=
+  *portStats.inLateDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inLatePkts_ref() : 0L, *cur.inLatePkts_ref())
+          prev ? *prev->inLatePkts() : 0L, *cur.inLatePkts())
           .incrementFromPrev();
-  *portStats.inNotValidDroppedPkts_ref() +=
+  *portStats.inNotValidDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inNotValidPkts_ref() : 0L, *cur.inNotValidPkts_ref())
+          prev ? *prev->inNotValidPkts() : 0L, *cur.inNotValidPkts())
           .incrementFromPrev();
-  *portStats.inInvalidPkts_ref() +=
+  *portStats.inInvalidPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inInvalidPkts_ref() : 0L, *cur.inInvalidPkts_ref())
+          prev ? *prev->inInvalidPkts() : 0L, *cur.inInvalidPkts())
           .incrementFromPrev();
-  *portStats.inNoSaDroppedPkts_ref() +=
+  *portStats.inNoSaDroppedPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inNoSaPkts_ref() : 0L, *cur.inNoSaPkts_ref())
+          prev ? *prev->inNoSaPkts() : 0L, *cur.inNoSaPkts())
           .incrementFromPrev();
-  *portStats.inUnusedSaPkts_ref() +=
+  *portStats.inUnusedSaPkts() +=
       utility::CounterPrevAndCur(
-          prev ? *prev->inUnusedSaPkts_ref() : 0L, *cur.inUnusedSaPkts_ref())
+          prev ? *prev->inUnusedSaPkts() : 0L, *cur.inUnusedSaPkts())
           .incrementFromPrev();
 }
 } // namespace
@@ -1519,13 +1519,13 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       continue;
     }
     auto& macsecPort = *pitr;
-    if (!portStats.macsecStats_ref()) {
-      portStats.macsecStats_ref() = MacsecStats{};
+    if (!portStats.macsecStats()) {
+      portStats.macsecStats() = MacsecStats{};
     }
-    auto& macsecStats = *portStats.macsecStats_ref();
+    auto& macsecStats = *portStats.macsecStats();
     auto& macsecPortStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *macsecStats.ingressPortStats_ref()
-        : *macsecStats.egressPortStats_ref();
+        ? *macsecStats.ingressPortStats()
+        : *macsecStats.egressPortStats();
     // Record flow, SA stats into a new map. We will then use this to
     // updated macsecStats flow stats map. This will take care of
     // removing any flows that have been deleted since last stat
@@ -1533,30 +1533,30 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     std::vector<MacsecSciFlowStats> newFlowStats;
     std::vector<MacsecSaIdSaStats> newSaStats;
     auto& flowStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *macsecStats.ingressFlowStats_ref()
-        : *macsecStats.egressFlowStats_ref();
+        ? *macsecStats.ingressFlowStats()
+        : *macsecStats.egressFlowStats();
     auto& saStats = direction == SAI_MACSEC_DIRECTION_INGRESS
-        ? *macsecStats.rxSecureAssociationStats_ref()
-        : *macsecStats.txSecureAssociationStats_ref();
+        ? *macsecStats.rxSecureAssociationStats()
+        : *macsecStats.txSecureAssociationStats();
     for (const auto& macsecSc : macsecPort.second->secureChannels) {
       MacsecSecureChannelId secureChannelId = macsecSc.first;
       mka::MKASci sci;
-      sci.macAddress_ref() =
+      sci.macAddress() =
           folly::MacAddress::fromNBO((secureChannelId >> 16) << 16).toString();
-      sci.port_ref() = secureChannelId & 0xFF;
+      sci.port() = secureChannelId & 0xFF;
       for (const auto& macsecSa : macsecSc.second->secureAssocs) {
         macsecSa.second->updateStats<SaiMacsecSATraits>();
         mka::MKASecureAssociationId saId;
-        saId.sci_ref() = sci;
-        saId.assocNum_ref() = macsecSa.first;
+        saId.sci() = sci;
+        saId.assocNum() = macsecSa.first;
 
         // Find saStats for a given sa
         auto findSaStats = [](const std::vector<MacsecSaIdSaStats>& saStats,
                               mka::MKASecureAssociationId sa)
             -> std::optional<mka::MacsecSaStats> {
           for (const auto& saStat : saStats) {
-            if (saStat.saId_ref().value() == sa) {
-              return saStat.saStats_ref().value();
+            if (saStat.saId().value() == sa) {
+              return saStat.saStats().value();
             }
           }
           return std::nullopt;
@@ -1567,8 +1567,8 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         updateMacsecPortStats(prevSaStats, curSaStats, macsecPortStats);
 
         MacsecSaIdSaStats singleSaStats;
-        singleSaStats.saId_ref() = saId;
-        singleSaStats.saStats_ref() = curSaStats;
+        singleSaStats.saId() = saId;
+        singleSaStats.saStats() = curSaStats;
 
         newSaStats.push_back(singleSaStats);
       }
@@ -1581,8 +1581,8 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
           [](const std::vector<MacsecSciFlowStats>& flowStats,
              mka::MKASci sci) -> std::optional<mka::MacsecFlowStats> {
         for (const auto& flowStat : flowStats) {
-          if (flowStat.sci_ref().value() == sci) {
-            return flowStat.flowStats_ref().value();
+          if (flowStat.sci().value() == sci) {
+            return flowStat.flowStats().value();
           }
         }
         return std::nullopt;
@@ -1592,8 +1592,8 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       updateMacsecPortStats(prevFlowStats, curFlowStats, macsecPortStats);
 
       MacsecSciFlowStats singleFlowStats;
-      singleFlowStats.sci_ref() = sci;
-      singleFlowStats.flowStats_ref() = curFlowStats;
+      singleFlowStats.sci() = sci;
+      singleFlowStats.flowStats() = curFlowStats;
       newFlowStats.push_back(singleFlowStats);
     }
     flowStats = std::move(newFlowStats);
@@ -1635,8 +1635,8 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
         XLOG(DBG5) << folly::sformat(
             "ACL counter Macsec default = {:d}", defaultAclCount);
-        auto& macsecAclStats = *macsecStats.ingressAclStats_ref();
-        macsecAclStats.defaultAclStats_ref() = defaultAclCount;
+        auto& macsecAclStats = *macsecStats.ingressAclStats();
+        macsecAclStats.defaultAclStats() = defaultAclCount;
       }
     }
   }

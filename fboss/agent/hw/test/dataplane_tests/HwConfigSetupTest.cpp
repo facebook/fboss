@@ -24,11 +24,11 @@ cfg::SwitchConfig HwConfigSetupTest::getConfig(bool isWarmBoot) const {
 
 cfg::SwitchConfig HwConfigSetupTest::setPortsToLoopback(
     std::unique_ptr<AgentConfig> agentCfg) const {
-  auto cfg = *agentCfg->thrift.sw_ref();
+  auto cfg = *agentCfg->thrift.sw();
 
-  for (auto& port : *cfg.ports_ref()) {
-    if (*port.state_ref() == cfg::PortState::ENABLED) {
-      port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+  for (auto& port : *cfg.ports()) {
+    if (*port.state() == cfg::PortState::ENABLED) {
+      port.loopbackMode() = cfg::PortLoopbackMode::MAC;
     }
   }
   return cfg;

@@ -112,7 +112,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4DstPort,
       uint8_t ttl,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     // arbit
     const auto srcIp =
@@ -144,7 +144,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
@@ -164,7 +164,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       ARP_OPER arpType,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
@@ -192,7 +192,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddressV6& neighborIp,
       ICMPv6Type type,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -274,7 +274,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     utility::sendTcpPkts(
         getHwSwitch(),
@@ -375,7 +375,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int queueId,
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
@@ -404,8 +404,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
   }
 
   folly::IPAddress getInSubnetNonSwitchIP() const {
-    auto configIntf = initialConfig().interfaces_ref()[0];
-    auto ipAddress = configIntf.ipAddresses_ref()[0];
+    auto configIntf = initialConfig().interfaces()[0];
+    auto ipAddress = configIntf.ipAddresses()[0];
     return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
   }
 
@@ -632,55 +632,55 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     std::vector<cfg::PortQueue> cpuQueues;
 
     cfg::PortQueue queue0;
-    queue0.id_ref() = utility::kCoppLowPriQueueId;
-    queue0.name_ref() = "cpuQueue-low";
-    queue0.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
-    queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue0.weight_ref() =
+    queue0.id() = utility::kCoppLowPriQueueId;
+    queue0.name() = "cpuQueue-low";
+    queue0.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+    queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue0.weight() =
         utility::kCoppMidPriWeight; // Weight of mid priority queue
     if (addEcnConfig) {
-      queue0.aqms_ref() = {};
-      queue0.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+      queue0.aqms() = {};
+      queue0.aqms()->push_back(utility::kGetOlympicEcnConfig());
     }
     cpuQueues.push_back(queue0);
 
     cfg::PortQueue queue1;
-    queue1.id_ref() = utility::kCoppDefaultPriQueueId;
-    queue1.name_ref() = "cpuQueue-default";
-    queue1.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue1.weight_ref() = utility::kCoppDefaultPriWeight;
+    queue1.id() = utility::kCoppDefaultPriQueueId;
+    queue1.name() = "cpuQueue-default";
+    queue1.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue1.weight() = utility::kCoppDefaultPriWeight;
     if (addEcnConfig) {
-      queue1.aqms_ref() = {};
-      queue1.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+      queue1.aqms() = {};
+      queue1.aqms()->push_back(utility::kGetOlympicEcnConfig());
     }
     cpuQueues.push_back(queue1);
 
     cfg::PortQueue queue2;
-    queue2.id_ref() = utility::kCoppMidPriQueueId;
-    queue2.name_ref() = "cpuQueue-mid";
-    queue2.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
-    queue2.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue2.weight_ref() = utility::kCoppMidPriWeight;
+    queue2.id() = utility::kCoppMidPriQueueId;
+    queue2.name() = "cpuQueue-mid";
+    queue2.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+    queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue2.weight() = utility::kCoppMidPriWeight;
     if (addEcnConfig) {
-      queue2.aqms_ref() = {};
-      queue2.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+      queue2.aqms() = {};
+      queue2.aqms()->push_back(utility::kGetOlympicEcnConfig());
     }
     cpuQueues.push_back(queue2);
 
     cfg::PortQueue queue9;
-    queue9.id_ref() = utility::getCoppHighPriQueueId(hwAsic);
-    queue9.name_ref() = "cpuQueue-high";
-    queue9.streamType_ref() = utility::getCpuDefaultStreamType(hwAsic);
-    queue9.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue9.weight_ref() = utility::kCoppHighPriWeight;
+    queue9.id() = utility::getCoppHighPriQueueId(hwAsic);
+    queue9.name() = "cpuQueue-high";
+    queue9.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+    queue9.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue9.weight() = utility::kCoppHighPriWeight;
     if (addEcnConfig) {
-      queue9.aqms_ref() = {};
-      queue9.aqms_ref()->push_back(utility::kGetOlympicEcnConfig());
+      queue9.aqms() = {};
+      queue9.aqms()->push_back(utility::kGetOlympicEcnConfig());
     }
     cpuQueues.push_back(queue9);
 
-    config.cpuQueues_ref() = cpuQueues;
+    config.cpuQueues() = cpuQueues;
   }
 
  private:
@@ -780,8 +780,8 @@ TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
     // cpu high priority queue
     enum SRC_DST { SRC, DST };
     for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces_ref())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
+         folly::copy(*(this->initialConfig()).interfaces())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses()) {
         for (int dir = 0; dir <= DST; dir++) {
           this->sendPktAndVerifyCpuQueue(
               utility::getCoppHighPriQueueId(this->getAsic()),
@@ -801,8 +801,8 @@ TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
 
   auto verify = [=]() {
     for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces_ref())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
+         folly::copy(*(this->initialConfig()).interfaces())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses()) {
         this->sendPktAndVerifyCpuQueue(
             utility::kCoppMidPriQueueId,
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
@@ -940,8 +940,8 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
 
   auto verify = [=]() {
     for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces_ref())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
+         folly::copy(*(this->initialConfig()).interfaces())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses()) {
         this->sendPktAndVerifyCpuQueue(
             utility::getCoppHighPriQueueId(this->getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
@@ -1111,8 +1111,8 @@ TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   auto verify = [=]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
     for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces_ref())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
+         folly::copy(*(this->initialConfig()).interfaces())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses()) {
         // High pri queue
         this->sendPktAndVerifyCpuQueue(
             utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1224,10 +1224,9 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   };
 
   auto verify = [&]() {
-    auto configIntf = folly::copy(*(this->initialConfig()).interfaces_ref())[1];
+    auto configIntf = folly::copy(*(this->initialConfig()).interfaces())[1];
     const auto ipForHighPriorityQueue =
-        folly::IPAddress::createNetwork(
-            configIntf.ipAddresses_ref()[1], -1, false)
+        folly::IPAddress::createNetwork(configIntf.ipAddresses()[1], -1, false)
             .first;
     const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
 

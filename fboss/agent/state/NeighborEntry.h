@@ -60,13 +60,13 @@ struct NeighborEntryFields : public ThriftyFields {
 
   state::NeighborEntryFields toThrift() const {
     state::NeighborEntryFields entryTh;
-    entryTh.ipaddress_ref() = ip.str();
-    entryTh.mac_ref() = mac.toString();
-    entryTh.portId_ref() = port.toThrift();
-    entryTh.interfaceId_ref() = static_cast<uint32_t>(interfaceID);
-    entryTh.state_ref() = static_cast<state::NeighborState>(state);
+    entryTh.ipaddress() = ip.str();
+    entryTh.mac() = mac.toString();
+    entryTh.portId() = port.toThrift();
+    entryTh.interfaceId() = static_cast<uint32_t>(interfaceID);
+    entryTh.state() = static_cast<state::NeighborState>(state);
     if (classID.has_value()) {
-      entryTh.classID_ref() = classID.value();
+      entryTh.classID() = classID.value();
     }
     return entryTh;
   }
@@ -79,9 +79,9 @@ struct NeighborEntryFields : public ThriftyFields {
     InterfaceID intf(entryTh.get_interfaceId());
     auto state = NeighborState(static_cast<int>(entryTh.get_state()));
 
-    if (entryTh.classID_ref().has_value() && !ip.isLinkLocal()) {
+    if (entryTh.classID().has_value() && !ip.isLinkLocal()) {
       return NeighborEntryFields(
-          ip, mac, port, intf, state, *entryTh.classID_ref());
+          ip, mac, port, intf, state, *entryTh.classID());
     } else {
       return NeighborEntryFields(ip, mac, port, intf, state);
     }

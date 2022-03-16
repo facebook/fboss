@@ -40,9 +40,9 @@ bool verifyQueueMappings(
     statsMatch = true;
     for (const auto& _q2dscps : q2dscps) {
       auto queuePacketsBefore =
-          portStatsBefore.queueOutPackets__ref()->find(_q2dscps.first)->second;
+          portStatsBefore.queueOutPackets_()->find(_q2dscps.first)->second;
       auto queuePacketsAfter =
-          portStatsAfter[portId].queueOutPackets__ref()[_q2dscps.first];
+          portStatsAfter[portId].queueOutPackets_()[_q2dscps.first];
       // Note, on some platforms, due to how loopbacked packets are pruned
       // from being broadcast, they will appear more than once on a queue
       // counter, so we can only check that the counter went up, not that it

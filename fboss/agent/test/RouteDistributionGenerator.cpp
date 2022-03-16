@@ -24,17 +24,17 @@ UnicastRoute makeUnicastRoute(
     AdminDistance admin = AdminDistance::EBGP,
     std::optional<RouteCounterID> counterID = std::nullopt) {
   UnicastRoute route;
-  route.dest_ref() = facebook::fboss::toIpPrefix(nw);
-  route.action_ref() = RouteForwardAction::NEXTHOPS;
-  route.adminDistance_ref() = admin;
+  route.dest() = facebook::fboss::toIpPrefix(nw);
+  route.action() = RouteForwardAction::NEXTHOPS;
+  route.adminDistance() = admin;
   std::vector<NextHopThrift> nhopsThrift;
   nhopsThrift.reserve(nhops.size());
   std::for_each(nhops.begin(), nhops.end(), [&nhopsThrift](const auto& nhop) {
     nhopsThrift.emplace_back(NextHop(nhop).toThrift());
   });
-  route.nextHops_ref() = nhopsThrift;
+  route.nextHops() = nhopsThrift;
   if (counterID.has_value()) {
-    route.counterID_ref() = *counterID;
+    route.counterID() = *counterID;
   }
   return route;
 }

@@ -116,27 +116,27 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     for (auto tc = 0; tc < 8; tc++) {
       // setup ingress qos map for dscp
       cfg::DscpQosMap dscpMap;
-      *dscpMap.internalTrafficClass_ref() = tc;
+      *dscpMap.internalTrafficClass() = tc;
       for (auto dscp = 0; dscp < 8; dscp++) {
-        dscpMap.fromDscpToTrafficClass_ref()->push_back(8 * tc + dscp);
+        dscpMap.fromDscpToTrafficClass()->push_back(8 * tc + dscp);
       }
 
       // setup egress qos map for tc
       cfg::ExpQosMap expMap;
-      *expMap.internalTrafficClass_ref() = tc;
-      expMap.fromExpToTrafficClass_ref()->push_back(tc);
-      expMap.fromTrafficClassToExp_ref() = 7 - tc;
+      *expMap.internalTrafficClass() = tc;
+      expMap.fromExpToTrafficClass()->push_back(tc);
+      expMap.fromTrafficClassToExp() = 7 - tc;
 
-      qosMap.dscpMaps_ref()->push_back(dscpMap);
-      qosMap.expMaps_ref()->push_back(expMap);
+      qosMap.dscpMaps()->push_back(dscpMap);
+      qosMap.expMaps()->push_back(expMap);
     }
-    config.qosPolicies_ref()->resize(1);
-    *config.qosPolicies_ref()[0].name_ref() = "qp";
-    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    config.qosPolicies()->resize(1);
+    *config.qosPolicies()[0].name() = "qp";
+    config.qosPolicies()[0].qosMap() = qosMap;
 
     cfg::TrafficPolicyConfig policy;
-    policy.defaultQosPolicy_ref() = "qp";
-    config.dataPlaneTrafficPolicy_ref() = policy;
+    policy.defaultQosPolicy() = "qp";
+    config.dataPlaneTrafficPolicy() = policy;
 
     utility::setDefaultCpuTrafficPolicyConfig(config, getAsic());
     utility::addCpuQueueConfig(config, getAsic());
@@ -346,7 +346,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     newAcl->setVlanID(ingressVlanId);
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     for (auto nhIp : redirectNexthopIps) {
-      cfgRedirectToNextHop.nexthops_ref()->push_back(nhIp);
+      cfgRedirectToNextHop.nexthops()->push_back(nhIp);
     }
     auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
     redirectToNextHop.first = cfgRedirectToNextHop;
@@ -471,13 +471,11 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
 
     EXPECT_EQ(statBefore + 1, statAfter);
     EXPECT_EQ(
-        portStatsAfter.inDiscardsRaw__ref(),
-        portStatsBefore.inDiscardsRaw__ref());
+        portStatsAfter.inDiscardsRaw_(), portStatsBefore.inDiscardsRaw_());
     EXPECT_EQ(
-        portStatsAfter.inDstNullDiscards__ref(),
-        portStatsBefore.inDstNullDiscards__ref());
-    EXPECT_EQ(
-        portStatsAfter.inDiscards__ref(), portStatsBefore.inDiscards__ref());
+        portStatsAfter.inDstNullDiscards_(),
+        portStatsBefore.inDstNullDiscards_());
+    EXPECT_EQ(portStatsAfter.inDiscards_(), portStatsBefore.inDiscards_());
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -634,7 +632,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
     std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
         std::make_pair(
             this->getPortDescriptor(0),
-            InterfaceID(*config.interfaces_ref()[0].intfID_ref()))};
+            InterfaceID(*config.interfaces()[0].intfID()))};
     this->addRedirectToNexthopAcl(
         kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
   };
@@ -717,7 +715,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
     std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
         std::make_pair(
             this->getPortDescriptor(0),
-            InterfaceID(*config.interfaces_ref()[0].intfID_ref()))};
+            InterfaceID(*config.interfaces()[0].intfID()))};
     // Use VLAN ID qualifier value that does not match the actual
     // ingress vlan.
     uint32_t ingressVlan = utility::kBaseVlanId + 100;
@@ -763,10 +761,10 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
     std::vector<std::pair<PortDescriptor, InterfaceID>> portIntfs{
         std::make_pair(
             this->getPortDescriptor(0),
-            InterfaceID(*config.interfaces_ref()[0].intfID_ref())),
+            InterfaceID(*config.interfaces()[0].intfID())),
         std::make_pair(
             this->getPortDescriptor(1),
-            InterfaceID(*config.interfaces_ref()[1].intfID_ref())),
+            InterfaceID(*config.interfaces()[1].intfID())),
     };
     this->addRedirectToNexthopAcl(
         kAclName,

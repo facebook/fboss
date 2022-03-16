@@ -56,8 +56,8 @@ namespace facebook::fboss {
 
 state::AclTtl AclTtl::toThrift() const {
   auto aclTtl = state::AclTtl();
-  aclTtl.value_ref() = value_;
-  aclTtl.mask_ref() = mask_;
+  aclTtl.value() = value_;
+  aclTtl.mask() = mask_;
   return aclTtl;
 }
 
@@ -84,49 +84,49 @@ AclTtl AclTtl::fromFollyDynamic(const folly::dynamic& ttlJson) {
 
 state::AclEntryFields AclEntryFields::toThrift() const {
   auto entry = state::AclEntryFields();
-  entry.priority_ref() = priority;
-  entry.name_ref() = name;
+  entry.priority() = priority;
+  entry.name() = name;
 
   if (srcIp.first) {
-    entry.srcIp_ref() = IPAddress::networkToString(srcIp);
+    entry.srcIp() = IPAddress::networkToString(srcIp);
   }
   if (dstIp.first) {
-    entry.dstIp_ref() = IPAddress::networkToString(dstIp);
+    entry.dstIp() = IPAddress::networkToString(dstIp);
   }
 
-  entry.proto_ref().from_optional(proto);
-  entry.tcpFlagsBitMap_ref().from_optional(tcpFlagsBitMap);
-  entry.srcPort_ref().from_optional(srcPort);
-  entry.dstPort_ref().from_optional(dstPort);
-  entry.ipFrag_ref().from_optional(ipFrag);
-  entry.proto_ref().from_optional(proto);
-  entry.proto_ref().from_optional(proto);
+  entry.proto().from_optional(proto);
+  entry.tcpFlagsBitMap().from_optional(tcpFlagsBitMap);
+  entry.srcPort().from_optional(srcPort);
+  entry.dstPort().from_optional(dstPort);
+  entry.ipFrag().from_optional(ipFrag);
+  entry.proto().from_optional(proto);
+  entry.proto().from_optional(proto);
 
   if (ttl.has_value()) {
-    entry.ttl_ref() = ttl->toThrift();
+    entry.ttl() = ttl->toThrift();
   }
 
-  entry.icmpType_ref().from_optional(icmpType);
-  entry.icmpCode_ref().from_optional(icmpCode);
-  entry.dscp_ref().from_optional(dscp);
-  entry.ipType_ref().from_optional(ipType);
+  entry.icmpType().from_optional(icmpType);
+  entry.icmpCode().from_optional(icmpCode);
+  entry.dscp().from_optional(dscp);
+  entry.ipType().from_optional(ipType);
 
   if (dstMac.has_value()) {
-    entry.dstMac_ref() = dstMac->toString();
+    entry.dstMac() = dstMac->toString();
   }
-  entry.l4SrcPort_ref().from_optional(l4SrcPort);
-  entry.l4DstPort_ref().from_optional(l4DstPort);
-  entry.lookupClassL2_ref().from_optional(lookupClassL2);
-  entry.lookupClass_ref().from_optional(lookupClass);
-  entry.lookupClassNeighbor_ref().from_optional(lookupClassNeighbor);
-  entry.lookupClassRoute_ref().from_optional(lookupClassRoute);
-  entry.packetLookupResult_ref().from_optional(packetLookupResult);
-  entry.vlanID_ref().from_optional(vlanID);
-  entry.etherType_ref().from_optional(etherType);
-  entry.actionType_ref() = actionType;
+  entry.l4SrcPort().from_optional(l4SrcPort);
+  entry.l4DstPort().from_optional(l4DstPort);
+  entry.lookupClassL2().from_optional(lookupClassL2);
+  entry.lookupClass().from_optional(lookupClass);
+  entry.lookupClassNeighbor().from_optional(lookupClassNeighbor);
+  entry.lookupClassRoute().from_optional(lookupClassRoute);
+  entry.packetLookupResult().from_optional(packetLookupResult);
+  entry.vlanID().from_optional(vlanID);
+  entry.etherType().from_optional(etherType);
+  entry.actionType() = actionType;
 
   if (aclAction.has_value()) {
-    entry.aclAction_ref() = aclAction->toThrift();
+    entry.aclAction() = aclAction->toThrift();
   }
 
   return entry;
@@ -135,10 +135,10 @@ state::AclEntryFields AclEntryFields::toThrift() const {
 AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
   auto aclEntryFields = AclEntryFields(entry.get_priority(), entry.get_name());
 
-  if (auto srcIp = entry.srcIp_ref()) {
+  if (auto srcIp = entry.srcIp()) {
     aclEntryFields.srcIp = IPAddress::createNetwork(*srcIp);
   }
-  if (auto dstIp = entry.dstIp_ref()) {
+  if (auto dstIp = entry.dstIp()) {
     aclEntryFields.dstIp = IPAddress::createNetwork(*dstIp);
   }
 
@@ -151,40 +151,39 @@ AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
         aclEntryFields.dstIp.first);
   }
 
-  aclEntryFields.proto = entry.proto_ref().to_optional();
-  aclEntryFields.tcpFlagsBitMap = entry.tcpFlagsBitMap_ref().to_optional();
-  aclEntryFields.srcPort = entry.srcPort_ref().to_optional();
-  aclEntryFields.dstPort = entry.dstPort_ref().to_optional();
-  aclEntryFields.ipFrag = entry.ipFrag_ref().to_optional();
-  aclEntryFields.proto = entry.proto_ref().to_optional();
-  aclEntryFields.proto = entry.proto_ref().to_optional();
+  aclEntryFields.proto = entry.proto().to_optional();
+  aclEntryFields.tcpFlagsBitMap = entry.tcpFlagsBitMap().to_optional();
+  aclEntryFields.srcPort = entry.srcPort().to_optional();
+  aclEntryFields.dstPort = entry.dstPort().to_optional();
+  aclEntryFields.ipFrag = entry.ipFrag().to_optional();
+  aclEntryFields.proto = entry.proto().to_optional();
+  aclEntryFields.proto = entry.proto().to_optional();
 
-  if (auto ttl = entry.ttl_ref()) {
+  if (auto ttl = entry.ttl()) {
     aclEntryFields.ttl = AclTtl::fromThrift(*ttl);
   }
 
-  aclEntryFields.icmpType = entry.icmpType_ref().to_optional();
-  aclEntryFields.icmpCode = entry.icmpCode_ref().to_optional();
-  aclEntryFields.dscp = entry.dscp_ref().to_optional();
-  aclEntryFields.ipType = entry.ipType_ref().to_optional();
+  aclEntryFields.icmpType = entry.icmpType().to_optional();
+  aclEntryFields.icmpCode = entry.icmpCode().to_optional();
+  aclEntryFields.dscp = entry.dscp().to_optional();
+  aclEntryFields.ipType = entry.ipType().to_optional();
 
-  if (auto dstMac = entry.dstMac_ref()) {
+  if (auto dstMac = entry.dstMac()) {
     aclEntryFields.dstMac = folly::MacAddress(*dstMac);
   }
 
-  aclEntryFields.l4SrcPort = entry.l4SrcPort_ref().to_optional();
-  aclEntryFields.l4DstPort = entry.l4DstPort_ref().to_optional();
-  aclEntryFields.lookupClassL2 = entry.lookupClassL2_ref().to_optional();
-  aclEntryFields.lookupClass = entry.lookupClass_ref().to_optional();
+  aclEntryFields.l4SrcPort = entry.l4SrcPort().to_optional();
+  aclEntryFields.l4DstPort = entry.l4DstPort().to_optional();
+  aclEntryFields.lookupClassL2 = entry.lookupClassL2().to_optional();
+  aclEntryFields.lookupClass = entry.lookupClass().to_optional();
   aclEntryFields.lookupClassNeighbor =
-      entry.lookupClassNeighbor_ref().to_optional();
-  aclEntryFields.lookupClassRoute = entry.lookupClassRoute_ref().to_optional();
-  aclEntryFields.packetLookupResult =
-      entry.packetLookupResult_ref().to_optional();
-  aclEntryFields.vlanID = entry.vlanID_ref().to_optional();
-  aclEntryFields.etherType = entry.etherType_ref().to_optional();
+      entry.lookupClassNeighbor().to_optional();
+  aclEntryFields.lookupClassRoute = entry.lookupClassRoute().to_optional();
+  aclEntryFields.packetLookupResult = entry.packetLookupResult().to_optional();
+  aclEntryFields.vlanID = entry.vlanID().to_optional();
+  aclEntryFields.etherType = entry.etherType().to_optional();
   aclEntryFields.actionType = entry.get_actionType();
-  if (auto aclAction = entry.aclAction_ref()) {
+  if (auto aclAction = entry.aclAction()) {
     aclEntryFields.aclAction = MatchAction::fromThrift(*aclAction);
   }
 

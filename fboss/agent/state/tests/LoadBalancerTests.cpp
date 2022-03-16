@@ -36,17 +36,17 @@ cfg::Fields halfFlow() {
 
   std::set<cfg::IPv4Field> v4Fields = {
       cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS};
-  fields.ipv4Fields_ref() = std::move(v4Fields);
+  fields.ipv4Fields() = std::move(v4Fields);
 
   std::set<cfg::IPv6Field> v6Fields = {
       cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS};
-  fields.ipv6Fields_ref() = std::move(v6Fields);
+  fields.ipv6Fields() = std::move(v6Fields);
 
   std::set<cfg::MPLSField> mplsFields = {
       LoadBalancer::MPLSField::TOP_LABEL,
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
-  fields.mplsFields_ref() = std::move(mplsFields);
+  fields.mplsFields() = std::move(mplsFields);
   return fields;
 }
 
@@ -55,7 +55,7 @@ cfg::Fields fullFlow() {
 
   std::set<cfg::TransportField> transportFields = {
       cfg::TransportField::SOURCE_PORT, cfg::TransportField::DESTINATION_PORT};
-  fields.transportFields_ref() = std::move(transportFields);
+  fields.transportFields() = std::move(transportFields);
 
   return fields;
 }
@@ -63,9 +63,9 @@ cfg::Fields fullFlow() {
 cfg::LoadBalancer defaultEcmpHash() {
   cfg::LoadBalancer ecmpDefault;
 
-  ecmpDefault.id_ref() = cfg::LoadBalancerID::ECMP;
-  ecmpDefault.fieldSelection_ref() = fullFlow();
-  ecmpDefault.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
+  ecmpDefault.id() = cfg::LoadBalancerID::ECMP;
+  ecmpDefault.fieldSelection() = fullFlow();
+  ecmpDefault.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
 
   return ecmpDefault;
 }
@@ -73,9 +73,9 @@ cfg::LoadBalancer defaultEcmpHash() {
 cfg::LoadBalancer defaultLagHash() {
   cfg::LoadBalancer lagDefault;
 
-  lagDefault.id_ref() = cfg::LoadBalancerID::AGGREGATE_PORT;
-  lagDefault.fieldSelection_ref() = halfFlow();
-  lagDefault.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
+  lagDefault.id() = cfg::LoadBalancerID::AGGREGATE_PORT;
+  lagDefault.fieldSelection() = halfFlow();
+  lagDefault.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
 
   return lagDefault;
 }
@@ -159,7 +159,7 @@ TEST(LoadBalancer, defaultConfiguration) {
   auto initialState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  *config.loadBalancers_ref() = defaultLoadBalancers();
+  *config.loadBalancers() = defaultLoadBalancers();
 
   auto finalState =
       publishAndApplyConfig(initialState, &config, platform.get());
@@ -304,7 +304,7 @@ TEST(LoadBalancerMap, idempotence) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
+  *baseConfig.loadBalancers() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -322,7 +322,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   cfg::SwitchConfig baseConfig;
   std::vector<cfg::LoadBalancer> ecmpLoadBalancer = {defaultEcmpHash()};
-  baseConfig.loadBalancers_ref() = ecmpLoadBalancer;
+  baseConfig.loadBalancers() = ecmpLoadBalancer;
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -333,7 +333,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   // This config adds a DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
-  *config.loadBalancers_ref() = defaultLoadBalancers();
+  *config.loadBalancers() = defaultLoadBalancers();
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
@@ -359,7 +359,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
+  *baseConfig.loadBalancers() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -371,7 +371,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   // This config removes the DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
   std::vector<cfg::LoadBalancer> ecmpLoadBalancer = {defaultEcmpHash()};
-  config.loadBalancers_ref() = ecmpLoadBalancer;
+  config.loadBalancers() = ecmpLoadBalancer;
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
@@ -397,7 +397,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
+  *baseConfig.loadBalancers() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -411,10 +411,9 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
 
   // This config modifies the DEFAULT_EMCP_HASH LoadBalancer
   cfg::SwitchConfig config;
-  *config.loadBalancers_ref() = defaultLoadBalancers();
+  *config.loadBalancers() = defaultLoadBalancers();
   // ECMP will now also use a half-hash
-  *config.loadBalancers_ref()[0].fieldSelection_ref()->transportFields_ref() =
-      {};
+  *config.loadBalancers()[0].fieldSelection()->transportFields() = {};
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);

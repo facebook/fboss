@@ -51,18 +51,17 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
     for (const auto& [portId, portStat] : originalPortStats) {
       auto newPortStatItr = newPortStats.find(portId);
       if (newPortStatItr != newPortStats.end()) {
-        if (*newPortStatItr->second.outBytes__ref() >
-            portStat.outBytes__ref()) {
+        if (*newPortStatItr->second.outBytes_() > portStat.outBytes_()) {
           // Wait for queue stat increment if queues are supported
           // on this platform
           if (!queueStatsSupported ||
               std::any_of(
-                  portStat.queueOutBytes__ref()->begin(),
-                  portStat.queueOutBytes__ref()->end(),
+                  portStat.queueOutBytes_()->begin(),
+                  portStat.queueOutBytes_()->end(),
                   [newPortStatItr](auto queueAndBytes) {
                     auto [qid, oldQbytes] = queueAndBytes;
                     const auto newQueueStats =
-                        newPortStatItr->second.queueOutBytes__ref();
+                        newPortStatItr->second.queueOutBytes_();
                     return newQueueStats->find(qid)->second > oldQbytes;
                   })) {
             return true;

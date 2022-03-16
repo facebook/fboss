@@ -33,37 +33,37 @@ TEST(BufferPoolConfigTest, bufferPoolName) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;
   for (pgId = 0; pgId < kStateTestNumPortPgs; pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
+    pgConfig.id() = pgId;
     portPgConfigs.emplace_back(pgConfig);
   }
   portPgConfigMap["foo"] = portPgConfigs;
 
   cfg::PortPfc pfc;
-  pfc.portPgConfigName_ref() = "foo";
-  config.ports_ref()[0].pfc_ref() = pfc;
-  config.portPgConfigs_ref() = portPgConfigMap;
+  pfc.portPgConfigName() = "foo";
+  config.ports()[0].pfc() = pfc;
+  config.portPgConfigs() = portPgConfigMap;
 
   portPgConfigs.clear();
   for (pgId = 0; pgId < kStateTestNumPortPgs; pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
-    pgConfig.name_ref() = folly::to<std::string>("pg", pgId);
-    pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-    pgConfig.minLimitBytes_ref() = 1000;
-    pgConfig.resumeOffsetBytes_ref() = 100;
-    pgConfig.bufferPoolName_ref() = "bufferNew";
+    pgConfig.id() = pgId;
+    pgConfig.name() = folly::to<std::string>("pg", pgId);
+    pgConfig.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+    pgConfig.minLimitBytes() = 1000;
+    pgConfig.resumeOffsetBytes() = 100;
+    pgConfig.bufferPoolName() = "bufferNew";
     portPgConfigs.emplace_back(pgConfig);
   }
 
   portPgConfigMap["foo"] = portPgConfigs;
-  config.portPgConfigs_ref() = portPgConfigMap;
+  config.portPgConfigs() = portPgConfigMap;
 
   // configured bufferName but no buffer map exists.
   // Throw execpetion
@@ -74,7 +74,7 @@ TEST(BufferPoolConfigTest, bufferPoolName) {
   {
     cfg::BufferPoolConfig tmpPoolConfig;
     bufferPoolCfgMap.insert(make_pair("bufferOld", tmpPoolConfig));
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
 
     // configured "bufferName" buffer map exists.
     // but "bufferNew" doesn't exist. Only "bufferOld" does so expect an error
@@ -85,7 +85,7 @@ TEST(BufferPoolConfigTest, bufferPoolName) {
   {
     cfg::BufferPoolConfig tmpPoolConfig;
     bufferPoolCfgMap.insert(make_pair("bufferNew", tmpPoolConfig));
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
 
     // update goes through now, as "bufferNew" is configured
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -94,12 +94,12 @@ TEST(BufferPoolConfigTest, bufferPoolName) {
 
   {
     // unconfigure the PFC
-    config.ports_ref()[0].pfc_ref().reset();
+    config.ports()[0].pfc().reset();
 
     // buffer pool can have any entry, shouldn't matter
     cfg::BufferPoolConfig tmpPoolConfig;
     bufferPoolCfgMap.insert(make_pair("coolBuffer", tmpPoolConfig));
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
 
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
@@ -120,8 +120,8 @@ TEST(BufferPoolConfigTest, applyConfig) {
                                  const int sharedBytes,
                                  const int headroomBytes) {
     cfg::BufferPoolConfig tmpPoolConfig;
-    tmpPoolConfig.headroomBytes_ref() = headroomBytes;
-    tmpPoolConfig.sharedBytes_ref() = sharedBytes;
+    tmpPoolConfig.headroomBytes() = headroomBytes;
+    tmpPoolConfig.sharedBytes() = sharedBytes;
     bufferPoolCfgMap.insert(make_pair(key, tmpPoolConfig));
   };
 
@@ -129,7 +129,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
   updateBufferPoolCfg("bufferPool_0", kSharedBytes, kHeadroomBytes);
   updateBufferPoolCfg("bufferPool_1", kSharedBytes, kHeadroomBytes);
 
-  config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+  config.bufferPoolConfigs() = bufferPoolCfgMap;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -153,7 +153,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
     // add same entries to the buffer pool
     updateBufferPoolCfg("bufferPool_0", kSharedBytes, kHeadroomBytes);
     updateBufferPoolCfg("bufferPool_1", kSharedBytes, kHeadroomBytes);
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_EQ(nullptr, stateV2);
   }
@@ -165,7 +165,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
     // add new entries to the buffer pool
     updateBufferPoolCfg("bufferPool_0", kSharedBytes, kHeadroomBytes + 1);
     updateBufferPoolCfg("bufferPool_1", kSharedBytes, kHeadroomBytes);
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_NE(nullptr, stateV2);
   }
@@ -174,7 +174,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
     // add 1 more buffer pool entry, so cfg change
     // should happen, size of map changes
     updateBufferPoolCfg("bufferPool_2", kSharedBytes, kHeadroomBytes);
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_NE(nullptr, stateV2);
 
@@ -183,7 +183,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
     EXPECT_EQ(bufferPoolCfgMap.size(), (*bufferPoolCfgs).size());
   }
 
-  config.bufferPoolConfigs_ref().reset();
+  config.bufferPoolConfigs().reset();
   auto stateEnd = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateEnd);
   bufferPools = stateEnd->getBufferPoolCfgs();

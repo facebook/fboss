@@ -30,30 +30,30 @@ constexpr auto KProbability = 100;
 std::vector<cfg::PortQueue> getConfigPortQueues(int mmuCellBytes) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
-  *queue0.id_ref() = 0;
-  queue0.name_ref() = "queue0";
-  *queue0.streamType_ref() = cfg::StreamType::UNICAST;
-  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = 1;
-  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue0.reservedBytes_ref() = kQueue0ReservedBytesCells * mmuCellBytes;
+  *queue0.id() = 0;
+  queue0.name() = "queue0";
+  *queue0.streamType() = cfg::StreamType::UNICAST;
+  *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = 1;
+  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  queue0.reservedBytes() = kQueue0ReservedBytesCells * mmuCellBytes;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  *queue1.id_ref() = 1;
-  queue1.name_ref() = "queue1";
-  *queue1.streamType_ref() = cfg::StreamType::UNICAST;
-  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight_ref() = 9;
-  queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-  queue1.reservedBytes_ref() = kQueue1ReservedBytesCells * mmuCellBytes;
+  *queue1.id() = 1;
+  queue1.name() = "queue1";
+  *queue1.streamType() = cfg::StreamType::UNICAST;
+  *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue1.weight() = 9;
+  queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  queue1.reservedBytes() = kQueue1ReservedBytesCells * mmuCellBytes;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue7;
-  *queue7.id_ref() = 7;
-  queue7.name_ref() = "queue7";
-  *queue7.streamType_ref() = cfg::StreamType::UNICAST;
-  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.id() = 7;
+  queue7.name() = "queue7";
+  *queue7.streamType() = cfg::StreamType::UNICAST;
+  *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
   return portQueues;
@@ -63,13 +63,13 @@ std::vector<cfg::PortQueue> get7ConfigPortQueues(int mmuCellBytes) {
   std::vector<cfg::PortQueue> portQueues;
   for (auto i = 0; i < 8; i++) {
     cfg::PortQueue queue0;
-    *queue0.id_ref() = i;
-    queue0.name_ref() = folly::to<std::string>("queue", i);
-    *queue0.streamType_ref() = cfg::StreamType::UNICAST;
-    *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue0.weight_ref() = 1;
-    queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-    queue0.reservedBytes_ref() = kQueue0ReservedBytesCells * mmuCellBytes;
+    *queue0.id() = i;
+    queue0.name() = folly::to<std::string>("queue", i);
+    *queue0.streamType() = cfg::StreamType::UNICAST;
+    *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue0.weight() = 1;
+    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    queue0.reservedBytes() = kQueue0ReservedBytesCells * mmuCellBytes;
     portQueues.push_back(queue0);
   }
   return portQueues;
@@ -78,22 +78,22 @@ std::vector<cfg::PortQueue> get7ConfigPortQueues(int mmuCellBytes) {
 cfg::ActiveQueueManagement getEarlyDropAqmConfig(int mmuCellBytes) {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
-  *earlyDropLQCD.minimumLength_ref() = mmuCellBytes;
-  *earlyDropLQCD.maximumLength_ref() = 2 * mmuCellBytes;
-  earlyDropLQCD.probability_ref() = KProbability / 2;
-  earlyDropAQM.detection_ref()->linear_ref() = earlyDropLQCD;
-  *earlyDropAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  *earlyDropLQCD.minimumLength() = mmuCellBytes;
+  *earlyDropLQCD.maximumLength() = 2 * mmuCellBytes;
+  earlyDropLQCD.probability() = KProbability / 2;
+  earlyDropAQM.detection()->linear_ref() = earlyDropLQCD;
+  *earlyDropAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
 
 cfg::ActiveQueueManagement getECNAqmConfig(int mmuCellBytes) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  *ecnLQCD.minimumLength_ref() = 3 * mmuCellBytes;
-  *ecnLQCD.maximumLength_ref() = 3 * mmuCellBytes;
-  ecnLQCD.probability_ref() = KProbability;
-  ecnAQM.detection_ref()->linear_ref() = ecnLQCD;
-  *ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
+  *ecnLQCD.minimumLength() = 3 * mmuCellBytes;
+  *ecnLQCD.maximumLength() = 3 * mmuCellBytes;
+  ecnLQCD.probability() = KProbability;
+  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  *ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
@@ -111,8 +111,8 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
     std::optional<cfg::PortQueue> cfgQueue{std::nullopt};
     // we always program the first port in config
     for (const auto& queue :
-         programmedCfg_.portQueueConfigs_ref()["queue_config"]) {
-      if (*queue.id_ref() == queueID) {
+         programmedCfg_.portQueueConfigs()["queue_config"]) {
+      if (*queue.id() == queueID) {
         cfgQueue = queue;
         break;
       }
@@ -121,12 +121,12 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
   }
 
   int getCfgTrafficClass(int queueId, std::string policy) {
-    for (auto qosPolicy : *programmedCfg_.qosPolicies_ref()) {
-      if (*qosPolicy.name_ref() != policy) {
+    for (auto qosPolicy : *programmedCfg_.qosPolicies()) {
+      if (*qosPolicy.name() != policy) {
         continue;
       }
-      if (auto qosMap = qosPolicy.qosMap_ref()) {
-        for (auto tc2Queue : *qosMap->trafficClassToQueueId_ref()) {
+      if (auto qosMap = qosPolicy.qosMap()) {
+        for (auto tc2Queue : *qosMap->trafficClassToQueueId()) {
           if (tc2Queue.second != queueId) {
             continue;
           }
@@ -139,14 +139,14 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
   }
 
   int getCfgTrafficClass(int portId, int queueId) {
-    if (auto policy = programmedCfg_.dataPlaneTrafficPolicy_ref()) {
-      if (auto portIdToQosPolicy = policy->portIdToQosPolicy_ref()) {
+    if (auto policy = programmedCfg_.dataPlaneTrafficPolicy()) {
+      if (auto portIdToQosPolicy = policy->portIdToQosPolicy()) {
         if (portIdToQosPolicy->find(portId) != portIdToQosPolicy->end()) {
           return getCfgTrafficClass(
               queueId, portIdToQosPolicy->find(portId)->second);
         }
       }
-      if (auto defaultPolicy = policy->defaultQosPolicy_ref()) {
+      if (auto defaultPolicy = policy->defaultQosPolicy()) {
         return getCfgTrafficClass(queueId, *defaultPolicy);
       }
     }
@@ -208,10 +208,10 @@ TEST_F(BcmPortQueueManagerTest, ConfigPortQueuesSetup) {
 
   auto setup = [=]() {
     auto cfg = initialConfig();
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(getPlatform()->getMMUCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     applyNewConfig(cfg);
   };
 
@@ -232,24 +232,24 @@ TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
   QueueConfig swQueuesBefore;
   auto setup = [&]() {
     auto cfg = initialConfig();
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     applyNewConfig(cfg);
 
     for (const auto& queue : getSwQueues()) {
       swQueuesBefore.push_back(queue);
     }
 
-    auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
-    queue0.weight_ref() = 5;
-    queue0.reservedBytes_ref() = 10 * getPlatform()->getMMUCellBytes();
-    queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-    if (!queue0.aqms_ref()) {
-      queue0.aqms_ref() = {};
+    auto& queue0 = cfg.portQueueConfigs()["queue_config"][0];
+    queue0.weight() = 5;
+    queue0.reservedBytes() = 10 * getPlatform()->getMMUCellBytes();
+    queue0.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+    if (!queue0.aqms()) {
+      queue0.aqms() = {};
     }
-    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
+    queue0.aqms()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
   };
 
@@ -299,18 +299,18 @@ TEST_F(BcmPortQueueManagerTest, ClearPortQueueSettings) {
     ;
     // set aqm for queue0 for testing
     auto& queue0 = portQueues[0];
-    if (!queue0.aqms_ref()) {
-      queue0.aqms_ref() = {};
+    if (!queue0.aqms()) {
+      queue0.aqms() = {};
     }
-    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
-    cfg.portQueueConfigs_ref()["queue_config"] = portQueues;
+    queue0.aqms()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
+    cfg.portQueueConfigs()["queue_config"] = portQueues;
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     applyNewConfig(cfg);
 
     // remove all port queue settings
-    portCfg->portQueueConfigName_ref().reset();
-    cfg.portQueueConfigs_ref()->erase("queue_config");
+    portCfg->portQueueConfigName().reset();
+    cfg.portQueueConfigs()->erase("queue_config");
     applyNewConfig(cfg);
   };
 
@@ -342,56 +342,56 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
 
   // no aqm -> earlyDrop=false;ecn=true
   {
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
-    auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
-    if (!queue0.aqms_ref()) {
-      queue0.aqms_ref() = {};
+    portCfg->portQueueConfigName() = "queue_config";
+    auto& queue0 = cfg.portQueueConfigs()["queue_config"][0];
+    if (!queue0.aqms()) {
+      queue0.aqms() = {};
     }
-    queue0.aqms_ref()->push_back(getECNAqmConfig(mmuCellBytes()));
+    queue0.aqms()->push_back(getECNAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
 
   // earlyDrop=false;ecn=true -> earlyDrop=true;ecn=false
   {
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
-    auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
-    if (!queue0.aqms_ref()) {
-      queue0.aqms_ref() = {};
+    portCfg->portQueueConfigName() = "queue_config";
+    auto& queue0 = cfg.portQueueConfigs()["queue_config"][0];
+    if (!queue0.aqms()) {
+      queue0.aqms() = {};
     }
-    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
+    queue0.aqms()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
 
   // earlyDrop=true;ecn=false -> earlyDrop=true;ecn=true
   {
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
-    auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
-    if (!queue0.aqms_ref()) {
-      queue0.aqms_ref() = {};
+    portCfg->portQueueConfigName() = "queue_config";
+    auto& queue0 = cfg.portQueueConfigs()["queue_config"][0];
+    if (!queue0.aqms()) {
+      queue0.aqms() = {};
     }
-    queue0.aqms_ref()->push_back(getECNAqmConfig(mmuCellBytes()));
-    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
+    queue0.aqms()->push_back(getECNAqmConfig(mmuCellBytes()));
+    queue0.aqms()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
 
   // earlyDrop=true;ecn=true -> no aqm
   {
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
@@ -407,10 +407,10 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappings) {
 
   auto setup = [=]() {
     auto cfg = initialConfig();
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     applyNewConfig(cfg);
   };
 
@@ -459,21 +459,21 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappingsOverride) {
 
   auto setup = [=]() {
     auto cfg = initialConfig();
-    cfg.portQueueConfigs_ref()["queue_config"] =
+    cfg.portQueueConfigs()["queue_config"] =
         get7ConfigPortQueues(mmuCellBytes());
     auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-    portCfg->portQueueConfigName_ref() = "queue_config";
+    portCfg->portQueueConfigName() = "queue_config";
     cfg::QosMap qosMap;
     for (auto i = 0; i < 8; i++) {
       /* must provide all queue traffic class to queue id */
-      qosMap.trafficClassToQueueId_ref()->emplace(7 - i, i);
+      qosMap.trafficClassToQueueId()->emplace(7 - i, i);
     }
-    cfg.qosPolicies_ref()->resize(1);
-    *cfg.qosPolicies_ref()[0].name_ref() = "policy";
-    cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    cfg.qosPolicies()->resize(1);
+    *cfg.qosPolicies()[0].name() = "policy";
+    cfg.qosPolicies()[0].qosMap() = qosMap;
     cfg::TrafficPolicyConfig policy;
-    policy.defaultQosPolicy_ref() = "policy";
-    cfg.dataPlaneTrafficPolicy_ref() = policy;
+    policy.defaultQosPolicy() = "policy";
+    cfg.dataPlaneTrafficPolicy() = policy;
     applyNewConfig(cfg);
   };
 

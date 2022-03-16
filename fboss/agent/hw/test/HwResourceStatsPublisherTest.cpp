@@ -79,7 +79,7 @@ TEST(HwResourceStatsPublisherTest, StatsNotInitialized) {
 
 TEST(HwResourceStatsPublisherTest, StatsStale) {
   HwResourceStats stats;
-  stats.hw_table_stats_stale_ref() = true;
+  stats.hw_table_stats_stale() = true;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kHwTableStatsStale), 1);
   checkMissing({});
@@ -87,9 +87,9 @@ TEST(HwResourceStatsPublisherTest, StatsStale) {
 
 TEST(HwResourceStatsPublisher, AclStats) {
   HwResourceStats stats;
-  stats.acl_entries_max_ref() = 10;
-  stats.acl_entries_used_ref() = 1;
-  stats.acl_entries_free_ref() = 9;
+  stats.acl_entries_max() = 10;
+  stats.acl_entries_used() = 1;
+  stats.acl_entries_free() = 9;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kAclEntriesMax), 10);
   EXPECT_EQ(fbData->getCounter(kAclEntriesUsed), 1);
@@ -99,9 +99,9 @@ TEST(HwResourceStatsPublisher, AclStats) {
 
 TEST(HwResourceStatsPublisher, AclCounterStats) {
   HwResourceStats stats;
-  stats.acl_counters_max_ref() = 10;
-  stats.acl_counters_used_ref() = 1;
-  stats.acl_counters_free_ref() = 9;
+  stats.acl_counters_max() = 10;
+  stats.acl_counters_used() = 1;
+  stats.acl_counters_free() = 9;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kAclCountersMax), 10);
   EXPECT_EQ(fbData->getCounter(kAclCountersUsed), 1);
@@ -111,9 +111,9 @@ TEST(HwResourceStatsPublisher, AclCounterStats) {
 
 TEST(HwResourceStatsPublisher, AclMeterStats) {
   HwResourceStats stats;
-  stats.acl_meters_max_ref() = 10;
-  stats.acl_meters_used_ref() = 1;
-  stats.acl_meters_free_ref() = 9;
+  stats.acl_meters_max() = 10;
+  stats.acl_meters_used() = 1;
+  stats.acl_meters_free() = 9;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kAclMetersMax), 10);
   EXPECT_EQ(fbData->getCounter(kAclMetersUsed), 1);
@@ -123,12 +123,12 @@ TEST(HwResourceStatsPublisher, AclMeterStats) {
 
 TEST(HwResourceStatsPublisher, MirrorStats) {
   HwResourceStats stats;
-  stats.mirrors_max_ref() = 10;
-  stats.mirrors_used_ref() = 6;
-  stats.mirrors_free_ref() = 4;
-  stats.mirrors_span_ref() = 1;
-  stats.mirrors_erspan_ref() = 2;
-  stats.mirrors_sflow_ref() = 3;
+  stats.mirrors_max() = 10;
+  stats.mirrors_used() = 6;
+  stats.mirrors_free() = 4;
+  stats.mirrors_span() = 1;
+  stats.mirrors_erspan() = 2;
+  stats.mirrors_sflow() = 3;
 
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kMirrorsMax), 10);
@@ -148,11 +148,11 @@ TEST(HwResourceStatsPublisher, MirrorStats) {
 
 TEST(HwResourceStatsPublisher, NextHopStats) {
   HwResourceStats stats;
-  stats.l3_nexthops_max_ref() = 10;
-  stats.l3_nexthops_used_ref() = 1;
-  stats.l3_nexthops_free_ref() = 9;
-  stats.l3_ipv4_nexthops_free_ref() = 8;
-  stats.l3_ipv6_nexthops_free_ref() = 7;
+  stats.l3_nexthops_max() = 10;
+  stats.l3_nexthops_used() = 1;
+  stats.l3_nexthops_free() = 9;
+  stats.l3_ipv4_nexthops_free() = 8;
+  stats.l3_ipv6_nexthops_free() = 7;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kL3NextHopsMax), 10);
   EXPECT_EQ(fbData->getCounter(kL3NextHopsUsed), 1);
@@ -164,10 +164,10 @@ TEST(HwResourceStatsPublisher, NextHopStats) {
 
 TEST(HwResourceStatsPublisher, EcmpGroupStats) {
   HwResourceStats stats;
-  stats.l3_ecmp_groups_max_ref() = 10;
-  stats.l3_ecmp_groups_used_ref() = 1;
-  stats.l3_ecmp_groups_free_ref() = 9;
-  stats.l3_ecmp_group_members_free_ref() = 42;
+  stats.l3_ecmp_groups_max() = 10;
+  stats.l3_ecmp_groups_used() = 1;
+  stats.l3_ecmp_groups_free() = 9;
+  stats.l3_ecmp_group_members_free() = 42;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsMax), 10);
   EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsUsed), 1);
@@ -182,13 +182,13 @@ TEST(HwResourceStatsPublisher, EcmpGroupStats) {
 
 TEST(HwResourceStatsPublisher, HostStats) {
   HwResourceStats stats;
-  stats.l3_host_max_ref() = 10;
-  stats.l3_host_used_ref() = 4;
-  stats.l3_host_free_ref() = 6;
-  stats.l3_ipv4_host_used_ref() = 4;
-  stats.l3_ipv4_host_free_ref() = 2;
-  stats.l3_ipv6_host_used_ref() = 5;
-  stats.l3_ipv6_host_free_ref() = 3;
+  stats.l3_host_max() = 10;
+  stats.l3_host_used() = 4;
+  stats.l3_host_free() = 6;
+  stats.l3_ipv4_host_used() = 4;
+  stats.l3_ipv4_host_free() = 2;
+  stats.l3_ipv6_host_used() = 5;
+  stats.l3_ipv6_host_free() = 3;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kL3HostMax), 10);
   EXPECT_EQ(fbData->getCounter(kL3HostUsed), 4);
@@ -210,9 +210,9 @@ TEST(HwResourceStatsPublisher, HostStats) {
 
 TEST(HwResourceStatsPublisher, Ipv4RouteStats) {
   HwResourceStats stats;
-  stats.lpm_ipv4_max_ref() = 10;
-  stats.lpm_ipv4_used_ref() = 1;
-  stats.lpm_ipv4_free_ref() = 9;
+  stats.lpm_ipv4_max() = 10;
+  stats.lpm_ipv4_used() = 1;
+  stats.lpm_ipv4_free() = 9;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kLpmIpv4Max), 10);
   EXPECT_EQ(fbData->getCounter(kLpmIpv4Used), 1);
@@ -222,13 +222,13 @@ TEST(HwResourceStatsPublisher, Ipv4RouteStats) {
 
 TEST(HwResourceStatsPublisher, Ipv6RouteStats) {
   HwResourceStats stats;
-  stats.lpm_ipv6_mask_0_64_max_ref() = 10;
-  stats.lpm_ipv6_mask_0_64_used_ref() = 1;
-  stats.lpm_ipv6_mask_0_64_free_ref() = 9;
-  stats.lpm_ipv6_mask_65_127_max_ref() = 5;
-  stats.lpm_ipv6_mask_65_127_used_ref() = 2;
-  stats.lpm_ipv6_mask_65_127_free_ref() = 3;
-  stats.lpm_ipv6_free_ref() = 12;
+  stats.lpm_ipv6_mask_0_64_max() = 10;
+  stats.lpm_ipv6_mask_0_64_used() = 1;
+  stats.lpm_ipv6_mask_0_64_free() = 9;
+  stats.lpm_ipv6_mask_65_127_max() = 5;
+  stats.lpm_ipv6_mask_65_127_used() = 2;
+  stats.lpm_ipv6_mask_65_127_free() = 3;
+  stats.lpm_ipv6_free() = 12;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_0_64_Max), 10);
   EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_0_64_Used), 1);
@@ -249,9 +249,9 @@ TEST(HwResourceStatsPublisher, Ipv6RouteStats) {
 
 TEST(HwResourceStatsPublisher, LpmSlotStats) {
   HwResourceStats stats;
-  stats.lpm_slots_max_ref() = 10;
-  stats.lpm_slots_used_ref() = 1;
-  stats.lpm_slots_free_ref() = 9;
+  stats.lpm_slots_max() = 10;
+  stats.lpm_slots_used() = 1;
+  stats.lpm_slots_free() = 9;
   HwResourceStatsPublisher().publish(stats);
   EXPECT_EQ(fbData->getCounter(kLpmTableMax), 10);
   EXPECT_EQ(fbData->getCounter(kLpmTableUsed), 1);

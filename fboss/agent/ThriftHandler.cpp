@@ -118,7 +118,7 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
   nhs.reserve(nexthops.size());
   for (auto const& nexthop : nexthops) {
     auto addr = network::toBinaryAddress(nexthop.addr());
-    addr.ifName_ref() = util::createTunIntfName(nexthop.intf());
+    addr.ifName() = util::createTunIntfName(nexthop.intf());
     nhs.emplace_back(std::move(addr));
   }
   return nhs;
@@ -131,13 +131,13 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
 namespace {
 
 void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
-  auto portId = *portInfo.portId_ref();
+  auto portId = *portInfo.portId();
   auto statMap = facebook::fb303::fbData->getStatMap();
 
   auto getSumStat = [&](StringPiece prefix, StringPiece name) {
-    auto portName = portInfo.name_ref()->empty()
+    auto portName = portInfo.name()->empty()
         ? folly::to<std::string>("port", portId)
-        : *portInfo.name_ref();
+        : *portInfo.name();
     auto statName = folly::to<std::string>(portName, ".", prefix, name);
     auto statPtr = statMap->getStatPtrNoExport(statName);
     auto lockedStatPtr = statPtr->lock();
@@ -147,23 +147,23 @@ void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
   };
 
   auto fillPortCounters = [&](PortCounters& ctr, StringPiece prefix) {
-    *ctr.bytes_ref() = getSumStat(prefix, "bytes");
-    *ctr.ucastPkts_ref() = getSumStat(prefix, "unicast_pkts");
-    *ctr.multicastPkts_ref() = getSumStat(prefix, "multicast_pkts");
-    *ctr.broadcastPkts_ref() = getSumStat(prefix, "broadcast_pkts");
-    *ctr.errors_ref()->errors_ref() = getSumStat(prefix, "errors");
-    *ctr.errors_ref()->discards_ref() = getSumStat(prefix, "discards");
+    *ctr.bytes() = getSumStat(prefix, "bytes");
+    *ctr.ucastPkts() = getSumStat(prefix, "unicast_pkts");
+    *ctr.multicastPkts() = getSumStat(prefix, "multicast_pkts");
+    *ctr.broadcastPkts() = getSumStat(prefix, "broadcast_pkts");
+    *ctr.errors()->errors() = getSumStat(prefix, "errors");
+    *ctr.errors()->discards() = getSumStat(prefix, "discards");
   };
 
-  fillPortCounters(*portInfo.output_ref(), "out_");
-  fillPortCounters(*portInfo.input_ref(), "in_");
+  fillPortCounters(*portInfo.output(), "out_");
+  fillPortCounters(*portInfo.input(), "in_");
   for (int i = 0; i < numPortQs; i++) {
     auto queue = folly::to<std::string>("queue", i, ".");
     QueueStats stats;
-    *stats.congestionDiscards_ref() =
+    *stats.congestionDiscards() =
         getSumStat(queue, "out_congestion_discards_bytes");
-    *stats.outBytes_ref() = getSumStat(queue, "out_bytes");
-    portInfo.output_ref()->unicast_ref()->push_back(stats);
+    *stats.outBytes() = getSumStat(queue, "out_bytes");
+    portInfo.output()->unicast()->push_back(stats);
   }
 }
 
@@ -171,12 +171,12 @@ void getPortInfoHelper(
     const SwSwitch& sw,
     PortInfoThrift& portInfo,
     const std::shared_ptr<Port> port) {
-  *portInfo.portId_ref() = port->getID();
-  *portInfo.name_ref() = port->getName();
-  *portInfo.description_ref() = port->getDescription();
-  *portInfo.speedMbps_ref() = static_cast<int>(port->getSpeed());
+  *portInfo.portId() = port->getID();
+  *portInfo.name() = port->getName();
+  *portInfo.description() = port->getDescription();
+  *portInfo.speedMbps() = static_cast<int>(port->getSpeed());
   for (auto entry : port->getVlans()) {
-    portInfo.vlans_ref()->push_back(entry.first);
+    portInfo.vlans()->push_back(entry.first);
   }
 
   std::shared_ptr<QosPolicy> qosPolicy;
@@ -194,19 +194,18 @@ void getPortInfoHelper(
 
   for (const auto& queue : port->getPortQueues()) {
     PortQueueThrift pq;
-    *pq.id_ref() = queue->getID();
-    *pq.mode_ref() =
-        apache::thrift::TEnumTraits<cfg::QueueScheduling>::findName(
-            queue->getScheduling());
+    *pq.id() = queue->getID();
+    *pq.mode() = apache::thrift::TEnumTraits<cfg::QueueScheduling>::findName(
+        queue->getScheduling());
     if (queue->getScheduling() ==
         facebook::fboss::cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-      pq.weight_ref() = queue->getWeight();
+      pq.weight() = queue->getWeight();
     }
     if (queue->getReservedBytes()) {
-      pq.reservedBytes_ref() = queue->getReservedBytes().value();
+      pq.reservedBytes() = queue->getReservedBytes().value();
     }
     if (queue->getScalingFactor()) {
-      pq.scalingFactor_ref() =
+      pq.scalingFactor() =
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
               queue->getScalingFactor().value());
     }
@@ -214,66 +213,63 @@ void getPortInfoHelper(
       std::vector<ActiveQueueManagement> aqms;
       for (const auto& aqm : queue->getAqms()) {
         ActiveQueueManagement aqmThrift;
-        switch (aqm.second.detection_ref()->getType()) {
+        switch (aqm.second.detection()->getType()) {
           case facebook::fboss::cfg::QueueCongestionDetection::Type::linear:
-            aqmThrift.detection_ref()->linear_ref() =
-                LinearQueueCongestionDetection();
-            *aqmThrift.detection_ref()->linear_ref()->minimumLength_ref() =
-                *aqm.second.detection_ref()->get_linear().minimumLength_ref();
-            *aqmThrift.detection_ref()->linear_ref()->maximumLength_ref() =
-                *aqm.second.detection_ref()->get_linear().maximumLength_ref();
-            aqmThrift.detection_ref()->linear_ref()->probability_ref() =
-                *aqm.second.detection_ref()->get_linear().probability_ref();
+            aqmThrift.detection()->linear() = LinearQueueCongestionDetection();
+            *aqmThrift.detection()->linear()->minimumLength() =
+                *aqm.second.detection()->get_linear().minimumLength();
+            *aqmThrift.detection()->linear()->maximumLength() =
+                *aqm.second.detection()->get_linear().maximumLength();
+            aqmThrift.detection()->linear()->probability() =
+                *aqm.second.detection()->get_linear().probability();
             break;
           case facebook::fboss::cfg::QueueCongestionDetection::Type::__EMPTY__:
             XLOG(WARNING) << "Invalid queue congestion detection config";
             break;
         }
-        *aqmThrift.behavior_ref() = QueueCongestionBehavior(aqm.first);
+        *aqmThrift.behavior() = QueueCongestionBehavior(aqm.first);
         aqms.push_back(aqmThrift);
       }
-      pq.aqms_ref() = {};
-      pq.aqms_ref()->swap(aqms);
+      pq.aqms() = {};
+      pq.aqms()->swap(aqms);
     }
     if (queue->getName()) {
-      *pq.name_ref() = queue->getName().value();
+      *pq.name() = queue->getName().value();
     }
 
     if (queue->getPortQueueRate().has_value()) {
       if (queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::pktsPerSec) {
         Range range;
-        range.minimum_ref() =
-            *queue->getPortQueueRate().value().get_pktsPerSec().minimum_ref();
-        range.maximum_ref() =
-            *queue->getPortQueueRate().value().get_pktsPerSec().maximum_ref();
+        range.minimum() =
+            *queue->getPortQueueRate().value().get_pktsPerSec().minimum();
+        range.maximum() =
+            *queue->getPortQueueRate().value().get_pktsPerSec().maximum();
         PortQueueRate portQueueRate;
         portQueueRate.pktsPerSec_ref() = range;
 
-        pq.portQueueRate_ref() = portQueueRate;
+        pq.portQueueRate() = portQueueRate;
       } else if (
           queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::kbitsPerSec) {
         Range range;
-        range.minimum_ref() =
-            *queue->getPortQueueRate().value().get_kbitsPerSec().minimum_ref();
-        range.maximum_ref() =
-            *queue->getPortQueueRate().value().get_kbitsPerSec().maximum_ref();
+        range.minimum() =
+            *queue->getPortQueueRate().value().get_kbitsPerSec().minimum();
+        range.maximum() =
+            *queue->getPortQueueRate().value().get_kbitsPerSec().maximum();
         PortQueueRate portQueueRate;
         portQueueRate.kbitsPerSec_ref() = range;
 
-        pq.portQueueRate_ref() = portQueueRate;
+        pq.portQueueRate() = portQueueRate;
       }
     }
 
     if (queue->getBandwidthBurstMinKbits()) {
-      pq.bandwidthBurstMinKbits_ref() =
-          queue->getBandwidthBurstMinKbits().value();
+      pq.bandwidthBurstMinKbits() = queue->getBandwidthBurstMinKbits().value();
     }
 
     if (queue->getBandwidthBurstMaxKbits()) {
-      pq.bandwidthBurstMaxKbits_ref() =
-          queue->getBandwidthBurstMaxKbits().value();
+      pq.bandwidthBurstMaxKbits() = queue->getBandwidthBurstMaxKbits().value();
     }
 
     if (!port->getLookupClassesToDistributeTrafficOn().empty()) {
@@ -283,7 +279,7 @@ void getPortInfoHelper(
       auto kMaxDscp = 64;
       std::vector<signed char> dscps(kMaxDscp);
       std::iota(dscps.begin(), dscps.end(), 0);
-      pq.dscps_ref() = dscps;
+      pq.dscps() = dscps;
     } else if (qosPolicy) {
       std::vector<signed char> dscps;
       auto tcToDscp = qosPolicy->getDscpMap().from();
@@ -293,57 +289,56 @@ void getPortInfoHelper(
           dscps.push_back(entry.attr());
         }
       }
-      pq.dscps_ref() = dscps;
+      pq.dscps() = dscps;
     }
 
-    portInfo.portQueues_ref()->push_back(pq);
+    portInfo.portQueues()->push_back(pq);
   }
 
-  *portInfo.adminState_ref() = PortAdminState(
+  *portInfo.adminState() = PortAdminState(
       port->getAdminState() == facebook::fboss::cfg::PortState::ENABLED);
-  *portInfo.operState_ref() =
+  *portInfo.operState() =
       PortOperState(port->getOperState() == Port::OperState::UP);
 
-  *portInfo.profileID_ref() =
-      apache::thrift::util::enumName(port->getProfileID());
+  *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
   if (port->isEnabled()) {
     const auto platformPort = sw.getPlatform()->getPlatformPort(port->getID());
     PortHardwareDetails hw;
-    hw.profile_ref() = port->getProfileID();
-    hw.profileConfig_ref() =
-        platformPort->getPortProfileConfigFromCache(*hw.profile_ref());
-    hw.pinConfig_ref() = platformPort->getPortPinConfigs(*hw.profile_ref());
+    hw.profile() = port->getProfileID();
+    hw.profileConfig() =
+        platformPort->getPortProfileConfigFromCache(*hw.profile());
+    hw.pinConfig() = platformPort->getPortPinConfigs(*hw.profile());
     // Use SW Port pinConfig directly
-    hw.pinConfig_ref()->iphy_ref() = port->getPinConfigs();
-    hw.chips_ref() = platformPort->getPortDataplaneChips(*hw.profile_ref());
-    portInfo.hw_ref() = hw;
+    hw.pinConfig()->iphy() = port->getPinConfigs();
+    hw.chips() = platformPort->getPortDataplaneChips(*hw.profile());
+    portInfo.hw() = hw;
 
-    auto fec = hw.profileConfig_ref()->iphy_ref()->fec_ref().value();
-    portInfo.fecEnabled_ref() = fec != phy::FecMode::NONE;
-    portInfo.fecMode_ref() = apache::thrift::util::enumName(fec);
+    auto fec = hw.profileConfig()->iphy()->fec().value();
+    portInfo.fecEnabled() = fec != phy::FecMode::NONE;
+    portInfo.fecMode() = apache::thrift::util::enumName(fec);
   }
 
   auto pause = port->getPause();
-  *portInfo.txPause_ref() = *pause.tx_ref();
-  *portInfo.rxPause_ref() = *pause.rx_ref();
+  *portInfo.txPause() = *pause.tx();
+  *portInfo.rxPause() = *pause.rx();
 
   if (port->getPfc().has_value()) {
     PfcConfig pc;
     auto pfc = port->getPfc();
-    pc.tx_ref() = *pfc->tx_ref();
-    pc.rx_ref() = *pfc->rx_ref();
-    pc.watchdog_ref() = pfc->watchdog_ref().has_value();
-    portInfo.pfc_ref() = pc;
+    pc.tx() = *pfc->tx();
+    pc.rx() = *pfc->rx();
+    pc.watchdog() = pfc->watchdog().has_value();
+    portInfo.pfc() = pc;
   }
   try {
-    portInfo.transceiverIdx_ref() =
+    portInfo.transceiverIdx() =
         sw.getPlatform()->getPortMapping(port->getID(), port->getSpeed());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }
 
-  fillPortStats(portInfo, portInfo.portQueues_ref()->size());
+  fillPortStats(portInfo, portInfo.portQueues()->size());
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
@@ -370,78 +365,75 @@ LacpPortActivityThrift fromLacpPortActivity(
 void populateAggregatePortThrift(
     const std::shared_ptr<AggregatePort>& aggregatePort,
     AggregatePortThrift& aggregatePortThrift) {
-  *aggregatePortThrift.key_ref() =
-      static_cast<uint32_t>(aggregatePort->getID());
-  *aggregatePortThrift.name_ref() = aggregatePort->getName();
-  *aggregatePortThrift.description_ref() = aggregatePort->getDescription();
-  *aggregatePortThrift.systemPriority_ref() =
-      aggregatePort->getSystemPriority();
-  *aggregatePortThrift.systemID_ref() = aggregatePort->getSystemID().toString();
-  *aggregatePortThrift.minimumLinkCount_ref() =
+  *aggregatePortThrift.key() = static_cast<uint32_t>(aggregatePort->getID());
+  *aggregatePortThrift.name() = aggregatePort->getName();
+  *aggregatePortThrift.description() = aggregatePort->getDescription();
+  *aggregatePortThrift.systemPriority() = aggregatePort->getSystemPriority();
+  *aggregatePortThrift.systemID() = aggregatePort->getSystemID().toString();
+  *aggregatePortThrift.minimumLinkCount() =
       aggregatePort->getMinimumLinkCount();
-  *aggregatePortThrift.isUp_ref() = aggregatePort->isUp();
+  *aggregatePortThrift.isUp() = aggregatePort->isUp();
 
   // Since aggregatePortThrift.memberPorts is being push_back'ed to, but is an
   // out parameter, make sure it's clear() first
-  aggregatePortThrift.memberPorts_ref()->clear();
+  aggregatePortThrift.memberPorts()->clear();
 
-  aggregatePortThrift.memberPorts_ref()->reserve(
-      aggregatePort->subportsCount());
+  aggregatePortThrift.memberPorts()->reserve(aggregatePort->subportsCount());
 
   for (const auto& subport : aggregatePort->sortedSubports()) {
     bool isEnabled = aggregatePort->getForwardingState(subport.portID) ==
         AggregatePort::Forwarding::ENABLED;
     AggregatePortMemberThrift aggPortMember;
-    *aggPortMember.memberPortID_ref() = static_cast<int32_t>(subport.portID),
-    *aggPortMember.isForwarding_ref() = isEnabled,
-    *aggPortMember.priority_ref() = static_cast<int32_t>(subport.priority),
-    *aggPortMember.rate_ref() = fromLacpPortRate(subport.rate),
-    *aggPortMember.activity_ref() = fromLacpPortActivity(subport.activity);
-    aggregatePortThrift.memberPorts_ref()->push_back(aggPortMember);
+    *aggPortMember.memberPortID() = static_cast<int32_t>(subport.portID),
+    *aggPortMember.isForwarding() = isEnabled,
+    *aggPortMember.priority() = static_cast<int32_t>(subport.priority),
+    *aggPortMember.rate() = fromLacpPortRate(subport.rate),
+    *aggPortMember.activity() = fromLacpPortActivity(subport.activity);
+    aggregatePortThrift.memberPorts()->push_back(aggPortMember);
   }
 }
 
 AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   AclEntryThrift aclEntryThrift;
-  *aclEntryThrift.priority_ref() = aclEntry.getPriority();
-  *aclEntryThrift.name_ref() = aclEntry.getID();
-  *aclEntryThrift.srcIp_ref() = toBinaryAddress(aclEntry.getSrcIp().first);
-  *aclEntryThrift.srcIpPrefixLength_ref() = aclEntry.getSrcIp().second;
-  *aclEntryThrift.dstIp_ref() = toBinaryAddress(aclEntry.getDstIp().first);
-  *aclEntryThrift.dstIpPrefixLength_ref() = aclEntry.getDstIp().second;
-  *aclEntryThrift.actionType_ref() =
+  *aclEntryThrift.priority() = aclEntry.getPriority();
+  *aclEntryThrift.name() = aclEntry.getID();
+  *aclEntryThrift.srcIp() = toBinaryAddress(aclEntry.getSrcIp().first);
+  *aclEntryThrift.srcIpPrefixLength() = aclEntry.getSrcIp().second;
+  *aclEntryThrift.dstIp() = toBinaryAddress(aclEntry.getDstIp().first);
+  *aclEntryThrift.dstIpPrefixLength() = aclEntry.getDstIp().second;
+  *aclEntryThrift.actionType() =
       aclEntry.getActionType() == facebook::fboss::cfg::AclActionType::DENY
       ? "deny"
       : "permit";
   if (aclEntry.getProto()) {
-    aclEntryThrift.proto_ref() = aclEntry.getProto().value();
+    aclEntryThrift.proto() = aclEntry.getProto().value();
   }
   if (aclEntry.getSrcPort()) {
-    aclEntryThrift.srcPort_ref() = aclEntry.getSrcPort().value();
+    aclEntryThrift.srcPort() = aclEntry.getSrcPort().value();
   }
   if (aclEntry.getDstPort()) {
-    aclEntryThrift.dstPort_ref() = aclEntry.getDstPort().value();
+    aclEntryThrift.dstPort() = aclEntry.getDstPort().value();
   }
   if (aclEntry.getIcmpCode()) {
-    aclEntryThrift.icmpCode_ref() = aclEntry.getIcmpCode().value();
+    aclEntryThrift.icmpCode() = aclEntry.getIcmpCode().value();
   }
   if (aclEntry.getIcmpType()) {
-    aclEntryThrift.icmpType_ref() = aclEntry.getIcmpType().value();
+    aclEntryThrift.icmpType() = aclEntry.getIcmpType().value();
   }
   if (aclEntry.getDscp()) {
-    aclEntryThrift.dscp_ref() = aclEntry.getDscp().value();
+    aclEntryThrift.dscp() = aclEntry.getDscp().value();
   }
   if (aclEntry.getTtl()) {
-    aclEntryThrift.ttl_ref() = aclEntry.getTtl().value().getValue();
+    aclEntryThrift.ttl() = aclEntry.getTtl().value().getValue();
   }
   if (aclEntry.getL4SrcPort()) {
-    aclEntryThrift.l4SrcPort_ref() = aclEntry.getL4SrcPort().value();
+    aclEntryThrift.l4SrcPort() = aclEntry.getL4SrcPort().value();
   }
   if (aclEntry.getL4DstPort()) {
-    aclEntryThrift.l4DstPort_ref() = aclEntry.getL4DstPort().value();
+    aclEntryThrift.l4DstPort() = aclEntry.getL4DstPort().value();
   }
   if (aclEntry.getDstMac()) {
-    aclEntryThrift.dstMac_ref() = aclEntry.getDstMac().value().toString();
+    aclEntryThrift.dstMac() = aclEntry.getDstMac().value().toString();
   }
   return aclEntryThrift;
 }
@@ -451,38 +443,38 @@ LinkNeighborThrift thriftLinkNeighbor(
     const LinkNeighbor& n,
     steady_clock::time_point now) {
   LinkNeighborThrift tn;
-  *tn.localPort_ref() = n.getLocalPort();
-  *tn.localVlan_ref() = n.getLocalVlan();
-  *tn.srcMac_ref() = n.getMac().toString();
-  *tn.chassisIdType_ref() = static_cast<int32_t>(n.getChassisIdType());
-  *tn.chassisId_ref() = n.getChassisId();
-  *tn.printableChassisId_ref() = n.humanReadableChassisId();
-  *tn.portIdType_ref() = static_cast<int32_t>(n.getPortIdType());
-  *tn.portId_ref() = n.getPortId();
-  *tn.printablePortId_ref() = n.humanReadablePortId();
-  *tn.originalTTL_ref() = duration_cast<seconds>(n.getTTL()).count();
-  *tn.ttlSecondsLeft_ref() =
+  *tn.localPort() = n.getLocalPort();
+  *tn.localVlan() = n.getLocalVlan();
+  *tn.srcMac() = n.getMac().toString();
+  *tn.chassisIdType() = static_cast<int32_t>(n.getChassisIdType());
+  *tn.chassisId() = n.getChassisId();
+  *tn.printableChassisId() = n.humanReadableChassisId();
+  *tn.portIdType() = static_cast<int32_t>(n.getPortIdType());
+  *tn.portId() = n.getPortId();
+  *tn.printablePortId() = n.humanReadablePortId();
+  *tn.originalTTL() = duration_cast<seconds>(n.getTTL()).count();
+  *tn.ttlSecondsLeft() =
       duration_cast<seconds>(n.getExpirationTime() - now).count();
   if (!n.getSystemName().empty()) {
-    tn.systemName_ref() = n.getSystemName();
+    tn.systemName() = n.getSystemName();
   }
   if (!n.getSystemDescription().empty()) {
-    tn.systemDescription_ref() = n.getSystemDescription();
+    tn.systemDescription() = n.getSystemDescription();
   }
   if (!n.getPortDescription().empty()) {
-    tn.portDescription_ref() = n.getPortDescription();
+    tn.portDescription() = n.getPortDescription();
   }
   const auto port = sw.getState()->getPorts()->getPortIf(n.getLocalPort());
   if (port) {
-    tn.localPortName_ref() = port->getName();
+    tn.localPortName() = port->getName();
   }
   return tn;
 }
 template <typename AddrT>
 IpPrefix getIpPrefix(const Route<AddrT>& route) {
   IpPrefix pfx;
-  pfx.ip_ref() = toBinaryAddress(route.prefix().network);
-  pfx.prefixLength_ref() = route.prefix().mask;
+  pfx.ip() = toBinaryAddress(route.prefix().network);
+  pfx.prefixLength() = route.prefix().mask;
   return pfx;
 }
 
@@ -780,19 +772,19 @@ void ThriftHandler::updateUnicastRoutesImpl(
 static void populateInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     const std::shared_ptr<Interface> intf) {
-  *interfaceDetail.interfaceName_ref() = intf->getName();
-  *interfaceDetail.interfaceId_ref() = intf->getID();
-  *interfaceDetail.vlanId_ref() = intf->getVlanID();
-  *interfaceDetail.routerId_ref() = intf->getRouterID();
-  *interfaceDetail.mtu_ref() = intf->getMtu();
-  *interfaceDetail.mac_ref() = intf->getMac().toString();
-  interfaceDetail.address_ref()->clear();
-  interfaceDetail.address_ref()->reserve(intf->getAddresses().size());
+  *interfaceDetail.interfaceName() = intf->getName();
+  *interfaceDetail.interfaceId() = intf->getID();
+  *interfaceDetail.vlanId() = intf->getVlanID();
+  *interfaceDetail.routerId() = intf->getRouterID();
+  *interfaceDetail.mtu() = intf->getMtu();
+  *interfaceDetail.mac() = intf->getMac().toString();
+  interfaceDetail.address()->clear();
+  interfaceDetail.address()->reserve(intf->getAddresses().size());
   for (const auto& addrAndMask : intf->getAddresses()) {
     IpPrefix temp;
-    *temp.ip_ref() = toBinaryAddress(addrAndMask.first);
-    *temp.prefixLength_ref() = addrAndMask.second;
-    interfaceDetail.address_ref()->push_back(temp);
+    *temp.ip() = toBinaryAddress(addrAndMask.first);
+    *temp.prefixLength() = addrAndMask.second;
+    interfaceDetail.address()->push_back(temp);
   }
 }
 
@@ -1158,10 +1150,10 @@ void ThriftHandler::getPortPrbsStats(
 
   if (component == phy::PrbsComponent::ASIC) {
     auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
-    prbsStats.portId_ref() = portId;
-    prbsStats.component_ref() = phy::PrbsComponent::ASIC;
+    prbsStats.portId() = portId;
+    prbsStats.component() = phy::PrbsComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {
-      prbsStats.laneStats_ref()->push_back(lane);
+      prbsStats.laneStats()->push_back(lane);
     }
   } else if (
       component == phy::PrbsComponent::GB_SYSTEM ||
@@ -1170,10 +1162,10 @@ void ThriftHandler::getPortPrbsStats(
         ? phy::Side::SYSTEM
         : phy::Side::LINE;
     auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
-    prbsStats.portId_ref() = portId;
-    prbsStats.component_ref() = component;
+    prbsStats.portId() = portId;
+    prbsStats.component() = component;
     for (const auto& lane : gearboxPrbsStats) {
-      prbsStats.laneStats_ref()->push_back(lane);
+      prbsStats.laneStats()->push_back(lane);
     }
   } else {
     XLOG(INFO) << "Unrecognized component to GetPortPrbsStats: "
@@ -1195,8 +1187,8 @@ void ThriftHandler::setPortPrbs(
   }
 
   phy::PortPrbsState newPrbsState;
-  *newPrbsState.enabled_ref() = enable;
-  *newPrbsState.polynominal_ref() = polynominal;
+  *newPrbsState.enabled() = enable;
+  *newPrbsState.polynominal() = polynominal;
 
   if (component == phy::PrbsComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
@@ -1299,15 +1291,15 @@ void ThriftHandler::programInternalPhyPorts(
     std::map<int32_t, cfg::PortProfileID>& programmedPorts,
     std::unique_ptr<TransceiverInfo> transceiver,
     bool force) {
-  int32_t id = *transceiver->port_ref();
+  int32_t id = *transceiver->port();
   auto log = LOG_THRIFT_CALL(DBG1, id, force);
   ensureConfigured(__func__);
 
   // Check whether the transceiver has valid id
   std::optional<phy::DataPlanePhyChip> tcvrChip;
   for (const auto& chip : sw_->getPlatform()->getDataPlanePhyChips()) {
-    if (*chip.second.type_ref() == phy::DataPlanePhyChipType::TRANSCEIVER &&
-        *chip.second.physicalID_ref() == id) {
+    if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER &&
+        *chip.second.physicalID() == id) {
       tcvrChip = chip.second;
       break;
     }
@@ -1354,8 +1346,8 @@ void ThriftHandler::programInternalPhyPorts(
       platform->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
           factor);
       for (const auto& platformPort : platformPorts) {
-        const auto oldPort = state->getPorts()->getPortIf(
-            PortID(*platformPort.mapping_ref()->id_ref()));
+        const auto oldPort =
+            state->getPorts()->getPortIf(PortID(*platformPort.mapping()->id()));
         if (!oldPort) {
           continue;
         }
@@ -1367,7 +1359,7 @@ void ThriftHandler::programInternalPhyPorts(
               "No port profile config found with matcher:", matcher.toString());
         }
         if (oldPort->isEnabled() &&
-            *portProfileCfg->speed_ref() != oldPort->getSpeed()) {
+            *portProfileCfg->speed() != oldPort->getSpeed()) {
           throw FbossError(
               oldPort->getName(),
               " has mismatched speed on profile:",
@@ -1375,7 +1367,7 @@ void ThriftHandler::programInternalPhyPorts(
               " and config:",
               apache::thrift::util::enumNameSafe(oldPort->getSpeed()));
         }
-        auto newProfileConfigRef = portProfileCfg->iphy_ref();
+        auto newProfileConfigRef = portProfileCfg->iphy();
         const auto& newPinConfigs =
             platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
@@ -1393,7 +1385,7 @@ void ThriftHandler::programInternalPhyPorts(
   // fetch the programmed profiles
   for (const auto& platformPort : platformPorts) {
     const auto port = sw_->getState()->getPorts()->getPortIf(
-        PortID(*platformPort.mapping_ref()->id_ref()));
+        PortID(*platformPort.mapping()->id()));
     if (port && port->isEnabled()) {
       // Only return ports actually exist and are enabled
       programmedPorts.emplace(port->getID(), port->getProfileID());
@@ -1412,14 +1404,13 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       return;
     }
     auto fwdInfo = route->getForwardInfo();
-    tempRoute.dest_ref()->ip_ref() = toBinaryAddress(route->prefix().network);
-    tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
-    tempRoute.nextHopAddrs_ref() =
-        util::fromFwdNextHops(fwdInfo.getNextHopSet());
-    tempRoute.nextHops_ref() =
+    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network);
+    tempRoute.dest()->prefixLength() = route->prefix().mask;
+    tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    tempRoute.nextHops() =
         util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
     if (fwdInfo.getCounterID().has_value()) {
-      tempRoute.counterID_ref() = *fwdInfo.getCounterID();
+      tempRoute.counterID() = *fwdInfo.getCounterID();
     }
     routes.emplace_back(std::move(tempRoute));
   });
@@ -1437,15 +1428,14 @@ void ThriftHandler::getRouteTableByClient(
       return;
     }
     UnicastRoute tempRoute;
-    tempRoute.dest_ref()->ip_ref() = toBinaryAddress(route->prefix().network);
-    tempRoute.dest_ref()->prefixLength_ref() = route->prefix().mask;
-    tempRoute.nextHops_ref() =
-        util::fromRouteNextHopSet(entry->getNextHopSet());
+    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network);
+    tempRoute.dest()->prefixLength() = route->prefix().mask;
+    tempRoute.nextHops() = util::fromRouteNextHopSet(entry->getNextHopSet());
     if (entry->getCounterID().has_value()) {
-      tempRoute.counterID_ref() = *entry->getCounterID();
+      tempRoute.counterID() = *entry->getCounterID();
     }
-    for (const auto& nh : *tempRoute.nextHops_ref()) {
-      tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
+    for (const auto& nh : *tempRoute.nextHops()) {
+      tempRoute.nextHopAddrs()->emplace_back(*nh.address());
     }
     routes.emplace_back(std::move(tempRoute));
   });
@@ -1471,32 +1461,32 @@ void ThriftHandler::getIpRoute(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
-      *route.dest_ref()->ip_ref() = toBinaryAddress(IPAddressV4("0.0.0.0"));
-      *route.dest_ref()->prefixLength_ref() = 0;
+      *route.dest()->ip() = toBinaryAddress(IPAddressV4("0.0.0.0"));
+      *route.dest()->prefixLength() = 0;
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    *route.dest_ref()->ip_ref() = toBinaryAddress(match->prefix().network);
-    *route.dest_ref()->prefixLength_ref() = match->prefix().mask;
-    *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.dest()->ip() = toBinaryAddress(match->prefix().network);
+    *route.dest()->prefixLength() = match->prefix().mask;
+    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
-      route.counterID_ref() = *counterID;
+      route.counterID() = *counterID;
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
-      *route.dest_ref()->ip_ref() = toBinaryAddress(IPAddressV6("::0"));
-      *route.dest_ref()->prefixLength_ref() = 0;
+      *route.dest()->ip() = toBinaryAddress(IPAddressV6("::0"));
+      *route.dest()->prefixLength() = 0;
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    *route.dest_ref()->ip_ref() = toBinaryAddress(match->prefix().network);
-    *route.dest_ref()->prefixLength_ref() = match->prefix().mask;
-    *route.nextHopAddrs_ref() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.dest()->ip() = toBinaryAddress(match->prefix().network);
+    *route.dest()->prefixLength() = match->prefix().mask;
+    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
-      route.counterID_ref() = *counterID;
+      route.counterID() = *counterID;
     }
   }
 }
@@ -1627,10 +1617,7 @@ void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(
-      *info->name_ref(),
-      *info->maxPackets_ref(),
-      *info->direction_ref(),
-      *info->filter_ref());
+      *info->name(), *info->maxPackets(), *info->direction(), *info->filter());
   mgr->startCapture(std::move(capture));
 }
 
@@ -1653,12 +1640,12 @@ void ThriftHandler::startLoggingRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  folly::IPAddress addr = toIPAddress(*info->prefix_ref()->ip_ref());
-  uint8_t mask = static_cast<uint8_t>(*info->prefix_ref()->prefixLength_ref());
+  folly::IPAddress addr = toIPAddress(*info->prefix()->ip());
+  uint8_t mask = static_cast<uint8_t>(*info->prefix()->prefixLength());
   RouteUpdateLoggingInstance loggingInstance{
       RoutePrefix<folly::IPAddress>{addr, mask},
-      *info->identifier_ref(),
-      *info->exact_ref()};
+      *info->identifier(),
+      *info->exact()};
   routeUpdateLogger->startLoggingForPrefix(loggingInstance);
 }
 
@@ -1667,8 +1654,7 @@ void ThriftHandler::startLoggingMplsRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  routeUpdateLogger->startLoggingForLabel(
-      *info->label_ref(), *info->identifier_ref());
+  routeUpdateLogger->startLoggingForLabel(*info->label(), *info->identifier());
 }
 
 void ThriftHandler::stopLoggingRouteUpdates(
@@ -1677,8 +1663,8 @@ void ThriftHandler::stopLoggingRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  folly::IPAddress addr = toIPAddress(*prefix->ip_ref());
-  uint8_t mask = static_cast<uint8_t>(*prefix->prefixLength_ref());
+  folly::IPAddress addr = toIPAddress(*prefix->ip());
+  uint8_t mask = static_cast<uint8_t>(*prefix->prefixLength());
   routeUpdateLogger->stopLoggingForPrefix(addr, mask, *identifier);
 }
 
@@ -1703,8 +1689,7 @@ void ThriftHandler::stopLoggingMplsRouteUpdates(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
-  routeUpdateLogger->stopLoggingForLabel(
-      *info->label_ref(), *info->identifier_ref());
+  routeUpdateLogger->stopLoggingForLabel(*info->label(), *info->identifier());
 }
 
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
@@ -1715,11 +1700,11 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
     RouteUpdateLoggingInfo info;
     IpPrefix prefix;
-    *prefix.ip_ref() = toBinaryAddress(tracked.prefix.network);
-    *prefix.prefixLength_ref() = tracked.prefix.mask;
-    *info.prefix_ref() = prefix;
-    *info.identifier_ref() = tracked.identifier;
-    *info.exact_ref() = tracked.exact;
+    *prefix.ip() = toBinaryAddress(tracked.prefix.network);
+    *prefix.prefixLength() = tracked.prefix.mask;
+    *info.prefix() = prefix;
+    *info.identifier() = tracked.identifier;
+    *info.exact() = tracked.exact;
     infos.push_back(info);
   }
 }
@@ -1731,8 +1716,8 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->gettTrackedLabels()) {
     MplsRouteUpdateLoggingInfo info;
-    *info.identifier_ref() = tracked.first;
-    info.label_ref() = tracked.second.value();
+    *info.identifier() = tracked.first;
+    info.label() = tracked.second.value();
     infos.push_back(info);
   }
 }
@@ -1905,7 +1890,7 @@ void ThriftHandler::reloadConfig() {
 int64_t ThriftHandler::getLastConfigAppliedInMs() {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  return *sw_->getConfigAppliedInfo().lastAppliedInMs_ref();
+  return *sw_->getConfigAppliedInfo().lastAppliedInMs();
 }
 
 void ThriftHandler::getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) {
@@ -2017,19 +2002,19 @@ void ThriftHandler::addMplsRoutesImpl(
   auto labelFib =
       (*state)->getLabelForwardingInformationBase().get()->modify(state);
   for (const auto& mplsRoute : mplsRoutes) {
-    auto topLabel = *mplsRoute.topLabel_ref();
+    auto topLabel = *mplsRoute.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
-    auto adminDistance = mplsRoute.adminDistance_ref().has_value()
-        ? mplsRoute.adminDistance_ref().value()
+    auto adminDistance = mplsRoute.adminDistance().has_value()
+        ? mplsRoute.adminDistance().value()
         : sw_->clientIdToAdminDistance(static_cast<int>(clientId));
     // check for each next hop if these are resolved, if not resolve them
     // unresolved next hop must always be directly connected for MPLS
     // so unresolved next hops must be directly reachable via one of the
     // interface
     LabelNextHopSet nexthops;
-    for (auto& nexthop : util::toRouteNextHopSet(*mplsRoute.nextHops_ref())) {
+    for (auto& nexthop : util::toRouteNextHopSet(*mplsRoute.nextHops())) {
       if (nexthop.isResolved() || nexthop.isPopAndLookup()) {
         nexthops.emplace(nexthop);
         continue;
@@ -2102,7 +2087,7 @@ void ThriftHandler::addMplsRibRoutes(
   auto updater = sw_->getRouteUpdater();
   auto clientID = ClientID(clientId);
   for (const auto& route : *mplsRoutes) {
-    int topLabel = *route.topLabel_ref();
+    int topLabel = *route.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
@@ -2203,9 +2188,9 @@ void ThriftHandler::getMplsRouteTableByClient(
       continue;
     }
     MplsRoute mplsRoute;
-    mplsRoute.topLabel_ref() = entry->getID().value();
-    mplsRoute.adminDistance_ref() = labelNextHopEntry->getAdminDistance();
-    *mplsRoute.nextHops_ref() =
+    mplsRoute.topLabel() = entry->getID().value();
+    mplsRoute.adminDistance() = labelNextHopEntry->getAdminDistance();
+    *mplsRoute.nextHops() =
         util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
     mplsRoutes.emplace_back(std::move(mplsRoute));
   }
@@ -2231,14 +2216,14 @@ void ThriftHandler::getMplsRouteDetails(
   const auto entry = sw_->getState()
                          ->getLabelForwardingInformationBase()
                          ->getLabelForwardingEntry(topLabel);
-  mplsRouteDetail.topLabel_ref() = entry->getID().value();
-  mplsRouteDetail.nextHopMulti_ref() = entry->getEntryForClients().toThrift();
+  mplsRouteDetail.topLabel() = entry->getID().value();
+  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThrift();
   const auto& fwd = entry->getForwardInfo();
   for (const auto& nh : fwd.getNextHopSet()) {
-    mplsRouteDetail.nextHops_ref()->push_back(nh.toThrift());
+    mplsRouteDetail.nextHops()->push_back(nh.toThrift());
   }
-  *mplsRouteDetail.adminDistance_ref() = fwd.getAdminDistance();
-  *mplsRouteDetail.action_ref() = forwardActionStr(fwd.getAction());
+  *mplsRouteDetail.adminDistance() = fwd.getAdminDistance();
+  *mplsRouteDetail.action() = forwardActionStr(fwd.getAction());
 }
 
 void ThriftHandler::getHwDebugDump(std::string& out) {
@@ -2268,8 +2253,8 @@ void ThriftHandler::getBlockedNeighbors(
   for (const auto& [vlanID, ipAddress] :
        sw_->getState()->getSwitchSettings()->getBlockNeighbors()) {
     cfg::Neighbor blockedNeighbor;
-    blockedNeighbor.vlanID_ref() = vlanID;
-    blockedNeighbor.ipAddress_ref() = ipAddress.str();
+    blockedNeighbor.vlanID() = vlanID;
+    blockedNeighbor.ipAddress() = ipAddress.str();
     blockedNeighbors.emplace_back(std::move(blockedNeighbor));
   }
 }
@@ -2288,22 +2273,21 @@ void ThriftHandler::setNeighborsToBlock(
     }
 
     for (const auto& neighborToBlock : *neighborsToBlock) {
-      if (!folly::IPAddress::validate(*neighborToBlock.ipAddress_ref())) {
-        throw FbossError(
-            "Invalid IP address: ", *neighborToBlock.ipAddress_ref());
+      if (!folly::IPAddress::validate(*neighborToBlock.ipAddress())) {
+        throw FbossError("Invalid IP address: ", *neighborToBlock.ipAddress());
       }
 
       auto neighborToBlockStr = folly::to<std::string>(
           "[vlan: ",
-          *neighborToBlock.vlanID_ref(),
+          *neighborToBlock.vlanID(),
           " ip: ",
-          *neighborToBlock.ipAddress_ref(),
+          *neighborToBlock.ipAddress(),
           "], ");
       neighborsToBlockStr.append(neighborToBlockStr);
 
       blockNeighbors.emplace_back(
-          VlanID(*neighborToBlock.vlanID_ref()),
-          folly::IPAddress(*neighborToBlock.ipAddress_ref()));
+          VlanID(*neighborToBlock.vlanID()),
+          folly::IPAddress(*neighborToBlock.ipAddress()));
     }
   }
 
@@ -2327,8 +2311,8 @@ void ThriftHandler::getMacAddrsToBlock(
   for (const auto& [vlanID, macAddress] :
        sw_->getState()->getSwitchSettings()->getMacAddrsToBlock()) {
     cfg::MacAndVlan blockedMacAddr;
-    blockedMacAddr.vlanID_ref() = vlanID;
-    blockedMacAddr.macAddress_ref() = macAddress.toString();
+    blockedMacAddr.vlanID() = vlanID;
+    blockedMacAddr.macAddress() = macAddress.toString();
     blockedMacAddrs.emplace_back(std::move(blockedMacAddr));
   }
 }
@@ -2347,22 +2331,20 @@ void ThriftHandler::setMacAddrsToBlock(
 
     for (const auto& macAddrToBlock : *macAddrsToBlock) {
       auto macAddr =
-          folly::MacAddress::tryFromString(*macAddrToBlock.macAddress_ref());
+          folly::MacAddress::tryFromString(*macAddrToBlock.macAddress());
       if (!macAddr.hasValue()) {
-        throw FbossError(
-            "Invalid MAC address: ", *macAddrToBlock.macAddress_ref());
+        throw FbossError("Invalid MAC address: ", *macAddrToBlock.macAddress());
       }
 
       auto macAddrToBlockStr = folly::to<std::string>(
           "[vlan: ",
-          *macAddrToBlock.vlanID_ref(),
+          *macAddrToBlock.vlanID(),
           " ip: ",
-          *macAddrToBlock.macAddress_ref(),
+          *macAddrToBlock.macAddress(),
           "], ");
       macAddrsToBlockStr.append(macAddrToBlockStr);
 
-      blockMacAddrs.emplace_back(
-          VlanID(*macAddrToBlock.vlanID_ref()), *macAddr);
+      blockMacAddrs.emplace_back(VlanID(*macAddrToBlock.vlanID()), *macAddr);
     }
   }
 

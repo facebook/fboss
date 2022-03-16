@@ -145,14 +145,14 @@ facebook::fboss::UnicastRoute createUnicastRoute(
   facebook::fboss::UnicastRoute unicastRoute;
 
   facebook::fboss::IpPrefix network;
-  network.ip_ref() = facebook::network::toBinaryAddress(address);
-  network.prefixLength_ref() = mask;
-  unicastRoute.dest_ref() = network;
+  network.ip() = facebook::network::toBinaryAddress(address);
+  network.prefixLength() = mask;
+  unicastRoute.dest() = network;
 
   std::vector<facebook::fboss::NextHopThrift> nexthops(1);
-  nexthops.back().address_ref() = facebook::network::toBinaryAddress(nexthop);
-  nexthops.back().weight_ref() = facebook::fboss::ECMP_WEIGHT;
-  unicastRoute.nextHops_ref() = std::move(nexthops);
+  nexthops.back().address() = facebook::network::toBinaryAddress(nexthop);
+  nexthops.back().weight() = facebook::fboss::ECMP_WEIGHT;
+  unicastRoute.nextHops() = std::move(nexthops);
 
   return unicastRoute;
 }
@@ -209,17 +209,17 @@ TEST(Rib, Update) {
   auto v6Default = folly::CIDRNetworkV6(folly::IPAddressV6("::"), 0);
 
   cfg::SwitchConfig config;
-  config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1;
-  config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "0.0.0.0/0";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.19/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[2] = "::/0";
+  config.vlans()->resize(1);
+  *config.vlans()[0].id() = 1;
+  config.interfaces()->resize(1);
+  *config.interfaces()[0].intfID() = 1;
+  *config.interfaces()[0].vlanID() = 1;
+  *config.interfaces()[0].routerID() = 0;
+  config.interfaces()[0].mac() = "00:02:00:00:00:01";
+  config.interfaces()[0].ipAddresses()->resize(3);
+  config.interfaces()[0].ipAddresses()[0] = "0.0.0.0/0";
+  config.interfaces()[0].ipAddresses()[1] = "192.168.0.19/24";
+  config.interfaces()[0].ipAddresses()[2] = "::/0";
 
   auto testHandle = createTestHandle(&config);
   auto sw = testHandle->getSw();
@@ -354,17 +354,16 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   RoutePrefixV6 prefix{folly::IPAddressV6("2a03:2880:ff:1e::"), 64};
 
   cfg::SwitchConfig config;
-  config.vlans_ref()->resize(1);
-  *config.vlans_ref()[0].id_ref() = 1;
-  config.interfaces_ref()->resize(1);
-  *config.interfaces_ref()[0].intfID_ref() = 1;
-  *config.interfaces_ref()[0].vlanID_ref() = 1;
-  *config.interfaces_ref()[0].routerID_ref() = vrfZero;
-  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.120.70.44/31";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] =
-      "2401:db00:e003:9100:1006::2c/127";
+  config.vlans()->resize(1);
+  *config.vlans()[0].id() = 1;
+  config.interfaces()->resize(1);
+  *config.interfaces()[0].intfID() = 1;
+  *config.interfaces()[0].vlanID() = 1;
+  *config.interfaces()[0].routerID() = vrfZero;
+  config.interfaces()[0].mac() = "00:00:00:00:00:11";
+  config.interfaces()[0].ipAddresses()->resize(2);
+  config.interfaces()[0].ipAddresses()[0] = "10.120.70.44/31";
+  config.interfaces()[0].ipAddresses()[1] = "2401:db00:e003:9100:1006::2c/127";
 
   auto testHandle = createTestHandle(&config);
   auto sw = testHandle->getSw();

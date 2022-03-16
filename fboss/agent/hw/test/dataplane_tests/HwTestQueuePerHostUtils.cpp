@@ -65,19 +65,19 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
   for (auto queueId : kQueuePerhostQueueIds()) {
     cfg::PortQueue queue;
 
-    queue.id_ref() = queueId;
-    queue.name_ref() = "queue_per_host";
-    queue.streamType_ref() = cfg::StreamType::UNICAST;
-    queue.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue.weight_ref() = kQueuePerHostWeight;
+    queue.id() = queueId;
+    queue.name() = "queue_per_host";
+    queue.streamType() = cfg::StreamType::UNICAST;
+    queue.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue.weight() = kQueuePerHostWeight;
     portQueues.push_back(queue);
   }
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  config->portQueueConfigs()["queue_config"] = portQueues;
 
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
-    port.lookupClasses_ref() = kLookupClasses();
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
+    port.lookupClasses() = kLookupClasses();
   }
 }
 
@@ -127,7 +127,7 @@ std::string getRouteDropAclName() {
 
 void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   cfg::Ttl ttl;
-  std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+  std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
 
   utility::addTrafficCounter(config, ttlCounterName);
@@ -174,7 +174,7 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
 
   // TTL only
   auto* ttlAcl = utility::addAcl(config, getQueuePerHostTtlAclName());
-  ttlAcl->ttl_ref() = ttl;
+  ttlAcl->ttl() = ttl;
   utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
 
   utility::addL2ClassIDDropAcl(
@@ -190,7 +190,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
       config, cfg::AclStage::INGRESS, getAclTableGroupName());
 
   cfg::Ttl ttl;
-  std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+  std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
   utility::addTrafficCounter(config, ttlCounterName);
 
@@ -213,7 +213,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
         l2AclName,
         cfg::AclActionType::PERMIT,
         getQueuePerHostAclTableName());
-    aclL2->lookupClassL2_ref() = classID;
+    aclL2->lookupClassL2() = classID;
     utility::addQueueMatcher(config, l2AclName, queueId);
 
     auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
@@ -222,7 +222,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
         neighborAclName,
         cfg::AclActionType::PERMIT,
         getQueuePerHostAclTableName());
-    aclNeighbor->lookupClassNeighbor_ref() = classID;
+    aclNeighbor->lookupClassNeighbor() = classID;
     utility::addQueueMatcher(config, neighborAclName, queueId);
 
     auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
@@ -231,7 +231,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
         routeAclName,
         cfg::AclActionType::PERMIT,
         getQueuePerHostAclTableName());
-    aclRoute->lookupClassRoute_ref() = classID;
+    aclRoute->lookupClassRoute() = classID;
     utility::addQueueMatcher(config, routeAclName, queueId);
   }
 
@@ -248,7 +248,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
       getQueuePerHostTtlAclName(),
       cfg::AclActionType::PERMIT,
       getTtlAclTableName());
-  ttlAcl->ttl_ref() = ttl;
+  ttlAcl->ttl() = ttl;
   utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
 }
 

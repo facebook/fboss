@@ -43,15 +43,14 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
       uint32_t maxPps,
       uint32_t maxKbps) const {
     if (isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-      auto& queue0 =
-          config->portQueueConfigs_ref()["queue_config"][kQueueId0()];
-      queue0.portQueueRate_ref() = cfg::PortQueueRate();
-      queue0.portQueueRate_ref()->pktsPerSec_ref() =
+      auto& queue0 = config->portQueueConfigs()["queue_config"][kQueueId0()];
+      queue0.portQueueRate() = cfg::PortQueueRate();
+      queue0.portQueueRate()->pktsPerSec_ref() =
           utility::getRange(kMinPps(), maxPps);
     }
-    auto& queue1 = config->portQueueConfigs_ref()["queue_config"][kQueueId1()];
-    queue1.portQueueRate_ref() = cfg::PortQueueRate();
-    queue1.portQueueRate_ref()->kbitsPerSec_ref() =
+    auto& queue1 = config->portQueueConfigs()["queue_config"][kQueueId1()];
+    queue1.portQueueRate() = cfg::PortQueueRate();
+    queue1.portQueueRate()->kbitsPerSec_ref() =
         utility::getRange(kMinKbps(), maxKbps);
   }
 

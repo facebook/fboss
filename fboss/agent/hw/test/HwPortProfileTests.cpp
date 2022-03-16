@@ -94,8 +94,8 @@ class HwPortProfileTest : public HwTest {
               PlatformPortProfileConfigMatcher(Profile, port))) {
         continue;
       }
-      if (iter->second.supportedProfiles_ref()->find(Profile) ==
-          iter->second.supportedProfiles_ref()->end()) {
+      if (iter->second.supportedProfiles()->find(Profile) ==
+          iter->second.supportedProfiles()->end()) {
         continue;
       }
       availablePorts.push_back(port);

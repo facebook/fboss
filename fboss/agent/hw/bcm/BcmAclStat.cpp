@@ -91,7 +91,7 @@ bool BcmAclStat::isStateSame(
     const auto& hwCounterTypes =
         BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
             hw->getUnit(), statHandle);
-    for (auto type : *counter.types_ref()) {
+    for (auto type : *counter.types()) {
       if (hwCounterTypes.find(type) == hwCounterTypes.end()) {
         return false;
       }
@@ -100,7 +100,7 @@ bool BcmAclStat::isStateSame(
   }
 
   std::vector<bcm_field_stat_t> expectedCounterTypes;
-  for (auto type : *counter.types_ref()) {
+  for (auto type : *counter.types()) {
     expectedCounterTypes.push_back(
         utility::cfgCounterTypeToBcmCounterType(type));
   }

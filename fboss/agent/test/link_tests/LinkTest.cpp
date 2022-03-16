@@ -91,9 +91,9 @@ void LinkTest::initializeCabledPorts() {
   const auto& platformPorts =
       sw()->getPlatform()->getPlatformMapping()->getPlatformPorts();
   const auto& chips = sw()->getPlatform()->getPlatformMapping()->getChips();
-  for (const auto& port : *sw()->getConfig().ports_ref()) {
-    if (!(*port.expectedLLDPValues_ref()).empty()) {
-      auto portID = *port.logicalID_ref();
+  for (const auto& port : *sw()->getConfig().ports()) {
+    if (!(*port.expectedLLDPValues()).empty()) {
+      auto portID = *port.logicalID();
       cabledPorts_.push_back(PortID(portID));
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
@@ -120,7 +120,7 @@ LinkTest::getOpticalCabledPortsAndNames() const {
 
     if (trcvInfo) {
       if (TransmitterTechnology::OPTICAL ==
-          *(trcvInfo->cable_ref().value_or({}).transmitterTech_ref())) {
+          *(trcvInfo->cable().value_or({}).transmitterTech())) {
         opticalPorts.push_back(port);
         opticalPortNames += portName + " ";
       } else {
@@ -276,7 +276,7 @@ void LinkTest::waitForStateMachineState(
       // Only continue if the transceiver state machine matches
       if (auto transceiverInfoIt = info.find(transceiverID);
           transceiverInfoIt != info.end()) {
-        if (auto state = transceiverInfoIt->second.stateMachineState_ref();
+        if (auto state = transceiverInfoIt->second.stateMachineState();
             state.has_value() && *state == stateMachineState) {
           continue;
         }

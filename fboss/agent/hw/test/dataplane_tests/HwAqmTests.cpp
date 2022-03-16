@@ -170,7 +170,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int expectedDroppedPkts) {
     constexpr auto kAcceptableError = 2;
     auto deltaWredDroppedPackets =
-        *after.wredDroppedPackets__ref() - *before.wredDroppedPackets__ref();
+        *after.wredDroppedPackets_() - *before.wredDroppedPackets_();
     XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
     EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
     EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
@@ -186,7 +186,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int expectedMarkedPkts) {
     constexpr auto kAcceptableError = 2;
     auto deltaEcnMarkedPackets =
-        *after.outEcnCounter__ref() - *before.outEcnCounter__ref();
+        *after.outEcnCounter_() - *before.outEcnCounter_();
     XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets;
     EXPECT_GT(deltaEcnMarkedPackets, expectedMarkedPkts - kAcceptableError);
     EXPECT_LT(deltaEcnMarkedPackets, expectedMarkedPkts + kAcceptableError);
@@ -211,7 +211,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
         // counter and on congestion encountered packets are counted.
         sendPkt(kDscp(), isEcn, true);
         auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-        EXPECT_EQ(*portStats.outEcnCounter__ref(), 0);
+        EXPECT_EQ(*portStats.outEcnCounter_(), 0);
       }
       disableTTLDecrements(ecmpHelper6);
     };
@@ -315,14 +315,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto portStatsIter = newStats.find(port);
       if (portStatsIter != newStats.end()) {
         auto portStats = portStatsIter->second;
-        outPackets = (*portStats.queueOutPackets__ref())[queueId] -
-            (*before.queueOutPackets__ref())[queueId];
+        outPackets = (*portStats.queueOutPackets_())[queueId] -
+            (*before.queueOutPackets_())[queueId];
         if (isEcn) {
-          ecnMarking =
-              *portStats.outEcnCounter__ref() - *before.outEcnCounter__ref();
+          ecnMarking = *portStats.outEcnCounter_() - *before.outEcnCounter_();
         } else {
-          wredDrops = *portStats.wredDroppedPackets__ref() -
-              *before.wredDroppedPackets__ref();
+          wredDrops =
+              *portStats.wredDroppedPackets_() - *before.wredDroppedPackets_();
         }
       }
       /*
@@ -419,8 +418,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
           before);
       auto after =
           getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
-      auto deltaOutPackets = (*after.queueOutPackets__ref())[kQueueId] -
-          (*before.queueOutPackets__ref())[kQueueId];
+      auto deltaOutPackets = (*after.queueOutPackets_())[kQueueId] -
+          (*before.queueOutPackets_())[kQueueId];
       /*
        * Might see more outPackets than expected due to
        * utility::sendPacketsWithQueueBuildup()

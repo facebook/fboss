@@ -24,15 +24,15 @@ PlatformPort::PlatformPort(PortID id, Platform* platform)
   // If the platform port comes with transceiver lanes
   if (!tcvrList.empty()) {
     // All the transceiver lanes should use the same transceiver id
-    auto chipCfg = getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
+    auto chipCfg = getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip());
     if (!chipCfg) {
       throw FbossError(
           "Port ",
           getPortID(),
           " is using platform unsupported chip ",
-          *tcvrList[0].chip_ref());
+          *tcvrList[0].chip());
     }
-    transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
+    transceiverID_.emplace(TransceiverID(*chipCfg->physicalID()));
   }
 }
 
@@ -92,7 +92,7 @@ phy::PortPinConfig PlatformPort::getPortPinConfigs(
   // this function in the future
   auto pinConfig = getPortXphyPinConfig(profileID);
   if (auto transceiverPins = getTransceiverPinConfigs(profileID)) {
-    pinConfig.transceiver_ref() = *transceiverPins;
+    pinConfig.transceiver() = *transceiverPins;
   }
   return pinConfig;
 }
@@ -105,19 +105,19 @@ PlatformPort::getPortDataplaneChips(cfg::PortProfileID profileID) const {
 
   auto addChips = [&allChips, &chips](const auto& pins) {
     for (auto& pin : pins) {
-      auto chip = *pin.id_ref()->chip_ref();
+      auto chip = *pin.id()->chip();
       chips[chip] = allChips[chip];
     }
   };
 
-  addChips(*pins.iphy_ref());
-  if (auto xphySys = pins.xphySys_ref()) {
+  addChips(*pins.iphy());
+  if (auto xphySys = pins.xphySys()) {
     addChips(*xphySys);
   }
-  if (auto xphyLine = pins.xphyLine_ref()) {
+  if (auto xphyLine = pins.xphyLine()) {
     addChips(*xphyLine);
   }
-  if (auto transceiver = pins.transceiver_ref()) {
+  if (auto transceiver = pins.transceiver()) {
     addChips(*transceiver);
   }
 
@@ -144,11 +144,11 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
   }
 
   const auto& platformPortEntry = getPlatformPortEntry();
-  for (auto profile : *platformPortEntry.supportedProfiles_ref()) {
+  for (auto profile : *platformPortEntry.supportedProfiles()) {
     auto profileID = profile.first;
     if (auto profileCfg = platform_->getPortProfileConfig(
             PlatformPortProfileConfigMatcher(profileID, getPortID()))) {
-      if (*profileCfg->speed_ref() == speed) {
+      if (*profileCfg->speed() == speed) {
         return profileID;
       }
     } else {
@@ -230,7 +230,7 @@ std::optional<int32_t> PlatformPort::getExternalPhyID() {
   } else {
     // One port should only has one xphy id
     CHECK_EQ(xphy.size(), 1);
-    return *xphy.begin()->second.physicalID_ref();
+    return *xphy.begin()->second.physicalID();
   }
 }
 

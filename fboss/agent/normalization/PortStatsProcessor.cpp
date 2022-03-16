@@ -36,29 +36,29 @@ void PortStatsProcessor::processStats(
     process(
         portName,
         "input_bps",
-        StatTimestamp(*hwPortStats.timestamp__ref()),
-        *hwPortStats.inBytes__ref(),
+        StatTimestamp(*hwPortStats.timestamp_()),
+        *hwPortStats.inBytes_(),
         TransformType::BPS,
         60);
     process(
         portName,
         "output_bps",
-        StatTimestamp(*hwPortStats.timestamp__ref()),
-        *hwPortStats.outBytes__ref(),
+        StatTimestamp(*hwPortStats.timestamp_()),
+        *hwPortStats.outBytes_(),
         TransformType::BPS,
         60);
     process(
         portName,
         "total_input_discards",
-        StatTimestamp(*hwPortStats.timestamp__ref()),
-        *hwPortStats.inDiscards__ref(),
+        StatTimestamp(*hwPortStats.timestamp_()),
+        *hwPortStats.inDiscards_(),
         TransformType::RATE,
         60);
     process(
         portName,
         "total_output_discards",
-        StatTimestamp(*hwPortStats.timestamp__ref()),
-        *hwPortStats.outDiscards__ref(),
+        StatTimestamp(*hwPortStats.timestamp_()),
+        *hwPortStats.outDiscards_(),
         TransformType::RATE,
         60);
   }

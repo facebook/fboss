@@ -26,9 +26,7 @@ std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
     cfg::PortSpeed speed) {
   auto platformPort = platform->getPlatformPort(port);
   const auto& entry = platformPort->getPlatformPortEntry();
-  return {
-      *entry.mapping_ref()->name_ref(),
-      platformPort->getProfileIDBySpeed(speed)};
+  return {*entry.mapping()->name(), platformPort->getProfileIDBySpeed(speed)};
 }
 } // namespace
 
@@ -206,12 +204,10 @@ void enablePortsInPortGroup(
     auto portID = allPortsInGroup.at(portIdx);
     bool isPortEnabled = enabledPortsOption.at(portIdx);
     auto portCfgIt = std::find_if(
-        config->ports_ref()->begin(),
-        config->ports_ref()->end(),
-        [portID](auto port) {
-          return static_cast<PortID>(*port.logicalID_ref()) == portID;
+        config->ports()->begin(), config->ports()->end(), [portID](auto port) {
+          return static_cast<PortID>(*port.logicalID()) == portID;
         });
-    if (portCfgIt == config->ports_ref()->end()) {
+    if (portCfgIt == config->ports()->end()) {
       if (isPortEnabled || !platform->supportsAddRemovePort()) {
         throw FbossError("Port:", portID, " doesn't exist in the config");
       }
@@ -221,29 +217,28 @@ void enablePortsInPortGroup(
 
     // If the port is disabled and the platform support removing ports
     if (!isPortEnabled && platform->supportsAddRemovePort()) {
-      config->ports_ref()->erase(portCfgIt);
+      config->ports()->erase(portCfgIt);
       auto vlanMemberPort = std::find_if(
-          config->vlanPorts_ref()->begin(),
-          config->vlanPorts_ref()->end(),
+          config->vlanPorts()->begin(),
+          config->vlanPorts()->end(),
           [portID](auto vlanPort) {
-            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
+            return static_cast<PortID>(*vlanPort.logicalPort()) == portID;
           });
-      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
-        config->vlanPorts_ref()->erase(vlanMemberPort);
+      if (vlanMemberPort != config->vlanPorts()->end()) {
+        config->vlanPorts()->erase(vlanMemberPort);
       }
       continue;
     }
 
     // For the remaining ports which doesn't get erased, update port config
-    portCfgIt->state_ref() =
+    portCfgIt->state() =
         isPortEnabled ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    portCfgIt->speed_ref() =
-        isPortEnabled ? enabledLaneSpeed : disabledLaneSpeed;
+    portCfgIt->speed() = isPortEnabled ? enabledLaneSpeed : disabledLaneSpeed;
 
     auto [name, profileID] =
-        getMappingNameAndProfileID(platform, portID, *portCfgIt->speed_ref());
-    portCfgIt->name_ref() = name;
-    portCfgIt->profileID_ref() = profileID;
+        getMappingNameAndProfileID(platform, portID, *portCfgIt->speed());
+    portCfgIt->name() = name;
+    portCfgIt->profileID() = profileID;
   }
 }
 } // namespace facebook::fboss::utility

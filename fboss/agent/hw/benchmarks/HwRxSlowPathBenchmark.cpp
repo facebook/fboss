@@ -70,7 +70,7 @@ void runRxSlowPathBenchmark() {
   // Send packet
   auto txPacket = utility::makeUDPTxPacket(
       hwSwitch,
-      VlanID(*config.vlanPorts_ref()[0].vlanID_ref()),
+      VlanID(*config.vlanPorts()[0].vlanID()),
       kSrcMac,
       dstMac,
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

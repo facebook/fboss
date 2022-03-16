@@ -92,8 +92,8 @@ class PortDescriptorTemplate {
 
   cfg::PortDescriptor toThrift() const {
     cfg::PortDescriptor portTh;
-    portTh.portId_ref() = static_cast<int16_t>(asThriftPort());
-    portTh.portType_ref() = cfg::PortDescriptorType(type_);
+    portTh.portId() = static_cast<int16_t>(asThriftPort());
+    portTh.portType() = cfg::PortDescriptorType(type_);
     return portTh;
   }
 

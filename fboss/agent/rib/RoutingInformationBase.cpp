@@ -47,11 +47,11 @@ class RibIpRouteUpdate {
       const ThriftRoute& route,
       const AdminDistance distance,
       RoutingInformationBase::UpdateStatistics& stats) {
-    auto network = facebook::network::toIPAddress(*route.dest_ref()->ip_ref());
-    auto mask = static_cast<uint8_t>(*route.dest_ref()->prefixLength_ref());
+    auto network = facebook::network::toIPAddress(*route.dest()->ip());
+    auto mask = static_cast<uint8_t>(*route.dest()->prefixLength());
     std::optional<RouteCounterID> counterID;
-    if (route.counterID_ref().has_value()) {
-      counterID = route.counterID_ref().value();
+    if (route.counterID().has_value()) {
+      counterID = route.counterID().value();
     }
     if (network.isV4()) {
       ++stats.v4RoutesAdded;
@@ -64,8 +64,8 @@ class RibIpRouteUpdate {
   static RibRouteId ToDelFn(
       const ThriftRouteId& prefix,
       RoutingInformationBase::UpdateStatistics& stats) {
-    auto network = facebook::network::toIPAddress(*prefix.ip_ref());
-    auto mask = static_cast<uint8_t>(*prefix.prefixLength_ref());
+    auto network = facebook::network::toIPAddress(*prefix.ip());
+    auto mask = static_cast<uint8_t>(*prefix.prefixLength());
     if (network.isV4()) {
       ++stats.v4RoutesDeleted;
     } else {
@@ -645,12 +645,11 @@ std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
            ++rit) {
         MplsRouteDetails mplsRouteDetail;
         auto routeDetails = rit->second->toRouteDetails();
-        mplsRouteDetail.topLabel_ref() = rit->first;
-        mplsRouteDetail.nextHopMulti_ref() = *routeDetails.nextHopMulti_ref();
-        mplsRouteDetail.nextHops_ref() = *routeDetails.nextHops_ref();
-        if (routeDetails.adminDistance_ref().has_value()) {
-          mplsRouteDetail.adminDistance_ref() =
-              *routeDetails.adminDistance_ref();
+        mplsRouteDetail.topLabel() = rit->first;
+        mplsRouteDetail.nextHopMulti() = *routeDetails.nextHopMulti();
+        mplsRouteDetail.nextHops() = *routeDetails.nextHops();
+        if (routeDetails.adminDistance().has_value()) {
+          mplsRouteDetail.adminDistance() = *routeDetails.adminDistance();
         }
         mplsRouteDetails.emplace_back(mplsRouteDetail);
       }

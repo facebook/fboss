@@ -105,76 +105,76 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
   cfg::SwitchConfig cfg;
   static constexpr auto kPortCount = 20;
 
-  cfg.ports_ref()->resize(kPortCount);
+  cfg.ports()->resize(kPortCount);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.ports_ref()[p].logicalID_ref() = p + 1;
-    cfg.ports_ref()[p].name_ref() = folly::to<string>("port", p + 1);
+    cfg.ports()[p].logicalID() = p + 1;
+    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
     if (isMhnic) {
-      cfg.ports_ref()[p].state_ref() = cfg::PortState::ENABLED;
-      cfg.ports_ref()[p].lookupClasses_ref() = {
+      cfg.ports()[p].state() = cfg::PortState::ENABLED;
+      cfg.ports()[p].lookupClasses() = {
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4,
       };
-      cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
-      cfg.ports_ref()[p].profileID_ref() =
+      cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
+      cfg.ports()[p].profileID() =
           cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
     } else {
       bool isControllingPort = (p % 4 == 0);
       if (isControllingPort) {
-        cfg.ports_ref()[p].state_ref() = cfg::PortState::ENABLED;
-        cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::HUNDREDG;
-        cfg.ports_ref()[p].profileID_ref() =
+        cfg.ports()[p].state() = cfg::PortState::ENABLED;
+        cfg.ports()[p].speed() = cfg::PortSpeed::HUNDREDG;
+        cfg.ports()[p].profileID() =
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
       } else {
-        cfg.ports_ref()[p].state_ref() = cfg::PortState::DISABLED;
-        cfg.ports_ref()[p].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
-        cfg.ports_ref()[p].profileID_ref() =
+        cfg.ports()[p].state() = cfg::PortState::DISABLED;
+        cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
+        cfg.ports()[p].profileID() =
             cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
       }
     }
   }
 
-  cfg.vlans_ref()->resize(2);
-  cfg.vlans_ref()[0].id_ref() = 1;
-  cfg.vlans_ref()[0].name_ref() = "Vlan1";
-  cfg.vlans_ref()[0].intfID_ref() = 1;
-  cfg.vlans_ref()[1].id_ref() = 55;
-  cfg.vlans_ref()[1].name_ref() = "Vlan55";
-  cfg.vlans_ref()[1].intfID_ref() = 55;
+  cfg.vlans()->resize(2);
+  cfg.vlans()[0].id() = 1;
+  cfg.vlans()[0].name() = "Vlan1";
+  cfg.vlans()[0].intfID() = 1;
+  cfg.vlans()[1].id() = 55;
+  cfg.vlans()[1].name() = "Vlan55";
+  cfg.vlans()[1].intfID() = 55;
 
-  cfg.vlanPorts_ref()->resize(20);
+  cfg.vlanPorts()->resize(20);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.vlanPorts_ref()[p].logicalPort_ref() = p + 1;
-    cfg.vlanPorts_ref()[p].vlanID_ref() = p < 11 ? 1 : 55;
+    cfg.vlanPorts()[p].logicalPort() = p + 1;
+    cfg.vlanPorts()[p].vlanID() = p < 11 ? 1 : 55;
   }
 
-  cfg.interfaces_ref()->resize(2);
-  cfg.interfaces_ref()[0].intfID_ref() = 1;
-  cfg.interfaces_ref()[0].routerID_ref() = 0;
-  cfg.interfaces_ref()[0].vlanID_ref() = 1;
-  cfg.interfaces_ref()[0].name_ref() = "interface1";
-  cfg.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
-  cfg.interfaces_ref()[0].mtu_ref() = 9000;
-  cfg.interfaces_ref()[0].ipAddresses_ref()->resize(4);
-  cfg.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  cfg.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
-  cfg.interfaces_ref()[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
-  cfg.interfaces_ref()[0].ipAddresses_ref()[3] = "fe80::/64"; // link local
+  cfg.interfaces()->resize(2);
+  cfg.interfaces()[0].intfID() = 1;
+  cfg.interfaces()[0].routerID() = 0;
+  cfg.interfaces()[0].vlanID() = 1;
+  cfg.interfaces()[0].name() = "interface1";
+  cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
+  cfg.interfaces()[0].mtu() = 9000;
+  cfg.interfaces()[0].ipAddresses()->resize(4);
+  cfg.interfaces()[0].ipAddresses()[0] = "10.0.0.1/24";
+  cfg.interfaces()[0].ipAddresses()[1] = "192.168.0.1/24";
+  cfg.interfaces()[0].ipAddresses()[2] = "2401:db00:2110:3001::0001/64";
+  cfg.interfaces()[0].ipAddresses()[3] = "fe80::/64"; // link local
 
-  cfg.interfaces_ref()[1].intfID_ref() = 55;
-  cfg.interfaces_ref()[1].routerID_ref() = 0;
-  cfg.interfaces_ref()[1].vlanID_ref() = 55;
-  cfg.interfaces_ref()[1].name_ref() = "interface55";
-  cfg.interfaces_ref()[1].mac_ref() = "00:02:00:00:00:55";
-  cfg.interfaces_ref()[1].mtu_ref() = 9000;
-  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(4);
-  cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "10.0.55.1/24";
-  cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "192.168.55.1/24";
-  cfg.interfaces_ref()[1].ipAddresses_ref()[2] = "2401:db00:2110:3055::0001/64";
-  cfg.interfaces_ref()[1].ipAddresses_ref()[3] = "169.254.0.0/16"; // link local
+  cfg.interfaces()[1].intfID() = 55;
+  cfg.interfaces()[1].routerID() = 0;
+  cfg.interfaces()[1].vlanID() = 55;
+  cfg.interfaces()[1].name() = "interface55";
+  cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
+  cfg.interfaces()[1].mtu() = 9000;
+  cfg.interfaces()[1].ipAddresses()->resize(4);
+  cfg.interfaces()[1].ipAddresses()[0] = "10.0.55.1/24";
+  cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
+  cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
+  cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
 
   return cfg;
 }
@@ -244,8 +244,8 @@ unique_ptr<HwTestHandle> createTestHandle(
   // init config
   initialState = make_shared<SwitchState>();
   if (config) {
-    for (const auto& port : *config->ports_ref()) {
-      auto id = *port.logicalID_ref();
+    for (const auto& port : *config->ports()) {
+      auto id = *port.logicalID();
       initialState->registerPort(PortID(id), folly::to<string>("port", id));
     }
   }
@@ -673,13 +673,13 @@ void preparedMockPortConfig(
     int32_t id,
     std::optional<std::string> name,
     cfg::PortState state) {
-  portCfg.logicalID_ref() = id;
-  portCfg.state_ref() = state;
-  portCfg.name_ref() = name ? *name : fmt::format("port{}", id);
+  portCfg.logicalID() = id;
+  portCfg.state() = state;
+  portCfg.name() = name ? *name : fmt::format("port{}", id);
   // Always use 10G because all the platform ports from MockPlatform can
   // support such speed and profile
-  portCfg.speed_ref() = cfg::PortSpeed::XG;
-  portCfg.profileID_ref() = cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER;
+  portCfg.speed() = cfg::PortSpeed::XG;
+  portCfg.profileID() = cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER;
 }
 
 } // namespace facebook::fboss

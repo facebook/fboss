@@ -456,7 +456,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         changed = true;
       }
     } else {
-      auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls_ref());
+      auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls());
       if (newAcls) {
         new_->resetAcls(std::move(newAcls));
         changed = true;
@@ -502,13 +502,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
         intfRouteTables_,
-        *cfg_->staticRoutesWithNhops_ref(),
-        *cfg_->staticRoutesToNull_ref(),
-        *cfg_->staticRoutesToCPU_ref(),
-        *cfg_->staticIp2MplsRoutes_ref(),
-        *cfg_->staticMplsRoutesWithNhops_ref(),
-        *cfg_->staticMplsRoutesToNull_ref(),
-        *cfg_->staticMplsRoutesToCPU_ref());
+        *cfg_->staticRoutesWithNhops(),
+        *cfg_->staticRoutesToNull(),
+        *cfg_->staticRoutesToCPU(),
+        *cfg_->staticIp2MplsRoutes(),
+        *cfg_->staticMplsRoutesWithNhops(),
+        *cfg_->staticMplsRoutesToNull(),
+        *cfg_->staticMplsRoutesToCPU());
   } else if (rib_) {
     auto newFibs = updateForwardingInformationBaseContainers();
     if (newFibs) {
@@ -518,13 +518,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 
     rib_->reconfigure(
         intfRouteTables_,
-        *cfg_->staticRoutesWithNhops_ref(),
-        *cfg_->staticRoutesToNull_ref(),
-        *cfg_->staticRoutesToCPU_ref(),
-        *cfg_->staticIp2MplsRoutes_ref(),
-        *cfg_->staticMplsRoutesWithNhops_ref(),
-        *cfg_->staticMplsRoutesToNull_ref(),
-        *cfg_->staticMplsRoutesToCPU_ref(),
+        *cfg_->staticRoutesWithNhops(),
+        *cfg_->staticRoutesToNull(),
+        *cfg_->staticRoutesToCPU(),
+        *cfg_->staticIp2MplsRoutes(),
+        *cfg_->staticMplsRoutesWithNhops(),
+        *cfg_->staticMplsRoutesToNull(),
+        *cfg_->staticMplsRoutesToCPU(),
         &updateFibFromConfig,
         static_cast<void*>(&new_));
   } else {
@@ -536,16 +536,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   // resolving mpls next hops may need interfaces to be setup
   // process static mpls routes after processing interfaces
   auto labelFib = updateStaticMplsRoutes(
-      *cfg_->staticMplsRoutesWithNhops_ref(),
-      *cfg_->staticMplsRoutesToNull_ref(),
-      *cfg_->staticMplsRoutesToNull_ref());
+      *cfg_->staticMplsRoutesWithNhops(),
+      *cfg_->staticMplsRoutesToNull(),
+      *cfg_->staticMplsRoutesToNull());
   if (labelFib) {
     new_->resetLabelForwardingInformationBase(labelFib);
     changed = true;
   }
 
   auto newVlans = new_->getVlans();
-  VlanID dfltVlan(*cfg_->defaultVlan_ref());
+  VlanID dfltVlan(*cfg_->defaultVlan());
   if (orig_->getDefaultVlan() != dfltVlan) {
     if (newVlans->getVlanIf(dfltVlan) == nullptr) {
       throw FbossError("Default VLAN ", dfltVlan, " does not exist");
@@ -587,13 +587,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  std::chrono::seconds arpAgerInterval(*cfg_->arpAgerInterval_ref());
+  std::chrono::seconds arpAgerInterval(*cfg_->arpAgerInterval());
   if (orig_->getArpAgerInterval() != arpAgerInterval) {
     new_->setArpAgerInterval(arpAgerInterval);
     changed = true;
   }
 
-  std::chrono::seconds arpTimeout(*cfg_->arpTimeoutSeconds_ref());
+  std::chrono::seconds arpTimeout(*cfg_->arpTimeoutSeconds());
   if (orig_->getArpTimeout() != arpTimeout) {
     new_->setArpTimeout(arpTimeout);
 
@@ -603,15 +603,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
-  uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes_ref());
+  uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
   if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
     new_->setMaxNeighborProbes(maxNeighborProbes);
     changed = true;
   }
 
   auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
-  auto newDhcpV4RelaySrc = cfg_->dhcpRelaySrcOverrideV4_ref()
-      ? IPAddressV4(*cfg_->dhcpRelaySrcOverrideV4_ref())
+  auto newDhcpV4RelaySrc = cfg_->dhcpRelaySrcOverrideV4()
+      ? IPAddressV4(*cfg_->dhcpRelaySrcOverrideV4())
       : IPAddressV4();
   if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
     new_->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
@@ -619,8 +619,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   auto oldDhcpV6RelaySrc = orig_->getDhcpV6RelaySrc();
-  auto newDhcpV6RelaySrc = cfg_->dhcpRelaySrcOverrideV6_ref()
-      ? IPAddressV6(*cfg_->dhcpRelaySrcOverrideV6_ref())
+  auto newDhcpV6RelaySrc = cfg_->dhcpRelaySrcOverrideV6()
+      ? IPAddressV6(*cfg_->dhcpRelaySrcOverrideV6())
       : IPAddressV6("::");
   if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
     new_->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
@@ -628,8 +628,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   auto oldDhcpV4ReplySrc = orig_->getDhcpV4ReplySrc();
-  auto newDhcpV4ReplySrc = cfg_->dhcpReplySrcOverrideV4_ref()
-      ? IPAddressV4(*cfg_->dhcpReplySrcOverrideV4_ref())
+  auto newDhcpV4ReplySrc = cfg_->dhcpReplySrcOverrideV4()
+      ? IPAddressV4(*cfg_->dhcpReplySrcOverrideV4())
       : IPAddressV4();
   if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
     new_->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
@@ -637,15 +637,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   auto oldDhcpV6ReplySrc = orig_->getDhcpV6ReplySrc();
-  auto newDhcpV6ReplySrc = cfg_->dhcpReplySrcOverrideV6_ref()
-      ? IPAddressV6(*cfg_->dhcpReplySrcOverrideV6_ref())
+  auto newDhcpV6ReplySrc = cfg_->dhcpReplySrcOverrideV6()
+      ? IPAddressV6(*cfg_->dhcpReplySrcOverrideV6())
       : IPAddressV6("::");
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
     new_->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
     changed = true;
   }
 
-  std::chrono::seconds staleEntryInterval(*cfg_->staleEntryInterval_ref());
+  std::chrono::seconds staleEntryInterval(*cfg_->staleEntryInterval());
   if (orig_->getStaleEntryInterval() != staleEntryInterval) {
     new_->setStaleEntryInterval(staleEntryInterval);
     changed = true;
@@ -690,17 +690,17 @@ void ThriftConfigApplier::processVlanPorts() {
   // The config file has a separate list for this data,
   // but it is stored in the state tree as part of both the PortMap and the
   // VlanMap.
-  for (const auto& vp : *cfg_->vlanPorts_ref()) {
-    PortID portID(*vp.logicalPort_ref());
-    VlanID vlanID(*vp.vlanID_ref());
+  for (const auto& vp : *cfg_->vlanPorts()) {
+    PortID portID(*vp.logicalPort());
+    VlanID vlanID(*vp.vlanID());
     auto ret1 = portVlans_[portID].insert(
-        std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags_ref())));
+        std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags())));
     if (!ret1.second) {
       throw FbossError(
           "duplicate VlanPort for port ", portID, ", vlan ", vlanID);
     }
     auto ret2 = vlanPorts_[vlanID].insert(
-        std::make_pair(portID, Vlan::PortInfo(*vp.emitTags_ref())));
+        std::make_pair(portID, Vlan::PortInfo(*vp.emitTags())));
     if (!ret2.second) {
       // This should never fail if the first insert succeeded above.
       throw FbossError(
@@ -789,8 +789,8 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
   sharedBufferPoolName.reset();
 
   // Process all supplied port configs
-  for (const auto& portCfg : *cfg_->ports_ref()) {
-    PortID id(*portCfg.logicalID_ref());
+  for (const auto& portCfg : *cfg_->ports()) {
+    PortID id(*portCfg.logicalID());
     auto origPort = origPorts->getPortIf(id);
     std::shared_ptr<Port> newPort;
     // Find present Transceiver if it exists in TransceiverMap
@@ -800,7 +800,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     }
     if (!origPort) {
       auto port = std::make_shared<Port>(
-          PortID(*portCfg.logicalID_ref()), portCfg.name_ref().value_or({}));
+          PortID(*portCfg.logicalID()), portCfg.name().value_or({}));
       newPort = updatePort(port, &portCfg, transceiver);
     } else {
       newPort = updatePort(origPort, &portCfg, transceiver);
@@ -840,15 +840,15 @@ void ThriftConfigApplier::checkPortQueueAQMValid(
   }
   std::set<cfg::QueueCongestionBehavior> behaviors;
   for (const auto& aqm : aqms) {
-    if (aqm.detection_ref()->getType() ==
+    if (aqm.detection()->getType() ==
         cfg::QueueCongestionDetection::Type::__EMPTY__) {
       throw FbossError(
           "Active Queue Management must specify a congestion detection method");
     }
-    if (behaviors.find(*aqm.behavior_ref()) != behaviors.end()) {
+    if (behaviors.find(*aqm.behavior()) != behaviors.end()) {
       throw FbossError("Same Active Queue Management behavior already exists");
     }
-    behaviors.insert(*aqm.behavior_ref());
+    behaviors.insert(*aqm.behavior());
   }
 }
 
@@ -857,7 +857,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const cfg::PortQueue* cfg,
     std::optional<TrafficClass> trafficClass,
     std::optional<std::set<PfcPriority>> pfcPriorities) {
-  CHECK_EQ(orig->getID(), *cfg->id_ref());
+  CHECK_EQ(orig->getID(), *cfg->id());
 
   if (checkSwConfPortQueueMatch(orig, cfg) &&
       trafficClass == orig->getTrafficClass() &&
@@ -875,36 +875,35 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     const cfg::PortQueue* cfg,
     std::optional<TrafficClass> trafficClass,
     std::optional<std::set<PfcPriority>> pfcPriorities) {
-  auto queue =
-      std::make_shared<PortQueue>(static_cast<uint8_t>(*cfg->id_ref()));
-  queue->setStreamType(*cfg->streamType_ref());
-  queue->setScheduling(*cfg->scheduling_ref());
-  if (auto weight = cfg->weight_ref()) {
+  auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(*cfg->id()));
+  queue->setStreamType(*cfg->streamType());
+  queue->setScheduling(*cfg->scheduling());
+  if (auto weight = cfg->weight()) {
     queue->setWeight(*weight);
   }
-  if (auto reservedBytes = cfg->reservedBytes_ref()) {
+  if (auto reservedBytes = cfg->reservedBytes()) {
     queue->setReservedBytes(*reservedBytes);
   }
-  if (auto scalingFactor = cfg->scalingFactor_ref()) {
+  if (auto scalingFactor = cfg->scalingFactor()) {
     queue->setScalingFactor(*scalingFactor);
   }
-  if (auto aqms = cfg->aqms_ref()) {
+  if (auto aqms = cfg->aqms()) {
     checkPortQueueAQMValid(*aqms);
     queue->resetAqms(*aqms);
   }
-  if (auto shareBytes = cfg->sharedBytes_ref()) {
+  if (auto shareBytes = cfg->sharedBytes()) {
     queue->setSharedBytes(*shareBytes);
   }
-  if (auto name = cfg->name_ref()) {
+  if (auto name = cfg->name()) {
     queue->setName(*name);
   }
-  if (auto portQueueRate = cfg->portQueueRate_ref()) {
+  if (auto portQueueRate = cfg->portQueueRate()) {
     queue->setPortQueueRate(*portQueueRate);
   }
-  if (auto bandwidthBurstMinKbits = cfg->bandwidthBurstMinKbits_ref()) {
+  if (auto bandwidthBurstMinKbits = cfg->bandwidthBurstMinKbits()) {
     queue->setBandwidthBurstMinKbits(*bandwidthBurstMinKbits);
   }
-  if (auto bandwidthBurstMaxKbits = cfg->bandwidthBurstMaxKbits_ref()) {
+  if (auto bandwidthBurstMaxKbits = cfg->bandwidthBurstMaxKbits()) {
     queue->setBandwidthBurstMaxKbits(*bandwidthBurstMaxKbits);
   }
   if (trafficClass) {
@@ -918,25 +917,24 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
 
 std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
     const cfg::PortPgConfig* cfg) {
-  auto pgCfg =
-      std::make_shared<PortPgConfig>(static_cast<uint8_t>(*cfg->id_ref()));
-  if (const auto scalingFactor = cfg->scalingFactor_ref()) {
+  auto pgCfg = std::make_shared<PortPgConfig>(static_cast<uint8_t>(*cfg->id()));
+  if (const auto scalingFactor = cfg->scalingFactor()) {
     pgCfg->setScalingFactor(*scalingFactor);
   }
 
-  if (const auto name = cfg->name_ref()) {
+  if (const auto name = cfg->name()) {
     pgCfg->setName(*name);
   }
 
-  pgCfg->setMinLimitBytes(*cfg->minLimitBytes_ref());
+  pgCfg->setMinLimitBytes(*cfg->minLimitBytes());
 
-  if (const auto headroom = cfg->headroomLimitBytes_ref()) {
+  if (const auto headroom = cfg->headroomLimitBytes()) {
     pgCfg->setHeadroomLimitBytes(*headroom);
   }
-  if (const auto resumeOffsetBytes = cfg->resumeOffsetBytes_ref()) {
+  if (const auto resumeOffsetBytes = cfg->resumeOffsetBytes()) {
     pgCfg->setResumeOffsetBytes(*resumeOffsetBytes);
   }
-  pgCfg->setBufferPoolName(*cfg->bufferPoolName_ref());
+  pgCfg->setBufferPoolName(*cfg->bufferPoolName());
   return pgCfg;
 }
 
@@ -1066,15 +1064,15 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
    */
   flat_map<int, const cfg::PortQueue*> newQueues;
   for (const auto& queue : cfgPortQueues) {
-    if (streamType == queue.streamType_ref()) {
-      newQueues.emplace(std::make_pair(*queue.id_ref(), &queue));
+    if (streamType == queue.streamType()) {
+      newQueues.emplace(std::make_pair(*queue.id(), &queue));
     }
   }
 
   if (newQueues.empty()) {
-    for (const auto& queue : *cfg_->defaultPortQueues_ref()) {
-      if (streamType == queue.streamType_ref()) {
-        newQueues.emplace(std::make_pair(*queue.id_ref(), &queue));
+    for (const auto& queue : *cfg_->defaultPortQueues()) {
+      if (streamType == queue.streamType()) {
+        newQueues.emplace(std::make_pair(*queue.id(), &queue));
       }
     }
   }
@@ -1092,15 +1090,14 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
       std::optional<std::set<PfcPriority>> pfcPriorities;
       if (qosMap) {
         // Get traffic class for such queue if exists
-        for (auto entry : *qosMap->trafficClassToQueueId_ref()) {
+        for (auto entry : *qosMap->trafficClassToQueueId()) {
           if (entry.second == queueId) {
             trafficClass = static_cast<TrafficClass>(entry.first);
             break;
           }
         }
 
-        if (const auto& pfcPri2QueueIdMap =
-                qosMap->pfcPriorityToQueueId_ref()) {
+        if (const auto& pfcPri2QueueIdMap = qosMap->pfcPriorityToQueueId()) {
           std::set<PfcPriority> tmpPfcPriSet;
           for (const auto& pfcPri2QueueId : *pfcPri2QueueIdMap) {
             if (pfcPri2QueueId.second == queueId) {
@@ -1210,14 +1207,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<Port>& orig,
     const cfg::Port* portConf,
     const shared_ptr<Transceiver>& transceiver) {
-  CHECK_EQ(orig->getID(), PortID(*portConf->logicalID_ref()));
+  CHECK_EQ(orig->getID(), PortID(*portConf->logicalID()));
 
   auto vlans = portVlans_[orig->getID()];
 
   std::vector<cfg::PortQueue> cfgPortQueues;
-  if (auto portQueueConfigName = portConf->portQueueConfigName_ref()) {
-    auto it = cfg_->portQueueConfigs_ref()->find(*portQueueConfigName);
-    if (it == cfg_->portQueueConfigs_ref()->end()) {
+  if (auto portQueueConfigName = portConf->portQueueConfigName()) {
+    auto it = cfg_->portQueueConfigs()->find(*portQueueConfigName);
+    if (it == cfg_->portQueueConfigs()->end()) {
       throw FbossError(
           "Port queue config name: ",
           *portQueueConfigName,
@@ -1230,24 +1227,23 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   const auto& oldEgressMirror = orig->getEgressMirror();
   auto newIngressMirror = std::optional<std::string>();
   auto newEgressMirror = std::optional<std::string>();
-  if (auto ingressMirror = portConf->ingressMirror_ref()) {
+  if (auto ingressMirror = portConf->ingressMirror()) {
     newIngressMirror = *ingressMirror;
   }
-  if (auto egressMirror = portConf->egressMirror_ref()) {
+  if (auto egressMirror = portConf->egressMirror()) {
     newEgressMirror = *egressMirror;
   }
   bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
       (oldEgressMirror == newEgressMirror);
 
   auto newQosPolicy = std::optional<std::string>();
-  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
     if (auto defaultDataPlaneQosPolicy =
-            dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
+            dataPlaneTrafficPolicy->defaultQosPolicy()) {
       newQosPolicy = *defaultDataPlaneQosPolicy;
     }
-    if (auto portIdToQosPolicy =
-            dataPlaneTrafficPolicy->portIdToQosPolicy_ref()) {
-      auto qosPolicyItr = portIdToQosPolicy->find(*portConf->logicalID_ref());
+    if (auto portIdToQosPolicy = dataPlaneTrafficPolicy->portIdToQosPolicy()) {
+      auto qosPolicyItr = portIdToQosPolicy->find(*portConf->logicalID());
       if (qosPolicyItr != portIdToQosPolicy->end()) {
         newQosPolicy = qosPolicyItr->second;
       }
@@ -1257,13 +1253,13 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   std::optional<cfg::QosMap> qosMap;
   if (newQosPolicy) {
     bool qosPolicyFound = false;
-    for (auto qosPolicy : *cfg_->qosPolicies_ref()) {
+    for (auto qosPolicy : *cfg_->qosPolicies()) {
       if (qosPolicyFound) {
         break;
       }
-      qosPolicyFound = (*qosPolicy.name_ref() == newQosPolicy.value());
-      if (qosPolicyFound && qosPolicy.qosMap_ref()) {
-        qosMap = qosPolicy.qosMap_ref().value();
+      qosPolicyFound = (*qosPolicy.name() == newQosPolicy.value());
+      if (qosPolicyFound && qosPolicy.qosMap()) {
+        qosMap = qosPolicy.qosMap().value();
       }
     }
     if (!qosPolicyFound) {
@@ -1290,11 +1286,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   auto newSampleDest = std::optional<cfg::SampleDestination>();
-  if (portConf->sampleDest_ref()) {
-    newSampleDest = portConf->sampleDest_ref().value();
+  if (portConf->sampleDest()) {
+    newSampleDest = portConf->sampleDest().value();
 
     if (newSampleDest.value() == cfg::SampleDestination::MIRROR &&
-        *portConf->sFlowEgressRate_ref() > 0) {
+        *portConf->sFlowEgressRate() > 0) {
       throw FbossError(
           "Port ",
           orig->getID(),
@@ -1307,14 +1303,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   std::optional<PortPgConfigs> portPgCfgs;
   // lets compare the portPgConfigs
   bool portPgConfigUnchanged = true;
-  if (portConf->pfc_ref().has_value()) {
-    newPfc = portConf->pfc_ref().value();
+  if (portConf->pfc().has_value()) {
+    newPfc = portConf->pfc().value();
 
-    auto pause = portConf->pause_ref().value();
-    bool pfc_rx = *newPfc->rx_ref();
-    bool pfc_tx = *newPfc->tx_ref();
-    bool pause_rx = *pause.rx_ref();
-    bool pause_tx = *pause.tx_ref();
+    auto pause = portConf->pause().value();
+    bool pfc_rx = *newPfc->rx();
+    bool pfc_tx = *newPfc->tx();
+    bool pause_rx = *pause.rx();
+    bool pause_tx = *pause.tx();
 
     if (pfc_rx || pfc_tx) {
       if (!platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
@@ -1331,15 +1327,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       }
     }
 
-    auto portPgConfigName = newPfc->portPgConfigName_ref();
-    if (newPfc->watchdog_ref().has_value() && (*portPgConfigName).empty()) {
+    auto portPgConfigName = newPfc->portPgConfigName();
+    if (newPfc->watchdog().has_value() && (*portPgConfigName).empty()) {
       throw FbossError(
           "Port ",
           orig->getID(),
           " Priority group must be associated with port "
           "when PFC watchdog is configured");
     }
-    if (auto portPgConfigs = cfg_->portPgConfigs_ref()) {
+    if (auto portPgConfigs = cfg_->portPgConfigs()) {
       auto it = portPgConfigs->find(*portPgConfigName);
       if (it == portPgConfigs->end()) {
         throw FbossError(
@@ -1381,7 +1377,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
    * be small (< 10).
    */
   auto origLookupClasses{orig->getLookupClassesToDistributeTrafficOn()};
-  auto newLookupClasses{*portConf->lookupClasses_ref()};
+  auto newLookupClasses{*portConf->lookupClasses()};
   sort(origLookupClasses.begin(), origLookupClasses.end());
   sort(newLookupClasses.begin(), newLookupClasses.end());
   auto lookupClassesUnchanged = (origLookupClasses == newLookupClasses);
@@ -1395,23 +1391,23 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   platform_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
       factor);
   PlatformPortProfileConfigMatcher matcher{
-      *portConf->profileID_ref(), orig->getID(), factor};
+      *portConf->profileID(), orig->getID(), factor};
 
   auto portProfileCfg = platform_->getPortProfileConfig(matcher);
   if (!portProfileCfg) {
     throw FbossError(
         "No port profile config found with matcher:", matcher.toString());
   }
-  if (*portConf->state_ref() == cfg::PortState::ENABLED &&
-      *portProfileCfg->speed_ref() != *portConf->speed_ref()) {
+  if (*portConf->state() == cfg::PortState::ENABLED &&
+      *portProfileCfg->speed() != *portConf->speed()) {
     throw FbossError(
         orig->getName(),
         " has mismatched speed on profile:",
-        apache::thrift::util::enumNameSafe(*portConf->profileID_ref()),
+        apache::thrift::util::enumNameSafe(*portConf->profileID()),
         " and config:",
-        apache::thrift::util::enumNameSafe(*portConf->speed_ref()));
+        apache::thrift::util::enumNameSafe(*portConf->speed()));
   }
-  auto newProfileConfigRef = portProfileCfg->iphy_ref();
+  auto newProfileConfigRef = portProfileCfg->iphy();
   auto profileConfigUnchanged =
       (*newProfileConfigRef == orig->getProfileConfig());
 
@@ -1426,22 +1422,22 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       << ", with matcher:" << matcher.toString();
 
   // Ensure portConf has actually changed, before applying
-  if (*portConf->state_ref() == orig->getAdminState() &&
-      VlanID(*portConf->ingressVlan_ref()) == orig->getIngressVlan() &&
-      *portConf->speed_ref() == orig->getSpeed() &&
-      *portConf->profileID_ref() == orig->getProfileID() &&
-      *portConf->pause_ref() == orig->getPause() && newPfc == orig->getPfc() &&
+  if (*portConf->state() == orig->getAdminState() &&
+      VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
+      *portConf->speed() == orig->getSpeed() &&
+      *portConf->profileID() == orig->getProfileID() &&
+      *portConf->pause() == orig->getPause() && newPfc == orig->getPfc() &&
       newPfcPriorities == orig->getPfcPriorities() &&
-      *portConf->sFlowIngressRate_ref() == orig->getSflowIngressRate() &&
-      *portConf->sFlowEgressRate_ref() == orig->getSflowEgressRate() &&
+      *portConf->sFlowIngressRate() == orig->getSflowIngressRate() &&
+      *portConf->sFlowEgressRate() == orig->getSflowEgressRate() &&
       newSampleDest == orig->getSampleDestination() &&
-      portConf->name_ref().value_or({}) == orig->getName() &&
-      portConf->description_ref().value_or({}) == orig->getDescription() &&
+      portConf->name().value_or({}) == orig->getName() &&
+      portConf->description().value_or({}) == orig->getDescription() &&
       vlans == orig->getVlans() && queuesUnchanged && portPgConfigUnchanged &&
-      *portConf->loopbackMode_ref() == orig->getLoopbackMode() &&
+      *portConf->loopbackMode() == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
-      *portConf->expectedLLDPValues_ref() == orig->getLLDPValidations() &&
-      *portConf->maxFrameSize_ref() == orig->getMaxFrameSize() &&
+      *portConf->expectedLLDPValues() == orig->getLLDPValidations() &&
+      *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged) {
     return nullptr;
   }
@@ -1449,30 +1445,29 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   auto newPort = orig->clone();
 
   auto lldpmap = newPort->getLLDPValidations();
-  for (const auto& tag : *portConf->expectedLLDPValues_ref()) {
+  for (const auto& tag : *portConf->expectedLLDPValues()) {
     lldpmap[tag.first] = tag.second;
   }
 
-  newPort->setAdminState(*portConf->state_ref());
-  newPort->setIngressVlan(VlanID(*portConf->ingressVlan_ref()));
+  newPort->setAdminState(*portConf->state());
+  newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
-  newPort->setSpeed(*portConf->speed_ref());
-  newPort->setProfileId(*portConf->profileID_ref());
-  newPort->setPause(*portConf->pause_ref());
-  newPort->setSflowIngressRate(*portConf->sFlowIngressRate_ref());
-  newPort->setSflowEgressRate(*portConf->sFlowEgressRate_ref());
+  newPort->setSpeed(*portConf->speed());
+  newPort->setProfileId(*portConf->profileID());
+  newPort->setPause(*portConf->pause());
+  newPort->setSflowIngressRate(*portConf->sFlowIngressRate());
+  newPort->setSflowEgressRate(*portConf->sFlowEgressRate());
   newPort->setSampleDestination(newSampleDest);
-  newPort->setName(portConf->name_ref().value_or({}));
-  newPort->setDescription(portConf->description_ref().value_or({}));
-  newPort->setLoopbackMode(*portConf->loopbackMode_ref());
+  newPort->setName(portConf->name().value_or({}));
+  newPort->setDescription(portConf->description().value_or({}));
+  newPort->setLoopbackMode(*portConf->loopbackMode());
   newPort->resetPortQueues(portQueues);
   newPort->setIngressMirror(newIngressMirror);
   newPort->setEgressMirror(newEgressMirror);
   newPort->setQosPolicy(newQosPolicy);
   newPort->setExpectedLLDPValues(lldpmap);
-  newPort->setLookupClassesToDistributeTrafficOn(
-      *portConf->lookupClasses_ref());
-  newPort->setMaxFrameSize(*portConf->maxFrameSize_ref());
+  newPort->setLookupClassesToDistributeTrafficOn(*portConf->lookupClasses());
+  newPort->setMaxFrameSize(*portConf->maxFrameSize());
   newPort->setPfc(newPfc);
   newPort->setPfcPriorities(newPfcPriorities);
   newPort->resetPgConfigs(portPgCfgs);
@@ -1487,8 +1482,8 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
   bool changed = false;
 
   size_t numExistingProcessed = 0;
-  for (const auto& portCfg : *cfg_->aggregatePorts_ref()) {
-    AggregatePortID id(*portCfg.key_ref());
+  for (const auto& portCfg : *cfg_->aggregatePorts()) {
+    AggregatePortID id(*portCfg.key());
     auto origAggPort = origAggPorts->getAggregatePortIf(id);
 
     shared_ptr<AggregatePort> newAggPort;
@@ -1518,7 +1513,7 @@ shared_ptr<AggregatePortMap> ThriftConfigApplier::updateAggregatePorts() {
 shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
     const shared_ptr<AggregatePort>& origAggPort,
     const cfg::AggregatePort& cfg) {
-  CHECK_EQ(origAggPort->getID(), AggregatePortID(*cfg.key_ref()));
+  CHECK_EQ(origAggPort->getID(), AggregatePortID(*cfg.key()));
 
   auto cfgSubports = getSubportsSorted(cfg);
   auto origSubports = origAggPort->sortedSubports();
@@ -1529,8 +1524,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
 
   auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
 
-  if (origAggPort->getName() == *cfg.name_ref() &&
-      origAggPort->getDescription() == *cfg.description_ref() &&
+  if (origAggPort->getName() == *cfg.name() &&
+      origAggPort->getDescription() == *cfg.description() &&
       origAggPort->getSystemPriority() == cfgSystemPriority &&
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
@@ -1540,8 +1535,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   }
 
   auto newAggPort = origAggPort->clone();
-  newAggPort->setName(*cfg.name_ref());
-  newAggPort->setDescription(*cfg.description_ref());
+  newAggPort->setName(*cfg.name());
+  newAggPort->setDescription(*cfg.description());
   newAggPort->setSystemPriority(cfgSystemPriority);
   newAggPort->setSystemID(cfgSystemID);
   newAggPort->setMinimumLinkCount(cfgMinLinkCount);
@@ -1561,9 +1556,9 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
   auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
 
   return AggregatePort::fromSubportRange(
-      AggregatePortID(*cfg.key_ref()),
-      *cfg.name_ref(),
-      *cfg.description_ref(),
+      AggregatePortID(*cfg.key()),
+      *cfg.name(),
+      *cfg.description(),
       cfgSystemPriority,
       cfgSystemID,
       cfgMinLinkCount,
@@ -1572,21 +1567,20 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
     const cfg::AggregatePort& cfg) {
-  std::vector<AggregatePort::Subport> subports(std::distance(
-      cfg.memberPorts_ref()->begin(), cfg.memberPorts_ref()->end()));
+  std::vector<AggregatePort::Subport> subports(
+      std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
 
   for (int i = 0; i < subports.size(); ++i) {
-    if (*cfg.memberPorts_ref()[i].priority_ref() < 0 ||
-        *cfg.memberPorts_ref()[i].priority_ref() >= 1 << 16) {
+    if (*cfg.memberPorts()[i].priority() < 0 ||
+        *cfg.memberPorts()[i].priority() >= 1 << 16) {
       throw FbossError("Member port ", i, " has priority outside of [0, 2^16)");
     }
 
-    auto id = PortID(*cfg.memberPorts_ref()[i].memberPortID_ref());
-    auto priority =
-        static_cast<uint16_t>(*cfg.memberPorts_ref()[i].priority_ref());
-    auto rate = *cfg.memberPorts_ref()[i].rate_ref();
-    auto activity = *cfg.memberPorts_ref()[i].activity_ref();
-    auto multiplier = *cfg.memberPorts_ref()[i].holdTimerMultiplier_ref();
+    auto id = PortID(*cfg.memberPorts()[i].memberPortID());
+    auto priority = static_cast<uint16_t>(*cfg.memberPorts()[i].priority());
+    auto rate = *cfg.memberPorts()[i].rate();
+    auto activity = *cfg.memberPorts()[i].activity();
+    auto multiplier = *cfg.memberPorts()[i].holdTimerMultiplier();
 
     subports[i] =
         AggregatePort::Subport(id, priority, rate, activity, multiplier);
@@ -1602,9 +1596,9 @@ ThriftConfigApplier::getSystemLacpConfig() {
   folly::MacAddress systemID;
   uint16_t systemPriority;
 
-  if (auto lacp = cfg_->lacp_ref()) {
-    systemID = MacAddress(*lacp->systemID_ref());
-    systemPriority = *lacp->systemPriority_ref();
+  if (auto lacp = cfg_->lacp()) {
+    systemID = MacAddress(*lacp->systemID());
+    systemPriority = *lacp->systemPriority();
   } else {
     // If the system LACP configuration parameters were not specified,
     // we fall back to default parameters. Since the default system ID
@@ -1622,7 +1616,7 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
     const cfg::AggregatePort& cfg) {
   uint8_t minLinkCount = 1;
 
-  auto minCapacity = *cfg.minimumCapacity_ref();
+  auto minCapacity = *cfg.minimumCapacity();
   switch (minCapacity.getType()) {
     case cfg::MinimumCapacity::Type::linkCount:
       // Thrift's byte type is an int8_t
@@ -1636,10 +1630,8 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
 
       minLinkCount = std::ceil(
           minCapacity.get_linkPercentage() *
-          std::distance(
-              cfg.memberPorts_ref()->begin(), cfg.memberPorts_ref()->end()));
-      if (std::distance(
-              cfg.memberPorts_ref()->begin(), cfg.memberPorts_ref()->end()) !=
+          std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
+      if (std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()) !=
           0) {
         CHECK_GE(minLinkCount, 1);
       }
@@ -1662,8 +1654,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 
   // Process all supplied VLAN configs
   size_t numExistingProcessed = 0;
-  for (const auto& vlanCfg : *cfg_->vlans_ref()) {
-    VlanID id(*vlanCfg.id_ref());
+  for (const auto& vlanCfg : *cfg_->vlans()) {
+    VlanID id(*vlanCfg.id());
     auto origVlan = origVlans->getVlanIf(id);
     shared_ptr<Vlan> newVlan;
     if (origVlan) {
@@ -1689,17 +1681,17 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
-  const auto& ports = vlanPorts_[VlanID(*config->id_ref())];
+  const auto& ports = vlanPorts_[VlanID(*config->id())];
   auto vlan = make_shared<Vlan>(config, ports);
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with */
-  if (auto intfID = config->intfID_ref()) {
+  if (auto intfID = config->intfID()) {
     vlan->setInterfaceID(InterfaceID(*intfID));
   } else {
-    auto& entry = vlanInterfaces_[VlanID(*config->id_ref())];
+    auto& entry = vlanInterfaces_[VlanID(*config->id())];
     if (!entry.interfaces.empty()) {
       vlan->setInterfaceID(*(entry.interfaces.begin()));
     }
@@ -1710,7 +1702,7 @@ shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
 shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
     const shared_ptr<Vlan>& orig,
     const cfg::Vlan* config) {
-  CHECK_EQ(orig->getID(), VlanID(*config->id_ref()));
+  CHECK_EQ(orig->getID(), VlanID(*config->id()));
   const auto& ports = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
@@ -1718,35 +1710,35 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
       updateNeighborResponseTables(newVlan.get(), config);
   bool changed_dhcp_overrides = updateDhcpOverrides(newVlan.get(), config);
   auto oldDhcpV4Relay = orig->getDhcpV4Relay();
-  auto newDhcpV4Relay = config->dhcpRelayAddressV4_ref()
-      ? IPAddressV4(*config->dhcpRelayAddressV4_ref())
+  auto newDhcpV4Relay = config->dhcpRelayAddressV4()
+      ? IPAddressV4(*config->dhcpRelayAddressV4())
       : IPAddressV4();
 
   auto oldDhcpV6Relay = orig->getDhcpV6Relay();
-  auto newDhcpV6Relay = config->dhcpRelayAddressV6_ref()
-      ? IPAddressV6(*config->dhcpRelayAddressV6_ref())
+  auto newDhcpV6Relay = config->dhcpRelayAddressV6()
+      ? IPAddressV6(*config->dhcpRelayAddressV6())
       : IPAddressV6("::");
   /* TODO t7153326: Following code is added for backward compatibility
   Remove it once coop generates config with intfID */
   auto oldIntfID = orig->getInterfaceID();
   auto newIntfID = InterfaceID(0);
-  if (auto intfID = config->intfID_ref()) {
+  if (auto intfID = config->intfID()) {
     newIntfID = InterfaceID(*intfID);
   } else {
-    auto& entry = vlanInterfaces_[VlanID(*config->id_ref())];
+    auto& entry = vlanInterfaces_[VlanID(*config->id())];
     if (!entry.interfaces.empty()) {
       newIntfID = *(entry.interfaces.begin());
     }
   }
 
-  if (orig->getName() == *config->name_ref() && oldIntfID == newIntfID &&
+  if (orig->getName() == *config->name() && oldIntfID == newIntfID &&
       orig->getPorts() == ports && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
       !changed_dhcp_overrides) {
     return nullptr;
   }
 
-  newVlan->setName(*config->name_ref());
+  newVlan->setName(*config->name());
   newVlan->setInterfaceID(newIntfID);
   newVlan->setPorts(ports);
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
@@ -1760,19 +1752,19 @@ std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
   int numExistingProcessed = 0;
   auto defaultDataPlaneQosPolicyName = getDefaultDataPlaneQosPolicyName();
 
-  auto qosPolicies = *cfg_->qosPolicies_ref();
+  auto qosPolicies = *cfg_->qosPolicies();
   for (auto& qosPolicy : qosPolicies) {
     if (defaultDataPlaneQosPolicyName.has_value() &&
-        defaultDataPlaneQosPolicyName.value() == *qosPolicy.name_ref()) {
+        defaultDataPlaneQosPolicyName.value() == *qosPolicy.name()) {
       // skip default QosPolicy as it will be maintained in switch state
       continue;
     }
     auto newQosPolicy =
         updateQosPolicy(qosPolicy, &numExistingProcessed, &changed);
-    if (!newQosPolicies.emplace(*qosPolicy.name_ref(), newQosPolicy).second) {
+    if (!newQosPolicies.emplace(*qosPolicy.name(), newQosPolicy).second) {
       throw FbossError(
           "Invalid config: Qos Policy \"",
-          *qosPolicy.name_ref(),
+          *qosPolicy.name(),
           "\" already exists");
     }
   }
@@ -1791,7 +1783,7 @@ std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
     int* numExistingProcessed,
     bool* changed) {
   auto origQosPolicy =
-      orig_->getQosPolicies()->getQosPolicyIf(*qosPolicy.name_ref());
+      orig_->getQosPolicies()->getQosPolicyIf(*qosPolicy.name());
   auto newQosPolicy = createQosPolicy(qosPolicy);
   if (origQosPolicy) {
     ++(*numExistingProcessed);
@@ -1805,9 +1797,9 @@ std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
 
 std::optional<std::string>
 ThriftConfigApplier::getDefaultDataPlaneQosPolicyName() const {
-  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
     if (auto defaultDataPlaneQosPolicy =
-            dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
+            dataPlaneTrafficPolicy->defaultQosPolicy()) {
       return *defaultDataPlaneQosPolicy;
     }
   }
@@ -1821,9 +1813,9 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
     return nullptr;
   }
   std::shared_ptr<QosPolicy> newQosPolicy = nullptr;
-  auto qosPolicies = *cfg_->qosPolicies_ref();
+  auto qosPolicies = *cfg_->qosPolicies();
   for (auto& qosPolicy : qosPolicies) {
-    if (defaultDataPlaneQosPolicyName == *qosPolicy.name_ref()) {
+    if (defaultDataPlaneQosPolicyName == *qosPolicy.name()) {
       newQosPolicy = createQosPolicy(qosPolicy);
       if (newQosPolicy->getExpMap().empty()) {
         // if exp map is not provided, set some default mapping
@@ -1849,39 +1841,39 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
 
 shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     const cfg::QosPolicy& qosPolicy) {
-  if (qosPolicy.rules_ref()->empty() == !qosPolicy.qosMap_ref().has_value()) {
+  if (qosPolicy.rules()->empty() == !qosPolicy.qosMap().has_value()) {
     XLOG(WARN) << "both qos rules and qos map are provided in qos policy "
-               << *qosPolicy.name_ref()
+               << *qosPolicy.name()
                << "! dscp map if present in qos map, will override qos rules";
   }
 
   DscpMap ingressDscpMap;
-  for (const auto& qosRule : *qosPolicy.rules_ref()) {
-    if (qosRule.dscp_ref()->empty()) {
+  for (const auto& qosRule : *qosPolicy.rules()) {
+    if (qosRule.dscp()->empty()) {
       throw FbossError("Invalid config: qosPolicy: empty dscp list");
     }
-    for (const auto& dscpValue : *qosRule.dscp_ref()) {
+    for (const auto& dscpValue : *qosRule.dscp()) {
       if (dscpValue < 0 || dscpValue > 63) {
         throw FbossError("dscp value is invalid (must be [0, 63])");
       }
       ingressDscpMap.addFromEntry(
-          static_cast<TrafficClass>(*qosRule.queueId_ref()),
+          static_cast<TrafficClass>(*qosRule.queueId()),
           static_cast<DSCP>(dscpValue));
     }
   }
 
-  if (auto qosMap = qosPolicy.qosMap_ref()) {
-    DscpMap dscpMap(*qosMap->dscpMaps_ref());
-    ExpMap expMap(*qosMap->expMaps_ref());
+  if (auto qosMap = qosPolicy.qosMap()) {
+    DscpMap dscpMap(*qosMap->dscpMaps());
+    ExpMap expMap(*qosMap->expMaps());
     QosPolicy::TrafficClassToQueueId trafficClassToQueueId;
     std::optional<QosPolicy::PfcPriorityToQueueId> pfcPriorityToQueueId;
 
-    for (auto cfgTrafficClassToQueueId : *qosMap->trafficClassToQueueId_ref()) {
+    for (auto cfgTrafficClassToQueueId : *qosMap->trafficClassToQueueId()) {
       trafficClassToQueueId.emplace(
           cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
     }
 
-    if (const auto& pfcPriorityMap = qosMap->pfcPriorityToQueueId_ref()) {
+    if (const auto& pfcPriorityMap = qosMap->pfcPriorityToQueueId()) {
       QosPolicy::PfcPriorityToQueueId tmpMap;
       for (const auto& pfcPriorityEntry : *pfcPriorityMap) {
         if (pfcPriorityEntry.first >
@@ -1896,7 +1888,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     }
 
     auto qosPolicyNew = make_shared<QosPolicy>(
-        *qosPolicy.name_ref(),
+        *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
         trafficClassToQueueId);
@@ -1906,7 +1898,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
           std::move(pfcPriorityToQueueId.value()));
     }
 
-    if (const auto& tc2PgIdMap = qosMap->trafficClassToPgId_ref()) {
+    if (const auto& tc2PgIdMap = qosMap->trafficClassToPgId()) {
       QosPolicy::TrafficClassToPgId tc2PgIdTmp;
       for (auto tc2PgIdEntry : *tc2PgIdMap) {
         if (tc2PgIdEntry.second >
@@ -1920,7 +1912,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       qosPolicyNew->setTrafficClassToPgIdMap(std::move(tc2PgIdTmp));
     }
 
-    if (const auto& pfcPriority2PgIdMap = qosMap->pfcPriorityToPgId_ref()) {
+    if (const auto& pfcPriority2PgIdMap = qosMap->pfcPriorityToPgId()) {
       QosPolicy::PfcPriorityToPgId pfcPri2PgId;
       for (const auto& entry : *pfcPriority2PgIdMap) {
         if (entry.first >
@@ -1942,7 +1934,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     return qosPolicyNew;
   }
   return make_shared<QosPolicy>(
-      *qosPolicy.name_ref(),
+      *qosPolicy.name(),
       ingressDscpMap,
       ExpMap(TrafficClassToQosAttributeMap<EXP>()),
       QosPolicy::TrafficClassToQueueId());
@@ -1952,20 +1944,20 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
-  if (!cfg_->aclTableGroup_ref()) {
+  if (!cfg_->aclTableGroup()) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   }
 
-  if (cfg_->aclTableGroup_ref()->stage_ref() != cfg::AclStage::INGRESS) {
+  if (cfg_->aclTableGroup()->stage() != cfg::AclStage::INGRESS) {
     throw FbossError("Only ACL Stage INGRESS is supported");
   }
 
   auto origAclTableGroup =
       origAclTableGroups->getAclTableGroupIf(cfg::AclStage::INGRESS);
 
-  auto newAclTableGroup = updateAclTableGroup(
-      *cfg_->aclTableGroup_ref()->stage_ref(), origAclTableGroup);
+  auto newAclTableGroup =
+      updateAclTableGroup(*cfg_->aclTableGroup()->stage(), origAclTableGroup);
   auto changed =
       updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
 
@@ -1985,18 +1977,17 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
 
   auto aclByName = getAllAclsByName();
   // Check for controlPlane traffic acls
-  if (cfg_->cpuTrafficPolicy_ref() &&
-      cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
+  if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
     checkTrafficPolicyAclsExistInConfig(
-        *cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref(), aclByName);
+        *cfg_->cpuTrafficPolicy()->trafficPolicy(), aclByName);
   }
   // Check for dataPlane traffic acls
-  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
     checkTrafficPolicyAclsExistInConfig(*dataPlaneTrafficPolicy, aclByName);
   }
 
   // For each table in the config, update the table entries and priority
-  for (const auto& aclTable : *cfg_->aclTableGroup_ref()->aclTables_ref()) {
+  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
     auto newTable =
         updateAclTable(aclStage, aclTable, &numExistingTablesProcessed);
     if (newTable) {
@@ -2006,7 +1997,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       newAclTableMap->addTable(orig_->getAclTableGroups()
                                    ->getAclTableGroup(aclStage)
                                    ->getAclTableMap()
-                                   ->getTableIf(*(aclTable.name_ref())));
+                                   ->getTableIf(*(aclTable.name())));
     }
   }
 
@@ -2022,9 +2013,9 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   auto newAclTableGroup =
-      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup_ref()->stage_ref());
+      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup()->stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
-  newAclTableGroup->setName(*cfg_->aclTableGroup_ref()->name_ref());
+  newAclTableGroup->setName(*cfg_->aclTableGroup()->name());
 
   return newAclTableGroup;
 }
@@ -2032,11 +2023,11 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
 flat_map<std::string, const cfg::AclEntry*>
 ThriftConfigApplier::getAllAclsByName() {
   flat_map<std::string, const cfg::AclEntry*> aclByName;
-  for (const auto& aclTable : *cfg_->aclTableGroup_ref()->aclTables_ref()) {
-    auto aclEntries = *(aclTable.aclEntries_ref());
+  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+    auto aclEntries = *(aclTable.aclEntries());
     folly::gen::from(aclEntries) |
         folly::gen::map([](const cfg::AclEntry& acl) {
-          return std::make_pair(*acl.name_ref(), &acl);
+          return std::make_pair(*acl.name(), &acl);
         }) |
         folly::gen::appendTo(aclByName);
   }
@@ -2046,11 +2037,11 @@ ThriftConfigApplier::getAllAclsByName() {
 void ThriftConfigApplier::checkTrafficPolicyAclsExistInConfig(
     const cfg::TrafficPolicyConfig& policy,
     flat_map<std::string, const cfg::AclEntry*> aclByName) {
-  for (const auto& mta : *policy.matchToAction_ref()) {
-    auto a = aclByName.find(*mta.matcher_ref());
+  for (const auto& mta : *policy.matchToAction()) {
+    auto a = aclByName.find(*mta.matcher());
     if (a == aclByName.end()) {
       throw FbossError(
-          "Invalid config: No acl named ", *mta.matcher_ref(), " found.");
+          "Invalid config: No acl named ", *mta.matcher(), " found.");
     }
   }
 }
@@ -2059,7 +2050,7 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     cfg::AclStage aclStage,
     const cfg::AclTable& configTable,
     int* numExistingTablesProcessed) {
-  auto tableName = *configTable.name_ref();
+  auto tableName = *configTable.name();
   std::shared_ptr<AclTable> origTable;
   if (orig_->getAclTableGroups() &&
       orig_->getAclTableGroups()->getAclTableGroupIf(aclStage) &&
@@ -2073,12 +2064,11 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   }
 
   auto newTableEntries = updateAcls(
-      aclStage, *(configTable.aclEntries_ref()), std::make_optional(tableName));
-  auto newTablePriority = *configTable.priority_ref();
+      aclStage, *(configTable.aclEntries()), std::make_optional(tableName));
+  auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
-      *configTable.actionTypes_ref();
-  std::vector<cfg::AclTableQualifier> newQualifiers =
-      *configTable.qualifiers_ref();
+      *configTable.actionTypes();
+  std::vector<cfg::AclTableQualifier> newQualifiers = *configTable.qualifiers();
 
   if (origTable) {
     ++(*numExistingTablesProcessed);
@@ -2121,7 +2111,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   // Start with the DROP acls, these should have highest priority
   auto acls = folly::gen::from(configEntries) |
       folly::gen::filter([](const cfg::AclEntry& entry) {
-                return *entry.actionType_ref() == cfg::AclActionType::DENY;
+                return *entry.actionType() == cfg::AclActionType::DENY;
               }) |
       folly::gen::map([&](const cfg::AclEntry& entry) {
                 auto acl = updateAcl(
@@ -2140,14 +2130,14 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   flat_map<std::string, const cfg::AclEntry*> aclByName;
   folly::gen::from(configEntries) |
       folly::gen::map([](const cfg::AclEntry& acl) {
-        return std::make_pair(*acl.name_ref(), &acl);
+        return std::make_pair(*acl.name(), &acl);
       }) |
       folly::gen::appendTo(aclByName);
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
-  folly::gen::from(*cfg_->trafficCounters_ref()) |
+  folly::gen::from(*cfg_->trafficCounters()) |
       folly::gen::map([](const cfg::TrafficCounter& counter) {
-        return std::make_pair(*counter.name_ref(), &counter);
+        return std::make_pair(*counter.name(), &counter);
       }) |
       folly::gen::appendTo(counterByName);
 
@@ -2156,45 +2146,44 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
                        bool isCoppAcl = false)
       -> const std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> {
     std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> entries;
-    for (const auto& mta : *policy.matchToAction_ref()) {
-      auto a = aclByName.find(*mta.matcher_ref());
+    for (const auto& mta : *policy.matchToAction()) {
+      auto a = aclByName.find(*mta.matcher());
       if (a != aclByName.end()) {
         auto aclCfg = *(a->second);
 
         // We've already added any DENY acls
-        if (*aclCfg.actionType_ref() == cfg::AclActionType::DENY) {
+        if (*aclCfg.actionType() == cfg::AclActionType::DENY) {
           continue;
         }
 
         // Here is sending to regular port queue action
         MatchAction matchAction = MatchAction();
-        if (auto sendToQueue = mta.action_ref()->sendToQueue_ref()) {
+        if (auto sendToQueue = mta.action()->sendToQueue()) {
           matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
         }
-        if (auto actionCounter = mta.action_ref()->counter_ref()) {
+        if (auto actionCounter = mta.action()->counter()) {
           auto counter = counterByName.find(*actionCounter);
           if (counter == counterByName.end()) {
             throw FbossError(
                 "Invalid config: No counter named ",
-                *mta.action_ref()->counter_ref(),
+                *mta.action()->counter(),
                 " found.");
           }
           matchAction.setTrafficCounter(*(counter->second));
         }
-        if (auto setDscp = mta.action_ref()->setDscp_ref()) {
+        if (auto setDscp = mta.action()->setDscp()) {
           matchAction.setSetDscp(*setDscp);
         }
-        if (auto ingressMirror = mta.action_ref()->ingressMirror_ref()) {
+        if (auto ingressMirror = mta.action()->ingressMirror()) {
           matchAction.setIngressMirror(*ingressMirror);
         }
-        if (auto egressMirror = mta.action_ref()->egressMirror_ref()) {
+        if (auto egressMirror = mta.action()->egressMirror()) {
           matchAction.setEgressMirror(*egressMirror);
         }
-        if (auto toCpuAction = mta.action_ref()->toCpuAction_ref()) {
+        if (auto toCpuAction = mta.action()->toCpuAction()) {
           matchAction.setToCpuAction(*toCpuAction);
         }
-        if (auto redirectToNextHop =
-                mta.action_ref()->redirectToNextHop_ref()) {
+        if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
         }
@@ -2227,15 +2216,14 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   };
 
   // Add controlPlane traffic acls
-  if (cfg_->cpuTrafficPolicy_ref() &&
-      cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
+  if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
     folly::gen::from(
-        addToAcls(*cfg_->cpuTrafficPolicy_ref()->trafficPolicy_ref(), true)) |
+        addToAcls(*cfg_->cpuTrafficPolicy()->trafficPolicy(), true)) |
         folly::gen::appendTo(newAcls);
   }
 
   // Add dataPlane traffic acls
-  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
     folly::gen::from(addToAcls(*dataPlaneTrafficPolicy)) |
         folly::gen::appendTo(newAcls);
   }
@@ -2283,13 +2271,13 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 
     if (orig_->getAclsForTable(aclStage, tableName.value())) {
       origAcl = orig_->getAclsForTable(aclStage, tableName.value())
-                    ->getEntryIf(*acl.name_ref());
+                    ->getEntryIf(*acl.name());
     }
   } else { // single acl table implementation
     CHECK(!tableName.has_value());
     origAcl = orig_->getAcls()->getEntryIf(
-        *acl.name_ref()); // orig_ empty in coldboot, or comes from
-                          // follydynamic in warmboot
+        *acl.name()); // orig_ empty in coldboot, or comes from
+                      // follydynamic in warmboot
   }
 
   auto newAcl =
@@ -2308,46 +2296,46 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
   // check l4 port
-  if (auto l4SrcPort = config->l4SrcPort_ref()) {
+  if (auto l4SrcPort = config->l4SrcPort()) {
     if (*l4SrcPort < 0 || *l4SrcPort > AclEntryFields::kMaxL4Port) {
       throw FbossError(
           "L4 source port must be between 0 and ",
           std::to_string(AclEntryFields::kMaxL4Port));
     }
   }
-  if (auto l4DstPort = config->l4DstPort_ref()) {
+  if (auto l4DstPort = config->l4DstPort()) {
     if (*l4DstPort < 0 || *l4DstPort > AclEntryFields::kMaxL4Port) {
       throw FbossError(
           "L4 destination port must be between 0 and ",
           std::to_string(AclEntryFields::kMaxL4Port));
     }
   }
-  if (config->icmpCode_ref() && !config->icmpType_ref()) {
+  if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
-  if (auto icmpType = config->icmpType_ref()) {
+  if (auto icmpType = config->icmpType()) {
     if (*icmpType < 0 || *icmpType > AclEntryFields::kMaxIcmpType) {
       throw FbossError(
           "icmp type value must be between 0 and ",
           std::to_string(AclEntryFields::kMaxIcmpType));
     }
   }
-  if (auto icmpCode = config->icmpCode_ref()) {
+  if (auto icmpCode = config->icmpCode()) {
     if (*icmpCode < 0 || *icmpCode > AclEntryFields::kMaxIcmpCode) {
       throw FbossError(
           "icmp type value must be between 0 and ",
           std::to_string(AclEntryFields::kMaxIcmpCode));
     }
   }
-  if (config->icmpType_ref() &&
-      (!config->proto_ref() ||
-       !(*config->proto_ref() == AclEntryFields::kProtoIcmp ||
-         *config->proto_ref() == AclEntryFields::kProtoIcmpv6))) {
+  if (config->icmpType() &&
+      (!config->proto() ||
+       !(*config->proto() == AclEntryFields::kProtoIcmp ||
+         *config->proto() == AclEntryFields::kProtoIcmpv6))) {
     throw FbossError(
         "proto must be either icmp or icmpv6 ", "if icmp type is set");
   }
-  if (auto ttl = config->ttl_ref()) {
-    if (auto ttlValue = *ttl->value_ref()) {
+  if (auto ttl = config->ttl()) {
+    if (auto ttlValue = *ttl->value()) {
       if (ttlValue > 255) {
         throw FbossError("ttl value is larger than 255");
       }
@@ -2355,7 +2343,7 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
         throw FbossError("ttl value is less than 0");
       }
     }
-    if (auto ttlMask = *ttl->mask_ref()) {
+    if (auto ttlMask = *ttl->mask()) {
       if (ttlMask > 255) {
         throw FbossError("ttl mask is larger than 255");
       }
@@ -2371,72 +2359,72 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     int priority,
     const MatchAction* action) {
   checkAcl(config);
-  auto newAcl = make_shared<AclEntry>(priority, *config->name_ref());
-  newAcl->setActionType(*config->actionType_ref());
+  auto newAcl = make_shared<AclEntry>(priority, *config->name());
+  newAcl->setActionType(*config->actionType());
   if (action) {
     newAcl->setAclAction(*action);
   }
-  if (auto srcIp = config->srcIp_ref()) {
+  if (auto srcIp = config->srcIp()) {
     newAcl->setSrcIp(IPAddress::createNetwork(*srcIp));
   }
-  if (auto dstIp = config->dstIp_ref()) {
+  if (auto dstIp = config->dstIp()) {
     newAcl->setDstIp(IPAddress::createNetwork(*dstIp));
   }
-  if (auto proto = config->proto_ref()) {
+  if (auto proto = config->proto()) {
     newAcl->setProto(*proto);
   }
-  if (auto tcpFlagsBitMap = config->tcpFlagsBitMap_ref()) {
+  if (auto tcpFlagsBitMap = config->tcpFlagsBitMap()) {
     newAcl->setTcpFlagsBitMap(*tcpFlagsBitMap);
   }
-  if (auto srcPort = config->srcPort_ref()) {
+  if (auto srcPort = config->srcPort()) {
     newAcl->setSrcPort(*srcPort);
   }
-  if (auto dstPort = config->dstPort_ref()) {
+  if (auto dstPort = config->dstPort()) {
     newAcl->setDstPort(*dstPort);
   }
-  if (auto l4SrcPort = config->l4SrcPort_ref()) {
+  if (auto l4SrcPort = config->l4SrcPort()) {
     newAcl->setL4SrcPort(*l4SrcPort);
   }
-  if (auto l4DstPort = config->l4DstPort_ref()) {
+  if (auto l4DstPort = config->l4DstPort()) {
     newAcl->setL4DstPort(*l4DstPort);
   }
-  if (auto ipFrag = config->ipFrag_ref()) {
+  if (auto ipFrag = config->ipFrag()) {
     newAcl->setIpFrag(*ipFrag);
   }
-  if (auto icmpType = config->icmpType_ref()) {
+  if (auto icmpType = config->icmpType()) {
     newAcl->setIcmpType(*icmpType);
   }
-  if (auto icmpCode = config->icmpCode_ref()) {
+  if (auto icmpCode = config->icmpCode()) {
     newAcl->setIcmpCode(*icmpCode);
   }
-  if (auto dscp = config->dscp_ref()) {
+  if (auto dscp = config->dscp()) {
     newAcl->setDscp(*dscp);
   }
-  if (auto dstMac = config->dstMac_ref()) {
+  if (auto dstMac = config->dstMac()) {
     newAcl->setDstMac(MacAddress(*dstMac));
   }
-  if (auto ipType = config->ipType_ref()) {
+  if (auto ipType = config->ipType()) {
     newAcl->setIpType(*ipType);
   }
-  if (auto etherType = config->etherType_ref()) {
+  if (auto etherType = config->etherType()) {
     newAcl->setEtherType(*etherType);
   }
-  if (auto ttl = config->ttl_ref()) {
-    newAcl->setTtl(AclTtl(*ttl->value_ref(), *ttl->mask_ref()));
+  if (auto ttl = config->ttl()) {
+    newAcl->setTtl(AclTtl(*ttl->value(), *ttl->mask()));
   }
-  if (auto lookupClassL2 = config->lookupClassL2_ref()) {
+  if (auto lookupClassL2 = config->lookupClassL2()) {
     newAcl->setLookupClassL2(*lookupClassL2);
   }
-  if (auto lookupClassNeighbor = config->lookupClassNeighbor_ref()) {
+  if (auto lookupClassNeighbor = config->lookupClassNeighbor()) {
     newAcl->setLookupClassNeighbor(*lookupClassNeighbor);
   }
-  if (auto lookupClassRoute = config->lookupClassRoute_ref()) {
+  if (auto lookupClassRoute = config->lookupClassRoute()) {
     newAcl->setLookupClassRoute(*lookupClassRoute);
   }
-  if (auto packetLookupResult = config->packetLookupResult_ref()) {
+  if (auto packetLookupResult = config->packetLookupResult()) {
     newAcl->setPacketLookupResult(*packetLookupResult);
   }
-  if (auto vlanID = config->vlanID_ref()) {
+  if (auto vlanID = config->vlanID()) {
     newAcl->setVlanID(*vlanID);
   }
   return newAcl;
@@ -2446,8 +2434,8 @@ bool ThriftConfigApplier::updateDhcpOverrides(
     Vlan* vlan,
     const cfg::Vlan* config) {
   DhcpV4OverrideMap newDhcpV4OverrideMap;
-  if (config->dhcpRelayOverridesV4_ref()) {
-    for (const auto& pair : *config->dhcpRelayOverridesV4_ref()) {
+  if (config->dhcpRelayOverridesV4()) {
+    for (const auto& pair : *config->dhcpRelayOverridesV4()) {
       try {
         newDhcpV4OverrideMap[MacAddress(pair.first)] = IPAddressV4(pair.second);
       } catch (const IPAddressFormatException& ex) {
@@ -2458,8 +2446,8 @@ bool ThriftConfigApplier::updateDhcpOverrides(
   }
 
   DhcpV6OverrideMap newDhcpV6OverrideMap;
-  if (config->dhcpRelayOverridesV6_ref()) {
-    for (const auto& pair : *config->dhcpRelayOverridesV6_ref()) {
+  if (config->dhcpRelayOverridesV6()) {
+    for (const auto& pair : *config->dhcpRelayOverridesV6()) {
       try {
         newDhcpV6OverrideMap[MacAddress(pair.first)] = IPAddressV6(pair.second);
       } catch (const IPAddressFormatException& ex) {
@@ -2507,7 +2495,7 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
   ArpResponseTable::NodeContainer arpTable;
   NdpResponseTable::NodeContainer ndpTable;
 
-  VlanID vlanID(*config->id_ref());
+  VlanID vlanID(*config->id());
   auto it = vlanInterfaces_.find(vlanID);
   if (it != vlanInterfaces_.end()) {
     for (const auto& [ip, addrInfo] : it->second.addresses) {
@@ -2546,8 +2534,8 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
   // Process all supplied interface configs
   size_t numExistingProcessed = 0;
 
-  for (const auto& interfaceCfg : *cfg_->interfaces_ref()) {
-    InterfaceID id(*interfaceCfg.intfID_ref());
+  for (const auto& interfaceCfg : *cfg_->interfaces()) {
+    InterfaceID id(*interfaceCfg.intfID());
     auto origIntf = origIntfs->getInterfaceIf(id);
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
@@ -2579,18 +2567,18 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     const Interface::Addresses& addrs) {
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->mtu_ref().value_or(Interface::kDefaultMtu);
+  auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
   auto intf = make_shared<Interface>(
-      InterfaceID(*config->intfID_ref()),
-      RouterID(*config->routerID_ref()),
-      VlanID(*config->vlanID_ref()),
+      InterfaceID(*config->intfID()),
+      RouterID(*config->routerID()),
+      VlanID(*config->vlanID()),
       name,
       mac,
       mtu,
-      *config->isVirtual_ref(),
-      *config->isStateSyncDisabled_ref());
+      *config->isVirtual(),
+      *config->isStateSyncDisabled());
   intf->setAddresses(addrs);
-  if (auto ndp = config->ndp_ref()) {
+  if (auto ndp = config->ndp()) {
     intf->setNdpConfig(*ndp);
   }
   return intf;
@@ -2603,10 +2591,10 @@ shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
 
   // Process all supplied collectors
   size_t numExistingProcessed = 0;
-  for (const auto& collector : *cfg_->sFlowCollectors_ref()) {
-    folly::IPAddress address(*collector.ip_ref());
+  for (const auto& collector : *cfg_->sFlowCollectors()) {
+    folly::IPAddress address(*collector.ip());
     auto id = address.toFullyQualified() + ':' +
-        folly::to<std::string>(*collector.port_ref());
+        folly::to<std::string>(*collector.port());
     auto origCollector = origCollectors->getNodeIf(id);
     shared_ptr<SflowCollector> newCollector;
 
@@ -2634,7 +2622,7 @@ shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
 
 shared_ptr<SflowCollector> ThriftConfigApplier::createSflowCollector(
     const cfg::SflowCollector* config) {
-  return make_shared<SflowCollector>(*config->ip_ref(), *config->port_ref());
+  return make_shared<SflowCollector>(*config->ip(), *config->port());
 }
 
 shared_ptr<SflowCollector> ThriftConfigApplier::updateSflowCollector(
@@ -2653,35 +2641,35 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
     const shared_ptr<Interface>& orig,
     const cfg::Interface* config,
     const Interface::Addresses& addrs) {
-  CHECK_EQ(orig->getID(), InterfaceID(*config->intfID_ref()));
+  CHECK_EQ(orig->getID(), InterfaceID(*config->intfID()));
 
   cfg::NdpConfig ndp;
-  if (config->ndp_ref()) {
-    ndp = *config->ndp_ref();
+  if (config->ndp()) {
+    ndp = *config->ndp();
   }
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->mtu_ref().value_or(Interface::kDefaultMtu);
-  if (orig->getRouterID() == RouterID(*config->routerID_ref()) &&
-      orig->getVlanID() == VlanID(*config->vlanID_ref()) &&
+  auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
+  if (orig->getRouterID() == RouterID(*config->routerID()) &&
+      orig->getVlanID() == VlanID(*config->vlanID()) &&
       orig->getName() == name && orig->getMac() == mac &&
       orig->getAddresses() == addrs && orig->getNdpConfig() == ndp &&
-      orig->getMtu() == mtu && orig->isVirtual() == *config->isVirtual_ref() &&
-      orig->isStateSyncDisabled() == *config->isStateSyncDisabled_ref()) {
+      orig->getMtu() == mtu && orig->isVirtual() == *config->isVirtual() &&
+      orig->isStateSyncDisabled() == *config->isStateSyncDisabled()) {
     // No change
     return nullptr;
   }
 
   auto newIntf = orig->clone();
-  newIntf->setRouterID(RouterID(*config->routerID_ref()));
-  newIntf->setVlanID(VlanID(*config->vlanID_ref()));
+  newIntf->setRouterID(RouterID(*config->routerID()));
+  newIntf->setVlanID(VlanID(*config->vlanID()));
   newIntf->setName(name);
   newIntf->setMac(mac);
   newIntf->setAddresses(addrs);
   newIntf->setNdpConfig(ndp);
   newIntf->setMtu(mtu);
-  newIntf->setIsVirtual(*config->isVirtual_ref());
-  newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled_ref());
+  newIntf->setIsVirtual(*config->isVirtual());
+  newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
   return newIntf;
 }
 
@@ -2690,13 +2678,13 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   auto newQcmCfg = make_shared<QcmCfg>();
 
   WeightMap newWeightMap;
-  for (const auto& weights : *config.flowWeights_ref()) {
+  for (const auto& weights : *config.flowWeights()) {
     newWeightMap.emplace(static_cast<int>(weights.first), weights.second);
   }
   newQcmCfg->setFlowWeightMap(newWeightMap);
 
   Port2QosQueueIdMap port2QosQueueIds;
-  for (const auto& perPortQosQueueIds : *config.port2QosQueueIds_ref()) {
+  for (const auto& perPortQosQueueIds : *config.port2QosQueueIds()) {
     std::set<int> queueIds;
     for (const auto& queueId : perPortQosQueueIds.second) {
       queueIds.insert(queueId);
@@ -2705,26 +2693,26 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   }
   newQcmCfg->setPort2QosQueueIdMap(port2QosQueueIds);
 
-  newQcmCfg->setCollectorSrcPort(*config.collectorSrcPort_ref());
-  newQcmCfg->setNumFlowSamplesPerView(*config.numFlowSamplesPerView_ref());
-  newQcmCfg->setFlowLimit(*config.flowLimit_ref());
-  newQcmCfg->setNumFlowsClear(*config.numFlowsClear_ref());
-  newQcmCfg->setScanIntervalInUsecs(*config.scanIntervalInUsecs_ref());
-  newQcmCfg->setExportThreshold(*config.exportThreshold_ref());
-  newQcmCfg->setAgingInterval(*config.agingIntervalInMsecs_ref());
+  newQcmCfg->setCollectorSrcPort(*config.collectorSrcPort());
+  newQcmCfg->setNumFlowSamplesPerView(*config.numFlowSamplesPerView());
+  newQcmCfg->setFlowLimit(*config.flowLimit());
+  newQcmCfg->setNumFlowsClear(*config.numFlowsClear());
+  newQcmCfg->setScanIntervalInUsecs(*config.scanIntervalInUsecs());
+  newQcmCfg->setExportThreshold(*config.exportThreshold());
+  newQcmCfg->setAgingInterval(*config.agingIntervalInMsecs());
   newQcmCfg->setCollectorDstIp(
-      IPAddress::createNetwork(*config.collectorDstIp_ref()));
-  newQcmCfg->setCollectorDstPort(*config.collectorDstPort_ref());
-  newQcmCfg->setMonitorQcmCfgPortsOnly(*config.monitorQcmCfgPortsOnly_ref());
-  if (auto dscp = config.collectorDscp_ref()) {
+      IPAddress::createNetwork(*config.collectorDstIp()));
+  newQcmCfg->setCollectorDstPort(*config.collectorDstPort());
+  newQcmCfg->setMonitorQcmCfgPortsOnly(*config.monitorQcmCfgPortsOnly());
+  if (auto dscp = config.collectorDscp()) {
     newQcmCfg->setCollectorDscp(*dscp);
   }
-  if (auto ppsToQcm = config.ppsToQcm_ref()) {
+  if (auto ppsToQcm = config.ppsToQcm()) {
     newQcmCfg->setPpsToQcm(*ppsToQcm);
   }
   newQcmCfg->setCollectorSrcIp(
-      IPAddress::createNetwork(*config.collectorSrcIp_ref()));
-  newQcmCfg->setMonitorQcmPortList(*config.monitorQcmPortList_ref());
+      IPAddress::createNetwork(*config.collectorSrcIp()));
+  newQcmCfg->setMonitorQcmPortList(*config.monitorQcmPortList());
   return newQcmCfg;
 }
 
@@ -2733,7 +2721,7 @@ shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
   *changed = false;
   auto origBufferPoolConfigs = orig_->getBufferPoolCfgs();
   BufferPoolCfgMap::NodeContainer newBufferPoolConfigMap;
-  auto newCfgedBufferPools = cfg_->bufferPoolConfigs_ref();
+  auto newCfgedBufferPools = cfg_->bufferPoolConfigs();
 
   if (!newCfgedBufferPools && !origBufferPoolConfigs) {
     return nullptr;
@@ -2789,21 +2777,21 @@ std::shared_ptr<BufferPoolCfg> ThriftConfigApplier::createBufferPoolConfig(
     const std::string& id,
     const cfg::BufferPoolConfig& bufferPoolConfig) {
   auto bufferPoolCfg = std::make_shared<BufferPoolCfg>(id);
-  bufferPoolCfg->setSharedBytes(*bufferPoolConfig.sharedBytes_ref());
-  bufferPoolCfg->setHeadroomBytes(*bufferPoolConfig.headroomBytes_ref());
+  bufferPoolCfg->setSharedBytes(*bufferPoolConfig.sharedBytes());
+  bufferPoolCfg->setHeadroomBytes(*bufferPoolConfig.headroomBytes());
   return bufferPoolCfg;
 }
 
 shared_ptr<QcmCfg> ThriftConfigApplier::updateQcmCfg(bool* changed) {
   auto origQcmConfig = orig_->getQcmCfg();
-  if (!cfg_->qcmConfig_ref()) {
+  if (!cfg_->qcmConfig()) {
     if (origQcmConfig) {
       // going from cfg to empty
       *changed = true;
     }
     return nullptr;
   }
-  auto newQcmCfg = createQcmCfg(*cfg_->qcmConfig_ref());
+  auto newQcmCfg = createQcmCfg(*cfg_->qcmConfig());
   if (origQcmConfig && (*origQcmConfig == *newQcmCfg)) {
     return nullptr;
   }
@@ -2817,46 +2805,43 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   auto newSwitchSettings = origSwitchSettings->clone();
 
   if (origSwitchSettings->getL2LearningMode() !=
-      *cfg_->switchSettings_ref()->l2LearningMode_ref()) {
+      *cfg_->switchSettings()->l2LearningMode()) {
     newSwitchSettings->setL2LearningMode(
-        *cfg_->switchSettings_ref()->l2LearningMode_ref());
+        *cfg_->switchSettings()->l2LearningMode());
     switchSettingsChange = true;
   }
 
   if (origSwitchSettings->isQcmEnable() !=
-      *cfg_->switchSettings_ref()->qcmEnable_ref()) {
-    newSwitchSettings->setQcmEnable(
-        *cfg_->switchSettings_ref()->qcmEnable_ref());
+      *cfg_->switchSettings()->qcmEnable()) {
+    newSwitchSettings->setQcmEnable(*cfg_->switchSettings()->qcmEnable());
     switchSettingsChange = true;
   }
 
   if (origSwitchSettings->isPtpTcEnable() !=
-      *cfg_->switchSettings_ref()->ptpTcEnable_ref()) {
-    newSwitchSettings->setPtpTcEnable(
-        *cfg_->switchSettings_ref()->ptpTcEnable_ref());
+      *cfg_->switchSettings()->ptpTcEnable()) {
+    newSwitchSettings->setPtpTcEnable(*cfg_->switchSettings()->ptpTcEnable());
     switchSettingsChange = true;
   }
 
   if (origSwitchSettings->getL2AgeTimerSeconds() !=
-      *cfg_->switchSettings_ref()->l2AgeTimerSeconds_ref()) {
+      *cfg_->switchSettings()->l2AgeTimerSeconds()) {
     newSwitchSettings->setL2AgeTimerSeconds(
-        *cfg_->switchSettings_ref()->l2AgeTimerSeconds_ref());
+        *cfg_->switchSettings()->l2AgeTimerSeconds());
     switchSettingsChange = true;
   }
 
   if (origSwitchSettings->getMaxRouteCounterIDs() !=
-      *cfg_->switchSettings_ref()->maxRouteCounterIDs_ref()) {
+      *cfg_->switchSettings()->maxRouteCounterIDs()) {
     newSwitchSettings->setMaxRouteCounterIDs(
-        *cfg_->switchSettings_ref()->maxRouteCounterIDs_ref());
+        *cfg_->switchSettings()->maxRouteCounterIDs());
     switchSettingsChange = true;
   }
 
   std::vector<std::pair<VlanID, folly::IPAddress>> cfgBlockNeighbors;
-  for (const auto& blockNeighbor :
-       *cfg_->switchSettings_ref()->blockNeighbors_ref()) {
+  for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     cfgBlockNeighbors.emplace_back(
-        VlanID(*blockNeighbor.vlanID_ref()),
-        folly::IPAddress(*blockNeighbor.ipAddress_ref()));
+        VlanID(*blockNeighbor.vlanID()),
+        folly::IPAddress(*blockNeighbor.ipAddress()));
   }
   if (origSwitchSettings->getBlockNeighbors() != cfgBlockNeighbors) {
     newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
@@ -2865,10 +2850,10 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 
   std::vector<std::pair<VlanID, folly::MacAddress>> cfgMacAddrsToBlock;
   for (const auto& macAddrToBlock :
-       *cfg_->switchSettings_ref()->macAddrsToBlock_ref()) {
+       *cfg_->switchSettings()->macAddrsToBlock()) {
     cfgMacAddrsToBlock.emplace_back(
-        VlanID(*macAddrToBlock.vlanID_ref()),
-        folly::MacAddress(*macAddrToBlock.macAddress_ref()));
+        VlanID(*macAddrToBlock.vlanID()),
+        folly::MacAddress(*macAddrToBlock.macAddress()));
   }
   if (origSwitchSettings->getMacAddrsToBlock() != cfgMacAddrsToBlock) {
     newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
@@ -2883,14 +2868,14 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   std::optional<std::string> qosPolicy;
   ControlPlane::RxReasonToQueue newRxReasonToQueue;
   bool rxReasonToQueueUnchanged = true;
-  if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy_ref()) {
-    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy_ref()) {
-      if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy_ref()) {
+  if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
+    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
+      if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
         qosPolicy = *defaultQosPolicy;
       }
     }
     if (const auto rxReasonToQueue =
-            cpuTrafficPolicy->rxReasonToQueueOrderedList_ref()) {
+            cpuTrafficPolicy->rxReasonToQueueOrderedList()) {
       for (auto rxEntry : *rxReasonToQueue) {
         newRxReasonToQueue.push_back(rxEntry);
       }
@@ -2898,8 +2883,7 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
         rxReasonToQueueUnchanged = false;
       }
     } else if (
-        const auto rxReasonToQueue =
-            cpuTrafficPolicy->rxReasonToCPUQueue_ref()) {
+        const auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue()) {
       // TODO(pgardideh): the map version of reason to queue is deprecated.
       // Remove
       // this read when it is safe to do so.
@@ -2917,9 +2901,9 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
      * default i.e. with regards to QoS map configuration, treat CPU port like
      * any front panel port.
      */
-    if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
+    if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto defaultDataPlaneQosPolicy =
-              dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
+              dataPlaneTrafficPolicy->defaultQosPolicy()) {
         qosPolicy = *defaultDataPlaneQosPolicy;
       }
     }
@@ -2930,13 +2914,13 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   std::optional<cfg::QosMap> qosMap;
   if (qosPolicy) {
     bool qosPolicyFound = false;
-    for (auto policy : *cfg_->qosPolicies_ref()) {
+    for (auto policy : *cfg_->qosPolicies()) {
       if (qosPolicyFound) {
         break;
       }
-      qosPolicyFound = (*policy.name_ref() == qosPolicy.value());
-      if (qosPolicyFound && policy.qosMap_ref()) {
-        qosMap = policy.qosMap_ref().value();
+      qosPolicyFound = (*policy.name() == qosPolicy.value());
+      if (qosPolicyFound && policy.qosMap()) {
+        qosMap = policy.qosMap().value();
       }
     }
     if (!qosPolicyFound) {
@@ -2949,7 +2933,7 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   for (auto streamType : platform_->getAsic()->getQueueStreamTypes(true)) {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueues(),
-        *cfg_->cpuQueues_ref(),
+        *cfg_->cpuQueues(),
         origCPU->getQueues().size(),
         streamType,
         qosMap);
@@ -2977,14 +2961,14 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 
 std::string ThriftConfigApplier::getInterfaceName(
     const cfg::Interface* config) {
-  if (auto name = config->name_ref()) {
+  if (auto name = config->name()) {
     return *name;
   }
-  return folly::to<std::string>("Interface ", *config->intfID_ref());
+  return folly::to<std::string>("Interface ", *config->intfID());
 }
 
 MacAddress ThriftConfigApplier::getInterfaceMac(const cfg::Interface* config) {
-  if (auto mac = config->mac_ref()) {
+  if (auto mac = config->mac()) {
     return MacAddress(*mac);
   }
   return platform_->getLocalMac();
@@ -2997,7 +2981,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   // Assign auto-generate v6 link-local address to interface. Config can
   // have more link-local addresses if needed.
   folly::MacAddress macAddr;
-  if (auto mac = config->mac_ref()) {
+  if (auto mac = config->mac()) {
     macAddr = folly::MacAddress(*mac);
   } else {
     macAddr = platform_->getLocalMac();
@@ -3006,7 +2990,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
   addrs.emplace(v6llAddr, kV6LinkLocalAddrMask);
 
   // Add all interface addresses from config
-  for (const auto& addr : *config->ipAddresses_ref()) {
+  for (const auto& addr : *config->ipAddresses()) {
     auto intfAddr = IPAddress::createNetwork(addr, -1, false);
     auto ret = addrs.insert(intfAddr);
     if (!ret.second) {
@@ -3014,7 +2998,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
           "Duplicate network IP address ",
           addr,
           " in interface ",
-          *config->intfID_ref());
+          *config->intfID());
     }
 
     // NOTE: We do not want to leak link-local address into intfRouteTables_
@@ -3024,29 +3008,29 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
     if (intfAddr.first.isV6() and intfAddr.first.isLinkLocal()) {
       continue;
     }
-    auto ret2 = intfRouteTables_[RouterID(*config->routerID_ref())].emplace(
+    auto ret2 = intfRouteTables_[RouterID(*config->routerID())].emplace(
         IPAddress::createNetwork(addr),
-        std::make_pair(InterfaceID(*config->intfID_ref()), intfAddr.first));
+        std::make_pair(InterfaceID(*config->intfID()), intfAddr.first));
     if (!ret2.second) {
       // we get same network, only allow it if that is from the same interface
       auto other = ret2.first->second.first;
-      if (other != InterfaceID(*config->intfID_ref())) {
+      if (other != InterfaceID(*config->intfID())) {
         throw FbossError(
             "Duplicate network address ",
             addr,
             " of interface ",
-            *config->intfID_ref(),
+            *config->intfID(),
             " as interface ",
             other,
             " in VRF ",
-            *config->routerID_ref());
+            *config->routerID());
       }
       // For consistency with interface routes as added by RouteUpdater,
       // use the last address we see rather than the first. Otherwise,
       // we see pointless route updates on syncFib()
       *ret2.first = std::make_pair(
           IPAddress::createNetwork(addr),
-          std::make_pair(InterfaceID(*config->intfID_ref()), intfAddr.first));
+          std::make_pair(InterfaceID(*config->intfID()), intfAddr.first));
     }
   }
 
@@ -3060,8 +3044,8 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
 
   size_t numExistingProcessed = 0;
   int sflowMirrorCount = 0;
-  for (const auto& mirrorCfg : *cfg_->mirrors_ref()) {
-    auto origMirror = origMirrors->getMirrorIf(*mirrorCfg.name_ref());
+  for (const auto& mirrorCfg : *cfg_->mirrors()) {
+    auto origMirror = origMirrors->getMirrorIf(*mirrorCfg.name());
     std::shared_ptr<Mirror> newMirror;
     if (origMirror) {
       newMirror = updateMirror(origMirror, &mirrorCfg);
@@ -3123,8 +3107,8 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
 
 std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     const cfg::Mirror* mirrorConfig) {
-  if (!mirrorConfig->destination_ref()->egressPort_ref() &&
-      !mirrorConfig->destination_ref()->tunnel_ref()) {
+  if (!mirrorConfig->destination()->egressPort() &&
+      !mirrorConfig->destination()->tunnel()) {
     /*
      * At least one of the egress port or tunnel is needed.
      */
@@ -3137,7 +3121,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   std::optional<folly::IPAddress> srcIp;
   std::optional<TunnelUdpPorts> udpPorts;
 
-  if (auto egressPort = mirrorConfig->destination_ref()->egressPort_ref()) {
+  if (auto egressPort = mirrorConfig->destination()->egressPort()) {
     std::shared_ptr<Port> mirrorToPort{nullptr};
     switch (egressPort->getType()) {
       case cfg::MirrorEgressPort::Type::name:
@@ -3157,18 +3141,18 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
             "Must set either name or logicalID for MirrorEgressPort");
     }
     if (mirrorToPort &&
-        mirrorToPort->getIngressMirror() != *mirrorConfig->name_ref() &&
-        mirrorToPort->getEgressMirror() != *mirrorConfig->name_ref()) {
+        mirrorToPort->getIngressMirror() != *mirrorConfig->name() &&
+        mirrorToPort->getEgressMirror() != *mirrorConfig->name()) {
       mirrorEgressPort = PortID(mirrorToPort->getID());
     } else {
       throw FbossError("Invalid port name or ID");
     }
   }
 
-  if (auto tunnel = mirrorConfig->destination_ref()->tunnel_ref()) {
-    if (auto sflowTunnel = tunnel->sflowTunnel_ref()) {
-      destinationIp = folly::IPAddress(*sflowTunnel->ip_ref());
-      if (!sflowTunnel->udpSrcPort_ref() || !sflowTunnel->udpDstPort_ref()) {
+  if (auto tunnel = mirrorConfig->destination()->tunnel()) {
+    if (auto sflowTunnel = tunnel->sflowTunnel()) {
+      destinationIp = folly::IPAddress(*sflowTunnel->ip());
+      if (!sflowTunnel->udpSrcPort() || !sflowTunnel->udpDstPort()) {
         throw FbossError(
             "Both UDP source and UDP destination ports must be provided for \
             sFlow tunneling.");
@@ -3178,16 +3162,16 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         throw FbossError("SFLOWv6 is not supported on this platform");
       }
       udpPorts = TunnelUdpPorts(
-          *sflowTunnel->udpSrcPort_ref(), *sflowTunnel->udpDstPort_ref());
-    } else if (auto greTunnel = tunnel->greTunnel_ref()) {
-      destinationIp = folly::IPAddress(*greTunnel->ip_ref());
+          *sflowTunnel->udpSrcPort(), *sflowTunnel->udpDstPort());
+    } else if (auto greTunnel = tunnel->greTunnel()) {
+      destinationIp = folly::IPAddress(*greTunnel->ip());
       if (destinationIp->isV6() &&
           !platform_->getAsic()->isSupported(HwAsic::Feature::ERSPANv6)) {
         throw FbossError("ERSPANv6 is not supported on this platform");
       }
     }
 
-    if (auto srcIpRef = tunnel->srcIp_ref()) {
+    if (auto srcIpRef = tunnel->srcIp()) {
       srcIp = folly::IPAddress(*srcIpRef);
     }
   }
@@ -3196,7 +3180,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   bool truncate = mirrorConfig->get_truncate();
 
   auto mirror = make_shared<Mirror>(
-      *mirrorConfig->name_ref(),
+      *mirrorConfig->name(),
       mirrorEgressPort,
       destinationIp,
       srcIp,
@@ -3237,8 +3221,8 @@ ThriftConfigApplier::updateForwardingInformationBaseContainers() {
 
   std::size_t numExistingProcessed = 0;
 
-  for (const auto& interfaceCfg : *cfg_->interfaces_ref()) {
-    RouterID vrf(*interfaceCfg.routerID_ref());
+  for (const auto& interfaceCfg : *cfg_->interfaces()) {
+    RouterID vrf(*interfaceCfg.routerID());
     if (newFibContainers.find(vrf) != newFibContainers.end()) {
       continue;
     }
@@ -3275,19 +3259,18 @@ ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
   for (const auto& port : *new_->getPorts()) {
-    if (port->getPfc().has_value() &&
-        port->getPfc()->watchdog_ref().has_value()) {
-      auto pfcWd = port->getPfc()->watchdog_ref().value();
+    if (port->getPfc().has_value() && port->getPfc()->watchdog().has_value()) {
+      auto pfcWd = port->getPfc()->watchdog().value();
       if (!recoveryAction.has_value()) {
-        recoveryAction = *pfcWd.recoveryAction_ref();
+        recoveryAction = *pfcWd.recoveryAction();
         firstPort = port;
         XLOG(DBG2) << "PFC watchdog recovery action initialized to "
-                   << (int)*pfcWd.recoveryAction_ref();
-      } else if (*recoveryAction != *pfcWd.recoveryAction_ref()) {
+                   << (int)*pfcWd.recoveryAction();
+      } else if (*recoveryAction != *pfcWd.recoveryAction()) {
         // Error: All ports should have the same recovery action configured
         throw FbossError(
             "PFC watchdog deadlock recovery action ",
-            *pfcWd.recoveryAction_ref(),
+            *pfcWd.recoveryAction(),
             " on ",
             port->getName(),
             " conflicting with ",

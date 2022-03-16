@@ -46,9 +46,9 @@ class BcmPfcTests : public BcmTest {
       const int detectionTime,
       const int recoveryTime,
       const cfg::PfcWatchdogRecoveryAction recoveryAction) {
-    watchdog.recoveryAction_ref() = recoveryAction;
-    watchdog.recoveryTimeMsecs_ref() = recoveryTime;
-    watchdog.detectionTimeMsecs_ref() = detectionTime;
+    watchdog.recoveryAction() = recoveryAction;
+    watchdog.recoveryTimeMsecs() = recoveryTime;
+    watchdog.detectionTimeMsecs() = detectionTime;
   }
 
   /*
@@ -69,13 +69,13 @@ class BcmPfcTests : public BcmTest {
       bool rxEnable = true,
       bool txEnable = true) {
     cfg::PortPfc pfc;
-    pfc.tx_ref() = txEnable;
-    pfc.rx_ref() = rxEnable;
-    pfc.portPgConfigName_ref() = "foo";
+    pfc.tx() = txEnable;
+    pfc.rx() = rxEnable;
+    pfc.portPgConfigName() = "foo";
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);
-      portCfg->pfc_ref() = pfc;
+      portCfg->pfc() = pfc;
     }
 
     // Copied from enablePgConfigConfig
@@ -83,22 +83,22 @@ class BcmPfcTests : public BcmTest {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     for (const auto& pgId : kLosslessPgs()) {
       cfg::PortPgConfig pgConfig;
-      pgConfig.id_ref() = pgId;
-      pgConfig.bufferPoolName_ref() = "bufferNew";
+      pgConfig.id() = pgId;
+      pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes_ref() = 300;
+      pgConfig.minLimitBytes() = 300;
       portPgConfigs.emplace_back(pgConfig);
     }
 
     // create buffer pool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig poolConfig;
-    poolConfig.sharedBytes_ref() = 10000;
+    poolConfig.sharedBytes() = 10000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
-    currentConfig.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    currentConfig.bufferPoolConfigs() = bufferPoolCfgMap;
 
     portPgConfigMap.insert({"foo", portPgConfigs});
-    cfg.portPgConfigs_ref() = portPgConfigMap;
+    cfg.portPgConfigs() = portPgConfigMap;
   }
 
   void setupPfcAndPfcWatchdog(
@@ -111,8 +111,8 @@ class BcmPfcTests : public BcmTest {
         true /* RX enable */,
         true /* TX enable */);
     auto portCfg = utility::findCfgPort(currentConfig, portId);
-    if (portCfg->pfc_ref().has_value()) {
-      portCfg->pfc_ref()->watchdog_ref() = watchdog;
+    if (portCfg->pfc().has_value()) {
+      portCfg->pfc()->watchdog() = watchdog;
     } else {
       XLOG(ERR) << "PFC is not enabled on port " << portId
                 << " during PFC and watchdog setup!";
@@ -126,8 +126,8 @@ class BcmPfcTests : public BcmTest {
       const cfg::PfcWatchdog& watchdog) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
 
-    if (portCfg->pfc_ref().has_value()) {
-      portCfg->pfc_ref()->watchdog_ref() = watchdog;
+    if (portCfg->pfc().has_value()) {
+      portCfg->pfc()->watchdog() = watchdog;
     } else {
       XLOG(ERR) << "PFC is not enabled on port " << portId
                 << " during PFC watchdog setup!";
@@ -138,8 +138,8 @@ class BcmPfcTests : public BcmTest {
   // Removes the PFC watchdog configuration and applies the same
   void removePfcWatchdogConfig(const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
-    if (portCfg->pfc_ref().has_value()) {
-      portCfg->pfc_ref()->watchdog_ref().reset();
+    if (portCfg->pfc().has_value()) {
+      portCfg->pfc()->watchdog().reset();
     } else {
       XLOG(ERR) << "PFC is not enabled on port " << portId
                 << " during PFC watchdog removal!";
@@ -154,7 +154,7 @@ class BcmPfcTests : public BcmTest {
       bool watchdogEnabled,
       const cfg::PfcWatchdog& watchdogConfig) {
     if (watchdogEnabled) {
-      int configuredDetectionTime = *watchdogConfig.detectionTimeMsecs_ref();
+      int configuredDetectionTime = *watchdogConfig.detectionTimeMsecs();
       watchdogPrams[bcmCosqPFCDeadlockTimerGranularity] =
           utility::getPfcDeadlockDetectionTimerGranularity(
               configuredDetectionTime);
@@ -162,7 +162,7 @@ class BcmPfcTests : public BcmTest {
           utility::getAdjustedPfcDeadlockDetectionTimerValue(
               configuredDetectionTime);
       watchdogPrams[bcmCosqPFCDeadlockRecoveryTimer] =
-          *watchdogConfig.recoveryTimeMsecs_ref();
+          *watchdogConfig.recoveryTimeMsecs();
       watchdogPrams[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = 1;
     } else {
       watchdogPrams[bcmCosqPFCDeadlockTimerGranularity] =
@@ -269,14 +269,14 @@ class BcmPfcTests : public BcmTest {
   // Removes PFC configuration for port and applies the config
   void removePfcConfig(const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
-    portCfg->pfc_ref().reset();
+    portCfg->pfc().reset();
     applyNewConfig(currentConfig);
   }
 
   // Removes PFC configuration for port, but dont apply
   void removePfcConfigSkipApply(const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
-    portCfg->pfc_ref().reset();
+    portCfg->pfc().reset();
   }
 
   // Log enabled/disable status of feature
@@ -554,8 +554,7 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
     pfcWatchdogProgrammingMatchesConfig(portId1, true, pfcWatchdogConfig);
     EXPECT_EQ(
         getPfcWatchdogRecoveryAction(),
-        pfcWatchdogRecoveryActionToBcm(
-            *pfcWatchdogConfig.recoveryAction_ref()));
+        pfcWatchdogRecoveryActionToBcm(*pfcWatchdogConfig.recoveryAction()));
 
     XLOG(DBG0) << "Enable PFC watchdog on more ports and validate programming";
     initalizePfcConfigWatchdogValues(
@@ -563,8 +562,7 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
     setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
     EXPECT_EQ(
         getPfcWatchdogRecoveryAction(),
-        pfcWatchdogRecoveryActionToBcm(
-            *pfcWatchdogConfig.recoveryAction_ref()));
+        pfcWatchdogRecoveryActionToBcm(*pfcWatchdogConfig.recoveryAction()));
 
     XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
                << " sure watchdog recovery action is not impacted";
@@ -587,8 +585,7 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryAction) {
     setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
     EXPECT_EQ(
         getPfcWatchdogRecoveryAction(),
-        pfcWatchdogRecoveryActionToBcm(
-            *pfcWatchdogConfig.recoveryAction_ref()));
+        pfcWatchdogRecoveryActionToBcm(*pfcWatchdogConfig.recoveryAction()));
 
     XLOG(DBG0) << "Unconfigure PFC on port and make sure PFC "
                << "watchdog recovery action is reverted to default";
@@ -621,8 +618,7 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
     pfcWatchdogProgrammingMatchesConfig(portId1, true, pfcWatchdogConfig);
     EXPECT_EQ(
         getPfcWatchdogRecoveryAction(),
-        pfcWatchdogRecoveryActionToBcm(
-            *pfcWatchdogConfig.recoveryAction_ref()));
+        pfcWatchdogRecoveryActionToBcm(*pfcWatchdogConfig.recoveryAction()));
 
     XLOG(DBG0) << "Enable PFC watchdog with conflicting recovery action "
                << "on anther port and make sure programming did not happen";
@@ -656,8 +652,7 @@ TEST_F(BcmPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
     pfcWatchdogProgrammingMatchesConfig(portId2, true, pfcWatchdogConfig);
     EXPECT_EQ(
         getPfcWatchdogRecoveryAction(),
-        pfcWatchdogRecoveryActionToBcm(
-            *pfcWatchdogConfig.recoveryAction_ref()));
+        pfcWatchdogRecoveryActionToBcm(*pfcWatchdogConfig.recoveryAction()));
   };
   // The test fails warmboot as there are reconfigurations done in verify
   setup();

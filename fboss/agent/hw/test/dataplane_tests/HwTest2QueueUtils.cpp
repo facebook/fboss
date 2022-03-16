@@ -21,35 +21,35 @@ void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  *queue0.id_ref() = k2QueueLowPriQueueId;
-  queue0.name_ref() = "queue0.low_pri";
-  queue0.streamType_ref() = streamType;
-  *queue0.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue0.weight_ref() = k2QueueLowPriWeight;
-  queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue0.reservedBytes_ref() = 3328;
+  *queue0.id() = k2QueueLowPriQueueId;
+  queue0.name() = "queue0.low_pri";
+  queue0.streamType() = streamType;
+  *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue0.weight() = k2QueueLowPriWeight;
+  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  queue0.reservedBytes() = 3328;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  *queue1.id_ref() = k2QueueHighPriQueueId;
-  queue1.name_ref() = "queue1.high_pri";
-  queue1.streamType_ref() = streamType;
-  *queue1.scheduling_ref() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight_ref() = k2QueueHighPriWeight;
-  queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-  queue1.reservedBytes_ref() = 9984;
+  *queue1.id() = k2QueueHighPriQueueId;
+  queue1.name() = "queue1.high_pri";
+  queue1.streamType() = streamType;
+  *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  queue1.weight() = k2QueueHighPriWeight;
+  queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  queue1.reservedBytes() = 9984;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue7;
-  *queue7.id_ref() = k2QueueNCQueueId;
-  queue7.name_ref() = "queue7.network_control";
-  queue7.streamType_ref() = streamType;
-  *queue7.scheduling_ref() = cfg::QueueScheduling::STRICT_PRIORITY;
+  *queue7.id() = k2QueueNCQueueId;
+  queue7.name() = "queue7.network_control";
+  queue7.streamType() = streamType;
+  *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
-  config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  for (auto& port : *config->ports_ref()) {
-    port.portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    port.portQueueConfigName() = "queue_config";
   }
 }
 
@@ -64,25 +64,24 @@ std::string get2QueueCounterNameForDscp(uint8_t dscp) {
 void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
   cfg::QosMap qosMap;
   auto queueToDscpMap = k2QueueToDscp();
-  qosMap.dscpMaps_ref()->resize(queueToDscpMap.size());
+  qosMap.dscpMaps()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
     auto [q, dscps] = q2dscps;
-    *qosMap.dscpMaps_ref()[qosMapIdx].internalTrafficClass_ref() = q;
+    *qosMap.dscpMaps()[qosMapIdx].internalTrafficClass() = q;
     for (auto dscp : dscps) {
-      qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
-          dscp);
+      qosMap.dscpMaps()[qosMapIdx].fromDscpToTrafficClass()->push_back(dscp);
     }
-    qosMap.trafficClassToQueueId_ref()->emplace(q, q);
+    qosMap.trafficClassToQueueId()->emplace(q, q);
     ++qosMapIdx;
   }
-  cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies_ref()[0].name_ref() = "2queue";
-  cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+  cfg.qosPolicies()->resize(1);
+  *cfg.qosPolicies()[0].name() = "2queue";
+  cfg.qosPolicies()[0].qosMap() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "2queue";
-  cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy() = "2queue";
+  cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
 }
 
 const std::map<int, std::vector<uint8_t>>& k2QueueToDscp() {

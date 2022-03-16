@@ -126,7 +126,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
         cfg::PortLoopbackMode::NONE,
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
-    config.loadBalancers_ref()->push_back(
+    config.loadBalancers()->push_back(
         facebook::fboss::utility::getEcmpFullHashConfig(sw()->getPlatform()));
     return config;
   }

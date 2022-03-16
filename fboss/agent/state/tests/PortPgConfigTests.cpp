@@ -33,12 +33,12 @@ TEST(PortPgConfig, TestPortPgNameMismatch) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
 
   cfg::PortPfc pfc;
-  pfc.portPgConfigName_ref() = "not_foo";
-  config.ports_ref()[0].pfc_ref() = pfc;
+  pfc.portPgConfigName() = "not_foo";
+  config.ports()[0].pfc() = pfc;
 
   // Case 1
   // port points to pgConfig named "not_foo", but it doesn't exist in cfg
@@ -50,12 +50,12 @@ TEST(PortPgConfig, TestPortPgNameMismatch) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
   for (pgId = 0; pgId < kStateTestNumPortPgs; pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
+    pgConfig.id() = pgId;
     portPgConfigs.emplace_back(pgConfig);
   }
   portPgConfigMap["foo"] = portPgConfigs;
   // add pgConfig with name "foo"
-  config.portPgConfigs_ref() = portPgConfigMap;
+  config.portPgConfigs() = portPgConfigMap;
 
   // Case 2
   // port points to "not_foo", but pg config exists only for "foo"
@@ -63,7 +63,7 @@ TEST(PortPgConfig, TestPortPgNameMismatch) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 
   // undo the changes in the port pfc struct, now all is cleaned, back to case 1
-  config.portPgConfigs_ref().reset();
+  config.portPgConfigs().reset();
   // since cleanup of pfc name on port hasn't happened,
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -75,10 +75,10 @@ TEST(PortPgConfig, TestPortPgMaxLimit) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  config.ports_ref()[0].logicalID_ref() = 1;
-  config.ports_ref()[0].name_ref() = "port1";
-  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports()->resize(1);
+  config.ports()[0].logicalID() = 1;
+  config.ports()[0].name() = "port1";
+  config.ports()[0].state() = cfg::PortState::ENABLED;
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;
@@ -88,18 +88,18 @@ TEST(PortPgConfig, TestPortPgMaxLimit) {
   for (pgId = 0; pgId <= cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1;
        pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
-    pgConfig.name_ref() = folly::to<std::string>("pg", pgId);
+    pgConfig.id() = pgId;
+    pgConfig.name() = folly::to<std::string>("pg", pgId);
     portPgConfigs.emplace_back(pgConfig);
   }
   portPgConfigMap["foo"] = portPgConfigs;
 
   cfg::PortPfc pfc;
-  pfc.portPgConfigName_ref() = "foo";
+  pfc.portPgConfigName() = "foo";
 
   // assign pfc, pg cfgs
-  config.ports_ref()[0].pfc_ref() = pfc;
-  config.portPgConfigs_ref() = portPgConfigMap;
+  config.ports()[0].pfc() = pfc;
+  config.portPgConfigs() = portPgConfigMap;
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -115,17 +115,17 @@ TEST(PortPgConfig, TestPortPgWatchdogConfigMismatch) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(1);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
 
   cfg::PortPfc pfc;
   cfg::PfcWatchdog watchdog;
-  watchdog.detectionTimeMsecs_ref() = 15;
-  watchdog.recoveryTimeMsecs_ref() = 16;
-  watchdog.recoveryAction_ref() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
-  pfc.watchdog_ref() = watchdog;
-  pfc.portPgConfigName_ref() = "";
-  config.ports_ref()[0].pfc_ref() = pfc;
+  watchdog.detectionTimeMsecs() = 15;
+  watchdog.recoveryTimeMsecs() = 16;
+  watchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+  pfc.watchdog() = watchdog;
+  pfc.portPgConfigName() = "";
+  config.ports()[0].pfc() = pfc;
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -135,14 +135,14 @@ TEST(PortPgConfig, TestPortPgWatchdogConfigMismatch) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
   for (int pgId = 0; pgId < 1; pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
+    pgConfig.id() = pgId;
     portPgConfigs.emplace_back(pgConfig);
   }
   portPgConfigMap["foo"] = portPgConfigs;
   // add pgConfig with name "foo"
-  config.portPgConfigs_ref() = portPgConfigMap;
-  pfc.portPgConfigName_ref() = "foo";
-  config.ports_ref()[0].pfc_ref() = pfc;
+  config.portPgConfigs() = portPgConfigMap;
+  pfc.portPgConfigName() = "foo";
+  config.ports()[0].pfc() = pfc;
 
   EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
 }
@@ -157,23 +157,23 @@ TEST(PortPgConfig, applyConfig) {
 
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::SwitchConfig config;
-  config.ports_ref()->resize(2);
-  preparedMockPortConfig(config.ports_ref()[0], 1);
-  preparedMockPortConfig(config.ports_ref()[1], 2);
+  config.ports()->resize(2);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   std::vector<cfg::PortPgConfig> portPgConfigs;
   for (pgId = 0; pgId < kStateTestNumPortPgs; pgId++) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = pgId;
+    pgConfig.id() = pgId;
     portPgConfigs.emplace_back(pgConfig);
   }
   portPgConfigMap[kPgConfigName.str()] = portPgConfigs;
 
   cfg::PortPfc pfc;
-  pfc.portPgConfigName_ref() = kPgConfigName.str();
-  config.ports_ref()[0].pfc_ref() = pfc;
-  config.portPgConfigs_ref() = portPgConfigMap;
+  pfc.portPgConfigName() = kPgConfigName.str();
+  config.ports()[0].pfc() = pfc;
+  config.portPgConfigs() = portPgConfigMap;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -190,26 +190,26 @@ TEST(PortPgConfig, applyConfig) {
     portPgConfigs.clear();
     for (pgId = pgIdStart; pgId < pgIdEnd; pgId++) {
       cfg::PortPgConfig pgConfig;
-      pgConfig.id_ref() = pgId;
-      pgConfig.name_ref() = folly::to<std::string>("pg", pgId);
-      pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-      pgConfig.minLimitBytes_ref() = 1000;
-      pgConfig.resumeOffsetBytes_ref() = 100;
-      pgConfig.bufferPoolName_ref() = bufferName;
+      pgConfig.id() = pgId;
+      pgConfig.name() = folly::to<std::string>("pg", pgId);
+      pgConfig.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+      pgConfig.minLimitBytes() = 1000;
+      pgConfig.resumeOffsetBytes() = 100;
+      pgConfig.bufferPoolName() = bufferName;
       portPgConfigs.emplace_back(pgConfig);
     }
     portPgConfigMap[pgConfigName] = portPgConfigs;
-    config.portPgConfigs_ref() = portPgConfigMap;
+    config.portPgConfigs() = portPgConfigMap;
   };
 
   auto createBufferPoolCfg = [&](const int sharedBytes,
                                  const int headroomBytes,
                                  const std::string& bufferName) {
     cfg::BufferPoolConfig tmpPoolConfig1;
-    tmpPoolConfig1.headroomBytes_ref() = headroomBytes;
-    tmpPoolConfig1.sharedBytes_ref() = sharedBytes;
+    tmpPoolConfig1.headroomBytes() = headroomBytes;
+    tmpPoolConfig1.sharedBytes() = sharedBytes;
     bufferPoolCfgMap.insert(make_pair(bufferName, tmpPoolConfig1));
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
   };
 
   auto validateBufferPoolCfg = [&](const int sharedBytes,
@@ -233,7 +233,7 @@ TEST(PortPgConfig, applyConfig) {
       kBufferPoolName.str());
   cfg::BufferPoolConfig tmpPoolConfig;
   bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig));
-  config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+  config.bufferPoolConfigs() = bufferPoolCfgMap;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -335,7 +335,7 @@ TEST(PortPgConfig, applyConfig) {
     // reset the bufferPool, ensure thats cleaned up from the PgConfig
     bufferPoolCfgMap.clear();
     createPortPgConfig(0, 1, kPgConfigName.str(), "");
-    config.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    config.bufferPoolConfigs() = bufferPoolCfgMap;
     stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
     EXPECT_NE(nullptr, stateV5);
     const auto& pgCfgsNew2 = stateV5->getPort(PortID(1))->getPortPgConfigs();
@@ -345,8 +345,8 @@ TEST(PortPgConfig, applyConfig) {
   }
 
   // undo the changes in the port pfc struct, now all is cleaned
-  config.portPgConfigs_ref().reset();
-  config.ports_ref()[0].pfc_ref().reset();
+  config.portPgConfigs().reset();
+  config.ports()[0].pfc().reset();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
 
   EXPECT_NE(nullptr, stateV3);
@@ -375,11 +375,11 @@ TEST(PortPgConfig, applyConfig) {
     createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, "bufferPool1");
     createBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, "bufferPool2");
 
-    pfc.portPgConfigName_ref() = "pgMapCfg1";
-    config.ports_ref()[0].pfc_ref() = pfc;
+    pfc.portPgConfigName() = "pgMapCfg1";
+    config.ports()[0].pfc() = pfc;
 
-    pfc.portPgConfigName_ref() = "pgMapCfg2";
-    config.ports_ref()[1].pfc_ref() = pfc;
+    pfc.portPgConfigName() = "pgMapCfg2";
+    config.ports()[1].pfc() = pfc;
 
     EXPECT_THROW(
         publishAndApplyConfig(stateV6, &config, platform.get()), FbossError);

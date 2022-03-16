@@ -223,7 +223,7 @@ void BidirectionalPacketStream::close(const std::string& port) {
 }
 
 void BidirectionalPacketStream::recvPacket(TPacket&& packet) {
-  const auto& port = *packet.l2Port_ref();
+  const auto& port = *packet.l2Port();
   STATS_pkt_recvd.add(1);
   if (port.empty()) {
     XLOG(ERR) << "Packet received with port empty";
@@ -259,7 +259,7 @@ ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
     XLOG(ERR) << "client not yet connected";
     return -1;
   }
-  ssize_t sz = packet.buf_ref()->size();
+  ssize_t sz = packet.buf()->size();
   try {
     // call the packetstreamservice send method to send the packet.
     PacketStreamService::send(connectedClientId_, std::move(packet));

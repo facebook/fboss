@@ -55,13 +55,13 @@ void enablePfcConfig(
     const std::vector<PortID>& ports,
     const std::string& pgConfigName) {
   cfg::PortPfc pfc;
-  pfc.tx_ref() = true;
-  pfc.rx_ref() = true;
-  pfc.portPgConfigName_ref() = pgConfigName;
+  pfc.tx() = true;
+  pfc.rx() = true;
+  pfc.portPgConfigName() = pgConfigName;
 
   for (const auto& portID : ports) {
     auto portCfg = utility::findCfgPort(cfg, portID);
-    portCfg->pfc_ref() = pfc;
+    portCfg->pfc() = pfc;
   }
 }
 
@@ -79,13 +79,10 @@ void enablePfcMapsConfig(cfg::SwitchConfig& cfg) {
     pfcPri2QueueId.emplace(i, i);
   }
 
-  if (cfg.qosPolicies_ref().is_set() &&
-      cfg.qosPolicies_ref()[0].qosMap_ref().has_value()) {
-    cfg.qosPolicies_ref()[0].qosMap_ref()->trafficClassToPgId_ref() =
-        std::move(tc2PgId);
-    cfg.qosPolicies_ref()[0].qosMap_ref()->pfcPriorityToPgId_ref() =
-        std::move(pfcPri2PgId);
-    cfg.qosPolicies_ref()[0].qosMap_ref()->pfcPriorityToQueueId_ref() =
+  if (cfg.qosPolicies().is_set() && cfg.qosPolicies()[0].qosMap().has_value()) {
+    cfg.qosPolicies()[0].qosMap()->trafficClassToPgId() = std::move(tc2PgId);
+    cfg.qosPolicies()[0].qosMap()->pfcPriorityToPgId() = std::move(pfcPri2PgId);
+    cfg.qosPolicies()[0].qosMap()->pfcPriorityToQueueId() =
         std::move(pfcPri2QueueId);
   }
 }
@@ -100,21 +97,21 @@ void enablePgConfigConfig(
     for (const auto& pgId : kLosslessPgs()) {
       cfg::PortPgConfig pgConfig;
       CHECK_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
-      pgConfig.id_ref() = pgId;
-      pgConfig.bufferPoolName_ref() = "bufferNew";
+      pgConfig.id() = pgId;
+      pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes_ref() = kPgMinLimitCells() * mmuCellBytes;
-      pgConfig.headroomLimitBytes_ref() =
+      pgConfig.minLimitBytes() = kPgMinLimitCells() * mmuCellBytes;
+      pgConfig.headroomLimitBytes() =
           (useUplinkProfile ? kUplinkPgHeadroomLimitCells()
                             : kDownlinkPgHeadroomLimitCells()) *
           mmuCellBytes;
-      pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-      pgConfig.resumeOffsetBytes_ref() = kPgResumeLimitCells() * mmuCellBytes;
+      pgConfig.scalingFactor() = cfg::MMUScalingFactor::ONE;
+      pgConfig.resumeOffsetBytes() = kPgResumeLimitCells() * mmuCellBytes;
       portPgConfigs.emplace_back(pgConfig);
     }
     portPgConfigMap.insert({pgProfileName, portPgConfigs});
   }
-  cfg.portPgConfigs_ref() = portPgConfigMap;
+  cfg.portPgConfigs() = portPgConfigMap;
 }
 
 void enableBufferPoolConfig(
@@ -124,11 +121,10 @@ void enableBufferPoolConfig(
   // create buffer pool
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::BufferPoolConfig poolConfig;
-  poolConfig.sharedBytes_ref() =
-      kGlobalSharedBufferCells(hwSwitch) * mmuCellBytes;
-  poolConfig.headroomBytes_ref() = kGlobalHeadroomBufferCells() * mmuCellBytes;
+  poolConfig.sharedBytes() = kGlobalSharedBufferCells(hwSwitch) * mmuCellBytes;
+  poolConfig.headroomBytes() = kGlobalHeadroomBufferCells() * mmuCellBytes;
   bufferPoolCfgMap.insert({"bufferNew", poolConfig});
-  cfg.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+  cfg.bufferPoolConfigs() = bufferPoolCfgMap;
 }
 
 void addPfcConfig(

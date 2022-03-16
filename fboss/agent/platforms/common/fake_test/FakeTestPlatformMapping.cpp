@@ -104,54 +104,54 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     : PlatformMapping(), controllingPortIds_(std::move(controllingPortIds)) {
   for (auto itProfile : kProfiles) {
     phy::PortProfileConfig profile;
-    *profile.speed_ref() = std::get<0>(itProfile.second);
-    *profile.iphy_ref()->numLanes_ref() = std::get<1>(itProfile.second);
-    *profile.iphy_ref()->fec_ref() = std::get<2>(itProfile.second);
-    profile.iphy_ref()->medium_ref() = std::get<3>(itProfile.second);
-    profile.iphy_ref()->interfaceMode_ref() = std::get<4>(itProfile.second);
-    profile.iphy_ref()->interfaceType_ref() = std::get<5>(itProfile.second);
+    *profile.speed() = std::get<0>(itProfile.second);
+    *profile.iphy()->numLanes() = std::get<1>(itProfile.second);
+    *profile.iphy()->fec() = std::get<2>(itProfile.second);
+    profile.iphy()->medium() = std::get<3>(itProfile.second);
+    profile.iphy()->interfaceMode() = std::get<4>(itProfile.second);
+    profile.iphy()->interfaceType() = std::get<5>(itProfile.second);
 
     phy::ProfileSideConfig xphySys;
-    xphySys.numLanes_ref() = std::get<1>(itProfile.second);
-    xphySys.fec_ref() = std::get<2>(itProfile.second);
-    profile.xphySystem_ref() = xphySys;
+    xphySys.numLanes() = std::get<1>(itProfile.second);
+    xphySys.fec() = std::get<2>(itProfile.second);
+    profile.xphySystem() = xphySys;
 
     phy::ProfileSideConfig xphyLine;
-    xphyLine.numLanes_ref() = std::get<1>(itProfile.second);
-    xphyLine.fec_ref() = std::get<2>(itProfile.second);
-    profile.xphyLine_ref() = xphyLine;
+    xphyLine.numLanes() = std::get<1>(itProfile.second);
+    xphyLine.fec() = std::get<2>(itProfile.second);
+    profile.xphyLine() = xphyLine;
 
     cfg::PlatformPortProfileConfigEntry configEntry;
     cfg::PlatformPortConfigFactor factor;
-    factor.profileID_ref() = itProfile.first;
-    configEntry.profile_ref() = profile;
-    configEntry.factor_ref() = factor;
+    factor.profileID() = itProfile.first;
+    configEntry.profile() = profile;
+    configEntry.factor() = factor;
     mergePlatformSupportedProfile(configEntry);
   }
 
   for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {
     auto portsInGroup = getPlatformPortEntriesByGroup(groupID);
     for (auto port : portsInGroup) {
-      setPlatformPort(*port.mapping_ref()->id_ref(), port);
+      setPlatformPort(*port.mapping()->id(), port);
     }
 
     phy::DataPlanePhyChip iphy;
-    *iphy.name_ref() = folly::sformat("core{}", groupID);
-    *iphy.type_ref() = phy::DataPlanePhyChipType::IPHY;
-    *iphy.physicalID_ref() = groupID;
-    setChip(*iphy.name_ref(), iphy);
+    *iphy.name() = folly::sformat("core{}", groupID);
+    *iphy.type() = phy::DataPlanePhyChipType::IPHY;
+    *iphy.physicalID() = groupID;
+    setChip(*iphy.name(), iphy);
 
     phy::DataPlanePhyChip xphy;
-    xphy.name_ref() = folly::sformat("XPHY{}", groupID);
-    xphy.type_ref() = phy::DataPlanePhyChipType::XPHY;
-    xphy.physicalID_ref() = groupID;
-    setChip(*xphy.name_ref(), xphy);
+    xphy.name() = folly::sformat("XPHY{}", groupID);
+    xphy.type() = phy::DataPlanePhyChipType::XPHY;
+    xphy.physicalID() = groupID;
+    setChip(*xphy.name(), xphy);
 
     phy::DataPlanePhyChip tcvr;
-    *tcvr.name_ref() = folly::sformat("eth1/{}", groupID + 1);
-    *tcvr.type_ref() = phy::DataPlanePhyChipType::TRANSCEIVER;
-    *tcvr.physicalID_ref() = groupID;
-    setChip(*tcvr.name_ref(), tcvr);
+    *tcvr.name() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+    *tcvr.physicalID() = groupID;
+    setChip(*tcvr.name(), tcvr);
   }
 
   CHECK(
@@ -167,34 +167,34 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
   cfg::PlatformPortConfig platformPortConfig;
   auto& profileTuple = kProfiles.find(profileID)->second;
   auto lanes = std::get<1>(profileTuple);
-  platformPortConfig.subsumedPorts_ref() = {};
+  platformPortConfig.subsumedPorts() = {};
   for (auto i = 1; i < lanes; i++) {
-    platformPortConfig.subsumedPorts_ref()->push_back(portID + i);
+    platformPortConfig.subsumedPorts()->push_back(portID + i);
   }
 
-  platformPortConfig.pins_ref()->transceiver_ref() = {};
+  platformPortConfig.pins()->transceiver() = {};
   for (auto i = 0; i < lanes; i++) {
     phy::PinConfig iphy;
-    *iphy.id_ref()->chip_ref() = folly::sformat("core{}", groupID);
-    *iphy.id_ref()->lane_ref() = (startLane + i);
+    *iphy.id()->chip() = folly::sformat("core{}", groupID);
+    *iphy.id()->lane() = (startLane + i);
     // tx config
-    iphy.tx_ref() = getFakeTxSetting();
+    iphy.tx() = getFakeTxSetting();
     // rx configs
-    iphy.rx_ref() = getFakeRxSetting();
-    platformPortConfig.pins_ref()->iphy_ref()->push_back(iphy);
+    iphy.rx() = getFakeRxSetting();
+    platformPortConfig.pins()->iphy()->push_back(iphy);
 
     phy::PinConfig xphy;
-    xphy.id_ref()->chip_ref() = folly::sformat("XPHY{}", groupID);
-    xphy.id_ref()->lane_ref() = (startLane + i);
-    xphy.tx_ref() = getFakeTxSetting();
-    xphy.rx_ref() = getFakeRxSetting();
-    platformPortConfig.pins_ref()->xphySys_ref() = {xphy};
-    platformPortConfig.pins_ref()->xphyLine_ref() = {xphy};
+    xphy.id()->chip() = folly::sformat("XPHY{}", groupID);
+    xphy.id()->lane() = (startLane + i);
+    xphy.tx() = getFakeTxSetting();
+    xphy.rx() = getFakeRxSetting();
+    platformPortConfig.pins()->xphySys() = {xphy};
+    platformPortConfig.pins()->xphyLine() = {xphy};
 
     phy::PinConfig tcvr;
-    *tcvr.id_ref()->chip_ref() = folly::sformat("eth1/{}", groupID + 1);
-    *tcvr.id_ref()->lane_ref() = (startLane + i);
-    platformPortConfig.pins_ref()->transceiver_ref()->push_back(tcvr);
+    *tcvr.id()->chip() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.id()->lane() = (startLane + i);
+    platformPortConfig.pins()->transceiver()->push_back(tcvr);
   }
 
   return platformPortConfig;
@@ -206,44 +206,41 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
   for (auto& portProfiles : kPortProfilesInGroup) {
     int portID = controllingPortIds_.at(groupID) + portProfiles.first;
     cfg::PlatformPortEntry port;
-    *port.mapping_ref()->id_ref() = PortID(portID);
-    *port.mapping_ref()->name_ref() =
+    *port.mapping()->id() = PortID(portID);
+    *port.mapping()->name() =
         folly::sformat("eth1/{}/{}", groupID + 1, portProfiles.first + 1);
-    *port.mapping_ref()->controllingPort_ref() =
-        controllingPortIds_.at(groupID);
+    *port.mapping()->controllingPort() = controllingPortIds_.at(groupID);
 
     phy::PinConnection asicPinConnection;
-    asicPinConnection.a_ref()->chip_ref() = folly::sformat("core{}", groupID);
-    asicPinConnection.a_ref()->lane_ref() = portProfiles.first;
+    asicPinConnection.a()->chip() = folly::sformat("core{}", groupID);
+    asicPinConnection.a()->lane() = portProfiles.first;
 
     phy::PinConnection xphyLinePinConnection;
-    xphyLinePinConnection.a_ref()->chip_ref() =
-        folly::sformat("XPHY{}", groupID);
-    xphyLinePinConnection.a_ref()->lane_ref() = portProfiles.first;
+    xphyLinePinConnection.a()->chip() = folly::sformat("XPHY{}", groupID);
+    xphyLinePinConnection.a()->lane() = portProfiles.first;
 
     phy::PinID pinEnd;
-    *pinEnd.chip_ref() = folly::sformat("eth1/{}", groupID + 1);
-    *pinEnd.lane_ref() = portProfiles.first;
+    *pinEnd.chip() = folly::sformat("eth1/{}", groupID + 1);
+    *pinEnd.lane() = portProfiles.first;
 
     phy::Pin zPin;
     zPin.end_ref() = pinEnd;
-    xphyLinePinConnection.z_ref() = zPin;
+    xphyLinePinConnection.z() = zPin;
 
     phy::PinJunction xphyPinJunction;
-    xphyPinJunction.system_ref()->chip_ref() =
-        folly::sformat("XPHY{}", groupID);
-    xphyPinJunction.system_ref()->lane_ref() = portProfiles.first;
-    xphyPinJunction.line_ref() = {xphyLinePinConnection};
+    xphyPinJunction.system()->chip() = folly::sformat("XPHY{}", groupID);
+    xphyPinJunction.system()->lane() = portProfiles.first;
+    xphyPinJunction.line() = {xphyLinePinConnection};
 
     phy::Pin xphyPin;
     xphyPin.junction_ref() = xphyPinJunction;
 
-    asicPinConnection.z_ref() = xphyPin;
+    asicPinConnection.z() = xphyPin;
 
-    port.mapping_ref()->pins_ref()->push_back(asicPinConnection);
+    port.mapping()->pins()->push_back(asicPinConnection);
 
     for (auto profileID : portProfiles.second) {
-      port.supportedProfiles_ref()->emplace(
+      port.supportedProfiles()->emplace(
           profileID,
           getPlatformPortConfig(
               portID, portProfiles.first, groupID, profileID));
@@ -256,22 +253,22 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
 
 phy::TxSettings FakeTestPlatformMapping::getFakeTxSetting() {
   phy::TxSettings tx;
-  tx.pre_ref() = 101;
-  tx.pre2_ref() = 102;
-  tx.main_ref() = 103;
-  tx.post_ref() = -104;
-  tx.post2_ref() = 105;
-  tx.post3_ref() = 106;
-  tx.driveCurrent_ref() = 107;
+  tx.pre() = 101;
+  tx.pre2() = 102;
+  tx.main() = 103;
+  tx.post() = -104;
+  tx.post2() = 105;
+  tx.post3() = 106;
+  tx.driveCurrent() = 107;
   return tx;
 }
 
 phy::RxSettings FakeTestPlatformMapping::getFakeRxSetting() {
   phy::RxSettings rx;
-  rx.ctlCode_ref() = -108;
-  rx.dspMode_ref() = 109;
-  rx.afeTrim_ref() = 110;
-  rx.acCouplingBypass_ref() = -111;
+  rx.ctlCode() = -108;
+  rx.dspMode() = 109;
+  rx.afeTrim() = 110;
+  rx.acCouplingBypass() = -111;
   return rx;
 }
 

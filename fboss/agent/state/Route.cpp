@@ -70,28 +70,28 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
       std::is_same_v<folly::IPAddressV6, AddrT> ||
       std::is_same_v<folly::IPAddressV4, AddrT>) {
     // Add the prefix
-    rd.dest_ref()->ip_ref() = toBinaryAddress(prefix.network);
-    rd.dest_ref()->prefixLength_ref() = prefix.mask;
+    rd.dest()->ip() = toBinaryAddress(prefix.network);
+    rd.dest()->prefixLength() = prefix.mask;
   }
   // Add the action
-  rd.action_ref() = forwardActionStr(fwd.getAction());
+  rd.action() = forwardActionStr(fwd.getAction());
   auto nhopSet =
       normalizedNhopWeights ? fwd.normalizedNextHops() : fwd.getNextHopSet();
   // Add the forwarding info
   for (const auto& nh : nhopSet) {
     IfAndIP ifAndIp;
-    *ifAndIp.interfaceID_ref() = nh.intf();
-    *ifAndIp.ip_ref() = toBinaryAddress(nh.addr());
-    rd.fwdInfo_ref()->push_back(ifAndIp);
-    rd.nextHops_ref()->push_back(nh.toThrift());
+    *ifAndIp.interfaceID() = nh.intf();
+    *ifAndIp.ip() = toBinaryAddress(nh.addr());
+    rd.fwdInfo()->push_back(ifAndIp);
+    rd.nextHops()->push_back(nh.toThrift());
   }
 
   // Add the multi-nexthops
-  rd.nextHopMulti_ref() = nexthopsmulti.toThrift();
-  rd.isConnected_ref() = isConnected();
+  rd.nextHopMulti() = nexthopsmulti.toThrift();
+  rd.isConnected() = isConnected();
   // add counter id
   if (fwd.getCounterID().has_value()) {
-    rd.counterID_ref() = *fwd.getCounterID();
+    rd.counterID() = *fwd.getCounterID();
   }
   return rd;
 }

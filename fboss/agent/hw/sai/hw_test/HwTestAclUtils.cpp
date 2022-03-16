@@ -340,7 +340,7 @@ void checkSwHwAclMatch(
       bool sendToCpu = sendToQueue.second;
       if (!sendToCpu) {
         auto expectedQueueId =
-            static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+            static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
         auto aclActionSetTCGot =
             SaiApiTable::getInstance()->aclApi().getAttribute(
                 aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
@@ -351,7 +351,7 @@ void checkSwHwAclMatch(
 
     if (action.value().getSetDscp()) {
       const int expectedDscpValue =
-          *action.value().getSetDscp().value().dscpValue_ref();
+          *action.value().getSetDscp().value().dscpValue();
 
       auto aclActionSetDSCPGot =
           SaiApiTable::getInstance()->aclApi().getAttribute(
@@ -454,7 +454,7 @@ void checkAclStat(
     auto swAcl = state->getAcl(aclName);
     auto swTrafficCounter = getAclTrafficCounter(state, aclName);
     ASSERT_TRUE(swTrafficCounter);
-    ASSERT_EQ(statName, *swTrafficCounter->name_ref());
+    ASSERT_EQ(statName, *swTrafficCounter->name());
 
     const auto& aclTableManager =
         static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();

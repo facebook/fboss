@@ -23,45 +23,45 @@ namespace facebook::fboss::normalization {
 namespace {
 HwPortStats makeHwPortStatsEth0T0() {
   HwPortStats stats;
-  stats.inBytes__ref() = 10000;
-  stats.outBytes__ref() = 20000;
-  stats.inDiscards__ref() = 100;
-  stats.outDiscards__ref() = 300;
+  stats.inBytes_() = 10000;
+  stats.outBytes_() = 20000;
+  stats.inDiscards_() = 100;
+  stats.outDiscards_() = 300;
 
-  stats.timestamp__ref() = 10000;
+  stats.timestamp_() = 10000;
   return stats;
 }
 
 HwPortStats makeHwPortStatsEth1T0() {
   HwPortStats stats;
-  stats.inBytes__ref() = 3000;
-  stats.outBytes__ref() = 6000;
-  stats.inDiscards__ref() = 20;
-  stats.outDiscards__ref() = 70;
+  stats.inBytes_() = 3000;
+  stats.outBytes_() = 6000;
+  stats.inDiscards_() = 20;
+  stats.outDiscards_() = 70;
 
-  stats.timestamp__ref() = 1000;
+  stats.timestamp_() = 1000;
   return stats;
 }
 
 HwPortStats makeHwPortStatsEth0T1() {
   HwPortStats stats;
-  stats.inBytes__ref() = 20000;
-  stats.outBytes__ref() = 40000;
-  stats.inDiscards__ref() = 200;
-  stats.outDiscards__ref() = 600;
+  stats.inBytes_() = 20000;
+  stats.outBytes_() = 40000;
+  stats.inDiscards_() = 200;
+  stats.outDiscards_() = 600;
 
-  stats.timestamp__ref() = 10100;
+  stats.timestamp_() = 10100;
   return stats;
 }
 
 HwPortStats makeHwPortStatsEth1T1() {
   HwPortStats stats;
-  stats.inBytes__ref() = 5000;
-  stats.outBytes__ref() = 9000;
-  stats.inDiscards__ref() = 70;
-  stats.outDiscards__ref() = 100;
+  stats.inBytes_() = 5000;
+  stats.outBytes_() = 9000;
+  stats.inDiscards_() = 70;
+  stats.outDiscards_() = 100;
 
-  stats.timestamp__ref() = 1010;
+  stats.timestamp_() = 1010;
   return stats;
 }
 
@@ -87,14 +87,14 @@ void setupCounterTagManager(CounterTagManager& counterTagManager) {
                     const std::string& name,
                     const std::vector<std::string>& tags) {
     cfg::Port port;
-    port.name_ref() = name;
-    port.counterTags_ref() = tags;
+    port.name() = name;
+    port.counterTags() = tags;
     ports.push_back(port);
   };
 
   addPort(ports, "eth0", {"tag_a", "tag_aa"});
   addPort(ports, "eth1", {"tag_b", "tag_bb"});
-  config.ports_ref() = ports;
+  config.ports() = ports;
 
   counterTagManager.reloadCounterTags(config);
 }

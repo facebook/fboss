@@ -37,47 +37,47 @@ void configureAllIpQualifiers(
     bool enable,
     cfg::IpType ipType) {
   cfg::Ttl ttl;
-  std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+  std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
-  configureQualifier(acl->ipType_ref(), enable, ipType);
+  configureQualifier(acl->ipType(), enable, ipType);
   if (ipType == cfg::IpType::IP6) {
-    configureQualifier(acl->srcIp_ref(), enable, "::ffff:c0a8:1");
+    configureQualifier(acl->srcIp(), enable, "::ffff:c0a8:1");
     configureQualifier(
-        acl->dstIp_ref(), enable, "2401:db00:3020:70e2:face:0:63:0/64");
+        acl->dstIp(), enable, "2401:db00:3020:70e2:face:0:63:0/64");
 
     configureQualifier(
-        acl->lookupClassNeighbor_ref(),
+        acl->lookupClassNeighbor(),
         enable,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
     configureQualifier(
-        acl->lookupClassRoute_ref(),
+        acl->lookupClassRoute(),
         enable,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
 
   } else {
-    configureQualifier(acl->srcIp_ref(), enable, "192.168.0.1");
-    configureQualifier(acl->dstIp_ref(), enable, "192.168.0.0/24");
+    configureQualifier(acl->srcIp(), enable, "192.168.0.1");
+    configureQualifier(acl->dstIp(), enable, "192.168.0.0/24");
 
     configureQualifier(
-        acl->lookupClassNeighbor_ref(),
+        acl->lookupClassNeighbor(),
         enable,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
     configureQualifier(
-        acl->lookupClassRoute_ref(),
+        acl->lookupClassRoute(),
         enable,
         cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
   }
   configureQualifier(
-      acl->ipFrag_ref(), enable, cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
-  configureQualifier(acl->dscp_ref(), enable, 0x24);
-  configureQualifier(acl->ttl_ref(), enable, ttl);
+      acl->ipFrag(), enable, cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
+  configureQualifier(acl->dscp(), enable, 0x24);
+  configureQualifier(acl->ttl(), enable, ttl);
 }
 
 void configureAllTcpQualifiers(cfg::AclEntry* acl, bool enable) {
-  configureQualifier(acl->l4SrcPort_ref(), enable, 10);
-  configureQualifier(acl->l4DstPort_ref(), enable, 20);
-  configureQualifier(acl->proto_ref(), enable, 6);
-  configureQualifier(acl->tcpFlagsBitMap_ref(), enable, 16);
+  configureQualifier(acl->l4SrcPort(), enable, 10);
+  configureQualifier(acl->l4DstPort(), enable, 20);
+  configureQualifier(acl->proto(), enable, 6);
+  configureQualifier(acl->tcpFlagsBitMap(), enable, 16);
 }
 
 void configureAllIcmpQualifiers(
@@ -85,15 +85,13 @@ void configureAllIcmpQualifiers(
     bool enable,
     cfg::IpType ipType) {
   if (ipType == cfg::IpType::IP6) {
-    configureQualifier(acl->proto_ref(), enable, 58); // Icmp v6
-    configureQualifier(
-        acl->icmpType_ref(), enable, 1); // Destination unreachable
-    configureQualifier(acl->icmpCode_ref(), enable, 4); // Port unreachable
+    configureQualifier(acl->proto(), enable, 58); // Icmp v6
+    configureQualifier(acl->icmpType(), enable, 1); // Destination unreachable
+    configureQualifier(acl->icmpCode(), enable, 4); // Port unreachable
   } else {
-    configureQualifier(acl->proto_ref(), enable, 1); // Icmp v4
-    configureQualifier(
-        acl->icmpType_ref(), enable, 3); // Destination unreachable
-    configureQualifier(acl->icmpCode_ref(), enable, 3); // Port unreachable
+    configureQualifier(acl->proto(), enable, 1); // Icmp v4
+    configureQualifier(acl->icmpType(), enable, 3); // Destination unreachable
+    configureQualifier(acl->icmpCode(), enable, 3); // Port unreachable
   }
 }
 
@@ -110,12 +108,12 @@ class HwAclQualifierTest : public HwTest {
   };
 
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
-    configureQualifier(acl->srcPort_ref(), enable, masterLogicalPortIds()[0]);
-    configureQualifier(acl->dstPort_ref(), enable, masterLogicalPortIds()[1]);
+    configureQualifier(acl->srcPort(), enable, masterLogicalPortIds()[0]);
+    configureQualifier(acl->dstPort(), enable, masterLogicalPortIds()[1]);
   }
 
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
-    configureQualifier(acl->dstMac_ref(), true, "00:11:22:33:44:55");
+    configureQualifier(acl->dstMac(), true, "00:11:22:33:44:55");
     /*
      * lookupClassL2 is not configured for Trident2 or else we run out of
      * resources.
@@ -126,7 +124,7 @@ class HwAclQualifierTest : public HwTest {
     if (getPlatform()->getAsic()->getAsicType() !=
         HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
       configureQualifier(
-          acl->lookupClassL2_ref(),
+          acl->lookupClassL2(),
           true,
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
     }
@@ -134,27 +132,27 @@ class HwAclQualifierTest : public HwTest {
 
   void configureIp4QualifiersHelper(cfg::AclEntry* acl) {
     cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
-    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
-    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+    configureQualifier(acl->ipType(), true, cfg::IpType::IP4);
+    configureQualifier(acl->srcIp(), true, "192.168.0.1");
+    configureQualifier(acl->dstIp(), true, "192.168.0.0/24");
+    configureQualifier(acl->dscp(), true, 0x24);
+    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->proto(), true, 6);
   }
 
   void configureIp6QualifiersHelper(cfg::AclEntry* acl) {
     cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
-    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
+    configureQualifier(acl->ipType(), true, cfg::IpType::IP6);
+    configureQualifier(acl->srcIp(), true, "::ffff:c0a8:1");
     configureQualifier(
-        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+        acl->dstIp(), true, "2401:db00:3020:70e2:face:0:63:0/64");
+    configureQualifier(acl->dscp(), true, 0x24);
+    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->proto(), true, 6);
   }
 
   std::string kAclName() const {
@@ -176,21 +174,21 @@ class HwAclQualifierTest : public HwTest {
         if (getPlatform()->getAsic()->getAsicType() !=
             HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
           configureQualifier(
-              acl->lookupClassL2_ref(),
+              acl->lookupClassL2(),
               true,
               cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
         }
         break;
       case LookupClassType::LOOKUPCLASS_NEIGHBOR:
         configureQualifier(
-            acl->lookupClassNeighbor_ref(),
+            acl->lookupClassNeighbor(),
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
         break;
       case LookupClassType::LOOKUPCLASS_ROUTE:
         configureQualifier(
-            acl->lookupClassRoute_ref(),
+            acl->lookupClassRoute(),
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
@@ -296,9 +294,9 @@ TEST_F(HwAclQualifierTest, AclRemove) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
-    acl0->proto_ref() = 6;
+    acl0->proto() = 6;
     auto* acl1 = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
-    acl1->proto_ref() = 58;
+    acl1->proto() = 58;
     applyNewConfig(newCfg);
 
     utility::delAcl(&newCfg, "acl0");
@@ -350,14 +348,14 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // add a icmp rule w/ type and code value
     // Destination Unreachable(type=3):Source host isolated(code=8)
-    acl->proto_ref() = 58;
-    acl->icmpType_ref() = 3;
-    acl->icmpCode_ref() = 8;
+    acl->proto() = 58;
+    acl->icmpType() = 3;
+    acl->icmpCode() = 8;
     applyNewConfig(newCfg);
     // change the rule to empty code icmp rule
     // Reserved for security(type=19 code is unset)
-    acl->icmpType_ref() = 19;
-    acl->icmpCode_ref().reset();
+    acl->icmpType() = 19;
+    acl->icmpCode().reset();
     applyNewConfig(newCfg);
   };
 
@@ -378,7 +376,7 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
     }
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
 
-    acl->vlanID_ref() = 2001;
+    acl->vlanID() = 2001;
     applyNewConfig(newCfg);
   };
 

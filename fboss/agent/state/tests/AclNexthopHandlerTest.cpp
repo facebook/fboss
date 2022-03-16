@@ -51,35 +51,33 @@ class AclNexthopHandlerTest : public ::testing::Test {
   cfg::SwitchConfig testConfig() {
     auto cfg = testConfigA();
 
-    int prevVlanSize = cfg.vlans_ref()->size();
-    cfg.vlans_ref()->resize(prevVlanSize + 4);
+    int prevVlanSize = cfg.vlans()->size();
+    cfg.vlans()->resize(prevVlanSize + 4);
     int startVid = 100;
     for (int vid = startVid, idx = prevVlanSize; vid < startVid + 4;
          ++vid, ++idx) {
-      cfg.vlans_ref()[idx].id_ref() = vid;
-      cfg.vlans_ref()[idx].name_ref() = fmt::format("Vlan{}", vid);
-      cfg.vlans_ref()[idx].intfID_ref() = vid;
+      cfg.vlans()[idx].id() = vid;
+      cfg.vlans()[idx].name() = fmt::format("Vlan{}", vid);
+      cfg.vlans()[idx].intfID() = vid;
     }
 
-    cfg.interfaces_ref()->resize(prevVlanSize + 4);
+    cfg.interfaces()->resize(prevVlanSize + 4);
     for (int vid = startVid, idx = prevVlanSize; vid < startVid + 4;
          ++vid, ++idx) {
-      cfg.interfaces_ref()[idx].intfID_ref() = vid;
-      cfg.interfaces_ref()[idx].routerID_ref() = 0;
-      cfg.interfaces_ref()[idx].vlanID_ref() = vid;
-      cfg.interfaces_ref()[idx].name_ref() = fmt::format("interface{}", vid);
-      cfg.interfaces_ref()[idx].mac_ref() =
-          fmt::format("00:02:00:00:00:{:02x}", vid);
-      cfg.interfaces_ref()[idx].mtu_ref() = 9000;
-      cfg.interfaces_ref()[idx].ipAddresses_ref()->resize(4);
-      cfg.interfaces_ref()[idx].ipAddresses_ref()[0] =
+      cfg.interfaces()[idx].intfID() = vid;
+      cfg.interfaces()[idx].routerID() = 0;
+      cfg.interfaces()[idx].vlanID() = vid;
+      cfg.interfaces()[idx].name() = fmt::format("interface{}", vid);
+      cfg.interfaces()[idx].mac() = fmt::format("00:02:00:00:00:{:02x}", vid);
+      cfg.interfaces()[idx].mtu() = 9000;
+      cfg.interfaces()[idx].ipAddresses()->resize(4);
+      cfg.interfaces()[idx].ipAddresses()[0] =
           fmt::format("100.0.{}.1/24", vid);
-      cfg.interfaces_ref()[idx].ipAddresses_ref()[1] =
+      cfg.interfaces()[idx].ipAddresses()[1] =
           fmt::format("172.16.{}.1/24", vid);
-      cfg.interfaces_ref()[idx].ipAddresses_ref()[2] =
+      cfg.interfaces()[idx].ipAddresses()[2] =
           fmt::format("1000:{:04x}::0001/64", vid);
-      cfg.interfaces_ref()[idx].ipAddresses_ref()[3] =
-          "fe80::/64"; // link local
+      cfg.interfaces()[idx].ipAddresses()[3] = "fe80::/64"; // link local
     }
     return cfg;
   }
@@ -178,7 +176,7 @@ class AclNexthopHandlerTest : public ::testing::Test {
     auto aclEntry = std::make_shared<AclEntry>(0, name);
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     for (auto nhIp : nexthopIps) {
-      cfgRedirectToNextHop.nexthops_ref()->push_back(nhIp);
+      cfgRedirectToNextHop.nexthops()->push_back(nhIp);
     }
     auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
     redirectToNextHop.first = cfgRedirectToNextHop;

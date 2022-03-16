@@ -150,7 +150,7 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
                         ->aclTable->adapterKey();
 
   auto counter = cfg::TrafficCounter();
-  counter.name_ref() = "stat0.c";
+  counter.name() = "stat0.c";
   MatchAction action = MatchAction();
   action.setTrafficCounter(counter);
 

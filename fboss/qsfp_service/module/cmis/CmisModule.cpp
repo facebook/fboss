@@ -324,10 +324,10 @@ cfg::TransceiverConfigOverrideFactor getModuleConfigOverrideFactor(
     std::optional<SMFMediaInterfaceCode> applicationCode) {
   cfg::TransceiverConfigOverrideFactor moduleFactor;
   if (partNumber) {
-    moduleFactor.transceiverPartNumber_ref() = *partNumber;
+    moduleFactor.transceiverPartNumber() = *partNumber;
   }
   if (applicationCode) {
-    moduleFactor.applicationCode_ref() = *applicationCode;
+    moduleFactor.applicationCode() = *applicationCode;
   }
   return moduleFactor;
 }
@@ -354,10 +354,10 @@ FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
   FlagLevels flags;
   CHECK_GE(offset, 0);
   CHECK_LE(offset, 4);
-  flags.alarm_ref()->high_ref() = (*data & (1 << offset));
-  flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
-  flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
-  flags.warn_ref()->low_ref() = (*data & (1 << ++offset));
+  flags.alarm()->high() = (*data & (1 << offset));
+  flags.alarm()->low() = (*data & (1 << ++offset));
+  flags.warn()->high() = (*data & (1 << ++offset));
+  flags.warn()->low() = (*data & (1 << ++offset));
 
   return flags;
 }
@@ -394,24 +394,22 @@ double CmisModule::getQsfpOMLength(CmisField field) const {
 
 GlobalSensors CmisModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  info.temp_ref()->value_ref() =
+  info.temp()->value() =
       getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
-  info.temp_ref()->flags_ref() =
-      getQsfpSensorFlags(CmisField::MODULE_ALARMS, 0);
-  info.vcc_ref()->value_ref() =
-      getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
-  info.vcc_ref()->flags_ref() = getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
+  info.temp()->flags() = getQsfpSensorFlags(CmisField::MODULE_ALARMS, 0);
+  info.vcc()->value() = getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
+  info.vcc()->flags() = getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
   return info;
 }
 
 Vendor CmisModule::getVendorInfo() {
   Vendor vendor = Vendor();
-  *vendor.name_ref() = getQsfpString(CmisField::VENDOR_NAME);
-  *vendor.oui_ref() = getQsfpString(CmisField::VENDOR_OUI);
-  *vendor.partNumber_ref() = getQsfpString(CmisField::PART_NUMBER);
-  *vendor.rev_ref() = getQsfpString(CmisField::REVISION_NUMBER);
-  *vendor.serialNumber_ref() = getQsfpString(CmisField::VENDOR_SERIAL_NUMBER);
-  *vendor.dateCode_ref() = getQsfpString(CmisField::MFG_DATE);
+  *vendor.name() = getQsfpString(CmisField::VENDOR_NAME);
+  *vendor.oui() = getQsfpString(CmisField::VENDOR_OUI);
+  *vendor.partNumber() = getQsfpString(CmisField::PART_NUMBER);
+  *vendor.rev() = getQsfpString(CmisField::REVISION_NUMBER);
+  *vendor.serialNumber() = getQsfpString(CmisField::VENDOR_SERIAL_NUMBER);
+  *vendor.dateCode() = getQsfpString(CmisField::MFG_DATE);
   return vendor;
 }
 
@@ -443,25 +441,25 @@ std::array<std::string, 3> CmisModule::getFwRevisions() {
 
 Cable CmisModule::getCableInfo() {
   Cable cable = Cable();
-  cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
+  cable.transmitterTech() = getQsfpTransmitterTechnology();
 
   if (auto length = getQsfpSMFLength(); length != 0) {
-    cable.singleMode_ref() = length;
+    cable.singleMode() = length;
   }
   if (auto length = getQsfpOMLength(CmisField::LENGTH_OM5); length != 0) {
-    cable.om5_ref() = length;
+    cable.om5() = length;
   }
   if (auto length = getQsfpOMLength(CmisField::LENGTH_OM4); length != 0) {
-    cable.om4_ref() = length;
+    cable.om4() = length;
   }
   if (auto length = getQsfpOMLength(CmisField::LENGTH_OM3); length != 0) {
-    cable.om3_ref() = length;
+    cable.om3() = length;
   }
   if (auto length = getQsfpOMLength(CmisField::LENGTH_OM2); length != 0) {
-    cable.om2_ref() = length;
+    cable.om2() = length;
   }
   if (auto length = getQsfpDACLength(); length != 0) {
-    cable.length_ref() = length;
+    cable.length() = length;
   }
   return cable;
 }
@@ -469,20 +467,20 @@ Cable CmisModule::getCableInfo() {
 FirmwareStatus CmisModule::getFwStatus() {
   FirmwareStatus fwStatus;
   auto fwRevisions = getFwRevisions();
-  fwStatus.version_ref() = fwRevisions[0];
-  fwStatus.dspFwVer_ref() = fwRevisions[1];
-  fwStatus.buildRev_ref() = fwRevisions[2];
-  fwStatus.fwFault_ref() =
+  fwStatus.version() = fwRevisions[0];
+  fwStatus.dspFwVer() = fwRevisions[1];
+  fwStatus.buildRev() = fwRevisions[2];
+  fwStatus.fwFault() =
       (getSettingsValue(CmisField::MODULE_FLAG, FWFAULT_MASK) >> 1);
   return fwStatus;
 }
 
 ModuleStatus CmisModule::getModuleStatus() {
   ModuleStatus moduleStatus;
-  moduleStatus.cmisModuleState_ref() =
+  moduleStatus.cmisModuleState() =
       (CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1);
-  moduleStatus.fwStatus_ref() = getFwStatus();
-  moduleStatus.cmisStateChanged_ref() = getModuleStateChanged();
+  moduleStatus.fwStatus() = getFwStatus();
+  moduleStatus.cmisStateChanged() = getModuleStateChanged();
   return moduleStatus;
 }
 
@@ -506,10 +504,10 @@ ThresholdLevels CmisModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
-  thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
-  thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
-  thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
+  thresh.alarm()->high() = conversion(data[0] << 8 | data[1]);
+  thresh.alarm()->low() = conversion(data[2] << 8 | data[3]);
+  thresh.warn()->high() = conversion(data[4] << 8 | data[5]);
+  thresh.warn()->low() = conversion(data[6] << 8 | data[7]);
 
   // For Tx Bias threshold, take care of multiplier
   if (field == CmisField::TX_BIAS_THRESH) {
@@ -518,14 +516,10 @@ ThresholdLevels CmisModule::getThresholdValues(
     data = getQsfpValuePtr(dataAddress, offset, length);
     auto biasMultiplier = CmisFieldInfo::getTxBiasMultiplier(data[0]);
 
-    thresh.alarm_ref()->high_ref() =
-        thresh.alarm_ref()->high_ref().value() * biasMultiplier;
-    thresh.alarm_ref()->low_ref() =
-        thresh.alarm_ref()->low_ref().value() * biasMultiplier;
-    thresh.warn_ref()->high_ref() =
-        thresh.warn_ref()->high_ref().value() * biasMultiplier;
-    thresh.warn_ref()->low_ref() =
-        thresh.warn_ref()->low_ref().value() * biasMultiplier;
+    thresh.alarm()->high() = thresh.alarm()->high().value() * biasMultiplier;
+    thresh.alarm()->low() = thresh.alarm()->low().value() * biasMultiplier;
+    thresh.warn()->high() = thresh.warn()->high().value() * biasMultiplier;
+    thresh.warn()->low() = thresh.warn()->low().value() * biasMultiplier;
   }
 
   return thresh;
@@ -536,15 +530,15 @@ std::optional<AlarmThreshold> CmisModule::getThresholdInfo() {
     return {};
   }
   AlarmThreshold threshold = AlarmThreshold();
-  threshold.temp_ref() =
+  threshold.temp() =
       getThresholdValues(CmisField::TEMPERATURE_THRESH, CmisFieldInfo::getTemp);
-  threshold.vcc_ref() =
+  threshold.vcc() =
       getThresholdValues(CmisField::VCC_THRESH, CmisFieldInfo::getVcc);
-  threshold.rxPwr_ref() =
+  threshold.rxPwr() =
       getThresholdValues(CmisField::RX_PWR_THRESH, CmisFieldInfo::getPwr);
-  threshold.txPwr_ref() =
+  threshold.txPwr() =
       getThresholdValues(CmisField::TX_PWR_THRESH, CmisFieldInfo::getPwr);
-  threshold.txBias_ref() =
+  threshold.txBias() =
       getThresholdValues(CmisField::TX_BIAS_THRESH, CmisFieldInfo::getTxBias);
   return threshold;
 }
@@ -563,47 +557,44 @@ uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) const {
 TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
   if (!flatMem_) {
-    settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
+    settings.cdrTx() = CmisFieldInfo::getFeatureState(
         getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
         getSettingsValue(CmisField::TX_CDR_CONTROL));
-    settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
+    settings.cdrRx() = CmisFieldInfo::getFeatureState(
         getSettingsValue(CmisField::RX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
         getSettingsValue(CmisField::RX_CDR_CONTROL));
   } else {
-    settings.cdrTx_ref() = FeatureState::UNSUPPORTED;
-    settings.cdrRx_ref() = FeatureState::UNSUPPORTED;
+    settings.cdrTx() = FeatureState::UNSUPPORTED;
+    settings.cdrRx() = FeatureState::UNSUPPORTED;
   }
-  settings.powerMeasurement_ref() =
+  settings.powerMeasurement() =
       flatMem_ ? FeatureState::UNSUPPORTED : FeatureState::ENABLED;
 
-  settings.powerControl_ref() = getPowerControlValue();
-  settings.rateSelect_ref() = flatMem_
-      ? RateSelectState::UNSUPPORTED
-      : RateSelectState::APPLICATION_RATE_SELECT;
-  settings.rateSelectSetting_ref() = RateSelectSetting::UNSUPPORTED;
+  settings.powerControl() = getPowerControlValue();
+  settings.rateSelect() = flatMem_ ? RateSelectState::UNSUPPORTED
+                                   : RateSelectState::APPLICATION_RATE_SELECT;
+  settings.rateSelectSetting() = RateSelectSetting::UNSUPPORTED;
 
   getApplicationCapabilities();
 
-  settings.mediaLaneSettings_ref() =
+  settings.mediaLaneSettings() =
       std::vector<MediaLaneSettings>(numMediaLanes());
-  settings.hostLaneSettings_ref() =
-      std::vector<HostLaneSettings>(numHostLanes());
+  settings.hostLaneSettings() = std::vector<HostLaneSettings>(numHostLanes());
 
-  if (!getMediaLaneSettings(*(settings.mediaLaneSettings_ref()))) {
-    settings.mediaLaneSettings_ref()->clear();
-    settings.mediaLaneSettings_ref().reset();
+  if (!getMediaLaneSettings(*(settings.mediaLaneSettings()))) {
+    settings.mediaLaneSettings()->clear();
+    settings.mediaLaneSettings().reset();
   }
 
-  if (!getHostLaneSettings(*(settings.hostLaneSettings_ref()))) {
-    settings.hostLaneSettings_ref()->clear();
-    settings.hostLaneSettings_ref().reset();
+  if (!getHostLaneSettings(*(settings.hostLaneSettings()))) {
+    settings.hostLaneSettings()->clear();
+    settings.hostLaneSettings().reset();
   }
 
-  settings.mediaInterface_ref() =
-      std::vector<MediaInterfaceId>(numMediaLanes());
-  if (!getMediaInterfaceId(*(settings.mediaInterface_ref()))) {
-    settings.mediaInterface_ref()->clear();
-    settings.mediaInterface_ref().reset();
+  settings.mediaInterface() = std::vector<MediaInterfaceId>(numMediaLanes());
+  if (!getMediaInterfaceId(*(settings.mediaInterface()))) {
+    settings.mediaInterface()->clear();
+    settings.mediaInterface().reset();
   }
 
   return settings;
@@ -622,10 +613,10 @@ bool CmisModule::getMediaLaneSettings(
 
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     auto laneMask = (1 << lane);
-    laneSettings[lane].lane_ref() = lane;
-    laneSettings[lane].txDisable_ref() = txDisable & laneMask;
-    laneSettings[lane].txSquelch_ref() = txSquelchDisable & laneMask;
-    laneSettings[lane].txSquelchForce_ref() = txSquelchForce & laneMask;
+    laneSettings[lane].lane() = lane;
+    laneSettings[lane].txDisable() = txDisable & laneMask;
+    laneSettings[lane].txSquelch() = txSquelchDisable & laneMask;
+    laneSettings[lane].txSquelchForce() = txSquelchForce & laneMask;
   }
 
   return true;
@@ -661,23 +652,23 @@ bool CmisModule::getHostLaneSettings(
 
   for (int lane = 0; lane < laneSettings.size(); lane++) {
     auto laneMask = (1 << lane);
-    laneSettings[lane].lane_ref() = lane;
-    laneSettings[lane].rxOutput_ref() = rxOutput & laneMask;
-    laneSettings[lane].rxSquelch_ref() = rxSquelchDisable & laneMask;
+    laneSettings[lane].lane() = lane;
+    laneSettings[lane].rxOutput() = rxOutput & laneMask;
+    laneSettings[lane].rxSquelch() = rxSquelchDisable & laneMask;
 
     uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
     XLOG(DBG3) << folly::sformat("Port {} Pre = {}", qsfpImpl_->getName(), pre);
-    laneSettings[lane].rxOutputPreCursor_ref() = pre;
+    laneSettings[lane].rxOutputPreCursor() = pre;
 
     uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
     XLOG(DBG3) << folly::sformat(
         "Port {} Post = {}", qsfpImpl_->getName(), post);
-    laneSettings[lane].rxOutputPostCursor_ref() = post;
+    laneSettings[lane].rxOutputPostCursor() = post;
 
     uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
     XLOG(DBG3) << folly::sformat(
         "Port {} Main = {}", qsfpImpl_->getName(), mainVal);
-    laneSettings[lane].rxOutputAmplitude_ref() = mainVal;
+    laneSettings[lane].rxOutputAmplitude() = mainVal;
   }
   return true;
 }
@@ -747,20 +738,20 @@ bool CmisModule::getMediaInterfaceId(
   // Currently setting the same media interface for all media lanes
   auto smfMediaInterface = getSmfMediaInterface();
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
-    mediaInterface[lane].lane_ref() = lane;
+    mediaInterface[lane].lane() = lane;
     MediaInterfaceUnion media;
     media.smfCode_ref() = smfMediaInterface;
     if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
         it != mediaInterfaceMapping.end()) {
-      mediaInterface[lane].code_ref() = it->second;
+      mediaInterface[lane].code() = it->second;
     } else {
       XLOG(ERR) << folly::sformat(
           "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
           qsfpImpl_->getName(),
           apache::thrift::util::enumNameSafe(smfMediaInterface));
-      mediaInterface[lane].code_ref() = MediaInterfaceCode::UNKNOWN;
+      mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
-    mediaInterface[lane].media_ref() = media;
+    mediaInterface[lane].media() = media;
   }
 
   return true;
@@ -824,10 +815,10 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
   getQsfpFieldAddress(field, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
-  flags.warn_ref()->low_ref() = (data[3] & (1 << channel));
-  flags.warn_ref()->high_ref() = (data[2] & (1 << channel));
-  flags.alarm_ref()->low_ref() = (data[1] & (1 << channel));
-  flags.alarm_ref()->high_ref() = (data[0] & (1 << channel));
+  flags.warn()->low() = (data[3] & (1 << channel));
+  flags.warn()->high() = (data[2] & (1 << channel));
+  flags.alarm()->low() = (data[1] & (1 << channel));
+  flags.alarm()->high() = (data[0] & (1 << channel));
 
   return flags;
 }
@@ -852,13 +843,13 @@ bool CmisModule::getSignalsPerMediaLane(
 
   for (int lane = 0; lane < signals.size(); lane++) {
     auto laneMask = (1 << lane);
-    signals[lane].lane_ref() = lane;
-    signals[lane].txLos_ref() = txLos & laneMask;
-    signals[lane].rxLos_ref() = rxLos & laneMask;
-    signals[lane].txLol_ref() = txLol & laneMask;
-    signals[lane].rxLol_ref() = rxLol & laneMask;
-    signals[lane].txFault_ref() = txFault & laneMask;
-    signals[lane].txAdaptEqFault_ref() = txEq & laneMask;
+    signals[lane].lane() = lane;
+    signals[lane].txLos() = txLos & laneMask;
+    signals[lane].rxLos() = rxLos & laneMask;
+    signals[lane].txLol() = txLol & laneMask;
+    signals[lane].rxLol() = rxLol & laneMask;
+    signals[lane].txFault() = txFault & laneMask;
+    signals[lane].txAdaptEqFault() = txEq & laneMask;
   }
 
   return true;
@@ -884,11 +875,11 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int lane = 0; lane < signals.size(); lane++) {
-    signals[lane].lane_ref() = lane;
-    signals[lane].dataPathDeInit_ref() = dataPathDeInit & (1 << lane);
+    signals[lane].lane() = lane;
+    signals[lane].dataPathDeInit() = dataPathDeInit & (1 << lane);
 
     bool evenLane = (lane % 2 == 0);
-    signals[lane].cmisLaneState_ref() =
+    signals[lane].cmisLaneState() =
         (CmisLaneState)(evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
   }
 
@@ -909,17 +900,17 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   int dataAddress;
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
+    channels[channel].sensors()->rxPwr()->flags() =
         getChannelFlags(CmisField::RX_PWR_FLAG, channel);
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
+    channels[channel].sensors()->txBias()->flags() =
         getChannelFlags(CmisField::TX_BIAS_FLAG, channel);
   }
 
   for (int channel = 0; channel < numMediaLanes(); channel++) {
-    channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
+    channels[channel].sensors()->txPwr()->flags() =
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
 
@@ -929,10 +920,10 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
-    channel.sensors_ref()->rxPwr_ref()->value_ref() = pwr;
+    channel.sensors()->rxPwr()->value() = pwr;
     Sensor rxDbm;
-    rxDbm.value_ref() = mwToDb(pwr);
-    channel.sensors_ref()->rxPwrdBm_ref() = rxDbm;
+    rxDbm.value() = mwToDb(pwr);
+    channel.sensors()->rxPwrdBm() = rxDbm;
     data += 2;
     length--;
   }
@@ -948,7 +939,7 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors_ref()->txBias_ref()->value_ref() =
+    channel.sensors()->txBias()->value() =
         CmisFieldInfo::getTxBias(value) * biasMultiplier;
     data += 2;
     length--;
@@ -961,10 +952,10 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
     auto pwr = CmisFieldInfo::getPwr(value); // This is in mW
-    channel.sensors_ref()->txPwr_ref()->value_ref() = pwr;
+    channel.sensors()->txPwr()->value() = pwr;
     Sensor txDbm;
-    txDbm.value_ref() = mwToDb(pwr);
-    channel.sensors_ref()->txPwrdBm_ref() = txDbm;
+    txDbm.value() = mwToDb(pwr);
+    channel.sensors()->txPwrdBm() = txDbm;
     data += 2;
     length--;
   }
@@ -977,9 +968,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
-    channel.sensors_ref()->txSnr_ref() = Sensor();
-    channel.sensors_ref()->txSnr_ref()->value_ref() =
-        CmisFieldInfo::getSnr(value);
+    channel.sensors()->txSnr() = Sensor();
+    channel.sensors()->txSnr()->value() = CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
   }
@@ -991,9 +981,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
-    channel.sensors_ref()->rxSnr_ref() = Sensor();
-    channel.sensors_ref()->rxSnr_ref()->value_ref() =
-        CmisFieldInfo::getSnr(value);
+    channel.sensors()->rxSnr() = Sensor();
+    channel.sensors()->rxSnr()->value() = CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
   }
@@ -1048,10 +1037,10 @@ SignalFlags CmisModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
   if (!flatMem_) {
-    signalFlags.txLos_ref() = getSettingsValue(CmisField::TX_LOS_FLAG);
-    signalFlags.rxLos_ref() = getSettingsValue(CmisField::RX_LOS_FLAG);
-    signalFlags.txLol_ref() = getSettingsValue(CmisField::TX_LOL_FLAG);
-    signalFlags.rxLol_ref() = getSettingsValue(CmisField::RX_LOL_FLAG);
+    signalFlags.txLos() = getSettingsValue(CmisField::TX_LOS_FLAG);
+    signalFlags.rxLos() = getSettingsValue(CmisField::RX_LOS_FLAG);
+    signalFlags.txLol() = getSettingsValue(CmisField::TX_LOL_FLAG);
+    signalFlags.rxLol() = getSettingsValue(CmisField::RX_LOL_FLAG);
   }
   return signalFlags;
 }
@@ -1067,7 +1056,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     return std::nullopt;
   }
 
-  vdmStats.statsCollectionTme_ref() = WallClockUtil::NowInSecFast();
+  vdmStats.statsCollectionTme() = WallClockUtil::NowInSecFast();
 
   // Fill in channel SNR Media In
   getQsfpFieldAddress(
@@ -1081,7 +1070,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     for (auto lanes = 0; lanes < length / 2; lanes++) {
       double snr;
       snr = data[lanes * 2] + (data[lanes * 2 + 1] / 256.0);
-      vdmStats.eSnrMediaChannel_ref()[lanes] = snr;
+      vdmStats.eSnrMediaChannel()[lanes] = snr;
     }
   }
 
@@ -1110,7 +1099,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaMin_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaMin() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1127,7 +1116,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaMax_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaMax() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1144,7 +1133,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaAvg_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaAvg() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1161,7 +1150,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerMediaCur_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerMediaCur() = f16ToDouble(data[0], data[1]);
   }
 
   // Fill in Host Pre FEC BER values
@@ -1176,7 +1165,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostMin_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostMin() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1190,7 +1179,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostMax_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostMax() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1204,7 +1193,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostAvg_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostAvg() = f16ToDouble(data[0], data[1]);
   }
 
   getQsfpFieldAddress(
@@ -1218,7 +1207,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         offset,
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
-    vdmStats.preFecBerHostCur_ref() = f16ToDouble(data[0], data[1]);
+    vdmStats.preFecBerHostCur() = f16ToDouble(data[0], data[1]);
   }
 
   return vdmStats;
@@ -1314,11 +1303,10 @@ RawDOMData CmisModule::getRawDOMData() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   RawDOMData data;
   if (present_) {
-    *data.lower_ref() =
-        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    *data.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
-    data.page10_ref() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
-    data.page11_ref() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+    *data.lower() = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *data.page0() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    data.page10() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
+    data.page11() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
   }
   return data;
 }
@@ -1327,34 +1315,23 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   CmisData cmisData;
   if (present_) {
-    *cmisData.lower_ref() =
+    *cmisData.lower() =
         IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    *cmisData.page0_ref() =
-        IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *cmisData.page0() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
-      cmisData.page01_ref() =
-          IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page02_ref() =
-          IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page10_ref() =
-          IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page11_ref() =
-          IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page13_ref() =
-          IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page14_ref() =
-          IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page20_ref() =
-          IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page21_ref() =
-          IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page24_ref() =
-          IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
-      cmisData.page25_ref() =
-          IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page01() = IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page02() = IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page10() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page11() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page13() = IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page14() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page24() = IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page25() = IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
     }
   }
-  cmisData.timeCollected_ref() = lastRefreshTime_;
+  cmisData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
   data.cmis_ref() = cmisData;
   return data;
@@ -1778,8 +1755,8 @@ void CmisModule::ensureRxOutputSquelchEnabled(
     const std::vector<HostLaneSettings>& hostLanesSettings) const {
   bool allLanesRxOutputSquelchEnabled = true;
   for (auto& hostLaneSettings : hostLanesSettings) {
-    if (hostLaneSettings.rxSquelch_ref().has_value() &&
-        *hostLaneSettings.rxSquelch_ref()) {
+    if (hostLaneSettings.rxSquelch().has_value() &&
+        *hostLaneSettings.rxSquelch()) {
       allLanesRxOutputSquelchEnabled = false;
       break;
     }
@@ -1815,7 +1792,7 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl_ref());
+    setPowerOverrideIfSupported(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCode(speed);
@@ -1863,15 +1840,15 @@ void CmisModule::configureModule() {
 
   // Set the Rx equalizer setting based on QSFP config
   auto qsfpCfg = transceiverManager_->getQsfpConfig()->thrift;
-  for (const auto& override : *qsfpCfg.transceiverConfigOverrides_ref()) {
+  for (const auto& override : *qsfpCfg.transceiverConfigOverrides()) {
     // Check if there is an override for all kinds of transceivers or
     // an override for the current application code(speed)
     if (overrideFactorMatchFound(
-            *override.factor_ref(), // override factor
+            *override.factor(), // override factor
             moduleFactor)) {
       // Check if this override factor requires overriding RxEqualizerSettings
       if (auto rxEqSetting =
-              cmisRxEqualizerSettingOverride(*override.config_ref())) {
+              cmisRxEqualizerSettingOverride(*override.config())) {
         setModuleRxEqualizerLocked(*rxEqSetting);
         return;
       }
@@ -1925,12 +1902,12 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
       "setModuleRxEqualizerLocked called for {:s}", qsfpImpl_->getName());
 
   for (int i = 0; i < 4; i++) {
-    desiredPre[i] = ((*rxEqualizer.preCursor_ref() & 0xf) << 4) |
-        (*rxEqualizer.preCursor_ref() & 0xf);
-    desiredPost[i] = ((*rxEqualizer.postCursor_ref() & 0xf) << 4) |
-        (*rxEqualizer.postCursor_ref() & 0xf);
-    desiredMain[i] = ((*rxEqualizer.mainAmplitude_ref() & 0xf) << 4) |
-        (*rxEqualizer.mainAmplitude_ref() & 0xf);
+    desiredPre[i] = ((*rxEqualizer.preCursor() & 0xf) << 4) |
+        (*rxEqualizer.preCursor() & 0xf);
+    desiredPost[i] = ((*rxEqualizer.postCursor() & 0xf) << 4) |
+        (*rxEqualizer.postCursor() & 0xf);
+    desiredMain[i] = ((*rxEqualizer.mainAmplitude() & 0xf) << 4) |
+        (*rxEqualizer.mainAmplitude() & 0xf);
   }
 
   // Flip to page 0x11 to read current values
@@ -2078,24 +2055,24 @@ void CmisModule::moduleDiagsCapabilitySet() {
     };
 
     data = readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT);
-    diags.vdm_ref() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
-    diags.diagnostics_ref() =
+    diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
+    diags.diagnostics() =
         (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
 
     data = readFromCacheOrHw(CmisField::CDB_SUPPORT);
-    diags.cdb_ref() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+    diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
 
-    if (*diags.diagnostics_ref()) {
+    if (*diags.diagnostics()) {
       data = readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY);
-      diags.loopbackSystem_ref() =
+      diags.loopbackSystem() =
           (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
-      diags.loopbackLine_ref() =
+      diags.loopbackLine() =
           (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
 
       data = readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY);
-      diags.prbsLine_ref() =
+      diags.prbsLine() =
           (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
-      diags.prbsSystem_ref() =
+      diags.prbsSystem() =
           (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
     }
 
@@ -2103,7 +2080,7 @@ void CmisModule::moduleDiagsCapabilitySet() {
   }
 
   // If VDM capability has been identified then update VDM cache
-  if ((*diagsCapability).has_value() && *(*diagsCapability).value().vdm_ref()) {
+  if ((*diagsCapability).has_value() && *(*diagsCapability).value().vdm()) {
     uint8_t page = 0x20;
     qsfpImpl_->writeTransceiver(
         {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
@@ -2323,17 +2300,17 @@ bool CmisModule::setPortPrbsLocked(
   }
 
   // Return error for invalid PRBS polynominal
-  auto prbsPatternItr = prbsPatternMap.find(prbs.polynominal_ref().value());
+  auto prbsPatternItr = prbsPatternMap.find(prbs.polynominal().value());
   if (prbsPatternItr == prbsPatternMap.end()) {
     XLOG(ERR) << folly::sformat(
         "Module {:s} PRBS Polynominal {:d} not supported",
         qsfpImpl_->getName(),
-        prbs.polynominal_ref().value());
+        prbs.polynominal().value());
     return false;
   }
 
   auto prbsPolynominal = prbsPatternItr->second;
-  auto start = prbs.enabled_ref().value();
+  auto start = prbs.enabled().value();
 
   // Set the page to 0x13 first
   uint8_t page = 0x13;
@@ -2425,7 +2402,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
     return phy::PrbsStats{};
   }
 
-  prbsStats.portId_ref() = qsfpImpl_->getNum();
+  prbsStats.portId() = qsfpImpl_->getNum();
 
   // The PRBS information is in page 0x14 so set the page first
   uint8_t page = 0x14;
@@ -2464,17 +2441,17 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   // Step 3: Put all the lane info in return structure and return
   for (auto laneId = 0; laneId < numLanes; laneId++) {
     phy::PrbsLaneStats laneStats;
-    laneStats.laneId_ref() = laneId;
+    laneStats.laneId() = laneId;
     // Put the lock value
-    laneStats.locked_ref() = (checkerLockMask & (1 << laneId)) == 0;
+    laneStats.locked() = (checkerLockMask & (1 << laneId)) == 0;
 
     // Put the BER value
     uint8_t lsb, msb;
     lsb = laneBerList.at(laneId * 2);
     msb = laneBerList.at((laneId * 2) + 1);
-    laneStats.ber_ref() = QsfpModule::getBerFloatValue(lsb, msb);
+    laneStats.ber() = QsfpModule::getBerFloatValue(lsb, msb);
 
-    prbsStats.laneStats_ref()->push_back(laneStats);
+    prbsStats.laneStats()->push_back(laneStats);
   }
   return prbsStats;
 }

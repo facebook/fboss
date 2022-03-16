@@ -80,8 +80,8 @@ class Fan {
   Fan() {
     pwmMin = 0;
     pwmMax = 255;
-    led.path_ref() = "";
-    presence.path_ref() = "";
+    led.path() = "";
+    presence.path() = "";
     fanGoodLedVal = 0;
     fanFailLedVal = 0;
     fanFailThresholdInSec = 300;

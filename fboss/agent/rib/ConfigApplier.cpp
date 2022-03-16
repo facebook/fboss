@@ -58,10 +58,10 @@ void ConfigApplier::apply() {
   auto fillInStaticRoutes = [this, &staticRoutes](
                                 const auto& routeRange, const auto& nhopFn) {
     for (const auto& staticRoute : routeRange) {
-      if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
+      if (RouterID(*staticRoute.routerID()) != vrf_) {
         continue;
       }
-      auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
+      auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix());
       staticRoutes.push_back({prefix, nhopFn(staticRoute)});
     }
   };

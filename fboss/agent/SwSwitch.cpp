@@ -158,13 +158,13 @@ facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
   facebook::fboss::PortStatus status;
-  *status.enabled_ref() = port.isEnabled();
-  *status.up_ref() = port.isUp();
-  *status.speedMbps_ref() = static_cast<int>(port.getSpeed());
-  *status.profileID_ref() = apache::thrift::util::enumName(port.getProfileID());
+  *status.enabled() = port.isEnabled();
+  *status.up() = port.isUp();
+  *status.speedMbps() = static_cast<int>(port.getSpeed());
+  *status.profileID() = apache::thrift::util::enumName(port.getProfileID());
 
   try {
-    status.transceiverIdx_ref() =
+    status.transceiverIdx() =
         sw->getPlatform()->getPortMapping(port.getID(), port.getSpeed());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
@@ -1661,7 +1661,7 @@ bool SwSwitch::sendPacketToHost(
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
   auto target = reload ? platform_->reloadConfig() : platform_->config();
-  const auto& newConfig = *target->thrift.sw_ref();
+  const auto& newConfig = *target->thrift.sw();
   applyConfig(reason, newConfig);
   target->dumpConfig(platform_->getRunningConfigDumpFile());
 }
@@ -1749,20 +1749,19 @@ void SwSwitch::updateConfigAppliedInfo() {
   auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch());
 
-  lockedConfigAppliedInfo->lastAppliedInMs_ref() = currentInMs.count();
+  lockedConfigAppliedInfo->lastAppliedInMs() = currentInMs.count();
   // Only need to update `lastColdbootAppliedInMs` once if there's a coldboot
   // since the recent agent restarts
-  if (!lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref() &&
+  if (!lockedConfigAppliedInfo->lastColdbootAppliedInMs() &&
       bootType_ == BootType::COLD_BOOT) {
-    lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref() =
-        currentInMs.count();
+    lockedConfigAppliedInfo->lastColdbootAppliedInMs() = currentInMs.count();
   }
 
   XLOG(DBG2) << "Finished applied config, lastConfigAppliedInMs="
-             << *lockedConfigAppliedInfo->lastAppliedInMs_ref()
+             << *lockedConfigAppliedInfo->lastAppliedInMs()
              << ", coldboot lastConfigAppliedInMs="
-             << (lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref()
-                     ? *lockedConfigAppliedInfo->lastColdbootAppliedInMs_ref()
+             << (lockedConfigAppliedInfo->lastColdbootAppliedInMs()
+                     ? *lockedConfigAppliedInfo->lastColdbootAppliedInMs()
                      : 0);
 }
 
@@ -1799,8 +1798,8 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
-  auto distance = curConfig_.clientIdToAdminDistance_ref()->find(clientId);
-  if (distance == curConfig_.clientIdToAdminDistance_ref()->end()) {
+  auto distance = curConfig_.clientIdToAdminDistance()->find(clientId);
+  if (distance == curConfig_.clientIdToAdminDistance()->end()) {
     // In case we get a client id we don't know about
     XLOG(ERR) << "No admin distance mapping available for client id "
               << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";

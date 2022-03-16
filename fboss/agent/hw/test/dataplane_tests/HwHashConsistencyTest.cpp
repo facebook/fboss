@@ -154,11 +154,11 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
     auto jenkins32 = folly::hash::jenkins_rev_mix32(mac32);
     auto twang32 = folly::hash::twang_32from64(mac64);
-    if (cfg.id_ref() == cfg::LoadBalancerID::ECMP) {
-      cfg.seed_ref() = getHwSwitchEnsemble()->isSai() ? jenkins32 : twang32;
+    if (cfg.id() == cfg::LoadBalancerID::ECMP) {
+      cfg.seed() = getHwSwitchEnsemble()->isSai() ? jenkins32 : twang32;
     }
-    if (cfg.id_ref() == cfg::LoadBalancerID::AGGREGATE_PORT) {
-      cfg.seed_ref() = getHwSwitchEnsemble()->isSai() ? twang32 : jenkins32;
+    if (cfg.id() == cfg::LoadBalancerID::AGGREGATE_PORT) {
+      cfg.seed() = getHwSwitchEnsemble()->isSai() ? twang32 : jenkins32;
     }
   }
 

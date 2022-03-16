@@ -210,7 +210,7 @@ bool QsfpUtilTx::setSffTxDisableViaService(const std::vector<int32_t>& ports) {
   }
 
   for (const auto& response : readResp) {
-    auto buf = *(response.second.data_ref()->data());
+    auto buf = *(response.second.data()->data());
     setChannelDisable(TransceiverManagementInterface::SFF, buf);
     std::vector<int32_t> writePort{response.first};
 
@@ -246,7 +246,7 @@ bool QsfpUtilTx::setCmisTxDisableViaService(const std::vector<int32_t>& ports) {
   }
 
   for (const auto& response : readResp) {
-    auto buf = *(response.second.data_ref()->data());
+    auto buf = *(response.second.data()->data());
     setChannelDisable(TransceiverManagementInterface::CMIS, buf);
     std::vector<int32_t> writePort{response.first};
 

@@ -26,28 +26,28 @@ std::vector<facebook::fboss::ArpEntryThrift> createArpEntries() {
   network::thrift::BinaryAddress binaryAddr1 =
       facebook::network::toBinaryAddress(ip1);
 
-  arpEntry1.ip_ref() = binaryAddr1;
-  arpEntry1.mac_ref() = "44:4c:a8:e4:1c:3f";
-  arpEntry1.port_ref() = 102;
-  arpEntry1.vlanName_ref() = "vlan4001";
-  arpEntry1.vlanID_ref() = 4001;
-  arpEntry1.state_ref() = "REACHABLE";
-  arpEntry1.ttl_ref() = 27198;
-  arpEntry1.classID_ref() = 0;
+  arpEntry1.ip() = binaryAddr1;
+  arpEntry1.mac() = "44:4c:a8:e4:1c:3f";
+  arpEntry1.port() = 102;
+  arpEntry1.vlanName() = "vlan4001";
+  arpEntry1.vlanID() = 4001;
+  arpEntry1.state() = "REACHABLE";
+  arpEntry1.ttl() = 27198;
+  arpEntry1.classID() = 0;
 
   fboss::ArpEntryThrift arpEntry2;
   folly::IPAddressV4 ip2("10.121.64.2");
   network::thrift::BinaryAddress binaryAddr2 =
       facebook::network::toBinaryAddress(ip2);
 
-  arpEntry2.ip_ref() = binaryAddr2;
-  arpEntry2.mac_ref() = "44:4c:a8:e4:1b:f1";
-  arpEntry2.port_ref() = 106;
-  arpEntry2.vlanName_ref() = "vlan4002";
-  arpEntry2.vlanID_ref() = 4002;
-  arpEntry2.state_ref() = "REACHABLE";
-  arpEntry2.ttl_ref() = 33730;
-  arpEntry2.classID_ref() = 0;
+  arpEntry2.ip() = binaryAddr2;
+  arpEntry2.mac() = "44:4c:a8:e4:1b:f1";
+  arpEntry2.port() = 106;
+  arpEntry2.vlanName() = "vlan4002";
+  arpEntry2.vlanID() = 4002;
+  arpEntry2.state() = "REACHABLE";
+  arpEntry2.ttl() = 33730;
+  arpEntry2.classID() = 0;
 
   std::vector<fboss::ArpEntryThrift> entries{arpEntry1, arpEntry2};
   return entries;
@@ -58,12 +58,12 @@ createFakePortThriftEntries() {
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
 
   PortInfoThrift portEntry1;
-  portEntry1.portId_ref() = 102;
-  portEntry1.name_ref() = "eth1/1/1";
+  portEntry1.portId() = 102;
+  portEntry1.name() = "eth1/1/1";
 
   PortInfoThrift portEntry2;
-  portEntry2.portId_ref() = 106;
-  portEntry2.name_ref() = "eth2/1/1";
+  portEntry2.portId() = 106;
+  portEntry2.name() = "eth2/1/1";
 
   portEntries[portEntry1.get_portId()] = portEntry1;
   portEntries[portEntry2.get_portId()] = portEntry2;

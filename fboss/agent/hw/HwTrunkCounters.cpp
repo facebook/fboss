@@ -78,26 +78,26 @@ std::string HwTrunkCounters::constructCounterName(
 void HwTrunkCounters::updateCounters(
     std::chrono::seconds now,
     const HwTrunkStats& stats) {
-  updateCounter(now, kInBytes(), *stats.inBytes__ref());
-  updateCounter(now, kInUnicastPkts(), *stats.inUnicastPkts__ref());
-  updateCounter(now, kInMulticastPkts(), *stats.inMulticastPkts__ref());
-  updateCounter(now, kInBroadcastPkts(), *stats.inBroadcastPkts__ref());
-  updateCounter(now, kInDiscards(), *stats.inDiscards__ref());
-  updateCounter(now, kInErrors(), *stats.inErrors__ref());
-  updateCounter(now, kInPause(), *stats.inPause__ref());
-  updateCounter(now, kInIpv4HdrErrors(), *stats.inIpv4HdrErrors__ref());
-  updateCounter(now, kInIpv6HdrErrors(), *stats.inIpv6HdrErrors__ref());
+  updateCounter(now, kInBytes(), *stats.inBytes_());
+  updateCounter(now, kInUnicastPkts(), *stats.inUnicastPkts_());
+  updateCounter(now, kInMulticastPkts(), *stats.inMulticastPkts_());
+  updateCounter(now, kInBroadcastPkts(), *stats.inBroadcastPkts_());
+  updateCounter(now, kInDiscards(), *stats.inDiscards_());
+  updateCounter(now, kInErrors(), *stats.inErrors_());
+  updateCounter(now, kInPause(), *stats.inPause_());
+  updateCounter(now, kInIpv4HdrErrors(), *stats.inIpv4HdrErrors_());
+  updateCounter(now, kInIpv6HdrErrors(), *stats.inIpv6HdrErrors_());
 
-  updateCounter(now, kOutBytes(), *stats.outBytes__ref());
-  updateCounter(now, kOutUnicastPkts(), *stats.outUnicastPkts__ref());
-  updateCounter(now, kOutMulticastPkts(), *stats.outMulticastPkts__ref());
-  updateCounter(now, kOutBroadcastPkts(), *stats.outBroadcastPkts__ref());
-  updateCounter(now, kOutDiscards(), *stats.outDiscards__ref());
-  updateCounter(now, kOutErrors(), *stats.outErrors__ref());
-  updateCounter(now, kOutPause(), *stats.outPause__ref());
+  updateCounter(now, kOutBytes(), *stats.outBytes_());
+  updateCounter(now, kOutUnicastPkts(), *stats.outUnicastPkts_());
+  updateCounter(now, kOutMulticastPkts(), *stats.outMulticastPkts_());
+  updateCounter(now, kOutBroadcastPkts(), *stats.outBroadcastPkts_());
+  updateCounter(now, kOutDiscards(), *stats.outDiscards_());
+  updateCounter(now, kOutErrors(), *stats.outErrors_());
+  updateCounter(now, kOutPause(), *stats.outPause_());
   updateCounter(
-      now, kOutCongestionDiscards(), *stats.outCongestionDiscardPkts__ref());
-  updateCounter(now, kOutEcnCounter(), *stats.outEcnCounter__ref());
+      now, kOutCongestionDiscards(), *stats.outCongestionDiscardPkts_());
+  updateCounter(now, kOutEcnCounter(), *stats.outEcnCounter_());
   stats_ = stats;
 }
 
@@ -113,55 +113,52 @@ void HwTrunkCounters::updateCounter(
 }
 
 void clearHwTrunkStats(HwTrunkStats& stats) {
-  stats.inBytes__ref() = 0;
-  stats.inUnicastPkts__ref() = 0;
-  stats.inMulticastPkts__ref() = 0;
-  stats.inBroadcastPkts__ref() = 0;
-  stats.inDiscards__ref() = 0;
-  stats.inErrors__ref() = 0;
-  stats.inPause__ref() = 0;
-  stats.inIpv4HdrErrors__ref() = 0;
-  stats.inIpv6HdrErrors__ref() = 0;
-  stats.inDiscardsRaw__ref() = 0;
-  stats.inDstNullDiscards__ref() = 0;
+  stats.inBytes_() = 0;
+  stats.inUnicastPkts_() = 0;
+  stats.inMulticastPkts_() = 0;
+  stats.inBroadcastPkts_() = 0;
+  stats.inDiscards_() = 0;
+  stats.inErrors_() = 0;
+  stats.inPause_() = 0;
+  stats.inIpv4HdrErrors_() = 0;
+  stats.inIpv6HdrErrors_() = 0;
+  stats.inDiscardsRaw_() = 0;
+  stats.inDstNullDiscards_() = 0;
 
-  stats.outBytes__ref() = 0;
-  stats.outUnicastPkts__ref() = 0;
-  stats.outMulticastPkts__ref() = 0;
-  stats.outBroadcastPkts__ref() = 0;
-  stats.outDiscards__ref() = 0;
-  stats.outErrors__ref() = 0;
-  stats.outPause__ref() = 0;
-  stats.outCongestionDiscardPkts__ref() = 0;
+  stats.outBytes_() = 0;
+  stats.outUnicastPkts_() = 0;
+  stats.outMulticastPkts_() = 0;
+  stats.outBroadcastPkts_() = 0;
+  stats.outDiscards_() = 0;
+  stats.outErrors_() = 0;
+  stats.outPause_() = 0;
+  stats.outCongestionDiscardPkts_() = 0;
 }
 
 void accumulateHwTrunkMemberStats(
     HwTrunkStats& cumulativeSum,
     const HwPortStats& memberStats) {
-  *cumulativeSum.inBytes__ref() += *memberStats.inBytes__ref();
-  *cumulativeSum.inUnicastPkts__ref() += *memberStats.inUnicastPkts__ref();
-  *cumulativeSum.inMulticastPkts__ref() += *memberStats.inMulticastPkts__ref();
-  *cumulativeSum.inBroadcastPkts__ref() += *memberStats.inBroadcastPkts__ref();
-  *cumulativeSum.inDiscards__ref() += *memberStats.inDiscards__ref();
-  *cumulativeSum.inErrors__ref() += *memberStats.inErrors__ref();
-  *cumulativeSum.inPause__ref() += *memberStats.inPause__ref();
-  *cumulativeSum.inIpv4HdrErrors__ref() += *memberStats.inIpv4HdrErrors__ref();
-  *cumulativeSum.inIpv6HdrErrors__ref() += *memberStats.inIpv6HdrErrors__ref();
-  *cumulativeSum.inDiscardsRaw__ref() += *memberStats.inDiscardsRaw__ref();
-  *cumulativeSum.inDstNullDiscards__ref() +=
-      *memberStats.inDstNullDiscards__ref();
+  *cumulativeSum.inBytes_() += *memberStats.inBytes_();
+  *cumulativeSum.inUnicastPkts_() += *memberStats.inUnicastPkts_();
+  *cumulativeSum.inMulticastPkts_() += *memberStats.inMulticastPkts_();
+  *cumulativeSum.inBroadcastPkts_() += *memberStats.inBroadcastPkts_();
+  *cumulativeSum.inDiscards_() += *memberStats.inDiscards_();
+  *cumulativeSum.inErrors_() += *memberStats.inErrors_();
+  *cumulativeSum.inPause_() += *memberStats.inPause_();
+  *cumulativeSum.inIpv4HdrErrors_() += *memberStats.inIpv4HdrErrors_();
+  *cumulativeSum.inIpv6HdrErrors_() += *memberStats.inIpv6HdrErrors_();
+  *cumulativeSum.inDiscardsRaw_() += *memberStats.inDiscardsRaw_();
+  *cumulativeSum.inDstNullDiscards_() += *memberStats.inDstNullDiscards_();
 
-  *cumulativeSum.outBytes__ref() += *memberStats.outBytes__ref();
-  *cumulativeSum.outUnicastPkts__ref() += *memberStats.outUnicastPkts__ref();
-  *cumulativeSum.outMulticastPkts__ref() +=
-      *memberStats.outMulticastPkts__ref();
-  *cumulativeSum.outBroadcastPkts__ref() +=
-      *memberStats.outBroadcastPkts__ref();
-  *cumulativeSum.outDiscards__ref() += *memberStats.outDiscards__ref();
-  *cumulativeSum.outErrors__ref() += *memberStats.outErrors__ref();
-  *cumulativeSum.outPause__ref() += *memberStats.outPause__ref();
-  *cumulativeSum.outCongestionDiscardPkts__ref() +=
-      *memberStats.outCongestionDiscardPkts__ref();
+  *cumulativeSum.outBytes_() += *memberStats.outBytes_();
+  *cumulativeSum.outUnicastPkts_() += *memberStats.outUnicastPkts_();
+  *cumulativeSum.outMulticastPkts_() += *memberStats.outMulticastPkts_();
+  *cumulativeSum.outBroadcastPkts_() += *memberStats.outBroadcastPkts_();
+  *cumulativeSum.outDiscards_() += *memberStats.outDiscards_();
+  *cumulativeSum.outErrors_() += *memberStats.outErrors_();
+  *cumulativeSum.outPause_() += *memberStats.outPause_();
+  *cumulativeSum.outCongestionDiscardPkts_() +=
+      *memberStats.outCongestionDiscardPkts_();
 }
 
 } // namespace facebook::fboss::utility

@@ -21,20 +21,18 @@ namespace facebook::fboss {
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   std::optional<LabelForwardingAction> action = std::nullopt;
-  if (nht.mplsAction_ref()) {
-    action =
-        LabelForwardingAction::fromThrift(nht.mplsAction_ref().value_or({}));
+  if (nht.mplsAction()) {
+    action = LabelForwardingAction::fromThrift(nht.mplsAction().value_or({}));
   }
-  auto address = network::toIPAddress(*nht.address_ref());
-  NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight_ref());
+  auto address = network::toIPAddress(*nht.address());
+  NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
   bool v6LinkLocal = address.isV6() and address.isLinkLocal();
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address_ref()->get_ifName() and
-      (v6LinkLocal or allowV6NonLinkLocal)) {
+  if (nht.address()->get_ifName() and (v6LinkLocal or allowV6NonLinkLocal)) {
     InterfaceID intfID =
-        util::getIDFromTunIntfName(*(nht.address_ref()->get_ifName()));
+        util::getIDFromTunIntfName(*(nht.address()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
     return UnresolvedNextHop(std::move(address), weight, action);

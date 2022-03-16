@@ -17,8 +17,7 @@ namespace facebook::fboss {
 cfg::SwitchConfig SaiRollbackTest::initialConfig() const {
   auto cfg =
       utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
-  cfg.switchSettings_ref()->l2LearningMode_ref() =
-      cfg::L2LearningMode::SOFTWARE;
+  cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   utility::addProdFeaturesToConfig(cfg, getHwSwitch());
   return cfg;
 }

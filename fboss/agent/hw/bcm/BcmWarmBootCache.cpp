@@ -950,8 +950,8 @@ void BcmWarmBootCache::clear() {
     XLOG(DBG1) << "Deleting rx reason to queue entry: index=" << index
                << ", reason="
                << apache::thrift::util::enumNameSafe(
-                      *reasonToQueueEntry.second.rxReason_ref())
-               << ", queue=" << *reasonToQueueEntry.second.queueId_ref();
+                      *reasonToQueueEntry.second.rxReason())
+               << ", queue=" << *reasonToQueueEntry.second.queueId();
     if (!useHSDK) {
       rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
     } else {

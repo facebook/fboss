@@ -143,9 +143,9 @@ std::vector<TransceiverID> HwTest::refreshTransceiversWithRetry(
             continue;
           }
           auto timeAfter =
-              transceiversAfterRefresh[id].timeCollected_ref().value_or({});
+              transceiversAfterRefresh[id].timeCollected().value_or({});
           auto timeBefore =
-              transceiversBeforeRefresh[id].timeCollected_ref().value_or({});
+              transceiversBeforeRefresh[id].timeCollected().value_or({});
           // Confirm that the timestamp advanced which will only happen when
           // refresh is successful
           if (timeAfter <= timeBefore) {

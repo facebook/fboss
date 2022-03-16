@@ -22,8 +22,8 @@ void addPort(
     const std::string& name,
     const std::vector<std::string>& tags) {
   cfg::Port port;
-  port.name_ref() = name;
-  port.counterTags_ref() = tags;
+  port.name() = name;
+  port.counterTags() = tags;
   ports.push_back(port);
 }
 } // namespace
@@ -35,7 +35,7 @@ TEST(CounterTagManagerTest, getCounterTags) {
 
   addPort(ports, "eth1", {"tag_a", "tag_b"});
   addPort(ports, "eth2", {"tag_c", "tag_d"});
-  config.ports_ref() = ports;
+  config.ports() = ports;
 
   // initial load
   counterTagManager.reloadCounterTags(config);
@@ -48,7 +48,7 @@ TEST(CounterTagManagerTest, getCounterTags) {
   ports.clear();
   addPort(ports, "eth1", {"tag_aa", "tag_bb"});
   addPort(ports, "eth2", {"tag_cc", "tag_dd"});
-  config.ports_ref() = ports;
+  config.ports() = ports;
 
   counterTagManager.reloadCounterTags(config);
   EXPECT_THAT(

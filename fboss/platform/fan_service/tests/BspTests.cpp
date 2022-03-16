@@ -34,7 +34,7 @@ class BspTest : public ::testing::Test {
  public:
   void getSensorOverRest() {
     fan_config_structs::AccessMethod access;
-    access.accessType_ref() = fan_config_structs::SourceType::kSrcRest;
+    access.accessType() = fan_config_structs::SourceType::kSrcRest;
     bsp.getSensorData(
         makeServiceConfig(access), std::make_shared<SensorData>());
   }

@@ -169,21 +169,21 @@ void BcmSwitchEnsemble::init(
       agentConfig = AgentConfig::fromFile(FLAGS_config);
       if (bcmTestPlatform->usesYamlConfig()) {
         yamlCfg = can_throw(*(platform->config()->thrift)
-                                 .platform_ref()
-                                 ->chip_ref()
+                                 .platform()
+                                 ->chip()
                                  ->get_bcm()
-                                 .yamlConfig_ref());
+                                 .yamlConfig());
       } else {
         cfg = *(platform->config()->thrift)
-                   .platform_ref()
-                   ->chip_ref()
+                   .platform()
+                   ->chip()
                    ->get_bcm()
-                   .config_ref();
+                   .config();
       }
     } else {
       throw FbossError("No config file to load!");
     }
-    for (auto item : *agentConfig->thrift.defaultCommandLineArgs_ref()) {
+    for (auto item : *agentConfig->thrift.defaultCommandLineArgs()) {
       gflags::SetCommandLineOptionWithMode(
           item.first.c_str(), item.second.c_str(), gflags::SET_FLAG_IF_DEFAULT);
     }

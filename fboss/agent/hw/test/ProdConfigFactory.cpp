@@ -70,10 +70,10 @@ void addLoadBalancerToConfig(
   }
   switch (hashType) {
     case LBHash::FULL_HASH:
-      config.loadBalancers_ref()->push_back(getEcmpFullHashConfig(platform));
+      config.loadBalancers()->push_back(getEcmpFullHashConfig(platform));
       break;
     case LBHash::HALF_HASH:
-      config.loadBalancers_ref()->push_back(getEcmpHalfHashConfig(platform));
+      config.loadBalancers()->push_back(getEcmpHalfHashConfig(platform));
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);
@@ -82,17 +82,16 @@ void addLoadBalancerToConfig(
 }
 
 void addMplsConfig(cfg::SwitchConfig& config) {
-  config.staticMplsRoutesWithNhops_ref()->resize(1);
-  config.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = kTopLabel;
+  config.staticMplsRoutesWithNhops()->resize(1);
+  config.staticMplsRoutesWithNhops()[0].ingressLabel() = kTopLabel;
   std::vector<NextHopThrift> nexthops;
   nexthops.resize(1);
   MplsAction swap;
-  swap.action_ref() = MplsActionCode::SWAP;
-  swap.swapLabel_ref() = 101;
-  nexthops[0].mplsAction_ref() = swap;
-  nexthops[0].address_ref() =
-      network::toBinaryAddress(folly::IPAddress("1::2"));
-  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref() = nexthops;
+  swap.action() = MplsActionCode::SWAP;
+  swap.swapLabel() = 101;
+  nexthops[0].mplsAction() = swap;
+  nexthops[0].address() = network::toBinaryAddress(folly::IPAddress("1::2"));
+  config.staticMplsRoutesWithNhops()[0].nexthops() = nexthops;
 }
 
 /*

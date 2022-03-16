@@ -29,15 +29,15 @@ void HwTransceiverTest::SetUp() {
         isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
   } else {
     auto portMap = std::make_unique<WedgeManager::PortMap>();
-    auto& swConfig = *agentConfig->thrift.sw_ref();
-    for (auto& port : *swConfig.ports_ref()) {
-      if (*port.state_ref() != cfg::PortState::ENABLED) {
+    auto& swConfig = *agentConfig->thrift.sw();
+    for (auto& port : *swConfig.ports()) {
+      if (*port.state() != cfg::PortState::ENABLED) {
         continue;
       }
-      auto portId = *port.logicalID_ref();
+      auto portId = *port.logicalID();
       auto portStatus =
           utility::getPortStatus(PortID(portId), getHwQsfpEnsemble());
-      portStatus.up_ref() = isPortUp_;
+      portStatus.up() = isPortUp_;
       portMap->emplace(portId, portStatus);
     }
     std::map<int32_t, TransceiverInfo> transceivers;

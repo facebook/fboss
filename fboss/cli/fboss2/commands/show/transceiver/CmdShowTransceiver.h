@@ -161,7 +161,7 @@ class CmdShowTransceiver
       std::map<int, PortStatus> portStatusEntries) const {
     std::vector<int32_t> requiredTransceiverEntries;
     for (const auto& portStatusItr : portStatusEntries) {
-      if (auto tidx = portStatusItr.second.transceiverIdx_ref()) {
+      if (auto tidx = portStatusItr.second.transceiverIdx()) {
         requiredTransceiverEntries.push_back(tidx->get_transceiverId());
       }
     }
@@ -181,19 +181,19 @@ class CmdShowTransceiver
     // TODO: sort here?
     for (const auto& [portId, portEntry] : portStatusEntries) {
       cli::TransceiverDetail details;
-      details.name_ref() = portEntries[portId].get_name();
+      details.name() = portEntries[portId].get_name();
       const auto transceiverId =
-          portEntry.transceiverIdx_ref()->get_transceiverId();
+          portEntry.transceiverIdx()->get_transceiverId();
       const auto& transceiver = transceiverEntries[transceiverId];
-      details.isUp_ref() = portEntry.get_up();
-      details.isPresent_ref() = transceiver.get_present();
-      if (const auto& vendor = transceiver.vendor_ref()) {
-        details.vendor_ref() = vendor->get_name();
-        details.serial_ref() = vendor->get_serialNumber();
-        details.partNumber_ref() = vendor->get_partNumber();
-        details.temperature_ref() =
+      details.isUp() = portEntry.get_up();
+      details.isPresent() = transceiver.get_present();
+      if (const auto& vendor = transceiver.vendor()) {
+        details.vendor() = vendor->get_name();
+        details.serial() = vendor->get_serialNumber();
+        details.partNumber() = vendor->get_partNumber();
+        details.temperature() =
             transceiver.get_sensor()->get_temp().get_value();
-        details.voltage_ref() = transceiver.get_sensor()->get_vcc().get_value();
+        details.voltage() = transceiver.get_sensor()->get_vcc().get_value();
 
         std::vector<double> current;
         std::vector<double> txPower;
@@ -203,16 +203,16 @@ class CmdShowTransceiver
           current.push_back(channel.get_sensors().get_txBias().get_value());
           txPower.push_back(channel.get_sensors().get_txPwrdBm()->get_value());
           rxPower.push_back(channel.get_sensors().get_rxPwrdBm()->get_value());
-          if (const auto& snr = channel.get_sensors().rxSnr_ref()) {
+          if (const auto& snr = channel.get_sensors().rxSnr()) {
             rxSnr.push_back(snr->get_value());
           }
         }
-        details.currentMA_ref() = current;
-        details.txPower_ref() = txPower;
-        details.rxPower_ref() = rxPower;
-        details.rxSnr_ref() = rxSnr;
+        details.currentMA() = current;
+        details.txPower() = txPower;
+        details.rxPower() = rxPower;
+        details.rxSnr() = rxSnr;
       }
-      model.transceivers_ref()->emplace(portId, std::move(details));
+      model.transceivers()->emplace(portId, std::move(details));
     }
 
     return model;

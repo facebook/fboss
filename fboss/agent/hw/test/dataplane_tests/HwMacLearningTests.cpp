@@ -62,9 +62,9 @@ getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
   std::vector<L2EntryThrift> l2Entries;
   hw->fetchL2Table(&l2Entries);
   for (auto& l2Entry : l2Entries) {
-    if ((isTrunk && l2Entry.trunk_ref().value_or({}) == port) ||
-        *l2Entry.port_ref() == port) {
-      macs.insert(folly::MacAddress(*l2Entry.mac_ref()));
+    if ((isTrunk && l2Entry.trunk().value_or({}) == port) ||
+        *l2Entry.port() == port) {
+      macs.insert(folly::MacAddress(*l2Entry.mac()));
     }
   }
   return macs;
@@ -102,7 +102,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   void sendPkt(MacAddress srcMac = kSourceMac()) {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts()[0].vlanID()),
         srcMac,
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
@@ -162,8 +162,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
     EXPECT_EQ(l2Entry.getMac(), expectedMac);
     EXPECT_EQ(
-        l2Entry.getVlanID(),
-        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()));
+        l2Entry.getVlanID(), VlanID(*initialConfig().vlanPorts()[0].vlanID()));
     EXPECT_EQ(l2Entry.getPort(), portDescr);
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
@@ -183,10 +182,10 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       cfg::L2LearningMode l2LearningMode,
       PortDescriptor portDescr) {
     auto newCfg{initialConfig()};
-    *newCfg.switchSettings_ref()->l2LearningMode_ref() = l2LearningMode;
+    *newCfg.switchSettings()->l2LearningMode() = l2LearningMode;
 
     if (portDescr.isAggregatePort()) {
-      utility::findCfgPort(newCfg, masterLogicalPortIds()[0])->state_ref() =
+      utility::findCfgPort(newCfg, masterLogicalPortIds()[0])->state() =
           cfg::PortState::ENABLED;
       addAggPort(
           std::numeric_limits<AggregatePortID>::max(),
@@ -346,7 +345,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   VlanID kVlanID() {
-    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    return VlanID(*initialConfig().vlanPorts()[0].vlanID());
   }
   HwTestLearningUpdateObserver l2LearningObserver_;
 
@@ -357,7 +356,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts()[0].vlanID()),
         kSourceMac2(),
         mac,
         ETHERTYPE::ETHERTYPE_LLDP);
@@ -367,8 +366,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
 
     bringDownPort(masterLogicalPortIds()[1]);
-    auto newPortBytes =
-        *newPortStats.outBytes__ref() - *origPortStats.outBytes__ref();
+    auto newPortBytes = *newPortStats.outBytes_() - *origPortStats.outBytes_();
     // If MAC should have been learnt then we should get no traffic on
     // masterLogicalPortIds[1], otherwise we should see flooding and
     // non zero bytes on masterLogicalPortIds[1]
@@ -376,7 +374,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   bool wasMacLearntInSwitchState(bool shouldExist, MacAddress mac) const {
-    auto vlanID = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanID = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto state = getProgrammedState();
     auto vlan = state->getVlans()->getVlanIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
@@ -401,8 +399,7 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
         cfg::PortLoopbackMode::MAC);
-    cfg.switchSettings_ref()->l2LearningMode_ref() =
-        cfg::L2LearningMode::SOFTWARE;
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }
 
@@ -606,7 +603,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
       auto portStatsBefore =
           getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
       auto sendRoutedPkt = [this]() {
-        auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+        auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
         auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
         auto txPacket = utility::makeIpTxPacket(
             getHwSwitch(),
@@ -625,8 +622,8 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
             auto oldPortStats = portStatsBefore[masterLogicalPortIds()[0]];
             auto newPortStats =
                 portStatsAfter.find(masterLogicalPortIds()[0])->second;
-            auto oldOutBytes = *oldPortStats.outBytes__ref();
-            auto newOutBytes = *newPortStats.outBytes__ref();
+            auto oldOutBytes = *oldPortStats.outBytes_();
+            auto newOutBytes = *newPortStats.outBytes_();
             XLOG(INFO) << " Port Id: " << masterLogicalPortIds()[0]
                        << " Old out bytes: " << oldOutBytes
                        << " New out bytes: " << newOutBytes
@@ -797,15 +794,14 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
         cfg::PortLoopbackMode::MAC);
-    cfg.switchSettings_ref()->l2LearningMode_ref() =
-        cfg::L2LearningMode::SOFTWARE;
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }
 
   void sendPkt2() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts()[0].vlanID()),
         kSourceMac(),
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
@@ -1031,7 +1027,7 @@ class HwMacLearningBatchEntriesTest : public HwMacLearningTest {
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
     // Send packets to macs which are expected to have been learned now
     sendL2Pkts(
-        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        *initialConfig().vlanPorts()[0].vlanID(),
         std::nullopt,
         {kSourceMac()},
         macs);
@@ -1040,7 +1036,7 @@ class HwMacLearningBatchEntriesTest : public HwMacLearningTest {
     // All packets should have gone through masterLogicalPortIds()[0], port
     // on which macs were learnt and none through any other port in the same
     // VLAN. This lack of broadcast confirms MAC learning.
-    EXPECT_EQ(*curPortStats.outBytes__ref(), *origPortStats.outBytes__ref());
+    EXPECT_EQ(*curPortStats.outBytes_(), *origPortStats.outBytes_());
     bringDownPort(masterLogicalPortIds()[1]);
   }
 };
@@ -1060,7 +1056,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningScale) {
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     sendL2Pkts(
-        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        *initialConfig().vlanPorts()[0].vlanID(),
         masterLogicalPortIds()[0],
         macs,
         {folly::MacAddress::BROADCAST},
@@ -1090,7 +1086,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacAgingScale) {
     // First we disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     sendL2Pkts(
-        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        *initialConfig().vlanPorts()[0].vlanID(),
         masterLogicalPortIds()[0],
         macs,
         {folly::MacAddress::BROADCAST},
@@ -1163,7 +1159,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningAgingReleaseResource) {
       // First we disable aging, so entry stays in L2 table when we verify.
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       sendL2Pkts(
-          *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+          *initialConfig().vlanPorts()[0].vlanID(),
           masterLogicalPortIds()[0],
           macs,
           {folly::MacAddress::BROADCAST},
@@ -1258,7 +1254,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningUpdateExistingL2Entry) {
       bringDownPort(downPortID);
 
       sendL2Pkts(
-          *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+          *initialConfig().vlanPorts()[0].vlanID(),
           upPortID,
           macs,
           {folly::MacAddress::BROADCAST},
@@ -1277,7 +1273,7 @@ TEST_F(HwMacLearningBatchEntriesTest, VerifyMacLearningUpdateExistingL2Entry) {
 
     // Add an extra mac
     sendL2Pkts(
-        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        *initialConfig().vlanPorts()[0].vlanID(),
         masterLogicalPortIds()[0],
         {extraMac},
         {folly::MacAddress::BROADCAST},

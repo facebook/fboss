@@ -21,9 +21,9 @@ template <typename IPADDR>
 state::NeighborResponseEntryFields
 NeighborResponseEntryFields<IPADDR>::toThrift() const {
   state::NeighborResponseEntryFields entryTh;
-  entryTh.ipAddress_ref() = ipAddress.str();
-  entryTh.mac_ref() = mac.toString();
-  entryTh.interfaceId_ref() = static_cast<uint32_t>(interfaceID);
+  entryTh.ipAddress() = ipAddress.str();
+  entryTh.mac() = mac.toString();
+  entryTh.interfaceId() = static_cast<uint32_t>(interfaceID);
   return entryTh;
 }
 

@@ -26,58 +26,56 @@ const RouterID kRid0(0);
 
 cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   cfg::SwitchConfig config;
-  config.vlans_ref()->resize(2);
-  config.vlans_ref()[0].id_ref() = 1;
-  config.vlans_ref()[1].id_ref() = 2;
+  config.vlans()->resize(2);
+  config.vlans()[0].id() = 1;
+  config.vlans()[1].id() = 2;
 
-  config.interfaces_ref()->resize(2);
-  config.interfaces_ref()[0].intfID_ref() = 1;
-  config.interfaces_ref()[0].vlanID_ref() = 1;
-  config.interfaces_ref()[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::1/48";
-  config.interfaces_ref()[1].intfID_ref() = 2;
-  config.interfaces_ref()[1].vlanID_ref() = 2;
-  config.interfaces_ref()[1].routerID_ref() = 0;
-  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
-  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
-  config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/48";
+  config.interfaces()->resize(2);
+  config.interfaces()[0].intfID() = 1;
+  config.interfaces()[0].vlanID() = 1;
+  config.interfaces()[0].routerID() = 0;
+  config.interfaces()[0].mac() = "00:00:00:00:00:11";
+  config.interfaces()[0].ipAddresses()->resize(2);
+  config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
+  config.interfaces()[0].ipAddresses()[1] = "1::1/48";
+  config.interfaces()[1].intfID() = 2;
+  config.interfaces()[1].vlanID() = 2;
+  config.interfaces()[1].routerID() = 0;
+  config.interfaces()[1].mac() = "00:00:00:00:00:22";
+  config.interfaces()[1].ipAddresses()->resize(2);
+  config.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
+  config.interfaces()[1].ipAddresses()[1] = "2::1/48";
 
-  config.staticRoutesWithNhops_ref()->resize(4);
-  config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[0].prefix_ref() = "2001::/64";
-  config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "2::2";
-  config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[1].prefix_ref() = "20.20.20.0/24";
-  config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.3";
+  config.staticRoutesWithNhops()->resize(4);
+  config.staticRoutesWithNhops()[0].nexthops()->resize(1);
+  config.staticRoutesWithNhops()[0].prefix() = "2001::/64";
+  config.staticRoutesWithNhops()[0].nexthops()[0] = "2::2";
+  config.staticRoutesWithNhops()[1].nexthops()->resize(1);
+  config.staticRoutesWithNhops()[1].prefix() = "20.20.20.0/24";
+  config.staticRoutesWithNhops()[1].nexthops()[0] = "2.2.2.3";
   // Unresolved routes - circular reference via nhops
-  config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[2].prefix_ref() = "3::1/64";
-  config.staticRoutesWithNhops_ref()[2].nexthops_ref()[0] = "2001::1";
-  config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
-  config.staticRoutesWithNhops_ref()[3].prefix_ref() = "2001::1/64";
-  config.staticRoutesWithNhops_ref()[3].nexthops_ref()[0] = "3::1";
+  config.staticRoutesWithNhops()[2].nexthops()->resize(1);
+  config.staticRoutesWithNhops()[2].prefix() = "3::1/64";
+  config.staticRoutesWithNhops()[2].nexthops()[0] = "2001::1";
+  config.staticRoutesWithNhops()[3].nexthops()->resize(1);
+  config.staticRoutesWithNhops()[3].prefix() = "2001::1/64";
+  config.staticRoutesWithNhops()[3].nexthops()[0] = "3::1";
 
-  config.staticMplsRoutesWithNhops_ref()->resize(2);
-  config.staticMplsRoutesWithNhops_ref()[0].ingressLabel_ref() = 100;
-  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
-  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()[0].address_ref() =
+  config.staticMplsRoutesWithNhops()->resize(2);
+  config.staticMplsRoutesWithNhops()[0].ingressLabel() = 100;
+  config.staticMplsRoutesWithNhops()[0].nexthops()->resize(1);
+  config.staticMplsRoutesWithNhops()[0].nexthops()[0].address() =
       facebook::network::toBinaryAddress(folly::IPAddress("2::2"));
   MplsAction swap;
-  swap.action_ref() = MplsActionCode::SWAP;
-  swap.swapLabel_ref() = 101;
-  config.staticMplsRoutesWithNhops_ref()[0].nexthops_ref()[0].mplsAction_ref() =
-      swap;
+  swap.action() = MplsActionCode::SWAP;
+  swap.swapLabel() = 101;
+  config.staticMplsRoutesWithNhops()[0].nexthops()[0].mplsAction() = swap;
   // Unresolved route
-  config.staticMplsRoutesWithNhops_ref()[1].ingressLabel_ref() = 101;
-  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
-  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()[0].address_ref() =
+  config.staticMplsRoutesWithNhops()[1].ingressLabel() = 101;
+  config.staticMplsRoutesWithNhops()[1].nexthops()->resize(1);
+  config.staticMplsRoutesWithNhops()[1].nexthops()[0].address() =
       facebook::network::toBinaryAddress(folly::IPAddress("3::2"));
-  config.staticMplsRoutesWithNhops_ref()[1].nexthops_ref()[0].mplsAction_ref() =
-      swap;
+  config.staticMplsRoutesWithNhops()[1].nexthops()[0].mplsAction() = swap;
 
   return config;
 }

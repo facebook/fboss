@@ -155,8 +155,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         ", profile:",
         apache::thrift::util::enumNameSafe(swPort->getProfileID()));
   }
-  phy::FecMode fecMode = lineSide ? *swPort->getLineProfileConfig()->fec_ref()
-                                  : *swPort->getProfileConfig().fec_ref();
+  phy::FecMode fecMode = lineSide ? *swPort->getLineProfileConfig()->fec()
+                                  : *swPort->getProfileConfig().fec();
 
   // Now use pinConfigs from SW port as the source of truth
   // TODO: Support programming dynamic tx_settings
@@ -171,7 +171,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   const auto& pinCfgs =
       lineSide ? *swPort->getLinePinConfigs() : swPort->getPinConfigs();
   for (const auto& pinCfg : pinCfgs) {
-    laneList.push_back(*pinCfg.id_ref()->lane_ref());
+    laneList.push_back(*pinCfg.id()->lane());
   }
 
   return SaiPortTraits::CreateAttributes {

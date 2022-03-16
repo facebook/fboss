@@ -23,13 +23,13 @@ class HwSflowTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     // add a default reason to queue mapping if there are none in the config
-    if (!cfg.cpuTrafficPolicy_ref()) {
-      cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+    if (!cfg.cpuTrafficPolicy()) {
+      cfg.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
     }
-    if (!cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref()) {
-      cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() = {};
+    if (!cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+      cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {};
     }
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref()->push_back(
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->push_back(
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::UNMATCHED, utility::kCoppDefaultPriQueueId));
     return cfg;
@@ -71,10 +71,10 @@ class HwSflowTest : public HwLinkStateDependentTest {
       // a sampling rate to 10% and send a 100 packets. Slightly more than
       // 10 packets will be sampled.
       auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
-      portCfg->sFlowIngressRate_ref() = enableSflow ? 1 : 0;
+      portCfg->sFlowIngressRate() = enableSflow ? 1 : 0;
       if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::EGRESS_SFLOW)) {
-        portCfg->sFlowEgressRate_ref() = enableSflow ? 1 : 0;
+        portCfg->sFlowEgressRate() = enableSflow ? 1 : 0;
       }
       applyNewConfig(cfg);
       utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());

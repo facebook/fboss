@@ -38,7 +38,7 @@ class HwPtpTcTest : public HwLinkStateDependentTest {
   }
 
   void setPtpTc(const bool val) {
-    cfg_.switchSettings_ref()->ptpTcEnable_ref() = val;
+    cfg_.switchSettings()->ptpTcEnable() = val;
     applyNewConfig(cfg_);
   }
 

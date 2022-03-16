@@ -148,7 +148,7 @@ void SaiPhyManager::addSaiPlatform(
 }
 
 void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
-  auto portId = getPortId(*sak.l2Port_ref());
+  auto portId = getPortId(*sak.l2Port());
   auto saiPlatform = getSaiPlatform(portId);
   auto updateFn = [saiPlatform, portId, this, &sak](
                       std::shared_ptr<SwitchState> in) {
@@ -156,38 +156,38 @@ void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
         in, portId, saiPlatform, [&sak](auto& port) { port->setTxSak(sak); });
   };
   getPlatformInfo(portId)->applyUpdate(
-      folly::sformat("Add SAK tx for : {}", *sak.l2Port_ref()), updateFn);
+      folly::sformat("Add SAK tx for : {}", *sak.l2Port()), updateFn);
 }
 
 void SaiPhyManager::sakInstallRx(
     const mka::MKASak& sak,
     const mka::MKASci& sci) {
-  auto portId = getPortId(*sak.l2Port_ref());
+  auto portId = getPortId(*sak.l2Port());
   auto saiPlatform = getSaiPlatform(portId);
   auto updateFn = [saiPlatform, portId, this, &sak, &sci](
                       std::shared_ptr<SwitchState> in) {
     return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
       auto rxSaks = port->getRxSaks();
-      PortFields::MKASakKey key{sci, *sak.assocNum_ref()};
+      PortFields::MKASakKey key{sci, *sak.assocNum()};
       rxSaks.erase(key);
       rxSaks.emplace(std::make_pair(key, sak));
       port->setRxSaks(rxSaks);
     });
   };
   getPlatformInfo(portId)->applyUpdate(
-      folly::sformat("Add SAK rx for : {}", *sak.l2Port_ref()), updateFn);
+      folly::sformat("Add SAK rx for : {}", *sak.l2Port()), updateFn);
 }
 
 void SaiPhyManager::sakDeleteRx(
     const mka::MKASak& sak,
     const mka::MKASci& sci) {
-  auto portId = getPortId(*sak.l2Port_ref());
+  auto portId = getPortId(*sak.l2Port());
   auto saiPlatform = getSaiPlatform(portId);
   auto updateFn = [saiPlatform, portId, this, &sak, &sci](
                       std::shared_ptr<SwitchState> in) {
     return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
       auto rxSaks = port->getRxSaks();
-      PortFields::MKASakKey key{sci, *sak.assocNum_ref()};
+      PortFields::MKASakKey key{sci, *sak.assocNum()};
       auto it = rxSaks.find(key);
       if (it != rxSaks.end() && it->second == sak) {
         rxSaks.erase(key);
@@ -196,11 +196,11 @@ void SaiPhyManager::sakDeleteRx(
     });
   };
   getPlatformInfo(portId)->applyUpdate(
-      folly::sformat("Delete SAK rx for : {}", *sak.l2Port_ref()), updateFn);
+      folly::sformat("Delete SAK rx for : {}", *sak.l2Port()), updateFn);
 }
 
 void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
-  auto portId = getPortId(*sak.l2Port_ref());
+  auto portId = getPortId(*sak.l2Port());
   auto saiPlatform = getSaiPlatform(portId);
   auto updateFn =
       [portId, saiPlatform, this, &sak](std::shared_ptr<SwitchState> in) {
@@ -211,14 +211,14 @@ void SaiPhyManager::sakDelete(const mka::MKASak& sak) {
         });
       };
   getPlatformInfo(portId)->applyUpdate(
-      folly::sformat("Delete SAK tx for : {}", *sak.l2Port_ref()), updateFn);
+      folly::sformat("Delete SAK tx for : {}", *sak.l2Port()), updateFn);
 }
 
 mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
     const mka::MKASak sak) const {
-  auto portId = getPortId(*sak.l2Port_ref());
+  auto portId = getPortId(*sak.l2Port());
   mka::MKASakHealthResponse health;
-  health.active_ref() = false;
+  health.active() = false;
   bool rxActive{false}, txActive{false};
   auto switchState = getPlatformInfo(portId)->getState();
   auto port = switchState->getPorts()->getPortIf(portId);
@@ -231,20 +231,19 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
       }
     }
   }
-  health.active_ref() = txActive && rxActive;
-  health.lowestAcceptablePN_ref() = 1;
-  if (*health.active_ref()) {
-    auto macsecStats = getMacsecStats(*sak.l2Port_ref());
+  health.active() = txActive && rxActive;
+  health.lowestAcceptablePN() = 1;
+  if (*health.active()) {
+    auto macsecStats = getMacsecStats(*sak.l2Port());
     mka::MKASecureAssociationId saId;
-    saId.sci_ref() = *sak.sci_ref();
-    saId.assocNum_ref() = *sak.assocNum_ref();
+    saId.sci() = *sak.sci();
+    saId.assocNum() = *sak.assocNum();
     // Find the saStats for this sa
-    for (auto& txSaStats : macsecStats.txSecureAssociationStats_ref().value()) {
-      if (txSaStats.saId_ref()->sci_ref().value() == sak.sci_ref().value() &&
-          txSaStats.saId_ref()->assocNum_ref().value() ==
-              sak.assocNum_ref().value()) {
-        health.lowestAcceptablePN_ref() =
-            txSaStats.saStats_ref()->outEncryptedPkts_ref().value();
+    for (auto& txSaStats : macsecStats.txSecureAssociationStats().value()) {
+      if (txSaStats.saId()->sci().value() == sak.sci().value() &&
+          txSaStats.saId()->assocNum().value() == sak.assocNum().value()) {
+        health.lowestAcceptablePN() =
+            txSaStats.saStats()->outEncryptedPkts().value();
         break;
       }
     }
@@ -290,8 +289,7 @@ PortID SaiPhyManager::getPortId(std::string portName) const {
   }
   auto platPorts = getPlatformMapping()->getPlatformPorts();
   for (const auto& pair : platPorts) {
-    if (folly::to<std::string>(*pair.second.mapping_ref()->name_ref()) ==
-        portName) {
+    if (folly::to<std::string>(*pair.second.mapping()->name()) == portName) {
       return PortID(pair.first);
     }
   }
@@ -464,8 +462,7 @@ MacsecStats SaiPhyManager::getMacsecStats(const std::string& portName) const {
   auto pName =
       folly::tryTo<int>(portName).hasValue() ? getPortName(portId) : portName;
   auto hwPortStats = saiSwitch->getPortStats()[pName];
-  return hwPortStats.macsecStats_ref() ? *hwPortStats.macsecStats_ref()
-                                       : MacsecStats{};
+  return hwPortStats.macsecStats() ? *hwPortStats.macsecStats() : MacsecStats{};
 }
 
 /*
@@ -500,8 +497,8 @@ std::map<std::string, MacsecStats> SaiPhyManager::getAllMacsecPortStats(
       auto xphyPortStats = saiSwitch->getPortStats();
       for (auto& statsItr : xphyPortStats) {
         phyPortStatsMap[statsItr.first] =
-            statsItr.second.macsecStats_ref().has_value()
-            ? statsItr.second.macsecStats_ref().value()
+            statsItr.second.macsecStats().has_value()
+            ? statsItr.second.macsecStats().value()
             : MacsecStats{};
       }
     }
@@ -531,8 +528,8 @@ mka::MacsecPortStats SaiPhyManager::getMacsecPortStats(
     bool readFromHw) {
   auto macsecStats = getMacsecStats(portName, readFromHw);
   return direction == mka::MacsecDirection::INGRESS
-      ? *macsecStats.ingressPortStats_ref()
-      : *macsecStats.egressPortStats_ref();
+      ? *macsecStats.ingressPortStats()
+      : *macsecStats.egressPortStats();
 }
 
 mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
@@ -546,73 +543,66 @@ mka::MacsecFlowStats SaiPhyManager::getMacsecFlowStats(
       -> mka::MacsecFlowStats {
     mka::MacsecFlowStats returnFlowStats{};
     for (auto& singleFlowStat : sciFlowStats) {
-      returnFlowStats.directionIngress_ref() =
-          singleFlowStat.flowStats_ref()->directionIngress_ref().value();
-      returnFlowStats.ucastUncontrolledPkts_ref() =
-          returnFlowStats.ucastUncontrolledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->ucastUncontrolledPkts_ref().value();
-      returnFlowStats.ucastControlledPkts_ref() =
-          returnFlowStats.ucastControlledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->ucastControlledPkts_ref().value();
-      returnFlowStats.mcastUncontrolledPkts_ref() =
-          returnFlowStats.mcastUncontrolledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->mcastUncontrolledPkts_ref().value();
-      returnFlowStats.mcastControlledPkts_ref() =
-          returnFlowStats.mcastControlledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->mcastControlledPkts_ref().value();
-      returnFlowStats.bcastUncontrolledPkts_ref() =
-          returnFlowStats.bcastUncontrolledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->bcastUncontrolledPkts_ref().value();
-      returnFlowStats.bcastControlledPkts_ref() =
-          returnFlowStats.bcastControlledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->bcastControlledPkts_ref().value();
-      returnFlowStats.controlPkts_ref() =
-          returnFlowStats.controlPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->controlPkts_ref().value();
-      returnFlowStats.untaggedPkts_ref() =
-          returnFlowStats.untaggedPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->untaggedPkts_ref().value();
-      returnFlowStats.otherErrPkts_ref() =
-          returnFlowStats.otherErrPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->otherErrPkts_ref().value();
-      returnFlowStats.octetsUncontrolled_ref() =
-          returnFlowStats.octetsUncontrolled_ref().value() +
-          singleFlowStat.flowStats_ref()->octetsUncontrolled_ref().value();
-      returnFlowStats.octetsControlled_ref() =
-          returnFlowStats.octetsControlled_ref().value() +
-          singleFlowStat.flowStats_ref()->octetsControlled_ref().value();
-      returnFlowStats.outCommonOctets_ref() =
-          returnFlowStats.outCommonOctets_ref().value() +
-          singleFlowStat.flowStats_ref()->outCommonOctets_ref().value();
-      returnFlowStats.outTooLongPkts_ref() =
-          returnFlowStats.outTooLongPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->outTooLongPkts_ref().value();
-      returnFlowStats.inTaggedControlledPkts_ref() =
-          returnFlowStats.inTaggedControlledPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->inTaggedControlledPkts_ref().value();
-      returnFlowStats.inNoTagPkts_ref() =
-          returnFlowStats.inNoTagPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->inNoTagPkts_ref().value();
-      returnFlowStats.inBadTagPkts_ref() =
-          returnFlowStats.inBadTagPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->inBadTagPkts_ref().value();
-      returnFlowStats.noSciPkts_ref() =
-          returnFlowStats.noSciPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->noSciPkts_ref().value();
-      returnFlowStats.unknownSciPkts_ref() =
-          returnFlowStats.unknownSciPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->unknownSciPkts_ref().value();
-      returnFlowStats.overrunPkts_ref() =
-          returnFlowStats.overrunPkts_ref().value() +
-          singleFlowStat.flowStats_ref()->overrunPkts_ref().value();
+      returnFlowStats.directionIngress() =
+          singleFlowStat.flowStats()->directionIngress().value();
+      returnFlowStats.ucastUncontrolledPkts() =
+          returnFlowStats.ucastUncontrolledPkts().value() +
+          singleFlowStat.flowStats()->ucastUncontrolledPkts().value();
+      returnFlowStats.ucastControlledPkts() =
+          returnFlowStats.ucastControlledPkts().value() +
+          singleFlowStat.flowStats()->ucastControlledPkts().value();
+      returnFlowStats.mcastUncontrolledPkts() =
+          returnFlowStats.mcastUncontrolledPkts().value() +
+          singleFlowStat.flowStats()->mcastUncontrolledPkts().value();
+      returnFlowStats.mcastControlledPkts() =
+          returnFlowStats.mcastControlledPkts().value() +
+          singleFlowStat.flowStats()->mcastControlledPkts().value();
+      returnFlowStats.bcastUncontrolledPkts() =
+          returnFlowStats.bcastUncontrolledPkts().value() +
+          singleFlowStat.flowStats()->bcastUncontrolledPkts().value();
+      returnFlowStats.bcastControlledPkts() =
+          returnFlowStats.bcastControlledPkts().value() +
+          singleFlowStat.flowStats()->bcastControlledPkts().value();
+      returnFlowStats.controlPkts() = returnFlowStats.controlPkts().value() +
+          singleFlowStat.flowStats()->controlPkts().value();
+      returnFlowStats.untaggedPkts() = returnFlowStats.untaggedPkts().value() +
+          singleFlowStat.flowStats()->untaggedPkts().value();
+      returnFlowStats.otherErrPkts() = returnFlowStats.otherErrPkts().value() +
+          singleFlowStat.flowStats()->otherErrPkts().value();
+      returnFlowStats.octetsUncontrolled() =
+          returnFlowStats.octetsUncontrolled().value() +
+          singleFlowStat.flowStats()->octetsUncontrolled().value();
+      returnFlowStats.octetsControlled() =
+          returnFlowStats.octetsControlled().value() +
+          singleFlowStat.flowStats()->octetsControlled().value();
+      returnFlowStats.outCommonOctets() =
+          returnFlowStats.outCommonOctets().value() +
+          singleFlowStat.flowStats()->outCommonOctets().value();
+      returnFlowStats.outTooLongPkts() =
+          returnFlowStats.outTooLongPkts().value() +
+          singleFlowStat.flowStats()->outTooLongPkts().value();
+      returnFlowStats.inTaggedControlledPkts() =
+          returnFlowStats.inTaggedControlledPkts().value() +
+          singleFlowStat.flowStats()->inTaggedControlledPkts().value();
+      returnFlowStats.inNoTagPkts() = returnFlowStats.inNoTagPkts().value() +
+          singleFlowStat.flowStats()->inNoTagPkts().value();
+      returnFlowStats.inBadTagPkts() = returnFlowStats.inBadTagPkts().value() +
+          singleFlowStat.flowStats()->inBadTagPkts().value();
+      returnFlowStats.noSciPkts() = returnFlowStats.noSciPkts().value() +
+          singleFlowStat.flowStats()->noSciPkts().value();
+      returnFlowStats.unknownSciPkts() =
+          returnFlowStats.unknownSciPkts().value() +
+          singleFlowStat.flowStats()->unknownSciPkts().value();
+      returnFlowStats.overrunPkts() = returnFlowStats.overrunPkts().value() +
+          singleFlowStat.flowStats()->overrunPkts().value();
     }
     return returnFlowStats;
   };
 
   if (direction == mka::MacsecDirection::INGRESS) {
-    return sumFlowStats(macsecStats.ingressFlowStats_ref().value());
+    return sumFlowStats(macsecStats.ingressFlowStats().value());
   } else {
-    return sumFlowStats(macsecStats.egressFlowStats_ref().value());
+    return sumFlowStats(macsecStats.egressFlowStats().value());
   }
 }
 
@@ -627,49 +617,45 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
       [](std::vector<MacsecSaIdSaStats>& saIdSaStats) -> mka::MacsecSaStats {
     mka::MacsecSaStats returnSaStats{};
     for (auto& singleSaStat : saIdSaStats) {
-      returnSaStats.directionIngress_ref() =
-          singleSaStat.saStats_ref()->directionIngress_ref().value();
-      returnSaStats.octetsEncrypted_ref() =
-          returnSaStats.octetsEncrypted_ref().value() +
-          singleSaStat.saStats_ref()->octetsEncrypted_ref().value();
-      returnSaStats.octetsProtected_ref() =
-          returnSaStats.octetsProtected_ref().value() +
-          singleSaStat.saStats_ref()->octetsProtected_ref().value();
-      returnSaStats.outEncryptedPkts_ref() =
-          returnSaStats.outEncryptedPkts_ref().value() +
-          singleSaStat.saStats_ref()->outEncryptedPkts_ref().value();
-      returnSaStats.outProtectedPkts_ref() =
-          returnSaStats.outProtectedPkts_ref().value() +
-          singleSaStat.saStats_ref()->outProtectedPkts_ref().value();
-      returnSaStats.inUncheckedPkts_ref() =
-          returnSaStats.inUncheckedPkts_ref().value() +
-          singleSaStat.saStats_ref()->inUncheckedPkts_ref().value();
-      returnSaStats.inDelayedPkts_ref() =
-          returnSaStats.inDelayedPkts_ref().value() +
-          singleSaStat.saStats_ref()->inDelayedPkts_ref().value();
-      returnSaStats.inLatePkts_ref() = returnSaStats.inLatePkts_ref().value() +
-          singleSaStat.saStats_ref()->inLatePkts_ref().value();
-      returnSaStats.inInvalidPkts_ref() =
-          returnSaStats.inInvalidPkts_ref().value() +
-          singleSaStat.saStats_ref()->inInvalidPkts_ref().value();
-      returnSaStats.inNotValidPkts_ref() =
-          returnSaStats.inNotValidPkts_ref().value() +
-          singleSaStat.saStats_ref()->inNotValidPkts_ref().value();
-      returnSaStats.inNoSaPkts_ref() = returnSaStats.inNoSaPkts_ref().value() +
-          singleSaStat.saStats_ref()->inNoSaPkts_ref().value();
-      returnSaStats.inUnusedSaPkts_ref() =
-          returnSaStats.inUnusedSaPkts_ref().value() +
-          singleSaStat.saStats_ref()->inUnusedSaPkts_ref().value();
-      returnSaStats.inOkPkts_ref() = returnSaStats.inOkPkts_ref().value() +
-          singleSaStat.saStats_ref()->inOkPkts_ref().value();
+      returnSaStats.directionIngress() =
+          singleSaStat.saStats()->directionIngress().value();
+      returnSaStats.octetsEncrypted() =
+          returnSaStats.octetsEncrypted().value() +
+          singleSaStat.saStats()->octetsEncrypted().value();
+      returnSaStats.octetsProtected() =
+          returnSaStats.octetsProtected().value() +
+          singleSaStat.saStats()->octetsProtected().value();
+      returnSaStats.outEncryptedPkts() =
+          returnSaStats.outEncryptedPkts().value() +
+          singleSaStat.saStats()->outEncryptedPkts().value();
+      returnSaStats.outProtectedPkts() =
+          returnSaStats.outProtectedPkts().value() +
+          singleSaStat.saStats()->outProtectedPkts().value();
+      returnSaStats.inUncheckedPkts() =
+          returnSaStats.inUncheckedPkts().value() +
+          singleSaStat.saStats()->inUncheckedPkts().value();
+      returnSaStats.inDelayedPkts() = returnSaStats.inDelayedPkts().value() +
+          singleSaStat.saStats()->inDelayedPkts().value();
+      returnSaStats.inLatePkts() = returnSaStats.inLatePkts().value() +
+          singleSaStat.saStats()->inLatePkts().value();
+      returnSaStats.inInvalidPkts() = returnSaStats.inInvalidPkts().value() +
+          singleSaStat.saStats()->inInvalidPkts().value();
+      returnSaStats.inNotValidPkts() = returnSaStats.inNotValidPkts().value() +
+          singleSaStat.saStats()->inNotValidPkts().value();
+      returnSaStats.inNoSaPkts() = returnSaStats.inNoSaPkts().value() +
+          singleSaStat.saStats()->inNoSaPkts().value();
+      returnSaStats.inUnusedSaPkts() = returnSaStats.inUnusedSaPkts().value() +
+          singleSaStat.saStats()->inUnusedSaPkts().value();
+      returnSaStats.inOkPkts() = returnSaStats.inOkPkts().value() +
+          singleSaStat.saStats()->inOkPkts().value();
     }
     return returnSaStats;
   };
 
   if (direction == mka::MacsecDirection::INGRESS) {
-    return sumSaStats(macsecStats.rxSecureAssociationStats_ref().value());
+    return sumSaStats(macsecStats.rxSecureAssociationStats().value());
   } else {
-    return sumSaStats(macsecStats.txSecureAssociationStats_ref().value());
+    return sumSaStats(macsecStats.txSecureAssociationStats().value());
   }
 }
 

@@ -126,29 +126,29 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   void
   configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
     cfg::SflowTunnel sflowTunnel;
-    sflowTunnel.ip_ref() = isV4 ? "101.101.101.101" : "2401:101:101::101";
-    sflowTunnel.udpSrcPort_ref() = 6545;
-    sflowTunnel.udpDstPort_ref() = 5343;
+    sflowTunnel.ip() = isV4 ? "101.101.101.101" : "2401:101:101::101";
+    sflowTunnel.udpSrcPort() = 6545;
+    sflowTunnel.udpDstPort() = 5343;
 
     cfg::MirrorTunnel tunnel;
-    tunnel.sflowTunnel_ref() = sflowTunnel;
+    tunnel.sflowTunnel() = sflowTunnel;
 
     cfg::MirrorDestination destination;
-    destination.tunnel_ref() = tunnel;
+    destination.tunnel() = tunnel;
 
-    config->mirrors_ref()->resize(1);
-    config->mirrors_ref()[0].name_ref() = "mirror";
-    config->mirrors_ref()[0].destination_ref() = destination;
-    config->mirrors_ref()[0].truncate_ref() = truncate;
+    config->mirrors()->resize(1);
+    config->mirrors()[0].name() = "mirror";
+    config->mirrors()[0].destination() = destination;
+    config->mirrors()[0].truncate() = truncate;
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
     for (auto i = 1; i < getPortsForSampling().size(); i++) {
       auto portId = getPortsForSampling()[i];
       auto portCfg = utility::findCfgPort(*config, portId);
-      portCfg->sFlowIngressRate_ref() = sampleRate;
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      portCfg->ingressMirror_ref() = "mirror";
+      portCfg->sFlowIngressRate() = sampleRate;
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      portCfg->ingressMirror() = "mirror";
     }
   }
 
@@ -225,7 +225,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
     auto portStats = stats.at(getPortsForSampling()[0]);
-    return *portStats.outUnicastPkts__ref();
+    return *portStats.outUnicastPkts_();
   }
 
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
@@ -234,9 +234,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     for (auto i = 1; i < getPortsForSampling().size(); i++) {
       auto port = getPortsForSampling()[i];
       auto portStats = stats.at(port);
-      allPortRx += *portStats.inUnicastPkts__ref();
+      allPortRx += *portStats.inUnicastPkts_();
       expectedSampleCount +=
-          (*portStats.inUnicastPkts__ref() / FLAGS_sflow_test_rate);
+          (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
     }
     XLOG(INFO) << "total packets rx " << allPortRx;
     return expectedSampleCount;

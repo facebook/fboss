@@ -76,11 +76,11 @@ void PlatformProductInfo::initialize() {
 }
 
 std::string PlatformProductInfo::getFabricLocation() {
-  return *productInfo_.fabricLocation_ref();
+  return *productInfo_.fabricLocation();
 }
 
 std::string PlatformProductInfo::getProductName() {
-  return *productInfo_.product_ref();
+  return *productInfo_.product();
 }
 
 void PlatformProductInfo::initMode() {
@@ -182,49 +182,43 @@ void PlatformProductInfo::parse(std::string data) {
     // }
     info = parseJson(data);
   }
-  productInfo_.oem_ref() = folly::to<std::string>(info[kSysMfg].asString());
-  productInfo_.product_ref() =
-      folly::to<std::string>(info[kProdName].asString());
-  productInfo_.serial_ref() =
-      folly::to<std::string>(info[kSerialNum].asString());
-  productInfo_.mfgDate_ref() =
-      folly::to<std::string>(info[kSysMfgDate].asString());
-  productInfo_.systemPartNumber_ref() =
+  productInfo_.oem() = folly::to<std::string>(info[kSysMfg].asString());
+  productInfo_.product() = folly::to<std::string>(info[kProdName].asString());
+  productInfo_.serial() = folly::to<std::string>(info[kSerialNum].asString());
+  productInfo_.mfgDate() = folly::to<std::string>(info[kSysMfgDate].asString());
+  productInfo_.systemPartNumber() =
       folly::to<std::string>(info[kSysAmbPartNum].asString());
-  productInfo_.assembledAt_ref() =
-      folly::to<std::string>(info[kAmbAt].asString());
-  productInfo_.pcbManufacturer_ref() =
+  productInfo_.assembledAt() = folly::to<std::string>(info[kAmbAt].asString());
+  productInfo_.pcbManufacturer() =
       folly::to<std::string>(info[kPcbMfg].asString());
-  productInfo_.assetTag_ref() =
+  productInfo_.assetTag() =
       folly::to<std::string>(info[kProdAssetTag].asString());
-  productInfo_.partNumber_ref() =
+  productInfo_.partNumber() =
       folly::to<std::string>(info[kProdPartNum].asString());
-  productInfo_.odmPcbaPartNumber_ref() =
+  productInfo_.odmPcbaPartNumber() =
       folly::to<std::string>(info[kOdmPcbaPartNum].asString());
-  productInfo_.odmPcbaSerial_ref() =
+  productInfo_.odmPcbaSerial() =
       folly::to<std::string>(info[kOdmPcbaSerialNum].asString());
-  productInfo_.fbPcbaPartNumber_ref() =
+  productInfo_.fbPcbaPartNumber() =
       folly::to<std::string>(info[kFbPcbaPartNum].asString());
-  productInfo_.fbPcbPartNumber_ref() =
+  productInfo_.fbPcbPartNumber() =
       folly::to<std::string>(info[kFbPcbPartNum].asString());
 
-  productInfo_.fabricLocation_ref() =
+  productInfo_.fabricLocation() =
       folly::to<std::string>(info[kFabricLocation].asString());
   // FB only - we apply custom logic to construct unique SN for
   // cases where we create multiple assets for a single physical
   // card in chassis.
   setFBSerial();
-  productInfo_.version_ref() = info[kVersion].asInt();
-  productInfo_.subVersion_ref() = info[kSubVersion].asInt();
-  productInfo_.productionState_ref() = info[kProductionState].asInt();
-  productInfo_.productVersion_ref() = info[kProdVersion].asInt();
-  productInfo_.bmcMac_ref() =
-      folly::to<std::string>(info[kLocalMac].asString());
-  productInfo_.mgmtMac_ref() =
-      folly::to<std::string>(info[kExtMacBase].asString());
+  productInfo_.version() = info[kVersion].asInt();
+  productInfo_.subVersion() = info[kSubVersion].asInt();
+  productInfo_.productionState() = info[kProductionState].asInt();
+  productInfo_.productVersion() = info[kProdVersion].asInt();
+  productInfo_.bmcMac() = folly::to<std::string>(info[kLocalMac].asString());
+  productInfo_.mgmtMac() = folly::to<std::string>(info[kExtMacBase].asString());
   auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
-  productInfo_.macRangeStart_ref() = MacAddress::fromHBO(macBase).toString();
-  productInfo_.macRangeSize_ref() = info[kExtMacSize].asInt() - 1;
+  productInfo_.macRangeStart() = MacAddress::fromHBO(macBase).toString();
+  productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
 }
 
 std::unique_ptr<PlatformProductInfo> fakeProductInfo() {

@@ -36,13 +36,13 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   // Build a dictionary of transceiver ID, its ethernet name (eg eth1/1/1), and
   // the ethernet name of the connected transceiver from the other end
   std::unordered_map<int32_t, std::pair<std::string, std::string>> cabledNames;
-  auto& swConfig = *(agentConfig->thrift.sw_ref());
+  auto& swConfig = *(agentConfig->thrift.sw());
 
-  for (auto& port : *swConfig.ports_ref()) {
-    if (!port.expectedLLDPValues_ref()->empty()) {
-      auto portName = *port.Port::name_ref();
-      auto neighborName = port.expectedLLDPValues_ref()->at(cfg::LLDPTag::PORT);
-      auto portId = *port.logicalID_ref();
+  for (auto& port : *swConfig.ports()) {
+    if (!port.expectedLLDPValues()->empty()) {
+      auto portName = *port.Port::name();
+      auto neighborName = port.expectedLLDPValues()->at(cfg::LLDPTag::PORT);
+      auto portId = *port.logicalID();
       const int32_t id = static_cast<int32_t>(
           *utility::getTranscieverIdx(PortID(portId), ensemble));
       cabledNames[id] = {portName, neighborName};
@@ -59,10 +59,10 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   std::unordered_map<std::string, int32_t> snIds;
 
   for (auto tcvrId : transceivers) {
-    auto vendor = transceiverInfo[tcvrId].vendor_ref();
+    auto vendor = transceiverInfo[tcvrId].vendor();
     CHECK(vendor);
     auto vendorInfo = *vendor;
-    auto sn = *(vendorInfo.serialNumber_ref());
+    auto sn = *(vendorInfo.serialNumber());
     XLOG(INFO) << fmt::format(
         "Transceiver {:d} has serial number: {:s}", tcvrId, sn);
 
@@ -78,11 +78,11 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
       EXPECT_EQ(cabledNames[tcvrId].second, cabledNames[neighborId].first);
 
       auto transmitterTech =
-          *(transceiverInfo[tcvrId].cable_ref()->transmitterTech_ref());
+          *(transceiverInfo[tcvrId].cable()->transmitterTech());
       EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
 
       transmitterTech =
-          *(transceiverInfo[neighborId].cable_ref()->transmitterTech_ref());
+          *(transceiverInfo[neighborId].cable()->transmitterTech());
       EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
     }
   }

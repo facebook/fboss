@@ -19,8 +19,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  *config.switchSettings_ref()->l2LearningMode_ref() =
-      cfg::L2LearningMode::SOFTWARE;
+  *config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -33,8 +32,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   EXPECT_FALSE(switchSettingsV1->isPtpTcEnable());
   EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 
-  *config.switchSettings_ref()->l2LearningMode_ref() =
-      cfg::L2LearningMode::HARDWARE;
+  *config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::HARDWARE;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -54,7 +52,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  *config.switchSettings_ref()->qcmEnable_ref() = true;
+  *config.switchSettings()->qcmEnable() = true;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -66,7 +64,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   EXPECT_FALSE(switchSettingsV1->isPtpTcEnable());
   EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 
-  *config.switchSettings_ref()->qcmEnable_ref() = false;
+  *config.switchSettings()->qcmEnable() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto switchSettingsV2 = stateV2->getSwitchSettings();
@@ -83,7 +81,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.switchSettings_ref()->ptpTcEnable_ref() = true;
+  config.switchSettings()->ptpTcEnable() = true;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -91,7 +89,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_TRUE(switchSettingsV1->isPtpTcEnable());
 
-  config.switchSettings_ref()->ptpTcEnable_ref() = false;
+  config.switchSettings()->ptpTcEnable() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto switchSettingsV2 = stateV2->getSwitchSettings();
@@ -115,7 +113,7 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   // Check if value is updated
   l2AgeTimerSeconds *= 2;
   cfg::SwitchConfig config;
-  config.switchSettings_ref()->l2AgeTimerSeconds_ref() = l2AgeTimerSeconds;
+  config.switchSettings()->l2AgeTimerSeconds() = l2AgeTimerSeconds;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -138,7 +136,7 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   // Check if value is updated
   maxRouteCounterIDs = 10;
   cfg::SwitchConfig config;
-  config.switchSettings_ref()->maxRouteCounterIDs_ref() = maxRouteCounterIDs;
+  config.switchSettings()->maxRouteCounterIDs() = maxRouteCounterIDs;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -160,10 +158,10 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   cfg::SwitchConfig config;
 
   cfg::Neighbor blockNeighbor;
-  blockNeighbor.vlanID_ref() = 1;
-  blockNeighbor.ipAddress_ref() = "1.1.1.1";
+  blockNeighbor.vlanID() = 1;
+  blockNeighbor.ipAddress() = "1.1.1.1";
 
-  config.switchSettings_ref()->blockNeighbors_ref() = {blockNeighbor};
+  config.switchSettings()->blockNeighbors() = {blockNeighbor};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -172,11 +170,10 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   EXPECT_EQ(switchSettingsV1->getBlockNeighbors().size(), 1);
 
   EXPECT_EQ(
-      switchSettingsV1->getBlockNeighbors()[0].first,
-      blockNeighbor.vlanID_ref());
+      switchSettingsV1->getBlockNeighbors()[0].first, blockNeighbor.vlanID());
   EXPECT_EQ(
       switchSettingsV1->getBlockNeighbors()[0].second.str(),
-      blockNeighbor.ipAddress_ref());
+      blockNeighbor.ipAddress());
 }
 
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
@@ -192,10 +189,10 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   cfg::SwitchConfig config;
 
   cfg::MacAndVlan macAddrToBlock;
-  macAddrToBlock.vlanID_ref() = 1;
-  macAddrToBlock.macAddress_ref() = "00:11:22:33:44:55";
+  macAddrToBlock.vlanID() = 1;
+  macAddrToBlock.macAddress() = "00:11:22:33:44:55";
 
-  config.switchSettings_ref()->macAddrsToBlock_ref() = {macAddrToBlock};
+  config.switchSettings()->macAddrsToBlock() = {macAddrToBlock};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -204,11 +201,10 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock().size(), 1);
 
   EXPECT_EQ(
-      switchSettingsV1->getMacAddrsToBlock()[0].first,
-      macAddrToBlock.vlanID_ref());
+      switchSettingsV1->getMacAddrsToBlock()[0].first, macAddrToBlock.vlanID());
   EXPECT_EQ(
       switchSettingsV1->getMacAddrsToBlock()[0].second.toString(),
-      macAddrToBlock.macAddress_ref());
+      macAddrToBlock.macAddress());
 }
 
 TEST(SwitchSettingsTest, ToFromJSON) {

@@ -28,7 +28,7 @@ setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager) {
 
 void initFlagDefaultsFromQsfpConfig() {
   auto qsfpConfig = QsfpConfig::fromDefaultFile();
-  for (auto item : *qsfpConfig->thrift.defaultCommandLineArgs_ref()) {
+  for (auto item : *qsfpConfig->thrift.defaultCommandLineArgs()) {
     // logging not initialized yet, need to use std::cerr
     std::cerr << "Overriding default flag from config: " << item.first.c_str()
               << "=" << item.second.c_str() << std::endl;

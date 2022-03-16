@@ -113,10 +113,10 @@ HwPortStats sendPacketsWithQueueBuildup(
     int numPackets) {
   auto getOutPacketDelta = [](auto& after, auto& before) {
     return (
-        (*after.outMulticastPkts__ref() + *after.outBroadcastPkts__ref() +
-         *after.outUnicastPkts__ref()) -
-        (*before.outMulticastPkts__ref() + *before.outBroadcastPkts__ref() +
-         *before.outUnicastPkts__ref()));
+        (*after.outMulticastPkts_() + *after.outBroadcastPkts_() +
+         *after.outUnicastPkts_()) -
+        (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
+         *before.outUnicastPkts_()));
   };
   /*
    * Packets are sent in 2 blocks, 80% first and 20% later. This is

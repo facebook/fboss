@@ -394,7 +394,7 @@ SaiAclTableManager::addAclCounter(
   std::optional<SaiAclCounterTraits::Attributes::EnableByteCount>
       enableByteCount{false};
 
-  for (const auto& counterType : *trafficCount.types_ref()) {
+  for (const auto& counterType : *trafficCount.types()) {
     std::string statSuffix;
     switch (counterType) {
       case cfg::CounterType::PACKETS:
@@ -412,7 +412,7 @@ SaiAclTableManager::addAclCounter(
     }
 
     auto statName =
-        folly::to<std::string>(*trafficCount.name_ref(), ".", statSuffix);
+        folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
     aclCounterTypeAndName.push_back(std::make_pair(counterType, statName));
     aclStats_.reinitStat(statName, std::nullopt);
   }
@@ -739,8 +739,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       auto sendToQueue = action.value().getSendToQueue().value();
       bool sendToCpu = sendToQueue.second;
       if (!sendToCpu) {
-        auto queueId =
-            static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+        auto queueId = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(queueId)};
       } else {
@@ -763,8 +762,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           aclActionPacketAction =
               SaiAclEntryTraits::Attributes::ActionPacketAction{packetAction};
 
-          auto queueId =
-              static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+          auto queueId = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
           aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
               AclEntryActionU8(queueId)};
         };
@@ -813,8 +811,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
 
     if (action.value().getSetDscp()) {
-      const int dscpValue =
-          *action.value().getSetDscp().value().dscpValue_ref();
+      const int dscpValue = *action.value().getSetDscp().value().dscpValue();
 
       aclActionSetDSCP = SaiAclEntryTraits::Attributes::ActionSetDSCP{
           AclEntryActionU8(dscpValue)};
@@ -822,20 +819,19 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
     if (action.value().getMacsecFlow()) {
       auto macsecFlowAction = action.value().getMacsecFlow().value();
-      if (*macsecFlowAction.action_ref() ==
+      if (*macsecFlowAction.action() ==
           cfg::MacsecFlowPacketAction::MACSEC_FLOW) {
         sai_object_id_t flowId =
-            static_cast<sai_object_id_t>(*macsecFlowAction.flowId_ref());
+            static_cast<sai_object_id_t>(*macsecFlowAction.flowId());
         aclActionMacsecFlow = SaiAclEntryTraits::Attributes::ActionMacsecFlow{
             AclEntryActionSaiObjectIdT(flowId)};
       } else if (
-          *macsecFlowAction.action_ref() ==
-          cfg::MacsecFlowPacketAction::FORWARD) {
+          *macsecFlowAction.action() == cfg::MacsecFlowPacketAction::FORWARD) {
         aclActionPacketAction =
             SaiAclEntryTraits::Attributes::ActionPacketAction{
                 SAI_PACKET_ACTION_FORWARD};
       } else if (
-          *macsecFlowAction.action_ref() == cfg::MacsecFlowPacketAction::DROP) {
+          *macsecFlowAction.action() == cfg::MacsecFlowPacketAction::DROP) {
         aclActionPacketAction =
             SaiAclEntryTraits::Attributes::ActionPacketAction{
                 SAI_PACKET_ACTION_DROP};
@@ -844,7 +840,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             "Unsupported Macsec Flow action for ACL entry: ",
             addedAclEntry->getID(),
             " Macsec Flow action ",
-            apache::thrift::util::enumNameSafe(*macsecFlowAction.action_ref()));
+            apache::thrift::util::enumNameSafe(*macsecFlowAction.action()));
       }
     }
   }
@@ -973,9 +969,9 @@ void SaiAclTableManager::removeAclEntry(
 
 void SaiAclTableManager::removeAclCounter(
     const cfg::TrafficCounter& trafficCount) {
-  for (const auto& counterType : *trafficCount.types_ref()) {
+  for (const auto& counterType : *trafficCount.types()) {
     auto statName =
-        utility::statNameFromCounterType(*trafficCount.name_ref(), counterType);
+        utility::statNameFromCounterType(*trafficCount.name(), counterType);
     aclStats_.removeStat(statName);
   }
 }

@@ -113,8 +113,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       // ACL
       auto* acl = utility::addAcl(&newCfg, "acl0");
       cfg::Ttl ttl; // Match packets with hop limit > 127
-      std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
-      acl->ttl_ref() = ttl;
+      std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+      acl->ttl() = ttl;
       utility::addAclStat(&newCfg, "acl0", kCounterName());
 
       applyNewConfig(newCfg);
@@ -214,7 +214,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(

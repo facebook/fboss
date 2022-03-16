@@ -9,17 +9,16 @@ namespace fboss {
 
 void testCachedMediaSignals(QsfpModule* qsfp) {
   auto mgmtInterface =
-      qsfp->getTransceiverInfo().transceiverManagementInterface_ref().value_or(
-          {});
+      qsfp->getTransceiverInfo().transceiverManagementInterface().value_or({});
   auto writeTxFault = [&](uint8_t fault) {
     TransceiverIOParameters param;
-    param.length_ref() = 1;
+    param.length() = 1;
     if (mgmtInterface == TransceiverManagementInterface::SFF) {
-      param.offset_ref() = 4;
-      param.page_ref() = 0;
+      param.offset() = 4;
+      param.page() = 0;
     } else {
-      param.offset_ref() = 135;
-      param.page_ref() = 0x11;
+      param.offset() = 135;
+      param.page() = 0x11;
     }
     qsfp->writeTransceiver(param, fault);
   };
@@ -45,7 +44,7 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
   cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
   EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
   for (const auto& kv : cachedSignal) {
-    EXPECT_EQ(kv.second.txFault_ref().value_or({}), false);
+    EXPECT_EQ(kv.second.txFault().value_or({}), false);
   }
   cachedSignal.clear();
 
@@ -60,12 +59,12 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
   cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
   EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
   for (const auto& kv : cachedSignal) {
-    EXPECT_EQ(kv.second.txFault_ref().value_or({}), true);
+    EXPECT_EQ(kv.second.txFault().value_or({}), true);
   }
   // Read the current tx fault, it should return false for all lanes
   TransceiverInfo info = qsfp->getTransceiverInfo();
-  for (const auto& signal : info.mediaLaneSignals_ref().value_or({})) {
-    EXPECT_EQ(signal.txFault_ref().value_or({}), false);
+  for (const auto& signal : info.mediaLaneSignals().value_or({})) {
+    EXPECT_EQ(signal.txFault().value_or({}), false);
   }
   cachedSignal.clear();
 
@@ -73,7 +72,7 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
   cachedSignal = qsfp->readAndClearCachedMediaLaneSignals();
   EXPECT_EQ(cachedSignal.size(), qsfp->numMediaLanes());
   for (const auto& kv : cachedSignal) {
-    EXPECT_EQ(kv.second.txFault_ref().value_or({}), false);
+    EXPECT_EQ(kv.second.txFault().value_or({}), false);
   }
 
   gflags::SetCommandLineOptionWithMode(
@@ -83,71 +82,66 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
 }
 
 void TransceiverTestsHelper::verifyVendorName(const std::string& expected) {
-  EXPECT_EQ(expected, *info_.vendor_ref().value_or({}).name_ref());
+  EXPECT_EQ(expected, *info_.vendor().value_or({}).name());
 }
 
 void TransceiverTestsHelper::verifyTemp(double temp) {
-  EXPECT_DOUBLE_EQ(
-      temp, *info_.sensor_ref().value_or({}).temp_ref()->value_ref());
+  EXPECT_DOUBLE_EQ(temp, *info_.sensor().value_or({}).temp()->value());
 }
 
 void TransceiverTestsHelper::verifyVcc(double vcc) {
-  EXPECT_DOUBLE_EQ(
-      vcc, *info_.sensor_ref().value_or({}).vcc_ref()->value_ref());
+  EXPECT_DOUBLE_EQ(vcc, *info_.sensor().value_or({}).vcc()->value());
 }
 
 void TransceiverTestsHelper::verifyLaneDom(
     std::map<std::string, std::vector<double>>& laneDom,
     int lanes) {
-  EXPECT_EQ(lanes, (*info_.channels_ref()).size());
-  for (auto& channel : *info_.channels_ref()) {
-    auto txPwr = *channel.sensors_ref()->txPwr_ref();
-    auto rxPwr = *channel.sensors_ref()->rxPwr_ref();
-    auto txBias = *channel.sensors_ref()->txBias_ref();
-    EXPECT_DOUBLE_EQ(
-        laneDom["TxBias"][*channel.channel_ref()], *(txBias.value_ref()));
-    EXPECT_DOUBLE_EQ(
-        laneDom["TxPwr"][*channel.channel_ref()], *(txPwr.value_ref()));
-    EXPECT_DOUBLE_EQ(
-        laneDom["RxPwr"][*channel.channel_ref()], *(rxPwr.value_ref()));
+  EXPECT_EQ(lanes, (*info_.channels()).size());
+  for (auto& channel : *info_.channels()) {
+    auto txPwr = *channel.sensors()->txPwr();
+    auto rxPwr = *channel.sensors()->rxPwr();
+    auto txBias = *channel.sensors()->txBias();
+    EXPECT_DOUBLE_EQ(laneDom["TxBias"][*channel.channel()], *(txBias.value()));
+    EXPECT_DOUBLE_EQ(laneDom["TxPwr"][*channel.channel()], *(txPwr.value()));
+    EXPECT_DOUBLE_EQ(laneDom["RxPwr"][*channel.channel()], *(rxPwr.value()));
   }
 }
 
 void TransceiverTestsHelper::verifyMediaLaneSignals(
     std::map<std::string, std::vector<bool>>& expectedMediaSignals,
     int lanes) {
-  EXPECT_EQ(lanes, info_.mediaLaneSignals_ref().value_or({}).size());
-  for (auto& signal : info_.mediaLaneSignals_ref().value_or({})) {
+  EXPECT_EQ(lanes, info_.mediaLaneSignals().value_or({}).size());
+  for (auto& signal : info_.mediaLaneSignals().value_or({})) {
     if (expectedMediaSignals.find("Tx_Los") != expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Tx_Los"][*signal.lane_ref()],
-          signal.txLos_ref().value_or({}));
+          expectedMediaSignals["Tx_Los"][*signal.lane()],
+          signal.txLos().value_or({}));
     }
     if (expectedMediaSignals.find("Rx_Los") != expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Rx_Los"][*signal.lane_ref()],
-          signal.rxLos_ref().value_or({}));
+          expectedMediaSignals["Rx_Los"][*signal.lane()],
+          signal.rxLos().value_or({}));
     }
     if (expectedMediaSignals.find("Tx_Lol") != expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Tx_Lol"][*signal.lane_ref()],
-          signal.txLol_ref().value_or({}));
+          expectedMediaSignals["Tx_Lol"][*signal.lane()],
+          signal.txLol().value_or({}));
     }
     if (expectedMediaSignals.find("Rx_Lol") != expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Rx_Lol"][*signal.lane_ref()],
-          signal.rxLol_ref().value_or({}));
+          expectedMediaSignals["Rx_Lol"][*signal.lane()],
+          signal.rxLol().value_or({}));
     }
     if (expectedMediaSignals.find("Tx_Fault") != expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Tx_Fault"][*signal.lane_ref()],
-          signal.txFault_ref().value_or({}));
+          expectedMediaSignals["Tx_Fault"][*signal.lane()],
+          signal.txFault().value_or({}));
     }
     if (expectedMediaSignals.find("Tx_AdaptFault") !=
         expectedMediaSignals.end()) {
       EXPECT_EQ(
-          expectedMediaSignals["Tx_AdaptFault"][*signal.lane_ref()],
-          signal.txAdaptEqFault_ref().value_or({}));
+          expectedMediaSignals["Tx_AdaptFault"][*signal.lane()],
+          signal.txAdaptEqFault().value_or({}));
     }
   }
 }
@@ -155,30 +149,30 @@ void TransceiverTestsHelper::verifyMediaLaneSignals(
 void TransceiverTestsHelper::verifyMediaLaneSettings(
     std::map<std::string, std::vector<bool>>& expectedLaneSettings,
     int lanes) {
-  auto settings = info_.settings_ref().value_or({});
-  EXPECT_EQ(lanes, settings.mediaLaneSettings_ref().value_or({}).size());
-  for (auto& setting : settings.mediaLaneSettings_ref().value_or({})) {
+  auto settings = info_.settings().value_or({});
+  EXPECT_EQ(lanes, settings.mediaLaneSettings().value_or({}).size());
+  for (auto& setting : settings.mediaLaneSettings().value_or({})) {
     if (expectedLaneSettings.find("TxDisable") != expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["TxDisable"][*setting.lane_ref()],
-          setting.txDisable_ref().value_or({}));
+          expectedLaneSettings["TxDisable"][*setting.lane()],
+          setting.txDisable().value_or({}));
     }
     if (expectedLaneSettings.find("TxSqDisable") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["TxSqDisable"][*setting.lane_ref()],
-          setting.txSquelch_ref().value_or({}));
+          expectedLaneSettings["TxSqDisable"][*setting.lane()],
+          setting.txSquelch().value_or({}));
     }
     if (expectedLaneSettings.find("TxForcedSq") != expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["TxForcedSq"][*setting.lane_ref()],
-          setting.txSquelchForce_ref().value_or({}));
+          expectedLaneSettings["TxForcedSq"][*setting.lane()],
+          setting.txSquelchForce().value_or({}));
     }
     if (expectedLaneSettings.find("TxAdaptEqCtrl") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["TxAdaptEqCtrl"][*setting.lane_ref()],
-          setting.txAdaptiveEqControl_ref().value_or({}));
+          expectedLaneSettings["TxAdaptEqCtrl"][*setting.lane()],
+          setting.txAdaptiveEqControl().value_or({}));
     }
   }
 }
@@ -186,37 +180,37 @@ void TransceiverTestsHelper::verifyMediaLaneSettings(
 void TransceiverTestsHelper::verifyHostLaneSettings(
     std::map<std::string, std::vector<uint8_t>>& expectedLaneSettings,
     int lanes) {
-  auto settings = info_.settings_ref().value_or({});
-  EXPECT_EQ(lanes, settings.hostLaneSettings_ref().value_or({}).size());
-  for (auto& setting : settings.hostLaneSettings_ref().value_or({})) {
+  auto settings = info_.settings().value_or({});
+  EXPECT_EQ(lanes, settings.hostLaneSettings().value_or({}).size());
+  for (auto& setting : settings.hostLaneSettings().value_or({})) {
     if (expectedLaneSettings.find("RxOutDisable") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["RxOutDisable"][*setting.lane_ref()],
-          setting.rxOutput_ref().value_or({}));
+          expectedLaneSettings["RxOutDisable"][*setting.lane()],
+          setting.rxOutput().value_or({}));
     }
     if (expectedLaneSettings.find("RxSqDisable") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["RxSqDisable"][*setting.lane_ref()],
-          setting.rxSquelch_ref().value_or({}));
+          expectedLaneSettings["RxSqDisable"][*setting.lane()],
+          setting.rxSquelch().value_or({}));
     }
     if (expectedLaneSettings.find("RxEqPrecursor") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["RxEqPrecursor"][*setting.lane_ref()],
-          setting.rxOutputPreCursor_ref().value_or({}));
+          expectedLaneSettings["RxEqPrecursor"][*setting.lane()],
+          setting.rxOutputPreCursor().value_or({}));
     }
     if (expectedLaneSettings.find("RxEqMain") != expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["RxEqMain"][*setting.lane_ref()],
-          setting.rxOutputAmplitude_ref().value_or({}));
+          expectedLaneSettings["RxEqMain"][*setting.lane()],
+          setting.rxOutputAmplitude().value_or({}));
     }
     if (expectedLaneSettings.find("RxEqPostcursor") !=
         expectedLaneSettings.end()) {
       EXPECT_EQ(
-          expectedLaneSettings["RxEqPostcursor"][*setting.lane_ref()],
-          setting.rxOutputPostCursor_ref().value_or({}));
+          expectedLaneSettings["RxEqPostcursor"][*setting.lane()],
+          setting.rxOutputPostCursor().value_or({}));
     }
   }
 }
@@ -224,53 +218,53 @@ void TransceiverTestsHelper::verifyHostLaneSettings(
 void TransceiverTestsHelper::verifyLaneInterrupts(
     std::map<std::string, std::vector<bool>>& laneInterrupts,
     int lanes) {
-  EXPECT_EQ(lanes, (*info_.channels_ref()).size());
-  for (auto& channel : *info_.channels_ref()) {
-    auto txPwr = *channel.sensors_ref()->txPwr_ref();
-    auto txPwrFlag = txPwr.flags_ref().value_or({});
-    auto rxPwr = *channel.sensors_ref()->rxPwr_ref();
-    auto rxPwrFlag = rxPwr.flags_ref().value_or({});
-    auto txBias = *channel.sensors_ref()->txBias_ref();
-    auto txBiasFlag = txBias.flags_ref().value_or({});
+  EXPECT_EQ(lanes, (*info_.channels()).size());
+  for (auto& channel : *info_.channels()) {
+    auto txPwr = *channel.sensors()->txPwr();
+    auto txPwrFlag = txPwr.flags().value_or({});
+    auto rxPwr = *channel.sensors()->rxPwr();
+    auto rxPwrFlag = rxPwr.flags().value_or({});
+    auto txBias = *channel.sensors()->txBias();
+    auto txBiasFlag = txBias.flags().value_or({});
 
     EXPECT_EQ(
-        laneInterrupts["TxPwrHighAlarm"][*channel.channel_ref()],
-        *(txPwrFlag.alarm_ref()->high_ref()));
+        laneInterrupts["TxPwrHighAlarm"][*channel.channel()],
+        *(txPwrFlag.alarm()->high()));
     EXPECT_EQ(
-        laneInterrupts["TxPwrHighWarn"][*channel.channel_ref()],
-        *(txPwrFlag.warn_ref()->high_ref()));
+        laneInterrupts["TxPwrHighWarn"][*channel.channel()],
+        *(txPwrFlag.warn()->high()));
     EXPECT_EQ(
-        laneInterrupts["TxPwrLowAlarm"][*channel.channel_ref()],
-        *(txPwrFlag.alarm_ref()->low_ref()));
+        laneInterrupts["TxPwrLowAlarm"][*channel.channel()],
+        *(txPwrFlag.alarm()->low()));
     EXPECT_EQ(
-        laneInterrupts["TxPwrLowWarn"][*channel.channel_ref()],
-        *(txPwrFlag.warn_ref()->low_ref()));
+        laneInterrupts["TxPwrLowWarn"][*channel.channel()],
+        *(txPwrFlag.warn()->low()));
 
     EXPECT_EQ(
-        laneInterrupts["RxPwrHighAlarm"][*channel.channel_ref()],
-        *(rxPwrFlag.alarm_ref()->high_ref()));
+        laneInterrupts["RxPwrHighAlarm"][*channel.channel()],
+        *(rxPwrFlag.alarm()->high()));
     EXPECT_EQ(
-        laneInterrupts["RxPwrHighWarn"][*channel.channel_ref()],
-        *(rxPwrFlag.warn_ref()->high_ref()));
+        laneInterrupts["RxPwrHighWarn"][*channel.channel()],
+        *(rxPwrFlag.warn()->high()));
     EXPECT_EQ(
-        laneInterrupts["RxPwrLowAlarm"][*channel.channel_ref()],
-        *(rxPwrFlag.alarm_ref()->low_ref()));
+        laneInterrupts["RxPwrLowAlarm"][*channel.channel()],
+        *(rxPwrFlag.alarm()->low()));
     EXPECT_EQ(
-        laneInterrupts["RxPwrLowWarn"][*channel.channel_ref()],
-        *(rxPwrFlag.warn_ref()->low_ref()));
+        laneInterrupts["RxPwrLowWarn"][*channel.channel()],
+        *(rxPwrFlag.warn()->low()));
 
     EXPECT_EQ(
-        laneInterrupts["TxBiasHighAlarm"][*channel.channel_ref()],
-        *(txBiasFlag.alarm_ref()->high_ref()));
+        laneInterrupts["TxBiasHighAlarm"][*channel.channel()],
+        *(txBiasFlag.alarm()->high()));
     EXPECT_EQ(
-        laneInterrupts["TxBiasHighWarn"][*channel.channel_ref()],
-        *(txBiasFlag.warn_ref()->high_ref()));
+        laneInterrupts["TxBiasHighWarn"][*channel.channel()],
+        *(txBiasFlag.warn()->high()));
     EXPECT_EQ(
-        laneInterrupts["TxBiasLowAlarm"][*channel.channel_ref()],
-        *(txBiasFlag.alarm_ref()->low_ref()));
+        laneInterrupts["TxBiasLowAlarm"][*channel.channel()],
+        *(txBiasFlag.alarm()->low()));
     EXPECT_EQ(
-        laneInterrupts["TxBiasLowWarn"][*channel.channel_ref()],
-        *(txBiasFlag.warn_ref()->low_ref()));
+        laneInterrupts["TxBiasLowWarn"][*channel.channel()],
+        *(txBiasFlag.warn()->low()));
   }
 }
 
@@ -282,15 +276,15 @@ void TransceiverTestsHelper::verifyGlobalInterrupts(
     bool lowWarn) {
   FlagLevels flag;
   if (sensor == "temp") {
-    flag = info_.sensor_ref().value_or({}).temp_ref()->flags_ref().value_or({});
+    flag = info_.sensor().value_or({}).temp()->flags().value_or({});
   } else {
     EXPECT_EQ(sensor, "vcc");
-    flag = info_.sensor_ref().value_or({}).vcc_ref()->flags_ref().value_or({});
+    flag = info_.sensor().value_or({}).vcc()->flags().value_or({});
   }
-  EXPECT_EQ(highAlarm, *flag.alarm_ref()->high_ref());
-  EXPECT_EQ(highWarn, *flag.warn_ref()->high_ref());
-  EXPECT_EQ(lowAlarm, *flag.alarm_ref()->low_ref());
-  EXPECT_EQ(lowWarn, *flag.warn_ref()->low_ref());
+  EXPECT_EQ(highAlarm, *flag.alarm()->high());
+  EXPECT_EQ(highWarn, *flag.warn()->high());
+  EXPECT_EQ(lowAlarm, *flag.alarm()->low());
+  EXPECT_EQ(lowWarn, *flag.warn()->low());
 }
 
 void TransceiverTestsHelper::verifyThresholds(
@@ -301,20 +295,20 @@ void TransceiverTestsHelper::verifyThresholds(
     double lowWarn) {
   ThresholdLevels level;
   if (sensor == "temp") {
-    level = *info_.thresholds_ref().value_or({}).temp_ref();
+    level = *info_.thresholds().value_or({}).temp();
   } else if (sensor == "vcc") {
-    level = *info_.thresholds_ref().value_or({}).vcc_ref();
+    level = *info_.thresholds().value_or({}).vcc();
   } else if (sensor == "txPwr") {
-    level = *info_.thresholds_ref().value_or({}).txPwr_ref();
+    level = *info_.thresholds().value_or({}).txPwr();
   } else if (sensor == "rxPwr") {
-    level = *info_.thresholds_ref().value_or({}).rxPwr_ref();
+    level = *info_.thresholds().value_or({}).rxPwr();
   } else {
-    level = *info_.thresholds_ref().value_or({}).txBias_ref();
+    level = *info_.thresholds().value_or({}).txBias();
   }
-  EXPECT_DOUBLE_EQ(highAlarm, *level.alarm_ref()->high_ref());
-  EXPECT_DOUBLE_EQ(highWarn, *level.warn_ref()->high_ref());
-  EXPECT_DOUBLE_EQ(lowAlarm, *level.alarm_ref()->low_ref());
-  EXPECT_DOUBLE_EQ(lowWarn, *level.warn_ref()->low_ref());
+  EXPECT_DOUBLE_EQ(highAlarm, *level.alarm()->high());
+  EXPECT_DOUBLE_EQ(highWarn, *level.warn()->high());
+  EXPECT_DOUBLE_EQ(lowAlarm, *level.alarm()->low());
+  EXPECT_DOUBLE_EQ(lowWarn, *level.warn()->low());
 }
 
 void TransceiverTestsHelper::verifyFwInfo(
@@ -323,25 +317,13 @@ void TransceiverTestsHelper::verifyFwInfo(
     const std::string& expecedBuildRev) {
   EXPECT_EQ(
       expectedFwRev,
-      *info_.status_ref()
-           .value_or({})
-           .fwStatus_ref()
-           .value_or({})
-           .version_ref());
+      *info_.status().value_or({}).fwStatus().value_or({}).version());
   EXPECT_EQ(
       expectedDspFw,
-      *info_.status_ref()
-           .value_or({})
-           .fwStatus_ref()
-           .value_or({})
-           .dspFwVer_ref());
+      *info_.status().value_or({}).fwStatus().value_or({}).dspFwVer());
   EXPECT_EQ(
       expecedBuildRev,
-      *info_.status_ref()
-           .value_or({})
-           .fwStatus_ref()
-           .value_or({})
-           .buildRev_ref());
+      *info_.status().value_or({}).fwStatus().value_or({}).buildRev());
 }
 
 } // namespace fboss

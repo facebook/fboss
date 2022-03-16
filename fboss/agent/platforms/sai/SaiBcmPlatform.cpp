@@ -18,17 +18,13 @@ namespace facebook::fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    if (auto yamlConfig = config()
-                              ->thrift.platform_ref()
-                              ->chip_ref()
-                              ->get_bcm()
-                              .yamlConfig_ref()) {
+    if (auto yamlConfig =
+            config()->thrift.platform()->chip()->get_bcm().yamlConfig()) {
       return *yamlConfig;
     }
     throw FbossError("Failed to get bcm yaml config from agent config");
   }
-  auto& cfg =
-      *config()->thrift.platform_ref()->chip_ref()->get_bcm().config_ref();
+  auto& cfg = *config()->thrift.platform()->chip()->get_bcm().config();
   std::vector<std::string> nameValStrs;
   for (const auto& entry : cfg) {
     nameValStrs.emplace_back(
@@ -45,7 +41,7 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
+      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
     }
   }
   return allPortsinGroup;

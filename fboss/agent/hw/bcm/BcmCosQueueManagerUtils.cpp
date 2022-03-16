@@ -64,8 +64,8 @@ constexpr int kDefaultPortQueuePacketsPerSecMax = 0;
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
-  range.minimum_ref() = minimum;
-  range.maximum_ref() = maximum;
+  range.minimum() = minimum;
+  range.maximum() = maximum;
 
   return range;
 }
@@ -80,14 +80,14 @@ cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
 AqmMap makeDefauleAqmMap(int32_t threshold) {
   AqmMap aqms;
   facebook::fboss::cfg::LinearQueueCongestionDetection detection;
-  detection.minimumLength_ref() = threshold;
-  detection.maximumLength_ref() = threshold;
-  detection.probability_ref() = kWredDiscardProbability;
+  detection.minimumLength() = threshold;
+  detection.maximumLength() = threshold;
+  detection.probability() = kWredDiscardProbability;
   for (auto behavior :
        {QueueCongestionBehavior::EARLY_DROP, QueueCongestionBehavior::ECN}) {
     facebook::fboss::cfg::ActiveQueueManagement aqm;
-    aqm.behavior_ref() = behavior;
-    aqm.detection_ref()->linear_ref() = detection;
+    aqm.behavior() = behavior;
+    aqm.detection()->linear_ref() = detection;
     aqms.emplace(behavior, aqm);
   }
   return aqms;

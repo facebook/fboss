@@ -37,18 +37,18 @@ cfg::PlatformPortProfileConfigEntry createPlatformPortProfileConfigEntry(
     cfg::PortSpeed speed,
     phy::FecMode iphyFec) {
   cfg::PlatformPortConfigFactor factor;
-  factor.profileID_ref() = profileID;
-  factor.pimIDs_ref() = pimIDs;
+  factor.profileID() = profileID;
+  factor.pimIDs() = pimIDs;
 
   phy::PortProfileConfig config;
   phy::ProfileSideConfig iphy;
-  iphy.fec_ref() = iphyFec;
-  config.iphy_ref() = iphy;
-  config.speed_ref() = speed;
+  iphy.fec() = iphyFec;
+  config.iphy() = iphy;
+  config.speed() = speed;
 
   cfg::PlatformPortProfileConfigEntry configEntry;
-  configEntry.factor_ref() = factor;
-  configEntry.profile_ref() = config;
+  configEntry.factor() = factor;
+  configEntry.profile() = config;
   return configEntry;
 }
 
@@ -104,7 +104,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   // All the downlink ports should be using the same tx_settings: nrz:-8:89:0
   auto mapping = std::make_unique<Wedge400PlatformMapping>();
   for (auto port : mapping->getPlatformPorts()) {
-    const auto& profiles = *port.second.supportedProfiles_ref();
+    const auto& profiles = *port.second.supportedProfiles();
 
     // Only downlink ports has 10G profile
     if (profiles.find(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER) ==
@@ -122,9 +122,8 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       EXPECT_TRUE(itProfileCfg.has_value());
 
       for (auto pinCfg : pinCfgs) {
-        auto tx = pinCfg.tx_ref();
-        if (*itProfileCfg->iphy_ref()->modulation_ref() ==
-            phy::IpModulation::NRZ) {
+        auto tx = pinCfg.tx();
+        if (*itProfileCfg->iphy()->modulation() == phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
           if (profile.first ==
               cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL) {
@@ -135,8 +134,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
             verifyTxSettings(*tx, {0, -8, 89, 0, 0, 0});
           }
         } else if (
-            *itProfileCfg->iphy_ref()->modulation_ref() ==
-            phy::IpModulation::PAM4) {
+            *itProfileCfg->iphy()->modulation() == phy::IpModulation::PAM4) {
           if (profile.first ==
               cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER) {
             EXPECT_TRUE(tx.has_value());
@@ -179,7 +177,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
             uplinkTx.first));
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
-      auto tx = pinCfg.tx_ref();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       verifyTxSettings(*tx, uplinkTx.second);
     }
@@ -235,7 +233,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
-      auto tx = pinCfg.tx_ref();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       verifyTxSettings(*tx, uplinkTx.second);
     }
@@ -399,9 +397,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
             laneToUplinkTxSettingsToPortMap.first));
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
-      auto pinId = *pinCfg.id_ref();
-      auto laneId = *pinId.lane_ref();
-      auto tx = pinCfg.tx_ref();
+      auto pinId = *pinCfg.id();
+      auto laneId = *pinId.lane();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
       auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
@@ -646,9 +644,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
             laneToUplinkTxSettingsToPortMap.first));
     EXPECT_EQ(pinCfgs.size(), 8);
     for (auto pinCfg : pinCfgs) {
-      auto pinId = *pinCfg.id_ref();
-      auto laneId = *pinId.lane_ref();
-      auto tx = pinCfg.tx_ref();
+      auto pinId = *pinCfg.id();
+      auto laneId = *pinId.lane();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
       auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
@@ -695,9 +693,9 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
 
     EXPECT_EQ(pinCfgs.size(), 8);
     for (auto pinCfg : pinCfgs) {
-      auto pinId = *pinCfg.id_ref();
-      auto laneId = *pinId.lane_ref();
-      auto tx = pinCfg.tx_ref();
+      auto pinId = *pinCfg.id();
+      auto laneId = *pinId.lane();
+      auto tx = pinCfg.tx();
 
       EXPECT_TRUE(tx.has_value());
       verifyTxSettings(*tx, txSettingsFor400gOpticsProfile[laneId % 8]);
@@ -711,7 +709,7 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
 
     EXPECT_EQ(xphySysPinCfgs.size(), 8);
     for (auto pinCfg : xphySysPinCfgs) {
-      auto tx = pinCfg.tx_ref();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       verifyTxSettings(*tx, {0, -16, 152, 0, 0, 0});
     }
@@ -722,7 +720,7 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
             PortID(portID)));
     EXPECT_EQ(iphyPinCfgs.size(), 8);
     for (auto pinCfg : iphyPinCfgs) {
-      auto tx = pinCfg.tx_ref();
+      auto tx = pinCfg.tx();
       EXPECT_TRUE(tx.has_value());
       verifyTxSettings(*tx, {0, -16, 132, 0, 0, 0});
     }
@@ -733,41 +731,37 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>();
   cfg::PlatformPortConfigOverrideFactor factor;
   for (auto port : mapping->getPlatformPorts()) {
-    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::CWDM4_100G;
+    factor.mediaInterfaceCode() = MediaInterfaceCode::CWDM4_100G;
     auto portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
             PortID(port.first),
             factor));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+    EXPECT_TRUE(*portProfileConfig->xphyLine()->fec() == phy::FecMode::NONE);
 
-    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::CWDM4_100G;
+    factor.mediaInterfaceCode() = MediaInterfaceCode::CWDM4_100G;
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
             PortID(port.first),
             factor));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS528);
+    EXPECT_TRUE(*portProfileConfig->xphyLine()->fec() == phy::FecMode::RS528);
 
-    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR1_100G;
+    factor.mediaInterfaceCode() = MediaInterfaceCode::FR1_100G;
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
             PortID(port.first),
             factor));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+    EXPECT_TRUE(*portProfileConfig->xphyLine()->fec() == phy::FecMode::NONE);
 
-    factor.mediaInterfaceCode_ref() = MediaInterfaceCode::FR4_200G;
+    factor.mediaInterfaceCode() = MediaInterfaceCode::FR4_200G;
     portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N,
             PortID(port.first),
             factor));
-    EXPECT_TRUE(
-        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+    EXPECT_TRUE(*portProfileConfig->xphyLine()->fec() == phy::FecMode::NONE);
   }
 }
 
@@ -779,7 +773,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
   std::array<int, 6> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0};
 
   for (auto port : mapping->getPlatformPorts()) {
-    factor.transceiverManagementInterface_ref() =
+    factor.transceiverManagementInterface() =
         TransceiverManagementInterface::SFF;
     auto portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
@@ -790,13 +784,13 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
 
     EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
     for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
-      auto pinId = *portXphyLinePinConfig.id_ref();
-      if (auto tx = portXphyLinePinConfig.tx_ref()) {
+      auto pinId = *portXphyLinePinConfig.id();
+      if (auto tx = portXphyLinePinConfig.tx()) {
         verifyTxSettings(*tx, YampPort100GSffXphyLinePinConfig);
       }
     }
 
-    factor.transceiverManagementInterface_ref() =
+    factor.transceiverManagementInterface() =
         TransceiverManagementInterface::CMIS;
     portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
         PlatformPortProfileConfigMatcher(
@@ -807,8 +801,8 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
 
     EXPECT_EQ(portXphyLinePinConfigs.size(), 4);
     for (auto portXphyLinePinConfig : portXphyLinePinConfigs) {
-      auto pinId = *portXphyLinePinConfig.id_ref();
-      if (auto tx = portXphyLinePinConfig.tx_ref()) {
+      auto pinId = *portXphyLinePinConfig.id();
+      if (auto tx = portXphyLinePinConfig.tx()) {
         verifyTxSettings(*tx, YampPort100GCmisXphyLinePinConfig);
       }
     }
@@ -861,7 +855,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
   // Now 4.2 should be exactly the same as 5.2
   EXPECT_EQ(miln4_2->getPortConfigOverrides().size(), 1);
   for (auto miln4_2Override : miln4_2->getPortConfigOverrides()) {
-    auto overrideProfileList = miln4_2Override.factor_ref()->profiles_ref();
+    auto overrideProfileList = miln4_2Override.factor()->profiles();
     EXPECT_TRUE(overrideProfileList);
     EXPECT_TRUE(
         std::find(
@@ -870,7 +864,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528) !=
         overrideProfileList->end());
 
-    auto overridePortList = miln4_2Override.factor_ref()->ports_ref();
+    auto overridePortList = miln4_2Override.factor()->ports();
     EXPECT_EQ(overridePortList->size(), miln4_2->getPlatformPorts().size());
     // Now all the port should use this override
     for (const auto& port : miln4_2->getPlatformPorts()) {
@@ -884,7 +878,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
               cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
               PortID(port.first)));
       for (auto pinCfg : pinCfgs) {
-        auto tx = pinCfg.tx_ref();
+        auto tx = pinCfg.tx();
         EXPECT_TRUE(tx.has_value());
         verifyTxSettings(*tx, {0, 0, 128, 0, 0, 0});
       }
@@ -959,7 +953,7 @@ TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
 
   // also check all the port name should starts with fab3
   for (const auto& port : mapping->getPlatformPorts()) {
-    EXPECT_EQ(port.second.mapping_ref()->name_ref()->rfind("fab3", 0), 0);
+    EXPECT_EQ(port.second.mapping()->name()->rfind("fab3", 0), 0);
   }
 }
 
@@ -985,8 +979,8 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
   // also check all the port name should starts with fab3/eth301
   for (const auto& port : mapping->getPlatformPorts()) {
     EXPECT_TRUE(
-        port.second.mapping_ref()->name_ref()->rfind("fab301", 0) == 0 ||
-        port.second.mapping_ref()->name_ref()->rfind("eth301", 0) == 0);
+        port.second.mapping()->name()->rfind("fab301", 0) == 0 ||
+        port.second.mapping()->name()->rfind("eth301", 0) == 0);
   }
 }
 
@@ -1076,7 +1070,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
       continue;
     }
 
-    const auto& profiles = *port.second.supportedProfiles_ref();
+    const auto& profiles = *port.second.supportedProfiles();
     for (auto profile : profiles) {
       // skip uplink profiles
       if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
@@ -1090,17 +1084,17 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
           kWedge100DownlinkTxGroups[kWedge100DownlinkPortGroupMapping[transID]];
       for (auto& setting : txSettingsGroup) {
         cfg::PlatformPortConfigOverrideFactor factor;
-        factor.cableLengths_ref() = {setting.first};
+        factor.cableLengths() = {setting.first};
         auto expectedTx = setting.second.first;
         auto expectedDriveCurrent = setting.second.second;
         auto pinCfgs =
             mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
                 profile.first, PortID(port.first), factor));
         auto pinCfg = pinCfgs.at(0);
-        auto tx = pinCfg.tx_ref();
+        auto tx = pinCfg.tx();
         EXPECT_TRUE(tx.has_value());
         verifyTxSettings(*tx, expectedTx, true);
-        EXPECT_EQ(*tx->driveCurrent_ref(), expectedDriveCurrent);
+        EXPECT_EQ(*tx->driveCurrent(), expectedDriveCurrent);
       }
     }
   }
@@ -1115,7 +1109,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
   static std::array<int, 6> YV3T1DownlinkTx = {0, 16, 96, 56, 0, 0};
   static auto constexpr YV3T1DownlinkDriveCurrent = 8;
   cfg::PlatformPortConfigOverrideFactor factor;
-  factor.cableLengths_ref() = {1.5};
+  factor.cableLengths() = {1.5};
 
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   for (auto& port : mapping->getPlatformPorts()) {
@@ -1129,7 +1123,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
     }
 
     // Now check these downlink ports should have the YV3_T1
-    const auto& supportedProfiles = *port.second.supportedProfiles_ref();
+    const auto& supportedProfiles = *port.second.supportedProfiles();
     for (auto profile : YV3T1DownlinkProfiles) {
       if (const auto& profileConfigIt = supportedProfiles.find(profile);
           profileConfigIt != supportedProfiles.end()) {
@@ -1138,14 +1132,14 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
             mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
                 profileConfigIt->first, PortID(port.first), factor));
         const auto& pinCfg = pinCfgs.at(0);
-        auto tx = pinCfg.tx_ref();
+        auto tx = pinCfg.tx();
         EXPECT_TRUE(tx.has_value());
         verifyTxSettings(*tx, YV3T1DownlinkTx, true);
-        EXPECT_EQ(*tx->driveCurrent_ref(), YV3T1DownlinkDriveCurrent);
+        EXPECT_EQ(*tx->driveCurrent(), YV3T1DownlinkDriveCurrent);
       } else if (
           profile ==
               cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1 &&
-          *port.second.mapping_ref()->controllingPort_ref() != port.first) {
+          *port.second.mapping()->controllingPort() != port.first) {
         // 100G should only be used by the controlling port
         continue;
       } else {
@@ -1184,19 +1178,19 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
     if (transID < 24) {
       continue;
     }
-    const auto& profiles = *port.second.supportedProfiles_ref();
+    const auto& profiles = *port.second.supportedProfiles();
     for (auto profile : profiles) {
       auto pinCfgs = mapping->getPortIphyPinConfigs(
           PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
       for (auto pinCfg : pinCfgs) {
-        auto tx = pinCfg.tx_ref();
+        auto tx = pinCfg.tx();
         // Only the this profile should have tx settings
         if (profile.first ==
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL) {
           auto expectedTx = kWedge100UplinkTxSettings[transID - 24];
           EXPECT_TRUE(tx.has_value());
           verifyTxSettings(*tx, expectedTx, true);
-          EXPECT_EQ(*tx->driveCurrent_ref(), kWedge100UplinkDriveCurrent);
+          EXPECT_EQ(*tx->driveCurrent(), kWedge100UplinkDriveCurrent);
         } else {
           EXPECT_FALSE(tx.has_value());
         }
@@ -1272,7 +1266,7 @@ TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
         platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL, PimID(pimID)));
     EXPECT_TRUE(profile.has_value());
-    EXPECT_EQ(profile.value(), configEntry1.profile_ref());
+    EXPECT_EQ(profile.value(), configEntry1.profile());
   }
 
   // pims 1-3 with PROFILE_25G_1_NRZ_NOFEC_OPTICAL
@@ -1281,7 +1275,7 @@ TEST_F(PlatformMappingTest, VerifyPlatformSupportedProfileMerge) {
         platformMapping.getPortProfileConfig(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL, PimID(pimID)));
     EXPECT_TRUE(profile.has_value());
-    EXPECT_EQ(profile.value(), configEntry3.profile_ref());
+    EXPECT_EQ(profile.value(), configEntry3.profile());
   }
 
   // No match at pim 4

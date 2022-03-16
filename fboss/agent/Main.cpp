@@ -233,7 +233,7 @@ void AgentInitializer::createSwitch(
 
   // Read the config and set default command line arguments
   auto config = parseConfig(argc, argv);
-  initFlagDefaults(*config->thrift.defaultCommandLineArgs_ref());
+  initFlagDefaults(*config->thrift.defaultCommandLineArgs());
 
   fbossInit(argc, argv);
   // Allow any flag overrides to kick in before we create SwSwitch

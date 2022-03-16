@@ -90,50 +90,50 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
     for (const auto& entry : aclEntries) {
       cli::AclEntry aclDetails;
 
-      aclDetails.name_ref() = entry.get_name();
-      aclDetails.priority_ref() = entry.get_priority();
+      aclDetails.name() = entry.get_name();
+      aclDetails.priority() = entry.get_priority();
       if (entry.get_proto()) {
-        aclDetails.proto_ref() = *entry.get_proto();
+        aclDetails.proto() = *entry.get_proto();
       }
       if (entry.get_srcPort()) {
-        aclDetails.srcPort_ref() = *entry.get_srcPort();
+        aclDetails.srcPort() = *entry.get_srcPort();
       }
       if (entry.get_dstPort()) {
-        aclDetails.dstPort_ref() = *entry.get_dstPort();
+        aclDetails.dstPort() = *entry.get_dstPort();
       }
       if (entry.get_ipFrag()) {
-        aclDetails.ipFrag_ref() = *entry.get_ipFrag();
+        aclDetails.ipFrag() = *entry.get_ipFrag();
       }
       if (entry.get_dscp()) {
-        aclDetails.dscp_ref() = *entry.get_dscp();
+        aclDetails.dscp() = *entry.get_dscp();
       }
       if (entry.get_ipType()) {
-        aclDetails.ipType_ref() = *entry.get_ipType();
+        aclDetails.ipType() = *entry.get_ipType();
       }
       if (entry.get_icmpType()) {
-        aclDetails.icmpType_ref() = *entry.get_icmpType();
+        aclDetails.icmpType() = *entry.get_icmpType();
       }
       if (entry.get_icmpCode()) {
-        aclDetails.icmpCode_ref() = *entry.get_icmpCode();
+        aclDetails.icmpCode() = *entry.get_icmpCode();
       }
       if (entry.get_ttl()) {
-        aclDetails.ttl_ref() = *entry.get_ttl();
+        aclDetails.ttl() = *entry.get_ttl();
       }
       if (entry.get_l4SrcPort()) {
-        aclDetails.l4SrcPort_ref() = *entry.get_l4SrcPort();
+        aclDetails.l4SrcPort() = *entry.get_l4SrcPort();
       }
       if (entry.get_l4DstPort()) {
-        aclDetails.l4DstPort_ref() = *entry.get_l4DstPort();
+        aclDetails.l4DstPort() = *entry.get_l4DstPort();
       }
       if (entry.get_dstMac()) {
-        aclDetails.dstMac_ref() = *entry.get_dstMac();
+        aclDetails.dstMac() = *entry.get_dstMac();
       }
       if (entry.get_lookupClassL2()) {
-        aclDetails.lookupClassL2_ref() = *entry.get_lookupClassL2();
+        aclDetails.lookupClassL2() = *entry.get_lookupClassL2();
       }
-      aclDetails.actionType_ref() = entry.get_actionType();
+      aclDetails.actionType() = entry.get_actionType();
 
-      model.aclEntries_ref()->push_back(aclDetails);
+      model.aclEntries()->push_back(aclDetails);
     }
     return model;
   }

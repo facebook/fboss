@@ -196,8 +196,8 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
 
 void HwProdInvariantHelper::verifyNoDiscards() {
   auto portId = ensemble_->masterLogicalPortIds()[0];
-  auto outDiscards = *ensemble_->getLatestPortStats(portId).outDiscards__ref();
-  auto inDiscards = *ensemble_->getLatestPortStats(portId).inDiscards__ref();
+  auto outDiscards = *ensemble_->getLatestPortStats(portId).outDiscards_();
+  auto inDiscards = *ensemble_->getLatestPortStats(portId).inDiscards_();
   EXPECT_EQ(outDiscards, 0);
   EXPECT_EQ(inDiscards, 0);
 }

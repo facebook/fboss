@@ -66,13 +66,13 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
       const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel_ref());
+          labelFib->getLabelForwardingEntry(*route.topLabel());
       const auto* labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(*route.nextHops_ref()),
+          util::toRouteNextHopSet(*route.nextHops()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -102,13 +102,13 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
     for (auto i = 0; i < 2; i++) {
       for (const auto& route : routes[i]) {
         const auto& labelFibEntry =
-            labelFib->getLabelForwardingEntry(*route.topLabel_ref());
+            labelFib->getLabelForwardingEntry(*route.topLabel());
         const auto* labelFibEntryForClient =
             labelFibEntry->getEntryForClient(clients[i]);
 
         EXPECT_NE(nullptr, labelFibEntryForClient);
         EXPECT_EQ(
-            util::toRouteNextHopSet(*route.nextHops_ref()),
+            util::toRouteNextHopSet(*route.nextHops()),
             labelFibEntryForClient->getNextHopSet());
       }
     }
@@ -135,7 +135,7 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   FLAGS_mpls_rib = true;
   auto clientAdmin = this->sw->clientIdToAdminDistance((int)ClientID::OPENR);
   MplsRoute mplsRoute;
-  mplsRoute.topLabel_ref() = 10010;
+  mplsRoute.topLabel() = 10010;
 
   std::vector<folly::IPAddress> connectedIps{
       folly::IPAddress("10.0.0.101"),
@@ -156,17 +156,17 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   for (auto i = 0; i < 2; i++) {
     NextHopThrift nexthop;
 
-    nexthop.mplsAction_ref() = MplsAction();
+    nexthop.mplsAction() = MplsAction();
     if (i % 2) {
-      nexthop.mplsAction_ref()->action_ref() = MplsActionCode::PHP;
+      nexthop.mplsAction()->action() = MplsActionCode::PHP;
     } else {
-      nexthop.mplsAction_ref()->action_ref() = MplsActionCode::SWAP;
-      nexthop.mplsAction_ref()->swapLabel_ref() = 10011;
+      nexthop.mplsAction()->action() = MplsActionCode::SWAP;
+      nexthop.mplsAction()->swapLabel() = 10011;
     }
-    nexthop.address_ref()->addr_ref()->append(
+    nexthop.address()->addr()->append(
         reinterpret_cast<const char*>(recursiveIps[i].bytes()),
         folly::IPAddressV4::byteCount());
-    mplsRoute.nextHops_ref()->emplace_back(std::move(nexthop));
+    mplsRoute.nextHops()->emplace_back(std::move(nexthop));
   }
 
   auto routes = std::make_unique<std::vector<MplsRoute>>();
@@ -176,7 +176,7 @@ TEST_F(LabelForwardingTest, addMplsRecursiveRoutes) {
   waitForStateUpdates(this->sw);
   auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
   const auto& labelFibEntry =
-      labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
+      labelFib->getLabelForwardingEntry(*mplsRoute.topLabel());
   EXPECT_NE(nullptr, labelFibEntry);
   auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
   EXPECT_EQ(nexthops.size(), 2);
@@ -211,8 +211,8 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
 
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
-      if (*route.topLabel_ref() % 2) {
-        routesToRemove[i].push_back(*route.topLabel_ref());
+      if (*route.topLabel() % 2) {
+        routesToRemove[i].push_back(*route.topLabel());
       }
     }
   }
@@ -231,12 +231,12 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
     }
     for (const auto& route : routesToRetain[i]) {
       const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel_ref());
+          labelFib->getLabelForwardingEntry(*route.topLabel());
       const auto* labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(*route.nextHops_ref()),
+          util::toRouteNextHopSet(*route.nextHops()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -278,13 +278,13 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
   for (auto i = 0; i < 2; i++) {
     for (const auto& route : routes[i]) {
       const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*route.topLabel_ref());
+          labelFib->getLabelForwardingEntry(*route.topLabel());
       const auto* labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(*route.nextHops_ref()),
+          util::toRouteNextHopSet(*route.nextHops()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -301,17 +301,17 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
   for (auto i = 0; i < 8; i++) {
     if (i < 4) {
       const auto& labelFibEntry =
-          labelFib->getLabelForwardingEntry(*routes[0][i].topLabel_ref());
+          labelFib->getLabelForwardingEntry(*routes[0][i].topLabel());
       const auto* labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[0]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(*routes[0][i].nextHops_ref()),
+          util::toRouteNextHopSet(*routes[0][i].nextHops()),
           labelFibEntryForClient->getNextHopSet());
     } else {
       auto labelFibEntry =
-          labelFib->getLabelForwardingEntryIf(*routes[0][i].topLabel_ref());
+          labelFib->getLabelForwardingEntryIf(*routes[0][i].topLabel());
       EXPECT_EQ(nullptr, labelFibEntry);
     }
   }
@@ -329,7 +329,7 @@ TEST_P(LabelForwardingTest, getMplsRouteTableByClient) {
   };
 
   auto sortByLabel = [](const MplsRoute& route1, const MplsRoute& route2) {
-    return *route1.topLabel_ref() < *route2.topLabel_ref();
+    return *route1.topLabel() < *route2.topLabel();
   };
 
   for (auto i = 0; i < 2; i++) {
@@ -352,13 +352,12 @@ TEST_P(LabelForwardingTest, getMplsRouteTableByClient) {
     auto in = inRoutes[i].begin();
     auto out = outRoutes[i].begin();
     for (; in != inRoutes[i].end() && out != outRoutes[i].end(); in++, out++) {
-      EXPECT_EQ(*in->topLabel_ref(), *out->topLabel_ref());
+      EXPECT_EQ(*in->topLabel(), *out->topLabel());
       EXPECT_EQ(
-          util::toRouteNextHopSet(*in->nextHops_ref()),
-          util::toRouteNextHopSet(*out->nextHops_ref()));
+          util::toRouteNextHopSet(*in->nextHops()),
+          util::toRouteNextHopSet(*out->nextHops()));
       EXPECT_EQ(
-          in->adminDistance_ref().value_or({}),
-          out->adminDistance_ref().value_or({}));
+          in->adminDistance().value_or({}), out->adminDistance().value_or({}));
     }
   }
 }
@@ -374,28 +373,28 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
   std::vector<MplsLabel> labels{9001, 9002, 9003};
   mplsRoutes.resize(3);
   for (auto i = 0; i < 3; i++) {
-    *mplsRoutes[i].topLabel_ref() = labels[i];
+    *mplsRoutes[i].topLabel() = labels[i];
     auto ips = this->getDirectlyConnectedNexthops();
     for (auto ip : ips) {
       NextHopThrift nexthop;
       if (ip.isV4()) {
-        nexthop.address_ref()->addr_ref()->append(
+        nexthop.address()->addr()->append(
             reinterpret_cast<const char*>(ip.bytes()),
             folly::IPAddressV4::byteCount());
       } else {
-        nexthop.address_ref()->addr_ref()->append(
+        nexthop.address()->addr()->append(
             reinterpret_cast<const char*>(ip.bytes()),
             folly::IPAddressV6::byteCount());
       }
-      nexthop.mplsAction_ref() = MplsAction();
-      *nexthop.mplsAction_ref()->action_ref() = actions[i];
+      nexthop.mplsAction() = MplsAction();
+      *nexthop.mplsAction()->action() = actions[i];
       if (actions[i] == MplsActionCode::SWAP) {
-        nexthop.mplsAction_ref()->swapLabel_ref() = 9781;
+        nexthop.mplsAction()->swapLabel() = 9781;
       } else if (actions[i] == MplsActionCode::PUSH) {
-        nexthop.mplsAction_ref()->pushLabels_ref() = MplsLabelStack();
-        nexthop.mplsAction_ref()->pushLabels_ref()->push_back(9781);
+        nexthop.mplsAction()->pushLabels() = MplsLabelStack();
+        nexthop.mplsAction()->pushLabels()->push_back(9781);
       }
-      mplsRoutes[i].nextHops_ref()->emplace_back(nexthop);
+      mplsRoutes[i].nextHops()->emplace_back(nexthop);
     }
   }
 
@@ -449,7 +448,7 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
 TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
   FLAGS_mpls_rib = GetParam();
   MplsRoute mplsRoute;
-  *mplsRoute.topLabel_ref() = 10010;
+  *mplsRoute.topLabel() = 10010;
   std::vector<folly::IPAddress> ips{
       folly::IPAddress("10.0.0.101"),
       folly::IPAddress("10.0.55.101"),
@@ -458,12 +457,12 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
   for (auto i = 0; i < 3; i++) {
     NextHopThrift nexthop;
 
-    nexthop.mplsAction_ref() = MplsAction();
-    *nexthop.mplsAction_ref()->action_ref() = MplsActionCode::PHP;
-    nexthop.address_ref()->addr_ref()->append(
+    nexthop.mplsAction() = MplsAction();
+    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
+    nexthop.address()->addr()->append(
         reinterpret_cast<const char*>(ips[i].bytes()),
         folly::IPAddressV4::byteCount());
-    mplsRoute.nextHops_ref()->emplace_back(nexthop);
+    mplsRoute.nextHops()->emplace_back(nexthop);
   }
 
   auto routes = std::make_unique<std::vector<MplsRoute>>();
@@ -475,7 +474,7 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
     waitForStateUpdates(this->sw);
     auto labelFib = this->sw->getState()->getLabelForwardingInformationBase();
     const auto& labelFibEntry =
-        labelFib->getLabelForwardingEntry(*mplsRoute.topLabel_ref());
+        labelFib->getLabelForwardingEntry(*mplsRoute.topLabel());
     EXPECT_NE(nullptr, labelFibEntry);
     auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     EXPECT_EQ(nexthops.size(), 2);
@@ -489,7 +488,7 @@ TEST_P(LabelForwardingTest, invalidUnresolvedNextHops) {
 
 TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
   MplsRoute mplsRoute0;
-  *mplsRoute0.topLabel_ref() = 10010;
+  *mplsRoute0.topLabel() = 10010;
   std::vector<folly::IPAddress> ips0{
       folly::IPAddress("10.0.0.101"),
       folly::IPAddress("10.0.55.101"),
@@ -498,12 +497,12 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
   for (auto i = 0; i < 3; i++) {
     NextHopThrift nexthop;
 
-    nexthop.mplsAction_ref() = MplsAction();
-    *nexthop.mplsAction_ref()->action_ref() = MplsActionCode::PHP;
-    nexthop.address_ref()->addr_ref()->append(
+    nexthop.mplsAction() = MplsAction();
+    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
+    nexthop.address()->addr()->append(
         reinterpret_cast<const char*>(ips0[i].bytes()),
         folly::IPAddressV4::byteCount());
-    mplsRoute0.nextHops_ref()->emplace_back(nexthop);
+    mplsRoute0.nextHops()->emplace_back(nexthop);
   }
 
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
@@ -514,7 +513,7 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
       FbossError);
 
   MplsRoute mplsRoute1;
-  *mplsRoute1.topLabel_ref() = 10010;
+  *mplsRoute1.topLabel() = 10010;
   std::vector<folly::IPAddress> ips1{
       folly::IPAddress("10.0.0.101"),
       folly::IPAddress("10.0.55.101"),
@@ -523,12 +522,12 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
   for (auto i = 0; i < 3; i++) {
     NextHopThrift nexthop;
 
-    nexthop.mplsAction_ref() = MplsAction();
-    *nexthop.mplsAction_ref()->action_ref() = MplsActionCode::PHP;
-    nexthop.address_ref()->addr_ref()->append(
+    nexthop.mplsAction() = MplsAction();
+    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
+    nexthop.address()->addr()->append(
         reinterpret_cast<const char*>(ips0[i].bytes()),
         folly::IPAddressV4::byteCount());
-    mplsRoute1.nextHops_ref()->emplace_back(nexthop);
+    mplsRoute1.nextHops()->emplace_back(nexthop);
   }
 
   auto routes1 = std::make_unique<std::vector<MplsRoute>>();
@@ -542,17 +541,17 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
 TEST_P(LabelForwardingTest, popAndLookUp) {
   FLAGS_mpls_rib = GetParam();
   MplsRoute mplsRoute0;
-  *mplsRoute0.topLabel_ref() = 10010;
+  *mplsRoute0.topLabel() = 10010;
   folly::IPAddress ips0{"::"};
   NextHopThrift nexthop;
 
-  nexthop.mplsAction_ref() = MplsAction();
-  *nexthop.mplsAction_ref()->action_ref() = MplsActionCode::POP_AND_LOOKUP;
-  nexthop.address_ref()->addr_ref()->append(
+  nexthop.mplsAction() = MplsAction();
+  *nexthop.mplsAction()->action() = MplsActionCode::POP_AND_LOOKUP;
+  nexthop.address()->addr()->append(
       reinterpret_cast<const char*>(ips0.bytes()),
       folly::IPAddressV6::byteCount());
 
-  mplsRoute0.nextHops_ref()->emplace_back(nexthop);
+  mplsRoute0.nextHops()->emplace_back(nexthop);
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
   routes0->push_back(mplsRoute0);
   EXPECT_NO_THROW(this->thriftHandler->addMplsRoutes(
@@ -561,25 +560,25 @@ TEST_P(LabelForwardingTest, popAndLookUp) {
 
 TEST_F(LabelForwardingTest, popAndLookUpInvalid) {
   MplsRoute mplsRoute0;
-  *mplsRoute0.topLabel_ref() = 10010;
+  *mplsRoute0.topLabel() = 10010;
 
   folly::IPAddress ips0{"::"};
   NextHopThrift nexthop0;
-  nexthop0.mplsAction_ref() = MplsAction();
-  *nexthop0.mplsAction_ref()->action_ref() = MplsActionCode::POP_AND_LOOKUP;
-  nexthop0.address_ref()->addr_ref()->append(
+  nexthop0.mplsAction() = MplsAction();
+  *nexthop0.mplsAction()->action() = MplsActionCode::POP_AND_LOOKUP;
+  nexthop0.address()->addr()->append(
       reinterpret_cast<const char*>(ips0.bytes()),
       folly::IPAddressV6::byteCount());
-  mplsRoute0.nextHops_ref()->emplace_back(nexthop0);
+  mplsRoute0.nextHops()->emplace_back(nexthop0);
 
   folly::IPAddress ips1{"::1"};
   NextHopThrift nexthop1;
-  nexthop1.mplsAction_ref() = MplsAction();
-  *nexthop1.mplsAction_ref()->action_ref() = MplsActionCode::POP_AND_LOOKUP;
-  nexthop1.address_ref()->addr_ref()->append(
+  nexthop1.mplsAction() = MplsAction();
+  *nexthop1.mplsAction()->action() = MplsActionCode::POP_AND_LOOKUP;
+  nexthop1.address()->addr()->append(
       reinterpret_cast<const char*>(ips1.bytes()),
       folly::IPAddressV6::byteCount());
-  mplsRoute0.nextHops_ref()->emplace_back(nexthop1);
+  mplsRoute0.nextHops()->emplace_back(nexthop1);
 
   auto routes0 = std::make_unique<std::vector<MplsRoute>>();
   routes0->push_back(mplsRoute0);

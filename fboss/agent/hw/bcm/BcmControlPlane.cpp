@@ -152,7 +152,7 @@ void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
   auto maxCPUQueue = queueManager_->getNumQueues(cfg::StreamType::MULTICAST);
-  auto queueID = *entry.queueId_ref();
+  auto queueID = *entry.queueId();
   if (queueID < 0 || queueID > maxCPUQueue) {
     throw FbossError("Invalud cosq number ", queueID, "; max is ", maxCPUQueue);
   }
@@ -162,7 +162,7 @@ void BcmControlPlane::setReasonToQueueEntry(
   int rv;
   if (cacheEntryItr == warmBootCache->index2ReasonToQueue_end() ||
       cacheEntryItr->second != entry) {
-    const auto bcmReason = configRxReasonToBcmReasons(*entry.rxReason_ref());
+    const auto bcmReason = configRxReasonToBcmReasons(*entry.rxReason());
 
     if (!hw_->useHSDK()) {
       rv = bcm_rx_cosq_mapping_set(
@@ -174,7 +174,7 @@ void BcmControlPlane::setReasonToQueueEntry(
           0, // internal priority match & mask
           0,
           0, // packet type match & mask
-          *entry.queueId_ref());
+          *entry.queueId());
     } else {
       rv = rxCosqMappingExtendedSet(
           hw_->getUnit(),
@@ -185,7 +185,7 @@ void BcmControlPlane::setReasonToQueueEntry(
           0, // internal priority match & mask
           0,
           0, // packet type match & mask
-          *entry.queueId_ref());
+          *entry.queueId());
     }
     bcmCheckError(
         rv,
@@ -441,7 +441,7 @@ void BcmControlPlane::updateQueueWatermarks(HwPortStats* portStats) {
   for (const auto cosQ :
        queueManager_->getNamedQueues(cfg::StreamType::MULTICAST)) {
     uint64_t peakCells = hw_->getCosMgr()->cpuStatGet(cosQ, bcmBstStatIdMcast);
-    portStats->queueWatermarkBytes__ref()[cosQ] =
+    portStats->queueWatermarkBytes_()[cosQ] =
         peakCells * hw_->getMMUCellBytes();
   }
 }

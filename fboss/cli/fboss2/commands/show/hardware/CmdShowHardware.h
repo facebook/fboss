@@ -90,22 +90,22 @@ class CmdShowHardware
     RetType ret;
 
     if (data.find("WedgeAgentUptime") != data.items().end()) {
-      ret.ctrlUptime_ref() = data["WedgeAgentUptime"].asString();
+      ret.ctrlUptime() = data["WedgeAgentUptime"].asString();
     } else {
-      ret.ctrlUptime_ref() = "DOWN";
+      ret.ctrlUptime() = "DOWN";
     }
     if (data.find("BGPDUptime") != data.items().end()) {
-      ret.bgpdUptime_ref() = data["BGPDUptime"].asString();
+      ret.bgpdUptime() = data["BGPDUptime"].asString();
     } else {
-      ret.bgpdUptime_ref() = "CRASHED";
+      ret.bgpdUptime() = "CRASHED";
     }
     // Process PIMs for platforms that have PIMS
     if (auto pimInfo = data.find("PIMINFO"); pimInfo != data.items().end()) {
       for (const auto& [pim, pimdata] : pimInfo->second.items()) {
         cli::HWModule hwmod;
-        hwmod.moduleName_ref() = pim.asString();
-        hwmod.moduleType_ref() = "PIM";
-        hwmod.serialNumber_ref() = data["PIMSERIAL"][pim].asString();
+        hwmod.moduleName() = pim.asString();
+        hwmod.moduleType() = "PIM";
+        hwmod.serialNumber() = data["PIMSERIAL"][pim].asString();
         std::string lower_pim = boost::algorithm::to_lower_copy(pim.asString());
         std::string pim_status = "";
         // Unfortunately, BMC does not adhere to a single standard so detecting
@@ -126,36 +126,35 @@ class CmdShowHardware
             }
           }
         }
-        hwmod.modStatus_ref() = pim_status == "Present" ? "OK" : "Fail";
-        hwmod.fpgaVersion_ref() = pimdata["fpga_ver"].asString();
-        ret.modules_ref()->push_back(hwmod);
+        hwmod.modStatus() = pim_status == "Present" ? "OK" : "Fail";
+        hwmod.fpgaVersion() = pimdata["fpga_ver"].asString();
+        ret.modules()->push_back(hwmod);
       }
     }
     // Wedge swtiches will only have a single line item so handle those now.
     if (boost::algorithm::starts_with(product, "WEDGE")) {
       if (data.find("FRUID") != data.items().end()) {
         cli::HWModule chassis;
-        chassis.moduleName_ref() = "CHASSIS";
-        chassis.moduleType_ref() = data["FRUID"]["Product Name"].asString();
-        chassis.serialNumber_ref() =
+        chassis.moduleName() = "CHASSIS";
+        chassis.moduleType() = data["FRUID"]["Product Name"].asString();
+        chassis.serialNumber() =
             data["FRUID"]["Product Serial Number"].asString();
-        chassis.macAddress_ref() = data["FRUID"]["Local MAC"].asString();
-        chassis.modStatus_ref() = "OK";
-        ret.modules_ref()->push_back(chassis);
+        chassis.macAddress() = data["FRUID"]["Local MAC"].asString();
+        chassis.modStatus() = "OK";
+        ret.modules()->push_back(chassis);
       }
     }
     // Handle the rest of the FRU's for minipack/glacier chasiss
     else {
       if (data.find("FRUID") != data.items().end()) {
         cli::HWModule chassis;
-        chassis.moduleName_ref() = "CHASSIS";
-        chassis.moduleType_ref() = "CHASSIS";
-        chassis.serialNumber_ref() =
+        chassis.moduleName() = "CHASSIS";
+        chassis.moduleType() = "CHASSIS";
+        chassis.serialNumber() =
             data["FRUID"]["Product Serial Number"].asString();
-        chassis.macAddress_ref() =
-            data["FRUID"]["Extended MAC Base"].asString();
-        chassis.modStatus_ref() = "OK";
-        ret.modules_ref()->push_back(chassis);
+        chassis.macAddress() = data["FRUID"]["Extended MAC Base"].asString();
+        chassis.modStatus() = "OK";
+        ret.modules()->push_back(chassis);
       }
       // Again we have deviation of endpoints amongst platforms so we have to
       // read from different locations to populate our object
@@ -167,19 +166,19 @@ class CmdShowHardware
       }
       if (fab_endpoint != "") {
         cli::HWModule fab;
-        fab.moduleName_ref() = "SCM";
-        fab.moduleType_ref() = "SCM";
-        fab.serialNumber_ref() =
+        fab.moduleName() = "SCM";
+        fab.moduleType() = "SCM";
+        fab.serialNumber() =
             data[fab_endpoint]["Product Serial Number"].asString();
-        fab.macAddress_ref() = data[fab_endpoint]["Local MAC"].asString();
-        fab.modStatus_ref() = "OK";
-        ret.modules_ref()->push_back(fab);
+        fab.macAddress() = data[fab_endpoint]["Local MAC"].asString();
+        fab.modStatus() = "OK";
+        ret.modules()->push_back(fab);
       }
     }
     // Sort our list of modules before outputing to table
     std::sort(
-        ret.modules_ref()->begin(),
-        ret.modules_ref()->end(),
+        ret.modules()->begin(),
+        ret.modules()->end(),
         [](cli::HWModule& a, cli::HWModule& b) {
           return a.get_moduleName() < b.get_moduleName();
         });

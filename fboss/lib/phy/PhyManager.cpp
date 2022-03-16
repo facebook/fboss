@@ -43,11 +43,11 @@ cfg::PortProfileID getProfileIDBySpeed(
   if (portEntryIt == platformMapping->getPlatformPorts().end()) {
     throw FbossError("Can't find port:", portID, " in PlatformMapping");
   }
-  for (auto profile : *portEntryIt->second.supportedProfiles_ref()) {
+  for (auto profile : *portEntryIt->second.supportedProfiles()) {
     auto profileID = profile.first;
     if (auto profileCfg = platformMapping->getPortProfileConfig(
             PlatformPortProfileConfigMatcher(profileID, portID))) {
-      if (*profileCfg->speed_ref() == speed) {
+      if (*profileCfg->speed() == speed) {
         return profileID;
       }
     } else {
@@ -85,8 +85,7 @@ PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(
     if (!xphy.empty()) {
       auto cache = std::make_unique<folly::Synchronized<PortCacheInfo>>();
       auto wLockedCache = cache->wlock();
-      wLockedCache->xphyID =
-          GlobalXphyID(*xphy.begin()->second.physicalID_ref());
+      wLockedCache->xphyID = GlobalXphyID(*xphy.begin()->second.physicalID());
       cacheMap.emplace(PortID(port.first), std::move(cache));
     }
   }
@@ -305,7 +304,7 @@ void PhyManager::setPortPrbs(
   xphy->setPortPrbs(side, sideLanes, prbs);
 
   const auto& wLockedStats = getWLockedStats(portID);
-  if (*prbs.enabled_ref()) {
+  if (*prbs.enabled()) {
     const auto& phyPortConfig = getHwPhyPortConfigLocked(wLockedCache, portID);
     wLockedStats->stats->setupPrbsCollection(
         side, sideLanes, phyPortConfig.getLaneSpeedInMb(side));
@@ -485,7 +484,7 @@ void PhyManager::restoreFromWarmbootState(
             xphy->getPortPrbs(phy::Side::SYSTEM, wLockedCache->systemLanes);
         const auto& linePrbsState =
             xphy->getPortPrbs(phy::Side::LINE, wLockedCache->lineLanes);
-        if (*sysPrbsState.enabled_ref() || *linePrbsState.enabled_ref()) {
+        if (*sysPrbsState.enabled() || *linePrbsState.enabled()) {
           if (!hwPortConfig) {
             hwPortConfig = xphy->getConfigOnePort(
                 wLockedCache->systemLanes, wLockedCache->lineLanes);
@@ -493,13 +492,13 @@ void PhyManager::restoreFromWarmbootState(
           hwPortConfig = getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
 
           const auto& wLockedStats = getWLockedStats(portIDStrong);
-          if (*sysPrbsState.enabled_ref()) {
+          if (*sysPrbsState.enabled()) {
             wLockedStats->stats->setupPrbsCollection(
                 phy::Side::SYSTEM,
                 wLockedCache->systemLanes,
                 hwPortConfig->getLaneSpeedInMb(phy::Side::SYSTEM));
           }
-          if (*linePrbsState.enabled_ref()) {
+          if (*linePrbsState.enabled()) {
             wLockedStats->stats->setupPrbsCollection(
                 phy::Side::LINE,
                 wLockedCache->lineLanes,
@@ -606,8 +605,8 @@ void PhyManager::updatePortStats(
         // if PORT_INFO feature is supported, use getPortInfo instead
         if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
           auto xphyPortInfo = xphy->getPortInfo(systemLanes, lineLanes);
-          xphyPortInfo.name_ref() = getPortName(portID);
-          xphyPortInfo.speed_ref() = programmedSpeed;
+          xphyPortInfo.name() = getPortName(portID);
+          xphyPortInfo.speed() = programmedSpeed;
           updateXphyInfo(portID, xphyPortInfo);
           stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
         } else {
@@ -674,7 +673,7 @@ const std::string& PhyManager::getPortName(PortID portID) const {
     throw FbossError(
         "Unrecoginized port=", portID, ", which is not in PlatformMapping");
   }
-  return *portEntry->second.mapping_ref()->name_ref();
+  return *portEntry->second.mapping()->name();
 }
 
 PhyManager::PortCacheRLockedPtr PhyManager::getRLockedCache(

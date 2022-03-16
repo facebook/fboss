@@ -176,12 +176,12 @@ void updateStats(HwPortFb303Stats& portStats) {
           0,
       }, // macsec Acl stats
   };
-  empty.macsecStats_ref() = emptyMacsecStats;
+  empty.macsecStats() = emptyMacsecStats;
   // Need to populate queue stats, since by default these
   // maps are empty
-  *empty.queueOutDiscardPackets__ref() = *empty.queueOutDiscardBytes__ref() =
-      *empty.queueOutBytes__ref() = *empty.queueOutPackets__ref() =
-          *empty.queueWatermarkBytes__ref() = {{1, 0}, {2, 0}};
+  *empty.queueOutDiscardPackets_() = *empty.queueOutDiscardBytes_() =
+      *empty.queueOutBytes_() = *empty.queueOutPackets_() =
+          *empty.queueWatermarkBytes_() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
   portStats.updateStats(getInitedStats(), now);
 }

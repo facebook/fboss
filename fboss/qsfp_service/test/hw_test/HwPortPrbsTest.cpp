@@ -52,8 +52,8 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
               port, profile, std::nullopt);
       auto ipModulation =
           (Side == phy::Side::SYSTEM
-               ? *expectedPhyPortConfig.profile.system.modulation_ref()
-               : *expectedPhyPortConfig.profile.line.modulation_ref());
+               ? *expectedPhyPortConfig.profile.system.modulation()
+               : *expectedPhyPortConfig.profile.line.modulation());
       if (ipModulation != Modulation) {
         continue;
       }
@@ -122,8 +122,8 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
 
         // Then try to program xphy prbs
         phy::PortPrbsState prbs;
-        prbs.enabled_ref() = enable;
-        prbs.polynominal_ref() = profileAndPoly.second;
+        prbs.enabled() = enable;
+        prbs.polynominal() = profileAndPoly.second;
         wedgeManager->programXphyPortPrbs(port, Side, prbs);
       }
     };
@@ -136,16 +136,16 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
       // Verify all programmed xphy prbs matching with the desired values
       for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
         const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);
-        EXPECT_EQ(*hwPrbs.enabled_ref(), enable)
+        EXPECT_EQ(*hwPrbs.enabled(), enable)
             << "Port:" << port << " has undesired prbs enable state";
-        EXPECT_EQ(*hwPrbs.polynominal_ref(), profileAndPoly.second)
+        EXPECT_EQ(*hwPrbs.polynominal(), profileAndPoly.second)
             << "Port:" << port << " has undesired prbs polynominal";
 
         // Verify prbs stats collection is enabled or not
         const auto& prbsStats = wedgeManager->getPortPrbsStats(port, component);
-        EXPECT_EQ(*prbsStats.portId_ref(), static_cast<int32_t>(port));
-        EXPECT_EQ(*prbsStats.component_ref(), component);
-        const auto& laneStats = *prbsStats.laneStats_ref();
+        EXPECT_EQ(*prbsStats.portId(), static_cast<int32_t>(port));
+        EXPECT_EQ(*prbsStats.component(), component);
+        const auto& laneStats = *prbsStats.laneStats();
         if (enable) {
           const auto& actualPortConfig = phyManager->getHwPhyPortConfig(port);
           const auto& lanes = (Side == phy::Side::SYSTEM)
@@ -154,7 +154,7 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
           EXPECT_EQ(laneStats.size(), lanes.size());
           int laneStatsIdx = 0;
           for (const auto& laneIt : lanes) {
-            EXPECT_EQ(laneIt.first, *laneStats[laneStatsIdx++].laneId_ref());
+            EXPECT_EQ(laneIt.first, *laneStats[laneStatsIdx++].laneId());
           }
         } else {
           EXPECT_TRUE(laneStats.empty());

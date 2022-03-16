@@ -59,24 +59,22 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
   wedgeManager->getTransceiversInfo(
       transceivers, getExpectedLegacyTransceiverIds());
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present_ref()) {
-      XLOG(INFO)
-          << "Transceiver:" << idAndTransceiver.first
-          << " before hard reset, power control="
-          << apache::thrift::util::enumNameSafe(
-                 *idAndTransceiver.second.settings_ref()->powerControl_ref());
-      auto transmitterTech = *idAndTransceiver.second.cable_ref()
-                                  .value_or({})
-                                  .transmitterTech_ref();
+    if (*idAndTransceiver.second.present()) {
+      XLOG(INFO) << "Transceiver:" << idAndTransceiver.first
+                 << " before hard reset, power control="
+                 << apache::thrift::util::enumNameSafe(
+                        *idAndTransceiver.second.settings()->powerControl());
+      auto transmitterTech =
+          *idAndTransceiver.second.cable().value_or({}).transmitterTech();
       if (transmitterTech == TransmitterTechnology::COPPER) {
         EXPECT_TRUE(
-            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+            *idAndTransceiver.second.settings()->powerControl() ==
             PowerControlState::POWER_SET_BY_HW);
       } else {
         EXPECT_TRUE(
-            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+            *idAndTransceiver.second.settings()->powerControl() ==
                 PowerControlState::POWER_OVERRIDE ||
-            *idAndTransceiver.second.settings_ref()->powerControl_ref() ==
+            *idAndTransceiver.second.settings()->powerControl() ==
                 PowerControlState::HIGH_POWER_OVERRIDE);
       }
     }
@@ -89,24 +87,23 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
       transceiversAfterReset, getExpectedLegacyTransceiverIds());
   // Assert that we can detect all transceivers again
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present_ref()) {
+    if (*idAndTransceiver.second.present()) {
       XLOG(DBG2) << "Checking that transceiver : " << idAndTransceiver.first
                  << " was detected after reset";
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
       EXPECT_TRUE(titr != transceiversAfterReset.end());
-      EXPECT_TRUE(*titr->second.present_ref());
+      EXPECT_TRUE(*titr->second.present());
 
-      XLOG(INFO)
-          << "Transceiver:" << idAndTransceiver.first
-          << " before hard reset, power control="
-          << apache::thrift::util::enumNameSafe(
-                 *idAndTransceiver.second.settings_ref()->powerControl_ref())
-          << ", after hard reset, power control="
-          << apache::thrift::util::enumNameSafe(
-                 *titr->second.settings_ref()->powerControl_ref());
+      XLOG(INFO) << "Transceiver:" << idAndTransceiver.first
+                 << " before hard reset, power control="
+                 << apache::thrift::util::enumNameSafe(
+                        *idAndTransceiver.second.settings()->powerControl())
+                 << ", after hard reset, power control="
+                 << apache::thrift::util::enumNameSafe(
+                        *titr->second.settings()->powerControl());
       EXPECT_EQ(
-          *idAndTransceiver.second.settings_ref()->powerControl_ref(),
-          *titr->second.settings_ref()->powerControl_ref());
+          *idAndTransceiver.second.settings()->powerControl(),
+          *titr->second.settings()->powerControl());
     }
   }
 }

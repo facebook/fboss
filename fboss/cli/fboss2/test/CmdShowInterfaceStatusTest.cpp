@@ -17,41 +17,41 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createStatusPorts() {
   std::map<int32_t, facebook::fboss::PortInfoThrift> portMap;
 
   facebook::fboss::PortInfoThrift portEntry1;
-  portEntry1.portId_ref() = 1;
-  portEntry1.name_ref() = "eth1/1/1";
-  portEntry1.description_ref() = "u-001: ssw001.s001 (F=spine:L=d-050)";
-  portEntry1.operState_ref() = facebook::fboss::PortOperState::UP;
-  portEntry1.vlans_ref() = {2001};
-  portEntry1.speedMbps_ref() = 100000;
+  portEntry1.portId() = 1;
+  portEntry1.name() = "eth1/1/1";
+  portEntry1.description() = "u-001: ssw001.s001 (F=spine:L=d-050)";
+  portEntry1.operState() = facebook::fboss::PortOperState::UP;
+  portEntry1.vlans() = {2001};
+  portEntry1.speedMbps() = 100000;
 
   facebook::fboss::TransceiverIdxThrift transceiverId1;
-  transceiverId1.transceiverId_ref() = 100;
-  portEntry1.transceiverIdx_ref() = transceiverId1;
+  transceiverId1.transceiverId() = 100;
+  portEntry1.transceiverIdx() = transceiverId1;
 
   facebook::fboss::PortInfoThrift portEntry2;
-  portEntry2.portId_ref() = 2;
-  portEntry2.name_ref() = "eth2/1/1";
-  portEntry2.description_ref() =
+  portEntry2.portId() = 2;
+  portEntry2.name() = "eth2/1/1";
+  portEntry2.description() =
       "d-043: rsw043.p050 (F=rack:L=u-001:D=xyz2.0001.0050.0043)";
-  portEntry2.operState_ref() = facebook::fboss::PortOperState::UP;
-  portEntry2.vlans_ref() = {2002};
-  portEntry2.speedMbps_ref() = 200000;
+  portEntry2.operState() = facebook::fboss::PortOperState::UP;
+  portEntry2.vlans() = {2002};
+  portEntry2.speedMbps() = 200000;
 
   facebook::fboss::TransceiverIdxThrift transceiverId2;
-  transceiverId2.transceiverId_ref() = 101;
-  portEntry2.transceiverIdx_ref() = transceiverId2;
+  transceiverId2.transceiverId() = 101;
+  portEntry2.transceiverIdx() = transceiverId2;
 
   facebook::fboss::PortInfoThrift portEntry3;
-  portEntry3.portId_ref() = 3;
-  portEntry3.name_ref() = "eth3/1/1";
-  portEntry3.description_ref() = "u-044: unused";
-  portEntry3.operState_ref() = facebook::fboss::PortOperState::DOWN;
-  portEntry3.vlans_ref() = {2003};
-  portEntry3.speedMbps_ref() = 400000;
+  portEntry3.portId() = 3;
+  portEntry3.name() = "eth3/1/1";
+  portEntry3.description() = "u-044: unused";
+  portEntry3.operState() = facebook::fboss::PortOperState::DOWN;
+  portEntry3.vlans() = {2003};
+  portEntry3.speedMbps() = 400000;
 
   facebook::fboss::TransceiverIdxThrift transceiverId3;
-  transceiverId3.transceiverId_ref() = 102;
-  portEntry3.transceiverIdx_ref() = transceiverId3;
+  transceiverId3.transceiverId() = 102;
+  portEntry3.transceiverIdx() = transceiverId3;
 
   portMap[portEntry1.get_portId()] = portEntry1;
   portMap[portEntry2.get_portId()] = portEntry2;
@@ -65,15 +65,15 @@ std::map<int32_t, facebook::fboss::TransceiverInfo> createStatusTransceivers() {
 
   facebook::fboss::TransceiverInfo transceiver1;
   facebook::fboss::Vendor vendor1;
-  vendor1.name_ref() = "INTEL CORP";
-  vendor1.partNumber_ref() = "SPTSBP2CLCKS";
-  transceiver1.vendor_ref() = vendor1;
+  vendor1.name() = "INTEL CORP";
+  vendor1.partNumber() = "SPTSBP2CLCKS";
+  transceiver1.vendor() = vendor1;
 
   facebook::fboss::TransceiverInfo transceiver2;
   facebook::fboss::Vendor vendor2;
-  vendor2.name_ref() = "INNOLIGHT";
-  vendor2.partNumber_ref() = "TR-FC13H-HFB";
-  transceiver2.vendor_ref() = vendor2;
+  vendor2.name() = "INNOLIGHT";
+  vendor2.partNumber() = "TR-FC13H-HFB";
+  transceiver2.vendor() = vendor2;
 
   transceivers[100] = transceiver1;
   transceivers[101] = transceiver2;

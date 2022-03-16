@@ -28,10 +28,10 @@ using namespace facebook::fboss::utility;
 
 void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
-  *acl.name_ref() = aclName;
-  *acl.actionType_ref() = cfg::AclActionType::DENY;
-  acl.dscp_ref() = 0x24;
-  cfg.acls_ref()->push_back(acl);
+  *acl.name() = aclName;
+  *acl.actionType() = cfg::AclActionType::DENY;
+  acl.dscp() = 0x24;
+  cfg.acls()->push_back(acl);
 }
 
 void addPermitIpAcl(
@@ -39,11 +39,11 @@ void addPermitIpAcl(
     const std::string& aclName,
     folly::IPAddress ip) {
   auto acl = cfg::AclEntry();
-  acl.name_ref() = aclName;
-  acl.actionType_ref() = cfg::AclActionType::PERMIT;
-  acl.dstIp_ref() = ip.str();
-  acl.dscp_ref() = 0x24;
-  cfg.acls_ref()->push_back(acl);
+  acl.name() = aclName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  acl.dstIp() = ip.str();
+  acl.dscp() = 0x24;
+  cfg.acls()->push_back(acl);
 }
 
 void addCpuPolicingDstLocalAcl(
@@ -51,13 +51,13 @@ void addCpuPolicingDstLocalAcl(
     cfg::SwitchConfig& cfg,
     const std::string& aclName) {
   auto acl = cfg::AclEntry();
-  acl.name_ref() = aclName;
-  acl.actionType_ref() = cfg::AclActionType::PERMIT;
-  acl.lookupClassNeighbor_ref() = isV6
+  acl.name() = aclName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  acl.lookupClassNeighbor() = isV6
       ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6
       : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
-  acl.dscp_ref() = 48;
-  cfg.acls_ref()->push_back(acl);
+  acl.dscp() = 48;
+  cfg.acls()->push_back(acl);
 }
 
 void addCpuPolicingDstLocalMatchAction(
@@ -65,23 +65,20 @@ void addCpuPolicingDstLocalMatchAction(
     const std::string& aclName) {
   auto matchAction = cfg::MatchToAction();
 
-  matchAction.matcher_ref() = aclName;
+  matchAction.matcher() = aclName;
   cfg::QueueMatchAction queueMatchAction;
-  queueMatchAction.queueId_ref() = 7;
+  queueMatchAction.queueId() = 7;
 
-  matchAction.action_ref()->sendToQueue_ref() = queueMatchAction;
-  matchAction.action_ref()->toCpuAction_ref() = cfg::ToCpuAction::TRAP;
-  if (!cfg.cpuTrafficPolicy_ref()) {
-    cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+  matchAction.action()->sendToQueue() = queueMatchAction;
+  matchAction.action()->toCpuAction() = cfg::ToCpuAction::TRAP;
+  if (!cfg.cpuTrafficPolicy()) {
+    cfg.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
   }
-  if (!cfg.cpuTrafficPolicy_ref()->trafficPolicy_ref()) {
-    cfg.cpuTrafficPolicy_ref()->trafficPolicy_ref() =
-        cfg::TrafficPolicyConfig();
+  if (!cfg.cpuTrafficPolicy()->trafficPolicy()) {
+    cfg.cpuTrafficPolicy()->trafficPolicy() = cfg::TrafficPolicyConfig();
   }
-  cfg.cpuTrafficPolicy_ref()
-      ->trafficPolicy_ref()
-      ->matchToAction_ref()
-      ->push_back(matchAction);
+  cfg.cpuTrafficPolicy()->trafficPolicy()->matchToAction()->push_back(
+      matchAction);
 }
 
 } // unnamed namespace
@@ -120,7 +117,7 @@ TEST_F(HwAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
     addDenyPortAcl(newCfg, "A");
     addDenyPortAcl(newCfg, "B");
     applyNewConfig(newCfg);
-    newCfg.acls_ref()->pop_back();
+    newCfg.acls()->pop_back();
     addDenyPortAcl(newCfg, "C");
     addDenyPortAcl(newCfg, "B");
     applyNewConfig(newCfg);
@@ -149,7 +146,7 @@ TEST_F(HwAclPriorityTest, AclNameChange) {
     auto newCfg = initialConfig();
     addDenyPortAcl(newCfg, "A");
     applyNewConfig(newCfg);
-    *newCfg.acls_ref()->back().name_ref() = "AA";
+    *newCfg.acls()->back().name() = "AA";
     applyNewConfig(newCfg);
   };
 
@@ -203,19 +200,18 @@ TEST_F(HwAclPriorityTest, Reprioritize) {
 
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
-    trafficConfig.matchToAction_ref()->resize(2);
+    trafficConfig.matchToAction()->resize(2);
     cfg::MatchAction matchAction;
     cfg::QueueMatchAction queueAction;
-    queueAction.queueId_ref() = 1;
-    matchAction.sendToQueue_ref() = queueAction;
-    matchAction.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+    queueAction.queueId() = 1;
+    matchAction.sendToQueue() = queueAction;
+    matchAction.toCpuAction() = cfg::ToCpuAction::TRAP;
     for (int i = 0; i < 2; i++) {
-      trafficConfig.matchToAction_ref()[i].matcher_ref() =
-          *config.acls_ref()[i].name_ref();
-      trafficConfig.matchToAction_ref()[i].action_ref() = matchAction;
+      trafficConfig.matchToAction()[i].matcher() = *config.acls()[i].name();
+      trafficConfig.matchToAction()[i].action() = matchAction;
     }
-    cpuConfig.trafficPolicy_ref() = trafficConfig;
-    config.cpuTrafficPolicy_ref() = cpuConfig;
+    cpuConfig.trafficPolicy() = trafficConfig;
+    config.cpuTrafficPolicy() = cpuConfig;
     applyNewConfig(config);
   };
 
@@ -226,19 +222,18 @@ TEST_F(HwAclPriorityTest, Reprioritize) {
 
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
-    trafficConfig.matchToAction_ref()->resize(2);
+    trafficConfig.matchToAction()->resize(2);
     cfg::MatchAction matchAction;
     cfg::QueueMatchAction queueAction;
-    queueAction.queueId_ref() = 1;
-    matchAction.sendToQueue_ref() = queueAction;
-    matchAction.toCpuAction_ref() = cfg::ToCpuAction::TRAP;
+    queueAction.queueId() = 1;
+    matchAction.sendToQueue() = queueAction;
+    matchAction.toCpuAction() = cfg::ToCpuAction::TRAP;
     for (int i = 0; i < 2; i++) {
-      trafficConfig.matchToAction_ref()[i].matcher_ref() =
-          *config.acls_ref()[i].name_ref();
-      trafficConfig.matchToAction_ref()[i].action_ref() = matchAction;
+      trafficConfig.matchToAction()[i].matcher() = *config.acls()[i].name();
+      trafficConfig.matchToAction()[i].action() = matchAction;
     }
-    cpuConfig.trafficPolicy_ref() = trafficConfig;
-    config.cpuTrafficPolicy_ref() = cpuConfig;
+    cpuConfig.trafficPolicy() = trafficConfig;
+    config.cpuTrafficPolicy() = cpuConfig;
     applyNewConfig(config);
   };
 

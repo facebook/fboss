@@ -43,7 +43,7 @@ void SensorServiceImpl::init() {
 
   // Clear everything before init
   sensorNameMap_.clear();
-  sensorTable_.sensorMapList_ref()->clear();
+  sensorTable_.sensorMapList()->clear();
 
   // folly::dynamic sensorConf;
 
@@ -53,31 +53,28 @@ void SensorServiceImpl::init() {
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       sensorTable_);
 
-  if (sensorTable_.source_ref() == kSourceMock) {
+  if (sensorTable_.source() == kSourceMock) {
     sensorSource_ = SensorSource::MOCK;
-  } else if (sensorTable_.source_ref() == kSourceLmsensor) {
+  } else if (sensorTable_.source() == kSourceLmsensor) {
     sensorSource_ = SensorSource::LMSENSOR;
-  } else if (sensorTable_.source_ref() == kSourceSysfs) {
+  } else if (sensorTable_.source() == kSourceSysfs) {
     sensorSource_ = SensorSource::SYSFS;
   } else {
     throw std::runtime_error(folly::to<std::string>(
-        "Invalid source in ",
-        confFileName_,
-        " : ",
-        *sensorTable_.source_ref()));
+        "Invalid source in ", confFileName_, " : ", *sensorTable_.source()));
   }
 
-  for (auto& sensor : *sensorTable_.sensorMapList_ref()) {
+  for (auto& sensor : *sensorTable_.sensorMapList()) {
     for (auto& sensorIter : sensor.second) {
-      sensorNameMap_[*sensorIter.second.path_ref()] = sensorIter.first;
+      sensorNameMap_[*sensorIter.second.path()] = sensorIter.first;
     }
   }
 
-  for (auto& pair : *sensorTable_.sensorMapList_ref()) {
+  for (auto& pair : *sensorTable_.sensorMapList()) {
     XLOG(INFO) << pair.first << ": ";
     for (auto& sensorPair : pair.second) {
-      XLOG(INFO) << *sensorPair.second.path_ref() << " ";
-      for (auto& sensorMap : *sensorPair.second.thresholdMap_ref()) {
+      XLOG(INFO) << *sensorPair.second.path() << " ";
+      for (auto& sensorMap : *sensorPair.second.thresholdMap()) {
         XLOG(INFO) << static_cast<int>(sensorMap.first) << " : "
                    << sensorMap.second;
       }
@@ -90,19 +87,19 @@ void SensorServiceImpl::init() {
 std::optional<SensorData> SensorServiceImpl::getSensorData(
     const std::string& sensorName) {
   SensorData d;
-  d.name_ref() = "";
+  d.name() = "";
 
   liveDataTable_.withRLock([&](auto& table) {
     auto it = table.find(sensorName);
 
     if (it != table.end()) {
-      d.name_ref() = it->first;
-      d.value_ref() = it->second.value;
-      d.timeStamp_ref() = it->second.timeStamp;
+      d.name() = it->first;
+      d.value() = it->second.value;
+      d.timeStamp() = it->second.timeStamp;
     }
   });
 
-  return *d.name_ref() == "" ? std::nullopt : std::optional<SensorData>{d};
+  return *d.name() == "" ? std::nullopt : std::optional<SensorData>{d};
 }
 
 std::vector<SensorData> SensorServiceImpl::getSensorsData(
@@ -114,9 +111,9 @@ std::vector<SensorData> SensorServiceImpl::getSensorsData(
       if (std::find(sensorNames.begin(), sensorNames.end(), pair.first) !=
           sensorNames.end()) {
         SensorData d;
-        d.name_ref() = pair.first;
-        d.value_ref() = pair.second.value;
-        d.timeStamp_ref() = pair.second.timeStamp;
+        d.name() = pair.first;
+        d.value() = pair.second.value;
+        d.timeStamp() = pair.second.timeStamp;
         sensorDataVec.push_back(d);
       }
     }
@@ -130,9 +127,9 @@ std::vector<SensorData> SensorServiceImpl::getAllSensorData() {
   liveDataTable_.withRLock([&](auto& table) {
     for (auto& pair : table) {
       SensorData d;
-      d.name_ref() = pair.first;
-      d.value_ref() = pair.second.value;
-      d.timeStamp_ref() = pair.second.timeStamp;
+      d.name() = pair.first;
+      d.value() = pair.second.value;
+      d.timeStamp() = pair.second.timeStamp;
       sensorDataVec.push_back(d);
     }
   });

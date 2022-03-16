@@ -121,44 +121,44 @@ class RouteTest : public ::testing::Test {
   }
   virtual cfg::SwitchConfig initialConfig() const {
     cfg::SwitchConfig config;
-    config.vlans_ref()->resize(4);
-    config.vlans_ref()[0].id_ref() = 1;
-    config.vlans_ref()[1].id_ref() = 2;
-    config.vlans_ref()[2].id_ref() = 3;
-    config.vlans_ref()[3].id_ref() = 4;
+    config.vlans()->resize(4);
+    config.vlans()[0].id() = 1;
+    config.vlans()[1].id() = 2;
+    config.vlans()[2].id() = 3;
+    config.vlans()[3].id() = 4;
 
-    config.interfaces_ref()->resize(4);
-    config.interfaces_ref()[0].intfID_ref() = 1;
-    config.interfaces_ref()[0].vlanID_ref() = 1;
-    config.interfaces_ref()[0].routerID_ref() = 0;
-    config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-    config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] = "1::1/48";
+    config.interfaces()->resize(4);
+    config.interfaces()[0].intfID() = 1;
+    config.interfaces()[0].vlanID() = 1;
+    config.interfaces()[0].routerID() = 0;
+    config.interfaces()[0].mac() = "00:00:00:00:00:11";
+    config.interfaces()[0].ipAddresses()->resize(2);
+    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
+    config.interfaces()[0].ipAddresses()[1] = "1::1/48";
 
-    config.interfaces_ref()[1].intfID_ref() = 2;
-    config.interfaces_ref()[1].vlanID_ref() = 2;
-    config.interfaces_ref()[1].routerID_ref() = 0;
-    config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
-    config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[1].ipAddresses_ref()[0] = "2.2.2.2/24";
-    config.interfaces_ref()[1].ipAddresses_ref()[1] = "2::1/48";
+    config.interfaces()[1].intfID() = 2;
+    config.interfaces()[1].vlanID() = 2;
+    config.interfaces()[1].routerID() = 0;
+    config.interfaces()[1].mac() = "00:00:00:00:00:22";
+    config.interfaces()[1].ipAddresses()->resize(2);
+    config.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
+    config.interfaces()[1].ipAddresses()[1] = "2::1/48";
 
-    config.interfaces_ref()[2].intfID_ref() = 3;
-    config.interfaces_ref()[2].vlanID_ref() = 3;
-    config.interfaces_ref()[2].routerID_ref() = 0;
-    config.interfaces_ref()[2].mac_ref() = "00:00:00:00:00:33";
-    config.interfaces_ref()[2].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[2].ipAddresses_ref()[0] = "3.3.3.3/24";
-    config.interfaces_ref()[2].ipAddresses_ref()[1] = "3::1/48";
+    config.interfaces()[2].intfID() = 3;
+    config.interfaces()[2].vlanID() = 3;
+    config.interfaces()[2].routerID() = 0;
+    config.interfaces()[2].mac() = "00:00:00:00:00:33";
+    config.interfaces()[2].ipAddresses()->resize(2);
+    config.interfaces()[2].ipAddresses()[0] = "3.3.3.3/24";
+    config.interfaces()[2].ipAddresses()[1] = "3::1/48";
 
-    config.interfaces_ref()[3].intfID_ref() = 4;
-    config.interfaces_ref()[3].vlanID_ref() = 4;
-    config.interfaces_ref()[3].routerID_ref() = 0;
-    config.interfaces_ref()[3].mac_ref() = "00:00:00:00:00:44";
-    config.interfaces_ref()[3].ipAddresses_ref()->resize(2);
-    config.interfaces_ref()[3].ipAddresses_ref()[0] = "4.4.4.4/24";
-    config.interfaces_ref()[3].ipAddresses_ref()[1] = "4::1/48";
+    config.interfaces()[3].intfID() = 4;
+    config.interfaces()[3].vlanID() = 4;
+    config.interfaces()[3].routerID() = 0;
+    config.interfaces()[3].mac() = "00:00:00:00:00:44";
+    config.interfaces()[3].ipAddresses()->resize(2);
+    config.interfaces()[3].ipAddresses()[0] = "4.4.4.4/24";
+    config.interfaces()[3].ipAddresses()[1] = "4::1/48";
     return config;
   }
 
@@ -727,10 +727,10 @@ TEST_F(RouteTest, InterfaceRoutes) {
 
   auto config = this->initialConfig();
   // swap the interface addresses which causes route change
-  config.interfaces_ref()[1].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[1].ipAddresses_ref()[1] = "1::1/48";
-  config.interfaces_ref()[0].ipAddresses_ref()[0] = "2.2.2.2/24";
-  config.interfaces_ref()[0].ipAddresses_ref()[1] = "2::1/48";
+  config.interfaces()[1].ipAddresses()[0] = "1.1.1.1/24";
+  config.interfaces()[1].ipAddresses()[1] = "1::1/48";
+  config.interfaces()[0].ipAddresses()[0] = "2.2.2.2/24";
+  config.interfaces()[0].ipAddresses()[1] = "2::1/48";
   this->sw_->applyConfig("New config", config);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
@@ -957,26 +957,26 @@ void checkChangedRoute(
 
 TEST_F(RouteTest, applyNewConfig) {
   auto config = this->initialConfig();
-  config.vlans_ref()->resize(6);
-  config.vlans_ref()[4].id_ref() = 5;
-  config.vlans_ref()[5].id_ref() = 6;
-  config.interfaces_ref()->resize(6);
-  config.interfaces_ref()[4].intfID_ref() = 5;
-  config.interfaces_ref()[4].vlanID_ref() = 5;
-  config.interfaces_ref()[4].routerID_ref() = 0;
-  config.interfaces_ref()[4].mac_ref() = "00:00:00:00:00:55";
-  config.interfaces_ref()[4].ipAddresses_ref()->resize(4);
-  config.interfaces_ref()[4].ipAddresses_ref()[0] = "5.1.1.1/24";
-  config.interfaces_ref()[4].ipAddresses_ref()[1] = "5.1.1.2/24";
-  config.interfaces_ref()[4].ipAddresses_ref()[2] = "5.1.1.10/24";
-  config.interfaces_ref()[4].ipAddresses_ref()[3] = "::1/48";
-  config.interfaces_ref()[5].intfID_ref() = 6;
-  config.interfaces_ref()[5].vlanID_ref() = 6;
-  config.interfaces_ref()[5].routerID_ref() = 1;
-  config.interfaces_ref()[5].mac_ref() = "00:00:00:00:00:66";
-  config.interfaces_ref()[5].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[5].ipAddresses_ref()[0] = "5.1.1.1/24";
-  config.interfaces_ref()[5].ipAddresses_ref()[1] = "::1/48";
+  config.vlans()->resize(6);
+  config.vlans()[4].id() = 5;
+  config.vlans()[5].id() = 6;
+  config.interfaces()->resize(6);
+  config.interfaces()[4].intfID() = 5;
+  config.interfaces()[4].vlanID() = 5;
+  config.interfaces()[4].routerID() = 0;
+  config.interfaces()[4].mac() = "00:00:00:00:00:55";
+  config.interfaces()[4].ipAddresses()->resize(4);
+  config.interfaces()[4].ipAddresses()[0] = "5.1.1.1/24";
+  config.interfaces()[4].ipAddresses()[1] = "5.1.1.2/24";
+  config.interfaces()[4].ipAddresses()[2] = "5.1.1.10/24";
+  config.interfaces()[4].ipAddresses()[3] = "::1/48";
+  config.interfaces()[5].intfID() = 6;
+  config.interfaces()[5].vlanID() = 6;
+  config.interfaces()[5].routerID() = 1;
+  config.interfaces()[5].mac() = "00:00:00:00:00:66";
+  config.interfaces()[5].ipAddresses()->resize(2);
+  config.interfaces()[5].ipAddresses()[0] = "5.1.1.1/24";
+  config.interfaces()[5].ipAddresses()[1] = "::1/48";
 
   auto platform = this->sw_->getPlatform();
   auto rib = this->sw_->getRib();
@@ -998,7 +998,7 @@ TEST_F(RouteTest, applyNewConfig) {
       },
       {});
   // change an interface address
-  config.interfaces_ref()[4].ipAddresses_ref()[3] = "11::11/48";
+  config.interfaces()[4].ipAddresses()[3] = "11::11/48";
 
   this->sw_->applyConfig("Apply config2", config);
   auto stateV2 = this->sw_->getState();
@@ -1012,25 +1012,25 @@ TEST_F(RouteTest, applyNewConfig) {
       {TEMP::Route{0, IPAddress("::0"), 48}});
 
   // move one interface to cause same route prefix conflict
-  config.interfaces_ref()[5].routerID_ref() = 0;
+  config.interfaces()[5].routerID() = 0;
   EXPECT_THROW(this->sw_->applyConfig("Bogus config", config), FbossError);
 
   // add a new interface in a new VRF
-  config.vlans_ref()->resize(7);
-  config.vlans_ref()[6].id_ref() = 7;
-  config.interfaces_ref()->resize(7);
-  config.interfaces_ref()[6].intfID_ref() = 7;
-  config.interfaces_ref()[6].vlanID_ref() = 7;
-  config.interfaces_ref()[6].routerID_ref() = 2;
-  config.interfaces_ref()[6].mac_ref() = "00:00:00:00:00:77";
-  config.interfaces_ref()[6].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[6].ipAddresses_ref()[0] = "1.1.1.1/24";
-  config.interfaces_ref()[6].ipAddresses_ref()[1] = "::1/48";
+  config.vlans()->resize(7);
+  config.vlans()[6].id() = 7;
+  config.interfaces()->resize(7);
+  config.interfaces()[6].intfID() = 7;
+  config.interfaces()[6].vlanID() = 7;
+  config.interfaces()[6].routerID() = 2;
+  config.interfaces()[6].mac() = "00:00:00:00:00:77";
+  config.interfaces()[6].ipAddresses()->resize(2);
+  config.interfaces()[6].ipAddresses()[0] = "1.1.1.1/24";
+  config.interfaces()[6].ipAddresses()[1] = "::1/48";
   // and move one interface to another vrf and fix the address conflict
-  config.interfaces_ref()[5].routerID_ref() = 0;
-  config.interfaces_ref()[5].ipAddresses_ref()->resize(2);
-  config.interfaces_ref()[5].ipAddresses_ref()[0] = "5.2.2.1/24";
-  config.interfaces_ref()[5].ipAddresses_ref()[1] = "5::6/48";
+  config.interfaces()[5].routerID() = 0;
+  config.interfaces()[5].ipAddresses()->resize(2);
+  config.interfaces()[5].ipAddresses()[0] = "5.2.2.1/24";
+  config.interfaces()[5].ipAddresses()[1] = "5::6/48";
 
   this->sw_->applyConfig("Apply config", config);
   auto stateV3 = this->sw_->getState();
@@ -1444,23 +1444,23 @@ TEST_F(RouteTest, fwdInfoRanking) {
 TEST_F(RouteTest, StaticIp2MplsRoutes) {
   auto config = this->initialConfig();
 
-  config.staticIp2MplsRoutes_ref()->resize(2);
-  config.staticIp2MplsRoutes_ref()[0].prefix_ref() = "10.0.0.0/24";
-  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()->resize(1);
+  config.staticIp2MplsRoutes()->resize(2);
+  config.staticIp2MplsRoutes()[0].prefix() = "10.0.0.0/24";
+  config.staticIp2MplsRoutes()[0].nexthops()->resize(1);
   NextHopThrift v4Nexthop;
-  v4Nexthop.address_ref() = toBinaryAddress(folly::IPAddress("1.1.1.10"));
+  v4Nexthop.address() = toBinaryAddress(folly::IPAddress("1.1.1.10"));
   MplsAction action;
-  action.action_ref() = MplsActionCode::PUSH;
-  action.pushLabels_ref() = {101, 102};
-  v4Nexthop.mplsAction_ref() = action;
-  config.staticIp2MplsRoutes_ref()[0].nexthops_ref()[0] = v4Nexthop;
+  action.action() = MplsActionCode::PUSH;
+  action.pushLabels() = {101, 102};
+  v4Nexthop.mplsAction() = action;
+  config.staticIp2MplsRoutes()[0].nexthops()[0] = v4Nexthop;
 
-  config.staticIp2MplsRoutes_ref()[1].prefix_ref() = "1:1::/64";
-  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()->resize(1);
+  config.staticIp2MplsRoutes()[1].prefix() = "1:1::/64";
+  config.staticIp2MplsRoutes()[1].nexthops()->resize(1);
   NextHopThrift v6Nexthop;
-  v6Nexthop.address_ref() = toBinaryAddress(folly::IPAddress("1::10"));
-  v6Nexthop.mplsAction_ref() = action;
-  config.staticIp2MplsRoutes_ref()[1].nexthops_ref()[0] = v6Nexthop;
+  v6Nexthop.address() = toBinaryAddress(folly::IPAddress("1::10"));
+  v6Nexthop.mplsAction() = action;
+  config.staticIp2MplsRoutes()[1].nexthops()[0] = v6Nexthop;
 
   this->sw_->applyConfig("New config", config);
 
@@ -1506,19 +1506,19 @@ class MultipleAddressInterfaceTest : public RouteTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
     cfg::SwitchConfig config;
-    config.vlans_ref()->resize(1);
-    config.vlans_ref()[0].id_ref() = 1;
+    config.vlans()->resize(1);
+    config.vlans()[0].id() = 1;
 
-    config.interfaces_ref()->resize(1);
-    config.interfaces_ref()[0].intfID_ref() = 1;
-    config.interfaces_ref()[0].vlanID_ref() = 1;
-    config.interfaces_ref()[0].routerID_ref() = 0;
-    config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
-    config.interfaces_ref()[0].ipAddresses_ref()->resize(4);
-    config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.1.1.1/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[1] = "1.1.1.2/24";
-    config.interfaces_ref()[0].ipAddresses_ref()[2] = "1::1/48";
-    config.interfaces_ref()[0].ipAddresses_ref()[3] = "1::2/48";
+    config.interfaces()->resize(1);
+    config.interfaces()[0].intfID() = 1;
+    config.interfaces()[0].vlanID() = 1;
+    config.interfaces()[0].routerID() = 0;
+    config.interfaces()[0].mac() = "00:00:00:00:00:11";
+    config.interfaces()[0].ipAddresses()->resize(4);
+    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
+    config.interfaces()[0].ipAddresses()[1] = "1.1.1.2/24";
+    config.interfaces()[0].ipAddresses()[2] = "1::1/48";
+    config.interfaces()[0].ipAddresses()[3] = "1::2/48";
     return config;
   }
 };
@@ -2105,25 +2105,25 @@ class StaticRoutesTest : public RouteTest {
   cfg::SwitchConfig initialConfig() const override {
     auto config = RouteTest::initialConfig();
     // Add v4/v6 static routes with nhops
-    config.staticRoutesWithNhops_ref()->resize(2);
-    config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[0].prefix_ref() = "2001::/64";
-    config.staticRoutesWithNhops_ref()[0].nexthops_ref()[0] = "2::2";
-    config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
-    config.staticRoutesWithNhops_ref()[1].prefix_ref() = "20.20.20.0/24";
-    config.staticRoutesWithNhops_ref()[1].nexthops_ref()[0] = "2.2.2.3";
+    config.staticRoutesWithNhops()->resize(2);
+    config.staticRoutesWithNhops()[0].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[0].prefix() = "2001::/64";
+    config.staticRoutesWithNhops()[0].nexthops()[0] = "2::2";
+    config.staticRoutesWithNhops()[1].nexthops()->resize(1);
+    config.staticRoutesWithNhops()[1].prefix() = "20.20.20.0/24";
+    config.staticRoutesWithNhops()[1].nexthops()[0] = "2.2.2.3";
 
     auto insertStaticNoNhopRoutes = [=](auto& staticRouteNoNhops,
                                         int prefixStartIdx) {
       staticRouteNoNhops.resize(2);
-      staticRouteNoNhops[0].prefix_ref() =
+      staticRouteNoNhops[0].prefix() =
           folly::sformat("240{}::/64", prefixStartIdx);
-      staticRouteNoNhops[1].prefix_ref() =
+      staticRouteNoNhops[1].prefix() =
           folly::sformat("30.30.{}.0/24", prefixStartIdx);
     };
     // Add v4/v6 static routes to CPU/NULL
-    insertStaticNoNhopRoutes(*config.staticRoutesToCPU_ref(), 1);
-    insertStaticNoNhopRoutes(*config.staticRoutesToNull_ref(), 2);
+    insertStaticNoNhopRoutes(*config.staticRoutesToCPU(), 1);
+    insertStaticNoNhopRoutes(*config.staticRoutesToNull(), 2);
 
     return config;
   }

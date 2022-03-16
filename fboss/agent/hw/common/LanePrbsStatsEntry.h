@@ -85,30 +85,30 @@ class LanePrbsStatsEntry {
   phy::PrbsLaneStats getPrbsLaneStats() const {
     phy::PrbsLaneStats prbsLaneStats = phy::PrbsLaneStats();
     steady_clock::time_point now = steady_clock::now();
-    *prbsLaneStats.laneId_ref() = laneId_;
-    *prbsLaneStats.locked_ref() = locked_;
+    *prbsLaneStats.laneId() = laneId_;
+    *prbsLaneStats.locked() = locked_;
     if (!locked_) {
-      *prbsLaneStats.ber_ref() = 0.;
+      *prbsLaneStats.ber() = 0.;
     } else {
       milliseconds duration =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               timeLastCollect_ - timeLastLocked_);
       if (duration.count() == 0) {
-        *prbsLaneStats.ber_ref() = 0.;
+        *prbsLaneStats.ber() = 0.;
       } else {
-        *prbsLaneStats.ber_ref() =
+        *prbsLaneStats.ber() =
             (accuErrorCount_ * 1000) / (laneRate_ * duration.count());
       }
     }
-    *prbsLaneStats.maxBer_ref() = maxBer_;
-    *prbsLaneStats.numLossOfLock_ref() = numLossOfLock_;
-    *prbsLaneStats.timeSinceLastLocked_ref() =
+    *prbsLaneStats.maxBer() = maxBer_;
+    *prbsLaneStats.numLossOfLock() = numLossOfLock_;
+    *prbsLaneStats.timeSinceLastLocked() =
         (timeLastLocked_ == steady_clock::time_point())
         ? 0
         : std::chrono::duration_cast<std::chrono::seconds>(
               now - timeLastLocked_)
               .count();
-    *prbsLaneStats.timeSinceLastClear_ref() =
+    *prbsLaneStats.timeSinceLastClear() =
         std::chrono::duration_cast<std::chrono::seconds>(now - timeLastCleared_)
             .count();
     return prbsLaneStats;

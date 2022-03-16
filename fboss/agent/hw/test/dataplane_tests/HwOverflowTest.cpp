@@ -43,10 +43,10 @@ void HwOverflowTest::SetUp() {
 void HwOverflowTest::startPacketTxRxVerify() {
   CHECK(!packetRxVerifyRunning_);
   packetRxVerifyRunning_ = true;
-  auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
   auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
   auto dstIp = folly::IPAddress::createNetwork(
-                   initialConfig().interfaces_ref()[0].ipAddresses_ref()[0])
+                   initialConfig().interfaces()[0].ipAddresses()[0])
                    .first;
   auto sendBgpPktToMe = [=]() {
     utility::sendTcpPkts(

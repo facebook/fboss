@@ -332,12 +332,12 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   auto& vlanApi = SaiApiTable::getInstance()->vlanApi();
   VlanID swVlanId{vlanApi.getAttribute(
       VlanSaiId{fdbEntry.bridgeVlanId()}, SaiVlanTraits::Attributes::VlanId{})};
-  entry.vlanID_ref() = swVlanId;
-  entry.mac_ref() = fdbEntry.mac().toString();
+  entry.vlanID() = swVlanId;
+  entry.mac() = fdbEntry.mac().toString();
   // If we programmed a entry via SaiFdbManager,
   // its valiadted
-  entry.l2EntryType_ref() = L2EntryType::L2_ENTRY_TYPE_VALIDATED;
-  entry.port_ref() = 0;
+  entry.l2EntryType() = L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+  entry.port() = 0;
 
   // To get the PortID, we get the bridgePortId from the fdb entry,
   // then get that Bridge Port's PortId attribute. We can lookup the
@@ -355,9 +355,9 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
       concurrentIndices_->aggregatePortIds.find(LagSaiId{portOrLagSaiId});
 
   if (portItr != concurrentIndices_->portIds.cend()) {
-    entry.port_ref() = portItr->second;
+    entry.port() = portItr->second;
   } else if (lagItr != concurrentIndices_->aggregatePortIds.cend()) {
-    entry.trunk_ref() = lagItr->second;
+    entry.trunk() = lagItr->second;
   } else {
     throw FbossError(
         "l2 table entry had unknown port sai id: ", portOrLagSaiId);
@@ -365,7 +365,7 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   auto metadata =
       fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
   if (metadata) {
-    entry.classID_ref() = metadata;
+    entry.classID() = metadata;
   }
   return entry;
 }

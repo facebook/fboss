@@ -28,8 +28,8 @@ struct IPVersion<folly::IPAddressV6> {
 template <class T>
 thrift::Address toAddressImpl(const T& addr) {
   thrift::Address result;
-  *result.addr_ref() = addr.toFullyQualified();
-  *result.type_ref() = IPVersion<T>::value;
+  *result.addr() = addr.toFullyQualified();
+  *result.type() = IPVersion<T>::value;
   return result;
 }
 
@@ -42,7 +42,7 @@ inline thrift::Address toAddress(const folly::IPAddress& ip) {
 template <class IPAddressVx>
 thrift::BinaryAddress toBinaryAddressImpl(const IPAddressVx& addr) {
   thrift::BinaryAddress result;
-  result.addr_ref()->append(
+  result.addr()->append(
       reinterpret_cast<const char*>(addr.bytes()), IPAddressVx::byteCount());
   return result;
 }
@@ -55,15 +55,15 @@ inline thrift::BinaryAddress toBinaryAddress(const folly::IPAddress& addr) {
 
 template <typename T>
 inline folly::IPAddress toIPAddress(const T& input) {
-  return *input.type_ref() != decltype(input.type_ref())::value_type::VUNSPEC
-      ? folly::IPAddress(*input.addr_ref())
+  return *input.type() != decltype(input.type())::value_type::VUNSPEC
+      ? folly::IPAddress(*input.addr())
       : folly::IPAddress();
 }
 
 inline folly::IPAddress toIPAddress(const thrift::BinaryAddress& addr) {
   return folly::IPAddress::fromBinary(folly::ByteRange(
-      reinterpret_cast<const unsigned char*>(addr.addr_ref()->data()),
-      addr.addr_ref()->size()));
+      reinterpret_cast<const unsigned char*>(addr.addr()->data()),
+      addr.addr()->size()));
 }
 
 } // namespace facebook::network

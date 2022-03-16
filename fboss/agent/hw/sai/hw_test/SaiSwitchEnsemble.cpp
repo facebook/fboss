@@ -125,8 +125,8 @@ void SaiSwitchEnsemble::runDiagCommand(
     const std::string& input,
     std::string& output) {
   ClientInformation clientInfo;
-  clientInfo.username_ref() = "hw_test";
-  clientInfo.hostname_ref() = "hw_test";
+  clientInfo.username() = "hw_test";
+  clientInfo.hostname() = "hw_test";
   output = diagCmdServer_->diagCmd(
       std::make_unique<fbstring>(input),
       std::make_unique<ClientInformation>(clientInfo));
@@ -140,7 +140,7 @@ void SaiSwitchEnsemble::init(
   } else {
     agentConfig = AgentConfig::fromDefaultFile();
   }
-  initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
+  initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
   if (info) {

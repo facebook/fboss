@@ -29,23 +29,23 @@ void ControlLogic::getFanUpdate() {
        ++fanItem) {
     XLOG(INFO) << "Control :: Fan name " << fanItem->fanName
                << " Access type : "
-               << static_cast<int>(*fanItem->rpmAccess.accessType_ref());
+               << static_cast<int>(*fanItem->rpmAccess.accessType());
     bool fanAccessFail = false, fanMissing = false;
     int fanRpm;
     uint64_t rpmTimeStamp;
     std::string fanItemName = fanItem->fanName;
     // Check if RPM name in Thrift data is overridden
-    if (fanItem->rpmAccess.accessType_ref() ==
+    if (fanItem->rpmAccess.accessType() ==
         fan_config_structs::SourceType::kSrcThrift) {
-      fanItemName = *fanItem->rpmAccess.path_ref();
+      fanItemName = *fanItem->rpmAccess.path();
     }
     if (!checkIfFanPresent(std::addressof(*fanItem))) {
       fanMissing = true;
     }
     // If source type is not specified (SRC_INVALID), we treat it as Thrift.
-    if ((fanItem->rpmAccess.accessType_ref() ==
+    if ((fanItem->rpmAccess.accessType() ==
          fan_config_structs::SourceType::kSrcInvalid) ||
-        (fanItem->rpmAccess.accessType_ref() ==
+        (fanItem->rpmAccess.accessType() ==
          fan_config_structs::SourceType::kSrcThrift)) {
       if (pSensor_->checkIfEntryExists(fanItemName)) {
         entryType = pSensor_->getSensorEntryType(fanItemName);
@@ -72,14 +72,13 @@ void ControlLogic::getFanUpdate() {
         fanAccessFail = true;
       }
     } else if (
-        fanItem->rpmAccess.accessType_ref() ==
+        fanItem->rpmAccess.accessType() ==
         fan_config_structs::SourceType::kSrcSysfs) {
       try {
-        fanItem->fanStatus.rpm =
-            pBsp_->readSysfs(*fanItem->rpmAccess.path_ref());
+        fanItem->fanStatus.rpm = pBsp_->readSysfs(*fanItem->rpmAccess.path());
         fanItem->fanStatus.timeStamp = pBsp_->getCurrentTime();
       } catch (std::exception& e) {
-        XLOG(ERR) << "Fan RPM access fail " << *fanItem->rpmAccess.path_ref();
+        XLOG(ERR) << "Fan RPM access fail " << *fanItem->rpmAccess.path();
         // Obvious. Sysfs fail means access fail
         fanAccessFail = true;
       }
@@ -463,12 +462,12 @@ bool ControlLogic::checkIfFanPresent(Fan* fan) {
 
   // If no access method is listed in config,
   // skip any check and return true
-  if (fan->presence.path_ref() == "") {
+  if (fan->presence.path() == "") {
     return true;
   }
 
   std::string presenceKey = fan->fanName + "_presence";
-  auto presenceAccessType = *fan->presence.accessType_ref();
+  auto presenceAccessType = *fan->presence.accessType();
   switch (presenceAccessType) {
     case fan_config_structs::SourceType::kSrcThrift:
       // In the case of Thrift, we use the last data from Thrift read
@@ -479,10 +478,10 @@ bool ControlLogic::checkIfFanPresent(Fan* fan) {
       nowSec = facebook::WallClockUtil::NowInSecFast();
       try {
         readVal =
-            static_cast<unsigned>(pBsp_->readSysfs(*fan->presence.path_ref()));
+            static_cast<unsigned>(pBsp_->readSysfs(*fan->presence.path()));
         readSuccessful = true;
       } catch (std::exception& e) {
-        XLOG(ERR) << "Failed to read sysfs " << *fan->presence.path_ref();
+        XLOG(ERR) << "Failed to read sysfs " << *fan->presence.path();
       }
       // If the read is successful, also update the SW state
       if (readSuccessful) {
@@ -510,7 +509,7 @@ bool ControlLogic::checkIfFanPresent(Fan* fan) {
 }
 void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
   for (auto fan = pConfig_->fans.begin(); fan != pConfig_->fans.end(); ++fan) {
-    auto srcType = *fan->pwm.accessType_ref();
+    auto srcType = *fan->pwm.accessType();
     float pwmToProgram = 0;
     float currentPwm = fan->fanStatus.currentPwm;
     bool writeSuccess;
@@ -547,14 +546,14 @@ void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
     }
     switch (srcType) {
       case fan_config_structs::SourceType::kSrcSysfs:
-        writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwm.path_ref(), pwmInt);
+        writeSuccess = pBsp_->setFanPwmSysfs(*fan->pwm.path(), pwmInt);
         if (!writeSuccess) {
           setFanFailState(std::addressof(*fan), true);
         }
         break;
       case fan_config_structs::SourceType::kSrcUtil:
         writeSuccess =
-            pBsp_->setFanPwmShell(*fan->pwm.path_ref(), fan->fanName, pwmInt);
+            pBsp_->setFanPwmShell(*fan->pwm.path(), fan->fanName, pwmInt);
         if (!writeSuccess) {
           setFanFailState(std::addressof(*fan), true);
         }
@@ -584,7 +583,7 @@ void ControlLogic::setFanFailState(Fan* fan, bool fanFailed) {
       // We need to change internal state
       fan->fanStatus.fanFailed = true;
       // Also change led color to "FAIL", if Fan LED is available
-      if (fan->pwm.path_ref() != "") {
+      if (fan->pwm.path() != "") {
         ledAccessNeeded = true;
       }
     }
@@ -601,12 +600,12 @@ void ControlLogic::setFanFailState(Fan* fan, bool fanFailed) {
   if (ledAccessNeeded) {
     unsigned int valueToWrite =
         (fanFailed ? fan->fanFailLedVal : fan->fanGoodLedVal);
-    switch (*fan->led.accessType_ref()) {
+    switch (*fan->led.accessType()) {
       case fan_config_structs::SourceType::kSrcSysfs:
-        pBsp_->setFanLedSysfs(*fan->led.path_ref(), valueToWrite);
+        pBsp_->setFanLedSysfs(*fan->led.path(), valueToWrite);
         break;
       case fan_config_structs::SourceType::kSrcUtil:
-        pBsp_->setFanLedShell(*fan->led.path_ref(), fan->fanName, valueToWrite);
+        pBsp_->setFanLedShell(*fan->led.path(), fan->fanName, valueToWrite);
         break;
       case fan_config_structs::SourceType::kSrcThrift:
       case fan_config_structs::SourceType::kSrcRest:

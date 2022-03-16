@@ -767,35 +767,35 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
       auto aclTableId = aclTableHandle->aclTable->adapterKey();
       auto& aclApi = SaiApiTable::getInstance()->aclApi();
 
-      hwResourceStats_.acl_entries_free_ref() = aclApi.getAttribute(
+      hwResourceStats_.acl_entries_free() = aclApi.getAttribute(
           aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
-      hwResourceStats_.acl_counters_free_ref() = aclApi.getAttribute(
+      hwResourceStats_.acl_counters_free() = aclApi.getAttribute(
           aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
     }
 
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    hwResourceStats_.lpm_ipv4_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.lpm_ipv4_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
-    hwResourceStats_.lpm_ipv6_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.lpm_ipv6_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
-    hwResourceStats_.l3_ipv4_nexthops_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv4_nexthops_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
-    hwResourceStats_.l3_ipv6_nexthops_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv6_nexthops_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
-    hwResourceStats_.l3_ecmp_groups_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ecmp_groups_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
-    hwResourceStats_.l3_ecmp_group_members_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ecmp_group_members_free() = switchApi.getAttribute(
         switchId_,
         SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
-    hwResourceStats_.l3_ipv4_host_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv4_host_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
-    hwResourceStats_.l3_ipv6_host_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv6_host_free() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
-    hwResourceStats_.hw_table_stats_stale_ref() = false;
+    hwResourceStats_.hw_table_stats_stale() = false;
   } catch (const SaiApiError& e) {
     XLOG(ERR) << " Failed to get resource usage hwResourceStats_: "
               << *e.message_ref();
-    hwResourceStats_.hw_table_stats_stale_ref() = true;
+    hwResourceStats_.hw_table_stats_stale() = true;
   }
 }
 
@@ -946,14 +946,14 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
 
       int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
       int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
-      oneLaneEyeInfo.height_ref() = height;
-      oneLaneEyeInfo.width_ref() = width;
+      oneLaneEyeInfo.height() = height;
+      oneLaneEyeInfo.width() = width;
       eyeInfo.push_back(oneLaneEyeInfo);
-      laneInfo.eyes_ref() = eyeInfo;
-      phyParams.line_ref()->pmd_ref()->lanes_ref()[i] = laneInfo;
+      laneInfo.eyes() = eyeInfo;
+      phyParams.line()->pmd()->lanes()[i] = laneInfo;
     }
-    phyParams.name_ref() = folly::to<std::string>("port", swPort);
-    phyParams.switchID_ref() = getSwitchId();
+    phyParams.name() = folly::to<std::string>("port", swPort);
+    phyParams.switchID() = getSwitchId();
     returnPhyParams[swPort] = phyParams;
   }
   return returnPhyParams;

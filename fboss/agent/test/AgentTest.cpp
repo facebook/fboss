@@ -162,7 +162,7 @@ void AgentTest::waitForLinkStatus(
   while (retries--) {
     badPorts.clear();
     for (const auto& port : portsToCheck) {
-      if (*portStatus[port].up_ref() != up) {
+      if (*portStatus[port].up() != up) {
         std::this_thread::sleep_for(msBetweenRetry);
         portStatus = sw()->getPortStatus();
         badPorts.push_back(port);
@@ -192,12 +192,12 @@ void AgentTest::assertNoInDiscards() {
     bool retry = false;
     auto portStats = sw()->getHw()->getPortStats();
     for (auto [port, stats] : portStats) {
-      auto inDiscards = *stats.inDiscards__ref();
+      auto inDiscards = *stats.inDiscards_();
       XLOG(INFO) << "Port: " << port << " in discards: " << inDiscards
-                 << " in bytes: " << *stats.inBytes__ref()
-                 << " out bytes: " << *stats.outBytes__ref() << " at timestamp "
-                 << *stats.timestamp__ref();
-      if (*stats.timestamp__ref() > 0) {
+                 << " in bytes: " << *stats.inBytes_()
+                 << " out bytes: " << *stats.outBytes_() << " at timestamp "
+                 << *stats.timestamp_();
+      if (*stats.timestamp_() > 0) {
         EXPECT_EQ(inDiscards, 0);
       } else {
         retry = true;

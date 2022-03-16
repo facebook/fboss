@@ -62,14 +62,12 @@ struct PortFields : public ThriftyFields {
 
   struct MKASakKey {
     bool operator<(const MKASakKey& r) const {
-      return std::tie(*sci.macAddress_ref(), *sci.port_ref(), associationNum) <
-          std::tie(
-                 *r.sci.macAddress_ref(), *r.sci.port_ref(), r.associationNum);
+      return std::tie(*sci.macAddress(), *sci.port(), associationNum) <
+          std::tie(*r.sci.macAddress(), *r.sci.port(), r.associationNum);
     }
     bool operator==(const MKASakKey& r) const {
-      return std::tie(*sci.macAddress_ref(), *sci.port_ref(), associationNum) ==
-          std::tie(
-                 *r.sci.macAddress_ref(), *r.sci.port_ref(), r.associationNum);
+      return std::tie(*sci.macAddress(), *sci.port(), associationNum) ==
+          std::tie(*r.sci.macAddress(), *r.sci.port(), r.associationNum);
     }
     mka::MKASci sci;
     int associationNum;
@@ -271,9 +269,9 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     constexpr auto kDefaultProbability = 100;
     for (auto& portQueue : getFields()->queues) {
       for (auto& entry : portQueue->getAqms()) {
-        if (entry.second.behavior_ref() ==
+        if (entry.second.behavior() ==
                 facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            entry.second.detection_ref()->linear_ref()->probability_ref() !=
+            entry.second.detection()->linear_ref()->probability() !=
                 kDefaultProbability) {
           return false;
         }

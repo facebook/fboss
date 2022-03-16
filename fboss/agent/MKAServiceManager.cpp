@@ -85,10 +85,10 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
   }
   folly::IOBuf* buf = packet->buf();
   TPacket pktToSend;
-  pktToSend.buf_ref() = buf->moveToFbString().toStdString();
-  pktToSend.timestamp_ref() = time(nullptr);
-  pktToSend.l2Port_ref() = std::move(l2Port);
-  size_t len = pktToSend.buf_ref()->size();
+  pktToSend.buf() = buf->moveToFbString().toStdString();
+  pktToSend.timestamp() = time(nullptr);
+  pktToSend.l2Port() = std::move(l2Port);
+  size_t len = pktToSend.buf()->size();
   if (len != stream_->send(std::move(pktToSend))) {
     CHECK_STATS(stats, stats->MKAServiceSendFailue());
     XLOG(ERR) << "Failed to send MkPdu packet received on Port:'"
@@ -99,7 +99,7 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
 }
 
 void MKAServiceManager::recvPacket(TPacket&& packet) {
-  if (!packet.l2Port_ref()->size() || !packet.buf_ref()->size()) {
+  if (!packet.l2Port()->size() || !packet.buf()->size()) {
     XLOG(ERR) << "Invalid packet received from MKA Service";
     return;
   }
@@ -107,12 +107,10 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
   VlanID vlan;
   try {
     try {
-      port = PortID(folly::to<uint16_t>(*packet.l2Port_ref()));
+      port = PortID(folly::to<uint16_t>(*packet.l2Port()));
     } catch (const std::exception& e) {
-      port = swSwitch_->getState()
-                 ->getPorts()
-                 ->getPort(*packet.l2Port_ref())
-                 ->getID();
+      port =
+          swSwitch_->getState()->getPorts()->getPort(*packet.l2Port())->getID();
     }
     vlan = swSwitch_->getState()
                ->getPorts()
@@ -126,10 +124,10 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
   }
 
   auto txPkt =
-      swSwitch_->allocatePacket(packet.buf_ref()->size() + 4 /*802.1q header*/);
+      swSwitch_->allocatePacket(packet.buf()->size() + 4 /*802.1q header*/);
   auto mkPduBuffer = folly::IOBuf::wrapBuffer(
-      reinterpret_cast<const uint8_t*>(packet.buf_ref()->data()),
-      packet.buf_ref()->size());
+      reinterpret_cast<const uint8_t*>(packet.buf()->data()),
+      packet.buf()->size());
   folly::io::Cursor mkPduCursor(mkPduBuffer.get());
   auto dstMac = PktUtil::readMac(&mkPduCursor);
   auto srcMac = PktUtil::readMac(&mkPduCursor);
@@ -140,7 +138,7 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
 
   cursor.push(
       mkPduCursor,
-      packet.buf_ref()->size() -
+      packet.buf()->size() -
           14 /*dmac + smac + ethertype written as part of eth header above*/);
   PortStats* stats = swSwitch_->portStats(port);
   CHECK_STATS(stats, stats->MKAServiceRecvSuccess());
@@ -150,7 +148,7 @@ void MKAServiceManager::recvPacket(TPacket&& packet) {
     CHECK_STATS(stats, stats->MkPduSendPkt());
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to MkPdu Packet to the switch, port:"
-              << *packet.l2Port_ref() << " ex: " << ex.what();
+              << *packet.l2Port() << " ex: " << ex.what();
     CHECK_STATS(stats, stats->MkPduSendFailure());
   }
 }

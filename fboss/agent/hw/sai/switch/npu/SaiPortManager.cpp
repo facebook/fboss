@@ -212,12 +212,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   // Now use profileConfig from SW port as the source of truth
   auto portProfileConfig = swPort->getProfileConfig();
-  if (!portProfileConfig.medium_ref()) {
+  if (!portProfileConfig.medium()) {
     throw FbossError(
         "Missing medium info in profile ",
         apache::thrift::util::enumNameSafe(swPort->getProfileID()));
   }
-  auto transmitterTech = *portProfileConfig.medium_ref();
+  auto transmitterTech = *portProfileConfig.medium();
   auto mediaType = utility::getSaiPortMediaType(transmitterTech, speed);
   auto enableFec =
       (speed >= cfg::PortSpeed::HUNDREDG) || !platformPort->shouldDisableFEC();
@@ -225,7 +225,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (!enableFec) {
     fecMode = SAI_PORT_FEC_MODE_NONE;
   } else {
-    fecMode = utility::getSaiPortFecMode(*portProfileConfig.fec_ref());
+    fecMode = utility::getSaiPortFecMode(*portProfileConfig.fec());
   }
   std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
   // TODO(joseph5wu) Maybe provide a new function to convert interfaceType from

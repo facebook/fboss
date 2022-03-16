@@ -37,12 +37,12 @@ folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   // migration is complete
   controlPlane[kRxReasonToQueue] = folly::dynamic::object;
   for (const auto& entry : rxReasonToQueue) {
-    auto reason = apache::thrift::util::enumName(*entry.rxReason_ref());
+    auto reason = apache::thrift::util::enumName(*entry.rxReason());
     CHECK(reason != nullptr);
-    controlPlane[rxReasonToQueueOrderedList].push_back(folly::dynamic::object(
-        kRxReason, reason)(kQueueId, *entry.queueId_ref()));
+    controlPlane[rxReasonToQueueOrderedList].push_back(
+        folly::dynamic::object(kRxReason, reason)(kQueueId, *entry.queueId()));
 
-    controlPlane[kRxReasonToQueue][reason] = *entry.queueId_ref();
+    controlPlane[kRxReasonToQueue][reason] = *entry.queueId();
   }
 
   if (qosPolicy) {
@@ -74,8 +74,8 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
           reasonToQueueEntry.at(kRxReason).asString(), &reason);
       CHECK(found);
       cfg::PacketRxReasonToQueue reasonToQueue;
-      reasonToQueue.rxReason_ref() = reason;
-      reasonToQueue.queueId_ref() = reasonToQueueEntry.at(kQueueId).asInt();
+      reasonToQueue.rxReason() = reason;
+      reasonToQueue.queueId() = reasonToQueueEntry.at(kQueueId).asInt();
       controlPlane.rxReasonToQueue.push_back(reasonToQueue);
     }
   } else if (json.find(kRxReasonToQueue) != json.items().end()) {
@@ -87,8 +87,8 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
           reasonToQueueJson.first.asString(), &reason);
       CHECK(found);
       cfg::PacketRxReasonToQueue reasonToQueue;
-      reasonToQueue.rxReason_ref() = reason;
-      reasonToQueue.queueId_ref() = reasonToQueueJson.second.asInt();
+      reasonToQueue.rxReason() = reason;
+      reasonToQueue.queueId() = reasonToQueueJson.second.asInt();
       controlPlane.rxReasonToQueue.push_back(reasonToQueue);
     }
   }
@@ -115,8 +115,8 @@ cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
     cfg::PacketRxReason reason,
     uint16_t queueId) {
   cfg::PacketRxReasonToQueue reasonToQueue;
-  *reasonToQueue.rxReason_ref() = reason;
-  *reasonToQueue.queueId_ref() = queueId;
+  *reasonToQueue.rxReason() = reason;
+  *reasonToQueue.queueId() = queueId;
   return reasonToQueue;
 }
 

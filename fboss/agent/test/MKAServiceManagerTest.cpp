@@ -77,8 +77,8 @@ class MKAServiceManagerTest : public testing::Test {
 
   TPacket createPacket(PortID activePort) {
     TPacket pkt;
-    pkt.l2Port_ref() = folly::to<std::string>(activePort);
-    pkt.buf_ref() = createEapol()->moveToFbString().toStdString();
+    pkt.l2Port() = folly::to<std::string>(activePort);
+    pkt.buf() = createEapol()->moveToFbString().toStdString();
     return pkt;
   }
 
@@ -203,8 +203,8 @@ TEST_F(MKAServiceManagerTest, SendInvalidPacket) {
   EXPECT_NE(manager, nullptr);
   manager->recvPacket(TPacket());
   TPacket pkt;
-  pkt.l2Port_ref() = "test";
-  pkt.buf_ref() = "test";
+  pkt.l2Port() = "test";
+  pkt.buf() = "test";
   manager->recvPacket(std::move(pkt));
   validateRecvFailed(counters);
 }

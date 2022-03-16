@@ -91,18 +91,18 @@ class CmdShowInterfaceTraffic : public CmdHandler<
         // As mentioned above, only tx and rx errors are meaningful to FBOSS.
         // The other fields are statically set just to provide output parity
         // with EOS
-        errorCounters.interfaceName_ref() = pname;
-        errorCounters.peerIf_ref() =
+        errorCounters.interfaceName() = pname;
+        errorCounters.peerIf() =
             extractExpectedPort(portInfo.get_description());
-        errorCounters.ifStatus_ref() =
+        errorCounters.ifStatus() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-        errorCounters.fcsErrors_ref() = 0;
-        errorCounters.alignErrors_ref() = 0;
-        errorCounters.symbolErrors_ref() = 0;
-        errorCounters.rxErrors_ref() = inputErrors;
-        errorCounters.runtErrors_ref() = 0;
-        errorCounters.giantErrors_ref() = 0;
-        errorCounters.txErrors_ref() = outputErrors;
+        errorCounters.fcsErrors() = 0;
+        errorCounters.alignErrors() = 0;
+        errorCounters.symbolErrors() = 0;
+        errorCounters.rxErrors() = inputErrors;
+        errorCounters.runtErrors() = 0;
+        errorCounters.giantErrors() = 0;
+        errorCounters.txErrors() = outputErrors;
 
         cli::TrafficCounters trafficCounters;
         // Getting various counters and converting to Mbps
@@ -126,41 +126,41 @@ class CmdShowInterfaceTraffic : public CmdHandler<
             intCounters[pname + ".out_multicast_pkts.rate.60"] +
             intCounters[pname + ".out_broadcast_pkts.rate.60"];
 
-        trafficCounters.interfaceName_ref() = pname;
-        trafficCounters.peerIf_ref() =
+        trafficCounters.interfaceName() = pname;
+        trafficCounters.peerIf() =
             extractExpectedPort(portInfo.get_description());
-        trafficCounters.inMbps_ref() = inSpeedMbps;
-        trafficCounters.inPct_ref() =
+        trafficCounters.inMbps() = inSpeedMbps;
+        trafficCounters.inPct() =
             calculateUtilizationPercent(inSpeedMbps, portSpeed);
-        trafficCounters.inKpps_ref() = inPPS / 1000;
-        trafficCounters.outMbps_ref() = outSpeedMbps;
-        trafficCounters.outPct_ref() =
+        trafficCounters.inKpps() = inPPS / 1000;
+        trafficCounters.outMbps() = outSpeedMbps;
+        trafficCounters.outPct() =
             calculateUtilizationPercent(outSpeedMbps, portSpeed);
-        trafficCounters.outKpps_ref() = outPPS / 1000;
-        trafficCounters.portSpeed_ref() = portSpeed;
+        trafficCounters.outKpps() = outPPS / 1000;
+        trafficCounters.portSpeed() = portSpeed;
 
         // The original in fb_toolkit has an option for "show zero".  Since we
         // can't accept arbitrarily deep parameters right now we will default to
         // show non-zero and revisit as an option down the road
         if (isNonZeroErrors(errorCounters)) {
-          ret.error_counters_ref()->push_back(errorCounters);
+          ret.error_counters()->push_back(errorCounters);
         }
 
         if (isInterestingTraffic(trafficCounters)) {
-          ret.traffic_counters_ref()->push_back(trafficCounters);
+          ret.traffic_counters()->push_back(trafficCounters);
         }
       }
     }
     std::sort(
-        ret.error_counters_ref()->begin(),
-        ret.error_counters_ref()->end(),
+        ret.error_counters()->begin(),
+        ret.error_counters()->end(),
         [](cli::TrafficErrorCounters& a, cli::TrafficErrorCounters b) {
           return a.get_interfaceName() < b.get_interfaceName();
         });
 
     std::sort(
-        ret.traffic_counters_ref()->begin(),
-        ret.traffic_counters_ref()->end(),
+        ret.traffic_counters()->begin(),
+        ret.traffic_counters()->end(),
         [](cli::TrafficCounters& a, cli::TrafficCounters b) {
           return a.get_interfaceName() < b.get_interfaceName();
         });

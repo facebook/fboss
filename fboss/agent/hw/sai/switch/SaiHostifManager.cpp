@@ -261,7 +261,7 @@ void SaiHostifManager::processRxReasonToQueueDelta(
     // we'll try to call changeHostifTrap() for the unmatched reason.
     // TODO(zecheng): Fix the below logic of comparing index (instead we should
     // compare priority)
-    if (newRxReasonEntry.rxReason_ref() == cfg::PacketRxReason::UNMATCHED) {
+    if (newRxReasonEntry.rxReason() == cfg::PacketRxReason::UNMATCHED) {
       // what is the trap for unmatched?
       XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
       continue;
@@ -270,8 +270,7 @@ void SaiHostifManager::processRxReasonToQueueDelta(
         oldRxReasonToQueue.begin(),
         oldRxReasonToQueue.end(),
         [newRxReasonEntry](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason_ref() ==
-              newRxReasonEntry.rxReason_ref();
+          return rxReasonEntry.rxReason() == newRxReasonEntry.rxReason();
         });
     /*
      * Lower index must have higher priority.
@@ -286,17 +285,15 @@ void SaiHostifManager::processRxReasonToQueueDelta(
       auto oldIndex =
           std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
       if (oldIndex != index ||
-          oldRxReasonEntry->queueId_ref() != newRxReasonEntry.queueId_ref()) {
+          oldRxReasonEntry->queueId() != newRxReasonEntry.queueId()) {
         changeHostifTrap(
-            *newRxReasonEntry.rxReason_ref(),
-            *newRxReasonEntry.queueId_ref(),
+            *newRxReasonEntry.rxReason(),
+            *newRxReasonEntry.queueId(),
             priority);
       }
     } else {
       addHostifTrap(
-          *newRxReasonEntry.rxReason_ref(),
-          *newRxReasonEntry.queueId_ref(),
-          priority);
+          *newRxReasonEntry.rxReason(), *newRxReasonEntry.queueId(), priority);
     }
   }
 
@@ -306,11 +303,10 @@ void SaiHostifManager::processRxReasonToQueueDelta(
         newRxReasonToQueue.begin(),
         newRxReasonToQueue.end(),
         [&](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason_ref() ==
-              oldRxReasonEntry.rxReason_ref();
+          return rxReasonEntry.rxReason() == oldRxReasonEntry.rxReason();
         });
     if (newRxReasonEntry == newRxReasonToQueue.end()) {
-      removeHostifTrap(*oldRxReasonEntry.rxReason_ref());
+      removeHostifTrap(*oldRxReasonEntry.rxReason());
     }
   }
 }
@@ -444,7 +440,7 @@ void SaiHostifManager::updateStats(bool updateWatermarks) {
     for (const auto& queueId2Name : cpuStats_.getQueueId2Name()) {
       publishCpuQueueWatermark(
           queueId2Name.first,
-          cpuQueueStats.queueWatermarkBytes__ref()->at(queueId2Name.first));
+          cpuQueueStats.queueWatermarkBytes_()->at(queueId2Name.first));
     }
   }
 }

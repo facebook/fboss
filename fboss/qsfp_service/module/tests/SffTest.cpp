@@ -41,7 +41,7 @@ TEST(SffTest, transceiverInfoTest) {
 
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode_ref(),
+      *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
   tests.verifyTemp(31.015625);
   tests.verifyVcc(3.2989);
@@ -51,7 +51,7 @@ TEST(SffTest, transceiverInfoTest) {
       {"RxPwr", {0.4643, 0.9012, 0.4913, 0.4626}},
   };
   tests.verifyLaneDom(laneDom, qsfp->numMediaLanes());
-  EXPECT_EQ(100, info.cable_ref().value_or({}).om3_ref().value_or({}));
+  EXPECT_EQ(100, info.cable().value_or({}).om3().value_or({}));
 
   std::map<std::string, std::vector<bool>> expectedMediaSignals = {
       {"Tx_Los", {0, 1, 0, 1}},
@@ -77,7 +77,7 @@ TEST(SffTest, transceiverInfoTest) {
       {"RxOutputAmp", {1, 3, 2, 3}},
   };
 
-  auto settings = info.settings_ref().value_or({});
+  auto settings = info.settings().value_or({});
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, qsfp->numMediaLanes());
   tests.verifyHostLaneSettings(expectedHostLaneSettings, qsfp->numHostLanes());
@@ -107,17 +107,17 @@ TEST(SffTest, transceiverInfoTest) {
   tests.verifyThresholds("txPwr", 0.4386, 1.3124, 2.1862, 3.06);
   tests.verifyThresholds("txBias", 0.034, 17.51, 34.986, 52.462);
 
-  EXPECT_EQ(true, info.status_ref().value_or({}).interruptL_ref().value_or({}));
+  EXPECT_EQ(true, info.status().value_or({}).interruptL().value_or({}));
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
 
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   testCachedMediaSignals(qsfp.get());
   EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
@@ -136,17 +136,17 @@ TEST(SffDacTest, transceiverInfoTest) {
 
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode_ref(),
+      *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CR4_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR4_100G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CR4_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CR4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CR4_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
   testCachedMediaSignals(qsfp.get());
   EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
@@ -165,23 +165,23 @@ TEST(SffFr1Test, transceiverInfoTest) {
 
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode_ref(),
+      *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::FR1_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 1);
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::FR1_100G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::FR1_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR1_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR1_100G);
   testCachedMediaSignals(qsfp.get());
 
   auto diagsCap = qsfp->moduleDiagsCapabilityGet();
   EXPECT_TRUE(diagsCap);
-  EXPECT_TRUE(*(*diagsCap).prbsLine_ref());
-  EXPECT_TRUE(*(*diagsCap).prbsSystem_ref());
+  EXPECT_TRUE(*(*diagsCap).prbsLine());
+  EXPECT_TRUE(*(*diagsCap).prbsSystem());
   auto prbsSystemCaps = (*diagsCap).get_prbsSystemCapabilities();
   auto prbsLineCaps = (*diagsCap).get_prbsLineCapabilities();
   std::vector<prbs::PrbsPolynomial> expectedCapabilities = {
@@ -208,17 +208,17 @@ TEST(SffMiniphotonTest, transceiverInfoTest) {
 
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode_ref(),
+      *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   EXPECT_EQ(qsfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 
@@ -235,17 +235,17 @@ TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
 
   tests.verifyVendorName("FACETEST");
   EXPECT_EQ(
-      *info.extendedSpecificationComplianceCode_ref(),
+      *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
   EXPECT_EQ(qsfp->numHostLanes(), 4);
   EXPECT_EQ(qsfp->numMediaLanes(), 4);
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_extendedSpecificationComplianceCode(),
+        media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::CWDM4_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::CWDM4_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
 }
 
 // Tests that a badly programmed module throws an exception
@@ -273,14 +273,12 @@ TEST(SfpTest, transceiverInfoTest) {
 
   EXPECT_EQ(sfp->numHostLanes(), 1);
   EXPECT_EQ(sfp->numMediaLanes(), 1);
-  EXPECT_EQ(
-      (*info.settings_ref()->mediaInterface_ref()).size(),
-      sfp->numMediaLanes());
-  for (auto& media : *info.settings_ref()->mediaInterface_ref()) {
+  EXPECT_EQ((*info.settings()->mediaInterface()).size(), sfp->numMediaLanes());
+  for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media_ref()->get_ethernet10GComplianceCode(),
+        media.media()->get_ethernet10GComplianceCode(),
         Ethernet10GComplianceCode::LR_10G);
-    EXPECT_EQ(media.code_ref(), MediaInterfaceCode::LR_10G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::LR_10G);
   }
   tests.verifyTemp(18.203125);
   tests.verifyVcc(2.2136);
@@ -303,7 +301,7 @@ TEST(SfpTest, transceiverInfoTest) {
   tests.verifyMediaLaneSettings(
       expectedMediaLaneSettings, sfp->numMediaLanes());
   tests.verifyVendorName("FACETEST");
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::LR_10G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR_10G);
   EXPECT_EQ(sfp->moduleDiagsCapabilityGet(), std::nullopt);
 }
 

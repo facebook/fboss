@@ -15,22 +15,22 @@ void printSaStatsHelper(
   printf("Direction: %s\n", ingress ? "ingress" : "egress");
   printf(
       "  SA direction: %s\n",
-      *saStats.directionIngress_ref() ? "Ingress" : "Egress");
-  printf("  OctetsEncrypted: %ld\n", *saStats.octetsEncrypted_ref());
-  printf("  OctetsProtected: %ld\n", *saStats.octetsProtected_ref());
+      *saStats.directionIngress() ? "Ingress" : "Egress");
+  printf("  OctetsEncrypted: %ld\n", *saStats.octetsEncrypted());
+  printf("  OctetsProtected: %ld\n", *saStats.octetsProtected());
 
-  if (*saStats.directionIngress_ref()) {
-    printf("  InUncheckedPacktes: %ld\n", *saStats.inUncheckedPkts_ref());
-    printf("  InDelayedPacktes: %ld\n", *saStats.inDelayedPkts_ref());
-    printf("  InLatePacktes: %ld\n", *saStats.inLatePkts_ref());
-    printf("  InInvalidPacktes: %ld\n", *saStats.inInvalidPkts_ref());
-    printf("  InNotValidPacktes: %ld\n", *saStats.inNotValidPkts_ref());
-    printf("  InNoSaPacktes: %ld\n", *saStats.inNoSaPkts_ref());
-    printf("  InUnusedSaPacktes: %ld\n", *saStats.inUnusedSaPkts_ref());
-    printf("  InOkPacktes: %ld\n", *saStats.inOkPkts_ref());
+  if (*saStats.directionIngress()) {
+    printf("  InUncheckedPacktes: %ld\n", *saStats.inUncheckedPkts());
+    printf("  InDelayedPacktes: %ld\n", *saStats.inDelayedPkts());
+    printf("  InLatePacktes: %ld\n", *saStats.inLatePkts());
+    printf("  InInvalidPacktes: %ld\n", *saStats.inInvalidPkts());
+    printf("  InNotValidPacktes: %ld\n", *saStats.inNotValidPkts());
+    printf("  InNoSaPacktes: %ld\n", *saStats.inNoSaPkts());
+    printf("  InUnusedSaPacktes: %ld\n", *saStats.inUnusedSaPkts());
+    printf("  InOkPacktes: %ld\n", *saStats.inOkPkts());
   } else {
-    printf("  OutEncryptedPacktes: %ld\n", *saStats.outEncryptedPkts_ref());
-    printf("  OutProtectedPacktes: %ld\n", *saStats.outProtectedPkts_ref());
+    printf("  OutEncryptedPacktes: %ld\n", *saStats.outEncryptedPkts());
+    printf("  OutProtectedPacktes: %ld\n", *saStats.outProtectedPkts());
   }
 }
 
@@ -40,31 +40,28 @@ void printPortStatsHelper(
     bool ingress) {
   printf("Printing Port stats for %s\n", portName.c_str());
   printf("Direction: %s\n", ingress ? "ingress" : "egress");
-  printf("  PreMacsecDropPackets: %ld\n", *portStats.preMacsecDropPkts_ref());
-  printf("  ControlPackets: %ld\n", *portStats.controlPkts_ref());
-  printf("  DataPackets: %ld\n", *portStats.dataPkts_ref());
+  printf("  PreMacsecDropPackets: %ld\n", *portStats.preMacsecDropPkts());
+  printf("  ControlPackets: %ld\n", *portStats.controlPkts());
+  printf("  DataPackets: %ld\n", *portStats.dataPkts());
   if (ingress) {
-    printf("  DecryptedOctets: %ld\n", *portStats.octetsEncrypted_ref());
+    printf("  DecryptedOctets: %ld\n", *portStats.octetsEncrypted());
     printf(
         "  inBadOrNoMacsecTagDroppedPkts: %ld\n",
-        *portStats.inBadOrNoMacsecTagDroppedPkts_ref());
-    printf("  inNoSciDroppedPkts: %ld\n", *portStats.inNoSciDroppedPkts_ref());
-    printf("  inUnknownSciPkts: %ld\n", *portStats.inUnknownSciPkts_ref());
+        *portStats.inBadOrNoMacsecTagDroppedPkts());
+    printf("  inNoSciDroppedPkts: %ld\n", *portStats.inNoSciDroppedPkts());
+    printf("  inUnknownSciPkts: %ld\n", *portStats.inUnknownSciPkts());
+    printf("  inOverrunDroppedPkts: %ld\n", *portStats.inOverrunDroppedPkts());
+    printf("  inDelayedPkts: %ld\n", *portStats.inDelayedPkts());
+    printf("  inLateDroppedPkts: %ld\n", *portStats.inLateDroppedPkts());
     printf(
-        "  inOverrunDroppedPkts: %ld\n", *portStats.inOverrunDroppedPkts_ref());
-    printf("  inDelayedPkts: %ld\n", *portStats.inDelayedPkts_ref());
-    printf("  inLateDroppedPkts: %ld\n", *portStats.inLateDroppedPkts_ref());
-    printf(
-        "  inNotValidDroppedPkts: %ld\n",
-        *portStats.inNotValidDroppedPkts_ref());
-    printf("  inInvalidPkts: %ld\n", *portStats.inInvalidPkts_ref());
-    printf("  inNoSaDroppedPkts: %ld\n", *portStats.inNoSaDroppedPkts_ref());
-    printf("  inUnusedSaPkts: %ld\n", *portStats.inUnusedSaPkts_ref());
+        "  inNotValidDroppedPkts: %ld\n", *portStats.inNotValidDroppedPkts());
+    printf("  inInvalidPkts: %ld\n", *portStats.inInvalidPkts());
+    printf("  inNoSaDroppedPkts: %ld\n", *portStats.inNoSaDroppedPkts());
+    printf("  inUnusedSaPkts: %ld\n", *portStats.inUnusedSaPkts());
   } else {
-    printf("  EncryptedOctets: %ld\n", *portStats.octetsEncrypted_ref());
+    printf("  EncryptedOctets: %ld\n", *portStats.octetsEncrypted());
     printf(
-        "  outTooLongDroppedPkts: %ld\n",
-        *portStats.outTooLongDroppedPkts_ref());
+        "  outTooLongDroppedPkts: %ld\n", *portStats.outTooLongDroppedPkts());
   }
 }
 
@@ -76,49 +73,45 @@ void printFlowStatsHelper(
   printf("Direction: %s\n", ingress ? "ingress" : "egress");
   printf(
       "  Flow direction: %s\n",
-      *flowStats.directionIngress_ref() ? "Ingress" : "Egress");
+      *flowStats.directionIngress() ? "Ingress" : "Egress");
   printf(
       "  UnicastUncontrolledPackets: %ld\n",
-      *flowStats.ucastUncontrolledPkts_ref());
-  printf(
-      "  UnicastControlledPackets: %ld\n",
-      *flowStats.ucastControlledPkts_ref());
+      *flowStats.ucastUncontrolledPkts());
+  printf("  UnicastControlledPackets: %ld\n", *flowStats.ucastControlledPkts());
   printf(
       "  MulticastUncontrolledPackets: %ld\n",
-      *flowStats.mcastUncontrolledPkts_ref());
+      *flowStats.mcastUncontrolledPkts());
   printf(
-      "  MulticastControlledPackets: %ld\n",
-      *flowStats.mcastControlledPkts_ref());
+      "  MulticastControlledPackets: %ld\n", *flowStats.mcastControlledPkts());
   printf(
       "  BroadcastUncontrolledPackets: %ld\n",
-      *flowStats.bcastUncontrolledPkts_ref());
+      *flowStats.bcastUncontrolledPkts());
   printf(
-      "  BroadcastControlledPackets: %ld\n",
-      *flowStats.bcastControlledPkts_ref());
-  printf("  ControlPackets: %ld\n", *flowStats.controlPkts_ref());
-  printf("  UntaggedPackets: %ld\n", *flowStats.untaggedPkts_ref());
-  printf("  OtherErroredPackets: %ld\n", *flowStats.otherErrPkts_ref());
-  printf("  OctetsUncontrolled: %ld\n", *flowStats.octetsUncontrolled_ref());
-  printf("  OctetsControlled: %ld\n", *flowStats.octetsControlled_ref());
-  if (*flowStats.directionIngress_ref()) {
+      "  BroadcastControlledPackets: %ld\n", *flowStats.bcastControlledPkts());
+  printf("  ControlPackets: %ld\n", *flowStats.controlPkts());
+  printf("  UntaggedPackets: %ld\n", *flowStats.untaggedPkts());
+  printf("  OtherErroredPackets: %ld\n", *flowStats.otherErrPkts());
+  printf("  OctetsUncontrolled: %ld\n", *flowStats.octetsUncontrolled());
+  printf("  OctetsControlled: %ld\n", *flowStats.octetsControlled());
+  if (*flowStats.directionIngress()) {
     printf(
         "  InTaggedControlledPackets: %ld\n",
-        *flowStats.inTaggedControlledPkts_ref());
-    printf("  InUntaggedPackets: %ld\n", *flowStats.untaggedPkts_ref());
-    printf("  InBadTagPackets: %ld\n", *flowStats.inBadTagPkts_ref());
-    printf("  NoSciPackets: %ld\n", *flowStats.noSciPkts_ref());
-    printf("  UnknownSciPackets: %ld\n", *flowStats.unknownSciPkts_ref());
-    printf("  OverrunPkts: %ld\n", *flowStats.overrunPkts_ref());
+        *flowStats.inTaggedControlledPkts());
+    printf("  InUntaggedPackets: %ld\n", *flowStats.untaggedPkts());
+    printf("  InBadTagPackets: %ld\n", *flowStats.inBadTagPkts());
+    printf("  NoSciPackets: %ld\n", *flowStats.noSciPkts());
+    printf("  UnknownSciPackets: %ld\n", *flowStats.unknownSciPkts());
+    printf("  OverrunPkts: %ld\n", *flowStats.overrunPkts());
   } else {
-    printf("  OutCommonOctets: %ld\n", *flowStats.outCommonOctets_ref());
-    printf("  OutTooLongPackets: %ld\n", *flowStats.outTooLongPkts_ref());
+    printf("  OutCommonOctets: %ld\n", *flowStats.outCommonOctets());
+    printf("  OutTooLongPackets: %ld\n", *flowStats.outTooLongPkts());
   }
 }
 
 void printAclStatsHelper(MacsecAclStats& aclStats, std::string portName) {
   printf("Printing ACL stats for %s\n", portName.c_str());
   printf("Direction: %s\n", "ingress");
-  printf("  defaultAclStats: %ld\n", aclStats.defaultAclStats_ref().value());
+  printf("  defaultAclStats: %ld\n", aclStats.defaultAclStats().value());
 }
 
 } // namespace
@@ -243,13 +236,13 @@ void CredoMacsecUtil::printPhyPortMap(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   printf("Printing the Phy port info map:\n");
   printf("PORT    SLOT    MDIO    PHYID    NAME       SAISW   SLICE\n");
-  for (auto it : *macsecPortPhyMap.macsecPortPhyMap_ref()) {
+  for (auto it : *macsecPortPhyMap.macsecPortPhyMap()) {
     int port = it.first;
-    int slot = *it.second.slotId_ref();
-    int mdio = *it.second.mdioId_ref();
-    int phy = *it.second.phyId_ref();
-    int saiSwitch = *it.second.saiSwitchId_ref();
-    std::string name = *it.second.portName_ref();
+    int slot = *it.second.slotId();
+    int mdio = *it.second.mdioId();
+    int phy = *it.second.phyId();
+    int saiSwitch = *it.second.saiSwitchId();
+    std::string name = *it.second.portName();
 
     printf(
         "%4d    %4d    %4d    %4d    %8s  %4d    %4d\n",
@@ -425,18 +418,17 @@ void CredoMacsecUtil::printPhySerdesInfo(
   fbMacsecHandler->sync_getPhyInfo(phyInfo, FLAGS_port);
 
   printf("Printing Eye values for the port %s\n", FLAGS_port.c_str());
-  for (auto& laneEye : phyInfo.line_ref()->pmd_ref()->lanes_ref().value()) {
-    if (!laneEye.second.eyes_ref().has_value()) {
+  for (auto& laneEye : phyInfo.line()->pmd()->lanes().value()) {
+    if (!laneEye.second.eyes().has_value()) {
       continue;
     }
     printf("  Lane id: %d\n", laneEye.first);
-    for (auto eye : laneEye.second.eyes_ref().value()) {
+    for (auto eye : laneEye.second.eyes().value()) {
       printf(
-          "    Width: %d\n",
-          eye.width_ref().has_value() ? eye.width_ref().value() : 0);
+          "    Width: %d\n", eye.width().has_value() ? eye.width().value() : 0);
       printf(
           "    Height: %d\n",
-          eye.height_ref().has_value() ? eye.height_ref().value() : 0);
+          eye.height().has_value() ? eye.height().value() : 0);
     }
   }
 }
@@ -471,10 +463,10 @@ void CredoMacsecUtil::getPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   auto& portMacsecStats = portMacsecStatsItr->second;
   if (FLAGS_ingress) {
-    auto& portStats = portMacsecStats.ingressPortStats_ref().value();
+    auto& portStats = portMacsecStats.ingressPortStats().value();
     printPortStatsHelper(portStats, FLAGS_port, FLAGS_ingress);
   } else {
-    auto& portStats = portMacsecStats.egressPortStats_ref().value();
+    auto& portStats = portMacsecStats.egressPortStats().value();
     printPortStatsHelper(portStats, FLAGS_port, FLAGS_ingress);
   }
 }
@@ -500,23 +492,23 @@ void CredoMacsecUtil::getFlowStats(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   auto& portMacsecStats = portMacsecStatsItr->second;
   if (FLAGS_ingress) {
-    for (auto& flowStatsItr : portMacsecStats.ingressFlowStats_ref().value()) {
-      auto& sci = flowStatsItr.sci_ref().value();
-      auto& flowStats = flowStatsItr.flowStats_ref().value();
+    for (auto& flowStatsItr : portMacsecStats.ingressFlowStats().value()) {
+      auto& sci = flowStatsItr.sci().value();
+      auto& flowStats = flowStatsItr.flowStats().value();
       printf(
           "Flow stats for SCI: %s.%d\n",
-          sci.macAddress_ref().value().c_str(),
-          sci.port_ref().value());
+          sci.macAddress().value().c_str(),
+          sci.port().value());
       printFlowStatsHelper(flowStats, FLAGS_port, FLAGS_ingress);
     }
   } else {
-    for (auto& flowStatsItr : portMacsecStats.egressFlowStats_ref().value()) {
-      auto& sci = flowStatsItr.sci_ref().value();
-      auto& flowStats = flowStatsItr.flowStats_ref().value();
+    for (auto& flowStatsItr : portMacsecStats.egressFlowStats().value()) {
+      auto& sci = flowStatsItr.sci().value();
+      auto& flowStats = flowStatsItr.flowStats().value();
       printf(
           "Flow stats for SCI: %s.%d\n",
-          sci.macAddress_ref().value().c_str(),
-          sci.port_ref().value());
+          sci.macAddress().value().c_str(),
+          sci.port().value());
       printFlowStatsHelper(flowStats, FLAGS_port, FLAGS_ingress);
     }
   }
@@ -544,26 +536,26 @@ void CredoMacsecUtil::getSaStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   auto& portMacsecStats = portMacsecStatsItr->second;
   if (FLAGS_ingress) {
     for (auto& saStatsItr :
-         portMacsecStats.rxSecureAssociationStats_ref().value()) {
-      auto& saId = saStatsItr.saId_ref().value();
-      auto& saStats = saStatsItr.saStats_ref().value();
+         portMacsecStats.rxSecureAssociationStats().value()) {
+      auto& saId = saStatsItr.saId().value();
+      auto& saStats = saStatsItr.saStats().value();
       printf(
           "SA stats for SCI: %s.%d, AN: %d\n",
-          saId.sci_ref()->macAddress_ref().value().c_str(),
-          saId.sci_ref()->port_ref().value(),
-          saId.assocNum_ref().value());
+          saId.sci()->macAddress().value().c_str(),
+          saId.sci()->port().value(),
+          saId.assocNum().value());
       printSaStatsHelper(saStats, FLAGS_port, FLAGS_ingress);
     }
   } else {
     for (auto& saStatsItr :
-         portMacsecStats.txSecureAssociationStats_ref().value()) {
-      auto& saId = saStatsItr.saId_ref().value();
-      auto& saStats = saStatsItr.saStats_ref().value();
+         portMacsecStats.txSecureAssociationStats().value()) {
+      auto& saId = saStatsItr.saId().value();
+      auto& saStats = saStatsItr.saStats().value();
       printf(
           "SA stats for SCI: %s.%d, AN: %d\n",
-          saId.sci_ref()->macAddress_ref().value().c_str(),
-          saId.sci_ref()->port_ref().value(),
-          saId.assocNum_ref().value());
+          saId.sci()->macAddress().value().c_str(),
+          saId.sci()->port().value(),
+          saId.assocNum().value());
       printSaStatsHelper(saStats, FLAGS_port, FLAGS_ingress);
     }
   }
@@ -585,7 +577,7 @@ void CredoMacsecUtil::getAclStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   auto& portMacsecStats = portMacsecStatsItr->second;
-  auto& aclStats = portMacsecStats.ingressAclStats_ref().value();
+  auto& aclStats = portMacsecStats.ingressAclStats().value();
   printAclStatsHelper(aclStats, FLAGS_port);
 }
 
@@ -604,29 +596,25 @@ void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
     auto portName = portStatsItr.first;
     printf("Printing stats for %s\n", portName.c_str());
     printPortStatsHelper(
-        portStatsItr.second.ingressPortStats_ref().value(), portName, true);
+        portStatsItr.second.ingressPortStats().value(), portName, true);
     printPortStatsHelper(
-        portStatsItr.second.egressPortStats_ref().value(), portName, false);
-    for (auto& flowStatsItr :
-         portStatsItr.second.ingressFlowStats_ref().value()) {
-      printFlowStatsHelper(
-          flowStatsItr.flowStats_ref().value(), portName, true);
+        portStatsItr.second.egressPortStats().value(), portName, false);
+    for (auto& flowStatsItr : portStatsItr.second.ingressFlowStats().value()) {
+      printFlowStatsHelper(flowStatsItr.flowStats().value(), portName, true);
     }
-    for (auto& flowStatsItr :
-         portStatsItr.second.egressFlowStats_ref().value()) {
-      printFlowStatsHelper(
-          flowStatsItr.flowStats_ref().value(), portName, false);
+    for (auto& flowStatsItr : portStatsItr.second.egressFlowStats().value()) {
+      printFlowStatsHelper(flowStatsItr.flowStats().value(), portName, false);
     }
     for (auto& saStatsItr :
-         portStatsItr.second.rxSecureAssociationStats_ref().value()) {
-      printSaStatsHelper(saStatsItr.saStats_ref().value(), portName, true);
+         portStatsItr.second.rxSecureAssociationStats().value()) {
+      printSaStatsHelper(saStatsItr.saStats().value(), portName, true);
     }
     for (auto& saStatsItr :
-         portStatsItr.second.txSecureAssociationStats_ref().value()) {
-      printSaStatsHelper(saStatsItr.saStats_ref().value(), portName, false);
+         portStatsItr.second.txSecureAssociationStats().value()) {
+      printSaStatsHelper(saStatsItr.saStats().value(), portName, false);
     }
     printAclStatsHelper(
-        portStatsItr.second.ingressAclStats_ref().value(), portName);
+        portStatsItr.second.ingressAclStats().value(), portName);
     printf("\n");
   }
 }

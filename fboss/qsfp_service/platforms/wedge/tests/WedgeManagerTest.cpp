@@ -71,7 +71,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ((*synchronizedTransceivers).size(), transInfo.size());
   }
   for (const auto& info : transInfo) {
-    EXPECT_EQ(info.second.present_ref(), true);
+    EXPECT_EQ(info.second.present(), true);
   }
   auto cachedTransInfo = transInfo;
 
@@ -85,8 +85,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
 
   for (const auto& info : transInfo) {
     EXPECT_GT(
-        *info.second.timeCollected_ref(),
-        *cachedTransInfo[info.first].timeCollected_ref());
+        *info.second.timeCollected(),
+        *cachedTransInfo[info.first].timeCollected());
   }
 
   // Otherwise, just return the ids requested
@@ -114,7 +114,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (auto i = 0; i < wedgeManager_->getNumQsfpModules(); i++) {
-    EXPECT_EQ(*transInfo[i].present_ref(), i != 4); // ID 5 was marked as absent
+    EXPECT_EQ(*transInfo[i].present(), i != 4); // ID 5 was marked as absent
   }
 }
 
@@ -137,9 +137,9 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
     EXPECT_EQ(
-        *info.second.timeCollected_ref(),
-        *cachedTransInfo[info.first].timeCollected_ref());
-    EXPECT_EQ(*info.second.present_ref(), true);
+        *info.second.timeCollected(),
+        *cachedTransInfo[info.first].timeCollected());
+    EXPECT_EQ(*info.second.present(), true);
   }
   wedgeManager_->setReadException(false, false);
 
@@ -156,8 +156,8 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   wedgeManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
-    EXPECT_EQ(*info.second.present_ref(), true);
-    EXPECT_EQ(info.second.timeCollected_ref().has_value(), false);
+    EXPECT_EQ(*info.second.present(), true);
+    EXPECT_EQ(info.second.timeCollected().has_value(), false);
   }
 }
 
@@ -166,10 +166,10 @@ TEST_F(WedgeManagerTest, readTransceiver) {
   std::unique_ptr<ReadRequest> request(new ReadRequest);
   TransceiverIOParameters param;
   std::vector<int32_t> data = {1, 3, 7};
-  request->ids_ref() = data;
-  param.offset_ref() = 0x10;
-  param.length_ref() = 10;
-  request->parameter_ref() = param;
+  request->ids() = data;
+  param.offset() = 0x10;
+  param.length() = 10;
+  request->parameter() = param;
 
   wedgeManager_->readTransceiverRegister(response, std::move(request));
   for (const auto& i : data) {
@@ -182,10 +182,10 @@ TEST_F(WedgeManagerTest, writeTransceiver) {
   std::unique_ptr<WriteRequest> request(new WriteRequest);
   TransceiverIOParameters param;
   std::vector<int32_t> data = {1, 3, 7};
-  request->ids_ref() = data;
-  param.offset_ref() = 0x10;
-  request->parameter_ref() = param;
-  request->data_ref() = 0xab;
+  request->ids() = data;
+  param.offset() = 0x10;
+  request->parameter() = param;
+  request->data() = 0xab;
 
   wedgeManager_->writeTransceiverRegister(response, std::move(request));
   for (const auto& i : data) {
@@ -296,8 +296,8 @@ TEST_F(WedgeManagerTest, syncPorts) {
   for (const auto& sync : transceiverAndPortsToSync) {
     PortStatus dummyPortStatus;
     TransceiverIdxThrift idx;
-    idx.transceiverId_ref() = sync.first;
-    dummyPortStatus.transceiverIdx_ref() = idx;
+    idx.transceiverId() = sync.first;
+    dummyPortStatus.transceiverIdx() = idx;
     for (const auto& port : sync.second) {
       portMap[port] = dummyPortStatus;
     }

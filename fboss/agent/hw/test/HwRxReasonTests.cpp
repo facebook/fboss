@@ -31,7 +31,7 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
     if (dhcpRxReasonIter != rxReasonListWithoutDHCP.end()) {
       rxReasonListWithoutDHCP.erase(dhcpRxReasonIter);
     }
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
         rxReasonListWithoutDHCP;
     return cfg;
   }
@@ -42,7 +42,7 @@ TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
   auto verify = [=]() {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
-    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
         utility::getCoppRxReasonToQueues(getAsic());
     applyNewConfig(cfg);
   };

@@ -75,18 +75,18 @@ Transceiver::Transceiver(TransceiverID id) : NodeBaseT(id) {}
 std::shared_ptr<Transceiver> Transceiver::createPresentTransceiver(
     const TransceiverInfo& tcvrInfo) {
   std::shared_ptr<Transceiver> newTransceiver;
-  if (*tcvrInfo.present_ref()) {
+  if (*tcvrInfo.present()) {
     newTransceiver =
-        std::make_shared<Transceiver>(TransceiverID(*tcvrInfo.port_ref()));
-    if (tcvrInfo.cable_ref() && tcvrInfo.cable_ref()->length_ref()) {
-      newTransceiver->setCableLength(*tcvrInfo.cable_ref()->length_ref());
+        std::make_shared<Transceiver>(TransceiverID(*tcvrInfo.port()));
+    if (tcvrInfo.cable() && tcvrInfo.cable()->length()) {
+      newTransceiver->setCableLength(*tcvrInfo.cable()->length());
     }
-    if (auto settings = tcvrInfo.settings_ref();
-        settings && settings->mediaInterface_ref()) {
-      const auto& interface = (*settings->mediaInterface_ref())[0];
-      newTransceiver->setMediaInterface(*interface.code_ref());
+    if (auto settings = tcvrInfo.settings();
+        settings && settings->mediaInterface()) {
+      const auto& interface = (*settings->mediaInterface())[0];
+      newTransceiver->setMediaInterface(*interface.code());
     }
-    if (auto interface = tcvrInfo.transceiverManagementInterface_ref()) {
+    if (auto interface = tcvrInfo.transceiverManagementInterface()) {
       newTransceiver->setManagementInterface(*interface);
     }
   }
@@ -103,13 +103,13 @@ cfg::PlatformPortConfigOverrideFactor
 Transceiver::toPlatformPortConfigOverrideFactor() const {
   cfg::PlatformPortConfigOverrideFactor factor;
   if (auto cableLength = getCableLength()) {
-    factor.cableLengths_ref() = {*cableLength};
+    factor.cableLengths() = {*cableLength};
   }
   if (auto mediaInterface = getMediaInterface()) {
-    factor.mediaInterfaceCode_ref() = *mediaInterface;
+    factor.mediaInterfaceCode() = *mediaInterface;
   }
   if (auto managerInterface = getManagementInterface()) {
-    factor.transceiverManagementInterface_ref() = *managerInterface;
+    factor.transceiverManagementInterface() = *managerInterface;
   }
   return factor;
 }

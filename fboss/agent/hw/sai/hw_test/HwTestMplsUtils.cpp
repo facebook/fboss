@@ -462,6 +462,6 @@ uint64_t getMplsDestNoMatchCounter(
     const std::shared_ptr<SwitchState> /*state*/,
     PortID inPort) {
   auto inPortStats = ensemble->getLatestPortStats(inPort);
-  return *inPortStats.inLabelMissDiscards__ref();
+  return *inPortStats.inLabelMissDiscards_();
 }
 } // namespace facebook::fboss::utility

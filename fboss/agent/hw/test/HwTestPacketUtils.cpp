@@ -67,7 +67,7 @@ folly::MacAddress getInterfaceMac(
 }
 
 VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
-  return VlanID(*cfg.vlanPorts_ref()[0].vlanID_ref());
+  return VlanID(*cfg.vlanPorts()[0].vlanID());
 }
 
 VlanID firstVlanID(const std::shared_ptr<SwitchState>& state) {

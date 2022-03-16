@@ -476,8 +476,8 @@ class BcmWarmBootCache {
   void programmed(Index2ReasonToQueueCItr itr) {
     XLOG(DBG1) << "Programmed reason to queue at index: " << itr->first << " "
                << "rxReason: "
-               << apache::thrift::util::enumName(*itr->second.rxReason_ref())
-               << " queueId: " << *itr->second.queueId_ref();
+               << apache::thrift::util::enumName(*itr->second.rxReason())
+               << " queueId: " << *itr->second.queueId();
     index2ReasonToQueue_.erase(itr);
   }
 

@@ -67,8 +67,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
   }
   int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
-    if (auto cable = info.cable_ref()) {
-      return *cable->transmitterTech_ref();
+    if (auto cable = info.cable()) {
+      return *cable->transmitterTech();
     }
     return TransmitterTechnology::UNKNOWN;
   };
@@ -110,7 +110,7 @@ std::optional<ChannelID> WedgePort::getChannel() const {
   const auto& tcvrList = getTransceiverLanes();
   if (!tcvrList.empty()) {
     // All the transceiver lanes should use the same transceiver id
-    return ChannelID(*tcvrList[0].lane_ref());
+    return ChannelID(*tcvrList[0].lane());
   } else {
     return std::nullopt;
   }
@@ -122,16 +122,15 @@ std::vector<int32_t> WedgePort::getChannels() const {
   }
   const auto& tcvrList = getTransceiverLanes(port_->getProfileID());
   return folly::gen::from(tcvrList) |
-      folly::gen::map(
-             [&](const phy::PinID& entry) { return *entry.lane_ref(); }) |
+      folly::gen::map([&](const phy::PinID& entry) { return *entry.lane(); }) |
       folly::gen::as<std::vector<int32_t>>();
 }
 
 TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
   TransceiverIdxThrift xcvr;
   if (auto transceiverID = getTransceiverID()) {
-    xcvr.transceiverId_ref() = static_cast<int32_t>(*transceiverID);
-    xcvr.channels_ref() = getChannels();
+    xcvr.transceiverId() = static_cast<int32_t>(*transceiverID);
+    xcvr.channels() = getChannels();
   }
   return xcvr;
 }
@@ -141,11 +140,11 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   // from a Port SwitchState node. Currently you need platform to get
   // transceiver mapping, which is not ideal.
   PortStatus status;
-  *status.enabled_ref() = port->isEnabled();
-  *status.up_ref() = port->isUp();
-  *status.speedMbps_ref() = static_cast<int64_t>(port->getSpeed());
+  *status.enabled() = port->isEnabled();
+  *status.up() = port->isUp();
+  *status.speedMbps() = static_cast<int64_t>(port->getSpeed());
   if (supportsTransceiver()) {
-    status.transceiverIdx_ref().emplace(getTransceiverMapping());
+    status.transceiverIdx().emplace(getTransceiverMapping());
   }
   return status;
 }

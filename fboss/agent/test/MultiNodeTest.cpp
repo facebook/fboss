@@ -46,9 +46,9 @@ void MultiNodeTest::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), platform());
   parseTestPorts(FLAGS_multiNodeTestPorts);
-  *testConfig.sw_ref() = initialConfig();
+  *testConfig.sw() = initialConfig();
   const auto& baseConfig = platform()->config();
-  *testConfig.platform_ref() = *baseConfig->thrift.platform_ref();
+  *testConfig.platform() = *baseConfig->thrift.platform();
   auto newcfg = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
@@ -143,11 +143,11 @@ std::map<PortID, PortID> MultiNodeTest::localToRemotePort() const {
       for (const auto& nbr : remoteLldpNeighbors) {
         auto localPort = sw()->getState()
                              ->getPorts()
-                             ->getPort(*nbr.printablePortId_ref())
+                             ->getPort(*nbr.printablePortId())
                              ->getID();
         if (std::find(localPorts.begin(), localPorts.end(), localPort) !=
             localPorts.end()) {
-          localToRemote[localPort] = *nbr.localPort_ref();
+          localToRemote[localPort] = *nbr.localPort();
         }
       }
       return localToRemote.size() == testPorts().size();

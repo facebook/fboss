@@ -29,7 +29,7 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName) {
-  if (!cfg->aclTableGroup_ref()) {
+  if (!cfg->aclTableGroup()) {
     throw FbossError(
         "Multiple acl tables flag enabled but config leaves aclTableGroup empty");
   }
@@ -38,11 +38,10 @@ int getAclTableIndex(
         "Multiple acl tables flag enabled but no acl table name provided for add/delAcl()");
   }
   int tableIndex;
-  std::vector<cfg::AclTable> aclTables =
-      *cfg->aclTableGroup_ref()->aclTables_ref();
+  std::vector<cfg::AclTable> aclTables = *cfg->aclTableGroup()->aclTables();
   std::vector<cfg::AclTable>::iterator it = std::find_if(
       aclTables.begin(), aclTables.end(), [&](cfg::AclTable const& aclTable) {
-        return *aclTable.name_ref() == tableName.value();
+        return *aclTable.name() == tableName.value();
       });
   if (it != aclTables.end()) {
     tableIndex = std::distance(aclTables.begin(), it);
@@ -59,22 +58,16 @@ cfg::AclEntry* addAcl(
     const cfg::AclActionType& aclActionType,
     const std::optional<std::string>& tableName) {
   auto acl = cfg::AclEntry();
-  *acl.name_ref() = aclName;
-  *acl.actionType_ref() = aclActionType;
+  *acl.name() = aclName;
+  *acl.actionType() = aclActionType;
 
   if (FLAGS_enable_acl_table_group) {
     int tableNumber = getAclTableIndex(cfg, tableName);
-    cfg->aclTableGroup_ref()
-        ->aclTables_ref()[tableNumber]
-        .aclEntries_ref()
-        ->push_back(acl);
-    return &cfg->aclTableGroup_ref()
-                ->aclTables_ref()[tableNumber]
-                .aclEntries_ref()
-                ->back();
+    cfg->aclTableGroup()->aclTables()[tableNumber].aclEntries()->push_back(acl);
+    return &cfg->aclTableGroup()->aclTables()[tableNumber].aclEntries()->back();
   } else {
-    cfg->acls_ref()->push_back(acl);
-    return &cfg->acls_ref()->back();
+    cfg->acls()->push_back(acl);
+    return &cfg->acls()->back();
   }
 }
 
@@ -83,16 +76,16 @@ void delAcl(
     const std::string& aclName,
     const std::optional<std::string>& tableName) {
   auto& acls = FLAGS_enable_acl_table_group
-      ? *cfg->aclTableGroup_ref()
-             ->aclTables_ref()[getAclTableIndex(cfg, tableName)]
-             .aclEntries_ref()
-      : *cfg->acls_ref();
+      ? *cfg->aclTableGroup()
+             ->aclTables()[getAclTableIndex(cfg, tableName)]
+             .aclEntries()
+      : *cfg->acls();
 
   acls.erase(
       std::remove_if(
           acls.begin(),
           acls.end(),
-          [&](cfg::AclEntry const& acl) { return *acl.name_ref() == aclName; }),
+          [&](cfg::AclEntry const& acl) { return *acl.name() == aclName; }),
       acls.end());
 }
 
@@ -101,9 +94,9 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName) {
   cfg::AclTableGroup cfgTableGroup;
-  cfg->aclTableGroup_ref() = cfgTableGroup;
-  cfg->aclTableGroup_ref()->name_ref() = aclTableGroupName;
-  cfg->aclTableGroup_ref()->stage_ref() = aclStage;
+  cfg->aclTableGroup() = cfgTableGroup;
+  cfg->aclTableGroup()->name() = aclTableGroupName;
+  cfg->aclTableGroup()->stage() = aclStage;
 }
 
 cfg::AclTable* addAclTable(
@@ -112,35 +105,35 @@ cfg::AclTable* addAclTable(
     const int aclTablePriority,
     const std::vector<cfg::AclTableActionType>& actionTypes,
     const std::vector<cfg::AclTableQualifier>& qualifiers) {
-  if (!cfg->aclTableGroup_ref()) {
+  if (!cfg->aclTableGroup()) {
     throw FbossError(
         "Attempted to add acl table without first creating acl table group");
   }
 
   cfg::AclTable aclTable;
-  aclTable.name_ref() = aclTableName;
-  aclTable.priority_ref() = aclTablePriority;
-  aclTable.actionTypes_ref() = actionTypes;
-  aclTable.qualifiers_ref() = qualifiers;
+  aclTable.name() = aclTableName;
+  aclTable.priority() = aclTablePriority;
+  aclTable.actionTypes() = actionTypes;
+  aclTable.qualifiers() = qualifiers;
 
-  cfg->aclTableGroup_ref()->aclTables_ref()->push_back(aclTable);
-  return &cfg->aclTableGroup_ref()->aclTables_ref()->back();
+  cfg->aclTableGroup()->aclTables()->push_back(aclTable);
+  return &cfg->aclTableGroup()->aclTables()->back();
 }
 
 void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName) {
-  if (!cfg->aclTableGroup_ref()) {
+  if (!cfg->aclTableGroup()) {
     throw FbossError(
         "Attempted to delete acl table (",
         aclTableName,
         ") from uninstantiated table group");
   }
-  auto& aclTables = *cfg->aclTableGroup_ref()->aclTables_ref();
+  auto& aclTables = *cfg->aclTableGroup()->aclTables();
   aclTables.erase(
       std::remove_if(
           aclTables.begin(),
           aclTables.end(),
           [&](cfg::AclTable const& aclTable) {
-            return *aclTable.name_ref() == aclTableName;
+            return *aclTable.name() == aclTableName;
           }),
       aclTables.end());
 }
@@ -151,31 +144,31 @@ void addAclStat(
     const std::string& counterName,
     std::vector<cfg::CounterType> counterTypes) {
   auto counter = cfg::TrafficCounter();
-  *counter.name_ref() = counterName;
+  *counter.name() = counterName;
   if (!counterTypes.empty()) {
-    *counter.types_ref() = counterTypes;
+    *counter.types() = counterTypes;
   }
   bool counterExists = false;
-  for (auto& c : *cfg->trafficCounters_ref()) {
-    if (*c.name_ref() == counterName) {
+  for (auto& c : *cfg->trafficCounters()) {
+    if (*c.name() == counterName) {
       counterExists = true;
       break;
     }
   }
   if (!counterExists) {
-    cfg->trafficCounters_ref()->push_back(counter);
+    cfg->trafficCounters()->push_back(counter);
   }
 
   auto matchAction = cfg::MatchAction();
-  matchAction.counter_ref() = counterName;
+  matchAction.counter() = counterName;
   auto action = cfg::MatchToAction();
-  *action.matcher_ref() = matcher;
-  *action.action_ref() = matchAction;
+  *action.matcher() = matcher;
+  *action.action() = matchAction;
 
-  if (!cfg->dataPlaneTrafficPolicy_ref()) {
-    cfg->dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  if (!cfg->dataPlaneTrafficPolicy()) {
+    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
   }
-  cfg->dataPlaneTrafficPolicy_ref()->matchToAction_ref()->push_back(action);
+  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(action);
 }
 
 void delAclStat(
@@ -183,16 +176,15 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName) {
   int refCnt = 0;
-  if (auto dataPlaneTrafficPolicy = cfg->dataPlaneTrafficPolicy_ref()) {
-    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction_ref();
+  if (auto dataPlaneTrafficPolicy = cfg->dataPlaneTrafficPolicy()) {
+    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
     matchActions.erase(
         std::remove_if(
             matchActions.begin(),
             matchActions.end(),
             [&](cfg::MatchToAction const& matchAction) {
-              if (*matchAction.matcher_ref() == matcher &&
-                  matchAction.action_ref()->counter_ref().value_or({}) ==
-                      counterName) {
+              if (*matchAction.matcher() == matcher &&
+                  matchAction.action()->counter().value_or({}) == counterName) {
                 ++refCnt;
                 return true;
               }
@@ -201,13 +193,13 @@ void delAclStat(
         matchActions.end());
   }
   if (refCnt == 0) {
-    auto& counters = *cfg->trafficCounters_ref();
+    auto& counters = *cfg->trafficCounters();
     counters.erase(
         std::remove_if(
             counters.begin(),
             counters.end(),
             [&](cfg::TrafficCounter const& counter) {
-              return *counter.name_ref() == counterName;
+              return *counter.name() == counterName;
             }),
         counters.end());
   }

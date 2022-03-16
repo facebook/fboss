@@ -48,7 +48,7 @@ TransceiverManager::TransceiverManager(
   const auto& chips = platformMapping_->getChips();
   for (const auto& [portIDInt, platformPort] : platformPorts) {
     PortID portID = PortID(portIDInt);
-    const auto& portName = *platformPort.mapping_ref()->name_ref();
+    const auto& portName = *platformPort.mapping()->name();
     portNameToPortID_.emplace(portName, portID);
     SwPortInfo portInfo;
     portInfo.name = portName;
@@ -121,7 +121,7 @@ TransceiverManager::getPortNameToModuleMap() const {
         continue;
       }
 
-      auto& portName = *(port.mapping_ref()->name_ref());
+      auto& portName = *(port.mapping()->name());
       portNameToModule_[portName] = transceiverId.value();
     }
   }
@@ -135,7 +135,7 @@ const std::set<std::string> TransceiverManager::getPortNames(
   auto it = portGroupMap_.find(tcvrId);
   if (it != portGroupMap_.end() && !it->second.empty()) {
     for (const auto& port : it->second) {
-      if (auto portName = port.name_ref()) {
+      if (auto portName = port.name()) {
         ports.insert(*portName);
       }
     }
@@ -154,10 +154,10 @@ TransceiverManager::setupTransceiverToStateMachineHelper() {
   TransceiverToStateMachineHelper stateMachineMap;
   if (FLAGS_use_new_state_machine) {
     for (auto chip : platformMapping_->getChips()) {
-      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
-      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
+      auto tcvrID = TransceiverID(*chip.second.physicalID());
       stateMachineMap.emplace(
           tcvrID,
           std::make_unique<TransceiverStateMachineHelper>(this, tcvrID));
@@ -171,10 +171,10 @@ TransceiverManager::setupTransceiverToPortInfo() {
   TransceiverToPortInfo tcvrToPortInfo;
   if (FLAGS_use_new_state_machine) {
     for (auto chip : platformMapping_->getChips()) {
-      if (*chip.second.type_ref() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
         continue;
       }
-      auto tcvrID = TransceiverID(*chip.second.physicalID_ref());
+      auto tcvrID = TransceiverID(*chip.second.physicalID());
       auto portToPortInfo = std::make_unique<folly::Synchronized<
           std::unordered_map<PortID, TransceiverPortInfo>>>();
       tcvrToPortInfo.emplace(tcvrID, std::move(portToPortInfo));
@@ -531,8 +531,8 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
     return it->second->getTransceiverInfo();
   } else {
     TransceiverInfo absentTcvr;
-    absentTcvr.present_ref() = false;
-    absentTcvr.port_ref() = id;
+    absentTcvr.present() = false;
+    absentTcvr.port() = id;
     return absentTcvr;
   }
 }
@@ -563,7 +563,7 @@ void TransceiverManager::programTransceiver(
         "Can't find profile config for profileID=",
         apache::thrift::util::enumNameSafe(profileID));
   }
-  const auto speed = *profileCfgOpt->speed_ref();
+  const auto speed = *profileCfgOpt->speed();
 
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
@@ -682,14 +682,14 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
           // But if the port is disabled, we don't need disabled ports in the
           // cache, since we only store enabled ports as we do in the
           // programInternalPhyPorts()
-          if (!(*portStatusIt->second.enabled_ref())) {
+          if (!(*portStatusIt->second.enabled())) {
             if (cachedPortInfoIt != portToPortInfoWithLock->end()) {
               portToPortInfoWithLock->erase(cachedPortInfoIt);
               genStateMachineResetEvent(event, isTcvrPresent);
             }
           } else {
             // Only care about enabled port status
-            anyPortUp = anyPortUp || *portStatusIt->second.up_ref();
+            anyPortUp = anyPortUp || *portStatusIt->second.up();
             // Agent create such port, we need to trigger a state machine
             // reset to trigger programming to get the new sw ports
             if (cachedPortInfoIt == portToPortInfoWithLock->end()) {
@@ -701,8 +701,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
               // Both agent and cache here have such port, update the cached
               // status
               if (!cachedPortInfoIt->second.status ||
-                  *cachedPortInfoIt->second.status->up_ref() !=
-                      *portStatusIt->second.up_ref()) {
+                  *cachedPortInfoIt->second.status->up() !=
+                      *portStatusIt->second.up()) {
                 portStatusChanged = true;
                 try {
                   publishLinkSnapshots(portID);
@@ -773,15 +773,14 @@ void TransceiverManager::updateTransceiverActiveState(
         // to indicate whether we need a state update
         if (portStatusIt == portStatus.end()) {
           if (tcvrPortInfo.status) {
-            anyPortUp = anyPortUp || *tcvrPortInfo.status->up_ref();
+            anyPortUp = anyPortUp || *tcvrPortInfo.status->up();
           }
         } else {
           // Only care about enabled port status
-          if (*portStatusIt->second.enabled_ref()) {
-            anyPortUp = anyPortUp || *portStatusIt->second.up_ref();
+          if (*portStatusIt->second.enabled()) {
+            anyPortUp = anyPortUp || *portStatusIt->second.up();
             if (!tcvrPortInfo.status ||
-                *tcvrPortInfo.status->up_ref() !=
-                    *portStatusIt->second.up_ref()) {
+                *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
               portStatusChanged = true;
               try {
                 publishLinkSnapshots(portID);
@@ -867,7 +866,7 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
     // Fall back to use old thrift api: getLastConfigAppliedInMs
     // TODO(joseph5wu) Will deprecate this call once we deprecate the old api
     try {
-      newConfigAppliedInfo.lastAppliedInMs_ref() =
+      newConfigAppliedInfo.lastAppliedInMs() =
           wedgeAgentClient->sync_getLastConfigAppliedInMs();
     } catch (const std::exception& oldApiEx) {
       // We have retry mechanism to handle failure. No crash here
@@ -882,12 +881,12 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
       XLOG(INFO)
           << "triggerAgentConfigChangeEvent is using override ConfigAppliedInfo"
           << ", lastAppliedInMs="
-          << *overrideAgentConfigAppliedInfoForTesting_->lastAppliedInMs_ref()
+          << *overrideAgentConfigAppliedInfoForTesting_->lastAppliedInMs()
           << ", lastColdbootAppliedInMs="
           << (overrideAgentConfigAppliedInfoForTesting_
-                      ->lastColdbootAppliedInMs_ref()
+                      ->lastColdbootAppliedInMs()
                   ? *overrideAgentConfigAppliedInfoForTesting_
-                         ->lastColdbootAppliedInMs_ref()
+                         ->lastColdbootAppliedInMs()
                   : 0);
       newConfigAppliedInfo = *overrideAgentConfigAppliedInfoForTesting_;
     } else {
@@ -896,8 +895,8 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   }
 
   // Now check if the new timestamp is later than the cached one.
-  if (*newConfigAppliedInfo.lastAppliedInMs_ref() <=
-      *configAppliedInfo_.lastAppliedInMs_ref()) {
+  if (*newConfigAppliedInfo.lastAppliedInMs() <=
+      *configAppliedInfo_.lastAppliedInMs()) {
     return;
   }
 
@@ -905,9 +904,9 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   bool resetDataPath = false;
   std::optional<std::string> resetDataPathLog;
   if (auto lastColdbootAppliedInMs =
-          newConfigAppliedInfo.lastColdbootAppliedInMs_ref()) {
+          newConfigAppliedInfo.lastColdbootAppliedInMs()) {
     if (auto oldLastColdbootAppliedInMs =
-            configAppliedInfo_.lastColdbootAppliedInMs_ref()) {
+            configAppliedInfo_.lastColdbootAppliedInMs()) {
       resetDataPath = (*lastColdbootAppliedInMs > *oldLastColdbootAppliedInMs);
       resetDataPathLog = folly::to<std::string>(
           "Need reset data path. [Old Coldboot time:",
@@ -927,9 +926,9 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   }
 
   XLOG(INFO) << "New Agent config applied time:"
-             << *newConfigAppliedInfo.lastAppliedInMs_ref()
+             << *newConfigAppliedInfo.lastAppliedInMs()
              << " and last cached time:"
-             << *configAppliedInfo_.lastAppliedInMs_ref()
+             << *configAppliedInfo_.lastAppliedInMs()
              << ". Issue all ports reprogramming events. "
              << (resetDataPathLog ? *resetDataPathLog : "");
 
@@ -1049,9 +1048,9 @@ void TransceiverManager::setOverrideAgentPortStatusForTesting(
   for (const auto& it : overrideTcvrToPortAndProfileForTest_) {
     for (const auto& [portID, profileID] : it.second) {
       PortStatus status;
-      status.enabled_ref() = enabled;
-      status.up_ref() = up;
-      status.profileID_ref() = apache::thrift::util::enumNameSafe(profileID);
+      status.enabled() = enabled;
+      status.up() = up;
+      status.profileID() = apache::thrift::util::enumNameSafe(profileID);
       overrideAgentPortStatusForTesting_.emplace(portID, std::move(status));
     }
   }
@@ -1076,7 +1075,7 @@ bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
       // disruptive event
       return false;
     }
-    if (*portInfo.status->up_ref()) {
+    if (*portInfo.status->up()) {
       return false;
     }
   }
@@ -1332,9 +1331,9 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
   }
   phy::Side side = prbsComponentToPhySide(component);
   phy::PrbsStats stats;
-  stats.laneStats_ref() = phyManager_->getPortPrbsStats(portId, side);
-  stats.portId_ref() = portId;
-  stats.component_ref() = component;
+  stats.laneStats() = phyManager_->getPortPrbsStats(portId, side);
+  stats.portId() = portId;
+  stats.component() = component;
   return stats;
 }
 

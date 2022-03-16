@@ -42,18 +42,18 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
 
   for (const auto queueId : queues) {
     cfg::PortPgConfig pgConfig;
-    pgConfig.id_ref() = queueId;
+    pgConfig.id() = queueId;
     // use queueId value to assign different values for each param/queue
     if (enableHeadroom) {
-      pgConfig.headroomLimitBytes_ref() =
+      pgConfig.headroomLimitBytes() =
           (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
     }
-    pgConfig.minLimitBytes_ref() =
+    pgConfig.minLimitBytes() =
         (kPgMinLimitCells + queueId + deltaValue) * mmuCellByes;
-    pgConfig.resumeOffsetBytes_ref() =
+    pgConfig.resumeOffsetBytes() =
         (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellByes;
-    pgConfig.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
-    pgConfig.bufferPoolName_ref() = kBufferPoolName;
+    pgConfig.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+    pgConfig.bufferPoolName() = kBufferPoolName;
     portPgConfigs.emplace_back(pgConfig);
   }
   return portPgConfigs;
@@ -61,8 +61,8 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
 
 cfg::BufferPoolConfig getBufferPoolHighDefaultConfig(int mmuBytesInCell) {
   cfg::BufferPoolConfig tmpCfg;
-  tmpCfg.headroomBytes_ref() = 12432 * mmuBytesInCell;
-  tmpCfg.sharedBytes_ref() = 119044 * mmuBytesInCell;
+  tmpCfg.headroomBytes() = 12432 * mmuBytesInCell;
+  tmpCfg.sharedBytes() = 119044 * mmuBytesInCell;
   return tmpCfg;
 }
 
@@ -72,9 +72,9 @@ cfg::BufferPoolConfig getBufferPoolConfig(
   // same as one in pg
   // std::string bufferName = "fooBuffer";
   cfg::BufferPoolConfig tmpCfg;
-  tmpCfg.headroomBytes_ref() =
+  tmpCfg.headroomBytes() =
       (kPoolHeadroomLimitCells + deltaValue) * mmuBytesInCell;
-  tmpCfg.sharedBytes_ref() = (kPoolSharedCells + deltaValue) * mmuBytesInCell;
+  tmpCfg.sharedBytes() = (kPoolSharedCells + deltaValue) * mmuBytesInCell;
   return tmpCfg;
 }
 
@@ -100,7 +100,7 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
 
     bufferPoolCfgMap.insert(
         make_pair(static_cast<std::string>(kBufferPoolName), bufferPoolConfig));
-    cfg.bufferPoolConfigs_ref() = std::move(bufferPoolCfgMap);
+    cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
   }
 
   void setupPgBuffers(cfg::SwitchConfig& cfg, const bool enableHeadroom) {
@@ -110,7 +110,7 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
         {0, 1},
         0 /* delta value */,
         enableHeadroom);
-    cfg.portPgConfigs_ref() = portPgConfigMap;
+    cfg.portPgConfigs() = portPgConfigMap;
   }
 
   void
@@ -118,9 +118,9 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     auto portCfg = utility::findCfgPort(cfg, portId);
     // setup pfc
     cfg::PortPfc pfc;
-    pfc.portPgConfigName_ref() = "foo";
-    pfc.tx_ref() = pfcEnable;
-    portCfg->pfc_ref() = pfc;
+    pfc.portPgConfigName() = "foo";
+    pfc.tx() = pfcEnable;
+    portCfg->pfc() = pfc;
   }
 
   void setupHelper(
@@ -253,8 +253,8 @@ TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
     setupHelper();
     // reset PG config
     auto portCfg = utility::findCfgPort(cfg_, masterLogicalPortIds()[0]);
-    portCfg->pfc_ref().reset();
-    cfg_.portPgConfigs_ref().reset();
+    portCfg->pfc().reset();
+    cfg_.portPgConfigs().reset();
     applyNewConfig(cfg_);
   };
 
@@ -273,7 +273,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
     bufferPoolCfgMap.insert(make_pair(
         static_cast<std::string>(kBufferPoolName),
         getBufferPoolConfig(getPlatform()->getMMUCellBytes(), 1)));
-    cfg_.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
     // update one PG, and see ifs reflected in the HW
     applyNewConfig(cfg_);
   };
@@ -292,7 +292,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     portPgConfigMap["foo"] =
         getPortPgConfig(getPlatform()->getMMUCellBytes(), {0, 1}, 1);
-    cfg_.portPgConfigs_ref() = portPgConfigMap;
+    cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
 
@@ -310,7 +310,7 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     portPgConfigMap["foo"] =
         getPortPgConfig(getPlatform()->getMMUCellBytes(), {1});
-    cfg_.portPgConfigs_ref() = portPgConfigMap;
+    cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
 

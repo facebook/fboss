@@ -75,7 +75,7 @@ facebook::network::thrift::BinaryAddress createV6LinkLocalNextHop(
   auto linkLocalAddrAsBinaryAddress =
       facebook::network::toBinaryAddress(linkLocalAddr);
 
-  linkLocalAddrAsBinaryAddress.ifName_ref() = "fboss1";
+  linkLocalAddrAsBinaryAddress.ifName() = "fboss1";
 
   return linkLocalAddrAsBinaryAddress;
 }
@@ -86,8 +86,8 @@ std::vector<NextHopThrift> nextHopsThrift() {
   std::vector<folly::IPAddress> addrs{nextHopAddr1, nextHopAddr2, nextHopAddr3};
   for (const auto& addr : addrs) {
     NextHopThrift nexthop;
-    *nexthop.address_ref() = createV6LinkLocalNextHop(addr);
-    *nexthop.weight_ref() = static_cast<int32_t>(ECMP_WEIGHT);
+    *nexthop.address() = createV6LinkLocalNextHop(addr);
+    *nexthop.weight() = static_cast<int32_t>(ECMP_WEIGHT);
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;
@@ -107,8 +107,8 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.dest_ref() = kDestPrefix;
-  route.nextHops_ref() = nextHopsThrift();
+  route.dest() = kDestPrefix;
+  route.nextHops() = nextHopsThrift();
   std::optional<RouteCounterID> counterID("route.counter.0");
 
   auto nextHopEntry =
@@ -132,8 +132,8 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.dest_ref() = kDestPrefix;
-  route.nextHopAddrs_ref() = nextHopsBinaryAddress;
+  route.dest() = kDestPrefix;
+  route.nextHopAddrs() = nextHopsBinaryAddress;
   std::optional<RouteCounterID> counterID("route.counter.0");
 
   auto nextHopEntry =
@@ -152,9 +152,9 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
 
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   UnicastRoute route;
-  route.dest_ref() = kDestPrefix;
-  route.nextHops_ref() = nextHopsThrift();
-  route.adminDistance_ref() = AdminDistance::IBGP;
+  route.dest() = kDestPrefix;
+  route.nextHops() = nextHopsThrift();
+  route.adminDistance() = AdminDistance::IBGP;
 
   auto nextHopEntry =
       RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);
@@ -168,8 +168,8 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.dest_ref() = kDestPrefix;
-  route.nextHops_ref() = noNextHops;
+  route.dest() = kDestPrefix;
+  route.nextHops() = noNextHops;
 
   auto nextHopEntry =
       RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);

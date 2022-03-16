@@ -239,7 +239,7 @@ class BcmPort {
     // lastPortStats_) - the class itself does not guarantee this on it's own
    public:
     BcmPortStats() {
-      *portStats_.inDiscards__ref() = 0;
+      *portStats_.inDiscards_() = 0;
     }
     explicit BcmPortStats(int numUnicastQueues);
     BcmPortStats(HwPortStats portStats, std::chrono::seconds seconds);

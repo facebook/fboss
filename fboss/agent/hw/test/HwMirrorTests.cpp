@@ -80,14 +80,14 @@ class HwMirrorTest : public HwTest {
       const bool truncate = false) const {
     cfg::Mirror mirror;
     cfg::MirrorDestination destination;
-    destination.egressPort_ref() = cfg::MirrorEgressPort();
-    destination.egressPort_ref()->logicalID_ref() = masterLogicalPortIds()[0];
+    destination.egressPort() = cfg::MirrorEgressPort();
+    destination.egressPort()->logicalID_ref() = masterLogicalPortIds()[0];
 
     cfg::Mirror mirrorConfig;
-    mirrorConfig.name_ref() = mirrorName;
-    mirrorConfig.destination_ref() = destination;
-    mirrorConfig.dscp_ref() = dscp;
-    mirrorConfig.truncate_ref() = truncate;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
+    mirrorConfig.truncate() = truncate;
     return mirrorConfig;
   }
 
@@ -101,14 +101,14 @@ class HwMirrorTest : public HwTest {
     cfg::MirrorDestination destination;
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
-    greTunnel.ip_ref() = destinationIp.str();
-    tunnel.greTunnel_ref() = greTunnel;
-    destination.tunnel_ref() = tunnel;
+    greTunnel.ip() = destinationIp.str();
+    tunnel.greTunnel() = greTunnel;
+    destination.tunnel() = tunnel;
 
     cfg::Mirror mirrorConfig;
-    mirrorConfig.name_ref() = mirrorName;
-    mirrorConfig.destination_ref() = destination;
-    mirrorConfig.dscp_ref() = dscp;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
     return mirrorConfig;
   }
 
@@ -122,17 +122,17 @@ class HwMirrorTest : public HwTest {
     cfg::MirrorDestination destination;
     cfg::MirrorTunnel tunnel;
     cfg::SflowTunnel sflowTunnel;
-    sflowTunnel.ip_ref() = destinationIp.str();
-    sflowTunnel.udpSrcPort_ref() = 6545;
-    sflowTunnel.udpDstPort_ref() = 5343;
-    tunnel.sflowTunnel_ref() = sflowTunnel;
+    sflowTunnel.ip() = destinationIp.str();
+    sflowTunnel.udpSrcPort() = 6545;
+    sflowTunnel.udpDstPort() = 5343;
+    tunnel.sflowTunnel() = sflowTunnel;
 
-    destination.tunnel_ref() = tunnel;
+    destination.tunnel() = tunnel;
 
     cfg::Mirror mirrorConfig;
-    mirrorConfig.name_ref() = mirrorName;
-    mirrorConfig.destination_ref() = destination;
-    mirrorConfig.dscp_ref() = dscp;
+    mirrorConfig.name() = mirrorName;
+    mirrorConfig.destination() = destination;
+    mirrorConfig.dscp() = dscp;
     return mirrorConfig;
   }
 
@@ -158,22 +158,21 @@ class HwMirrorTest : public HwTest {
       const std::string& mirror,
       const cfg::AclEntry& acl,
       cfg::SwitchConfig& cfg) {
-    cfg.acls_ref()->push_back(acl);
+    cfg.acls()->push_back(acl);
     cfg::MatchAction mirrorAction;
-    mirrorAction.ingressMirror_ref() = mirror;
-    mirrorAction.egressMirror_ref() = mirror;
+    mirrorAction.ingressMirror() = mirror;
+    mirrorAction.egressMirror() = mirror;
 
     cfg::MatchToAction match2Action;
-    match2Action.matcher_ref() = *acl.name_ref();
-    match2Action.action_ref() = mirrorAction;
+    match2Action.matcher() = *acl.name();
+    match2Action.action() = mirrorAction;
 
-    if (!cfg.dataPlaneTrafficPolicy_ref()) {
+    if (!cfg.dataPlaneTrafficPolicy()) {
       cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-      dataPlaneTrafficPolicy.matchToAction_ref()->push_back(match2Action);
-      cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+      dataPlaneTrafficPolicy.matchToAction()->push_back(match2Action);
+      cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
     } else {
-      cfg.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->push_back(
-          match2Action);
+      cfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(match2Action);
     }
   }
 };
@@ -183,7 +182,7 @@ TYPED_TEST_SUITE(HwMirrorTest, TestTypes);
 TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getSpanMirror());
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -197,7 +196,7 @@ TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
 TYPED_TEST(HwMirrorTest, DscpHasDefault) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror(kSpan, kDscpDefault));
+    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscpDefault));
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -212,7 +211,7 @@ TYPED_TEST(HwMirrorTest, DscpHasDefault) {
 TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror(kSpan, kDscp));
+    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp));
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -231,7 +230,7 @@ TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
   }
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror(kSpan, kDscp, true));
+    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp, true));
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -247,7 +246,7 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
     auto mirror = mirrors->getMirrorIf(kErspan);
@@ -282,7 +281,7 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     this->applyNewConfig(cfg);
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
     auto mirror = mirrors->getMirrorIf(kSflow);
@@ -317,7 +316,7 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
 TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -334,8 +333,8 @@ TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
 TYPED_TEST(HwMirrorTest, MirrorRemoved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
     mirrors->removeNode(kSpan);
@@ -360,8 +359,8 @@ TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
     auto mirror = mirrors->getMirrorIf(kErspan);
@@ -391,7 +390,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -439,7 +438,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -480,10 +479,10 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
 TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -509,10 +508,10 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -559,10 +558,10 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -620,10 +619,10 @@ TYPED_TEST(HwMirrorTest, PortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -666,10 +665,10 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -688,12 +687,12 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    cfg.mirrors_ref()[0] = this->getSpanMirror();
-    portCfg->ingressMirror_ref().reset();
-    portCfg->egressMirror_ref().reset();
+    cfg.mirrors()[0] = this->getSpanMirror();
+    portCfg->ingressMirror().reset();
+    portCfg->egressMirror().reset();
     portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
-    portCfg->ingressMirror_ref() = kSpan;
-    portCfg->egressMirror_ref() = kSpan;
+    portCfg->ingressMirror() = kSpan;
+    portCfg->egressMirror() = kSpan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -733,10 +732,10 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror_ref() = kErspan;
-    portCfg->egressMirror_ref() = kErspan;
+    portCfg->ingressMirror() = kErspan;
+    portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -754,8 +753,8 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    portCfg->ingressMirror_ref().reset();
-    portCfg->egressMirror_ref().reset();
+    portCfg->ingressMirror().reset();
+    portCfg->egressMirror().reset();
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -784,15 +783,15 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
 TYPED_TEST(HwMirrorTest, HwMirrorStat) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
     auto stats = utility::getHwTableStats(this->getHwSwitch());
-    EXPECT_EQ(*stats.mirrors_used_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_span_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_erspan_ref(), 0);
+    EXPECT_EQ(*stats.mirrors_used(), 1);
+    EXPECT_EQ(*stats.mirrors_span(), 1);
+    EXPECT_EQ(*stats.mirrors_erspan(), 0);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -804,10 +803,10 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->resize(3);
-    cfg.mirrors_ref()[0] = this->getSpanMirror();
-    cfg.mirrors_ref()[1] = this->getErspanMirror();
-    cfg.mirrors_ref()[2] = this->getSflowMirror();
+    cfg.mirrors()->resize(3);
+    cfg.mirrors()[0] = this->getSpanMirror();
+    cfg.mirrors()[1] = this->getErspanMirror();
+    cfg.mirrors()[2] = this->getSflowMirror();
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -853,10 +852,10 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
     EXPECT_TRUE(erspan->isResolved());
     EXPECT_TRUE(sflowMirror->isResolved());
 
-    EXPECT_EQ(*stats.mirrors_used_ref(), 3);
-    EXPECT_EQ(*stats.mirrors_span_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_erspan_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_sflow_ref(), 1);
+    EXPECT_EQ(*stats.mirrors_used(), 3);
+    EXPECT_EQ(*stats.mirrors_span(), 1);
+    EXPECT_EQ(*stats.mirrors_erspan(), 1);
+    EXPECT_EQ(*stats.mirrors_sflow(), 1);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -868,10 +867,10 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->resize(3);
-    cfg.mirrors_ref()[0] = this->getSpanMirror();
-    cfg.mirrors_ref()[1] = this->getErspanMirror();
-    cfg.mirrors_ref()[2] = this->getSflowMirror();
+    cfg.mirrors()->resize(3);
+    cfg.mirrors()[0] = this->getSpanMirror();
+    cfg.mirrors()[1] = this->getErspanMirror();
+    cfg.mirrors()[2] = this->getSflowMirror();
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -932,10 +931,10 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
         this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
     EXPECT_TRUE(span->isResolved());
     EXPECT_TRUE(!erspan->isResolved());
-    EXPECT_EQ(*stats.mirrors_used_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_span_ref(), 1);
-    EXPECT_EQ(*stats.mirrors_erspan_ref(), 0);
-    EXPECT_EQ(*stats.mirrors_sflow_ref(), 0);
+    EXPECT_EQ(*stats.mirrors_used(), 1);
+    EXPECT_EQ(*stats.mirrors_span(), 1);
+    EXPECT_EQ(*stats.mirrors_erspan(), 0);
+    EXPECT_EQ(*stats.mirrors_sflow(), 0);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -947,10 +946,10 @@ TYPED_TEST(HwMirrorTest, AclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    acl.name_ref() = "acl0";
-    acl.dstIp_ref() = "192.168.0.0/16";
+    acl.name() = "acl0";
+    acl.dstIp() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
 
@@ -986,11 +985,11 @@ TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    acl.name_ref() = "acl0";
-    acl.dstIp_ref() = "192.168.0.0/16";
+    acl.name() = "acl0";
+    acl.dstIp() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
 
@@ -1010,13 +1009,12 @@ TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    cfg.mirrors_ref()->clear();
-    cfg.mirrors_ref()->push_back(this->getSpanMirror());
-    for (auto& match2Action :
-         *cfg.dataPlaneTrafficPolicy_ref()->matchToAction_ref()) {
-      if (*match2Action.matcher_ref() == "acl0") {
-        match2Action.action_ref()->ingressMirror_ref() = kSpan;
-        match2Action.action_ref()->egressMirror_ref() = kSpan;
+    cfg.mirrors()->clear();
+    cfg.mirrors()->push_back(this->getSpanMirror());
+    for (auto& match2Action : *cfg.dataPlaneTrafficPolicy()->matchToAction()) {
+      if (*match2Action.matcher() == "acl0") {
+        match2Action.action()->ingressMirror() = kSpan;
+        match2Action.action()->egressMirror() = kSpan;
       }
     }
     this->applyNewConfig(cfg);
@@ -1040,10 +1038,10 @@ TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     cfg::AclEntry acl;
-    acl.name_ref() = "acl0";
-    acl.dstIp_ref() = "192.168.0.0/16";
+    acl.name() = "acl0";
+    acl.dstIp() = "192.168.0.0/16";
     this->addAclMirror(kErspan, acl, cfg);
     this->applyNewConfig(cfg);
 
@@ -1063,11 +1061,10 @@ TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    for (auto& match2Action :
-         *cfg.dataPlaneTrafficPolicy_ref()->matchToAction_ref()) {
-      if (*match2Action.matcher_ref() == "acl0") {
-        match2Action.action_ref()->ingressMirror_ref().reset();
-        match2Action.action_ref()->egressMirror_ref().reset();
+    for (auto& match2Action : *cfg.dataPlaneTrafficPolicy()->matchToAction()) {
+      if (*match2Action.matcher() == "acl0") {
+        match2Action.action()->ingressMirror().reset();
+        match2Action.action()->egressMirror().reset();
       }
     }
     this->applyNewConfig(cfg);
@@ -1091,12 +1088,12 @@ TYPED_TEST(HwMirrorTest, HwMirrorLimitExceeded) {
   auto cfg = this->initialConfig();
   auto oldState = this->applyNewConfig(cfg);
 
-  cfg.mirrors_ref()->resize(5);
-  cfg.mirrors_ref()[0] = this->getErspanMirror("mirror0");
-  cfg.mirrors_ref()[1] = this->getErspanMirror("mirror1");
-  cfg.mirrors_ref()[2] = this->getErspanMirror("mirror2");
-  cfg.mirrors_ref()[3] = this->getErspanMirror("mirror3");
-  cfg.mirrors_ref()[4] = this->getErspanMirror("mirror4");
+  cfg.mirrors()->resize(5);
+  cfg.mirrors()[0] = this->getErspanMirror("mirror0");
+  cfg.mirrors()[1] = this->getErspanMirror("mirror1");
+  cfg.mirrors()[2] = this->getErspanMirror("mirror2");
+  cfg.mirrors()[3] = this->getErspanMirror("mirror3");
+  cfg.mirrors()[4] = this->getErspanMirror("mirror4");
 
   auto newState = this->applyNewConfig(cfg);
 
@@ -1109,11 +1106,11 @@ TYPED_TEST(HwMirrorTest, SampleOnePort) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling one port and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
-    portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
-    portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-    *portCfg->sFlowIngressRate_ref() = 90000;
+    portCfg->ingressMirror() = *cfg.mirrors()[0].name();
+    portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+    *portCfg->sFlowIngressRate() = 90000;
     this->applyNewConfig(cfg);
 
     // resolve mirror
@@ -1162,12 +1159,12 @@ TYPED_TEST(HwMirrorTest, SampleAllPorts) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1215,19 +1212,19 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
       auto portId = this->masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
-    portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
-    portCfg->egressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1310,19 +1307,19 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
       auto portId = this->masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
-    portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
-    portCfg->egressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1360,9 +1357,9 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     this->applyNewState(newState);
 
     portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
-    portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
-    *portCfg->sFlowIngressRate_ref() = 0;
-    portCfg->ingressMirror_ref().reset();
+    portCfg->sampleDest() = cfg::SampleDestination::CPU;
+    *portCfg->sFlowIngressRate() = 0;
+    portCfg->ingressMirror().reset();
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -1411,19 +1408,19 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
       auto portId = this->masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
-    portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
-    portCfg->egressMirror_ref() = *cfg.mirrors_ref()[1].name_ref();
+    portCfg->ingressMirror() = *cfg.mirrors()[1].name();
+    portCfg->egressMirror() = *cfg.mirrors()[1].name();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1463,9 +1460,9 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     for (auto i = 0; i < 2; i++) {
       auto portId = this->masterLogicalPortIds()[i];
       auto portConfig = utility::findCfgPort(cfg, portId);
-      portConfig->sampleDest_ref() = cfg::SampleDestination::CPU;
-      *portConfig->sFlowIngressRate_ref() = 0;
-      portConfig->ingressMirror_ref().reset();
+      portConfig->sampleDest() = cfg::SampleDestination::CPU;
+      *portConfig->sFlowIngressRate() = 0;
+      portConfig->ingressMirror().reset();
     }
     this->applyNewConfig(cfg);
   };
@@ -1514,12 +1511,12 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1584,12 +1581,12 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1673,12 +1670,12 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1719,23 +1716,19 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
   auto setupPostWb = [=] {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     // update to truncate if supported
-    *cfg.mirrors_ref()[0].truncate_ref() =
-        this->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::MIRROR_PACKET_TRUNCATION);
+    *cfg.mirrors()[0].truncate() = this->getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::MIRROR_PACKET_TRUNCATION);
     // update destination port now
-    cfg.mirrors_ref()[0]
-        .destination_ref()
-        ->tunnel_ref()
-        ->sflowTunnel_ref()
-        ->udpDstPort_ref() = 9898;
+    cfg.mirrors()[0].destination()->tunnel()->sflowTunnel()->udpDstPort() =
+        9898;
     /* sampling all ports and send traffic to sflow mirror */
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1770,12 +1763,12 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1827,12 +1820,12 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1900,12 +1893,12 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
-    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    cfg.mirrors()->push_back(this->getSflowMirror());
     for (auto portId : this->masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *portCfg->sFlowIngressRate_ref() = 90000;
-      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate() = 90000;
+      portCfg->ingressMirror() = *cfg.mirrors()[0].name();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1958,7 +1951,7 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirrorOnTrunk) {
     auto cfg = this->initialConfig();
 
     utility::addAggPort(1, {this->masterLogicalPortIds()[0]}, &cfg);
-    cfg.mirrors_ref()->push_back(this->getErspanMirror());
+    cfg.mirrors()->push_back(this->getErspanMirror());
     auto state = this->applyNewConfig(cfg);
     this->applyNewState(utility::enableTrunkPorts(state));
 

@@ -122,17 +122,16 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
       bool v6) {
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
     for (auto portId : getLogicalPortIDs()) {
-      auto packetsBefore = v6
-          ? *portStatsBefore[portId].outMulticastPkts__ref()
-          : *portStatsBefore[portId].outBroadcastPkts__ref();
-      auto packetsAfter = v6 ? *portStatsAfter[portId].outMulticastPkts__ref()
-                             : *portStatsAfter[portId].outBroadcastPkts__ref();
+      auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()
+                              : *portStatsBefore[portId].outBroadcastPkts_();
+      auto packetsAfter = v6 ? *portStatsAfter[portId].outMulticastPkts_()
+                             : *portStatsAfter[portId].outBroadcastPkts_();
       XLOG(INFO) << "port id: " << portId << " before pkts:" << packetsBefore
-                 << ", after pkts:" << packetsAfter << ", before bytes:"
-                 << *portStatsBefore[portId].outBytes__ref()
-                 << ", after bytes:" << *portStatsAfter[portId].outBytes__ref();
-      if (*portStatsAfter[portId].outBytes__ref() ==
-          *portStatsBefore[portId].outBytes__ref()) {
+                 << ", after pkts:" << packetsAfter
+                 << ", before bytes:" << *portStatsBefore[portId].outBytes_()
+                 << ", after bytes:" << *portStatsAfter[portId].outBytes_();
+      if (*portStatsAfter[portId].outBytes_() ==
+          *portStatsBefore[portId].outBytes_()) {
         return false;
       }
       if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
@@ -149,7 +148,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto setup = [=]() {};
   auto verify = [=]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -166,18 +165,18 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
         std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
     XLOG(INFO) << "Lldp Packet:"
-               << " before pkts:" << *portStatsBefore.outMulticastPkts__ref()
-               << ", after pkts:" << *portStatsAfter.outMulticastPkts__ref()
-               << ", before bytes:" << *portStatsBefore.outBytes__ref()
-               << ", after bytes:" << *portStatsAfter.outBytes__ref();
+               << " before pkts:" << *portStatsBefore.outMulticastPkts_()
+               << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
+               << ", before bytes:" << *portStatsBefore.outBytes_()
+               << ", after bytes:" << *portStatsAfter.outBytes_();
     EXPECT_EQ(
         pktLengthSent,
-        *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
     if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           1,
-          *portStatsAfter.outMulticastPkts__ref() -
-              *portStatsBefore.outMulticastPkts__ref());
+          *portStatsAfter.outMulticastPkts_() -
+              *portStatsBefore.outMulticastPkts_());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -187,7 +186,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
   auto setup = [=]() {};
   auto verify = [=]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -214,19 +213,19 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
     }
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
     XLOG(INFO) << "Lldp Packet:"
-               << " before pkts:" << *portStatsBefore.outMulticastPkts__ref()
-               << ", after pkts:" << *portStatsAfter.outMulticastPkts__ref()
-               << ", before bytes:" << *portStatsBefore.outBytes__ref()
-               << ", after bytes:" << *portStatsAfter.outBytes__ref();
+               << " before pkts:" << *portStatsBefore.outMulticastPkts_()
+               << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
+               << ", before bytes:" << *portStatsBefore.outBytes_()
+               << ", after bytes:" << *portStatsAfter.outBytes_();
     auto pktLengthSent = (EthHdr::SIZE + payLoadSize) * numPkts;
     EXPECT_EQ(
         pktLengthSent,
-        *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
     if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           numPkts,
-          *portStatsAfter.outMulticastPkts__ref() -
-              *portStatsBefore.outMulticastPkts__ref());
+          *portStatsAfter.outMulticastPkts_() -
+              *portStatsBefore.outMulticastPkts_());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -236,7 +235,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
@@ -252,17 +251,16 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
     XLOG(INFO) << "ARP Packet:"
-               << " before pkts:" << *portStatsBefore.outBroadcastPkts__ref()
-               << ", after pkts:" << *portStatsAfter.outBroadcastPkts__ref()
-               << ", before bytes:" << *portStatsBefore.outBytes__ref()
-               << ", after bytes:" << *portStatsAfter.outBytes__ref();
-    EXPECT_NE(
-        0, *portStatsAfter.outBytes__ref() - *portStatsBefore.outBytes__ref());
+               << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
+               << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
+               << ", before bytes:" << *portStatsBefore.outBytes_()
+               << ", after bytes:" << *portStatsAfter.outBytes_();
+    EXPECT_NE(0, *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
     if (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_EBRO) {
       EXPECT_EQ(
           1,
-          *portStatsAfter.outBroadcastPkts__ref() -
-              *portStatsBefore.outBroadcastPkts__ref());
+          *portStatsAfter.outBroadcastPkts_() -
+              *portStatsBefore.outBroadcastPkts_());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -272,7 +270,7 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
   auto setup = [=]() {};
   auto verify = [=]() {
     constexpr auto kNumPacketsToSend{100};
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -304,10 +302,10 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
 
     auto getOutPacketDelta = [](auto& after, auto& before) {
       return (
-          (*after.outMulticastPkts__ref() + *after.outBroadcastPkts__ref() +
-           *after.outUnicastPkts__ref()) -
-          (*before.outMulticastPkts__ref() + *before.outBroadcastPkts__ref() +
-           *before.outUnicastPkts__ref()));
+          (*after.outMulticastPkts_() + *after.outBroadcastPkts_() +
+           *after.outUnicastPkts_()) -
+          (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
+           *before.outUnicastPkts_()));
     };
 
     // Disable TX on port
@@ -359,7 +357,7 @@ TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
     if (!isSupported(HwAsic::Feature::PKTIO)) {
       return;
     }
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
@@ -386,7 +384,7 @@ TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
@@ -410,7 +408,7 @@ TEST_F(HwPacketFloodTest, NdpFloodTest) {
   auto setup = [=]() {};
   auto verify = [=]() {
     auto retries = 5;
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto suceess = false;
     while (retries--) {

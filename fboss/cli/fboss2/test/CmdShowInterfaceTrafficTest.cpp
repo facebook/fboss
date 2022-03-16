@@ -23,73 +23,73 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createFakePortInfo() {
   std::map<int32_t, PortInfoThrift> portMap;
 
   PortInfoThrift portEntry1;
-  portEntry1.portId_ref() = 1;
-  portEntry1.name_ref() = "eth1/1/1";
+  portEntry1.portId() = 1;
+  portEntry1.name() = "eth1/1/1";
 
-  portEntry1.operState_ref() = facebook::fboss::PortOperState::UP;
-  portEntry1.description_ref() = "u-001: fsw001.p001 (F=spine:L=d-051)";
-  portEntry1.speedMbps_ref() = 100000;
+  portEntry1.operState() = facebook::fboss::PortOperState::UP;
+  portEntry1.description() = "u-001: fsw001.p001 (F=spine:L=d-051)";
+  portEntry1.speedMbps() = 100000;
 
   PortCounters inputCounter;
   PortCounters outputCounter;
   PortErrors inputErrors;
   PortErrors outputErrors;
-  inputErrors.errors_ref() = 0;
-  inputErrors.discards_ref() = 0;
-  outputErrors.errors_ref() = 0;
-  outputErrors.discards_ref() = 0;
+  inputErrors.errors() = 0;
+  inputErrors.discards() = 0;
+  outputErrors.errors() = 0;
+  outputErrors.discards() = 0;
 
-  inputCounter.errors_ref() = inputErrors;
-  outputCounter.errors_ref() = outputErrors;
+  inputCounter.errors() = inputErrors;
+  outputCounter.errors() = outputErrors;
 
-  portEntry1.input_ref() = inputCounter;
-  portEntry1.output_ref() = outputCounter;
+  portEntry1.input() = inputCounter;
+  portEntry1.output() = outputCounter;
 
   PortInfoThrift portEntry2;
-  portEntry2.portId_ref() = 2;
-  portEntry2.name_ref() = "eth2/1/1";
+  portEntry2.portId() = 2;
+  portEntry2.name() = "eth2/1/1";
 
-  portEntry2.operState_ref() = facebook::fboss::PortOperState::UP;
-  portEntry2.description_ref() = "u-001: fsw002.p001 (F=spine:L=d-051)";
-  portEntry2.speedMbps_ref() = 200000;
+  portEntry2.operState() = facebook::fboss::PortOperState::UP;
+  portEntry2.description() = "u-001: fsw002.p001 (F=spine:L=d-051)";
+  portEntry2.speedMbps() = 200000;
 
   PortCounters inputCounter2;
   PortCounters outputCounter2;
   PortErrors inputErrors2;
   PortErrors outputErrors2;
-  inputErrors2.errors_ref() = 100;
-  inputErrors2.discards_ref() = 0;
-  outputErrors2.errors_ref() = 100;
-  outputErrors2.discards_ref() = 0;
+  inputErrors2.errors() = 100;
+  inputErrors2.discards() = 0;
+  outputErrors2.errors() = 100;
+  outputErrors2.discards() = 0;
 
-  inputCounter2.errors_ref() = inputErrors2;
-  outputCounter2.errors_ref() = outputErrors2;
+  inputCounter2.errors() = inputErrors2;
+  outputCounter2.errors() = outputErrors2;
 
-  portEntry2.input_ref() = inputCounter2;
-  portEntry2.output_ref() = outputCounter2;
+  portEntry2.input() = inputCounter2;
+  portEntry2.output() = outputCounter2;
 
   PortInfoThrift portEntry3;
-  portEntry3.portId_ref() = 3;
-  portEntry3.name_ref() = "eth3/1/1";
+  portEntry3.portId() = 3;
+  portEntry3.name() = "eth3/1/1";
 
-  portEntry3.operState_ref() = facebook::fboss::PortOperState::UP;
-  portEntry3.description_ref() = "u-001: fsw003.p001 (F=spine:L=d-051)";
-  portEntry3.speedMbps_ref() = 400000;
+  portEntry3.operState() = facebook::fboss::PortOperState::UP;
+  portEntry3.description() = "u-001: fsw003.p001 (F=spine:L=d-051)";
+  portEntry3.speedMbps() = 400000;
 
   PortCounters inputCounter3;
   PortCounters outputCounter3;
   PortErrors inputErrors3;
   PortErrors outputErrors3;
-  inputErrors3.errors_ref() = 0;
-  inputErrors3.discards_ref() = 100;
-  outputErrors3.errors_ref() = 0;
-  outputErrors3.discards_ref() = 100;
+  inputErrors3.errors() = 0;
+  inputErrors3.discards() = 100;
+  outputErrors3.errors() = 0;
+  outputErrors3.discards() = 100;
 
-  inputCounter3.errors_ref() = inputErrors3;
-  outputCounter3.errors_ref() = outputErrors3;
+  inputCounter3.errors() = inputErrors3;
+  outputCounter3.errors() = outputErrors3;
 
-  portEntry3.input_ref() = inputCounter3;
-  portEntry3.output_ref() = outputCounter3;
+  portEntry3.input() = inputCounter3;
+  portEntry3.output() = outputCounter3;
 
   portMap[portEntry1.get_portId()] = portEntry1;
   portMap[portEntry2.get_portId()] = portEntry2;

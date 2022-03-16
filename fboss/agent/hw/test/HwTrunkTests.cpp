@@ -127,12 +127,11 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (auto throughPort : {false, true}) {
       auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
-      auto pkts0 = *stats.outUnicastPkts__ref() +
-          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto pkts0 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
+          *stats.outBroadcastPkts_();
       auto trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto trunkPkts0 = *trunkStats.outUnicastPkts__ref() +
-          *trunkStats.outMulticastPkts__ref() +
-          *trunkStats.outBroadcastPkts__ref();
+      auto trunkPkts0 = *trunkStats.outUnicastPkts_() +
+          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
@@ -148,11 +147,10 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
           : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
       stats = getLatestPortStats(masterLogicalPortIds()[1]);
       trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto pkts1 = *stats.outUnicastPkts__ref() +
-          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
-      auto trunkPkts1 = *trunkStats.outUnicastPkts__ref() +
-          *trunkStats.outMulticastPkts__ref() +
-          *trunkStats.outBroadcastPkts__ref();
+      auto pkts1 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
+          *stats.outBroadcastPkts_();
+      auto trunkPkts1 = *trunkStats.outUnicastPkts_() +
+          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
       EXPECT_GT(pkts1, pkts0);
       EXPECT_GT(trunkPkts1, trunkPkts0);
     }
@@ -187,12 +185,11 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (auto throughPort : {false, true}) {
       auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
-      auto pkts0 = *stats.outUnicastPkts__ref() +
-          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
+      auto pkts0 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
+          *stats.outBroadcastPkts_();
       auto trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto trunkPkts0 = *trunkStats.outUnicastPkts__ref() +
-          *trunkStats.outMulticastPkts__ref() +
-          *trunkStats.outBroadcastPkts__ref();
+      auto trunkPkts0 = *trunkStats.outUnicastPkts_() +
+          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
@@ -208,11 +205,10 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
           : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
       stats = getLatestPortStats(masterLogicalPortIds()[1]);
       trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto pkts1 = *stats.outUnicastPkts__ref() +
-          *stats.outMulticastPkts__ref() + *stats.outBroadcastPkts__ref();
-      auto trunkPkts1 = *trunkStats.outUnicastPkts__ref() +
-          *trunkStats.outMulticastPkts__ref() +
-          *trunkStats.outBroadcastPkts__ref();
+      auto pkts1 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
+          *stats.outBroadcastPkts_();
+      auto trunkPkts1 = *trunkStats.outUnicastPkts_() +
+          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
       EXPECT_GT(pkts1, pkts0);
       EXPECT_GT(trunkPkts1, trunkPkts0);
     }

@@ -37,8 +37,8 @@ std::vector<FruIdData> MiscServiceImpl::getFruid(bool uncached) {
 
   for (auto it : fruid_) {
     FruIdData data;
-    data.name_ref() = it.first;
-    data.value_ref() = it.second;
+    data.name() = it.first;
+    data.value() = it.second;
     vData.emplace_back(data);
   }
 

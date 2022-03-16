@@ -34,12 +34,12 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    cfg.interfaces_ref()[0].mtu_ref() = 9000;
+    cfg.interfaces()[0].mtu() = 9000;
     return cfg;
   }
 
   void sendPkt(int payloadSize) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -67,11 +67,11 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
     auto verify = [=]() {
       auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
       auto pktsBefore = getPortOutPkts(portStatsBefore);
-      auto bytesBefore = *portStatsBefore.outBytes__ref();
+      auto bytesBefore = *portStatsBefore.outBytes_();
       sendPkt(payloadSize);
       auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
       auto pktsAfter = getPortOutPkts(portStatsAfter);
-      auto bytesAfter = *portStatsAfter.outBytes__ref();
+      auto bytesAfter = *portStatsAfter.outBytes_();
       if (expectPacketDrop) {
         EXPECT_EQ(pktsBefore, pktsAfter);
         EXPECT_EQ(bytesBefore, bytesAfter);

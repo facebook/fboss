@@ -40,8 +40,8 @@ namespace {
 facebook::fboss::cfg::AgentConfig getDummyConfig() {
   facebook::fboss::cfg::AgentConfig config;
 
-  config.platform_ref()->platformSettings_ref() = {};
-  config.platform_ref()->platformSettings_ref()->insert(std::make_pair(
+  config.platform()->platformSettings() = {};
+  config.platform()->platformSettings()->insert(std::make_pair(
       facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
       "test connection handle"));
   return config;
@@ -217,17 +217,17 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     // Update both system and line sides config
     const auto& pinConfigs =
         platformPort->getPortXphyPinConfig(swPort->getProfileID());
-    CHECK(profileConfig->xphySystem_ref());
-    swPort->setProfileConfig(*profileConfig->xphySystem_ref());
-    CHECK(pinConfigs.xphySys_ref());
-    swPort->resetPinConfigs(*pinConfigs.xphySys_ref());
-    CHECK(profileConfig->xphyLine_ref());
-    swPort->setLineProfileConfig(*profileConfig->xphyLine_ref());
-    CHECK(pinConfigs.xphyLine_ref());
-    swPort->resetLinePinConfigs(*pinConfigs.xphyLine_ref());
+    CHECK(profileConfig->xphySystem());
+    swPort->setProfileConfig(*profileConfig->xphySystem());
+    CHECK(pinConfigs.xphySys());
+    swPort->resetPinConfigs(*pinConfigs.xphySys());
+    CHECK(profileConfig->xphyLine());
+    swPort->setLineProfileConfig(*profileConfig->xphyLine());
+    CHECK(pinConfigs.xphyLine());
+    swPort->resetLinePinConfigs(*pinConfigs.xphyLine());
   } else {
     // Use the iphy profileConfig and pinConfigs from PlatformMapping to update
-    swPort->setProfileConfig(*profileConfig->iphy_ref());
+    swPort->setProfileConfig(*profileConfig->iphy());
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   }
@@ -386,8 +386,8 @@ std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
   portQueue->setName(queueName);
   cfg::PortQueueRate portQueueRate;
   cfg::Range range;
-  *range.minimum_ref() = minPps;
-  *range.maximum_ref() = maxPps;
+  *range.minimum() = minPps;
+  *range.maximum() = maxPps;
   portQueueRate.pktsPerSec_ref() = range;
   portQueue->setPortQueueRate(portQueueRate);
   portQueue->setWeight(weight);

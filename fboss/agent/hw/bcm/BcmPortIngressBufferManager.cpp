@@ -304,7 +304,7 @@ void BcmPortIngressBufferManager::reprogramPgs(
   bool isPfcEnabled = false;
 
   if (const auto& pfc = port->getPfc()) {
-    isPfcEnabled = *pfc->tx_ref() || *pfc->rx_ref();
+    isPfcEnabled = *pfc->tx() || *pfc->rx();
   }
 
   if (portPgCfgs) {

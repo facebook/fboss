@@ -74,17 +74,17 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
 
       auto ip = folly::IPAddress::fromBinary(
           folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
-      arpDetails.ip_ref() = ip.str();
-      arpDetails.mac_ref() = entry.get_mac();
-      arpDetails.port_ref() = entry.get_port();
-      arpDetails.vlan_ref() = folly::to<std::string>(
+      arpDetails.ip() = ip.str();
+      arpDetails.mac() = entry.get_mac();
+      arpDetails.port() = entry.get_port();
+      arpDetails.vlan() = folly::to<std::string>(
           entry.get_vlanName(), " (", entry.get_vlanID(), ")");
-      arpDetails.state_ref() = entry.get_state();
-      arpDetails.ttl_ref() = entry.get_ttl();
-      arpDetails.classID_ref() = entry.get_classID();
-      arpDetails.ifName_ref() = portEntries[entry.get_port()].get_name();
+      arpDetails.state() = entry.get_state();
+      arpDetails.ttl() = entry.get_ttl();
+      arpDetails.classID() = entry.get_classID();
+      arpDetails.ifName() = portEntries[entry.get_port()].get_name();
 
-      model.arpEntries_ref()->push_back(arpDetails);
+      model.arpEntries()->push_back(arpDetails);
     }
     return model;
   }

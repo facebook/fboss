@@ -33,7 +33,7 @@ void Bsp::getSensorData(
     uint64_t nowSec;
     float readVal;
     bool readSuccessful;
-    switch (*sensor->access.accessType_ref()) {
+    switch (*sensor->access.accessType()) {
       case fan_config_structs::SourceType::kSrcThrift:
         fetchOverThrift = true;
         break;
@@ -47,10 +47,10 @@ void Bsp::getSensorData(
         nowSec = facebook::WallClockUtil::NowInSecFast();
         readSuccessful = false;
         try {
-          readVal = getSensorDataSysfs(*sensor->access.path_ref());
+          readVal = getSensorDataSysfs(*sensor->access.path());
           readSuccessful = true;
         } catch (std::exception& e) {
-          XLOG(ERR) << "Failed to read sysfs " << *sensor->access.path_ref();
+          XLOG(ERR) << "Failed to read sysfs " << *sensor->access.path();
         }
         if (readSuccessful) {
           pSensorData->updateEntryFloat(sensor->sensorName, readVal, nowSec);
@@ -110,14 +110,14 @@ int Bsp::kickWatchdog(std::shared_ptr<ServiceConfig> pServiceConfig) {
   std::string cmdLine;
   if (pServiceConfig->getWatchdogEnable()) {
     auto access = pServiceConfig->getWatchdogAccess();
-    switch (*access.accessType_ref()) {
+    switch (*access.accessType()) {
       case fan_config_structs::SourceType::kSrcUtil:
-        cmdLine = *access.path_ref() + " " + pServiceConfig->getWatchdogValue();
+        cmdLine = *access.path() + " " + pServiceConfig->getWatchdogValue();
         rc = run(cmdLine.c_str());
         break;
       case fan_config_structs::SourceType::kSrcSysfs:
         sysfsSuccess = writeSysfs(
-            *access.path_ref(), std::stoi(pServiceConfig->getWatchdogValue()));
+            *access.path(), std::stoi(pServiceConfig->getWatchdogValue()));
         rc = sysfsSuccess ? 0 : -1;
         break;
       default:
@@ -145,14 +145,14 @@ void Bsp::processOpticEntries(
         fan_config_structs::OpticTableType::kOpticTableInval;
     // Qsfp_service send the data as double, but fan service use float.
     // So, cast the data to float
-    auto sensor = info.sensor_ref();
+    auto sensor = info.sensor();
     // If no sensor available for this transceiver, just skip
     if (!sensor) {
       XLOG(INFO) << "Skipping transceiver " << xvrId
                  << ", as there is no global sensor entry.";
       continue;
     }
-    auto qsfpTimestampRef = info.timeCollected_ref();
+    auto qsfpTimestampRef = info.timeCollected();
     if (!qsfpTimestampRef) {
       auto timeStamp = apache::thrift::can_throw(*qsfpTimestampRef);
       if (timeStamp > currentQsfpSvcTimestamp) {
@@ -160,7 +160,7 @@ void Bsp::processOpticEntries(
       }
     }
 
-    float temp = static_cast<float>(*(sensor->temp_ref()->value_ref()));
+    float temp = static_cast<float>(*(sensor->temp()->value()));
     // In the following two cases, do not process the entries and move on
     // 1. temperature from QSFP service is 0.0 - meaning the port is
     //    not populated in qsfp_service or read failure occured. So skip this.
@@ -179,8 +179,8 @@ void Bsp::processOpticEntries(
     // Detect the speed. If unknown, use the very first table.
     // This field is optional. If missing, we use unknown.
     MediaInterfaceCode mediaInterfaceCode = MediaInterfaceCode::UNKNOWN;
-    if (info.moduleMediaInterface_ref()) {
-      mediaInterfaceCode = *info.moduleMediaInterface_ref();
+    if (info.moduleMediaInterface()) {
+      mediaInterfaceCode = *info.moduleMediaInterface();
     }
     switch (mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
@@ -298,10 +298,10 @@ void Bsp::getOpticsDataSysfs(
   nowSec = facebook::WallClockUtil::NowInSecFast();
   readSuccessful = false;
   try {
-    readVal = getSensorDataSysfs(*opticsGroup->access.path_ref());
+    readVal = getSensorDataSysfs(*opticsGroup->access.path());
     readSuccessful = true;
   } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup->access.path_ref();
+    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup->access.path();
   }
   if (readSuccessful) {
     OpticEntry* opticData =
@@ -330,7 +330,7 @@ void Bsp::getOpticsData(
   for (auto opticsGroup = pServiceConfig->optics.begin();
        opticsGroup != pServiceConfig->optics.end();
        ++opticsGroup) {
-    switch (*opticsGroup->access.accessType_ref()) {
+    switch (*opticsGroup->access.accessType()) {
       case fan_config_structs::SourceType::kSrcQsfpService:
       case fan_config_structs::SourceType::kSrcThrift:
         getOpticsDataThrift(&(*opticsGroup), pSensorData);
@@ -384,11 +384,11 @@ void Bsp::getSensorDataThriftWithSensorList(
       })
       .wait()
       .thenValue([pSensorData](auto&& response) mutable {
-        auto responseSensorData = response.sensorData_ref();
+        auto responseSensorData = response.sensorData();
         for (auto& it : *responseSensorData) {
-          std::string key = *it.name_ref();
-          float value = *it.value_ref();
-          int64_t timeStamp = *it.timeStamp_ref();
+          std::string key = *it.name();
+          float value = *it.value();
+          int64_t timeStamp = *it.timeStamp();
           pSensorData->updateEntryFloat(key, value, timeStamp);
           XLOG(INFO) << "Storing sensor " << key << " with value " << value
                      << " timestamp : " << timeStamp;

@@ -64,27 +64,25 @@ class CmdShowInterfaceCounters : public CmdHandler<
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         cli::InterfaceCounters counter;
 
-        counter.interfaceName_ref() = portInfo.get_name();
-        counter.inputBytes_ref() = portInfo.get_input().get_bytes();
-        counter.inputUcastPkts_ref() = portInfo.get_input().get_ucastPkts();
-        counter.inputMulticastPkts_ref() =
-            portInfo.get_input().get_multicastPkts();
-        counter.inputBroadcastPkts_ref() =
-            portInfo.get_input().get_broadcastPkts();
-        counter.outputBytes_ref() = portInfo.get_output().get_bytes();
-        counter.outputUcastPkts_ref() = portInfo.get_output().get_ucastPkts();
-        counter.outputMulticastPkts_ref() =
+        counter.interfaceName() = portInfo.get_name();
+        counter.inputBytes() = portInfo.get_input().get_bytes();
+        counter.inputUcastPkts() = portInfo.get_input().get_ucastPkts();
+        counter.inputMulticastPkts() = portInfo.get_input().get_multicastPkts();
+        counter.inputBroadcastPkts() = portInfo.get_input().get_broadcastPkts();
+        counter.outputBytes() = portInfo.get_output().get_bytes();
+        counter.outputUcastPkts() = portInfo.get_output().get_ucastPkts();
+        counter.outputMulticastPkts() =
             portInfo.get_output().get_multicastPkts();
-        counter.outputBroadcastPkts_ref() =
+        counter.outputBroadcastPkts() =
             portInfo.get_output().get_broadcastPkts();
 
-        ret.int_counters_ref()->push_back(counter);
+        ret.int_counters()->push_back(counter);
       }
     }
 
     std::sort(
-        ret.int_counters_ref()->begin(),
-        ret.int_counters_ref()->end(),
+        ret.int_counters()->begin(),
+        ret.int_counters()->end(),
         [](cli::InterfaceCounters& a, cli::InterfaceCounters b) {
           return a.get_interfaceName() < b.get_interfaceName();
         });

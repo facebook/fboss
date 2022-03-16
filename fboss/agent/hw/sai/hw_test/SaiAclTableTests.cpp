@@ -28,10 +28,10 @@ TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
     auto config = initialConfig();
     auto* acl1 =
         utility::addAcl(&config, "aclEntry1", cfg::AclActionType::DENY);
-    acl1->dscp_ref() = 0x20;
+    acl1->dscp() = 0x20;
     auto* acl2 =
         utility::addAcl(&config, "aclEntry2", cfg::AclActionType::DENY);
-    acl2->dscp_ref() = 0x21;
+    acl2->dscp() = 0x21;
     applyNewConfig(config);
     const auto* saiSwitch = static_cast<const SaiSwitch*>(getHwSwitch());
     const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();

@@ -86,16 +86,16 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
 
       if (queriedNdpEntries.size() == 0 || queriedSet.count(ip.str())) {
         cli::NdpEntry ndpDetails;
-        ndpDetails.ip_ref() = ip.str();
-        ndpDetails.mac_ref() = entry.get_mac();
-        ndpDetails.port_ref() = portEntries[entry.get_port()].get_name();
-        ndpDetails.vlanName_ref() = entry.get_vlanName();
-        ndpDetails.vlanID_ref() = entry.get_vlanID();
-        ndpDetails.state_ref() = entry.get_state();
-        ndpDetails.ttl_ref() = entry.get_ttl();
-        ndpDetails.classID_ref() = entry.get_classID();
+        ndpDetails.ip() = ip.str();
+        ndpDetails.mac() = entry.get_mac();
+        ndpDetails.port() = portEntries[entry.get_port()].get_name();
+        ndpDetails.vlanName() = entry.get_vlanName();
+        ndpDetails.vlanID() = entry.get_vlanID();
+        ndpDetails.state() = entry.get_state();
+        ndpDetails.ttl() = entry.get_ttl();
+        ndpDetails.classID() = entry.get_classID();
 
-        model.ndpEntries_ref()->push_back(ndpDetails);
+        model.ndpEntries()->push_back(ndpDetails);
       }
     }
     return model;

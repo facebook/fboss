@@ -50,15 +50,15 @@ namespace {
 
 IpPrefix ipPrefix(StringPiece ip, int length) {
   IpPrefix result;
-  result.ip_ref() = toBinaryAddress(IPAddress(ip));
-  result.prefixLength_ref() = length;
+  result.ip() = toBinaryAddress(IPAddress(ip));
+  result.prefixLength() = length;
   return result;
 }
 
 IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
   IpPrefix result;
-  result.ip_ref() = toBinaryAddress(nw.first);
-  result.prefixLength_ref() = nw.second;
+  result.ip() = toBinaryAddress(nw.first);
+  result.prefixLength() = nw.second;
   return result;
 }
 } // unnamed namespace
@@ -81,11 +81,11 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
   handler.getInterfaceDetail(info, 1);
-  EXPECT_EQ("interface1", *info.interfaceName_ref());
-  EXPECT_EQ(1, *info.interfaceId_ref());
-  EXPECT_EQ(1, *info.vlanId_ref());
-  EXPECT_EQ(0, *info.routerId_ref());
-  EXPECT_EQ("00:02:00:00:00:01", *info.mac_ref());
+  EXPECT_EQ("interface1", *info.interfaceName());
+  EXPECT_EQ(1, *info.interfaceId());
+  EXPECT_EQ(1, *info.vlanId());
+  EXPECT_EQ(0, *info.routerId());
+  EXPECT_EQ("00:02:00:00:00:01", *info.mac());
   std::vector<IpPrefix> expectedAddrs = {
       ipPrefix("10.0.0.1", 24),
       ipPrefix("192.168.0.1", 24),
@@ -93,14 +93,14 @@ TEST_F(ThriftTest, getInterfaceDetail) {
       ipPrefix("fe80::202:ff:fe00:1", 64),
       ipPrefix("fe80::", 64),
   };
-  EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
+  EXPECT_THAT(*info.address(), UnorderedElementsAreArray(expectedAddrs));
 
   handler.getInterfaceDetail(info, 55);
-  EXPECT_EQ("interface55", *info.interfaceName_ref());
-  EXPECT_EQ(55, *info.interfaceId_ref());
-  EXPECT_EQ(55, *info.vlanId_ref());
-  EXPECT_EQ(0, *info.routerId_ref());
-  EXPECT_EQ("00:02:00:00:00:55", *info.mac_ref());
+  EXPECT_EQ("interface55", *info.interfaceName());
+  EXPECT_EQ(55, *info.interfaceId());
+  EXPECT_EQ(55, *info.vlanId());
+  EXPECT_EQ(0, *info.routerId());
+  EXPECT_EQ("00:02:00:00:00:55", *info.mac());
   expectedAddrs = {
       ipPrefix("10.0.55.1", 24),
       ipPrefix("192.168.55.1", 24),
@@ -108,7 +108,7 @@ TEST_F(ThriftTest, getInterfaceDetail) {
       ipPrefix("fe80::202:ff:fe00:55", 64),
       ipPrefix("169.254.0.0", 16),
   };
-  EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
+  EXPECT_THAT(*info.address(), UnorderedElementsAreArray(expectedAddrs));
 
   // Calling getInterfaceDetail() on an unknown
   // interface should throw an FbossError.
@@ -229,8 +229,8 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
 
     for (const auto& [vlanID, ipAddress] : neighborsToBlock) {
       cfg::Neighbor neighbor;
-      neighbor.vlanID_ref() = vlanID;
-      neighbor.ipAddress_ref() = ipAddress.str();
+      neighbor.vlanID() = vlanID;
+      neighbor.ipAddress() = ipAddress.str();
       cfgNeighborsToBlock->emplace_back(neighbor);
     }
     auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
@@ -281,8 +281,8 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
       "twshared12345.06.abc7"; // only IPs are supported
   auto invalidNeighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
   cfg::Neighbor neighbor;
-  neighbor.vlanID_ref() = 2000;
-  neighbor.ipAddress_ref() = invalidNeighborToBlock;
+  neighbor.vlanID() = 2000;
+  neighbor.ipAddress() = invalidNeighborToBlock;
   invalidNeighborsToBlock->emplace_back(neighbor);
   EXPECT_THROW(
       handler.setNeighborsToBlock(std::move(invalidNeighborsToBlock)),
@@ -301,8 +301,8 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
 
     for (const auto& [vlanID, macAddress] : macAddrsToBlock) {
       cfg::MacAndVlan macAndVlan;
-      macAndVlan.vlanID_ref() = vlanID;
-      macAndVlan.macAddress_ref() = macAddress.toString();
+      macAndVlan.vlanID() = vlanID;
+      macAndVlan.macAddress() = macAddress.toString();
       cfgMacAddrsToBlock->emplace_back(macAndVlan);
     }
     auto expectedCfgMacAddrsToBlock = *cfgMacAddrsToBlock;
@@ -352,8 +352,8 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   auto invalidMacAddrsToBlock =
       std::make_unique<std::vector<cfg::MacAndVlan>>();
   cfg::MacAndVlan macAndVlan;
-  macAndVlan.vlanID_ref() = 2000;
-  macAndVlan.macAddress_ref() = invalidMacAddrToBlock;
+  macAndVlan.vlanID() = 2000;
+  macAndVlan.macAddress() = invalidMacAddrToBlock;
   invalidMacAddrsToBlock->emplace_back(macAndVlan);
   EXPECT_THROW(
       handler.setMacAddrsToBlock(std::move(invalidMacAddrsToBlock)),
@@ -368,8 +368,8 @@ TEST_F(ThriftTest, setNeighborsToBlockAndMacAddrsToBlock) {
   auto getNeighborsToBlock = []() {
     auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
     cfg::Neighbor neighbor;
-    neighbor.vlanID_ref() = 2000;
-    neighbor.ipAddress_ref() = "2401:db00:2110:3001::0003";
+    neighbor.vlanID() = 2000;
+    neighbor.ipAddress() = "2401:db00:2110:3001::0003";
     neighborsToBlock->emplace_back(neighbor);
     return neighborsToBlock;
   };
@@ -377,8 +377,8 @@ TEST_F(ThriftTest, setNeighborsToBlockAndMacAddrsToBlock) {
   auto getMacAddrsToBlock = []() {
     auto macAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
     cfg::MacAndVlan macAndVlan;
-    macAndVlan.vlanID_ref() = 2000;
-    macAndVlan.macAddress_ref() = "00:11:22:33:44:55";
+    macAndVlan.vlanID() = 2000;
+    macAndVlan.macAddress() = "00:11:22:33:44:55";
     macAddrsToBlock->emplace_back(macAndVlan);
     return macAddrsToBlock;
   };
@@ -409,12 +409,12 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   folly::split("/", prefixStr, vec);
   EXPECT_EQ(2, vec.size());
   auto nr = std::make_unique<UnicastRoute>();
-  *nr->dest_ref()->ip_ref() = toBinaryAddress(IPAddress(vec.at(0)));
-  *nr->dest_ref()->prefixLength_ref() = folly::to<uint8_t>(vec.at(1));
-  nr->nextHopAddrs_ref()->push_back(toBinaryAddress(IPAddress(nxtHop)));
-  nr->adminDistance_ref() = distance;
+  *nr->dest()->ip() = toBinaryAddress(IPAddress(vec.at(0)));
+  *nr->dest()->prefixLength() = folly::to<uint8_t>(vec.at(1));
+  nr->nextHopAddrs()->push_back(toBinaryAddress(IPAddress(nxtHop)));
+  nr->adminDistance() = distance;
   if (counterID.has_value()) {
-    nr->counterID_ref() = *counterID;
+    nr->counterID() = *counterID;
   }
   return nr;
 }
@@ -1153,14 +1153,14 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
     std::string nxtHop,
     AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE) {
   auto nr = std::make_unique<MplsRoute>();
-  nr->topLabel_ref() = mplsLabel;
+  nr->topLabel() = mplsLabel;
   NextHopThrift nh;
   MplsAction mplsAction;
-  mplsAction.action_ref() = MplsActionCode::POP_AND_LOOKUP;
-  nh.address_ref() = toBinaryAddress(IPAddress(nxtHop));
-  nh.mplsAction_ref() = mplsAction;
-  nr->nextHops_ref()->push_back(nh);
-  nr->adminDistance_ref() = distance;
+  mplsAction.action() = MplsActionCode::POP_AND_LOOKUP;
+  nh.address() = toBinaryAddress(IPAddress(nxtHop));
+  nh.mplsAction() = mplsAction;
+  nr->nextHops()->push_back(nh);
+  nr->adminDistance() = distance;
   return nr;
 }
 
@@ -1493,8 +1493,8 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   bool found = false;
   handler.getRouteTable(routeTable);
   for (const auto& rt : routeTable) {
-    if (rt.dest_ref()->ip_ref() == toBinaryAddress(addrA6)) {
-      EXPECT_EQ(*rt.counterID_ref(), *counterID1);
+    if (rt.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*rt.counterID(), *counterID1);
       found = true;
       break;
     }
@@ -1505,8 +1505,8 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   found = false;
   handler.getRouteTableByClient(routeTable, bgpClient);
   for (const auto& rt : routeTable) {
-    if (rt.dest_ref()->ip_ref() == toBinaryAddress(addrA6)) {
-      EXPECT_EQ(*rt.counterID_ref(), *counterID1);
+    if (rt.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*rt.counterID(), *counterID1);
       found = true;
       break;
     }
@@ -1517,8 +1517,8 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   found = false;
   handler.getRouteTableDetails(routeDetails);
   for (const auto& route : routeDetails) {
-    if (route.dest_ref()->ip_ref() == toBinaryAddress(addrA6)) {
-      EXPECT_EQ(*route.counterID_ref(), *counterID1);
+    if (route.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*route.counterID(), *counterID1);
       found = true;
       break;
     }
@@ -1529,7 +1529,7 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   auto addr = std::make_unique<facebook::network::thrift::Address>(
       facebook::network::toAddress(IPAddress("aaaa:1::")));
   handler.getIpRoute(route, std::move(addr), RouterID(0));
-  EXPECT_EQ(*route.counterID_ref(), *counterID1);
+  EXPECT_EQ(*route.counterID(), *counterID1);
 }
 
 TEST_F(ThriftTest, getLoopbackMode) {
@@ -1583,22 +1583,22 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
                            kComplianceCode,
                            kManagementInterface](double cableLength) {
     auto tcvrInfo = std::make_unique<TransceiverInfo>();
-    tcvrInfo->port_ref() = id;
-    tcvrInfo->present_ref() = true;
+    tcvrInfo->port() = id;
+    tcvrInfo->present() = true;
     Cable cable;
-    cable.length_ref() = cableLength;
-    tcvrInfo->cable_ref() = cable;
-    tcvrInfo->transceiverManagementInterface_ref() = kManagementInterface;
+    cable.length() = cableLength;
+    tcvrInfo->cable() = cable;
+    tcvrInfo->transceiverManagementInterface() = kManagementInterface;
     TransceiverSettings tcvrSettings;
     std::vector<MediaInterfaceId> mediaInterfaces;
     for (int i = 0; i < 4; i++) {
       MediaInterfaceId intf;
-      intf.lane_ref() = i;
-      intf.code_ref() = kMediaInterface;
+      intf.lane() = i;
+      intf.code() = kMediaInterface;
       mediaInterfaces.push_back(intf);
     }
-    tcvrSettings.mediaInterface_ref() = std::move(mediaInterfaces);
-    tcvrInfo->settings_ref() = tcvrSettings;
+    tcvrSettings.mediaInterface() = std::move(mediaInterfaces);
+    tcvrInfo->settings() = tcvrSettings;
     return tcvrInfo;
   };
 
@@ -1631,7 +1631,7 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
         auto portProfileCfg = platform->getPortProfileConfig(matcher);
         CHECK(portProfileCfg) << "No port profile config found with matcher:"
                               << matcher.toString();
-        auto expectedProfileConfig = *portProfileCfg->iphy_ref();
+        auto expectedProfileConfig = *portProfileCfg->iphy();
         const auto& expectedPinConfigs =
             platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
@@ -1681,8 +1681,8 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
 
   // Finally remove the transceiver
   auto unpresentTcvr = std::make_unique<TransceiverInfo>();
-  unpresentTcvr->port_ref() = id;
-  unpresentTcvr->present_ref() = false;
+  unpresentTcvr->port() = id;
+  unpresentTcvr->present() = false;
   std::map<int32_t, cfg::PortProfileID> programmedPorts3;
   handler.programInternalPhyPorts(
       programmedPorts3, std::move(unpresentTcvr), false);
@@ -1696,8 +1696,8 @@ TEST_F(ThriftTest, programInternalPhyPorts) {
   beforeGen = sw_->getState()->getGeneration();
   programmedPorts3.clear();
   unpresentTcvr = std::make_unique<TransceiverInfo>();
-  unpresentTcvr->port_ref() = id;
-  unpresentTcvr->present_ref() = false;
+  unpresentTcvr->port() = id;
+  unpresentTcvr->present() = false;
   handler.programInternalPhyPorts(
       programmedPorts3, std::move(unpresentTcvr), false);
   // Still return programmed ports even though no transceiver there
@@ -1713,11 +1713,11 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
   // lastConfigAppliedInMs should be > 0 and < now.
   ConfigAppliedInfo initConfigAppliedInfo;
   handler.getConfigAppliedInfo(initConfigAppliedInfo);
-  auto initConfigAppliedInMs = *initConfigAppliedInfo.lastAppliedInMs_ref();
+  auto initConfigAppliedInMs = *initConfigAppliedInfo.lastAppliedInMs();
   EXPECT_GT(initConfigAppliedInMs, 0);
   // Thrift test should always trigger coldboot
   auto coldbootConfigAppliedTime =
-      initConfigAppliedInfo.lastColdbootAppliedInMs_ref();
+      initConfigAppliedInfo.lastColdbootAppliedInMs();
   if (coldbootConfigAppliedTime) {
     EXPECT_EQ(*coldbootConfigAppliedTime, initConfigAppliedInMs);
   } else {
@@ -1741,11 +1741,11 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
 
   ConfigAppliedInfo newConfigAppliedInfo;
   handler.getConfigAppliedInfo(newConfigAppliedInfo);
-  auto newConfigAppliedInMs = *newConfigAppliedInfo.lastAppliedInMs_ref();
+  auto newConfigAppliedInMs = *newConfigAppliedInfo.lastAppliedInMs();
   EXPECT_GT(newConfigAppliedInMs, initConfigAppliedInMs);
   // Coldboot time should not change
   if (auto newColdbootConfigAppliedTime =
-          newConfigAppliedInfo.lastColdbootAppliedInMs_ref()) {
+          newConfigAppliedInfo.lastColdbootAppliedInMs()) {
     EXPECT_EQ(*newColdbootConfigAppliedTime, *coldbootConfigAppliedTime);
   } else {
     throw FbossError("No coldboot config applied time");
@@ -1756,10 +1756,10 @@ TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
   ThriftHandler handler(sw_);
   auto mismatchConfig = testConfigA();
   // Change the speed mismatch with the profile
-  CHECK(!mismatchConfig.ports_ref()->empty());
-  mismatchConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
-  mismatchConfig.ports_ref()[0].speed_ref() = cfg::PortSpeed::TWENTYFIVEG;
-  mismatchConfig.ports_ref()[0].profileID_ref() =
+  CHECK(!mismatchConfig.ports()->empty());
+  mismatchConfig.ports()[0].state() = cfg::PortState::ENABLED;
+  mismatchConfig.ports()[0].speed() = cfg::PortSpeed::TWENTYFIVEG;
+  mismatchConfig.ports()[0].profileID() =
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
 
   EXPECT_THROW(

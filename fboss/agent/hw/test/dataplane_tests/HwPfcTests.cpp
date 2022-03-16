@@ -93,45 +93,42 @@ class HwPfcTest : public HwLinkStateDependentTest {
       pfcPri2PgId[tmp.first] = tmp.second;
     }
 
-    qosMap.dscpMaps_ref()->resize(8);
+    qosMap.dscpMaps()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      qosMap.dscpMaps_ref()[i].internalTrafficClass_ref() = i;
+      qosMap.dscpMaps()[i].internalTrafficClass() = i;
       for (auto j = 0; j < 8; j++) {
-        qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
-            8 * i + j);
+        qosMap.dscpMaps()[i].fromDscpToTrafficClass()->push_back(8 * i + j);
       }
     }
-    qosMap.trafficClassToPgId_ref() = std::move(tc2PgId);
-    qosMap.pfcPriorityToPgId_ref() = std::move(pfcPri2PgId);
-    qosMap.pfcPriorityToQueueId_ref() = std::move(pfcPri2QueueId);
+    qosMap.trafficClassToPgId() = std::move(tc2PgId);
+    qosMap.pfcPriorityToPgId() = std::move(pfcPri2PgId);
+    qosMap.pfcPriorityToQueueId() = std::move(pfcPri2QueueId);
   }
 
   void setupPfc(cfg::SwitchConfig& cfg, const std::vector<PortID>& ports) {
     cfg::PortPfc pfc;
-    pfc.tx_ref() = true;
-    pfc.rx_ref() = true;
-    pfc.portPgConfigName_ref() = "foo";
+    pfc.tx() = true;
+    pfc.rx() = true;
+    pfc.portPgConfigName() = "foo";
 
     cfg::QosMap qosMap;
     // setup qos map with pfc structs
     setupQosMapForPfc(qosMap);
 
     // setup qosPolicy
-    cfg.qosPolicies_ref()->resize(1);
-    cfg.qosPolicies_ref()[0].name_ref() = "qp";
-    cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+    cfg.qosPolicies()->resize(1);
+    cfg.qosPolicies()[0].name() = "qp";
+    cfg.qosPolicies()[0].qosMap() = qosMap;
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
-    cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy() = "qp";
+    cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
 
     for (const auto& portID : ports) {
       auto portCfg = std::find_if(
-          cfg.ports_ref()->begin(),
-          cfg.ports_ref()->end(),
-          [&portID](auto& port) {
-            return PortID(*port.logicalID_ref()) == portID;
+          cfg.ports()->begin(), cfg.ports()->end(), [&portID](auto& port) {
+            return PortID(*port.logicalID()) == portID;
           });
-      portCfg->pfc_ref() = pfc;
+      portCfg->pfc() = pfc;
     }
   }
 
@@ -145,24 +142,24 @@ class HwPfcTest : public HwLinkStateDependentTest {
     // create 2 pgs
     for (auto pgId = 0; pgId < 2; ++pgId) {
       cfg::PortPgConfig pgConfig;
-      pgConfig.id_ref() = pgId;
-      pgConfig.bufferPoolName_ref() = "bufferNew";
+      pgConfig.id() = pgId;
+      pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes_ref() = 300;
+      pgConfig.minLimitBytes() = 300;
       portPgConfigs.emplace_back(pgConfig);
     }
 
     portPgConfigMap["foo"] = portPgConfigs;
-    newCfg.portPgConfigs_ref() = portPgConfigMap;
+    newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig poolConfig;
     // provide small shared buffer size
     // idea is to hit the limit and trigger XOFF (PFC)
-    poolConfig.sharedBytes_ref() = 10000;
+    poolConfig.sharedBytes() = 10000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
-    newCfg.bufferPoolConfigs_ref() = bufferPoolCfgMap;
+    newCfg.bufferPoolConfigs() = bufferPoolCfgMap;
     cfg_ = newCfg;
     applyNewConfig(newCfg);
   }
@@ -274,20 +271,19 @@ class HwPfcTest : public HwLinkStateDependentTest {
   void setupWatchdog(bool enable) {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
-      pfcWatchdog.recoveryAction_ref() =
-          cfg::PfcWatchdogRecoveryAction::NO_DROP;
-      pfcWatchdog.recoveryTimeMsecs_ref() = 10;
-      pfcWatchdog.detectionTimeMsecs_ref() = 1;
+      pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+      pfcWatchdog.recoveryTimeMsecs() = 10;
+      pfcWatchdog.detectionTimeMsecs() = 1;
     }
 
     for (const auto& portID :
          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
       auto portCfg = utility::findCfgPort(cfg_, portID);
-      if (portCfg->pfc_ref().has_value()) {
+      if (portCfg->pfc().has_value()) {
         if (enable) {
-          portCfg->pfc_ref()->watchdog_ref() = pfcWatchdog;
+          portCfg->pfc()->watchdog() = pfcWatchdog;
         } else {
-          portCfg->pfc_ref()->watchdog_ref().reset();
+          portCfg->pfc()->watchdog().reset();
         }
       }
     }

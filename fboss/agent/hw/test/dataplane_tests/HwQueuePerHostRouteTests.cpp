@@ -113,8 +113,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
   }
 
   void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
-    auto vlanId =
-        VlanID(*this->initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto vlanId = VlanID(*this->initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
