@@ -47,12 +47,14 @@ class FsdbPubSubManager {
   void removeStateDeltaSubscription(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(subscribePath, fsdbHost, true);
+    removeSubscriptionImpl(
+        subscribePath, fsdbHost, true, false /*subscribeStats*/);
   }
   void removeStatePathSubscription(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(subscribePath, fsdbHost, false);
+    removeSubscriptionImpl(
+        subscribePath, fsdbHost, false, false /*subscribeStats*/);
   }
   size_t numSubscriptions() const {
     return path2Subscriber_.rlock()->size();
@@ -80,7 +82,8 @@ class FsdbPubSubManager {
   void removeSubscriptionImpl(
       const std::vector<std::string>& subscribePath,
       const std::string& fsdbHost,
-      bool isDelta);
+      bool isDelta,
+      bool subscribeStats);
   template <typename SubscriberT>
   void addSubscriptionImpl(
       const std::vector<std::string>& subscribePath,

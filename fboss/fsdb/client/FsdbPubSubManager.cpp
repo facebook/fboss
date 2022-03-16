@@ -11,15 +11,20 @@
 namespace {
 auto constexpr kDelta = "delta";
 auto constexpr kState = "state";
+auto constexpr kStats = "stats";
+auto constexpr kPath = "path";
 
 std::string toSubscriptionStr(
     const std::string& fsdbHost,
     const std::vector<std::string>& path,
-    bool isDelta) {
+    bool isDelta,
+    bool subscribeStats) {
   return folly::to<std::string>(
       fsdbHost,
       ":/",
-      (isDelta ? kDelta : kState),
+      (isDelta ? kDelta : kPath),
+      ":/",
+      (subscribeStats ? kStats : kState),
       ":/",
       folly::join('/', path.begin(), path.end()));
 }
@@ -133,7 +138,8 @@ void FsdbPubSubManager::addSubscriptionImpl(
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   auto isDelta = std::is_same_v<SubscriberT, FsdbDeltaSubscriber>;
-  auto subsStr = toSubscriptionStr(fsdbHost, subscribePath, isDelta);
+  auto subsStr =
+      toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
   path2Subscriber_.withWLock([&](auto& path2Subscriber) {
     auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
         subsStr,
@@ -157,8 +163,10 @@ void FsdbPubSubManager::addSubscriptionImpl(
 void FsdbPubSubManager::removeSubscriptionImpl(
     const std::vector<std::string>& subscribePath,
     const std::string& fsdbHost,
-    bool isDelta) {
-  auto subsStr = toSubscriptionStr(fsdbHost, subscribePath, isDelta);
+    bool isDelta,
+    bool subscribeStats) {
+  auto subsStr =
+      toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
   if (path2Subscriber_.wlock()->erase(subsStr)) {
     XLOG(DBG2) << "Erased subscription for : " << subsStr;
   }
