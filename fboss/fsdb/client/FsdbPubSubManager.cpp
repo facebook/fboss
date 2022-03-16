@@ -55,7 +55,11 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     bool publishStats,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
     int32_t fsdbPort) const {
-  if (stateDeltaPublisher_ || statePathPublisher_) {
+  auto publisherExists = publishStats
+      ? (statDeltaPublisher_ || statPathPublisher_)
+      : (stateDeltaPublisher_ || statePathPublisher_);
+
+  if (publisherExists) {
     throw std::runtime_error(
         "Only one instance of delta or state publisher allowed");
   }
