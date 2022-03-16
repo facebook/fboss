@@ -59,10 +59,12 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     throw std::runtime_error(
         "Only one instance of delta or state publisher allowed");
   }
+  auto& evbThread = publishStats ? statsPublisherStreamEvbThread_
+                                 : statePublisherStreamEvbThread_;
   auto publisher = std::make_unique<PublisherT>(
       clientId_,
       publishPath,
-      publisherStreamEvbThread_.getEventBase(),
+      evbThread.getEventBase(),
       reconnectThread_.getEventBase(),
       publishStats,
       publisherStateChangeCb);
@@ -76,7 +78,11 @@ void FsdbPubSubManager::createStateDeltaPublisher(
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   stateDeltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
-      lk, publishPath, false, publisherStateChangeCb, fsdbPort);
+      lk,
+      publishPath,
+      false /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
 }
 
 void FsdbPubSubManager::createStatePathPublisher(
@@ -85,28 +91,64 @@ void FsdbPubSubManager::createStatePathPublisher(
     int32_t fsdbPort) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   statePathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
-      lk, publishPath, false, publisherStateChangeCb, fsdbPort);
+      lk,
+      publishPath,
+      false /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
+}
+
+void FsdbPubSubManager::createStatDeltaPublisher(
+    const std::vector<std::string>& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  statDeltaPublisher_ = createPublisherImpl<FsdbDeltaPublisher>(
+      lk,
+      publishPath,
+      true /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
+}
+
+void FsdbPubSubManager::createStatPathPublisher(
+    const std::vector<std::string>& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  statPathPublisher_ = createPublisherImpl<FsdbStatePublisher>(
+      lk,
+      publishPath,
+      true /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
 }
 
 template <typename PublisherT, typename PubUnitT>
 void FsdbPubSubManager::publishImpl(
-    const std::lock_guard<std::mutex>& /*lk*/,
     PublisherT* publisher,
     const PubUnitT& pubUnit) {
   if (!publisher) {
     throw std::runtime_error("Publisher must be created before publishing");
   }
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   publisher->write(pubUnit);
 }
 
 void FsdbPubSubManager::publishState(const OperDelta& pubUnit) {
-  std::lock_guard<std::mutex> lk(publisherMutex_);
-  publishImpl(lk, stateDeltaPublisher_.get(), pubUnit);
+  publishImpl(stateDeltaPublisher_.get(), pubUnit);
 }
 
 void FsdbPubSubManager::publishState(const OperState& pubUnit) {
-  std::lock_guard<std::mutex> lk(publisherMutex_);
-  publishImpl(lk, statePathPublisher_.get(), pubUnit);
+  publishImpl(statePathPublisher_.get(), pubUnit);
+}
+
+void FsdbPubSubManager::publishStat(const OperDelta& pubUnit) {
+  publishImpl(statDeltaPublisher_.get(), pubUnit);
+}
+
+void FsdbPubSubManager::publishStat(const OperState& pubUnit) {
+  publishImpl(statPathPublisher_.get(), pubUnit);
 }
 
 void FsdbPubSubManager::addStateDeltaSubscription(
@@ -116,7 +158,12 @@ void FsdbPubSubManager::addStateDeltaSubscription(
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath, stateChangeCb, operDeltaCb, false, fsdbHost, fsdbPort);
+      subscribePath,
+      stateChangeCb,
+      operDeltaCb,
+      false /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
@@ -126,7 +173,42 @@ void FsdbPubSubManager::addStatePathSubscription(
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbStateSubscriber>(
-      subscribePath, stateChangeCb, operStateCb, false, fsdbHost, fsdbPort);
+      subscribePath,
+      stateChangeCb,
+      operStateCb,
+      false /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
+}
+
+void FsdbPubSubManager::addStatDeltaSubscription(
+    const std::vector<std::string>& subscribePath,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+    const std::string& fsdbHost,
+    int32_t fsdbPort) {
+  addSubscriptionImpl<FsdbDeltaSubscriber>(
+      subscribePath,
+      stateChangeCb,
+      operDeltaCb,
+      true /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
+}
+
+void FsdbPubSubManager::addStatPathSubscription(
+    const std::vector<std::string>& subscribePath,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    const std::string& fsdbHost,
+    int32_t fsdbPort) {
+  addSubscriptionImpl<FsdbStateSubscriber>(
+      subscribePath,
+      stateChangeCb,
+      operStateCb,
+      true /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
 }
 
 template <typename SubscriberT>
