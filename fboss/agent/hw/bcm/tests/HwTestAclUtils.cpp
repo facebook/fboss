@@ -184,14 +184,8 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
    */
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  // We only programmed a packet counter, but TD2 programmed both bytes and
-  // packets counters.
+  // We only programmed a packet counter
   int expectedNumCounters = 1;
-  if (bcmSwitch->getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2 &&
-      bcmSwitch->getBootType() == BootType::WARM_BOOT) {
-    expectedNumCounters = 2;
-  }
 
   auto hwStat = bcmSwitch->getAclTable()->getAclStat(statName);
   int numCounters;
