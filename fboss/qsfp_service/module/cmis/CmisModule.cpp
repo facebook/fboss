@@ -2026,13 +2026,13 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
 }
 
 /*
- * moduleDiagsCapabilitySet
+ * setDiagsCapability
  *
  * This function reads the module register from cache and populates the
  * diagnostic capability. This function is called from Module State Machine when
  * the MSM enters Module Discovered state after EEPROM read.
  */
-void CmisModule::moduleDiagsCapabilitySet() {
+void CmisModule::setDiagsCapability() {
   auto diagsCapability = diagsCapability_.wlock();
   if (!(*diagsCapability).has_value()) {
     XLOG(INFO) << "Module diag capability is set for " << qsfpImpl_->getName();

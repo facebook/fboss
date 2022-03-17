@@ -125,7 +125,7 @@ TEST(CmisTest, transceiverInfoTest) {
   }
   testCachedMediaSignals(xcvr.get());
 
-  auto diagsCap = xcvr->moduleDiagsCapabilityGet();
+  auto diagsCap = xcvr->getDiagsCapability();
   EXPECT_TRUE(diagsCap.has_value());
   EXPECT_TRUE(*diagsCap->diagnostics());
   EXPECT_FALSE(*diagsCap->vdm());

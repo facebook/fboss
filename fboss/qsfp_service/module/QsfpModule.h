@@ -220,7 +220,7 @@ class QsfpModule : public Transceiver {
 
   virtual void configureModule() {}
 
-  virtual void moduleDiagsCapabilitySet() {}
+  virtual void setDiagsCapability() {}
 
   bool isVdmSupported() const {
     auto diagsCapability = diagsCapability_.rlock();
@@ -237,7 +237,7 @@ class QsfpModule : public Transceiver {
            *(*diagsCapability).value().prbsSystem_ref());
   }
 
-  std::optional<DiagsCapability> moduleDiagsCapabilityGet() const {
+  std::optional<DiagsCapability> getDiagsCapability() const {
     // return a copy to avoid needing a lock
     return diagsCapability_.copy();
   }

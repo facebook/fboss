@@ -296,7 +296,7 @@ class CmisModule : public QsfpModule {
    */
   void remediateFlakyTransceiver() override;
 
-  virtual void moduleDiagsCapabilitySet() override;
+  virtual void setDiagsCapability() override;
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 

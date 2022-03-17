@@ -290,7 +290,7 @@ class SffModule : public QsfpModule {
    * Sets the diags capability. Called by MSM when module enters discovered
    * state
    */
-  virtual void moduleDiagsCapabilitySet() override;
+  virtual void setDiagsCapability() override;
   /*
    * Provides the option to override the diags capability for certain
    * transceivers

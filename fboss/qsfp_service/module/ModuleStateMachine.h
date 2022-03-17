@@ -77,7 +77,7 @@ fsm.get_attribute(qsfpModuleObjPtr)->addModulePortStateMachines();
 fsm.get_attribute(qsfpModuleObjPtr)->scheduleAgentPortSyncupTimeout();
 
 // Set the module diagnostic capability
-fsm.get_attribute(qsfpModuleObjPtr)->moduleDiagsCapabilitySet();
+fsm.get_attribute(qsfpModuleObjPtr)->setDiagsCapability();
 } // namespace fboss
 }; // namespace facebook
 

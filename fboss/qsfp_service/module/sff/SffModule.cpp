@@ -1429,13 +1429,13 @@ bool SffModule::supportRemediate() {
 }
 
 /*
- * moduleDiagsCapabilitySet
+ * setDiagsCapability
  *
  * This function reads the module register from cache and populates the
  * diagnostic capability. This function is called from Module State Machine when
  * the MSM enters Module Discovered state after EEPROM read.
  */
-void SffModule::moduleDiagsCapabilitySet() {
+void SffModule::setDiagsCapability() {
   auto diagsCapability = diagsCapability_.wlock();
   if (!(*diagsCapability).has_value()) {
     if (auto diagsCapabilityOverride = getDiagsCapabilityOverride()) {
