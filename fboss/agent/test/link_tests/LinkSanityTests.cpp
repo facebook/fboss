@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <folly/Subprocess.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
@@ -8,8 +9,6 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
-
-#include "common/process/Process.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -132,15 +131,16 @@ TEST_F(LinkTest, opticsTxDisableEnable) {
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
   if (!opticalPorts.empty()) {
-    std::string resultStr;
-    std::string errStr;
     opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
     const std::string txDisableCmd = opticalPortNames + "--tx-disable";
 
     XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
                << txDisableCmd;
-    CHECK(facebook::process::Process::execShellCmd(
-        txDisableCmd, &resultStr, &errStr));
+    // TODO(ccpowers): Doesn't seem like there's a way for us to make this
+    // command a literal, since it depends on the cabling. We may want to just
+    // make a qsfp-service API for this rather than using a shell cmd
+    // @lint-ignore CLANGTIDY
+    folly::Subprocess(txDisableCmd).waitChecked();
     XLOG(INFO) << fmt::format(
         "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go down...",
         txDisableCmd);
@@ -150,8 +150,8 @@ TEST_F(LinkTest, opticsTxDisableEnable) {
     const std::string txEnableCmd = opticalPortNames + "--tx-enable";
     XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
                << txEnableCmd;
-    CHECK(facebook::process::Process::execShellCmd(
-        txEnableCmd, &resultStr, &errStr));
+    // @lint-ignore CLANGTIDY
+    folly::Subprocess(txEnableCmd).waitChecked();
     XLOG(INFO) << fmt::format(
         "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go up...",
         txEnableCmd);
