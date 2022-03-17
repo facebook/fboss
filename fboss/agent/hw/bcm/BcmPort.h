@@ -20,6 +20,7 @@ extern "C" {
 #include "common/stats/MonotonicCounter.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
@@ -136,7 +137,11 @@ class BcmPort {
   void disableSflow();
   int sampleDestinationToBcmDestFlag(cfg::SampleDestination dest);
   void configureSampleDestination(cfg::SampleDestination sampleDest);
-  void setPortResource(const std::shared_ptr<Port>& swPort);
+  /**
+   * Set port resource to desired settings
+   * @return Whether we actually changed anything
+   */
+  bool setPortResource(const std::shared_ptr<Port>& swPort);
   void setupStatsIfNeeded(const std::shared_ptr<Port>& swPort);
   void setupPrbs(const std::shared_ptr<Port>& swPort);
 
@@ -291,6 +296,7 @@ class BcmPort {
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
       const std::vector<bcm_stat_val_t>& stats);
+  void reinitPortFdrStats(const std::shared_ptr<Port>& swPort);
   void updateFdrStats(std::chrono::seconds now);
   void initCustomStats() const;
   std::string statName(folly::StringPiece statName, folly::StringPiece portName)
@@ -308,7 +314,11 @@ class BcmPort {
   bcm_pbmp_t getPbmp();
 
   void setInterfaceMode(const std::shared_ptr<Port>& swPort);
-  void setFEC(const std::shared_ptr<Port>& swPort);
+  /**
+   * Sets FEC to the desired mode, if port isn't up
+   * @return Whether we actually changed anything
+   */
+  bool setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
   void setPfc(const std::shared_ptr<Port>& swPort);
   void programPfc(const int enableTxPfc, const int enableRxPfc);
@@ -373,6 +383,7 @@ class BcmPort {
   std::unique_ptr<BcmPortIngressBufferManager> ingressBufferManager_;
 
   fb303::ExportedStatMapImpl::LockableStat outQueueLen_;
+  std::vector<utility::ExportedCounter> fdrStats_;
   fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 

@@ -218,6 +218,10 @@ static void fdrStatConfigure(
 #endif
 }
 
+static const std::string getFdrStatsKey(int errorsPerCodeword) {
+  return folly::to<std::string>(kErrorsPerCodeword(), ".", errorsPerCodeword);
+}
+
 // We pass in PRBS polynominal from cli as integers. However bcm api has it's
 // own value that should be used mapping to different PRBS polynominal values.
 // Hence we have a map here to mark the projection. The key here is the
@@ -407,6 +411,27 @@ void BcmPort::reinitPortStatsLocked(
 
   *lockedPortStatsPtr =
       BcmPortStats(queueManager_->getNumQueues(cfg::StreamType::UNICAST));
+}
+
+void BcmPort::reinitPortFdrStats(const std::shared_ptr<Port>& swPort) {
+  auto& portName = swPort->getName();
+  auto fecMaxErrors = getFecMaxErrors();
+
+  for (int i = 0; i < fecMaxErrors; ++i) {
+    if (i < fdrStats_.size()) {
+      // Idempotently set stat name again, in case port name changed
+      fdrStats_[i].setName(statName(getFdrStatsKey(i), portName));
+    } else {
+      fdrStats_.emplace_back(
+          statName(getFdrStatsKey(i), portName),
+          fb303::ExportTypeConsts::kSumRate);
+    }
+  }
+
+  // In case max errors got reduced due to FEC mode changes
+  while (fdrStats_.size() > fecMaxErrors) {
+    fdrStats_.pop_back();
+  }
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
@@ -603,14 +628,22 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   XLOG(DBG1) << "Reprogramming BcmPort for port " << port->getID();
   setIngressVlan(port);
   if (platformPort_->shouldUsePortResourceAPIs()) {
-    setPortResource(port);
+    if (setPortResource(port)) {
+      reinitPortFdrStats(port);
+    }
   } else {
     setSpeed(port);
     // Update FEC settings if needed. Note this is not only
     // on speed change as the port's default speed (say on a
     // cold boot) maybe what is desired by the config. But we
     // may still need to enable FEC
-    setFEC(port);
+    if (setFEC(port)) {
+      // Note that setFEC() ignore the FEC change if port is up to avoid
+      // flapping the port. So we need to detect the change here
+      // instead of diffing the new and old config like
+      // setupStatsIfNeeded() does below.
+      reinitPortFdrStats(port);
+    }
   }
 
   // setting sflow rates must come before setting sample destination.
@@ -1407,7 +1440,10 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
   increments[5] = fdr_stats.cw_s5_errs * pages;
   increments[6] = fdr_stats.cw_s6_errs * pages;
   increments[7] = fdr_stats.cw_s7_errs * pages;
-  // TODO: Increment a counter and export it.
+
+  for (int i = 0; i < kCodewordErrorsPageSize; ++i) {
+    fdrStats_[i].incrementValue(now, increments[i]);
+  }
 
   if (pages > 1) {
     codewordErrorsPage_ = (codewordErrorsPage_ + 1) % pages;
@@ -1673,6 +1709,11 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
   }
 
   reinitPortStatsLocked(lockedPortStatsPtr, port);
+
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FEC_DIAG_COUNTERS)) {
+    reinitPortFdrStats(port);
+  }
 }
 
 void BcmPort::disableStatCollection() {
@@ -1693,6 +1734,7 @@ void BcmPort::disableStatCollection() {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     fdrStatConfigure(unit_, port_, false);
+    fdrStats_.clear();
   }
 
   destroyAllPortStatsLocked(lockedPortStatsPtr);
@@ -1765,7 +1807,9 @@ bool BcmPort::isCL91FECApplicable() const {
       asic == HwAsic::AsicType::ASIC_TYPE_FAKE;
 }
 
-void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
+bool BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
+  bool changed = false;
+
   // Change FEC setting on an UP port could cause port flap.
   // Only do it when the port is not UP.
   //
@@ -1775,7 +1819,7 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
   if (isUp()) {
     XLOG(DBG1) << "Skip FEC setting on port " << swPort->getID()
                << ", which is UP";
-    return;
+    return changed;
   }
 
   const auto desiredFecMode = *swPort->getProfileConfig().fec();
@@ -1805,6 +1849,7 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
         BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION,
         desiredFecStatus);
     bcmCheckError(rv, "failed to enable/disable fec");
+    changed = true;
   }
 
   int desiredCl91Status =
@@ -1821,10 +1866,13 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
         desiredCl91Status);
     if (rv == BCM_E_UNAVAIL) {
       XLOG(INFO) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
-      return;
+      return changed;
     }
     bcmCheckError(rv, "failed to set cl91 fec setting");
+    changed = true;
   }
+
+  return changed;
 }
 
 phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
@@ -2550,7 +2598,9 @@ void BcmPort::destroy() {
   }
 }
 
-void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
+bool BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
+  bool changed = false;
+
   // Since BRCM SDK 6.5.13, there're a lot of port apis deprecated for PM8x50
   // ports(like TH3). And a new powerful, atomic api bcm_port_resource_get/set
   // is created. Therefore, we're able to configure different attributes for a
@@ -2587,7 +2637,7 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
         << ", fec_type: " << desiredPortResource.fec_type
         << ", phy_lane_config: 0x" << std::hex
         << desiredPortResource.phy_lane_config;
-    return;
+    return changed;
   }
 
   if (isUp()) {
@@ -2608,6 +2658,8 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
 
   auto rv = bcm_port_resource_speed_set(unit_, gport_, &desiredPortResource);
   bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
+  changed = true;
+  return changed;
 }
 
 cfg::PortProfileID BcmPort::getCurrentProfile() const {

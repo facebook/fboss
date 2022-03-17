@@ -161,6 +161,10 @@ inline folly::StringPiece constexpr kObmHighWatermark() {
   return "obm_high_watermark";
 }
 
+inline folly::StringPiece constexpr kErrorsPerCodeword() {
+  return "errors_per_codeword";
+}
+
 /**
  * Maximum FEC errors we can ever see under any config
  */

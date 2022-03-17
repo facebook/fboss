@@ -8,12 +8,16 @@
  *
  */
 
+#include "common/stats/ServiceData.h"
+#include "common/stats/ThreadCachedServiceData.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <gtest/gtest.h>
+using namespace facebook;
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;
+using namespace facebook::stats;
 
 namespace {
 auto constexpr kUninit = hardware_stats_constants::STAT_UNINITIALIZED();
@@ -64,4 +68,36 @@ TEST(CounterUtilsTests, ComputeIncrementMultipleToSub) {
       1, subtractIncrements(CounterPrevAndCur{20, 30}, {{10, 10}, {10, 19}}));
   EXPECT_EQ(
       1, subtractIncrements(CounterPrevAndCur{20, 30}, {{10, 19}, {10, 10}}));
+}
+
+TEST(CounterUtilsTests, ExportedCounterIncrementValue) {
+  tcData().publishStats();
+  fbData->resetAllData();
+
+  ExportedCounter counter{"foo", fb303::ExportTypeConsts::kSum};
+  tcData().publishStats();
+  EXPECT_TRUE(tcData().hasCounter("foo.sum"));
+
+  counter.incrementValue(std::chrono::seconds(1), 10);
+  tcData().publishStats();
+  EXPECT_EQ(10, tcData().getCounter("foo.sum"));
+}
+
+TEST(CounterUtilsTests, ExportedCounterSetName) {
+  tcData().publishStats();
+  fbData->resetAllData();
+
+  ExportedCounter counter{"foo", fb303::ExportTypeConsts::kSum};
+  tcData().publishStats();
+  EXPECT_TRUE(tcData().hasCounter("foo.sum"));
+
+  counter.setName("foo2");
+  tcData().publishStats();
+  EXPECT_FALSE(tcData().hasCounter("foo.sum"));
+  EXPECT_TRUE(tcData().hasCounter("foo2.sum"));
+
+  counter.setName("");
+  tcData().publishStats();
+  EXPECT_FALSE(tcData().hasCounter("foo.sum"));
+  EXPECT_FALSE(tcData().hasCounter("foo2.sum"));
 }

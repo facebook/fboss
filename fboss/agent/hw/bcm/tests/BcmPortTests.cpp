@@ -450,6 +450,10 @@ TEST_F(BcmPortTest, PortFdrStats) {
     for (auto portId : initialConfiguredPorts()) {
       auto port = getHwSwitch()->getPortTable()->getBcmPort(portId);
       EXPECT_TRUE(port->getFdrEnabled());
+
+      auto fdrKey = folly::to<std::string>(
+          port->getPortName(), ".", kErrorsPerCodeword(), ".", 0, ".rate");
+      EXPECT_TRUE(tcData().hasCounter(fdrKey));
     }
   };
   verifyAcrossWarmBoots(setup, verify);

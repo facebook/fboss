@@ -59,7 +59,7 @@ int64_t subtractIncrements(
   return std::max(0L, increment);
 }
 
-void deleteCounter(const std::string& oldCounterName) {
+void deleteCounter(const folly::StringPiece oldCounterName) {
   // Once deleted, the counter will no longer be reported (by fb303)
   fb303::fbData->getStatMap()->unExportStatAll(oldCounterName);
   fb303::fbData->clearCounter(oldCounterName);
@@ -80,6 +80,78 @@ std::string statNameFromCounterType(
     cfg::CounterType counterType) {
   return folly::to<std::string>(
       statPrefix, ".", counterTypeToString(counterType));
+}
+
+ExportedCounter::ExportedCounter(
+    const folly::StringPiece name,
+    const folly::Range<const fb303::ExportType*>& exportTypes)
+    : stat_(fb303::fbData->getStatMap()->getLockableStatNoExport(name)),
+      name_(name),
+      exportTypes_(exportTypes) {
+  exportStat(name);
+}
+
+ExportedCounter::~ExportedCounter(void) {
+  unexport();
+}
+
+ExportedCounter::ExportedCounter(ExportedCounter&& other) noexcept
+    : stat_(std::move(other.stat_)),
+      name_(std::move(other.name_)),
+      exportTypes_(std::move(other.exportTypes_)) {}
+
+ExportedCounter& ExportedCounter::operator=(ExportedCounter&& other) {
+  stat_ = std::move(other.stat_);
+  name_ = std::move(other.name_);
+  exportTypes_ = std::move(other.exportTypes_);
+
+  return *this;
+}
+
+void ExportedCounter::exportStat(const folly::StringPiece name) {
+  if (name.empty()) {
+    return;
+  }
+
+  for (auto exportType : exportTypes_) {
+    fb303::fbData->getStatMap()->exportStat(name, exportType);
+  }
+}
+
+void ExportedCounter::unexport() {
+  if (!name_.empty()) {
+    deleteCounter(name_);
+    name_.clear();
+  }
+}
+
+void ExportedCounter::setName(const folly::StringPiece name) {
+  if (name == name_) {
+    return;
+  }
+
+  // The only way to change export name is to create a new stat. We then
+  // swap the new counter with our counter so the new stat with new name
+  // now exports our counter at stat_. newStat now has an empty counter
+  // exported as old name_. We then delete the old name_ and let newStat
+  // go out of scope.
+  //
+  // If name is empty, we set new stat to old stat so the swap is a no-op.
+  // We don't export the new empty name but we do unexport the old name.
+  // So the counter is now unexported.
+  auto newStat = stat_;
+  if (!name.empty()) {
+    newStat = fb303::fbData->getStatMap()->getLockableStatNoExport(name);
+  }
+  stat_.swap(newStat);
+  exportStat(name);
+  unexport();
+
+  name_ = name;
+}
+
+void ExportedCounter::incrementValue(std::chrono::seconds now, int64_t amount) {
+  stat_.lock()->addValue(now.count(), amount);
 }
 
 } // namespace facebook::fboss::utility
