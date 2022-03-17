@@ -224,12 +224,13 @@ class HwCoppTest : public HwLinkStateDependentTest {
   uint64_t getQueueOutPacketsWithRetry(
       int queueId,
       int retryTimes,
-      uint64_t expectedNumPkts) {
+      uint64_t expectedNumPkts,
+      int postMatchRetryTimes = 2) {
     uint64_t outPkts = 0, outBytes = 0;
     do {
       std::tie(outPkts, outBytes) =
           utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
-      if (retryTimes == 0 || outPkts == expectedNumPkts) {
+      if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
         break;
       }
 
@@ -242,6 +243,11 @@ class HwCoppTest : public HwLinkStateDependentTest {
       /* sleep override */
       sleep(1);
     } while (retryTimes-- > 0);
+
+    while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
+      std::tie(outPkts, outBytes) =
+          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
+    }
 
     return outPkts;
   }
@@ -364,7 +370,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
     sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
-        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
     XLOG(DBG0) << "Packet of neighbor=" << neighborIp.str()
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;

@@ -138,7 +138,8 @@ uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,
     int queueId,
     int retryTimes,
-    uint64_t expectedNumPkts);
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes = 2);
 
 template <typename SendFn>
 void sendPktAndVerifyCpuQueue(

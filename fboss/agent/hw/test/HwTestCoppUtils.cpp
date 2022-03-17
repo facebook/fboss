@@ -319,12 +319,13 @@ uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,
     int queueId,
     int retryTimes,
-    uint64_t expectedNumPkts) {
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes) {
   uint64_t outPkts = 0, outBytes = 0;
   do {
     std::tie(outPkts, outBytes) =
         getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
-    if (retryTimes == 0 || outPkts == expectedNumPkts) {
+    if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
       break;
     }
 
@@ -337,6 +338,11 @@ uint64_t getQueueOutPacketsWithRetry(
     /* sleep override */
     sleep(1);
   } while (retryTimes-- > 0);
+
+  while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
+    std::tie(outPkts, outBytes) =
+        getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
+  }
 
   return outPkts;
 }
