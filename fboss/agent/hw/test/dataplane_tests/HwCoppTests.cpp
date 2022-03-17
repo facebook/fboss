@@ -191,7 +191,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int numPktsToSend,
       const folly::IPAddressV6& neighborIp,
       ICMPv6Type type,
-      bool outOfPort) {
+      bool outOfPort,
+      bool selfSolicit) {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -202,9 +203,10 @@ class HwCoppTest : public HwLinkStateDependentTest {
           ? utility::makeNeighborSolicitation(
                 getHwSwitch(),
                 vlanId,
-                neighborMac, // sender mac
-                neighborIp, // sender ip
-                folly::IPAddressV6("1::1")) // my solicited address
+                selfSolicit ? neighborMac : intfMac, // solicitar mac
+                neighborIp, // solicitar ip
+                selfSolicit ? folly::IPAddressV6("1::1")
+                            : folly::IPAddressV6("1::2")) // solicited address
           : utility::makeNeighborAdvertisement(
                 getHwSwitch(),
                 vlanId,
@@ -363,12 +365,13 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int queueId,
       const folly::IPAddressV6& neighborIp,
       ICMPv6Type ndpType,
+      bool selfSolicit = true,
       bool outOfPort = true,
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-    sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort);
+    sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort, selfSolicit);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
     XLOG(DBG0) << "Packet of neighbor=" << neighborIp.str()
@@ -1074,6 +1077,43 @@ TYPED_TEST(HwCoppTest, NdpSolicitationToHighPriQ) {
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV6("1::2"), // sender of solicitation
         ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, NdpSolicitNeighbor) {
+  // This test case makes sure that addNoActionAclForNw() is
+  // present in ACL table and at the higher priority than that of
+  // ACL entry to trap NDP solicit to high priority queue.
+  // If both ACL entries are present in the ACL table and at the right order
+  // we would recive 1 packet to CPU.
+  // Reason: NS packet enters ASIC via CPU port, hits addNoActionAclForNw() ACL
+  // because, prefix macthes ff02::/16 and source port is set to CPU port. Hence
+  // it will be forwarded. Since it's a multicast packet, it will be sent out of
+  // port 1, and the packet loops back into ASIC via port 1.
+  //  Now, it hits the NDP solicit ACL entry and copied to CPU.
+  // Note that it did NOT hit addNoActionAclForNw() because source port is set
+  // to 1 after looping back.
+
+  // If not we would receive 2 packets to CPU.
+  // Reason: When packet enters the ASIC via CPU port, it hits the
+  // addNoActionAclForNw() and it's copied to CPU and another copy is sent out
+  // of port 1. Now, since we have port 1 in loopback mode, packet enters back
+  // into ASIC via port 1, addNoActionAclForNw() hits  again and copied to CPU
+  // again.
+
+  // More explanation in the test plan section of - D34782575
+  auto setup = [=]() { this->setup(); };
+  auto verify = [=]() {
+    XLOG(INFO) << "verifying solicitation";
+    this->sendPktAndVerifyNdpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        folly::IPAddressV6("1::1"), // sender of solicitation
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+        false,
+        false,
+        1,
+        1);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
