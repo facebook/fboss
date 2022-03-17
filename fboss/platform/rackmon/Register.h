@@ -3,6 +3,7 @@
 
 #include <nlohmann/json.hpp>
 #include <map>
+#include <optional>
 #include <utility>
 #include <vector>
 
