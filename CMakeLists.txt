@@ -497,7 +497,7 @@ if (NOT SAI_ONLY)
       fboss/agent/DHCPv4Handler.cpp
       fboss/agent/DHCPv6Handler.cpp
       fboss/agent/FibHelpers.cpp
-      fboss/agent/FsdbStateSyncer.cpp
+      fboss/agent/FsdbSyncer.cpp
       fboss/agent/L2Entry.cpp
       fboss/agent/hw/BufferStatsLogger.cpp
       fboss/agent/hw/CounterUtils.cpp

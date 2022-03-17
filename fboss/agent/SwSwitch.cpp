@@ -31,7 +31,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
-#include "fboss/agent/FsdbStateSyncer.h"
+#include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
@@ -298,7 +298,7 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
     hw_->stateChanged(StateDelta(getState(), getMinAlpmRouteState(getState())));
   }
-  fsdbStateSyncer_.reset();
+  fsdbSyncer_.reset();
 }
 
 bool SwSwitch::isFullyInitialized() const {
@@ -661,7 +661,7 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
 #endif
   // Start FSDB state syncer post initial config applied. FSDB state
   // syncer will do a full sync upon connection establishment to FSDB
-  fsdbStateSyncer_ = std::make_unique<FsdbStateSyncer>(this);
+  fsdbSyncer_ = std::make_unique<FsdbSyncer>(this);
 }
 
 void SwSwitch::logRouteUpdates(
@@ -1738,9 +1738,9 @@ void SwSwitch::applyConfig(
    */
 
   routeUpdater.program();
-  if (fsdbStateSyncer_) {
+  if (fsdbSyncer_) {
     // TODO - figure out a way to send full agent config
-    fsdbStateSyncer_->cfgUpdated(newConfig);
+    fsdbSyncer_->cfgUpdated(newConfig);
   }
 }
 

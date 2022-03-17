@@ -17,10 +17,10 @@ class FsdbPubSubManager;
 namespace cfg {
 class SwitchConfig;
 }
-class FsdbStateSyncer : public StateObserver {
+class FsdbSyncer : public StateObserver {
  public:
-  explicit FsdbStateSyncer(SwSwitch* sw);
-  ~FsdbStateSyncer() override;
+  explicit FsdbSyncer(SwSwitch* sw);
+  ~FsdbSyncer() override;
   void stateUpdated(const StateDelta& stateDelta) override;
   // TODO - change to AgentConfig once SwSwitch can pass us that
   void cfgUpdated(const cfg::SwitchConfig& /*newConfig*/);

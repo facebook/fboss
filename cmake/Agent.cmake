@@ -107,7 +107,7 @@ add_library(core
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/FibHelpers.cpp
-  fboss/agent/FsdbStateSyncer.cpp
+  fboss/agent/FsdbSyncer.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp

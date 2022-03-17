@@ -1,12 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/FsdbStateSyncer.h"
+#include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 
 namespace facebook::fboss {
-FsdbStateSyncer::FsdbStateSyncer(SwSwitch* sw)
+FsdbSyncer::FsdbSyncer(SwSwitch* sw)
     : sw_(sw),
       fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("wedge_agent")) {
   if (FLAGS_publish_state_to_fsdb) {
@@ -15,16 +15,16 @@ FsdbStateSyncer::FsdbStateSyncer(SwSwitch* sw)
           fsdbConnectionStateChanged(oldState, newState);
         });
   }
-  sw_->registerStateObserver(this, "FsdbStateSyncer");
+  sw_->registerStateObserver(this, "FsdbSyncer");
 }
 
-FsdbStateSyncer::~FsdbStateSyncer() {
+FsdbSyncer::~FsdbSyncer() {
   sw_->unregisterStateObserver(this);
   readyForPublishing_.store(false);
   fsdbPubSubMgr_.reset();
 }
 
-void FsdbStateSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {
+void FsdbSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {
   CHECK(sw_->getUpdateEvb()->isInEventBaseThread());
   // Sync updates.
   if (!readyForPublishing_.load()) {
@@ -32,7 +32,7 @@ void FsdbStateSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {
   }
 }
 
-void FsdbStateSyncer::cfgUpdated(const cfg::SwitchConfig& /*newConfig*/) {
+void FsdbSyncer::cfgUpdated(const cfg::SwitchConfig& /*newConfig*/) {
   sw_->getUpdateEvb()->runInEventBaseThreadAndWait([this]() {
     if (!readyForPublishing_.load()) {
       return;
@@ -40,7 +40,7 @@ void FsdbStateSyncer::cfgUpdated(const cfg::SwitchConfig& /*newConfig*/) {
     // sync config
   });
 }
-void FsdbStateSyncer::fsdbConnectionStateChanged(
+void FsdbSyncer::fsdbConnectionStateChanged(
     fsdb::FsdbStreamClient::State oldState,
     fsdb::FsdbStreamClient::State newState) {
   CHECK(oldState != newState);

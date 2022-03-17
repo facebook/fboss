@@ -74,7 +74,7 @@ class MKAServiceManager;
 template <typename AddressT>
 class Route;
 class Interface;
-class FsdbStateSyncer;
+class FsdbSyncer;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -965,7 +965,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
-  std::unique_ptr<FsdbStateSyncer> fsdbStateSyncer_;
+  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
 };
