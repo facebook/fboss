@@ -158,7 +158,11 @@ TEST_F(HashApiTest, formatHashNativeHashFieldList) {
       SAI_NATIVE_HASH_FIELD_L4_SRC_PORT,
       SAI_NATIVE_HASH_FIELD_L4_DST_PORT,
   }};
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  std::string expected("NativeHashFieldList: [0, 1, 7, 8]");
+#else
   std::string expected("NativeHashFieldList: [0, 1, 15, 16]");
+#endif
   EXPECT_EQ(expected, fmt::format("{}", nhfl));
 }
 
