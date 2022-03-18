@@ -228,4 +228,65 @@ void HwTransceiverUtils::verifyDataPathEnabled(
     }
   }
 }
+
+void HwTransceiverUtils::verifyDiagsCapability(
+    const TransceiverInfo& transceiver,
+    std::optional<DiagsCapability> diagsCapability,
+    bool skipCheckingIndividualCapability) {
+  auto mgmtInterface = transceiver.transceiverManagementInterface_ref();
+  if (!mgmtInterface) {
+    throw FbossError(
+        "Transceiver:",
+        *transceiver.port(),
+        " is missing transceiverManagementInterface");
+  }
+  auto mediaIntfCode = transceiver.moduleMediaInterface_ref();
+  if (!mediaIntfCode) {
+    throw FbossError(
+        "Transceiver:",
+        *transceiver.port(),
+        " is missing moduleMediaInterface");
+  }
+  XLOG(INFO) << "Verifying DiagsCapability for Transceiver="
+             << *transceiver.port() << ", mgmtInterface="
+             << apache::thrift::util::enumNameSafe(*mgmtInterface)
+             << ", moduleMediaInterface="
+             << apache::thrift::util::enumNameSafe(*mediaIntfCode);
+
+  switch (*mgmtInterface) {
+    case TransceiverManagementInterface::CMIS:
+      EXPECT_TRUE(diagsCapability.has_value());
+      if (!skipCheckingIndividualCapability) {
+        EXPECT_TRUE(*diagsCapability->diagnostics());
+        EXPECT_TRUE(*diagsCapability->vdm());
+        EXPECT_TRUE(*diagsCapability->cdb());
+        EXPECT_TRUE(*diagsCapability->prbsLine());
+        EXPECT_TRUE(*diagsCapability->prbsSystem());
+        EXPECT_TRUE(*diagsCapability->loopbackLine());
+        EXPECT_TRUE(*diagsCapability->loopbackSystem());
+      }
+      return;
+    case TransceiverManagementInterface::SFF:
+      // Only FR1_100G has diagsCapability
+      if (*mediaIntfCode == MediaInterfaceCode::FR1_100G) {
+        EXPECT_TRUE(diagsCapability.has_value());
+        if (!skipCheckingIndividualCapability) {
+          EXPECT_TRUE(*diagsCapability->prbsLine());
+          EXPECT_TRUE(*diagsCapability->prbsSystem());
+        }
+      } else {
+        EXPECT_FALSE(diagsCapability.has_value());
+      }
+      return;
+    case TransceiverManagementInterface::SFF8472:
+    case TransceiverManagementInterface::NONE:
+      EXPECT_FALSE(diagsCapability.has_value());
+      return;
+  }
+  throw FbossError(
+      "Transceiver:",
+      *transceiver.port(),
+      " is using unrecognized transceiverManagementInterface:",
+      apache::thrift::util::enumNameSafe(*mgmtInterface));
+}
 } // namespace facebook::fboss::utility

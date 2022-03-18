@@ -1345,4 +1345,24 @@ void TransceiverManager::clearPortPrbsStats(
   }
   phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
 }
+
+std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(
+    TransceiverID id) const {
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    return it->second->getDiagsCapability();
+  }
+  XLOG(WARN) << "Return nullopt DiagsCapability for Transceiver=" << id
+             << ". Transeciver is not present";
+  return std::nullopt;
+}
+
+void TransceiverManager::setDiagsCapability(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    return it->second->setDiagsCapability();
+  }
+  XLOG(DBG2) << "Skip setting DiagsCapability for Transceiver=" << id
+             << ". Transceiver is not present";
+}
 } // namespace facebook::fboss

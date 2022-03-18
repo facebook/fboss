@@ -221,6 +221,8 @@ class TransceiverManager {
   void markLastDownTime(TransceiverID id) noexcept;
 
   bool verifyEepromChecksums(TransceiverID id);
+
+  void setDiagsCapability(TransceiverID id);
   // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status
@@ -271,6 +273,8 @@ class TransceiverManager {
   phy::PrbsStats getPortPrbsStats(PortID portId, phy::PrbsComponent component);
 
   void clearPortPrbsStats(PortID portId, phy::PrbsComponent component);
+
+  std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 
  protected:
   /*

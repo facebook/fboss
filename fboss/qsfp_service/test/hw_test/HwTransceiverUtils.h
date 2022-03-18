@@ -21,6 +21,14 @@ class HwTransceiverUtils {
       const TransceiverInfo& transceiver,
       cfg::PortProfileID profile);
 
+  // T114627923 Because some old firmware might not enable all capabilities
+  // use `skipCheckingIndividualCapability` to skip checking individual
+  // capability until we can make sure all modules have the latest firmware
+  static void verifyDiagsCapability(
+      const TransceiverInfo& transceiver,
+      std::optional<DiagsCapability> diagsCapability,
+      bool skipCheckingIndividualCapability = true);
+
  private:
   static void verifyOpticsSettings(const TransceiverInfo& transceiver);
   static void verifyMediaInterfaceCompliance(

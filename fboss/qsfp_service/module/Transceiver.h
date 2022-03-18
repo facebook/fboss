@@ -183,6 +183,10 @@ class Transceiver {
 
   virtual void resetDataPath() = 0;
 
+  virtual std::optional<DiagsCapability> getDiagsCapability() const = 0;
+
+  virtual void setDiagsCapability() {}
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
 

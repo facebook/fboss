@@ -213,10 +213,12 @@ bool operator()(
     Target& /* trg */) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   try {
+    auto tcvrMgr = fsm.get_attribute(transceiverMgrPtr);
     // After discovery check if the EEPROM content is correct by verifying the
     // checksum in various pages.
     // For now, we ONLY LOG the eeprom checksums fail.
-    fsm.get_attribute(transceiverMgrPtr)->verifyEepromChecksums(tcvrID);
+    tcvrMgr->verifyEepromChecksums(tcvrID);
+    tcvrMgr->setDiagsCapability(tcvrID);
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here

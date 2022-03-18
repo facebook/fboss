@@ -117,9 +117,11 @@ class HwStateMachineTest : public HwTest {
         // Just finished transceiver programming
         // Only care enabled ports
         if (programmedPortToPortInfo.size() == 1) {
+          const auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
           utility::HwTransceiverUtils::verifyTransceiverSettings(
-              wedgeMgr->getTransceiverInfo(id),
-              programmedPortToPortInfo.begin()->second.profile);
+              tcvrInfo, programmedPortToPortInfo.begin()->second.profile);
+          utility::HwTransceiverUtils::verifyDiagsCapability(
+              tcvrInfo, wedgeMgr->getDiagsCapability(id));
         }
         // After transceiver is programmed, needResetDataPath should be false
         EXPECT_FALSE(wedgeMgr->getNeedResetDataPath(id));
@@ -253,6 +255,8 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
           if (programmedPortToPortInfo.size() == 1) {
             utility::HwTransceiverUtils::verifyTransceiverSettings(
                 transceiver, programmedPortToPortInfo.begin()->second.profile);
+            utility::HwTransceiverUtils::verifyDiagsCapability(
+                transceiver, wedgeMgr->getDiagsCapability(id));
           }
         }
       }
