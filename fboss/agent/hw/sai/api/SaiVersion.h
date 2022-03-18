@@ -10,8 +10,10 @@
 
 #pragma once
 
+#if !defined(SAI_VERSION)
 #define SAI_VERSION(major, minor, micro) \
   (100000 * (major) + 1000 * (minor) + (micro))
+#endif
 
 #if !defined(SAI_API_VERSION)
 #if (!defined(SAI_VER_MAJOR)) || (!defined(SAI_VER_MINOR)) || \
