@@ -56,9 +56,14 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
   auto oldState = getState();
   auto newState = updateFn(oldState);
   if (newState) {
-    auto appliedState =
-        getHwSwitch()->stateChanged(StateDelta(oldState, newState));
-    setState(appliedState);
+    try {
+      auto appliedState =
+          getHwSwitch()->stateChanged(StateDelta(oldState, newState));
+      setState(appliedState);
+    } catch (const std::exception& e) {
+      XLOG(FATAL) << "Failed to apply update: " << name
+                  << " exception: " << e.what();
+    }
   }
 }
 
