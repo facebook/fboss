@@ -22,16 +22,8 @@ class HwSflowTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    // add a default reason to queue mapping if there are none in the config
-    if (!cfg.cpuTrafficPolicy()) {
-      cfg.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
-    }
-    if (!cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
-      cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {};
-    }
-    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->push_back(
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::UNMATCHED, utility::kCoppDefaultPriQueueId));
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, this->getAsic());
     return cfg;
   }
 
@@ -54,12 +46,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
 
   uint64_t getSampledPackets() {
     return std::get<0>(utility::getCpuQueueOutPacketsAndBytes(
-        getHwSwitch(),
-        // TODO: Configure queue through hostif trap samplepacket
-        getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                HwAsic::AsicType::ASIC_TYPE_EBRO
-            ? utility::kCoppLowPriQueueId
-            : utility::kCoppDefaultPriQueueId));
+        getHwSwitch(), utility::kCoppLowPriQueueId));
   }
 
   void runTest(bool enableSflow) {
