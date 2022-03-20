@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
@@ -690,7 +691,8 @@ void SaiMacsecManager::removeMacsecSecureAssoc(
     PortID linePort,
     MacsecSecureChannelId secureChannelId,
     sai_macsec_direction_t direction,
-    uint8_t assocNum) {
+    uint8_t assocNum,
+    bool skipHwUpdate) {
   auto scHandle =
       getMacsecSecureChannelHandle(linePort, secureChannelId, direction);
   if (!scHandle) {
@@ -706,6 +708,14 @@ void SaiMacsecManager::removeMacsecSecureAssoc(
         ", ",
         assocNum);
   }
+
+  // If hardware skip is required then make the SA object owned by adapter so
+  // that later when the code tries to delete it then the Sai Store does not
+  // make SAI driver call to delete it from hardware
+  if (skipHwUpdate) {
+    saHandle->second->setOwnedByAdapter(true);
+  }
+
   scHandle->secureAssocs.erase(saHandle);
   XLOG(DBG2) << "removed macsec SA for secureChannelId:assocNum: "
              << secureChannelId << ":" << assocNum;
@@ -1387,7 +1397,8 @@ void SaiMacsecManager::deleteMacsec(
     PortID linePort,
     const mka::MKASak& sak,
     const mka::MKASci& sci,
-    sai_macsec_direction_t direction) {
+    sai_macsec_direction_t direction,
+    bool skipHwUpdate) {
   std::string sciString =
       folly::to<std::string>(*sci.macAddress(), ".", *sci.port());
   // TODO(ccpowers): Break this back out into a helper method
@@ -1416,12 +1427,35 @@ void SaiMacsecManager::deleteMacsec(
         linePort);
   }
 
-  removeMacsecSecureAssoc(linePort, scIdentifier, direction, assocNum);
+  removeMacsecSecureAssoc(
+      linePort, scIdentifier, direction, assocNum, skipHwUpdate);
 
   // If there's no SA's on this SC, remove the SC
-  if (secureChannelHandle->secureAssocs.empty()) {
+  if (secureChannelHandle->secureAssocs.empty() && !skipHwUpdate) {
     removeMacsecSecureChannel(linePort, scIdentifier, direction);
   }
+}
+
+std::optional<MacsecSASaiId> SaiMacsecManager::getMacsecSaAdapterKey(
+    PortID linePort,
+    sai_macsec_direction_t direction,
+    const mka::MKASci& sci,
+    uint8_t assocNum) {
+  auto mac = folly::MacAddress(*sci.macAddress());
+  auto scIdentifier = MacsecSecureChannelId(mac.u64NBO() | *sci.port());
+
+  auto secureChannelHandle =
+      getMacsecSecureChannelHandle(linePort, scIdentifier, direction);
+  if (!secureChannelHandle) {
+    return std::nullopt;
+  }
+
+  auto secureAssoc =
+      getMacsecSecureAssoc(linePort, scIdentifier, direction, assocNum);
+  if (!secureAssoc) {
+    return std::nullopt;
+  }
+  return secureAssoc->adapterKey();
 }
 
 void SaiMacsecManager::removeScAcls(

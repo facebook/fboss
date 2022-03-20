@@ -1265,24 +1265,44 @@ void SaiPortManager::programMacsec(
     } else {
       // TX SAK mismatch between old and new. Reprogram SAK TX
       auto txSak = *newTxSak;
-      if (oldTxSak &&
-          ((oldTxSak->sci().value() == txSak.sci().value()) &&
-           (oldTxSak->assocNum().value() == txSak.assocNum().value()))) {
-        // The old Tx SAK is present and new Tx SAK with same key but different
-        // value is to be added. So delete the old Tx SAK first and then add new
-        // Tx SAK
+      std::optional<MacsecSASaiId> oldTxSaAdapter{std::nullopt};
+
+      if (oldTxSak) {
+        // The old Tx SAK is present and new Tx SAK needs to be added. This new
+        // Tx SAK may or may not have same Sci as old one and this may or may
+        // not have same AN as the old one. So delete the old Tx SAK first and
+        // then add new Tx SAK
         auto oldSak = *oldTxSak;
+        oldTxSaAdapter = macsecManager.getMacsecSaAdapterKey(
+            portId,
+            SAI_MACSEC_DIRECTION_EGRESS,
+            oldSak.sci().value(),
+            oldSak.assocNum().value());
+
         XLOG(INFO) << "Updating Tx SAK by Deleting and Adding. MAC="
                    << oldSak.sci()->macAddress().value()
-                   << " port=" << oldSak.sci()->port().value();
+                   << " port=" << oldSak.sci()->port().value()
+                   << " AN=" << oldSak.assocNum().value();
+        // Delete the old Tx SAK in software first (by passing
+        // skipHwUpdate=True) and then add the new Tx SAK (in software as well
+        // as hardware). This new Tx SAK will replace the old SAK in hardware
+        // without impacting the traffic. Later we will delete the old Tx SAK
+        // SAI object from SAI driver
         macsecManager.deleteMacsec(
-            portId, oldSak, *oldSak.sci(), SAI_MACSEC_DIRECTION_EGRESS);
+            portId, oldSak, *oldSak.sci(), SAI_MACSEC_DIRECTION_EGRESS, true);
       }
       XLOG(INFO) << "Setup Egress Macsec for MAC="
                  << txSak.sci()->macAddress().value()
                  << " port=" << txSak.sci()->port().value();
       macsecManager.setupMacsec(
           portId, txSak, *txSak.sci(), SAI_MACSEC_DIRECTION_EGRESS);
+
+      // If the old Tx SAK was deleted in software, then it would have got
+      // overwritten in hardware by setupMacsec above. So now remove the old
+      // Tx SAK object from SAI driver.
+      if (oldTxSaAdapter.has_value()) {
+        SaiApiTable::getInstance()->macsecApi().remove(oldTxSaAdapter.value());
+      }
     }
   }
   // RX SAKS

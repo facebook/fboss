@@ -72,12 +72,19 @@ class SaiMacsecManager {
       PortID linePort,
       const mka::MKASak& sak,
       const mka::MKASci& sci,
-      sai_macsec_direction_t direction);
+      sai_macsec_direction_t direction,
+      bool skipHwUpdate = false);
 
   void updateStats(PortID port, HwPortStats& portStats);
 
   void
   setMacsecState(PortID linePort, bool macsecDesired, bool dropUnencrypted);
+
+  std::optional<MacsecSASaiId> getMacsecSaAdapterKey(
+      PortID linePort,
+      sai_macsec_direction_t direction,
+      const mka::MKASci& sci,
+      uint8_t assocNum);
 
  private:
   const SaiMacsecHandle* FOLLY_NULLABLE
@@ -180,7 +187,8 @@ class SaiMacsecManager {
       PortID linePort,
       MacsecSecureChannelId secureChannelId,
       sai_macsec_direction_t direction,
-      uint8_t assocNum);
+      uint8_t assocNum,
+      bool skipHwUpdate = false);
 
   void removeScAcls(PortID linePort, sai_macsec_direction_t direction);
 
