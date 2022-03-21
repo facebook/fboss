@@ -26,12 +26,16 @@ class FsdbSyncer : public StateObserver {
   void cfgUpdated(const cfg::SwitchConfig& /*newConfig*/);
 
  private:
-  void fsdbConnectionStateChanged(
+  void fsdbStatePublisherStateChanged(
+      fsdb::FsdbStreamClient::State oldState,
+      fsdb::FsdbStreamClient::State newState);
+  void fsdbStatPublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
-  std::atomic<bool> readyForPublishing_{false};
+  std::atomic<bool> readyForStatePublishing_{false};
+  std::atomic<bool> readyForStatPublishing_{false};
 };
 
 } // namespace facebook::fboss
