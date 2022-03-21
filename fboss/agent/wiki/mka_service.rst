@@ -1,5 +1,10 @@
+
 MKA Service design
 ##########################
+Macsec document index
+-------------------------
+* Project - https://fburl.com/zl271048
+* ASIC and specs - https://fburl.com/y1al6c8m
 
 Overview 
 --------
@@ -149,9 +154,10 @@ TBD
 
 Testing and qualification
 --------------------------
-
-We perform the following tests for MACSEC as part of link testing https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/test/link_tests/MacsecTest.cpp
-
-* MKA session establishment + SAK installation - https://fburl.com/code/pe7o18sm
+* Link tests https://www.internalfb.com/code/fbsource/fbcode/fboss/agent/test/link_tests/MacsecTest.cpp
+* Standalone QSFP HW tests - https://www.internalfb.com/code/fbsource/fbcode/fboss/qsfp_service/test/hw_test/HwMacsecTest.cpp
 
 
+Config knobs and expected behavior
+-----------------------------------
+Drop unencrypted and macsec desired knobs combinations - https://fburl.com/gsheet/j60x6wck
