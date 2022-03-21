@@ -705,4 +705,94 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
   }
 }
 
+TEST_F(HwMacsecTest, verifyMacsecAclStates) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+
+    auto localSci = makeSci(macGen.getNext().toString(), port);
+    auto remoteSci = makeSci(macGen.getNext().toString(), port);
+    auto sakKey1 = sakKeyGen.getNext();
+    auto sakKeyId1 = sakKeyIdGen.getNext();
+    auto sakKey2 = sakKeyGen.getNext();
+    auto sakKeyId2 = sakKeyIdGen.getNext();
+    auto rxSak = makeSak(
+        remoteSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        1);
+    auto txSak = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey2,
+        sakKeyId2,
+        0);
+
+    wedgeManager->programXphyPort(port, profile);
+
+    // Verify Macsec state does not exists
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+    XLOG(INFO)
+        << "Verify Macsec ACL does not exist by default after init for port "
+        << port;
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, false, false);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_INGRESS, phyManager, false, false);
+
+    // Set the MacsecDesired=True, dropUnencrypted=True and verify ACL
+    XLOG(INFO)
+        << "setupMacsecState with MacsecDesired=True and dropUnencrypted=True and verify for port "
+        << port;
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, true, true);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, true, true);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true, true);
+
+    // Install the Rx and Tx key with default dropUnencrypted=True and then
+    // verify ACL change from Drop to Forward
+    XLOG(INFO) << "Install Tx and Rx Macsec key for port " << port;
+    phyManager->sakInstallTx(txSak);
+    phyManager->sakInstallRx(rxSak, remoteSci);
+
+    XLOG(INFO) << "Verify dropUnencrypted=True for the port " << port;
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, true, true);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true, true);
+
+    // Set dropUnencrypted=False and verify again
+    XLOG(INFO)
+        << "setupMacsecState with MacsecDesired=True and dropUnencrypted=False and verify for port "
+        << port;
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, true, false);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, true, false);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_INGRESS, phyManager, true, false);
+
+    // Cleanup the Macsec state
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, false, false);
+    verifyMacsecAclSetup(
+        port, SAI_MACSEC_DIRECTION_INGRESS, phyManager, false, false);
+  }
+}
+
 } // namespace facebook::fboss
