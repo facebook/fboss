@@ -4,8 +4,6 @@ namespace py.asyncio neteng.fboss.asyncio.fsdb_oper
 namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb_oper
 
-include "fboss/agent/agent_config.thrift"
-include "fboss/agent/agent_stats.thrift"
 include "fboss/fsdb/if/fsdb_common.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
@@ -70,24 +68,3 @@ struct OperSubInitResponse {}
 /*
  * The MODEL for the operational state should be defined below this line.
  */
-
-struct AgentData {
-  1: agent_config.AgentConfig config;
-}
-
-struct BgpData {}
-
-struct QsfpServiceData {}
-
-struct OpenrData {}
-
-struct FsdbOperStateRoot {
-  1: AgentData agent;
-  2: BgpData bgp;
-  3: OpenrData openr;
-  4: QsfpServiceData qsfp_service;
-} (thriftpath.root)
-
-struct FsdbOperStatsRoot {
-  1: agent_stats.AgentStats agent;
-} (thriftpath.root)
