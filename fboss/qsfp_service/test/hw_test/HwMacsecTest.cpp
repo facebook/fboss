@@ -581,4 +581,80 @@ TEST_F(HwMacsecTest, updateTxKeys) {
   }
 }
 
+TEST_F(HwMacsecTest, cleanupMacsec) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+
+    auto macGen = facebook::fboss::utility::MacAddressGenerator();
+    auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+    auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+
+    auto localSci = makeSci(macGen.getNext().toString(), port);
+    auto remoteSci = makeSci(macGen.getNext().toString(), port);
+    auto sakKey1 = sakKeyGen.getNext();
+    auto sakKeyId1 = sakKeyIdGen.getNext();
+    auto sakKey2 = sakKeyGen.getNext();
+    auto sakKeyId2 = sakKeyIdGen.getNext();
+    auto rxSak = makeSak(
+        remoteSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey1,
+        sakKeyId1,
+        1);
+    auto txSak = makeSak(
+        localSci,
+        *platPort->second.mapping_ref()->name_ref(),
+        sakKey2,
+        sakKeyId2,
+        0);
+
+    wedgeManager->programXphyPort(port, profile);
+
+    // Set the MacsecDesired=True
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, true, true);
+
+    // Install and verify the Macsec Tx Key
+    XLOG(INFO) << "Install and verify Macsec TX key for port " << port;
+    phyManager->sakInstallTx(txSak);
+    verifyMacsecProgramming(
+        port, txSak, localSci, SAI_MACSEC_DIRECTION_EGRESS, phyManager);
+
+    // Install and verify Macsec Rx Key
+    XLOG(INFO) << "Install and verify Macsec RX key for port " << port;
+    phyManager->sakInstallRx(rxSak, remoteSci);
+    verifyMacsecProgramming(
+        port, rxSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS, phyManager);
+
+    // Set MacsecDesired=False which will cleanup Macsec on the port
+    phyManager->setupMacsecState(
+        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+
+    // Verify no Macsec keys exits on Tx and Rx ports
+    XLOG(INFO) << "Verify Macsec TX and RX keys got removed for port " << port;
+    verifyMacsecProgramming(
+        port,
+        txSak,
+        localSci,
+        SAI_MACSEC_DIRECTION_EGRESS,
+        phyManager,
+        true,
+        true);
+    verifyMacsecProgramming(
+        port,
+        rxSak,
+        remoteSci,
+        SAI_MACSEC_DIRECTION_INGRESS,
+        phyManager,
+        true,
+        true);
+  }
+}
+
 } // namespace facebook::fboss
