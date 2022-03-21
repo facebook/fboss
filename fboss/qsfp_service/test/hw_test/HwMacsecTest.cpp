@@ -113,12 +113,23 @@ class HwMacsecTest : public HwExternalPhyPortTest {
 
     auto portHandle = portManager.getPortHandle(portId);
     auto macsecHandle = macsecManager.getMacsecHandle(direction);
-    auto macsecPortHandle =
-        macsecManager.getMacsecPortHandle(portId, direction);
-    auto macsecSecureChannelHandle = macsecManager.getMacsecSecureChannelHandle(
-        portId, scIdentifier, direction);
-    auto macsecSecureAssoc = macsecManager.getMacsecSecureAssoc(
-        portId, scIdentifier, direction, *sak.assocNum() % 4);
+
+    SaiMacsecPortHandle* macsecPortHandle{nullptr};
+    if (macsecHandle) {
+      macsecPortHandle = macsecManager.getMacsecPortHandle(portId, direction);
+    }
+
+    SaiMacsecSecureChannelHandle* macsecSecureChannelHandle{nullptr};
+    if (macsecPortHandle) {
+      macsecSecureChannelHandle = macsecManager.getMacsecSecureChannelHandle(
+          portId, scIdentifier, direction);
+    }
+
+    SaiMacsecSecureAssoc* macsecSecureAssoc{nullptr};
+    if (macsecSecureChannelHandle) {
+      macsecSecureAssoc = macsecManager.getMacsecSecureAssoc(
+          portId, scIdentifier, direction, *sak.assocNum_ref() % 4);
+    }
 
     // Verify all macsec objects were created/destroyed
     if (!expectAbsent) {
