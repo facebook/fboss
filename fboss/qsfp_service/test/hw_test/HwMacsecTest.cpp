@@ -795,4 +795,61 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
   }
 }
 
+TEST_F(HwMacsecTest, rotateKeysSameAN) {
+  auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  const auto& platPorts =
+      getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
+  auto macGen = facebook::fboss::utility::MacAddressGenerator();
+  auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
+  auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
+  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+    auto platPort = platPorts.find(port);
+    CHECK(platPort != platPorts.end())
+        << " Could not find platform port with ID " << port;
+    auto sci = makeSci(macGen.getNext().toString(), port);
+    wedgeManager->programXphyPort(port, profile);
+    auto installKeys = [=, port = port](auto direction) mutable {
+      std::optional<mka::MKASak> prevSak;
+      bool isIngress = direction == SAI_MACSEC_DIRECTION_INGRESS;
+      // 5 rotations to overflow 2 bit AN space
+      for (auto i = 0; i < 5; ++i) {
+        XLOG(INFO) << " Iteration: " << i << " for dir "
+                   << (isIngress ? "ingress" : "egress");
+        auto sak = makeSak(
+            sci,
+            *platPort->second.mapping()->name(),
+            sakKeyGen.getNext(),
+            sakKeyIdGen.getNext(),
+            0);
+        XLOG(INFO) << "Installing SAK for port " << port;
+        isIngress ? phyManager->sakInstallRx(sak, sci)
+                  : phyManager->sakInstallTx(sak);
+
+        verifyMacsecProgramming(port, sak, sci, direction, phyManager);
+
+        if (prevSak) {
+          XLOG(INFO) << "Verifying removal of old SAK for port " << port;
+          verifyMacsecProgramming(
+              port,
+              *prevSak,
+              sci,
+              direction,
+              phyManager,
+              false /*expect absent*/,
+              true /* expect key mismatch*/);
+        }
+        prevSak = sak;
+      }
+      // Delete keys
+      isIngress ? phyManager->sakDeleteRx(*prevSak, sci)
+                : phyManager->sakDelete(*prevSak);
+      XLOG(INFO) << "Verifying removal of old SAK for port " << port;
+      verifyMacsecProgramming(
+          port, *prevSak, sci, direction, phyManager, true /*expect absent*/);
+    };
+    installKeys(SAI_MACSEC_DIRECTION_INGRESS);
+    installKeys(SAI_MACSEC_DIRECTION_EGRESS);
+  }
+}
 } // namespace facebook::fboss
