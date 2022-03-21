@@ -279,6 +279,54 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // * verify that the acl entry is actually valid
   }
 
+  void verifyMacsecAclSetup(
+      PortID portId,
+      sai_macsec_direction_t direction,
+      PhyManager* phyManager,
+      bool macsecDesired = true,
+      bool dropUnencrypted = false) {
+    if (!getHwQsfpEnsemble()->isSaiPlatform()) {
+      throw FbossError("Cannot verify Macsec programming on non-sai platform");
+    }
+
+    auto saiPhyManager = static_cast<SaiPhyManager*>(phyManager);
+    auto* managerTable =
+        static_cast<SaiSwitch*>(
+            saiPhyManager->getSaiPlatform(portId)->getHwSwitch())
+            ->managerTable();
+
+    auto& aclManager = managerTable->aclTableManager();
+
+    // Get Macsec ACL table
+    auto aclName = folly::to<std::string>(
+        "macsec-",
+        direction == SAI_MACSEC_DIRECTION_INGRESS ? "ingress" : "egress",
+        "-port",
+        portId);
+    auto aclTableHandle = aclManager.getAclTableHandle(aclName);
+
+    // If macsecDesired is false then ACL table should not exist
+    if (!macsecDesired) {
+      EXPECT_EQ(aclTableHandle, nullptr);
+      return;
+    } else {
+      EXPECT_NE(aclTableHandle, nullptr);
+    }
+
+    // Check the default data packet ACL rule action with dropUnencrypted value
+    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 4);
+    EXPECT_NE(aclEntryHandle, nullptr);
+
+    auto aclAttrs = aclEntryHandle->aclEntry->attributes();
+    auto pktAction = GET_OPT_ATTR(AclEntry, ActionPacketAction, aclAttrs);
+
+    if (dropUnencrypted) {
+      EXPECT_EQ(pktAction.getData(), SAI_PACKET_ACTION_DROP);
+    } else {
+      EXPECT_EQ(pktAction.getData(), SAI_PACKET_ACTION_FORWARD);
+    }
+  }
+
   SaiPhyManager* phyManager;
 };
 
