@@ -278,6 +278,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // * verify that we set ingressmacsecAcl and egressMacsecAcl correctly
     // * verify that the acl entry is actually valid
   }
+  void rotateKeysMultiple(bool circleThroughAN = true);
 
   void verifyMacsecAclSetup(
       PortID portId,
@@ -795,7 +796,7 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
   }
 }
 
-TEST_F(HwMacsecTest, rotateKeysSameAN) {
+void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
   auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
@@ -816,28 +817,31 @@ TEST_F(HwMacsecTest, rotateKeysSameAN) {
       for (auto i = 0; i < 5; ++i) {
         XLOG(INFO) << " Iteration: " << i << " for dir "
                    << (isIngress ? "ingress" : "egress");
+        auto an = circleThroughAN ? i % 4 : 0;
         auto sak = makeSak(
             sci,
             *platPort->second.mapping()->name(),
             sakKeyGen.getNext(),
             sakKeyIdGen.getNext(),
-            0);
-        XLOG(INFO) << "Installing SAK for port " << port;
+            an);
         isIngress ? phyManager->sakInstallRx(sak, sci)
                   : phyManager->sakInstallTx(sak);
 
         verifyMacsecProgramming(port, sak, sci, direction, phyManager);
-
         if (prevSak) {
           XLOG(INFO) << "Verifying removal of old SAK for port " << port;
+          bool expectAbsent = !isIngress && circleThroughAN;
           verifyMacsecProgramming(
               port,
               *prevSak,
               sci,
               direction,
               phyManager,
-              false /*expect absent*/,
-              true /* expect key mismatch*/);
+              expectAbsent,
+              // When circling through AN, if the key is not absent (RX)
+              // it will still match in HW, since the key with old AN
+              // is still in HW
+              !circleThroughAN /*expect key mismatch*/);
         }
         prevSak = sak;
       }
@@ -851,5 +855,12 @@ TEST_F(HwMacsecTest, rotateKeysSameAN) {
     installKeys(SAI_MACSEC_DIRECTION_INGRESS);
     installKeys(SAI_MACSEC_DIRECTION_EGRESS);
   }
+}
+
+TEST_F(HwMacsecTest, rotateKeysSameAN) {
+  rotateKeysMultiple(false);
+}
+TEST_F(HwMacsecTest, rotateKeysDifferentAN) {
+  rotateKeysMultiple(true);
 }
 } // namespace facebook::fboss
