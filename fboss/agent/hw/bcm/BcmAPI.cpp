@@ -142,6 +142,10 @@ void BcmAPI::updateUsingOverrideMap(HwConfigMap& hwConfig) {
       // Fix BcmQosMapTest.BcmAllQosMaps failure.
       // See context details in D26037426
       {"qos_map_multi_get_mode", "1"},
+
+      // Fix PCIe firmware related SDK init failure on Yamp.
+      // See context details in D22353702
+      {"disable_pcie_firmware_check.0", "1"},
   };
 
   for (const auto& entry : overrideConfMap) {
