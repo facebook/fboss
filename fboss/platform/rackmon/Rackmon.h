@@ -12,7 +12,8 @@ namespace rackmon {
 class Rackmon {
   static constexpr time_t kDormantMinInactiveTime = 300;
   static constexpr ModbusTime kProbeTimeout = std::chrono::milliseconds(50);
-  std::vector<std::unique_ptr<PollThread<Rackmon>>> threads_{};
+  std::unique_ptr<PollThread<Rackmon>> monitorThread_;
+  std::unique_ptr<PollThread<Rackmon>> scanThread_;
   // Has to be before defining active or dormant devices
   // to ensure users get destroyed before the interface.
   std::vector<std::unique_ptr<Modbus>> interfaces_{};
@@ -64,6 +65,20 @@ class Rackmon {
   void scan();
 
  protected:
+  PollThread<Rackmon>& getScanThread() {
+    if (!scanThread_) {
+      throw std::runtime_error("Invalid scanThread state");
+    }
+    return *scanThread_;
+  }
+
+  PollThread<Rackmon>& getMonitorThread() {
+    if (!monitorThread_) {
+      throw std::runtime_error("Invalid monitorThread state");
+    }
+    return *monitorThread_;
+  }
+
   virtual std::unique_ptr<Modbus> makeInterface() {
     return std::make_unique<Modbus>(profileStore_);
   }
@@ -85,6 +100,11 @@ class Rackmon {
   // Load configuration, preferable before starting, but can be
   // done at any time, but this is a one time only.
   void load(const std::string& confPath, const std::string& regmapDir);
+
+  // Create a worker thread
+  virtual std::unique_ptr<PollThread<Rackmon>> makeThread(
+      std::function<void(Rackmon*)> func,
+      PollThreadTime interval);
 
   // Start the monitoring/scanning loops
   void start(PollThreadTime interval = std::chrono::minutes(3));

@@ -10,6 +10,7 @@ namespace rackmon {
 using PollThreadTime = std::chrono::seconds;
 template <class T>
 class PollThread {
+ protected:
   std::mutex eventMutex_{};
   std::condition_variable ack_{};
   std::condition_variable eventCV_{};

@@ -96,6 +96,12 @@ class MockRackmon : public Rackmon {
   const RegisterMapDatabase& getMap() {
     return getRegisterMapDatabase();
   }
+  void scanTick() {
+    getScanThread().tick();
+  }
+  void monitorTick() {
+    getMonitorThread().tick();
+  }
 };
 
 class RackmonTest : public ::testing::Test {
@@ -242,7 +248,9 @@ TEST_F(RackmonTest, BasicScanFoundOne) {
       .WillOnce(Return(ByMove(make_modbus(161, 4))));
   mon.load(r_conf, r_test_dir);
   mon.start();
-  std::this_thread::sleep_for(1s);
+
+  // Fake elapsed time of one interval.
+  mon.scanTick();
   std::vector<ModbusDeviceInfo> devs = mon.listDevices();
   EXPECT_EQ(devs.size(), 1);
   EXPECT_EQ(devs[0].deviceAddress, 161);
@@ -288,12 +296,16 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
       .WillOnce(Return(ByMove(make_modbus(161, 4))));
   mon.load(r_conf, r_test_dir);
   mon.start(1s);
-  std::this_thread::sleep_for(1s);
+
+  // Fake that a tick has elapsed on scan's pollthread.
+  mon.scanTick();
   std::vector<ModbusDeviceInfo> devs = mon.listDevices();
   EXPECT_EQ(devs.size(), 1);
   EXPECT_EQ(devs[0].deviceAddress, 161);
   EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
-  std::this_thread::sleep_for(1s);
+
+  // Fake that a tick has elapsed on monitor's pollthread.
+  mon.monitorTick();
   mon.stop();
   std::vector<ModbusDeviceValueData> data;
   mon.getValueData(data);
