@@ -48,6 +48,8 @@ std::unique_ptr<UARTDevice> Modbus::makeDevice(
     ret = std::make_unique<UARTDevice>(devicePath, baudrate);
   } else if (deviceType == "AspeedRS485") {
     ret = std::make_unique<AspeedRS485Device>(devicePath, baudrate);
+  } else if (deviceType == "LocalEcho") {
+    ret = std::make_unique<LocalEchoUARTDevice>(devicePath, baudrate);
   } else {
     throw std::runtime_error("Unknown device type: " + deviceType);
   }

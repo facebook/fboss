@@ -51,4 +51,12 @@ class AspeedRS485Device : public UARTDevice {
   void open() override;
 };
 
+class LocalEchoUARTDevice : public UARTDevice {
+ public:
+  LocalEchoUARTDevice(const std::string& device, int baudrate)
+      : UARTDevice(device, baudrate) {}
+  void write(const uint8_t* buf, size_t len) override;
+  void waitWrite() override {}
+};
+
 } // namespace rackmon

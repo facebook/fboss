@@ -103,4 +103,20 @@ void UARTDevice::write(const uint8_t* buf, size_t len) {
   pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
 }
 
+void LocalEchoUARTDevice::write(const uint8_t* buf, size_t len) {
+  const int txTimeoutMs = 100;
+  Device::write(buf, len);
+  std::array<uint8_t, 256> txCheckBuf;
+  size_t readBytes = read(txCheckBuf.data(), len, txTimeoutMs);
+  if (readBytes != len) {
+    logError << "Expected to read back " << len
+             << " bytes but read: " << readBytes << std::endl;
+    throw std::runtime_error("Wrote lesser bytes than requested");
+  }
+  if (memcmp(buf, txCheckBuf.data(), len) != 0) {
+    logError << "TX and Echoed buffers do not match" << std::endl;
+    throw std::runtime_error("Mismatch in written buffer");
+  }
+}
+
 } // namespace rackmon
