@@ -26,6 +26,9 @@ class FsdbSyncer : public StateObserver {
   // TODO - change to AgentConfig once SwSwitch can pass us that
   void cfgUpdated(const cfg::SwitchConfig& /*newConfig*/);
   void statsUpdated(const AgentStats& stats);
+  fsdb::FsdbPubSubManager* pubSubMgr() {
+    return fsdbPubSubMgr_.get();
+  }
 
  private:
   void fsdbStatePublisherStateChanged(

@@ -726,6 +726,10 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   void setFibSyncTimeForClient(ClientID clientId);
+
+  FsdbSyncer* fsdbSyncer() {
+    return fsdbSyncer_.get();
+  }
   /*
    * Public use only in tests
    */
