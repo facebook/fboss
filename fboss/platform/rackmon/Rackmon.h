@@ -10,6 +10,7 @@
 namespace rackmon {
 
 class Rackmon {
+  static constexpr int kScanNumRetry = 3;
   static constexpr time_t kDormantMinInactiveTime = 300;
   static constexpr ModbusTime kProbeTimeout = std::chrono::milliseconds(50);
   std::unique_ptr<PollThread<Rackmon>> monitorThread_;

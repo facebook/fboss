@@ -155,7 +155,11 @@ void Rackmon::fullScan() {
     if (isDeviceKnown(addr)) {
       continue;
     }
-    probe(addr);
+    for (int i = 0; i < kScanNumRetry; i++) {
+      if (probe(addr)) {
+        break;
+      }
+    }
   }
 }
 
