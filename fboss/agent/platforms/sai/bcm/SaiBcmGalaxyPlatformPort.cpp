@@ -8,7 +8,8 @@ namespace facebook::fboss {
 void SaiBcmGalaxyPlatformPort::linkStatusChanged(bool up, bool adminUp) {
   PortID phyPortId = static_cast<PortID>(getPhysicalPortId());
 
-  if (phyPortId == 129 || phyPortId == 131) {
+  if (phyPortId == static_cast<PortID>(129) ||
+      phyPortId == static_cast<PortID>(131)) {
     return;
   }
   uint32_t index = GalaxyLedUtils::getPortIndex(phyPortId);

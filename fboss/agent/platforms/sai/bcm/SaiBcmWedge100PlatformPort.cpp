@@ -41,8 +41,9 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
 void SaiBcmWedge100PlatformPort::compactLEDStateChange(uint32_t status) {
   auto quadMode = getLaneCount() == 4;
   auto channel = getChannel();
-  if (!channel || *channel == 1 || *channel == 3 ||
-      (quadMode && *channel == 2)) {
+  if (!channel || *channel == static_cast<ChannelID>(1) ||
+      *channel == static_cast<ChannelID>(3) ||
+      (quadMode && *channel == static_cast<ChannelID>(2))) {
     // We don't ever do anything for channel 1 & 3 in compact mode, and
     // we shouldn't do anything for lane 2 if in QUAD mode;
     XLOG(DBG5) << "skipping LED status change";
