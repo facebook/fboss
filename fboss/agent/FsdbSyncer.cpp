@@ -58,8 +58,8 @@ void FsdbSyncer::statsUpdated(const AgentStats& stats) {
   }
   fsdb::OperState stateUnit;
   stateUnit.contents_ref() =
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(stats);
-  stateUnit.protocol_ref() = fsdb::OperProtocol::SIMPLE_JSON;
+      apache::thrift::BinarySerializer::serialize<std::string>(stats);
+  stateUnit.protocol_ref() = fsdb::OperProtocol::BINARY;
   fsdbPubSubMgr_->publishStat(std::move(stateUnit));
 }
 
