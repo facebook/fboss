@@ -972,6 +972,8 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
+  std::optional<std::chrono::time_point<std::chrono::steady_clock>>
+      publishedStatsToFsdbAt_;
 };
 
 } // namespace facebook::fboss

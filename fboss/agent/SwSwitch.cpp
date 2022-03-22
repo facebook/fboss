@@ -130,6 +130,10 @@ DEFINE_int32(
     64,
     "Expected minimum ethernet packet length");
 
+DEFINE_int32(
+    fsdbStatsStreamIntervalSeconds,
+    5,
+    "Interval at which stats subscriptions are served");
 namespace {
 
 /**
@@ -428,8 +432,15 @@ void SwSwitch::updateStats() {
   try {
     getHw()->updateStats(stats());
     if (FLAGS_publish_stats_to_fsdb) {
-      agentStats.hwPortStats_ref() = getHw()->getPortStats();
-      fsdbSyncer_->statsUpdated(std::move(agentStats));
+      auto now = std::chrono::steady_clock::now();
+      if (!publishedStatsToFsdbAt_ ||
+          std::chrono::duration_cast<std::chrono::seconds>(
+              now - *publishedStatsToFsdbAt_)
+                  .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
+        agentStats.hwPortStats_ref() = getHw()->getPortStats();
+        fsdbSyncer_->statsUpdated(std::move(agentStats));
+        publishedStatsToFsdbAt_ = now;
+      }
     }
   } catch (const std::exception& ex) {
     stats()->updateStatsException();
