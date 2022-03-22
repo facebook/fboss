@@ -9,13 +9,6 @@ using nlohmann::json;
 
 namespace rackmon {
 
-namespace {
-static void streamHex(std::ostream& os, size_t num, size_t ndigits) {
-  os << std::hex << std::setfill('0') << std::setw(ndigits) << std::right
-     << num;
-}
-} // namespace
-
 bool AddrRange::contains(uint8_t addr) const {
   return addr >= range.first && addr <= range.second;
 }
@@ -190,70 +183,8 @@ RegisterValue::~RegisterValue() {
   }
 }
 
-RegisterValue::operator std::string() {
-  std::string ret = "";
-  std::stringstream os;
-  switch (type) {
-    case RegisterValueType::STRING:
-      os << value.strValue;
-      break;
-    case RegisterValueType::INTEGER:
-      os << value.intValue;
-      break;
-    case RegisterValueType::FLOAT:
-      os << std::fixed << std::setprecision(2) << value.floatValue;
-      break;
-    case RegisterValueType::FLAGS:
-      // We could technically be clever and pack this as a
-      // JSON object. But considering this is designed for
-      // human consumption only, we can make it pretty
-      // (and backwards compatible with V1's output).
-      for (auto& [bitval, name, pos] : value.flagsValue) {
-        if (bitval) {
-          os << "\n*[1] <";
-        } else {
-          os << "\n [0] <";
-        }
-        os << int(pos) << "> " << name;
-      }
-      break;
-    case RegisterValueType::HEX:
-      for (uint8_t byte : value.hexValue) {
-        os << std::hex << std::setw(2) << std::setfill('0') << int(byte);
-      }
-      break;
-  }
-  return os.str();
-}
-
-Register::operator std::string() const {
-  return RegisterValue(value, desc, timestamp);
-}
-
 Register::operator RegisterValue() const {
   return RegisterValue(value, desc, timestamp);
-}
-
-RegisterStore::operator std::string() const {
-  std::stringstream ss;
-
-  // Format we are going for.
-  // "  <0x0000> MFG_MODEL                        :700-014671-0000  "
-  ss << "  <0x";
-  streamHex(ss, desc_.begin, 4);
-  ss << "> " << std::setfill(' ') << std::setw(32) << std::left << desc_.name
-     << " :";
-  for (const auto& v : history_) {
-    if (v) {
-      if (desc_.format != RegisterValueType::FLAGS) {
-        ss << ' ';
-      } else {
-        ss << '\n';
-      }
-      ss << std::string(v);
-    }
-  }
-  return ss.str();
 }
 
 RegisterStore::operator RegisterStoreValue() const {
@@ -378,8 +309,11 @@ void to_json(json& j, const RegisterValue& m) {
 
 void to_json(json& j, const Register& m) {
   j["time"] = m.timestamp;
-  std::string data = RegisterValue(m.value);
-  j["data"] = data;
+  std::stringstream ss;
+  for (auto r : m.value) {
+    ss << std::hex << std::setw(4) << std::setfill('0') << r;
+  }
+  j["data"] = ss.str();
 }
 
 void to_json(json& j, const RegisterStoreValue& m) {

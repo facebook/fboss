@@ -177,17 +177,6 @@ ModbusDeviceInfo ModbusDevice::getInfo() {
   return info_;
 }
 
-ModbusDeviceFmtData ModbusDevice::getFmtData() {
-  std::unique_lock lk(registerListMutex_);
-  ModbusDeviceFmtData data;
-  data.ModbusDeviceInfo::operator=(info_);
-  for (const auto& reg : info_.registerList) {
-    std::string str = reg;
-    data.registerList.emplace_back(std::move(str));
-  }
-  return data;
-}
-
 ModbusDeviceValueData ModbusDevice::getValueData() {
   std::unique_lock lk(registerListMutex_);
   ModbusDeviceValueData data;
@@ -275,14 +264,6 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
 
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceRawData& m) {
-  const ModbusDeviceInfo& s = m;
-  to_json(j, s);
-  j["now"] = std::time(nullptr);
-  j["ranges"] = m.registerList;
-}
-
-// Deprecated string JSON format.
-void to_json(json& j, const ModbusDeviceFmtData& m) {
   const ModbusDeviceInfo& s = m;
   to_json(j, s);
   j["now"] = std::time(nullptr);

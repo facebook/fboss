@@ -477,51 +477,6 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data3["ranges"][0]["readings"][1]["data"], "62636465");
 }
 
-// TODO Test Formatted data. Potentially, we could have
-// CLI display value data itself and we can completely
-// remove formatDataw.
-TEST_F(ModbusDeviceTest, MonitorFmtData) {
-  EXPECT_CALL(
-      get_modbus(),
-      command(
-          // addr(1) = 0x32,
-          // func(1) = 0x03,
-          // reg_off(2) = 0x0000,
-          // reg_cnt(2) = 0x0002
-          encodeMsgContentEqual(0x320300000002_EM),
-          _,
-          19200,
-          ModbusTime::zero(),
-          ModbusTime::zero()))
-      .Times(3)
-      // addr(1) = 0x32,
-      // func(1) = 0x03,
-      // bytes(1) = 0x04,
-      // data(4) = 61626364, 62636465, 63646566
-      .WillOnce(SetMsgDecode<1>(0x32030461626364_EM))
-      .WillOnce(SetMsgDecode<1>(0x32030462636465_EM))
-      .WillOnce(SetMsgDecode<1>(0x32030463646566_EM));
-
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
-
-  dev.monitor();
-  dev.monitor();
-  dev.monitor();
-  nlohmann::json data = dev.getFmtData();
-  EXPECT_EQ(data["addr"], 0x32);
-  EXPECT_EQ(data["crc_fails"], 0);
-  EXPECT_EQ(data["timeouts"], 0);
-  EXPECT_EQ(data["misc_fails"], 0);
-  EXPECT_EQ(data["mode"], "active");
-  EXPECT_EQ(data["deviceType"], "orv3_psu");
-  EXPECT_NEAR(data["now"], std::time(0), 10);
-  EXPECT_TRUE(data["ranges"].is_array() && data["ranges"].size() == 1);
-  std::string exp1_out =
-      R"(  <0x0000> MFG_MODEL                        : cdef bcde)";
-  std::string actual = data["ranges"][0];
-  EXPECT_EQ(actual, exp1_out);
-}
-
 class MockModbusDevice : public ModbusDevice {
  public:
   MockModbusDevice(Modbus& m, uint8_t addr, const RegisterMap& rmap)

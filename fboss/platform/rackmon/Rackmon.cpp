@@ -298,15 +298,6 @@ void Rackmon::getRawData(std::vector<ModbusDeviceRawData>& data) const {
       });
 }
 
-void Rackmon::getFmtData(std::vector<ModbusDeviceFmtData>& data) const {
-  data.clear();
-  std::shared_lock lock(devicesMutex_);
-  std::transform(
-      devices_.begin(), devices_.end(), std::back_inserter(data), [](auto& kv) {
-        return kv.second->getFmtData();
-      });
-}
-
 void Rackmon::getValueData(std::vector<ModbusDeviceValueData>& data) const {
   data.clear();
   std::shared_lock lock(devicesMutex_);

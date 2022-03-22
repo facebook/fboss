@@ -33,10 +33,6 @@ TEST(RegisterTest, BasicCreationCompare) {
   EXPECT_EQ(sval.type, RegisterValueType::STRING);
   EXPECT_EQ(sval.value.strValue, "700-");
 
-  // Conversion to string.
-  std::string strval = reg;
-  EXPECT_EQ(strval, "700-");
-
   Register reg2(desc);
   reg2.value = {0x3730, 0x302d};
   // Even though the regs have same value, since one is not valid,
@@ -119,9 +115,7 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
       0};
   RegisterStore reg(desc);
 
-  std::string str = reg;
   RegisterStoreValue val = reg;
-  EXPECT_EQ(str, "  <0x0000> HELLO                            :");
   EXPECT_EQ(val.regAddr, 0);
   EXPECT_EQ(val.name, "HELLO");
   EXPECT_EQ(val.history.size(), 0);
@@ -129,9 +123,7 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   reg.front().value = std::vector<uint16_t>({0x3031, 0x3233}); // "0123"
   reg.front().timestamp = 0x1234;
   ++reg;
-  str = reg;
   val = reg;
-  EXPECT_EQ(str, "  <0x0000> HELLO                            : 0123");
   EXPECT_EQ(val.regAddr, 0);
   EXPECT_EQ(val.name, "HELLO");
   EXPECT_EQ(val.history.size(), 1);
@@ -141,9 +133,7 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   reg.front().value = std::vector<uint16_t>({0x3132, 0x3334}); // "1234"
   reg.front().timestamp = 0x1234;
   ++reg;
-  str = reg;
   val = reg;
-  EXPECT_EQ(str, "  <0x0000> HELLO                            : 0123 1234");
   EXPECT_EQ(val.regAddr, 0);
   EXPECT_EQ(val.name, "HELLO");
   EXPECT_EQ(val.history.size(), 2);

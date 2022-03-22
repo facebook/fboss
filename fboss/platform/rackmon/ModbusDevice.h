@@ -61,12 +61,6 @@ struct ModbusDeviceRawData : public ModbusDeviceInfo {
 };
 void to_json(nlohmann::json& j, const ModbusDeviceRawData& m);
 
-// Device string data format (deprecated)
-struct ModbusDeviceFmtData : public ModbusDeviceInfo {
-  std::vector<std::string> registerList{};
-};
-void to_json(nlohmann::json& j, const ModbusDeviceFmtData& m);
-
 // Device interpreted register value format
 struct ModbusDeviceValueData : public ModbusDeviceInfo {
   std::vector<RegisterStoreValue> registerList{};
@@ -128,9 +122,6 @@ class ModbusDevice {
 
   // Returns raw monitor register data monitored for this device.
   ModbusDeviceRawData getRawData();
-
-  // (deprecated) Returns string formatted register data
-  ModbusDeviceFmtData getFmtData();
 
   // Returns value formatted register data monitored for this device.
   ModbusDeviceValueData getValueData();

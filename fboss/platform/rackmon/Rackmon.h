@@ -132,9 +132,6 @@ class Rackmon {
   // Get monitored data
   void getRawData(std::vector<ModbusDeviceRawData>& data) const;
 
-  // Get formatted monitor data
-  void getFmtData(std::vector<ModbusDeviceFmtData>& data) const;
-
   // Get value data
   void getValueData(std::vector<ModbusDeviceValueData>& data) const;
 

@@ -12,9 +12,6 @@ TEST(RegisterValueTest, Hex) {
   std::vector<uint8_t> exp{0x00, 0x01, 0x00, 0x02};
   EXPECT_EQ(val.type, RegisterValueType::HEX);
   EXPECT_EQ(val.value.hexValue, exp);
-  std::string strval = "00010002";
-  std::string actual = val;
-  EXPECT_EQ(actual, strval);
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -36,8 +33,6 @@ TEST(RegisterValueTest, STRING) {
       0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::STRING);
   EXPECT_EQ(val.value.strValue, "700-014671-0000 ");
-  std::string actual = val;
-  EXPECT_EQ(actual, "700-014671-0000 ");
   EXPECT_EQ(val.timestamp, 0x12345678);
 
   nlohmann::json j = val;
@@ -56,8 +51,6 @@ TEST(RegisterValueTest, INTEGER) {
   RegisterValue val({0x1234, 0x5678}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
   EXPECT_EQ(val.value.intValue, 0x12345678);
-  std::string actual = val;
-  EXPECT_EQ(actual, "305419896");
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -86,8 +79,6 @@ TEST(RegisterValueTest, FLOAT) {
   RegisterValue val({0x64fc}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::FLOAT);
   EXPECT_NEAR(val.value.floatValue, 12.623, 0.001);
-  std::string str = val;
-  EXPECT_EQ(str, "12.62");
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -106,24 +97,16 @@ TEST(RegisterValueTest, FLAGS) {
   RegisterValue val1({0x0003}, d, 0x12345678);
   EXPECT_EQ(val1.type, RegisterValueType::FLAGS);
   std::string expstr1 = "\n*[1] <0> HELLO\n*[1] <1> WORLD";
-  std::string actstr1 = val1;
-  EXPECT_EQ(expstr1, actstr1);
   RegisterValue::FlagsType exp1 = {{true, "HELLO", 0}, {true, "WORLD", 1}};
   EXPECT_EQ(val1.value.flagsValue, exp1);
 
   RegisterValue val2({0x0000}, d, 0x12345678);
   EXPECT_EQ(val1.type, RegisterValueType::FLAGS);
-  std::string expstr2 = "\n [0] <0> HELLO\n [0] <1> WORLD";
-  std::string actstr2 = val2;
-  EXPECT_EQ(expstr2, actstr2);
   RegisterValue::FlagsType exp2 = {{false, "HELLO", 0}, {false, "WORLD", 1}};
   EXPECT_EQ(val2.value.flagsValue, exp2);
 
   RegisterValue val3({0x0002}, d, 0x12345678);
   EXPECT_EQ(val3.type, RegisterValueType::FLAGS);
-  std::string expstr3 = "\n [0] <0> HELLO\n*[1] <1> WORLD";
-  std::string actstr3 = val3;
-  EXPECT_EQ(expstr3, actstr3);
   RegisterValue::FlagsType exp3 = {{false, "HELLO", 0}, {true, "WORLD", 1}};
   EXPECT_EQ(val3.value.flagsValue, exp3);
 
