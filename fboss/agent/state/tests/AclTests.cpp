@@ -131,6 +131,7 @@ TEST(Acl, applyConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
   auto acls = stateV3->getAcls();
+  validateThriftyMigration(*stateV3->getAcls());
   auto aclV3 = stateV3->getAcl("acl3");
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
@@ -344,6 +345,7 @@ TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
   auto aclMap = state->getAcls();
+  validateThriftyMigration(*aclMap);
   EXPECT_NE(aclMap.get(), aclMap->modify(&state));
 }
 
@@ -413,6 +415,7 @@ TEST(Acl, AclGeneration) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
+  validateThriftyMigration(*acls);
   EXPECT_NE(acls, nullptr);
   EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
   EXPECT_NE(acls->getEntryIf("acl2"), nullptr);
@@ -904,7 +907,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-
+  validateThriftyMigration(*stateV1->getAcls());
   auto q0 =
       stateV1->getAcls()->getEntry("acl0")->getRequiredAclTableQualifiers();
   auto q1 =

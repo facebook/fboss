@@ -13,15 +13,30 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
 using AclMapTraits = NodeMapTraits<std::string, AclEntry>;
+
+struct AclMapThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::AclEntryFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "name";
+    return _key;
+  }
+
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
+
 /*
  * A container for the set of entries.
  */
-class AclMap : public NodeMapT<AclMap, AclMapTraits> {
+class AclMap
+    : public ThriftyNodeMapT<AclMap, AclMapTraits, AclMapThriftTraits> {
  public:
   AclMap();
   ~AclMap() override;
@@ -74,7 +89,7 @@ class AclMap : public NodeMapT<AclMap, AclMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 
