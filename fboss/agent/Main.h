@@ -139,7 +139,4 @@ int fbossMain(
 void fbossFinalize();
 void setVersionInfo();
 
-void connectToFsdb();
-void disconnectFromFsdb();
-
 } // namespace facebook::fboss
