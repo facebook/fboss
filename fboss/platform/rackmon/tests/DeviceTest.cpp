@@ -29,8 +29,10 @@ class DeviceTest : public ::testing::Test {
 TEST_F(DeviceTest, OpenClose) {
   Device dev_bad("./test2.bin");
   EXPECT_THROW(dev_bad.open(), std::system_error);
+  ASSERT_FALSE(dev_bad.exists());
   Device dev(test_device_path);
   dev.open();
+  ASSERT_TRUE(dev.exists());
   dev.close();
 }
 

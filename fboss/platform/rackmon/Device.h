@@ -28,5 +28,6 @@ class Device {
   virtual void write(const uint8_t* buf, size_t len);
   virtual void ioctl(unsigned long cmd, void* data);
   virtual size_t read(uint8_t* buf, size_t exactLen, int timeoutMs);
+  virtual bool exists();
 };
 } // namespace rackmon

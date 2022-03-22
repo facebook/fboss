@@ -37,6 +37,10 @@ void Device::close() {
   }
 }
 
+bool Device::exists() {
+  return access(device_.c_str(), F_OK) == 0;
+}
+
 void Device::write(const uint8_t* buf, size_t len) {
   int ret = ::write(deviceFd_, buf, len);
   if (ret != (int)len) {
