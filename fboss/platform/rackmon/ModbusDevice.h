@@ -44,6 +44,7 @@ struct ModbusDeviceInfo {
   uint32_t crcErrors = 0;
   uint32_t timeouts = 0;
   uint32_t miscErrors = 0;
+  uint32_t deviceErrors = 0;
   time_t lastActive = 0;
   uint32_t numConsecutiveFailures = 0;
 
@@ -74,15 +75,19 @@ void to_json(nlohmann::json& j, const ModbusDeviceValueData& m);
 
 class ModbusDevice {
   Modbus& interface_;
+  int numCommandRetries_;
   ModbusDeviceRawData info_;
   std::mutex registerListMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
+
+  void handleCommandFailure(std::exception& baseException);
 
  public:
   ModbusDevice(
       Modbus& interface,
       uint8_t deviceAddress,
-      const RegisterMap& registerMap);
+      const RegisterMap& registerMap,
+      int numCommandRetries = 5);
   virtual ~ModbusDevice() {}
 
   virtual void command(

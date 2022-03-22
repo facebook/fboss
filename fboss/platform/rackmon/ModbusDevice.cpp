@@ -18,8 +18,9 @@ void ModbusDeviceInfo::incErrors(uint32_t& counter) {
 ModbusDevice::ModbusDevice(
     Modbus& interface,
     uint8_t deviceAddress,
-    const RegisterMap& registerMap)
-    : interface_(interface) {
+    const RegisterMap& registerMap,
+    int numCommandRetries)
+    : interface_(interface), numCommandRetries_(numCommandRetries) {
   info_.deviceAddress = deviceAddress;
   info_.baudrate = registerMap.defaultBaudrate;
   info_.deviceType = registerMap.name;
@@ -35,32 +36,50 @@ ModbusDevice::ModbusDevice(
   }
 }
 
+void ModbusDevice::handleCommandFailure(std::exception& baseException) {
+  if (TimeoutException * ex;
+      (ex = dynamic_cast<TimeoutException*>(&baseException)) != nullptr) {
+    info_.incTimeouts();
+  } else if (CRCError * ex;
+             (ex = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
+    info_.incCRCErrors();
+  } else if (ModbusError * ex;
+             (ex = dynamic_cast<ModbusError*>(&baseException)) != nullptr) {
+    // ModbusErrors can happen in normal operation. Do not let
+    // it increment numConsecutiveFailures since it should not
+    // account as a signal of a device being dormant.
+    info_.deviceErrors++;
+  } else if (std::system_error * ex; (ex = dynamic_cast<std::system_error*>(
+                                          &baseException)) != nullptr) {
+    info_.incMiscErrors();
+    logError << ex->what() << std::endl;
+  } else {
+    info_.incMiscErrors();
+    logError << baseException.what() << std::endl;
+  }
+}
+
 void ModbusDevice::command(
     Msg& req,
     Msg& resp,
     ModbusTime timeout,
     ModbusTime settleTime) {
   // Try executing the command, if errors, catch the error
-  // to maintain stats on types of errors and re-throw in
-  // case the user wants to handle them in a special way.
-  try {
-    interface_.command(req, resp, info_.baudrate, timeout, settleTime);
-    info_.numConsecutiveFailures = 0;
-    info_.lastActive = std::time(nullptr);
-  } catch (TimeoutException& e) {
-    info_.incTimeouts();
-    throw;
-  } catch (CRCError& e) {
-    info_.incCRCErrors();
-    throw;
-  } catch (std::runtime_error& e) {
-    info_.incMiscErrors();
-    logError << e.what() << std::endl;
-    throw;
-  } catch (...) {
-    info_.incMiscErrors();
-    logError << "Unknown exception" << std::endl;
-    throw;
+  // to maintain stats on types of errors and re-throw (on
+  // the last retry) in case the user wants to handle them
+  // in a special way.
+  for (int retries = 0; retries < numCommandRetries_; retries++) {
+    try {
+      interface_.command(req, resp, info_.baudrate, timeout, settleTime);
+      info_.numConsecutiveFailures = 0;
+      info_.lastActive = std::time(nullptr);
+      break;
+    } catch (std::exception& ex) {
+      handleCommandFailure(ex);
+      if (retries == (numCommandRetries_ - 1)) {
+        throw;
+      }
+    }
   }
 }
 

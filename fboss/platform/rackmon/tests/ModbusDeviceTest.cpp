@@ -100,28 +100,28 @@ TEST_F(ModbusDeviceTest, BasicCommand) {
 
 TEST_F(ModbusDeviceTest, CommandTimeout) {
   EXPECT_CALL(get_modbus(), command(_, _, _, _, _))
-      .Times(1)
-      .WillOnce(Throw(TimeoutException()));
+      .Times(3)
+      .WillRepeatedly(Throw(TimeoutException()));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 3);
 
   Msg req, resp;
   EXPECT_THROW(dev.command(req, resp), TimeoutException);
   ModbusDeviceInfo status = dev.getInfo();
-  EXPECT_EQ(status.timeouts, 1);
+  EXPECT_EQ(status.timeouts, 3);
 }
 
 TEST_F(ModbusDeviceTest, CommandCRC) {
   EXPECT_CALL(get_modbus(), command(_, _, _, _, _))
-      .Times(1)
-      .WillOnce(Throw(CRCError(1, 2)));
+      .Times(5)
+      .WillRepeatedly(Throw(CRCError(1, 2)));
 
   ModbusDevice dev(get_modbus(), 0x32, get_regmap());
 
   Msg req, resp;
   EXPECT_THROW(dev.command(req, resp), CRCError);
   ModbusDeviceInfo status = dev.getInfo();
-  EXPECT_EQ(status.crcErrors, 1);
+  EXPECT_EQ(status.crcErrors, 5);
 }
 
 TEST_F(ModbusDeviceTest, CommandMisc) {
@@ -129,7 +129,7 @@ TEST_F(ModbusDeviceTest, CommandMisc) {
       .Times(1)
       .WillOnce(Throw(std::runtime_error("")));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 1);
 
   Msg req, resp;
   EXPECT_THROW(dev.command(req, resp), std::runtime_error);
@@ -142,7 +142,7 @@ TEST_F(ModbusDeviceTest, MakeDormant) {
       .Times(10)
       .WillRepeatedly(Throw(TimeoutException()));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 1);
 
   for (int i = 0; i < 10; i++) {
     ModbusDeviceInfo status = dev.getInfo();
@@ -305,7 +305,7 @@ TEST_F(ModbusDeviceTest, MonitorInvalidRegOnce) {
       // data(1) = 0x02
       .WillOnce(SetMsgDecode<1>(0x328302_EM));
 
-  ModbusDevice dev(get_modbus(), 0x32, get_regmap());
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 1);
   // This should see the illegal address error
   dev.monitor();
   // This should be a no-op.
