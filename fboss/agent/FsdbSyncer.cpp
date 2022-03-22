@@ -4,6 +4,9 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss {
 FsdbSyncer::FsdbSyncer(SwSwitch* sw)
@@ -28,6 +31,7 @@ FsdbSyncer::FsdbSyncer(SwSwitch* sw)
 FsdbSyncer::~FsdbSyncer() {
   sw_->unregisterStateObserver(this);
   readyForStatePublishing_.store(false);
+  readyForStatPublishing_.store(false);
   fsdbPubSubMgr_.reset();
 }
 
@@ -47,6 +51,18 @@ void FsdbSyncer::cfgUpdated(const cfg::SwitchConfig& /*newConfig*/) {
     // sync config
   });
 }
+
+void FsdbSyncer::statsUpdated(const AgentStats& stats) {
+  if (!readyForStatPublishing_.load()) {
+    return;
+  }
+  fsdb::OperState stateUnit;
+  stateUnit.contents_ref() =
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(stats);
+  stateUnit.protocol_ref() = fsdb::OperProtocol::SIMPLE_JSON;
+  fsdbPubSubMgr_->publishStat(std::move(stateUnit));
+}
+
 void FsdbSyncer::fsdbStatePublisherStateChanged(
     fsdb::FsdbStreamClient::State oldState,
     fsdb::FsdbStreamClient::State newState) {

@@ -424,8 +424,13 @@ void SwSwitch::updateStats() {
   updateRouteStats();
   updatePortInfo();
   updateLldpStats();
+  AgentStats agentStats;
   try {
     getHw()->updateStats(stats());
+    if (FLAGS_publish_stats_to_fsdb) {
+      agentStats.hwPortStats_ref() = getHw()->getPortStats();
+      fsdbSyncer_->statsUpdated(std::move(agentStats));
+    }
   } catch (const std::exception& ex) {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);

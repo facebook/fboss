@@ -4,10 +4,14 @@ namespace go neteng.fboss.agent_stats
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_stats
 
+cpp_include "folly/container/F14Map.h"
+
 include "fboss/agent/hw/hardware_stats.thrift"
 
 struct AgentStats {
-  1: map<string, hardware_stats.HwPortStats> hwPortStats;
+  1: map<string, hardware_stats.HwPortStats> (
+    cpp.template = 'folly::F14FastMap',
+  ) hwPortStats;
   2: map<string, hardware_stats.HwTrunkStats> hwTrunkStats;
   3: hardware_stats.HwResourceStats hwResourceStats;
 }

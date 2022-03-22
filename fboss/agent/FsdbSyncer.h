@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -24,6 +25,7 @@ class FsdbSyncer : public StateObserver {
   void stateUpdated(const StateDelta& stateDelta) override;
   // TODO - change to AgentConfig once SwSwitch can pass us that
   void cfgUpdated(const cfg::SwitchConfig& /*newConfig*/);
+  void statsUpdated(const AgentStats& stats);
 
  private:
   void fsdbStatePublisherStateChanged(
