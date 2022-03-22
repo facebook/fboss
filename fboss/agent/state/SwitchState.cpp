@@ -89,8 +89,9 @@ SwitchStateFields::SwitchStateFields()
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
-  state.portMap() = ports->toThrift();
-  state.vlanMap() = vlans->toThrift();
+  state.portMap_ref() = ports->toThrift();
+  state.vlanMap_ref() = vlans->toThrift();
+  state.aclMap_ref() = acls->toThrift();
   return state;
 }
 
@@ -99,7 +100,14 @@ SwitchStateFields SwitchStateFields::fromThrift(
   auto fields = SwitchStateFields();
   fields.ports = PortMap::fromThrift(state.get_portMap());
   fields.vlans = VlanMap::fromThrift(state.get_vlanMap());
+  fields.acls = AclMap::fromThrift(state.get_aclMap());
   return fields;
+}
+
+bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
+  // TODO: add rest of fields as we convert them to thrifty
+  return std::tie(*ports, *vlans, *acls) ==
+      std::tie(*other.ports, *other.vlans, *other.acls);
 }
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {

@@ -108,3 +108,16 @@ TEST(ThriftySwitchState, VlanMap) {
   state.resetVlans(vlanMap);
   verifySwitchStateSerialization(state);
 }
+
+TEST(ThriftySwitchState, AclMap) {
+  auto acl1 = std::make_shared<AclEntry>(1, "acl1");
+  auto acl2 = std::make_shared<AclEntry>(2, "acl2");
+
+  auto aclMap = std::make_shared<AclMap>();
+  aclMap->addEntry(acl1);
+  aclMap->addEntry(acl2);
+
+  auto state = SwitchState();
+  state.resetAcls(aclMap);
+  verifySwitchStateSerialization(state);
+}

@@ -77,6 +77,9 @@ struct SwitchStateFields : public ThriftyFields {
   state::SwitchState toThrift() const;
   static SwitchStateFields fromThrift(const state::SwitchState& state);
 
+  // Used for testing thrifty conversion
+  bool operator==(const SwitchStateFields& other) const;
+
   /*
    * Serialize to folly::dynamic
    */
@@ -85,11 +88,6 @@ struct SwitchStateFields : public ThriftyFields {
    * Reconstruct object from folly::dynamic
    */
   static SwitchStateFields fromFollyDynamic(const folly::dynamic& json);
-
-  bool operator==(const SwitchStateFields& other) const {
-    // TODO: add rest of fields as we convert them to thrifty
-    return std::tie(*ports) == std::tie(*other.ports);
-  }
 
   // Static state, which can be accessed without locking.
   std::shared_ptr<PortMap> ports;
