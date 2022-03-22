@@ -484,6 +484,20 @@ class MockModbusDevice : public ModbusDevice {
   MOCK_METHOD4(command, void(Msg&, Msg&, ModbusTime, ModbusTime));
 };
 
+class MockSpecialHandler : public ModbusSpecialHandler {
+  time_t currTime_ = 1024;
+
+ public:
+  explicit MockSpecialHandler(uint8_t deviceAddress)
+      : ModbusSpecialHandler(deviceAddress) {}
+  time_t getTime() override {
+    return currTime_;
+  }
+  void incrementTimeBy(time_t incTime) {
+    currTime_ += incTime;
+  }
+};
+
 TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
   Modbus mock_modbus{std::cout};
   RegisterMap mock_rmap = R"({
@@ -516,12 +530,12 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
           _,
           _))
       .Times(Between(2, 3));
-  ModbusSpecialHandler special(0x32);
+  MockSpecialHandler special(0x32);
   SpecialHandlerInfo& info = special;
   info = R"({
     "reg": 10,
     "len": 2,
-    "period": 1,
+    "period": 10,
     "action": "write",
     "info": {
       "interpret": "string",
@@ -530,14 +544,17 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
   })"_json;
 
   special.handle(dev);
-  std::this_thread::sleep_for(250ms);
+  // Fake advance time by 2s
+  special.incrementTimeBy(2);
   special.handle(
-      dev); // Since the period is 1, this should technically do nothing.
-  std::this_thread::sleep_for(250ms);
+      dev); // Since the period is 10, this should technically do nothing.
+  // Fake advance time by another 4s.
+  special.incrementTimeBy(4);
   special.handle(
-      dev); // This should do nothing as well, we are less than 1 sec.
-  std::this_thread::sleep_for(1500ms);
-  special.handle(dev); // This should call! we are 1.25s out from first handle.
+      dev); // This should do nothing as well, we are less than 10 sec.
+  // Fake advance by 5s.
+  special.incrementTimeBy(5);
+  special.handle(dev); // This should call! we are 11s out from first handle.
 }
 
 TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
@@ -572,7 +589,7 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
           _,
           _))
       .Times(1);
-  ModbusSpecialHandler special(0x32);
+  MockSpecialHandler special(0x32);
   SpecialHandlerInfo& info = special;
   info = R"({
     "reg": 10,
@@ -587,11 +604,13 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
   // 12345678 == 0x00bc614e
 
   special.handle(dev);
-  std::this_thread::sleep_for(250ms);
+  special.incrementTimeBy(1);
   special.handle(dev); // Do the same as above, but the call should happen only
                        // once since period = -1
-  std::this_thread::sleep_for(250ms);
+  // fake advance clocks by 10 and 20 seconds and at each time we should
+  // not incur any further handling.
+  special.incrementTimeBy(10);
   special.handle(dev);
-  std::this_thread::sleep_for(1s);
+  special.incrementTimeBy(20);
   special.handle(dev);
 }

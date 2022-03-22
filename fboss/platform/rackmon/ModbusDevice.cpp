@@ -242,7 +242,7 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
   } catch (std::exception& e) {
     logError << "Error executing special handler" << std::endl;
   }
-  lastHandleTime_ = std::time(nullptr);
+  lastHandleTime_ = getTime();
   handled_ = true;
 }
 

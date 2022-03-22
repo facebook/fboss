@@ -21,11 +21,16 @@ class ModbusSpecialHandler : public SpecialHandlerInfo {
     if (period == -1) {
       return !handled_;
     }
-    return std::time(nullptr) > (lastHandleTime_ + period);
+    return getTime() > (lastHandleTime_ + period);
+  }
+
+  virtual time_t getTime() {
+    return std::time(nullptr);
   }
 
  public:
   ModbusSpecialHandler(uint8_t deviceAddress) : deviceAddress_(deviceAddress) {}
+  virtual ~ModbusSpecialHandler() {}
   void handle(ModbusDevice& dev);
 };
 
