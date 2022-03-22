@@ -83,6 +83,10 @@ SaiSwitchManager::SaiSwitchManager(
 
     resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>();
     resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
+#if defined(SAI_VERSION_7_0_0_2_ODP)
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
+#endif
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();

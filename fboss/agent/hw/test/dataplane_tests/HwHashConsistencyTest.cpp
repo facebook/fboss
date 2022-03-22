@@ -48,15 +48,15 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
       udpPortsForSai_[2] = 10002;
       udpPortsForSai_[3] = 10003;
     } else {
-      tcpPortsForSai_[0] = 10005;
-      tcpPortsForSai_[1] = 10002;
-      tcpPortsForSai_[2] = 10000;
-      tcpPortsForSai_[3] = 10004;
+      tcpPortsForSai_[0] = 10003;
+      tcpPortsForSai_[1] = 10000;
+      tcpPortsForSai_[2] = 10002;
+      tcpPortsForSai_[3] = 10001;
 
-      udpPortsForSai_[0] = 10000;
-      udpPortsForSai_[1] = 10005;
-      udpPortsForSai_[2] = 10003;
-      udpPortsForSai_[3] = 10010;
+      udpPortsForSai_[0] = 10003;
+      udpPortsForSai_[1] = 10000;
+      udpPortsForSai_[2] = 10002;
+      udpPortsForSai_[3] = 10001;
     }
   }
 
