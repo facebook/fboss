@@ -22,3 +22,12 @@ TEST(PollThreadTest, basic) {
   std::this_thread::sleep_for(2s);
   thr.stop();
 }
+
+TEST(PollThreadTest, externalEvent) {
+  Tester test_obj;
+  EXPECT_CALL(test_obj, do_stuff()).Times(2);
+  PollThread<Tester> thr(&Tester::do_stuff, &test_obj, 100s);
+  thr.start();
+  thr.tick();
+  thr.stop();
+}

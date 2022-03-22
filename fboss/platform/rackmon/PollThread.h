@@ -11,8 +11,10 @@ using PollThreadTime = std::chrono::seconds;
 template <class T>
 class PollThread {
   std::mutex eventMutex_{};
+  std::condition_variable ack_{};
   std::condition_variable eventCV_{};
   std::thread threadID_{};
+  std::atomic<bool> tick_{false};
   std::atomic<bool> started_ = false;
 
   std::function<void(T*)> func_{};
@@ -21,9 +23,19 @@ class PollThread {
 
   void worker() {
     std::unique_lock lk(eventMutex_);
+    // Call once at start
+    func_(obj_);
     while (started_.load()) {
-      func_(obj_);
-      eventCV_.wait_for(lk, sleepTime_, [this]() { return !started_.load(); });
+      eventCV_.wait_for(lk, sleepTime_, [this]() {
+        return !started_.load() || tick_.load();
+      });
+      if (started_.load()) {
+        func_(obj_);
+      }
+      if (tick_.load()) {
+        tick_ = false;
+        ack_.notify_all();
+      }
     }
   }
   void notifyStop() {
@@ -52,6 +64,12 @@ class PollThread {
       notifyStop();
       threadID_.join();
     }
+  }
+  void tick() {
+    std::unique_lock lk(eventMutex_);
+    tick_ = true;
+    eventCV_.notify_all();
+    ack_.wait(lk, [this]() { return !tick_.load(); });
   }
 };
 
