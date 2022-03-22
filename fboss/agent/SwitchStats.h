@@ -64,166 +64,166 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void trappedPkt() {
-    addValue(*trapPkts_, 1);
+    trapPkts_.addValue(1);
   }
   void pktDropped() {
-    addValue(*trapPktDrops_, 1);
+    trapPktDrops_.addValue(1);
   }
   void pktBogus() {
-    addValue(*trapPktBogus_, 1);
-    addValue(*trapPktDrops_, 1);
+    trapPktBogus_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
   void pktError() {
-    addValue(*trapPktErrors_, 1);
-    addValue(*trapPktDrops_, 1);
+    trapPktErrors_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
   void pktUnhandled() {
-    addValue(*trapPktUnhandled_, 1);
-    addValue(*trapPktDrops_, 1);
+    trapPktUnhandled_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
   void pktToHost(uint32_t bytes) {
-    addValue(*trapPktToHost_, 1);
-    addValue(*trapPktToHostBytes_, bytes);
+    trapPktToHost_.addValue(1);
+    trapPktToHostBytes_.addValue(bytes);
   }
   void pktFromHost(uint32_t bytes) {
-    addValue(*pktFromHost_, 1);
-    addValue(*pktFromHostBytes_, bytes);
+    pktFromHost_.addValue(1);
+    pktFromHostBytes_.addValue(bytes);
   }
 
   void arpPkt() {
-    addValue(*trapPktArp_, 1);
+    trapPktArp_.addValue(1);
   }
   void arpUnsupported() {
-    addValue(*arpUnsupported_, 1);
-    addValue(*trapPktDrops_, 1);
+    arpUnsupported_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
   void arpNotMine() {
-    addValue(*arpNotMine_, 1);
-    addValue(*trapPktDrops_, 1);
+    arpNotMine_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
   void arpRequestRx() {
-    addValue(*arpRequestsRx_, 1);
+    arpRequestsRx_.addValue(1);
   }
   void arpRequestTx() {
-    addValue(*arpRequestsTx_, 1);
+    arpRequestsTx_.addValue(1);
   }
   void arpReplyRx() {
-    addValue(*arpRepliesRx_, 1);
+    arpRepliesRx_.addValue(1);
   }
   void arpReplyTx() {
-    addValue(*arpRepliesTx_, 1);
+    arpRepliesTx_.addValue(1);
   }
   void arpBadOp() {
-    addValue(*arpBadOp_, 1);
-    addValue(*trapPktDrops_, 1);
+    arpBadOp_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void ipv6NdpPkt() {
-    addValue(*trapPktNdp_, 1);
+    trapPktNdp_.addValue(1);
   }
   void ipv6NdpBad() {
-    addValue(*ipv6NdpBad_, 1);
-    addValue(*trapPktDrops_, 1);
+    ipv6NdpBad_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void dhcpV4Pkt() {
-    addValue(*dhcpV4Pkt_, 1);
+    dhcpV4Pkt_.addValue(1);
   }
 
   void dhcpV6Pkt() {
-    addValue(*dhcpV6Pkt_, 1);
+    dhcpV6Pkt_.addValue(1);
   }
 
   void ipv4Rx() {
-    addValue(*ipv4Rx_, 1);
+    ipv4Rx_.addValue(1);
   }
   void ipv4TooSmall() {
-    addValue(*ipv4TooSmall_, 1);
+    ipv4TooSmall_.addValue(1);
   }
   void ipv4WrongVer() {
-    addValue(*ipv4WrongVer_, 1);
+    ipv4WrongVer_.addValue(1);
   }
   void ipv4Nexthop() {
-    addValue(*ipv4Nexthop_, 1);
+    ipv4Nexthop_.addValue(1);
   }
   void ipv4Mine() {
-    addValue(*ipv4Mine_, 1);
+    ipv4Mine_.addValue(1);
   }
   void ipv4NoArp() {
-    addValue(*ipv4NoArp_, 1);
+    ipv4NoArp_.addValue(1);
   }
   void ipv4TtlExceeded() {
-    addValue(*ipv4TtlExceeded_, 1);
+    ipv4TtlExceeded_.addValue(1);
   }
 
   void ipv6HopExceeded() {
-    addValue(*ipv6HopExceeded_, 1);
+    ipv6HopExceeded_.addValue(1);
   }
 
   void udpTooSmall() {
-    addValue(*udpTooSmall_, 1);
+    udpTooSmall_.addValue(1);
   }
 
   void dhcpV4BadPkt() {
-    addValue(*dhcpV4BadPkt_, 1);
-    addValue(*dhcpV4DropPkt_, 1);
-    addValue(*trapPktDrops_, 1);
+    dhcpV4BadPkt_.addValue(1);
+    dhcpV4DropPkt_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void dhcpV4DropPkt() {
-    addValue(*dhcpV4DropPkt_, 1);
-    addValue(*trapPktDrops_, 1);
+    dhcpV4DropPkt_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void dhcpV6BadPkt() {
-    addValue(*dhcpV6BadPkt_, 1);
-    addValue(*dhcpV6DropPkt_, 1);
-    addValue(*trapPktDrops_, 1);
+    dhcpV6BadPkt_.addValue(1);
+    dhcpV6DropPkt_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void dhcpV6DropPkt() {
-    addValue(*dhcpV6DropPkt_, 1);
-    addValue(*trapPktDrops_, 1);
+    dhcpV6DropPkt_.addValue(1);
+    trapPktDrops_.addValue(1);
   }
 
   void addRouteV4() {
-    addValue(*addRouteV4_, 1);
+    addRouteV4_.addValue(1);
   }
   void addRouteV6() {
-    addValue(*addRouteV6_, 1);
+    addRouteV6_.addValue(1);
   }
   void delRouteV4() {
-    addValue(*delRouteV4_, 1);
+    delRouteV4_.addValue(1);
   }
   void delRouteV6() {
-    addValue(*delRouteV6_, 1);
+    delRouteV6_.addValue(1);
   }
 
   void addRoutesV4(uint64_t routeCount) {
-    addValue(*addRouteV4_, routeCount);
+    addRouteV4_.addValue(routeCount);
   }
   void addRoutesV6(uint64_t routeCount) {
-    addValue(*addRouteV6_, routeCount);
+    addRouteV6_.addValue(routeCount);
   }
   void delRoutesV4(uint64_t routeCount) {
-    addValue(*delRouteV4_, routeCount);
+    delRouteV4_.addValue(routeCount);
   }
   void delRoutesV6(uint64_t routeCount) {
-    addValue(*delRouteV6_, routeCount);
+    delRouteV6_.addValue(routeCount);
   }
 
   void ipv4DstLookupFailure() {
-    addValue(*dstLookupFailureV4_, 1);
-    addValue(*dstLookupFailure_, 1);
+    dstLookupFailureV4_.addValue(1);
+    dstLookupFailure_.addValue(1);
   }
 
   void ipv6DstLookupFailure() {
-    addValue(*dstLookupFailureV6_, 1);
-    addValue(*dstLookupFailure_, 1);
+    dstLookupFailureV6_.addValue(1);
+    dstLookupFailure_.addValue(1);
   }
 
   void stateUpdate(std::chrono::microseconds us) {
-    addValue(*updateState_, us.count());
+    updateState_.addValue(us.count());
   }
 
   void routeUpdate(std::chrono::microseconds us, uint64_t routes) {
@@ -236,47 +236,47 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void bgHeartbeatDelay(int delay) {
-    addValue(*bgHeartbeatDelay_, delay);
+    bgHeartbeatDelay_.addValue(delay);
   }
 
   void updHeartbeatDelay(int delay) {
-    addValue(*updHeartbeatDelay_, delay);
+    updHeartbeatDelay_.addValue(delay);
   }
 
   void packetTxHeartbeatDelay(int value) {
-    addValue(*packetTxHeartbeatDelay_, value);
+    packetTxHeartbeatDelay_.addValue(value);
   }
 
   void lacpHeartbeatDelay(int value) {
-    addValue(*lacpHeartbeatDelay_, value);
+    lacpHeartbeatDelay_.addValue(value);
   }
 
   void neighborCacheHeartbeatDelay(int value) {
-    addValue(*neighborCacheHeartbeatDelay_, value);
+    neighborCacheHeartbeatDelay_.addValue(value);
   }
 
   void bgEventBacklog(int value) {
-    addValue(*bgEventBacklog_, value);
+    bgEventBacklog_.addValue(value);
   }
 
   void updEventBacklog(int value) {
-    addValue(*updEventBacklog_, value);
+    updEventBacklog_.addValue(value);
   }
 
   void lacpEventBacklog(int value) {
-    addValue(*lacpEventBacklog_, value);
+    lacpEventBacklog_.addValue(value);
   }
 
   void packetTxEventBacklog(int value) {
-    addValue(*packetTxEventBacklog_, value);
+    packetTxEventBacklog_.addValue(value);
   }
 
   void neighborCacheEventBacklog(int value) {
-    addValue(*neighborCacheEventBacklog_, value);
+    neighborCacheEventBacklog_.addValue(value);
   }
 
   void linkStateChange() {
-    addValue(*linkStateChange_, 1);
+    linkStateChange_.addValue(1);
   }
 
   void pcapDistFailure() {
@@ -284,61 +284,61 @@ class SwitchStats : public boost::noncopyable {
   }
 
   void updateStatsException() {
-    addValue(*updateStatsExceptions_, 1);
+    updateStatsExceptions_.addValue(1);
   }
 
   void pktTooBig() {
-    addValue(*trapPktTooBig_, 1);
+    trapPktTooBig_.addValue(1);
   }
 
   void LldpRecvdPkt() {
-    addValue(*LldpRecvdPkt_, 1);
+    LldpRecvdPkt_.addValue(1);
   }
   void LldpBadPkt() {
-    addValue(*LldpBadPkt_, 1);
+    LldpBadPkt_.addValue(1);
   }
   void LldpValidateMisMatch() {
-    addValue(*LldpValidateMisMatch_, 1);
+    LldpValidateMisMatch_.addValue(1);
   }
   void LldpNeighborsSize(int value) {
-    addValue(*LldpNeighborsSize_, value);
+    LldpNeighborsSize_.addValue(value);
   }
   void LacpRxTimeouts() {
-    addValue(*LacpRxTimeouts_, 1);
+    LacpRxTimeouts_.addValue(1);
   }
   void LacpMismatchPduTeardown() {
-    addValue(*LacpMismatchPduTeardown_, 1);
+    LacpMismatchPduTeardown_.addValue(1);
   }
 
   void MkPduRecvdPkt() {
-    addValue(*MkPduRecvdPkts_, 1);
+    MkPduRecvdPkts_.addValue(1);
   }
   void MkPduSendPkt() {
-    addValue(*MkPduSendPkts_, 1);
+    MkPduSendPkts_.addValue(1);
   }
   void MkPduSendFailure() {
-    addValue(*MkPduSendFailure_, 1);
+    MkPduSendFailure_.addValue(1);
   }
   void MkPduPortNotRegistered() {
-    addValue(*MkPduPortNotRegistered_, 1);
+    MkPduPortNotRegistered_.addValue(1);
   }
   void MKAServiceSendFailue() {
-    addValue(*MKAServiceSendFailure_, 1);
+    MKAServiceSendFailure_.addValue(1);
   }
   void MKAServiceSendSuccess() {
-    addValue(*MKAServiceSendSuccess_, 1);
+    MKAServiceSendSuccess_.addValue(1);
   }
   void MKAServiceRecvSuccess() {
-    addValue(*MKAServiceRecvSuccess_, 1);
+    MKAServiceRecvSuccess_.addValue(1);
   }
   void PfcDeadlockDetectionCount() {
-    addValue(*pfcDeadlockDetectionCount_, 1);
+    pfcDeadlockDetectionCount_.addValue(1);
   }
   void PfcDeadlockRecoveryCount() {
-    addValue(*pfcDeadlockRecoveryCount_, 1);
+    pfcDeadlockRecoveryCount_.addValue(1);
   }
   void ThreadHeartbeatMissCount() {
-    addValue(*threadHeartbeatMissCount_, 1);
+    threadHeartbeatMissCount_.addValue(1);
   }
 
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
@@ -346,39 +346,6 @@ class SwitchStats : public boost::noncopyable {
   typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
   typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
   typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
-
-  using TLTimeseriesPtr = std::unique_ptr<TLTimeseries>;
-  using TLHistogramPtr = std::unique_ptr<TLHistogram>;
-
-  // TODO: use template parameter pack once FSDB is open sourced instead of
-  // method overloading
-  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      fb303::ExportType exportType);
-  static std::unique_ptr<TLTimeseries> makeTLTimeseries(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      fb303::ExportType exportType1,
-      fb303::ExportType exportType2);
-  static std::unique_ptr<TLHistogram> makeTLTHistogram(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      int64_t bucketWidth,
-      int64_t min,
-      int64_t max);
-  static std::unique_ptr<TLHistogram> makeTLTHistogram(
-      ThreadLocalStatsMap* map,
-      std::string&& key,
-      int64_t bucketWidth,
-      int64_t min,
-      int64_t max,
-      fb303::ExportType exportType,
-      int percentile1,
-      int percentile2);
-
-  static void addValue(TLTimeseries& stats, int64_t value);
-  static void addValue(TLHistogram& stats, int64_t value);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -388,69 +355,69 @@ class SwitchStats : public boost::noncopyable {
   explicit SwitchStats(ThreadLocalStatsMap* map);
 
   // Total number of trapped packets
-  TLTimeseriesPtr trapPkts_;
+  TLTimeseries trapPkts_;
   // Number of trapped packets that were intentionally dropped.
-  TLTimeseriesPtr trapPktDrops_;
+  TLTimeseries trapPktDrops_;
   // Malformed packets received
-  TLTimeseriesPtr trapPktBogus_;
+  TLTimeseries trapPktBogus_;
   // Number of times the controller encountered an error trying to process
   // a packet.
-  TLTimeseriesPtr trapPktErrors_;
+  TLTimeseries trapPktErrors_;
   // Trapped packets that the controller didn't know how to handle.
-  TLTimeseriesPtr trapPktUnhandled_;
+  TLTimeseries trapPktUnhandled_;
   // Trapped packets forwarded to host
-  TLTimeseriesPtr trapPktToHost_;
+  TLTimeseries trapPktToHost_;
   // Trapped packets forwarded to host in bytes
-  TLTimeseriesPtr trapPktToHostBytes_;
+  TLTimeseries trapPktToHostBytes_;
   // Packets sent by host
-  TLTimeseriesPtr pktFromHost_;
+  TLTimeseries pktFromHost_;
   // Packets sent by host in bytes
-  TLTimeseriesPtr pktFromHostBytes_;
+  TLTimeseries pktFromHostBytes_;
 
   // ARP Packets
-  TLTimeseriesPtr trapPktArp_;
+  TLTimeseries trapPktArp_;
   // ARP packets dropped due to unsupported hardware or protocol settings.
-  TLTimeseriesPtr arpUnsupported_;
+  TLTimeseries arpUnsupported_;
   // ARP packets ignored because we were not the target.
-  TLTimeseriesPtr arpNotMine_;
+  TLTimeseries arpNotMine_;
   // ARP requests destined for us
-  TLTimeseriesPtr arpRequestsRx_;
+  TLTimeseries arpRequestsRx_;
   // ARP replies destined for us
-  TLTimeseriesPtr arpRepliesRx_;
+  TLTimeseries arpRepliesRx_;
   // ARP requests sent from us
-  TLTimeseriesPtr arpRequestsTx_;
+  TLTimeseries arpRequestsTx_;
   // ARP replies sent from us
-  TLTimeseriesPtr arpRepliesTx_;
+  TLTimeseries arpRepliesTx_;
   // ARP packets with an unknown op field
-  TLTimeseriesPtr arpBadOp_;
+  TLTimeseries arpBadOp_;
 
   // IPv6 Neighbor Discovery Protocol packets
-  TLTimeseriesPtr trapPktNdp_;
-  TLTimeseriesPtr ipv6NdpBad_;
+  TLTimeseries trapPktNdp_;
+  TLTimeseries ipv6NdpBad_;
 
   // IPv4 Packets
-  TLTimeseriesPtr ipv4Rx_;
+  TLTimeseries ipv4Rx_;
   // IPv4 packets dropped due to smaller packet size
-  TLTimeseriesPtr ipv4TooSmall_;
+  TLTimeseries ipv4TooSmall_;
   // IPv4 packets dropped due to wrong version number
-  TLTimeseriesPtr ipv4WrongVer_;
+  TLTimeseries ipv4WrongVer_;
   // IPv4 packets received for resolving nexthop
-  TLTimeseriesPtr ipv4Nexthop_;
+  TLTimeseries ipv4Nexthop_;
   // IPv4 packets received for myself
-  TLTimeseriesPtr ipv4Mine_;
+  TLTimeseries ipv4Mine_;
   // IPv4 packets received, but not able to send out ARP request
-  TLTimeseriesPtr ipv4NoArp_;
+  TLTimeseries ipv4NoArp_;
   // IPv4 TTL exceeded
-  TLTimeseriesPtr ipv4TtlExceeded_;
+  TLTimeseries ipv4TtlExceeded_;
 
   // IPv6 hop count exceeded
-  TLTimeseriesPtr ipv6HopExceeded_;
+  TLTimeseries ipv6HopExceeded_;
 
   // UDP packets dropped due to smaller packet size
-  TLTimeseriesPtr udpTooSmall_;
+  TLTimeseries udpTooSmall_;
 
   // Total DHCP packets received
-  TLTimeseriesPtr dhcpV4Pkt_;
+  TLTimeseries dhcpV4Pkt_;
   /*
    *  Consolidate DHCP v4 drops under 2 heads
    *  a) Bad dhcp packet receive
@@ -458,32 +425,32 @@ class SwitchStats : public boost::noncopyable {
    *  cases where a dhcp relay was not configured for this VLAN
    */
   // DHCPv4 packets dropped due to packet being malformed
-  TLTimeseriesPtr dhcpV4BadPkt_;
+  TLTimeseries dhcpV4BadPkt_;
   // DHCPv4 packets dropped
-  TLTimeseriesPtr dhcpV4DropPkt_;
+  TLTimeseries dhcpV4DropPkt_;
   // stats for dhcpV6
-  TLTimeseriesPtr dhcpV6Pkt_;
-  TLTimeseriesPtr dhcpV6BadPkt_;
-  TLTimeseriesPtr dhcpV6DropPkt_;
+  TLTimeseries dhcpV6Pkt_;
+  TLTimeseries dhcpV6BadPkt_;
+  TLTimeseries dhcpV6DropPkt_;
 
   /**
    * Routes add/delete stats
    *
    * Modification is treated as add.
    */
-  TLTimeseriesPtr addRouteV4_;
-  TLTimeseriesPtr addRouteV6_;
-  TLTimeseriesPtr delRouteV4_;
-  TLTimeseriesPtr delRouteV6_;
+  TLTimeseries addRouteV4_;
+  TLTimeseries addRouteV6_;
+  TLTimeseries delRouteV4_;
+  TLTimeseries delRouteV6_;
 
-  TLTimeseriesPtr dstLookupFailureV4_;
-  TLTimeseriesPtr dstLookupFailureV6_;
-  TLTimeseriesPtr dstLookupFailure_;
+  TLTimeseries dstLookupFailureV4_;
+  TLTimeseries dstLookupFailureV6_;
+  TLTimeseries dstLookupFailure_;
 
   /**
    * Histogram for time used for SwSwitch::updateState() (in ms)
    */
-  TLHistogramPtr updateState_;
+  TLHistogram updateState_;
 
   /**
    * Histogram for time used for route update (in microsecond)
@@ -493,49 +460,49 @@ class SwitchStats : public boost::noncopyable {
   /**
    * Background thread heartbeat delay (ms)
    */
-  TLHistogramPtr bgHeartbeatDelay_;
+  TLHistogram bgHeartbeatDelay_;
 
   /**
    * Update thread heartbeat delay (ms)
    */
-  TLHistogramPtr updHeartbeatDelay_;
+  TLHistogram updHeartbeatDelay_;
   /**
    * Fboss packet Tx thread heartbeat delay (ms)
    */
-  TLHistogramPtr packetTxHeartbeatDelay_;
+  TLHistogram packetTxHeartbeatDelay_;
   /**
    * LACP thread heartbeat delay in milliseconds
    */
-  TLHistogramPtr lacpHeartbeatDelay_;
+  TLHistogram lacpHeartbeatDelay_;
   /**
    * Arp Cache thread heartbeat delay in milliseconds
    */
-  TLHistogramPtr neighborCacheHeartbeatDelay_;
+  TLHistogram neighborCacheHeartbeatDelay_;
 
   /**
    * Number of events queued in background thread
    */
-  TLHistogramPtr bgEventBacklog_;
+  TLHistogram bgEventBacklog_;
 
   /**
    * Number of events queued in update thread
    */
-  TLHistogramPtr updEventBacklog_;
+  TLHistogram updEventBacklog_;
   /**
    * Number of events queued in fboss packet TX thread
    */
-  TLHistogramPtr packetTxEventBacklog_;
+  TLHistogram packetTxEventBacklog_;
 
-  TLHistogramPtr lacpEventBacklog_;
+  TLHistogram lacpEventBacklog_;
   /**
    * Number of events queued in fboss Arp Cache thread
    */
-  TLHistogramPtr neighborCacheEventBacklog_;
+  TLHistogram neighborCacheEventBacklog_;
 
   /**
    * Link state up/down change count
    */
-  TLTimeseriesPtr linkStateChange_;
+  TLTimeseries linkStateChange_;
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;
@@ -546,44 +513,44 @@ class SwitchStats : public boost::noncopyable {
   TLCounter pcapDistFailure_;
 
   // Number of failed updateStats callbacks do to exceptions.
-  TLTimeseriesPtr updateStatsExceptions_;
+  TLTimeseries updateStatsExceptions_;
 
   // Number of packet too big ICMPv6 triggered
-  TLTimeseriesPtr trapPktTooBig_;
+  TLTimeseries trapPktTooBig_;
 
   // Number of LLDP packets.
-  TLTimeseriesPtr LldpRecvdPkt_;
+  TLTimeseries LldpRecvdPkt_;
   // Number of bad LLDP packets.
-  TLTimeseriesPtr LldpBadPkt_;
+  TLTimeseries LldpBadPkt_;
   // Number of LLDP packets that did not match configured, expected values.
-  TLTimeseriesPtr LldpValidateMisMatch_;
+  TLTimeseries LldpValidateMisMatch_;
   // Number of LLDP Neighbors.
-  TLTimeseriesPtr LldpNeighborsSize_;
+  TLTimeseries LldpNeighborsSize_;
 
   // Number of LACP Rx timeouts
-  TLTimeseriesPtr LacpRxTimeouts_;
+  TLTimeseries LacpRxTimeouts_;
   // Number of LACP session teardown due to mismatching PDUs
-  TLTimeseriesPtr LacpMismatchPduTeardown_;
+  TLTimeseries LacpMismatchPduTeardown_;
   // Number of MkPdu Received.
-  TLTimeseriesPtr MkPduRecvdPkts_;
+  TLTimeseries MkPduRecvdPkts_;
   // Number of MkPdu Send.
-  TLTimeseriesPtr MkPduSendPkts_;
+  TLTimeseries MkPduSendPkts_;
   // Number of MkPdu Send Failure
-  TLTimeseriesPtr MkPduSendFailure_;
+  TLTimeseries MkPduSendFailure_;
   // Number of pkt recv when port is not registered.
-  TLTimeseriesPtr MkPduPortNotRegistered_;
+  TLTimeseries MkPduPortNotRegistered_;
   // Number of Send Pkt to MkaService Failure.
-  TLTimeseriesPtr MKAServiceSendFailure_;
+  TLTimeseries MKAServiceSendFailure_;
   // Number of Pkts Send to MKAService.
-  TLTimeseriesPtr MKAServiceSendSuccess_;
+  TLTimeseries MKAServiceSendSuccess_;
   // Number of pkts recvd from MkaService.
-  TLTimeseriesPtr MKAServiceRecvSuccess_;
+  TLTimeseries MKAServiceRecvSuccess_;
   // Number of timers pfc deadlock watchodg was hit
-  TLTimeseriesPtr pfcDeadlockDetectionCount_;
+  TLTimeseries pfcDeadlockDetectionCount_;
   // Number of timers pfc deadlock recovery hit
-  TLTimeseriesPtr pfcDeadlockRecoveryCount_;
+  TLTimeseries pfcDeadlockRecoveryCount_;
   // Number of thread heartbeat misses
-  TLTimeseriesPtr threadHeartbeatMissCount_;
+  TLTimeseries threadHeartbeatMissCount_;
 };
 
 } // namespace facebook::fboss

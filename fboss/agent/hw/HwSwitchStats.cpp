@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/HwSwitchStats.h"
 
+#include "fboss/agent/SwitchStats.h"
+
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 
@@ -18,60 +20,60 @@ namespace facebook::fboss {
 HwSwitchStats::HwSwitchStats(
     ThreadLocalStatsMap* map,
     const std::string& vendor)
-    : txPktAlloc_(SwitchStats::makeTLTimeseries(
+    : txPktAlloc_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.allocated",
           SUM,
-          RATE)),
-      txPktFree_(SwitchStats::makeTLTimeseries(
+          RATE),
+      txPktFree_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.freed",
           SUM,
-          RATE)),
-      txSent_(SwitchStats::makeTLTimeseries(
+          RATE),
+      txSent_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.sent",
           SUM,
-          RATE)),
-      txSentDone_(SwitchStats::makeTLTimeseries(
+          RATE),
+      txSentDone_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.sent.done",
           SUM,
-          RATE)),
-      txErrors_(SwitchStats::makeTLTimeseries(
+          RATE),
+      txErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.errors",
           SUM,
-          RATE)),
-      txPktAllocErrors_(SwitchStats::makeTLTimeseries(
+          RATE),
+      txPktAllocErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.allocation.errors",
           SUM,
-          RATE)),
-      txQueued_(SwitchStats::makeTLTHistogram(
+          RATE),
+      txQueued_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".tx.pkt.queued_us",
           100,
           0,
-          1000)),
-      parityErrors_(SwitchStats::makeTLTimeseries(
+          1000),
+      parityErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".parity.errors",
           SUM,
-          RATE)),
-      corrParityErrors_(SwitchStats::makeTLTimeseries(
+          RATE),
+      corrParityErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".parity.corr",
           SUM,
-          RATE)),
-      uncorrParityErrors_(SwitchStats::makeTLTimeseries(
+          RATE),
+      uncorrParityErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".parity.uncorr",
           SUM,
-          RATE)),
-      asicErrors_(SwitchStats::makeTLTimeseries(
+          RATE),
+      asicErrors_(
           map,
           SwitchStats::kCounterPrefix + vendor + ".asic.error",
           SUM,
-          RATE)) {}
+          RATE) {}
 } // namespace facebook::fboss

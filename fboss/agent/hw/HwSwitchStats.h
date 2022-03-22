@@ -12,8 +12,6 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/ThreadLocal.h>
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/Utils.h"
 
 namespace facebook::fboss {
 
@@ -25,68 +23,68 @@ class HwSwitchStats {
   HwSwitchStats(ThreadLocalStatsMap* map, const std::string& vendor);
 
   void txPktAlloc() {
-    SwitchStats::addValue(*txPktAlloc_, 1);
+    txPktAlloc_.addValue(1);
   }
   void txPktFree() {
-    SwitchStats::addValue(*txPktFree_, 1);
+    txPktFree_.addValue(1);
   }
   void txSent() {
-    SwitchStats::addValue(*txSent_, 1);
+    txSent_.addValue(1);
   }
   void txSentDone(uint64_t q) {
-    SwitchStats::addValue(*txSentDone_, 1);
-    SwitchStats::addValue(*txQueued_, q);
+    txSentDone_.addValue(1);
+    txQueued_.addValue(q);
   }
   void txError() {
-    SwitchStats::addValue(*txErrors_, 1);
+    txErrors_.addValue(1);
   }
   void txPktAllocErrors() {
-    SwitchStats::addValue(*txErrors_, 1);
-    SwitchStats::addValue(*txPktAllocErrors_, 1);
+    txErrors_.addValue(1);
+    txPktAllocErrors_.addValue(1);
   }
 
   void corrParityError() {
-    SwitchStats::addValue(*parityErrors_, 1);
-    SwitchStats::addValue(*corrParityErrors_, 1);
+    parityErrors_.addValue(1);
+    corrParityErrors_.addValue(1);
   }
 
   void uncorrParityError() {
-    SwitchStats::addValue(*parityErrors_, 1);
-    SwitchStats::addValue(*uncorrParityErrors_, 1);
+    parityErrors_.addValue(1);
+    uncorrParityErrors_.addValue(1);
   }
 
   void asicError() {
-    SwitchStats::addValue(*asicErrors_, 1);
+    asicErrors_.addValue(1);
   }
 
   // TODO: FSDB needs to support count() method on stats
 
   int64_t getTxPktAllocCount() {
-    return txPktAlloc_->count();
+    return txPktAlloc_.count();
   }
   int64_t getTxPktFreeCount() {
-    return txPktFree_->count();
+    return txPktFree_.count();
   }
   int64_t getTxSentCount() {
-    return txSent_->count();
+    return txSent_.count();
   }
   int64_t getTxSentDoneCount() {
-    return txSentDone_->count();
+    return txSentDone_.count();
   }
   int64_t getTxErrorCount() {
-    return txErrors_->count();
+    return txErrors_.count();
   }
   int64_t getTxPktAllocErrorsCount() {
-    return txPktAllocErrors_->count();
+    return txPktAllocErrors_.count();
   }
   int64_t getCorrParityErrorCount() {
-    return corrParityErrors_->count();
+    return corrParityErrors_.count();
   }
   int64_t getUncorrParityErrorCount() {
-    return uncorrParityErrors_->count();
+    return uncorrParityErrors_.count();
   }
   int64_t getAsicErrorCount() {
-    return asicErrors_->count();
+    return asicErrors_.count();
   }
 
  private:
@@ -98,29 +96,26 @@ class HwSwitchStats {
   using TLHistogram = fb303::ThreadCachedServiceData::TLHistogram;
   using TLCounter = fb303::ThreadCachedServiceData::TLCounter;
 
-  using TLTimeseriesPtr = std::unique_ptr<TLTimeseries>;
-  using TLHistogramPtr = std::unique_ptr<TLHistogram>;
-
   // Total number of Tx packet allocated right now
-  TLTimeseriesPtr txPktAlloc_;
-  TLTimeseriesPtr txPktFree_;
-  TLTimeseriesPtr txSent_;
-  TLTimeseriesPtr txSentDone_;
+  TLTimeseries txPktAlloc_;
+  TLTimeseries txPktFree_;
+  TLTimeseries txSent_;
+  TLTimeseries txSentDone_;
 
   // Errors in sending packets
-  TLTimeseriesPtr txErrors_;
-  TLTimeseriesPtr txPktAllocErrors_;
+  TLTimeseries txErrors_;
+  TLTimeseries txPktAllocErrors_;
 
   // Time spent for each Tx packet queued in HW
-  TLHistogramPtr txQueued_;
+  TLHistogram txQueued_;
 
   // parity errors
-  TLTimeseriesPtr parityErrors_;
-  TLTimeseriesPtr corrParityErrors_;
-  TLTimeseriesPtr uncorrParityErrors_;
+  TLTimeseries parityErrors_;
+  TLTimeseries corrParityErrors_;
+  TLTimeseries uncorrParityErrors_;
 
   // Other ASIC errors
-  TLTimeseriesPtr asicErrors_;
+  TLTimeseries asicErrors_;
 };
 
 } // namespace facebook::fboss
