@@ -5,6 +5,7 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_stats
 
 cpp_include "folly/container/F14Map.h"
+cpp_include "folly/FBString.h"
 
 include "fboss/agent/hw/hardware_stats.thrift"
 

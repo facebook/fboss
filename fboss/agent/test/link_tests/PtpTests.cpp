@@ -9,6 +9,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 

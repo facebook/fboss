@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/Main.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"

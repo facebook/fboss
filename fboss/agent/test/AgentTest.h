@@ -3,11 +3,12 @@
 #pragma once
 
 #include "fboss/agent/Main.h"
-#include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/state/PortDescriptor.h"
+
+#include <gtest/gtest.h>
 
 namespace facebook::fboss {
+class SwitchState;
 
 class AgentTest : public ::testing::Test, public AgentInitializer {
  public:
