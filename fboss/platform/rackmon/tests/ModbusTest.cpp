@@ -13,6 +13,7 @@ class MockUARTDevice : public UARTDevice {
   MockUARTDevice(const std::string& dev, int baud) : UARTDevice(dev, baud) {}
   MOCK_METHOD0(open, void());
   MOCK_METHOD0(close, void());
+  MOCK_METHOD0(exists, bool());
   MOCK_METHOD2(write, void(const uint8_t*, size_t));
   MOCK_METHOD2(ioctl, void(unsigned long, void*));
   MOCK_METHOD1(waitRead, int(int));
@@ -24,12 +25,18 @@ class MockUARTDevice : public UARTDevice {
 class MockModbus : public Modbus {
  public:
   explicit MockModbus(std::stringstream& prof) : Modbus(prof) {}
+  virtual ~MockModbus() {
+    getHealthCheckThread().stop();
+  }
   MOCK_METHOD3(
       makeDevice,
       std::unique_ptr<UARTDevice>(
           const std::string&,
           const std::string&,
           uint32_t));
+  void tick() {
+    getHealthCheckThread().tick();
+  }
 };
 
 // Action to set an out-parameter-c-style buffer in an expected call
@@ -59,9 +66,31 @@ class ModbusTest : public ::testing::Test {
         std::make_unique<MockUARTDevice>("/dev/ttyUSB0", 19200);
     EXPECT_CALL(*ptr, open()).Times(1);
     EXPECT_CALL(*ptr, close()).Times(1);
+    EXPECT_CALL(*ptr, exists()).WillRepeatedly(Return(true));
     std::unique_ptr<UARTDevice> ptr2 = std::move(ptr);
     return ptr2;
   }
+
+  std::unique_ptr<UARTDevice> make_flaky_dev() {
+    std::unique_ptr<MockUARTDevice> ptr =
+        std::make_unique<MockUARTDevice>("/dev/ttyUSB0", 19200);
+    EXPECT_CALL(*ptr, open())
+        .Times(4)
+        .WillOnce(Throw(std::runtime_error("nodev"))) // 1. T0 fail initialize()
+        .WillOnce(
+            Throw(std::runtime_error("nodev"))) // 2. T0 fail healthThread()
+        .WillOnce(Return()) // 3. T1 healthThread() success
+        .WillOnce(Return()); // 6. T3 healthThread() success/recover
+    EXPECT_CALL(*ptr, close())
+        .Times(2); // 5. T2 healthThread(), 8. TX destructor
+    EXPECT_CALL(*ptr, exists())
+        .Times(2)
+        .WillOnce(Return(false)) // 4. T2 vanishes.
+        .WillOnce(Return(true)); // 7. T4 all is fine.
+    std::unique_ptr<UARTDevice> ptr2 = std::move(ptr);
+    return ptr2;
+  }
+
   std::unique_ptr<UARTDevice> make_cmd_dev(
       int baud,
       uint8_t* exp_write,
@@ -87,6 +116,7 @@ class ModbusTest : public ::testing::Test {
             SetBufArgNPointeeTo<0>(read_bytes, read_bytes_size),
             Return(read_bytes_size)));
     EXPECT_CALL(*ptr, close()).Times(1);
+    EXPECT_CALL(*ptr, exists()).WillRepeatedly(Return(true));
 
     std::unique_ptr<UARTDevice> ptr2 = std::move(ptr);
     return ptr2;
@@ -111,7 +141,7 @@ TEST_F(ModbusTest, BasicDefaultInitialization) {
 }
 
 TEST_F(ModbusTest, BasicExplicitTypeInitialization) {
-  std::vector<std::string> types = {"default", "aspeed_rs485"};
+  std::vector<std::string> types = {"default", "AspeedRS485"};
   for (const auto& type : types) {
     nlohmann::json conf;
     conf["device_path"] = "/dev/ttyUSB0";
@@ -175,4 +205,25 @@ TEST_F(ModbusTest, CommandBadResp) {
   EXPECT_THROW(
       bus.command(req, resp, 115200, ModbusTime::zero(), ModbusTime::zero()),
       CRCError);
+}
+
+TEST_F(ModbusTest, TestFlakyIntfRecover) {
+  nlohmann::json conf;
+  conf["device_path"] = "/dev/ttyUSB0";
+  conf["baudrate"] = 19200;
+  std::stringstream ss;
+  MockModbus bus(ss);
+  EXPECT_CALL(bus, makeDevice("default", "/dev/ttyUSB0", 19200))
+      .Times(1)
+      .WillOnce(Return(ByMove(make_flaky_dev())));
+  bus.initialize(conf);
+  ASSERT_FALSE(bus.isPresent());
+  bus.tick(); // T1
+  ASSERT_TRUE(bus.isPresent());
+  bus.tick(); // T2
+  ASSERT_FALSE(bus.isPresent());
+  bus.tick(); // T3
+  ASSERT_TRUE(bus.isPresent());
+  bus.tick(); // T4
+  ASSERT_TRUE(bus.isPresent());
 }

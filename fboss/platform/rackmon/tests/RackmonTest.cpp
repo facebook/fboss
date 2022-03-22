@@ -82,6 +82,7 @@ class Mock3Modbus : public Modbus {
           return fake_.command(req, resp, b, timeout, sleep_time);
         }));
   }
+  MOCK_METHOD0(isPresent, bool());
   MOCK_METHOD1(initialize, void(const nlohmann::json& j));
   MOCK_METHOD5(command, void(Msg&, Msg&, uint32_t, ModbusTime, ModbusTime));
 
@@ -156,6 +157,9 @@ class RackmonTest : public ::testing::Test {
         std::make_unique<Mock3Modbus>(exp_addr, 160, 162, 19200);
     EXPECT_CALL(*ptr, initialize(exp)).Times(1);
     if (num_cmd_calls > 0) {
+      EXPECT_CALL(*ptr, isPresent())
+          .Times(AtLeast(3))
+          .WillRepeatedly(Return(true));
       EXPECT_CALL(*ptr, command(_, _, _, _, _)).Times(AtLeast(num_cmd_calls));
     }
     std::unique_ptr<Modbus> ptr2 = std::move(ptr);

@@ -71,6 +71,9 @@ void Rackmon::load(const std::string& confPath, const std::string& regmapDir) {
 }
 
 bool Rackmon::probe(Modbus& interface, uint8_t addr) {
+  if (!interface.isPresent()) {
+    return false;
+  }
   const RegisterMap& rmap = registerMapDB_.at(addr);
   std::vector<uint16_t> v(1);
   try {

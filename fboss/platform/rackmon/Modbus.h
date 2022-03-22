@@ -7,6 +7,7 @@
 #include <set>
 #include <sstream>
 #include "Msg.h"
+#include "PollThread.h"
 #include "UARTDevice.h"
 
 namespace rackmon {
@@ -20,11 +21,26 @@ class Modbus {
   uint32_t defaultBaudrate_ = 0;
   ModbusTime defaultTimeout_ = ModbusTime::zero();
   ModbusTime minDelay_ = ModbusTime::zero();
+  std::atomic<bool> deviceValid_{false};
+  std::chrono::seconds healthCheckInterval_ = std::chrono::seconds(600);
+  std::unique_ptr<PollThread<Modbus>> healthCheckThread_{};
   std::ostream& profileStore_;
+
+  void healthCheck();
+  bool openDevice();
+  void closeDevice();
+
+ protected:
+  PollThread<Modbus>& getHealthCheckThread() {
+    return *healthCheckThread_;
+  }
 
  public:
   explicit Modbus(std::ostream& prof) : profileStore_(prof) {}
   virtual ~Modbus() {
+    if (healthCheckThread_) {
+      healthCheckThread_->stop();
+    }
     if (device_) {
       device_->close();
     }
@@ -50,7 +66,10 @@ class Modbus {
       uint32_t baudrate = 0,
       ModbusTime timeout = ModbusTime::zero(),
       ModbusTime settleTime = ModbusTime::zero());
+
+  virtual bool isPresent() {
+    return deviceValid_.load();
+  }
 };
 
-void from_json(const nlohmann::json& j, Modbus& m);
 } // namespace rackmon
