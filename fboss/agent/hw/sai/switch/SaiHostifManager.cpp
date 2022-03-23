@@ -39,6 +39,12 @@ SaiHostifManager::SaiHostifManager(
   }
 }
 
+SaiHostifManager::~SaiHostifManager() {
+  if (globalDscpToTcQosMap_) {
+    clearQosPolicy();
+  }
+}
+
 std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
 SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason,

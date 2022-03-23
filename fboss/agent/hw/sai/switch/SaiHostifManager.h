@@ -53,6 +53,7 @@ class SaiHostifManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);
+  ~SaiHostifManager();
   HostifTrapSaiId addHostifTrap(
       cfg::PacketRxReason trapId,
       uint32_t queueId,

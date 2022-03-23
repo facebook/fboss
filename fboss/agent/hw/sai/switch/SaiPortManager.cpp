@@ -142,6 +142,9 @@ SaiPortHandle::~SaiPortHandle() {
 }
 
 SaiPortManager::~SaiPortManager() {
+  if (globalDscpToTcQosMap_) {
+    clearQosPolicy();
+  }
   releasePorts();
 }
 
