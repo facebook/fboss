@@ -137,6 +137,33 @@ TEST_F(ModbusDeviceTest, CommandMisc) {
   EXPECT_EQ(status.miscErrors, 1);
 }
 
+TEST_F(ModbusDeviceTest, CommandFlaky) {
+  EXPECT_CALL(get_modbus(), command(_, _, _, _, _))
+      .Times(2)
+      .WillOnce(Invoke([](Msg& req, Msg&, uint32_t, ModbusTime, ModbusTime) {
+        EXPECT_EQ(req, 0x3202_M);
+        Encoder::encode(req);
+        throw TimeoutException();
+      }))
+      .WillOnce(
+          Invoke([](Msg& req, Msg& resp, uint32_t, ModbusTime, ModbusTime) {
+            EXPECT_EQ(req, 0x3202_M);
+            Encoder::encode(req);
+            resp = 0x32020304_EM;
+            Encoder::decode(resp);
+          }));
+
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 3);
+
+  Msg req, resp;
+  req.raw = {0x32, 2};
+  req.len = 2;
+  dev.command(req, resp);
+  EXPECT_EQ(resp, 0x32020304_M);
+  ModbusDeviceInfo status = dev.getInfo();
+  EXPECT_EQ(status.timeouts, 1);
+}
+
 TEST_F(ModbusDeviceTest, MakeDormant) {
   EXPECT_CALL(get_modbus(), command(_, _, _, _, _))
       .Times(10)

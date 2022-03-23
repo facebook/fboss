@@ -64,6 +64,8 @@ void ModbusDevice::command(
     Msg& resp,
     ModbusTime timeout,
     ModbusTime settleTime) {
+  size_t reqLen = req.len;
+  size_t respLen = resp.len;
   // Try executing the command, if errors, catch the error
   // to maintain stats on types of errors and re-throw (on
   // the last retry) in case the user wants to handle them
@@ -79,6 +81,8 @@ void ModbusDevice::command(
       if (retries == (numCommandRetries_ - 1)) {
         throw;
       }
+      req.len = reqLen;
+      resp.len = respLen;
     }
   }
 }
