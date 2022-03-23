@@ -65,7 +65,9 @@ class SnapshotLibTest(TestCase):
     def setUp(self) -> None:
         super().setUp()
         # snapshot client
-        self.client = await_sync(snapshot_lib.get_client())
+        self.client = await_sync(
+            snapshot_lib.get_client(user=snapshot_lib.NGT_SERVICE_FBID)
+        )
         self.snapshot_lines = self.mock_snapshots()
         self.unprocessed_snapshots = "\n".join(self.snapshot_lines)
 

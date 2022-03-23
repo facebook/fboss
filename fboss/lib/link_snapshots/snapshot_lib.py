@@ -330,7 +330,9 @@ class SnapshotClient:
         return SnapshotCollection(iphy_snapshots, xphy_snapshots, tcvr_snapshots)
 
 
-async def get_client(logger: logging.Logger = DEFAULT_LOGGER) -> SnapshotClient:
-    return SnapshotClient(
-        user=get_current_unix_user_fbid() or NGT_SERVICE_FBID, logger=logger
-    )
+async def get_client(
+    user: t.Optional[int] = None, logger: logging.Logger = DEFAULT_LOGGER
+) -> SnapshotClient:
+    if not user:
+        user = get_current_unix_user_fbid() or NGT_SERVICE_FBID
+    return SnapshotClient(user=user, logger=logger)
