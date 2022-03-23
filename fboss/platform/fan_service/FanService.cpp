@@ -16,20 +16,9 @@ FanService::FanService(std::string configFileName) {
   pBsp_ = NULL;
   pSensorData_ = NULL;
 
-  odsTier_ = "";
-
   cfgFile_ = configFileName;
-  enableOdsStreamer_ = true;
 
   return;
-}
-
-bool FanService::getOdsStreamerEnable() {
-  return enableOdsStreamer_;
-}
-
-void FanService::setOdsStreamerEnable(bool enable) {
-  enableOdsStreamer_ = enable;
 }
 
 void FanService::setControlFrequency(uint64_t sec) {
@@ -48,9 +37,6 @@ unsigned int FanService::getSensorFetchFrequency() {
   return sensorFetchFrequencySec_;
 }
 
-void FanService::setOdsTier(std::string oT) {
-  odsTier_ = oT;
-}
 std::shared_ptr<Bsp> FanService::BspFactory() {
   Bsp* returnVal = NULL;
   switch (pConfig_->bspType) {
@@ -91,10 +77,6 @@ void FanService::kickstart() {
   // Initialize SensorData
   pSensorData_ = std::make_shared<SensorData>();
   pSensorData_->setLastQsfpSvcTime(pBsp_->getCurrentTime());
-
-  // Start ODS Streamer and attach sensors
-  setOdsStreamerEnable(false);
-  pOdsStreamer_ = std::make_shared<OdsStreamer>(odsTier_);
 
   // Start control logic, and attach bsp and sensors
   pControlLogic_ = std::make_shared<ControlLogic>(pConfig_, pBsp_);
@@ -157,12 +139,6 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
   pBsp_->kickWatchdog(pConfig_);
 
   return rc;
-}
-
-void FanService::publishToOds(folly::EventBase* evb) {
-  if (pConfig_->getOdsStreamerEnable()) {
-    pOdsStreamer_->postData(evb, *pSensorData_);
-  }
 }
 
 int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {

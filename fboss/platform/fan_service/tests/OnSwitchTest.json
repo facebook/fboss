@@ -7,7 +7,6 @@
     },
     "value" : 1
   },
-  "enable_ods_stream" : true,
   "boost_on_dead_fan" : true,
   "boost_on_dead_sensor" : false,
   "boost_on_no_qsfp_after" : 90,

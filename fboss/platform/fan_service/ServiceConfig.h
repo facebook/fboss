@@ -262,7 +262,6 @@ class ServiceConfig {
   int getPwmUpperThreshold() const;
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
-  bool getOdsStreamerEnable();
   opticThresholdTable* FOLLY_NULLABLE getConfigOpticTable(
       std::string name,
       fan_config_structs::OpticTableType dataType);
@@ -296,8 +295,7 @@ class ServiceConfig {
   bool watchdogEnable_;
   fan_config_structs::AccessMethod watchdogAccess_;
   std::string watchdogValue_;
-  // Ods Streaming
-  bool odsStreaming_;
+
   // TODO - just use thrift enum names
   std::unordered_map<std::string, fan_config_structs::FsvcConfigDictIndex>
       configDict_;

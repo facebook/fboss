@@ -3,20 +3,16 @@
 #include "fboss/platform/fan_service/Main.h"
 //
 // GFLAGS Description : FLAGS_thrift_port
-//                      FLAGS_ods_publish_interval
 //                      FLAGS_control_interval
 //                      FLAGS_config_file
-//                      FLAGS_ods_tier
 //
 
 DEFINE_int32(thrift_port, 5972, "Thrift Port");
-DEFINE_int32(ods_publish_interval, 300, "How often we publish ODS");
 DEFINE_int32(
     control_interval,
     5,
     "How often we will read sensors and change fan pwm");
 DEFINE_string(config_file, "fan_service.json", "Config File");
-DEFINE_string(ods_tier, "ods_router.script", "ODS Tier");
 DEFINE_string(mock_input, "", "Mock Input File");
 DEFINE_string(mock_output, "", "Mock Output File");
 
@@ -70,7 +66,6 @@ int main(int argc, char** argv) {
              << FLAGS_config_file;
   auto fanService = std::make_unique<facebook::fboss::platform::FanService>(
       FLAGS_config_file);
-  fanService->setOdsTier(FLAGS_ods_tier);
 
   // Setup Thrift Server. Nothing special.
   // Later, we install our handler in this server
@@ -96,14 +91,6 @@ int main(int argc, char** argv) {
   // Set up scheduler.
   folly::FunctionScheduler scheduler;
 
-  // Add Ods Streamer to the scheduler.
-  scheduler.addFunction(
-      [handler, server = server]() {
-        handler->getFanService()->publishToOds(
-            server->getEventBaseManager()->getEventBase());
-      },
-      std::chrono::seconds(FLAGS_ods_publish_interval),
-      "OdsStatsPublish");
   // Add Fan Service control logic to the scheduler.
   scheduler.addFunction(
       [handler]() { handler->getFanService()->controlFan(); },

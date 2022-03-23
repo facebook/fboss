@@ -81,7 +81,6 @@ enum FsvcConfigDictIndex {
   kFsvcCfgPwmRangeMin = 73,
   kFsvcCfgPwmRangeMax = 74,
   kFsvcCfgPwmTransition = 75,
-  kFsvcCfgOdsStreamEnable = 76,
   kFsvcCfgValue = 77,
   kFsvcCfgScale = 78,
 }

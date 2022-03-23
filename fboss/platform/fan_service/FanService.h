@@ -6,7 +6,6 @@
 #include "Bsp.h"
 #include "ControlLogic.h"
 #include "Mokujin.h"
-#include "OdsStreamer.h"
 #include "SensorData.h"
 #include "ServiceConfig.h"
 
@@ -23,7 +22,6 @@ namespace facebook::fboss::platform {
 //               - Bsp class : All I/O functions including Thrift handler
 //                    - Mokujin class : A mock of Bsp class for unit testing
 //               - SensorData class : Stores sensor data and the timestamps
-//               - OdsStreamer class : Logic to stream sensor data to ODS
 
 class FanService {
  public:
@@ -37,10 +35,6 @@ class FanService {
   // A special function to run Fan Service as a Mock
   // (simulation for unit testing)
   int runMock(std::string mockInputFile, std::string mockOutputFile);
-  // Public function to expose ODS streamer. Needed by Handler class
-  void publishToOds(folly::EventBase* evb);
-  // Set / Change ODS Tier based on config file
-  void setOdsTier(std::string oT);
 
  private:
   // Attributes
@@ -50,19 +44,13 @@ class FanService {
   std::shared_ptr<ServiceConfig> pConfig_;
   // Control logic determines fan pwm based on config and sensor read
   std::shared_ptr<ControlLogic> pControlLogic_;
-  // ODS streamer streams sensor data to ODS (optional)
-  std::shared_ptr<OdsStreamer> pOdsStreamer_;
   // SensorData keeps all the latest sensor reading. Also provides
   // metadata that describes how to read that sensor data
   std::shared_ptr<SensorData> pSensorData_;
-  // Knob to enable ODS streamer. Default On.
-  bool enableOdsStreamer_;
   // Check if fan pwm was programmed with transitionValue yet.
   bool transitionValueSet_;
   // Config File Name
   std::string cfgFile_;
-  // ODS Tier to stream data
-  std::string odsTier_;
   // The timestamp of the last PWM control logic execution
   uint64_t lastControlExecutionTimeSec_;
   // The timestamp of the last sensor data fetch
@@ -73,10 +61,6 @@ class FanService {
   uint64_t sensorFetchFrequencySec_;
 
   // Methods
-  // ODS Streamer enable
-  void setOdsStreamerEnable(bool enable);
-  // Check if ods streamer enabled
-  bool getOdsStreamerEnable();
   // Control Logic Execution Frequency in seconds
   void setControlFrequency(uint64_t sec);
   unsigned int getControlFrequency();

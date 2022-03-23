@@ -90,9 +90,6 @@ int ServiceConfig::parse(std::string filename) {
       case fan_config_structs::FsvcConfigDictIndex::kFscvCfgWatchdogEnable:
         parseWatchdogChapter(value);
         break;
-      case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgOdsStreamEnable:
-        odsStreaming_ = value.asBool();
-        break;
       case fan_config_structs::FsvcConfigDictIndex::kFsvcCfgShutdownCmd:
         shutDownCommand_ = value.asString();
         break;
@@ -664,10 +661,6 @@ opticThresholdTable* FOLLY_NULLABLE ServiceConfig::getConfigOpticTable(
   return nullptr;
 }
 
-bool ServiceConfig::getOdsStreamerEnable() {
-  return odsStreaming_;
-}
-
 std::string ServiceConfig::getShutDownCommand() const {
   return shutDownCommand_;
 }
@@ -842,8 +835,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin;
   configDict_["pwm_range_max"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax;
-  configDict_["enable_ods_stream"] =
-      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgOdsStreamEnable;
   configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
   configDict_["scale"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgScale;
 }
