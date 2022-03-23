@@ -290,8 +290,12 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // reset explicitly since it uses observer
   pcapMgr_.reset();
   pktObservers_.reset();
+  if (fsdbSyncer_) {
+    fsdbSyncer_->stop();
+  }
   // stops the background and update threads.
   stopThreads();
+  fsdbSyncer_.reset();
 
   // ALPM requires default routes be deleted at last. Thus,
   // blow away all routes except the min required for ALPM,
@@ -302,7 +306,6 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
     hw_->stateChanged(StateDelta(getState(), getMinAlpmRouteState(getState())));
   }
-  fsdbSyncer_.reset();
 }
 
 bool SwSwitch::isFullyInitialized() const {

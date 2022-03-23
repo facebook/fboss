@@ -29,6 +29,7 @@ class FsdbSyncer : public StateObserver {
   fsdb::FsdbPubSubManager* pubSubMgr() {
     return fsdbPubSubMgr_.get();
   }
+  void stop();
 
  private:
   void fsdbStatePublisherStateChanged(

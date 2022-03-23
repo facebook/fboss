@@ -30,7 +30,15 @@ FsdbSyncer::FsdbSyncer(SwSwitch* sw)
 
 FsdbSyncer::~FsdbSyncer() {
   sw_->unregisterStateObserver(this);
-  readyForStatePublishing_.store(false);
+  CHECK(!readyForStatePublishing_.load());
+  CHECK(!readyForStatPublishing_.load());
+}
+
+void FsdbSyncer::stop() {
+  // Disable state updates in updateEvb, so this synchronizes
+  // with any inflight updates happening in updateEvb
+  sw_->getUpdateEvb()->runInEventBaseThreadAndWait(
+      [this] { readyForStatePublishing_.store(false); });
   readyForStatPublishing_.store(false);
   fsdbPubSubMgr_.reset();
 }
