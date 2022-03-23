@@ -600,9 +600,6 @@ class QsfpModule : public Transceiver {
     return std::nullopt;
   }
 
-  void setLegacyModuleStateMachineCmisModuleReady(bool isReady);
-  bool getLegacyModuleStateMachineCmisModuleReady() const;
-
   unsigned int moduleResetCounter_{0};
 
   // Due to the mismatch of ODS reporting frequency and the interval of us

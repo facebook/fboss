@@ -1203,13 +1203,6 @@ void QsfpModule::setLegacyModuleStateMachineModulePointer(
   moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = modulePtr;
 }
 
-void QsfpModule::setLegacyModuleStateMachineCmisModuleReady(bool isReady) {
-  moduleStateMachine_.get_attribute(cmisModuleReady) = isReady;
-}
-bool QsfpModule::getLegacyModuleStateMachineCmisModuleReady() const {
-  return moduleStateMachine_.get_attribute(cmisModuleReady);
-}
-
 MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
   std::vector<MediaInterfaceId> mediaInterfaceCodes(numMediaLanes());
   if (!getMediaInterfaceId(mediaInterfaceCodes)) {
