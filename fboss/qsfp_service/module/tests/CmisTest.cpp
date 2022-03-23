@@ -137,6 +137,21 @@ TEST(CmisTest, transceiverInfoTest) {
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
   EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
+
+  // Verify update qsfp data logic
+  if (auto status = info.status(); status && status->cmisModuleState()) {
+    EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+    // NOTE the following cmis data are specifically set to 0x11 in
+    // FakeTransceiverImpl
+    EXPECT_TRUE(cmisData.page14_ref());
+    // SNR will be set
+    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
+    // Check VDM cache
+    EXPECT_FALSE(xcvr->isVdmSupported());
+  } else {
+    throw FbossError("Missing CMIS Module state");
+  }
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout
@@ -431,6 +446,39 @@ TEST(Cmis400GLr4Test, transceiverInfoTest) {
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
   EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
+
+  auto diagsCap = xcvr->getDiagsCapability();
+  EXPECT_TRUE(diagsCap.has_value());
+  EXPECT_TRUE(*diagsCap->diagnostics());
+  EXPECT_TRUE(*diagsCap->vdm());
+  EXPECT_TRUE(*diagsCap->cdb());
+  EXPECT_TRUE(*diagsCap->prbsLine());
+  EXPECT_TRUE(*diagsCap->prbsSystem());
+  EXPECT_TRUE(*diagsCap->loopbackLine());
+  EXPECT_TRUE(*diagsCap->loopbackSystem());
+
+  // Verify update qsfp data logic
+  if (auto status = info.status(); status && status->cmisModuleState()) {
+    EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+    // NOTE the following cmis data are specifically set to 0x11 in
+    // FakeTransceiverImpl
+    EXPECT_TRUE(cmisData.page14_ref());
+    // SNR will be set
+    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
+    // Check VDM cache
+    EXPECT_TRUE(xcvr->isVdmSupported());
+    EXPECT_TRUE(cmisData.page20_ref());
+    EXPECT_EQ(cmisData.page20_ref()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page21_ref());
+    EXPECT_EQ(cmisData.page21_ref()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page24_ref());
+    EXPECT_EQ(cmisData.page24_ref()->data()[0], 0x15);
+    EXPECT_TRUE(cmisData.page25_ref());
+    EXPECT_EQ(cmisData.page25_ref()->data()[0], 0x00);
+  } else {
+    throw FbossError("Missing CMIS Module state");
+  }
 }
 
 TEST(CmisFlatMemTest, transceiverInfoTest) {

@@ -390,6 +390,8 @@ class CmisModule : public QsfpModule {
    * Get the PRBS stats for a module
    */
   phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
+
+  void updateVdmCacheLocked();
 };
 
 } // namespace fboss

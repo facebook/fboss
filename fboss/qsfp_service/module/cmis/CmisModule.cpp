@@ -1409,31 +1409,7 @@ void CmisModule::updateQsfpData(bool allPages) {
         qsfpImpl_->readTransceiver(
             {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_)}, page14_);
 
-        if (isVdmSupported()) {
-          page = 0x20;
-          qsfpImpl_->writeTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-          qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
-
-          page = 0x21;
-          qsfpImpl_->writeTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-          qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
-
-          page = 0x24;
-          qsfpImpl_->writeTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-          qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
-
-          page = 0x25;
-          qsfpImpl_->writeTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-          qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
-        }
+        updateVdmCacheLocked();
       }
     }
 
@@ -2033,78 +2009,56 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
  * the MSM enters Module Discovered state after EEPROM read.
  */
 void CmisModule::setDiagsCapability() {
-  auto diagsCapability = diagsCapability_.wlock();
-  if (!(*diagsCapability).has_value()) {
-    XLOG(INFO) << "Module diag capability is set for " << qsfpImpl_->getName();
-    DiagsCapability diags;
-    uint8_t data;
+  {
+    auto diagsCapability = diagsCapability_.wlock();
+    if (!diagsCapability->has_value()) {
+      XLOG(INFO) << "Setting diag capability for Transceiver="
+                 << qsfpImpl_->getName();
+      DiagsCapability diags;
+      uint8_t data;
 
-    auto readFromCacheOrHw = [&](CmisField field) -> uint8_t {
-      uint8_t dataVal;
-      int offset;
-      int length;
-      int dataAddress;
-      getQsfpFieldAddress(field, dataAddress, offset, length);
-      if (cacheIsValid()) {
-        getQsfpValue(dataAddress, offset, 1, &dataVal);
-      } else {
-        qsfpImpl_->readTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataVal);
+      auto readFromCacheOrHw = [&](CmisField field) -> uint8_t {
+        uint8_t dataVal;
+        int offset;
+        int length;
+        int dataAddress;
+        getQsfpFieldAddress(field, dataAddress, offset, length);
+        if (cacheIsValid()) {
+          getQsfpValue(dataAddress, offset, 1, &dataVal);
+        } else {
+          qsfpImpl_->readTransceiver(
+              {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataVal);
+        }
+        return dataVal;
+      };
+
+      data = readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT);
+      diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
+      diags.diagnostics() =
+          (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
+
+      data = readFromCacheOrHw(CmisField::CDB_SUPPORT);
+      diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+
+      if (*diags.diagnostics()) {
+        data = readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY);
+        diags.loopbackSystem() =
+            (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
+        diags.loopbackLine() =
+            (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+
+        data = readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY);
+        diags.prbsLine() =
+            (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
+        diags.prbsSystem() =
+            (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
       }
-      return dataVal;
-    };
 
-    data = readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT);
-    diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
-    diags.diagnostics() =
-        (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
-
-    data = readFromCacheOrHw(CmisField::CDB_SUPPORT);
-    diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
-
-    if (*diags.diagnostics()) {
-      data = readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY);
-      diags.loopbackSystem() =
-          (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
-      diags.loopbackLine() =
-          (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
-
-      data = readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY);
-      diags.prbsLine() =
-          (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
-      diags.prbsSystem() =
-          (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
+      *diagsCapability = diags;
     }
-
-    *diagsCapability = diags;
-  }
-
+  } // Release diagsCapability_ lock
   // If VDM capability has been identified then update VDM cache
-  if ((*diagsCapability).has_value() && *(*diagsCapability).value().vdm()) {
-    uint8_t page = 0x20;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
-
-    page = 0x21;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
-
-    page = 0x24;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
-
-    page = 0x25;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
-  }
+  updateVdmCacheLocked();
 }
 
 /*
@@ -2493,6 +2447,37 @@ void CmisModule::resetDataPathWithFunc(
   XLOG(INFO) << folly::sformat(
       "Module {:s}, DATA_PATH_DEINIT set and reset done for all lanes",
       qsfpImpl_->getName());
+}
+
+void CmisModule::updateVdmCacheLocked() {
+  if (!isVdmSupported()) {
+    XLOG(DBG5) << "Transceiver=" << qsfpImpl_->getName()
+               << " doesn't support VDM, skip updating VDM cache";
+    return;
+  }
+  uint8_t page = 0x20;
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
+
+  page = 0x21;
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
+
+  page = 0x24;
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
+
+  page = 0x25;
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
 }
 
 } // namespace fboss

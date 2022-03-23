@@ -222,8 +222,7 @@ class QsfpModule : public Transceiver {
 
   bool isVdmSupported() const {
     auto diagsCapability = diagsCapability_.rlock();
-    return (*diagsCapability).has_value() &&
-        *(*diagsCapability).value().vdm_ref();
+    return diagsCapability->has_value() && *(*diagsCapability)->vdm();
   }
 
   bool isPrbsSupported(phy::Side side) const {
