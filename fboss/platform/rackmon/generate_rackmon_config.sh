@@ -40,7 +40,7 @@ gencpp() {
     fi
     echo "}"
     echo "}"
-  } >> "$outf"
+  } > "$outf"
 }
 
 FBCODE_DIR=""
