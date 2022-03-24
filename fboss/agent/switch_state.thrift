@@ -5,6 +5,7 @@ namespace py neteng.fboss.switch_state
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_state
 namespace cpp2 facebook.fboss.state
+namespace go neteng.fboss.switch_state
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
