@@ -169,3 +169,10 @@ struct HwResourceStats {
   44: i32 mirrors_erspan = STAT_UNINITIALIZED;
   45: i32 mirrors_sflow = STAT_UNINITIALIZED;
 }
+
+struct HwAsicErrors {
+  1: i64 parityErrors;
+  2: i64 correctedParityErrors;
+  3: i64 uncorrectedParityErrors;
+  4: i64 asicErrors;
+}
