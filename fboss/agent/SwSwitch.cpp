@@ -57,6 +57,7 @@
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
+#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
@@ -437,6 +438,8 @@ void SwSwitch::updateStats() {
                   .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
         AgentStats agentStats;
         agentStats.hwPortStats() = getHw()->getPortStats();
+        agentStats.hwAsicErrors() =
+            getHw()->getSwitchStats()->getHwAsicErrors();
         fsdbSyncer_->statsUpdated(std::move(agentStats));
         publishedStatsToFsdbAt_ = now;
       }
