@@ -440,6 +440,7 @@ void SwSwitch::updateStats() {
         agentStats.hwPortStats() = getHw()->getPortStats();
         agentStats.hwAsicErrors() =
             getHw()->getSwitchStats()->getHwAsicErrors();
+        stats()->fillAgentStats(agentStats);
         fsdbSyncer_->statsUpdated(std::move(agentStats));
         publishedStatsToFsdbAt_ = now;
       }

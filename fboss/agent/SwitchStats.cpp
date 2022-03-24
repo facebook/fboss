@@ -11,6 +11,7 @@
 
 #include <folly/Memory.h>
 #include "fboss/agent/PortStats.h"
+#include "fboss/lib/CommonUtils.h"
 
 using facebook::fb303::AVG;
 using facebook::fb303::RATE;
@@ -265,4 +266,7 @@ AggregatePortStats* SwitchStats::createAggregatePortStats(
   return it->second.get();
 }
 
+void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
+  agentStats.linkFlaps() = getCumulativeValue(linkStateChange_);
+}
 } // namespace facebook::fboss

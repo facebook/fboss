@@ -15,6 +15,7 @@
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/PortStats.h"
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -346,6 +347,8 @@ class SwitchStats : public boost::noncopyable {
   typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
   typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
   typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
+
+  void fillAgentStats(AgentStats& agentStats) const;
 
  private:
   // Forbidden copy constructor and assignment operator

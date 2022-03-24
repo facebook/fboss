@@ -84,6 +84,7 @@ add_library(stats
 
 target_link_libraries(stats
   fboss_types
+  agent_stats_cpp2
   state
   Folly::folly
 )

@@ -820,6 +820,7 @@ if (NOT SAI_ONLY)
   target_link_libraries(
     fboss_agent PUBLIC
       agent_config_cpp2
+      agent_stats_cpp2
       switch_asics_old
       switch_config_cpp2
       switch_state_cpp2

@@ -16,4 +16,5 @@ struct AgentStats {
   2: map<string, hardware_stats.HwTrunkStats> hwTrunkStats;
   3: hardware_stats.HwResourceStats hwResourceStats;
   4: hardware_stats.HwAsicErrors hwAsicErrors;
+  5: i64 linkFlaps;
 }
