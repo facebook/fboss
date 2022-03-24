@@ -76,4 +76,17 @@ HwSwitchStats::HwSwitchStats(
           SwitchStats::kCounterPrefix + vendor + ".asic.error",
           SUM,
           RATE) {}
+
+HwAsicErrors HwSwitchStats::getHwAsicErrors() const {
+  auto getCounterVal = [](const auto& stat) {
+    auto counterVal = fb303::fbData->getCounterIfExists(stat.name() + ".sum");
+    return counterVal ? *counterVal : 0;
+  };
+  HwAsicErrors asicErrors;
+  asicErrors.parityErrors() = getCounterVal(parityErrors_);
+  asicErrors.correctedParityErrors() = getCounterVal(corrParityErrors_);
+  asicErrors.uncorrectedParityErrors() = getCounterVal(uncorrParityErrors_);
+  asicErrors.asicErrors() = getCounterVal(asicErrors_);
+  return asicErrors;
+}
 } // namespace facebook::fboss

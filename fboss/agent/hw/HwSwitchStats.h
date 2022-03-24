@@ -12,6 +12,7 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/ThreadLocal.h>
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 namespace facebook::fboss {
 
@@ -86,6 +87,7 @@ class HwSwitchStats {
   int64_t getAsicErrorCount() {
     return asicErrors_.count();
   }
+  HwAsicErrors getHwAsicErrors() const;
 
  private:
   // Forbidden copy constructor and assignment operator
