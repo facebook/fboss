@@ -428,23 +428,25 @@ void SwSwitch::updateLldpStats() {
 }
 
 void SwSwitch::updateStats() {
-  updateRouteStats();
-  updatePortInfo();
-  updateLldpStats();
-  AgentStats agentStats;
-  try {
-    getHw()->updateStats(stats());
+  SCOPE_EXIT {
     if (FLAGS_publish_stats_to_fsdb) {
       auto now = std::chrono::steady_clock::now();
       if (!publishedStatsToFsdbAt_ ||
           std::chrono::duration_cast<std::chrono::seconds>(
               now - *publishedStatsToFsdbAt_)
                   .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
-        agentStats.hwPortStats_ref() = getHw()->getPortStats();
+        AgentStats agentStats;
+        agentStats.hwPortStats() = getHw()->getPortStats();
         fsdbSyncer_->statsUpdated(std::move(agentStats));
         publishedStatsToFsdbAt_ = now;
       }
     }
+  };
+  updateRouteStats();
+  updatePortInfo();
+  updateLldpStats();
+  try {
+    getHw()->updateStats(stats());
   } catch (const std::exception& ex) {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
