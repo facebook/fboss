@@ -112,4 +112,5 @@ add_library(common_utils
 
 target_link_libraries(common_utils
   fboss_error
+  fb303::fb303
 )

@@ -66,6 +66,7 @@ target_link_libraries(hw_switch_stats
   stats
   fb303::fb303
   Folly::folly
+  common_utils
 )
 
 target_link_libraries(hw_fb303_stats

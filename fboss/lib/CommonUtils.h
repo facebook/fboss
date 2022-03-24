@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <fb303/ThreadCachedServiceData.h>
+#include <fb303/ThreadLocalStats.h>
 #include <optional>
 #include "fboss/agent/FbossError.h"
 
@@ -29,4 +31,9 @@ void checkWithRetry(
   }
 }
 
+inline int64_t getCumulativeValue(
+    const fb303::ThreadCachedServiceData::TLTimeseries& stat) {
+  auto counterVal = fb303::fbData->getCounterIfExists(stat.name() + ".sum");
+  return counterVal ? *counterVal : 0;
+}
 } // namespace facebook::fboss

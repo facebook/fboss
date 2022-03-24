@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/HwSwitchStats.h"
 
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/lib/CommonUtils.h"
 
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
@@ -78,15 +79,12 @@ HwSwitchStats::HwSwitchStats(
           RATE) {}
 
 HwAsicErrors HwSwitchStats::getHwAsicErrors() const {
-  auto getCounterVal = [](const auto& stat) {
-    auto counterVal = fb303::fbData->getCounterIfExists(stat.name() + ".sum");
-    return counterVal ? *counterVal : 0;
-  };
   HwAsicErrors asicErrors;
-  asicErrors.parityErrors() = getCounterVal(parityErrors_);
-  asicErrors.correctedParityErrors() = getCounterVal(corrParityErrors_);
-  asicErrors.uncorrectedParityErrors() = getCounterVal(uncorrParityErrors_);
-  asicErrors.asicErrors() = getCounterVal(asicErrors_);
+  asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
+  asicErrors.correctedParityErrors() = getCumulativeValue(corrParityErrors_);
+  asicErrors.uncorrectedParityErrors() =
+      getCumulativeValue(uncorrParityErrors_);
+  asicErrors.asicErrors() = getCumulativeValue(asicErrors_);
   return asicErrors;
 }
 } // namespace facebook::fboss
