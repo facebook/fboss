@@ -1259,7 +1259,7 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
 
     if (flatMem_) {
       throw FbossError(
-          "Accessing data address 0x%d on flatMem module.", dataAddress);
+          "Accessing upper page ", dataAddress, " on flatMem module.");
     }
 
     switch (static_cast<CmisPages>(dataAddress)) {
@@ -2006,6 +2006,11 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
  * the MSM enters Module Discovered state after EEPROM read.
  */
 void CmisModule::setDiagsCapability() {
+  if (flatMem_) {
+    // Upper pages > 0 are not applicable for flatMem_ modules, and hence
+    // diagsCapability isn't valid either
+    return;
+  }
   {
     auto diagsCapability = diagsCapability_.wlock();
     if (!diagsCapability->has_value()) {
@@ -2023,6 +2028,9 @@ void CmisModule::setDiagsCapability() {
         if (cacheIsValid()) {
           getQsfpValue(dataAddress, offset, 1, &dataVal);
         } else {
+          uint8_t page = static_cast<uint8_t>(dataAddress);
+          qsfpImpl_->writeTransceiver(
+              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
               {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataVal);
         }
