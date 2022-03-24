@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
+#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 
@@ -75,10 +76,8 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
   int64_t getCorrectedParityErrorCount() const {
     // Aggregate TL stats. In HwTests we don't start a TL aggregation thread.
     fb303::ThreadCachedServiceData::get()->publishStats();
-    // We may not have set the counter yet, so use IfExists API
-    auto counterVal = fb303::fbData->getCounterIfExists(
-        getAsic()->getVendor() + ".parity.corr.sum.60");
-    return counterVal ? *counterVal : 0;
+    auto asicErrors = getHwSwitch()->getSwitchStats()->getHwAsicErrors();
+    return *asicErrors.correctedParityErrors_ref();
   }
 };
 
