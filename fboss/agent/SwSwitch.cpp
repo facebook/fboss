@@ -1690,6 +1690,7 @@ void SwSwitch::applyConfig(
     const cfg::SwitchConfig& newConfig) {
   // We don't need to hold a lock here. updateStateBlocking() does that for us.
   auto routeUpdater = getRouteUpdater();
+  auto oldConfig = getConfig();
   updateStateBlocking(
       reason,
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
@@ -1759,7 +1760,7 @@ void SwSwitch::applyConfig(
   routeUpdater.program();
   if (fsdbSyncer_) {
     // TODO - figure out a way to send full agent config
-    fsdbSyncer_->cfgUpdated(newConfig);
+    fsdbSyncer_->cfgUpdated(oldConfig, newConfig);
   }
 }
 

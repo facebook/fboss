@@ -51,12 +51,14 @@ void FsdbSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {
   }
 }
 
-void FsdbSyncer::cfgUpdated(const cfg::SwitchConfig& /*newConfig*/) {
-  sw_->getUpdateEvb()->runInEventBaseThreadAndWait([this]() {
+void FsdbSyncer::cfgUpdated(
+    const cfg::SwitchConfig& oldConfig,
+    const cfg::SwitchConfig& newConfig) {
+  sw_->getUpdateEvb()->runInEventBaseThreadAndWait([&]() {
     if (!readyForStatePublishing_.load()) {
       return;
     }
-    // sync config
+    publishCfg(oldConfig, newConfig);
   });
 }
 
@@ -71,6 +73,37 @@ void FsdbSyncer::statsUpdated(const AgentStats& stats) {
   fsdbPubSubMgr_->publishStat(std::move(stateUnit));
 }
 
+template <typename T>
+void FsdbSyncer::publishState(
+    const std::vector<std::string>& path,
+    const std::optional<T>& oldState,
+    const std::optional<T>& newState) {
+  fsdb::OperPath deltaPath;
+  deltaPath.raw_ref() = path;
+  fsdb::OperDeltaUnit deltaUnit;
+  deltaUnit.path_ref() = deltaPath;
+  if (oldState.has_value()) {
+    deltaUnit.oldState_ref() =
+        apache::thrift::BinarySerializer::serialize<std::string>(
+            oldState.value());
+  }
+  if (newState.has_value()) {
+    deltaUnit.newState_ref() =
+        apache::thrift::BinarySerializer::serialize<std::string>(
+            newState.value());
+  }
+  fsdb::OperDelta delta;
+  delta.changes_ref()->push_back(deltaUnit);
+  delta.protocol_ref() = fsdb::OperProtocol::BINARY;
+  fsdbPubSubMgr_->publishState(delta);
+}
+
+void FsdbSyncer::publishCfg(
+    const std::optional<cfg::SwitchConfig>& oldConfig,
+    const std::optional<cfg::SwitchConfig>& newConfig) {
+  publishState({"agent", "config", "sw"}, oldConfig, newConfig);
+}
+
 void FsdbSyncer::fsdbStatePublisherStateChanged(
     fsdb::FsdbStreamClient::State oldState,
     fsdb::FsdbStreamClient::State newState) {
@@ -80,6 +113,7 @@ void FsdbSyncer::fsdbStatePublisherStateChanged(
     sw_->getUpdateEvb()->runInEventBaseThreadAndWait([this] {
       // TODO - do a full state sync on connect
       readyForStatePublishing_.store(true);
+      publishCfg(std::nullopt, sw_->getConfig());
     });
   }
   if (newState != fsdb::FsdbStreamClient::State::CONNECTED) {

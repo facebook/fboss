@@ -24,11 +24,14 @@ class FsdbSyncer : public StateObserver {
   ~FsdbSyncer() override;
   void stateUpdated(const StateDelta& stateDelta) override;
   // TODO - change to AgentConfig once SwSwitch can pass us that
-  void cfgUpdated(const cfg::SwitchConfig& /*newConfig*/);
+  void cfgUpdated(
+      const cfg::SwitchConfig& oldConfig,
+      const cfg::SwitchConfig& newConfig);
   void statsUpdated(const AgentStats& stats);
   fsdb::FsdbPubSubManager* pubSubMgr() {
     return fsdbPubSubMgr_.get();
   }
+
   void stop();
 
  private:
@@ -38,6 +41,16 @@ class FsdbSyncer : public StateObserver {
   void fsdbStatPublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
+
+  void publishCfg(
+      const std::optional<cfg::SwitchConfig>& oldConfig,
+      const std::optional<cfg::SwitchConfig>& newConfig);
+  template <typename T>
+  void publishState(
+      const std::vector<std::string>& path,
+      const std::optional<T>& oldState,
+      const std::optional<T>& newState);
+
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::atomic<bool> readyForStatePublishing_{false};
