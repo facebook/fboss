@@ -51,6 +51,11 @@ class FsdbSyncer : public StateObserver {
       const std::optional<T>& oldState,
       const std::optional<T>& newState);
 
+  // Paths
+  std::vector<std::string> getAgentStatePath() const;
+  std::vector<std::string> getAgentStatsPath() const;
+  std::vector<std::string> getSwConfigPath() const;
+
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::atomic<bool> readyForStatePublishing_{false};

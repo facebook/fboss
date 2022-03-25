@@ -152,6 +152,7 @@ add_library(core
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
+  fboss/agent/oss/FsdbSyncer.cpp
 )
 
 target_link_libraries(core

@@ -12,16 +12,15 @@ namespace facebook::fboss {
 FsdbSyncer::FsdbSyncer(SwSwitch* sw)
     : sw_(sw),
       fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("wedge_agent")) {
-  std::vector<std::string> path{"agent"};
   if (FLAGS_publish_state_to_fsdb) {
     fsdbPubSubMgr_->createStateDeltaPublisher(
-        path, [this](auto oldState, auto newState) {
+        getAgentStatePath(), [this](auto oldState, auto newState) {
           fsdbStatePublisherStateChanged(oldState, newState);
         });
   }
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbPubSubMgr_->createStatPathPublisher(
-        path, [this](auto oldState, auto newState) {
+        getAgentStatsPath(), [this](auto oldState, auto newState) {
           fsdbStatPublisherStateChanged(oldState, newState);
         });
   }
@@ -101,7 +100,7 @@ void FsdbSyncer::publishState(
 void FsdbSyncer::publishCfg(
     const std::optional<cfg::SwitchConfig>& oldConfig,
     const std::optional<cfg::SwitchConfig>& newConfig) {
-  publishState({"agent", "config", "sw"}, oldConfig, newConfig);
+  publishState(getSwConfigPath(), oldConfig, newConfig);
 }
 
 void FsdbSyncer::fsdbStatePublisherStateChanged(
