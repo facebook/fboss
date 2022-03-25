@@ -55,16 +55,17 @@ TunManager::TunManager(SwSwitch* sw, EventBase* evb) : sw_(sw), evb_(evb) {
   nlCheckError(error, "failed to connect netlink socket to NETLINK_ROUTE");
 }
 
-TunManager::~TunManager() {
+void TunManager::stopProcessing() {
   if (observingState_) {
     sw_->unregisterStateObserver(this);
   }
-
   std::lock_guard<std::mutex> lock(mutex_);
   stop();
   nl_close(sock_);
   nl_socket_free(sock_);
 }
+
+TunManager::~TunManager() {}
 
 void TunManager::startObservingUpdates() {
   sw_->registerStateObserver(this, "TunManager");

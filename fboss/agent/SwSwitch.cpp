@@ -236,7 +236,9 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // Stop tunMgr so we don't get any packets to process
   // in software that were sent to the switch ip or were
   // routed from kernel to the front panel tunnel interface.
-  tunMgr_.reset();
+  if (tunMgr_) {
+    tunMgr_->stopProcessing();
+  }
 
   resolvedNexthopMonitor_.reset();
   resolvedNexthopProbeScheduler_.reset();
@@ -297,6 +299,10 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   // stops the background and update threads.
   stopThreads();
   fsdbSyncer_.reset();
+  // reset tunnel manager only after pkt thread is stopped
+  // as there could be state updates in progress which will
+  // access entries in tunnel manager
+  tunMgr_.reset();
 
   // ALPM requires default routes be deleted at last. Thus,
   // blow away all routes except the min required for ALPM,

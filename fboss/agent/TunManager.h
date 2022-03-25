@@ -79,6 +79,8 @@ class TunManager : public StateObserver {
    */
   virtual void probe();
 
+  void stopProcessing();
+
  private:
   // no copy to assign
   TunManager(const TunManager&) = delete;
