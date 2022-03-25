@@ -246,6 +246,18 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
+  qsfp_state_cpp2
+  fboss/qsfp_service/if/qsfp_state.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
+  qsfp_stats_cpp2
+  fboss/qsfp_service/if/qsfp_stats.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
   phy_cpp2
   fboss/lib/phy/phy.thrift
   SERVICES

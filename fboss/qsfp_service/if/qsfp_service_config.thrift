@@ -5,6 +5,7 @@ namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.qsfp_service_config
 namespace py neteng.fboss.qsfp_service_config
 namespace py3 neteng.fboss
+namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 namespace rust facebook.fboss
 
 include "fboss/qsfp_service/if/transceiver.thrift"
