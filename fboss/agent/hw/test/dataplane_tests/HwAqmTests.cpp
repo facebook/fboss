@@ -309,6 +309,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       PortID port,
       const int queueId,
       const uint64_t expectedOutPkts,
+      const uint64_t expectedDropPkts,
       HwPortStats& before) {
     auto waitForExpectedOutPackets = [&](const auto& newStats) {
       uint64_t outPackets{0}, wredDrops{0}, ecnMarking{0};
@@ -326,10 +327,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
       }
       /*
        * Check for outpackets as expected and ensure that ECN or WRED
-       * counters are incrementing too!
+       * counters are incrementing too! In case of WRED, make sure that
+       * dropped packets + out packets >= expected drop + out packets.
        */
       return (outPackets >= expectedOutPkts) &&
-          ((isEcn && ecnMarking) || (!isEcn && wredDrops));
+          ((isEcn && ecnMarking) ||
+           (!isEcn &&
+            (wredDrops + outPackets) >= (expectedOutPkts + expectedDropPkts)));
     };
 
     constexpr auto kNumRetries{5};
@@ -341,7 +345,12 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void runEcnWredThresholdTest(bool isEcn) {
     constexpr auto kQueueId{0};
-    constexpr auto kPayloadLength{200};
+    /*
+     * Good to keep the payload size such that the whole packet with
+     * headers can fit in a single buffer in ASIC to keep computation
+     * simple and accurate.
+     */
+    constexpr auto kPayloadLength{30};
     constexpr auto kDroppedPackets{50};
     constexpr auto kMarkedPackets{50};
 
@@ -363,9 +372,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
      * configured ECN/WRED threshold, then send a fixed number of
      * additional packets to get marked / dropped.
      */
-    int numPacketsToSend = utility::getRoundedBufferThreshold(
-                               getHwSwitch(), kThresholdBytes, roundUp) /
-            utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen) +
+    int numPacketsToSend =
+        ceil(
+            (double)utility::getRoundedBufferThreshold(
+                getHwSwitch(), kThresholdBytes, roundUp) /
+            utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
         (isEcn ? kMarkedPackets : kDroppedPackets);
     XLOG(DBG3) << "Rounded threshold: "
                << utility::getRoundedBufferThreshold(
@@ -415,6 +426,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
           masterLogicalPortIds()[0],
           kQueueId,
           kExpectedOutPackets,
+          kDroppedPackets,
           before);
       auto after =
           getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
