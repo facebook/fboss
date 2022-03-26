@@ -22,25 +22,6 @@ enum ExportType {
 }
 
 typedef set<ExportType> (cpp.template = 'folly::F14FastSet') ExportTypes
-typedef i64 Percentile
-typedef set<Percentile> (cpp.template = 'std::set') Percentiles
-
-struct AggregatorParamsTimeseries {
-  1: ExportTypes exportTypes;
-}
-
-struct AggregatorParamsHistogram {
-  1: i64 bucketWidth;
-  2: i64 min;
-  3: i64 max;
-  4: ExportTypes exportTypes;
-  5: Percentiles percentiles;
-}
-
-union AggregatorParams {
-  1: AggregatorParamsTimeseries timeseries;
-  2: AggregatorParamsHistogram histogram;
-}
 
 enum FsdbErrorCode {
   NONE = 0,
@@ -64,15 +45,11 @@ exception FsdbException {
 typedef string PublisherId
 typedef string SubscriberId
 typedef string Metric
-typedef string ReMetric
 typedef string EchoBackTag
 
 typedef set<PublisherId> (cpp.template = 'folly::F14FastSet') PublisherIds
 typedef set<SubscriberId> (cpp.template = 'folly::F14FastSet') SubscriberIds
 typedef set<Metric> (cpp.template = 'folly::F14FastSet') Metrics
-typedef map<ReMetric, EchoBackTag> (
-  cpp.template = 'folly::F14FastMap',
-) ReMetrics
 
 // NOTE: Fully Qualified => Fq
 struct FqMetric {
@@ -81,18 +58,3 @@ struct FqMetric {
 }
 
 typedef map<PublisherId, Metrics> (cpp.template = 'folly::F14FastMap') FqMetrics
-
-typedef string FqMetricAsKey
-typedef string FqReMetricAsKey
-
-typedef set<FqMetricAsKey> (cpp.template = 'folly::F14FastSet') FqMetricAsKeys
-
-// NOTE: Regular Expression => Re
-struct FqReMetric {
-  1: PublisherId publisherId;
-  2: ReMetric reMetric;
-}
-
-typedef map<PublisherId, ReMetrics> (
-  cpp.template = 'folly::F14FastMap',
-) FqReMetrics
