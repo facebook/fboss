@@ -119,6 +119,8 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
  public:
   using NodeMapT<NodeMap, TraitsT>::NodeMapT;
 
+  using ThriftType = typename ThriftyTraitsT::NodeContainer;
+
   static std::shared_ptr<NodeMap> fromThrift(
       const typename ThriftyTraitsT::NodeContainer& map) {
     auto mapObj = std::make_shared<NodeMap>();
@@ -269,6 +271,7 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
  public:
   using NodeBaseT<NodeT, FieldsT>::NodeBaseT;
   using Fields = FieldsT;
+  using ThriftType = ThriftT;
 
   static std::shared_ptr<NodeT> fromThrift(const ThriftT& obj) {
     auto fields = FieldsT::fromThrift(obj);

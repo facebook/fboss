@@ -21,30 +21,30 @@ class FsdbStateDeltaConverter {
       const std::optional<state::SwitchState>& newState) const;
 
  private:
-  template <typename T>
+  template <typename Path, typename Node>
   fsdb::OperDeltaUnit createDeltaUnit(
-      const std::vector<std::string>& path,
-      const std::optional<T>& oldState,
-      const std::optional<T>& newState) const;
+      const Path& path,
+      const std::optional<Node>& oldState,
+      const std::optional<Node>& newState) const;
 
   void processVlanMapDelta(
       std::vector<fsdb::OperDeltaUnit>& deltas,
       const VlanMapDelta& vlanDelta) const;
 
   // creates deltas for each node in node map, does not traverse to child nodes
-  template <typename MapDelta>
+  template <typename Path, typename MapDelta>
   void processNodeMapDelta(
       std::vector<fsdb::OperDeltaUnit>& operDeltas,
       const MapDelta& nodeMapDelta,
-      const std::vector<std::string>& basePath) const;
+      const Path& basePath) const;
 
-  template <typename T>
+  template <typename Path, typename Node, typename Key>
   void processNodeDelta(
       std::vector<fsdb::OperDeltaUnit>& deltas,
-      const std::vector<std::string>& basePath,
-      const std::string& nodeID,
-      const std::shared_ptr<T>& oldNode,
-      const std::shared_ptr<T>& newNode) const;
+      const Path& basePath,
+      const Key& nodeID,
+      const std::shared_ptr<Node>& oldNode,
+      const std::shared_ptr<Node>& newNode) const;
 };
 
 } // namespace facebook::fboss

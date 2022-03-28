@@ -20,11 +20,11 @@ fsdb::OperDeltaUnit FsdbStateDeltaConverter::createSwitchStateDelta(
   return fsdb::OperDeltaUnit();
 }
 
-template <typename T>
+template <typename Path, typename Node>
 fsdb::OperDeltaUnit FsdbStateDeltaConverter::createDeltaUnit(
-    const std::vector<std::string>& /* path */,
-    const std::optional<T>& /* oldState */,
-    const std::optional<T>& /* newState */) const {
+    const Path& /* path */,
+    const std::optional<Node>& /* oldState */,
+    const std::optional<Node>& /* newState */) const {
   return fsdb::OperDeltaUnit();
 }
 
@@ -32,18 +32,18 @@ void FsdbStateDeltaConverter::processVlanMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* deltas */,
     const VlanMapDelta& /* vlanMapDelta */) const {}
 
-template <typename MapDelta>
+template <typename Path, typename MapDelta>
 void FsdbStateDeltaConverter::processNodeMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* operDeltas */,
     const MapDelta& /* nodeMapDelta */,
-    const std::vector<std::string>& /* basePath */) const {}
+    const Path& /* basePath */) const {}
 
-template <typename T>
+template <typename Path, typename Node, typename Key>
 void FsdbStateDeltaConverter::processNodeDelta(
     std::vector<fsdb::OperDeltaUnit>& /* deltas */,
-    const std::vector<std::string>& /* basePath */,
-    const std::string& /* nodeID */,
-    const std::shared_ptr<T>& /* oldNode */,
-    const std::shared_ptr<T>& /* newNode */) const {}
+    const Path& /* basePath */,
+    const Key& /* nodeID */,
+    const std::shared_ptr<Node>& /* oldNode */,
+    const std::shared_ptr<Node>& /* newNode */) const {}
 
 } // namespace facebook::fboss
