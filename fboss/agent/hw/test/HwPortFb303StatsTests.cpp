@@ -73,7 +73,14 @@ HwPortStats getInitedStats() {
       {}, // egress flow stats
       {{}}, // rx SA stats
       {{}}, // tx SA stats
-      // Macsec Acl stats
+      // Macsec Acl stats ingress
+      mka::MacsecAclStats{
+          apache::thrift::FragileConstructor(),
+          0, // defaultAclStats
+          0, // controlAclStats
+          0, // flowAclStats
+      },
+      // Macsec Acl stats egress
       mka::MacsecAclStats{
           apache::thrift::FragileConstructor(),
           0, // defaultAclStats
@@ -174,7 +181,13 @@ void updateStats(HwPortFb303Stats& portStats) {
           0,
           0,
           0,
-      }, // macsec Acl stats
+      }, // macsec ingress Acl stats
+      mka::MacsecAclStats{
+          apache::thrift::FragileConstructor(),
+          0,
+          0,
+          0,
+      }, // macsec egress Acl stats
   };
   empty.macsecStats() = emptyMacsecStats;
   // Need to populate queue stats, since by default these

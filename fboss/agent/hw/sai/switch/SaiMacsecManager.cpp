@@ -1636,40 +1636,43 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
     macsecPort.second->port->updateStats<SaiMacsecPortTraits>();
     fillHwPortStats(macsecPort.second->port->getStats(), macsecPortStats);
 
-    // ACL counters for default rule on ingress
-    if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
-      std::string aclTblName = getAclName(port, direction);
-      auto aclTable =
-          managerTable_->aclTableManager().getAclTableHandle(aclTblName);
-      if (aclTable) {
-        // Lambda to get the ACL counter value
-        auto getAclCounter = [this, &aclTable](int prio) -> uint64_t {
-          auto aclEntryHandle =
-              managerTable_->aclTableManager().getAclEntryHandle(
-                  aclTable, prio);
-          if (aclEntryHandle) {
-            auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
-            auto aclCounterIdGot =
-                SaiApiTable::getInstance()
-                    ->aclApi()
-                    .getAttribute(
-                        AclEntrySaiId(aclEntryId),
-                        SaiAclEntryTraits::Attributes::ActionCounter())
-                    .getData();
-            auto counterPackets =
-                SaiApiTable::getInstance()->aclApi().getAttribute(
-                    AclCounterSaiId(aclCounterIdGot),
-                    SaiAclCounterTraits::Attributes::CounterPackets());
-            return counterPackets;
-          }
-          XLOG(ERR) << folly::sformat(
-              "ACL entry does not exist for priority {:d}", prio);
-          return 0;
-        };
-        auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
-        XLOG(DBG5) << folly::sformat(
-            "ACL counter Macsec default = {:d}", defaultAclCount);
+    // ACL counters for default rule on ingress and egress
+    std::string aclTblName = getAclName(port, direction);
+    auto aclTable =
+        managerTable_->aclTableManager().getAclTableHandle(aclTblName);
+    if (aclTable) {
+      // Lambda to get the ACL counter value
+      auto getAclCounter = [this, &aclTable](int prio) -> uint64_t {
+        auto aclEntryHandle =
+            managerTable_->aclTableManager().getAclEntryHandle(aclTable, prio);
+        if (aclEntryHandle) {
+          auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+          auto aclCounterIdGot =
+              SaiApiTable::getInstance()
+                  ->aclApi()
+                  .getAttribute(
+                      AclEntrySaiId(aclEntryId),
+                      SaiAclEntryTraits::Attributes::ActionCounter())
+                  .getData();
+          auto counterPackets =
+              SaiApiTable::getInstance()->aclApi().getAttribute(
+                  AclCounterSaiId(aclCounterIdGot),
+                  SaiAclCounterTraits::Attributes::CounterPackets());
+          return counterPackets;
+        }
+        XLOG(ERR) << folly::sformat(
+            "ACL entry does not exist for priority {:d}", prio);
+        return 0;
+      };
+      auto defaultAclCount = getAclCounter(kMacsecDefaultAclPriority);
+      XLOG(DBG5) << folly::sformat(
+          "ACL counter Macsec default = {:d}", defaultAclCount);
+
+      if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
         auto& macsecAclStats = *macsecStats.ingressAclStats();
+        macsecAclStats.defaultAclStats() = defaultAclCount;
+      } else {
+        auto& macsecAclStats = *macsecStats.egressAclStats();
         macsecAclStats.defaultAclStats() = defaultAclCount;
       }
     }

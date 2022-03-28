@@ -27,6 +27,7 @@ struct MacsecStats {
   5: list<MacsecSaIdSaStats> rxSecureAssociationStats;
   6: list<MacsecSaIdSaStats> txSecureAssociationStats;
   7: mka_structs.MacsecAclStats ingressAclStats;
+  8: mka_structs.MacsecAclStats egressAclStats;
 }
 
 struct HwPortStats {
