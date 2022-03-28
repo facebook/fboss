@@ -5,8 +5,7 @@ import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
 from fboss.lib.link_snapshots.snapshot_lib import (
     SNAPSHOT_FORMAT,
     Backend,
-    AGENT_ARCHIVE_FMT,
-    QSFP_ARCHIVE_FMT,
+    ARCHIVE_PATH,
 )
 from later.unittest.mock import AsyncContextManager, AsyncMock, patch
 from libfb.py.asyncio.await_utils import await_sync
@@ -37,6 +36,8 @@ PORT_NAME = "eth2/1/1"
 # redefined here instead of importing from snapshot_lib to catch log name typos
 AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
 QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qsfp_service.log"
+AGENT_ARCHIVE_FMT = ARCHIVE_PATH + "wedge_agent.log-{}.gz"
+QSFP_ARCHIVE_FMT = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
 
 
 def build_iphy_snapshot(timestamp: int, port_name: str) -> LinkSnapshot:
@@ -140,9 +141,9 @@ class SnapshotLibTest(TestCase):
         if shell_cmd is None:
             raise Exception("mocked_ssh expects shell_cmd, was None")
 
-        if "ls " in shell_cmd:
+        if "find " in shell_cmd:
             return self.mock_ls_result
-        elif "grep" in shell_cmd:
+        elif "zgrep " in shell_cmd:
             return self.mock_grep_result
         else:
             raise Exception("Unhandled command in mocked ssh: ", shell_cmd)

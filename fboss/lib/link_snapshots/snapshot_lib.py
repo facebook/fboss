@@ -46,13 +46,7 @@ DEFAULT_TIME_RANGE = timedelta(minutes=1)
 FETCH_SNAPSHOT_LOG_COMMAND = "zgrep 'LINK_SNAPSHOT_EVENT' {} | grep {} | grep -v sshd"
 
 ARCHIVE_PATH = "/var/facebook/logs/fboss/archive/"
-
-AGENT_ARCHIVE_FMT = ARCHIVE_PATH + "wedge_agent.log-{}.gz"
-AGENT_ARCHIVE_PATTERN = AGENT_ARCHIVE_FMT.format("*")
 AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
-
-QSFP_ARCHIVE_FMT = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
-QSFP_ARCHIVE_PATTERN = QSFP_ARCHIVE_FMT.format("*")
 QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qsfp_service.log"
 
 FILENAME_REGEX = (
@@ -161,7 +155,10 @@ class SnapshotClient:
                 if timestamp >= time_end.timestamp():
                     break
 
-            if time_end.timestamp() >= log_timestamps[-1][0]:
+            if (
+                len(log_timestamps) == 0
+                or time_end.timestamp() >= log_timestamps[-1][0]
+            ):
                 possible_logfiles.append(current_log)
 
             return possible_logfiles
@@ -170,13 +167,18 @@ class SnapshotClient:
             (
                 await ssh_util.run_ssh_cmd(
                     hostname,
-                    f"ls {AGENT_ARCHIVE_PATTERN} {QSFP_ARCHIVE_PATTERN}",
+                    # List the archive directory, look for wedge_agent and qsfp
+                    # archives. Don't raise exception if output is empty (error
+                    # code 1).
+                    f"find {ARCHIVE_PATH} | grep -e wedge_agent -e qsfp_service || [[ $? == 1 ]]",
                     self._logger,
                 )
             )
             .strip()
             .split("\n")
         )
+        # split("") = ['']. Remove empty strs to clean this up
+        logfiles = [x for x in logfiles if x != ""]
 
         log_timestamps = parse_timestamps(logfiles)
 
