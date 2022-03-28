@@ -20,35 +20,4 @@ std::vector<std::string> FsdbSyncer::getAgentStatsPath() const {
   return {};
 }
 
-std::vector<std::string> FsdbSyncer::getSwitchStatePath() const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getSwConfigPath() const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getPortMapPath() const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getVlanMapPath() const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getArpTablePath(
-    int16_t /* vlanId */) const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getNdpTablePath(
-    int16_t /* vlanId */) const {
-  return {};
-}
-
-std::vector<std::string> FsdbSyncer::getMacTablePath(
-    int16_t /* vlanId */) const {
-  return {};
-}
-
 } // namespace facebook::fboss

@@ -2,10 +2,9 @@
 
 #pragma once
 
+#include "fboss/agent/FsdbStateDeltaConverter.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/Thrifty.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
@@ -45,50 +44,17 @@ class FsdbSyncer : public StateObserver {
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
 
-  template <typename T>
-  fsdb::OperDeltaUnit createDeltaUnit(
-      const std::vector<std::string>& path,
-      const std::optional<T>& oldState,
-      const std::optional<T>& newState) const;
-
   void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
-
-  // State delta handlers
-
-  void processVlanMapDelta(
-      std::vector<fsdb::OperDeltaUnit>& deltas,
-      const VlanMapDelta& vlanDelta) const;
-
-  // creates deltas for each node in node map, does not traverse to child nodes
-  template <typename MapDelta>
-  void processNodeMapDelta(
-      std::vector<fsdb::OperDeltaUnit>& operDeltas,
-      const MapDelta& nodeMapDelta,
-      const std::vector<std::string>& basePath) const;
-
-  template <typename T>
-  void processNodeDelta(
-      std::vector<fsdb::OperDeltaUnit>& deltas,
-      const std::vector<std::string>& basePath,
-      const std::string& nodeID,
-      const std::shared_ptr<T>& oldNode,
-      const std::shared_ptr<T>& newNode) const;
 
   // Paths
   std::vector<std::string> getAgentStatePath() const;
   std::vector<std::string> getAgentStatsPath() const;
-  std::vector<std::string> getSwitchStatePath() const;
-  std::vector<std::string> getSwConfigPath() const;
-  std::vector<std::string> getPortMapPath() const;
-  std::vector<std::string> getVlanMapPath() const;
-  std::vector<std::string> getArpTablePath(int16_t vlanId) const;
-  std::vector<std::string> getNdpTablePath(int16_t vlanId) const;
-  std::vector<std::string> getMacTablePath(int16_t vlanId) const;
 
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::atomic<bool> readyForStatePublishing_{false};
   std::atomic<bool> readyForStatPublishing_{false};
+  FsdbStateDeltaConverter deltaConverter_;
 };
 
 } // namespace facebook::fboss
