@@ -146,6 +146,12 @@ DEFINE_bool(
     false,
     "Delete all SA, SC on a Phy, use with --port");
 DEFINE_bool(
+    setup_macsec_state,
+    false,
+    "Setup Macsec state for port, use with --port, --macsec_desired, drop_unencrypted");
+DEFINE_bool(macsec_desired, false, "If macsec_desired for a port");
+DEFINE_bool(drop_unencrypted, false, "If drop_unencrypted required for a port");
+DEFINE_bool(
     get_all_sc_info,
     false,
     "Get all SC, SA info for a Phy, use with --port");
@@ -393,6 +399,31 @@ void CredoMacsecUtil::deleteAllSc(QsfpServiceAsyncClient* fbMacsecHandler) {
 
   bool rc = fbMacsecHandler->sync_deleteAllSc(FLAGS_port);
   printf("All SA, SC deletion %s\n", rc ? "Successful" : "Failed");
+}
+
+/*
+ * setupMacsecPortState
+ * This function will set the Macsec state in the Phy chip as per the
+ * MacsecDesired and DropUnencrypted flag
+ */
+void CredoMacsecUtil::setupMacsecPortState(
+    facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+  printf(
+      "For port=%s, going to set macsecDesired=%s and dropUnencrypted=%s\n",
+      FLAGS_port.c_str(),
+      (FLAGS_macsec_desired ? "True" : "False"),
+      (FLAGS_drop_unencrypted ? "True" : "False"));
+
+  bool rc = fbMacsecHandler->sync_setupMacsecState(
+      {FLAGS_port}, FLAGS_macsec_desired, FLAGS_drop_unencrypted);
+  printf(
+      "setupMacsecPortState for %s %s\n",
+      FLAGS_port.c_str(),
+      (rc ? "Done" : "Failed"));
 }
 
 void CredoMacsecUtil::printPhyLinkInfo(

@@ -18,6 +18,9 @@ DECLARE_string(port);
 DECLARE_bool(delete_sa_rx);
 DECLARE_bool(delete_sa_tx);
 DECLARE_bool(delete_all_sc);
+DECLARE_bool(setup_macsec_state);
+DECLARE_bool(macsec_desired);
+DECLARE_bool(drop_unencrypted);
 DECLARE_bool(get_all_sc_info);
 DECLARE_bool(get_port_stats);
 DECLARE_bool(ingress);
@@ -45,6 +48,8 @@ class CredoMacsecUtil {
   void addSaTx(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void deleteSaRx(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void deleteSaTx(facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
+  void setupMacsecPortState(
+      facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void printPhyLinkInfo(
       facebook::fboss::QsfpServiceAsyncClient* fbMacsecHandler);
   void printPhySerdesInfo(

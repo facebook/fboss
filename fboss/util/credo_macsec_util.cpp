@@ -38,6 +38,10 @@ int main(int argc, char* argv[]) {
     macsec.deleteAllSc(client.get());
     return 0;
   }
+  if (FLAGS_setup_macsec_state) {
+    macsec.setupMacsecPortState(client.get());
+    return 0;
+  }
   if (FLAGS_phy_link_info) {
     macsec.printPhyLinkInfo(client.get());
     return 0;
