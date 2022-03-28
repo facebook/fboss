@@ -108,9 +108,12 @@ void printFlowStatsHelper(
   }
 }
 
-void printAclStatsHelper(MacsecAclStats& aclStats, std::string portName) {
+void printAclStatsHelper(
+    MacsecAclStats& aclStats,
+    std::string portName,
+    bool ingress) {
   printf("Printing ACL stats for %s\n", portName.c_str());
-  printf("Direction: %s\n", "ingress");
+  printf("Direction: %s\n", (ingress ? "ingress" : "egress"));
   printf("  defaultAclStats: %ld\n", aclStats.defaultAclStats().value());
 }
 
@@ -577,8 +580,10 @@ void CredoMacsecUtil::getAclStats(QsfpServiceAsyncClient* fbMacsecHandler) {
   }
 
   auto& portMacsecStats = portMacsecStatsItr->second;
-  auto& aclStats = portMacsecStats.ingressAclStats().value();
-  printAclStatsHelper(aclStats, FLAGS_port);
+  auto& inAclStats = portMacsecStats.ingressAclStats().value();
+  printAclStatsHelper(inAclStats, FLAGS_port, true);
+  auto& outAclStats = portMacsecStats.egressAclStats().value();
+  printAclStatsHelper(outAclStats, FLAGS_port, false);
 }
 
 void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
@@ -614,7 +619,9 @@ void CredoMacsecUtil::getAllPortStats(QsfpServiceAsyncClient* fbMacsecHandler) {
       printSaStatsHelper(saStatsItr.saStats().value(), portName, false);
     }
     printAclStatsHelper(
-        portStatsItr.second.ingressAclStats().value(), portName);
+        portStatsItr.second.ingressAclStats().value(), portName, true);
+    printAclStatsHelper(
+        portStatsItr.second.egressAclStats().value(), portName, false);
     printf("\n");
   }
 }
