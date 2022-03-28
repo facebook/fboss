@@ -1,7 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/FsdbSyncer.h"
+#include <optional>
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
@@ -42,12 +45,63 @@ void FsdbSyncer::stop() {
   fsdbPubSubMgr_.reset();
 }
 
-void FsdbSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {
+void FsdbSyncer::stateUpdated(const StateDelta& stateDelta) {
   CHECK(sw_->getUpdateEvb()->isInEventBaseThread());
   // Sync updates.
   if (!readyForStatePublishing_.load()) {
     return;
   }
+
+  fsdb::OperDelta delta;
+  delta.protocol_ref() = fsdb::OperProtocol::BINARY;
+
+  auto portMapPath = getPortMapPath();
+  DeltaFunctions::forEachChanged(
+      stateDelta.getPortsDelta(),
+      [&](const auto& oldNode, const auto& newNode) {
+        addPortDeltaImpl(delta, portMapPath, oldNode, newNode);
+      },
+      [&](const auto& newNode) {
+        addPortDeltaImpl(
+            delta, portMapPath, decltype(newNode)(nullptr), newNode);
+      },
+      [&](const auto& oldNode) {
+        addPortDeltaImpl(
+            delta, portMapPath, oldNode, decltype(oldNode)(nullptr));
+      });
+
+  fsdbPubSubMgr_->publishState(delta);
+}
+
+void FsdbSyncer::addPortDeltaImpl(
+    fsdb::OperDelta& delta,
+    const std::vector<std::string>& basePath,
+    const std::shared_ptr<Port>& oldNode,
+    const std::shared_ptr<Port>& newNode) {
+  // TODO: share code b/w this and publishState
+  fsdb::OperPath deltaPath;
+  std::vector<std::string> fullPath = basePath;
+  if (oldNode) {
+    fullPath.push_back(folly::to<std::string>(oldNode->getID()));
+  } else if (newNode) {
+    fullPath.push_back(folly::to<std::string>(newNode->getID()));
+  }
+  deltaPath.raw_ref() = fullPath;
+
+  fsdb::OperDeltaUnit deltaUnit;
+  deltaUnit.path_ref() = deltaPath;
+  if (oldNode) {
+    deltaUnit.oldState() =
+        apache::thrift::BinarySerializer::serialize<std::string>(
+            oldNode->toThrift());
+  }
+  if (newNode) {
+    deltaUnit.newState() =
+        apache::thrift::BinarySerializer::serialize<std::string>(
+            newNode->toThrift());
+  }
+
+  delta.changes_ref()->push_back(deltaUnit);
 }
 
 void FsdbSyncer::cfgUpdated(
@@ -110,9 +164,12 @@ void FsdbSyncer::fsdbStatePublisherStateChanged(
   if (newState == fsdb::FsdbStreamClient::State::CONNECTED) {
     // schedule a full sync
     sw_->getUpdateEvb()->runInEventBaseThreadAndWait([this] {
-      // TODO - do a full state sync on connect
-      readyForStatePublishing_.store(true);
+      publishState(
+          getSwitchStatePath(),
+          std::optional<state::SwitchState>(),
+          std::make_optional(sw_->getState()->toThrift()));
       publishCfg(std::nullopt, sw_->getConfig());
+      readyForStatePublishing_.store(true);
     });
   }
   if (newState != fsdb::FsdbStreamClient::State::CONNECTED) {

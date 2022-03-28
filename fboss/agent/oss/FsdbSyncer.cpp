@@ -20,7 +20,15 @@ std::vector<std::string> FsdbSyncer::getAgentStatsPath() const {
   return {};
 }
 
+std::vector<std::string> FsdbSyncer::getSwitchStatePath() const {
+  return {};
+}
+
 std::vector<std::string> FsdbSyncer::getSwConfigPath() const {
+  return {};
+}
+
+std::vector<std::string> FsdbSyncer::getPortMapPath() const {
   return {};
 }
 

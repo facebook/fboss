@@ -5,6 +5,7 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
@@ -23,11 +24,13 @@ class FsdbSyncer : public StateObserver {
   explicit FsdbSyncer(SwSwitch* sw);
   ~FsdbSyncer() override;
   void stateUpdated(const StateDelta& stateDelta) override;
+  void statsUpdated(const AgentStats& stats);
+
   // TODO - change to AgentConfig once SwSwitch can pass us that
   void cfgUpdated(
       const cfg::SwitchConfig& oldConfig,
       const cfg::SwitchConfig& newConfig);
-  void statsUpdated(const AgentStats& stats);
+
   fsdb::FsdbPubSubManager* pubSubMgr() {
     return fsdbPubSubMgr_.get();
   }
@@ -51,10 +54,18 @@ class FsdbSyncer : public StateObserver {
       const std::optional<T>& oldState,
       const std::optional<T>& newState);
 
+  void addPortDeltaImpl(
+      fsdb::OperDelta& delta,
+      const std::vector<std::string>& basePath,
+      const std::shared_ptr<Port>& oldNode,
+      const std::shared_ptr<Port>& newNode);
+
   // Paths
   std::vector<std::string> getAgentStatePath() const;
   std::vector<std::string> getAgentStatsPath() const;
+  std::vector<std::string> getSwitchStatePath() const;
   std::vector<std::string> getSwConfigPath() const;
+  std::vector<std::string> getPortMapPath() const;
 
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
