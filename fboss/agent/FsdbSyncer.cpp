@@ -55,8 +55,67 @@ void FsdbSyncer::stateUpdated(const StateDelta& stateDelta) {
   std::vector<fsdb::OperDeltaUnit> deltas;
 
   processNodeMapDelta(deltas, stateDelta.getPortsDelta(), getPortMapPath());
+  processVlanMapDelta(deltas, stateDelta.getVlansDelta());
 
   publishDeltas(std::move(deltas));
+}
+
+void FsdbSyncer::processVlanMapDelta(
+    std::vector<fsdb::OperDeltaUnit>& deltas,
+    const VlanMapDelta& vlanMapDelta) const {
+  const auto vlanMapPath = getVlanMapPath();
+  for (const auto& vlanDelta : vlanMapDelta) {
+    auto oldVlan = vlanDelta.getNew();
+    auto newVlan = vlanDelta.getOld();
+    if (oldVlan && newVlan) {
+      /*
+      We're doing a simplification here, aside from neighbor tables, most of
+      vlan fields are relatively static, so if any of the normal fields change
+      we'll just emit the entire delta. However if only neighbor tables
+      changed then do a more granular delta
+      */
+      if (oldVlan->getID() != newVlan->getID() ||
+          oldVlan->getName() != newVlan->getName() ||
+          oldVlan->getInterfaceID() != newVlan->getInterfaceID() ||
+          oldVlan->getDhcpV4Relay() != newVlan->getDhcpV4Relay() ||
+          oldVlan->getDhcpV6Relay() != newVlan->getDhcpV6Relay() ||
+          oldVlan->getDhcpV4RelayOverrides() !=
+              newVlan->getDhcpV4RelayOverrides() ||
+          oldVlan->getDhcpV6RelayOverrides() !=
+              newVlan->getDhcpV6RelayOverrides() ||
+          oldVlan->getPorts() != newVlan->getPorts() ||
+          oldVlan->getArpResponseTable() != newVlan->getArpResponseTable() ||
+          oldVlan->getNdpResponseTable() != newVlan->getNdpResponseTable()) {
+        processNodeDelta(
+            deltas,
+            vlanMapPath,
+            folly::to<std::string>(newVlan->getID()),
+            oldVlan,
+            newVlan);
+      } else {
+        processNodeMapDelta(
+            deltas, vlanDelta.getArpDelta(), getArpTablePath(newVlan->getID()));
+        processNodeMapDelta(
+            deltas, vlanDelta.getNdpDelta(), getNdpTablePath(newVlan->getID()));
+        processNodeMapDelta(
+            deltas, vlanDelta.getMacDelta(), getMacTablePath(newVlan->getID()));
+      }
+    } else if (newVlan) {
+      processNodeDelta(
+          deltas,
+          vlanMapPath,
+          folly::to<std::string>(newVlan->getID()),
+          decltype(newVlan)(nullptr),
+          newVlan);
+    } else if (oldVlan) {
+      processNodeDelta(
+          deltas,
+          vlanMapPath,
+          folly::to<std::string>(oldVlan->getID()),
+          oldVlan,
+          decltype(oldVlan)(nullptr));
+    }
+  }
 }
 
 template <typename MapDelta>

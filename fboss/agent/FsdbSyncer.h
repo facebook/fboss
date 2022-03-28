@@ -55,6 +55,10 @@ class FsdbSyncer : public StateObserver {
 
   // State delta handlers
 
+  void processVlanMapDelta(
+      std::vector<fsdb::OperDeltaUnit>& deltas,
+      const VlanMapDelta& vlanDelta) const;
+
   // creates deltas for each node in node map, does not traverse to child nodes
   template <typename MapDelta>
   void processNodeMapDelta(
@@ -76,6 +80,10 @@ class FsdbSyncer : public StateObserver {
   std::vector<std::string> getSwitchStatePath() const;
   std::vector<std::string> getSwConfigPath() const;
   std::vector<std::string> getPortMapPath() const;
+  std::vector<std::string> getVlanMapPath() const;
+  std::vector<std::string> getArpTablePath(int16_t vlanId) const;
+  std::vector<std::string> getNdpTablePath(int16_t vlanId) const;
+  std::vector<std::string> getMacTablePath(int16_t vlanId) const;
 
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
