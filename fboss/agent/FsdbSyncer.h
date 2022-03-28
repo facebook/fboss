@@ -45,20 +45,24 @@ class FsdbSyncer : public StateObserver {
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
 
-  void publishCfg(
-      const std::optional<cfg::SwitchConfig>& oldConfig,
-      const std::optional<cfg::SwitchConfig>& newConfig);
   template <typename T>
-  void publishState(
+  fsdb::OperDeltaUnit createDeltaUnit(
       const std::vector<std::string>& path,
       const std::optional<T>& oldState,
-      const std::optional<T>& newState);
+      const std::optional<T>& newState) const;
 
-  void addPortDeltaImpl(
-      fsdb::OperDelta& delta,
+  void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
+
+  // State delta handlers
+  void processPortMapDelta(
+      std::vector<fsdb::OperDeltaUnit>& deltas,
+      const NodeMapDelta<PortMap>& portDelta) const;
+
+  void processPortDelta(
+      std::vector<fsdb::OperDeltaUnit>& deltas,
       const std::vector<std::string>& basePath,
       const std::shared_ptr<Port>& oldNode,
-      const std::shared_ptr<Port>& newNode);
+      const std::shared_ptr<Port>& newNode) const;
 
   // Paths
   std::vector<std::string> getAgentStatePath() const;
