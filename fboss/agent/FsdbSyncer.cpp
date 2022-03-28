@@ -54,46 +54,62 @@ void FsdbSyncer::stateUpdated(const StateDelta& stateDelta) {
 
   std::vector<fsdb::OperDeltaUnit> deltas;
 
-  processPortMapDelta(deltas, stateDelta.getPortsDelta());
+  processNodeMapDelta(deltas, stateDelta.getPortsDelta(), getPortMapPath());
 
   publishDeltas(std::move(deltas));
 }
 
-void FsdbSyncer::processPortMapDelta(
-    std::vector<fsdb::OperDeltaUnit>& deltas,
-    const NodeMapDelta<PortMap>& portDelta) const {
-  auto portMapPath = getPortMapPath();
+template <typename MapDelta>
+void FsdbSyncer::processNodeMapDelta(
+    std::vector<fsdb::OperDeltaUnit>& operDeltas,
+    const MapDelta& nodeMapDelta,
+    const std::vector<std::string>& basePath) const {
   DeltaFunctions::forEachChanged(
-      portDelta,
+      nodeMapDelta,
       [&](const auto& oldNode, const auto& newNode) {
-        processPortDelta(deltas, portMapPath, oldNode, newNode);
+        processNodeDelta(
+            operDeltas,
+            basePath,
+            folly::to<std::string>(
+                MapDelta::MapType::getNodeThriftKey(oldNode)),
+            oldNode,
+            newNode);
       },
       [&](const auto& newNode) {
-        processPortDelta(
-            deltas, portMapPath, decltype(newNode)(nullptr), newNode);
+        processNodeDelta(
+            operDeltas,
+            basePath,
+            folly::to<std::string>(
+                MapDelta::MapType::getNodeThriftKey(newNode)),
+            decltype(newNode)(nullptr),
+            newNode);
       },
       [&](const auto& oldNode) {
-        processPortDelta(
-            deltas, portMapPath, oldNode, decltype(oldNode)(nullptr));
+        processNodeDelta(
+            operDeltas,
+            basePath,
+            folly::to<std::string>(
+                MapDelta::MapType::getNodeThriftKey(oldNode)),
+            oldNode,
+            decltype(oldNode)(nullptr));
       });
 }
 
-void FsdbSyncer::processPortDelta(
+template <typename T>
+void FsdbSyncer::processNodeDelta(
     std::vector<fsdb::OperDeltaUnit>& deltas,
     const std::vector<std::string>& basePath,
-    const std::shared_ptr<Port>& oldNode,
-    const std::shared_ptr<Port>& newNode) const {
+    const std::string& nodeID,
+    const std::shared_ptr<T>& oldNode,
+    const std::shared_ptr<T>& newNode) const {
   std::vector<std::string> fullPath = basePath;
-  if (oldNode) {
-    fullPath.push_back(folly::to<std::string>(oldNode->getID()));
-  } else if (newNode) {
-    fullPath.push_back(folly::to<std::string>(newNode->getID()));
-  }
-
+  fullPath.push_back(nodeID);
   fsdb::OperDeltaUnit deltaUnit = createDeltaUnit(
       fullPath,
-      oldNode ? oldNode->toThrift() : std::optional<state::PortFields>(),
-      newNode ? newNode->toThrift() : std::optional<state::PortFields>());
+      oldNode ? oldNode->toThrift()
+              : std::optional<decltype(oldNode->toThrift())>(),
+      newNode ? newNode->toThrift()
+              : std::optional<decltype(newNode->toThrift())>());
   deltas.push_back(deltaUnit);
 }
 

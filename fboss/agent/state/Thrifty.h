@@ -160,11 +160,8 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
   typename ThriftyTraitsT::NodeContainer toThrift() const {
     typename ThriftyTraitsT::NodeContainer items;
-    // port getKey = PortID -> i16
-    // neighbor getKey = IPAddr -> str
     for (auto& node : *this) {
-      items[ThriftyTraitsT::convertKey(TraitsT::getKey(node))] =
-          node->getFields()->toThrift();
+      items[getNodeThriftKey(node)] = node->getFields()->toThrift();
     }
 
     return items;
@@ -230,6 +227,12 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
   static std::shared_ptr<NodeMap> fromFollyDynamicLegacy(
       folly::dynamic const& dyn) {
     return NodeMapT<NodeMap, TraitsT>::fromFollyDynamic(dyn);
+  }
+
+  // return node id in the node map as it would be represented in thrift
+  static typename ThriftyTraitsT::KeyType getNodeThriftKey(
+      const std::shared_ptr<typename TraitsT::Node>& node) {
+    return ThriftyTraitsT::convertKey(TraitsT::getKey(node));
   }
 
   bool operator==(

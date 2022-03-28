@@ -54,15 +54,21 @@ class FsdbSyncer : public StateObserver {
   void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
 
   // State delta handlers
-  void processPortMapDelta(
-      std::vector<fsdb::OperDeltaUnit>& deltas,
-      const NodeMapDelta<PortMap>& portDelta) const;
 
-  void processPortDelta(
+  // creates deltas for each node in node map, does not traverse to child nodes
+  template <typename MapDelta>
+  void processNodeMapDelta(
+      std::vector<fsdb::OperDeltaUnit>& operDeltas,
+      const MapDelta& nodeMapDelta,
+      const std::vector<std::string>& basePath) const;
+
+  template <typename T>
+  void processNodeDelta(
       std::vector<fsdb::OperDeltaUnit>& deltas,
       const std::vector<std::string>& basePath,
-      const std::shared_ptr<Port>& oldNode,
-      const std::shared_ptr<Port>& newNode) const;
+      const std::string& nodeID,
+      const std::shared_ptr<T>& oldNode,
+      const std::shared_ptr<T>& newNode) const;
 
   // Paths
   std::vector<std::string> getAgentStatePath() const;

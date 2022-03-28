@@ -64,6 +64,7 @@ class NodeMapDelta {
  public:
   using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
   using RawConstPointerType = typename MAPPOINTERTRAITS::RawConstPointerType;
+  using MapType = MAP;
   using Node = typename MAP::Node;
   class Iterator;
 
