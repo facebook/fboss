@@ -8,41 +8,75 @@
  *
  */
 
-#include <folly/Conv.h>
-#include <folly/Memory.h>
-#include <gflags/gflags.h>
-#include <glog/logging.h>
-#include <cstdint>
-#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
+
 #include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
-#include <gtest/gtest.h>
+namespace facebook::fboss {
 
-using namespace facebook::fboss;
-using std::make_unique;
+class SffTest : public TransceiverManagerTestHelper {
+ public:
+  template <typename XcvrImplT>
+  SffModule* overrideSffModule(
+      TransceiverID id,
+      int numPortsPerXcvr,
+      bool willRefresh = true) {
+    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
 
-namespace {
+    auto xcvr = static_cast<SffModule*>(
+        transceiverManager_->overrideTransceiverForTesting(
+            id,
+            std::make_unique<SffModule>(
+                transceiverManager_.get(),
+                std::move(xcvrImpl),
+                numPortsPerXcvr)));
+
+    if (willRefresh) {
+      // Refresh once to make sure the override transceiver finishes refresh
+      transceiverManager_->refreshStateMachines();
+    }
+
+    return xcvr;
+  }
+};
 
 // Tests that the transceiverInfo object is correctly populated
-TEST(SffTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<SffCwdm4Transceiver> qsfpImpl =
-      std::make_unique<SffCwdm4Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+TEST_F(SffTest, cwdm4TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<SffCwdm4Transceiver>(xcvrID, 4);
 
-  qsfp->refresh();
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
 
-  TransceiverInfo info = qsfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
-
-  tests.verifyVendorName("FACETEST");
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(
+        *media.media()->extendedSpecificationComplianceCode_ref(),
+        ExtendedSpecComplianceCode::CWDM4_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
+  }
+
+  EXPECT_EQ(100, info.cable().value_or({}).om3().value_or({}));
+  EXPECT_EQ(true, info.status().value_or({}).interruptL().value_or({}));
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
   tests.verifyTemp(31.015625);
   tests.verifyVcc(3.2989);
   std::map<std::string, std::vector<double>> laneDom = {
@@ -50,8 +84,7 @@ TEST(SffTest, transceiverInfoTest) {
       {"TxPwr", {1.6705, 1.6962, 1.7219, 1.7476}},
       {"RxPwr", {0.4643, 0.9012, 0.4913, 0.4626}},
   };
-  tests.verifyLaneDom(laneDom, qsfp->numMediaLanes());
-  EXPECT_EQ(100, info.cable().value_or({}).om3().value_or({}));
+  tests.verifyLaneDom(laneDom, xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaSignals = {
       {"Tx_Los", {0, 1, 0, 1}},
@@ -61,14 +94,13 @@ TEST(SffTest, transceiverInfoTest) {
       {"Tx_Fault", {0, 0, 1, 1}},
       {"Tx_AdaptFault", {1, 1, 0, 1}},
   };
-  tests.verifyMediaLaneSignals(expectedMediaSignals, qsfp->numMediaLanes());
+  tests.verifyMediaLaneSignals(expectedMediaSignals, xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
       {"TxDisable", {0, 1, 1, 1}},
       {"TxSqDisable", {0, 0, 1, 1}},
       {"TxAdaptEqCtrl", {1, 0, 1, 1}},
   };
-
   std::map<std::string, std::vector<uint8_t>> expectedHostLaneSettings = {
       {"RxOutDisable", {1, 1, 0, 0}},
       {"RxSqDisable", {0, 1, 0, 0}},
@@ -76,11 +108,10 @@ TEST(SffTest, transceiverInfoTest) {
       {"RxOutputEmph", {2, 1, 1, 3}},
       {"RxOutputAmp", {1, 3, 2, 3}},
   };
-
   auto settings = info.settings().value_or({});
   tests.verifyMediaLaneSettings(
-      expectedMediaLaneSettings, qsfp->numMediaLanes());
-  tests.verifyHostLaneSettings(expectedHostLaneSettings, qsfp->numHostLanes());
+      expectedMediaLaneSettings, xcvr->numMediaLanes());
+  tests.verifyHostLaneSettings(expectedHostLaneSettings, xcvr->numHostLanes());
 
   std::map<std::string, std::vector<bool>> laneInterrupts = {
       {"TxPwrHighAlarm", {1, 0, 0, 0}},
@@ -96,7 +127,7 @@ TEST(SffTest, transceiverInfoTest) {
       {"TxBiasHighWarn", {0, 0, 1, 0}},
       {"TxBiasLowWarn", {0, 1, 1, 0}},
   };
-  tests.verifyLaneInterrupts(laneInterrupts, qsfp->numMediaLanes());
+  tests.verifyLaneInterrupts(laneInterrupts, xcvr->numMediaLanes());
 
   tests.verifyGlobalInterrupts("temp", 1, 1, 0, 0);
   tests.verifyGlobalInterrupts("vcc", 0, 0, 1, 1);
@@ -107,179 +138,225 @@ TEST(SffTest, transceiverInfoTest) {
   tests.verifyThresholds("txPwr", 0.4386, 1.3124, 2.1862, 3.06);
   tests.verifyThresholds("txBias", 0.034, 17.51, 34.986, 52.462);
 
-  EXPECT_EQ(true, info.status().value_or({}).interruptL().value_or({}));
-  EXPECT_EQ(qsfp->numHostLanes(), 4);
-  EXPECT_EQ(qsfp->numMediaLanes(), 4);
-
-  for (auto& media : *info.settings()->mediaInterface()) {
-    EXPECT_EQ(
-        media.media()->get_extendedSpecificationComplianceCode(),
-        ExtendedSpecComplianceCode::CWDM4_100G);
-    EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
-  }
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
-  testCachedMediaSignals(qsfp.get());
-  EXPECT_EQ(qsfp->getDiagsCapability(), std::nullopt);
+  // This test will write registers, save it to the last
+  testCachedMediaSignals(xcvr);
 }
 
 // Tests that a SFF DAC module can properly refresh
-TEST(SffDacTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<SffDacTransceiver> qsfpImpl =
-      std::make_unique<SffDacTransceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+TEST_F(SffTest, dacTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<SffDacTransceiver>(xcvrID, 4);
 
-  qsfp->refresh();
-  TransceiverInfo info = qsfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
 
-  tests.verifyVendorName("FACETEST");
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CR4_100G);
-  EXPECT_EQ(qsfp->numHostLanes(), 4);
-  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
-        media.media()->get_extendedSpecificationComplianceCode(),
+        *media.media()->extendedSpecificationComplianceCode_ref(),
         ExtendedSpecComplianceCode::CR4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CR4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
-  testCachedMediaSignals(qsfp.get());
-  EXPECT_EQ(qsfp->getDiagsCapability(), std::nullopt);
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+
+  // This test will write registers, save it to the last
+  testCachedMediaSignals(xcvr);
 }
 
 // Tests that a SFF Fr1 module can properly refresh
-TEST(SffFr1Test, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<SffFr1Transceiver> qsfpImpl =
-      std::make_unique<SffFr1Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+TEST_F(SffTest, fr1TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<SffFr1Transceiver>(xcvrID, 1);
 
-  qsfp->refresh();
-  TransceiverInfo info = qsfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 1);
 
-  tests.verifyVendorName("FACETEST");
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::FR1_100G);
-  EXPECT_EQ(qsfp->numHostLanes(), 4);
-  EXPECT_EQ(qsfp->numMediaLanes(), 1);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR1_100G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::FR1_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR1_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR1_100G);
-  testCachedMediaSignals(qsfp.get());
 
-  auto diagsCap = qsfp->getDiagsCapability();
-  EXPECT_TRUE(diagsCap);
-  EXPECT_TRUE(*(*diagsCap).prbsLine());
-  EXPECT_TRUE(*(*diagsCap).prbsSystem());
-  auto prbsSystemCaps = (*diagsCap).get_prbsSystemCapabilities();
-  auto prbsLineCaps = (*diagsCap).get_prbsLineCapabilities();
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info, diagsCap, false /* skipCheckingIndividualCapability */);
+  EXPECT_TRUE(diagsCap.has_value());
   std::vector<prbs::PrbsPolynomial> expectedCapabilities = {
       prbs::PrbsPolynomial::PRBS31};
+  const auto& prbsSystemCaps = *diagsCap->prbsSystemCapabilities();
   EXPECT_TRUE(std::equal(
       prbsSystemCaps.begin(),
       prbsSystemCaps.end(),
       expectedCapabilities.begin()));
+  const auto& prbsLineCaps = *diagsCap->prbsLineCapabilities();
   EXPECT_TRUE(std::equal(
       prbsLineCaps.begin(), prbsLineCaps.end(), expectedCapabilities.begin()));
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+
+  // This test will write registers, save it to the last
+  testCachedMediaSignals(xcvr);
 }
 
 // Tests that a miniphoton module can properly refresh
-TEST(SffMiniphotonTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<MiniphotonOBOTransceiver> qsfpImpl =
-      std::make_unique<MiniphotonOBOTransceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+TEST_F(SffTest, miniphotonTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<MiniphotonOBOTransceiver>(xcvrID, 1);
 
-  qsfp->refresh();
-  TransceiverInfo info = qsfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
 
-  tests.verifyVendorName("FACETEST");
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
-  EXPECT_EQ(qsfp->numHostLanes(), 4);
-  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
-  EXPECT_EQ(qsfp->getDiagsCapability(), std::nullopt);
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
 }
 
-TEST(UnknownModuleIdentifierTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<UnknownModuleIdentifierTransceiver> qsfpImpl =
-      std::make_unique<UnknownModuleIdentifierTransceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
+TEST_F(SffTest, unknownTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<UnknownModuleIdentifierTransceiver>(xcvrID, 4);
 
-  qsfp->refresh();
-  TransceiverInfo info = qsfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
 
-  tests.verifyVendorName("FACETEST");
+  const auto& info = xcvr->getTransceiverInfo();
   EXPECT_EQ(
       *info.extendedSpecificationComplianceCode(),
       ExtendedSpecComplianceCode::CWDM4_100G);
-  EXPECT_EQ(qsfp->numHostLanes(), 4);
-  EXPECT_EQ(qsfp->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
 }
 
 // Tests that a badly programmed module throws an exception
-TEST(BadSffTest, simpleRead) {
-  int idx = 1;
-  std::unique_ptr<BadSffCwdm4Transceiver> qsfpImpl =
-      std::make_unique<BadSffCwdm4Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
-
-  EXPECT_THROW(qsfp->refresh(), QsfpModuleError);
+TEST_F(SffTest, badTransceiverSimpleRead) {
+  auto xcvr = overrideSffModule<BadSffCwdm4Transceiver>(
+      TransceiverID(1), 4, false /* willRefresh */);
+  EXPECT_THROW(xcvr->refresh(), QsfpModuleError);
 }
 
+TEST_F(SffTest, moduleEepromChecksumTest) {
+  // Create SFF FR1 module
+  auto xcvr100GFr1 = overrideSffModule<SffFr1Transceiver>(TransceiverID(1), 1);
+  // Verify EEPROM checksum for SFF FR1 module
+  bool csumValid = xcvr100GFr1->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CWDM4 module
+  auto xcvrCwdm4 = overrideSffModule<SffCwdm4Transceiver>(TransceiverID(2), 4);
+  // Verify EEPROM checksum for CWDM4 module
+  csumValid = xcvrCwdm4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CWDM4 Bad module
+  auto xcvrCwdm4Bad =
+      overrideSffModule<BadEepromSffCwdm4Transceiver>(TransceiverID(3), 4);
+  // Verify EEPROM checksum Invalid for CWDM4 Bad module
+  csumValid = xcvrCwdm4Bad->verifyEepromChecksums();
+  EXPECT_FALSE(csumValid);
+}
+
+class SfpTest : public TransceiverManagerTestHelper {
+ public:
+  template <typename XcvrImplT>
+  Sff8472Module* overrideSfpModule(TransceiverID id, int numPortsPerXcvr) {
+    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
+    // This override function use ids starting from 1
+    transceiverManager_->overrideMgmtInterface(
+        static_cast<int>(id) + 1,
+        uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
+
+    auto xcvr = static_cast<Sff8472Module*>(
+        transceiverManager_->overrideTransceiverForTesting(
+            id,
+            std::make_unique<Sff8472Module>(
+                transceiverManager_.get(),
+                std::move(xcvrImpl),
+                numPortsPerXcvr)));
+    // Refresh once to make sure the override transceiver finishes refresh
+    transceiverManager_->refreshStateMachines();
+
+    return xcvr;
+  }
+};
+
 // Tests that a SFP module can properly refresh
-TEST(SfpTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<Sfp10GTransceiver> qsfpImpl =
-      std::make_unique<Sfp10GTransceiver>(idx);
-  std::unique_ptr<Sff8472Module> sfp =
-      std::make_unique<Sff8472Module>(nullptr, std::move(qsfpImpl), 1);
+TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSfpModule<Sfp10GTransceiver>(xcvrID, 1);
 
-  sfp->refresh();
-  TransceiverInfo info = sfp->getTransceiverInfo();
-  TransceiverTestsHelper tests(info);
+  // Verify SffModule logic
+  EXPECT_EQ(xcvr->numHostLanes(), 1);
+  EXPECT_EQ(xcvr->numMediaLanes(), 1);
 
-  EXPECT_EQ(sfp->numHostLanes(), 1);
-  EXPECT_EQ(sfp->numMediaLanes(), 1);
-  EXPECT_EQ((*info.settings()->mediaInterface()).size(), sfp->numMediaLanes());
+  // Verify getTransceiverInfo() result
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ((*info.settings()->mediaInterface()).size(), xcvr->numMediaLanes());
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR_10G);
   for (auto& media : *info.settings()->mediaInterface()) {
     EXPECT_EQ(
         media.media()->get_ethernet10GComplianceCode(),
         Ethernet10GComplianceCode::LR_10G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::LR_10G);
   }
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Using TransceiverTestsHelper to verify TransceiverInfo
+  TransceiverTestsHelper tests(info);
   tests.verifyTemp(18.203125);
   tests.verifyVcc(2.2136);
   std::map<std::string, std::vector<double>> laneDom = {
@@ -287,60 +364,20 @@ TEST(SfpTest, transceiverInfoTest) {
       {"TxPwr", {5.6849}},
       {"RxPwr", {0.8755}},
   };
-  tests.verifyLaneDom(laneDom, sfp->numMediaLanes());
+  tests.verifyLaneDom(laneDom, xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaSignals = {
       {"Rx_Los", {1}},
       {"Tx_Fault", {1}},
   };
-  tests.verifyMediaLaneSignals(expectedMediaSignals, sfp->numMediaLanes());
+  tests.verifyMediaLaneSignals(expectedMediaSignals, xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
       {"TxDisable", {1}},
   };
   tests.verifyMediaLaneSettings(
-      expectedMediaLaneSettings, sfp->numMediaLanes());
+      expectedMediaLaneSettings, xcvr->numMediaLanes());
   tests.verifyVendorName("FACETEST");
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR_10G);
-  EXPECT_EQ(sfp->getDiagsCapability(), std::nullopt);
 }
 
-TEST(SfpTest, moduleEepromChecksumTest) {
-  // Create SFF FR1 module
-  int idx = 1;
-  std::unique_ptr<SffFr1Transceiver> qsfpImplSff100GFr1 =
-      std::make_unique<SffFr1Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfp100GFr1 =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImplSff100GFr1), 4);
-
-  qsfp100GFr1->refresh();
-  // Verify EEPROM checksum for SFF FR1 module
-  bool csumValid = qsfp100GFr1->verifyEepromChecksums();
-  EXPECT_TRUE(csumValid);
-
-  // Create CWDM4 module
-  idx = 2;
-  std::unique_ptr<SffCwdm4Transceiver> qsfpImplCwdm4 =
-      std::make_unique<SffCwdm4Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfpCwdm4 =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImplCwdm4), 4);
-
-  qsfpCwdm4->refresh();
-  // Verify EEPROM checksum for CWDM4 module
-  csumValid = qsfpCwdm4->verifyEepromChecksums();
-  EXPECT_TRUE(csumValid);
-
-  // Create CWDM4 Bad module
-  idx = 3;
-  std::unique_ptr<BadEepromSffCwdm4Transceiver> qsfpImplCwdm4Bad =
-      std::make_unique<BadEepromSffCwdm4Transceiver>(idx);
-  std::unique_ptr<SffModule> qsfpCwdm4Bad =
-      std::make_unique<SffModule>(nullptr, std::move(qsfpImplCwdm4Bad), 4);
-
-  qsfpCwdm4Bad->refresh();
-  // Verify EEPROM checksum Invalid for CWDM4 Bad module
-  csumValid = qsfpCwdm4Bad->verifyEepromChecksums();
-  EXPECT_FALSE(csumValid);
-}
-
-} // namespace
+} // namespace facebook::fboss
