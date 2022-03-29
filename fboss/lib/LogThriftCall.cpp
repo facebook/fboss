@@ -23,7 +23,8 @@ LogThriftCall::LogThriftCall(
     folly::StringPiece file,
     uint32_t line,
     Cpp2RequestContext* ctx,
-    std::string paramsStr)
+    std::string paramsStr,
+    const char* identityEnvFallback)
     : logger_(logger),
       level_(level),
       func_(func),
@@ -42,6 +43,14 @@ LogThriftCall::LogThriftCall(
       identity_ = "unknown";
     }
   }
+
+  if (identityEnvFallback && identity_ == "unknown") {
+    XLOG(ERR) << "Identity fallback set: " << identityEnvFallback;
+    if (auto const fallback = getenv(identityEnvFallback)) {
+      identity_ = std::string(fallback);
+    }
+  }
+
   // this specific format is consumed by systemd-journald/rsyslogd
   if (paramsStr.empty()) {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
