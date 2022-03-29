@@ -68,6 +68,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::SAI_LAG_HASH:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -106,13 +107,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return false;
-
-    case HwAsic::Feature::SAI_LAG_HASH:
-#if defined(SAI_VERSION_7_0_0_4_ODP)
-      return true;
-#else
-      return false;
-#endif
   }
   return false;
 }

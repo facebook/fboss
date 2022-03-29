@@ -49,6 +49,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
+    case HwAsic::Feature::SAI_LAG_HASH:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -88,13 +89,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return false;
-
-    case HwAsic::Feature::SAI_LAG_HASH:
-#if defined(SAI_VERSION_7_0_0_4_ODP)
-      return true;
-#else
-      return false;
-#endif
   }
   return false;
 }
