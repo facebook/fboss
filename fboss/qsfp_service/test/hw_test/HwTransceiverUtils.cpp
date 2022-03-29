@@ -258,7 +258,11 @@ void HwTransceiverUtils::verifyDiagsCapability(
       EXPECT_TRUE(diagsCapability.has_value());
       if (!skipCheckingIndividualCapability) {
         EXPECT_TRUE(*diagsCapability->diagnostics());
-        EXPECT_TRUE(*diagsCapability->vdm());
+        // Only 400G CMIS supports VDM
+        EXPECT_EQ(
+            *diagsCapability->vdm(),
+            (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
+             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());

@@ -9,7 +9,7 @@ namespace fboss {
 
 class TransceiverTestsHelper {
  public:
-  explicit TransceiverTestsHelper(TransceiverInfo& info) : info_(info) {}
+  explicit TransceiverTestsHelper(const TransceiverInfo& info) : info_(info) {}
   void verifyVendorName(const std::string& expected);
   void verifyTemp(double temp);
   void verifyVcc(double vcc);
@@ -46,7 +46,7 @@ class TransceiverTestsHelper {
       const std::string& expecedBuildRev);
 
  private:
-  TransceiverInfo info_;
+  const TransceiverInfo& info_;
 };
 
 void testCachedMediaSignals(QsfpModule* qsfp);

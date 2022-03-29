@@ -193,7 +193,7 @@ void TransceiverTestsHelper::verifyHostLaneSettings(
         expectedLaneSettings.end()) {
       EXPECT_EQ(
           expectedLaneSettings["RxSqDisable"][*setting.lane()],
-          setting.rxSquelch().value_or({}));
+          setting.rxSquelch_ref().value_or({}));
     }
     if (expectedLaneSettings.find("RxEqPrecursor") !=
         expectedLaneSettings.end()) {

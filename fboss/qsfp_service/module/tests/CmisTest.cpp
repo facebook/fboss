@@ -8,37 +8,82 @@
  *
  */
 
-#include <folly/Conv.h>
-#include <folly/Memory.h>
-#include <gflags/gflags.h>
-#include <glog/logging.h>
-#include <cstdint>
-#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
+
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
+#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
-#include <gtest/gtest.h>
+namespace facebook::fboss {
 
-using namespace facebook::fboss;
-using std::make_unique;
+class CmisTest : public TransceiverManagerTestHelper {
+ public:
+  template <typename XcvrImplT>
+  CmisModule* overrideCmisModule(
+      TransceiverID id,
+      int numPortsPerXcvr,
+      TransceiverModuleIdentifier identifier =
+          TransceiverModuleIdentifier::QSFP_PLUS_CMIS) {
+    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
+    // This override function use ids starting from 1
+    transceiverManager_->overrideMgmtInterface(
+        static_cast<int>(id) + 1, uint8_t(identifier));
 
-namespace {
+    auto xcvr = static_cast<CmisModule*>(
+        transceiverManager_->overrideTransceiverForTesting(
+            id,
+            std::make_unique<CmisModule>(
+                transceiverManager_.get(),
+                std::move(xcvrImpl),
+                numPortsPerXcvr)));
+
+    // Refresh once to make sure the override transceiver finishes refresh
+    transceiverManager_->refreshStateMachines();
+
+    return xcvr;
+  }
+};
 
 // Tests that the transceiverInfo object is correctly populated
-TEST(CmisTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
-      std::make_unique<Cmis200GTransceiver>(idx);
+TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(0);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID, 4);
 
-  std::unique_ptr<CmisModule> xcvr =
-      std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
-  xcvr->refresh();
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
+  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR4_200G);
+  EXPECT_EQ(
+      xcvr->numMediaLanes(),
+      info.settings()->mediaInterface().value_or({}).size());
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
+  }
+  testCachedMediaSignals(xcvr);
 
-  TransceiverInfo info = xcvr->getTransceiverInfo();
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  // Verify update qsfp data logic
+  if (auto status = info.status(); status && status->cmisModuleState()) {
+    EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+    // NOTE the following cmis data are specifically set to 0x11 in
+    // FakeTransceiverImpl
+    EXPECT_TRUE(cmisData.page14_ref());
+    // SNR will be set
+    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
+    // Check VDM cache
+    EXPECT_FALSE(xcvr->isVdmSupported());
+  } else {
+    throw FbossError("Missing CMIS Module state");
+  }
 
   TransceiverTestsHelper tests(info);
-
   tests.verifyVendorName("FACETEST");
   tests.verifyFwInfo("2.7", "1.10", "3.101");
   tests.verifyTemp(40.26953125);
@@ -115,28 +160,24 @@ TEST(CmisTest, transceiverInfoTest) {
   tests.verifyLaneInterrupts(laneInterrupts, xcvr->numMediaLanes());
   tests.verifyGlobalInterrupts("temp", 1, 1, 0, 1);
   tests.verifyGlobalInterrupts("vcc", 1, 0, 1, 0);
+}
 
-  EXPECT_EQ(
-      xcvr->numMediaLanes(),
-      info.settings()->mediaInterface().value_or({}).size());
-  for (auto& media : *info.settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_200G);
-    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
-  }
-  testCachedMediaSignals(xcvr.get());
-
-  auto diagsCap = xcvr->getDiagsCapability();
-  EXPECT_TRUE(diagsCap.has_value());
-  EXPECT_TRUE(*diagsCap->diagnostics());
-  EXPECT_FALSE(*diagsCap->vdm());
-  EXPECT_TRUE(*diagsCap->cdb());
-  EXPECT_FALSE(*diagsCap->prbsLine());
-  EXPECT_FALSE(*diagsCap->prbsSystem());
-  EXPECT_FALSE(*diagsCap->loopbackLine());
-  EXPECT_TRUE(*diagsCap->loopbackSystem());
-  EXPECT_EQ(xcvr->numHostLanes(), 4);
+TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID, 1);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
+  }
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      info,
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
 
   // Verify update qsfp data logic
   if (auto status = info.status(); status && status->cmisModuleState()) {
@@ -148,15 +189,59 @@ TEST(CmisTest, transceiverInfoTest) {
     // SNR will be set
     EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
     // Check VDM cache
-    EXPECT_FALSE(xcvr->isVdmSupported());
+    EXPECT_TRUE(xcvr->isVdmSupported());
+    EXPECT_TRUE(cmisData.page20_ref());
+    EXPECT_EQ(cmisData.page20_ref()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page21_ref());
+    EXPECT_EQ(cmisData.page21_ref()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page24_ref());
+    EXPECT_EQ(cmisData.page24_ref()->data()[0], 0x15);
+    EXPECT_TRUE(cmisData.page25_ref());
+    EXPECT_EQ(cmisData.page25_ref()->data()[0], 0x00);
   } else {
     throw FbossError("Missing CMIS Module state");
   }
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+}
+
+TEST_F(CmisTest, flatMemTransceiverInfoTest) {
+  auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1), 4);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_EQ(xcvr->numHostLanes(), 4);
+  EXPECT_EQ(xcvr->numMediaLanes(), 0);
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+}
+
+TEST_F(CmisTest, moduleEepromChecksumTest) {
+  // Create CMIS 200G FR4 module
+  auto xcvrCmis200GFr4 =
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(1), 4);
+  // Verify EEPROM checksum for CMIS 200G FR4 module
+  bool csumValid = xcvrCmis200GFr4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CMIS 400G LR4 module
+  auto xcvrCmis400GLr4 =
+      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(2), 1);
+  // Verify EEPROM checksum for CMIS 400G LR4 module
+  csumValid = xcvrCmis400GLr4->verifyEepromChecksums();
+  EXPECT_TRUE(csumValid);
+
+  // Create CMIS 200G FR4 Bad module
+  auto xcvrCmis200GFr4Bad =
+      overrideCmisModule<BadCmis200GTransceiver>(TransceiverID(3), 1);
+  // Verify EEPROM checksum Invalid for CMIS 200G FR4 Bad module
+  csumValid = xcvrCmis200GFr4Bad->verifyEepromChecksums();
+  EXPECT_FALSE(csumValid);
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (on Agent timeout
 //      event)
-TEST(CmisTest, testStateToInactive) {
+TEST(CmisOldStateMachineTest, testStateToInactive) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -186,7 +271,7 @@ TEST(CmisTest, testStateToInactive) {
 // MSM: Not_Present -> Present -> Discovered -> Inactive (On Agent timeout)
 // Note: This test waits for 2 minutes to allow state machine transition to
 //       new state
-TEST(CmisTest, testStateTimeoutWaitInactive) {
+TEST(CmisOldStateMachineTest, testStateTimeoutWaitInactive) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -211,7 +296,7 @@ TEST(CmisTest, testStateTimeoutWaitInactive) {
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive <-> Active
-TEST(CmisTest, testPsmStates) {
+TEST(CmisOldStateMachineTest, testPsmStates) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -264,7 +349,7 @@ TEST(CmisTest, testPsmStates) {
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive (Remediation)
-TEST(CmisTest, testPsmRemediation) {
+TEST(CmisOldStateMachineTest, testPsmRemediation) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -300,7 +385,7 @@ TEST(CmisTest, testPsmRemediation) {
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive -> Upgrading
-TEST(CmisTest, testMsmFwUpgrading) {
+TEST(CmisOldStateMachineTest, testMsmFwUpgrading) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -344,7 +429,7 @@ TEST(CmisTest, testMsmFwUpgrading) {
 }
 
 // MSM: Not_Present -> Present -> Discovered -> Inactive -> Upgrading (Forced)
-TEST(CmisTest, testMsmFwForceUpgrade) {
+TEST(CmisOldStateMachineTest, testMsmFwForceUpgrade) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -377,7 +462,7 @@ TEST(CmisTest, testMsmFwForceUpgrade) {
 }
 
 // MSM: Check optics removal event from various states
-TEST(CmisTest, testOpticsRemoval) {
+TEST(CmisOldStateMachineTest, testOpticsRemoval) {
   int idx = 1;
   std::unique_ptr<Cmis200GTransceiver> qsfpImpl =
       std::make_unique<Cmis200GTransceiver>(idx);
@@ -424,114 +509,4 @@ TEST(CmisTest, testOpticsRemoval) {
   CurrState = qsfpMod->getLegacyModuleStateMachineCurrentState();
   EXPECT_EQ(CurrState, 0);
 }
-
-TEST(Cmis400GLr4Test, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<Cmis400GLr4Transceiver> qsfpImpl =
-      std::make_unique<Cmis400GLr4Transceiver>(idx);
-
-  std::unique_ptr<CmisModule> xcvr =
-      std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
-  xcvr->refresh();
-
-  TransceiverInfo info = xcvr->getTransceiverInfo();
-
-  TransceiverTestsHelper tests(info);
-
-  tests.verifyVendorName("FACETEST");
-  for (auto& media : *info.settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
-    EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
-  }
-  EXPECT_EQ(xcvr->numHostLanes(), 8);
-  EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
-
-  auto diagsCap = xcvr->getDiagsCapability();
-  EXPECT_TRUE(diagsCap.has_value());
-  EXPECT_TRUE(*diagsCap->diagnostics());
-  EXPECT_TRUE(*diagsCap->vdm());
-  EXPECT_TRUE(*diagsCap->cdb());
-  EXPECT_TRUE(*diagsCap->prbsLine());
-  EXPECT_TRUE(*diagsCap->prbsSystem());
-  EXPECT_TRUE(*diagsCap->loopbackLine());
-  EXPECT_TRUE(*diagsCap->loopbackSystem());
-
-  // Verify update qsfp data logic
-  if (auto status = info.status(); status && status->cmisModuleState()) {
-    EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
-    auto cmisData = xcvr->getDOMDataUnion().get_cmis();
-    // NOTE the following cmis data are specifically set to 0x11 in
-    // FakeTransceiverImpl
-    EXPECT_TRUE(cmisData.page14_ref());
-    // SNR will be set
-    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
-    // Check VDM cache
-    EXPECT_TRUE(xcvr->isVdmSupported());
-    EXPECT_TRUE(cmisData.page20_ref());
-    EXPECT_EQ(cmisData.page20_ref()->data()[0], 0x00);
-    EXPECT_TRUE(cmisData.page21_ref());
-    EXPECT_EQ(cmisData.page21_ref()->data()[0], 0x00);
-    EXPECT_TRUE(cmisData.page24_ref());
-    EXPECT_EQ(cmisData.page24_ref()->data()[0], 0x15);
-    EXPECT_TRUE(cmisData.page25_ref());
-    EXPECT_EQ(cmisData.page25_ref()->data()[0], 0x00);
-  } else {
-    throw FbossError("Missing CMIS Module state");
-  }
-}
-
-TEST(CmisFlatMemTest, transceiverInfoTest) {
-  int idx = 1;
-  std::unique_ptr<CmisFlatMemTransceiver> qsfpImpl =
-      std::make_unique<CmisFlatMemTransceiver>(idx);
-
-  std::unique_ptr<CmisModule> xcvr =
-      std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 4);
-  xcvr->refresh();
-
-  TransceiverInfo info = xcvr->getTransceiverInfo();
-
-  TransceiverTestsHelper tests(info);
-
-  tests.verifyVendorName("FACETEST");
-  EXPECT_EQ(xcvr->numHostLanes(), 4);
-  EXPECT_EQ(xcvr->numMediaLanes(), 0);
-}
-
-TEST(CmisTest, moduleEepromChecksumTest) {
-  // Create CMIS 200G FR4 module
-  int idx = 1;
-  std::unique_ptr<Cmis200GTransceiver> qsfpImplCmis200GFr4 =
-      std::make_unique<Cmis200GTransceiver>(idx);
-  std::unique_ptr<CmisModule> xcvrCmis200GFr4 =
-      std::make_unique<CmisModule>(nullptr, std::move(qsfpImplCmis200GFr4), 4);
-  xcvrCmis200GFr4->refresh();
-  // Verify EEPROM checksum for CMIS 200G FR4 module
-  bool csumValid = xcvrCmis200GFr4->verifyEepromChecksums();
-  EXPECT_TRUE(csumValid);
-
-  // Create CMIS 400G LR4 module
-  idx = 2;
-  std::unique_ptr<Cmis400GLr4Transceiver> qsfpImplCmis400GLr4 =
-      std::make_unique<Cmis400GLr4Transceiver>(idx);
-  std::unique_ptr<CmisModule> xcvrCmis400GLr4 =
-      std::make_unique<CmisModule>(nullptr, std::move(qsfpImplCmis400GLr4), 1);
-  xcvrCmis400GLr4->refresh();
-  // Verify EEPROM checksum for CMIS 400G LR4 module
-  csumValid = xcvrCmis400GLr4->verifyEepromChecksums();
-  EXPECT_TRUE(csumValid);
-
-  // Create CMIS 200G FR4 Bad module
-  idx = 3;
-  std::unique_ptr<BadCmis200GTransceiver> qsfpImplCmis200GFr4Bad =
-      std::make_unique<BadCmis200GTransceiver>(idx);
-  std::unique_ptr<CmisModule> xcvrCmis200GFr4Bad = std::make_unique<CmisModule>(
-      nullptr, std::move(qsfpImplCmis200GFr4Bad), 1);
-  xcvrCmis200GFr4Bad->refresh();
-  // Verify EEPROM checksum Invalid for CMIS 200G FR4 Bad module
-  csumValid = xcvrCmis200GFr4Bad->verifyEepromChecksums();
-  EXPECT_FALSE(csumValid);
-}
-
-} // namespace
+} // namespace facebook::fboss
