@@ -377,6 +377,17 @@ TransceiverStateMachineState TransceiverManager::getCurrentState(
   return curState;
 }
 
+const state_machine<TransceiverStateMachine>&
+TransceiverManager::getStateMachineForTesting(TransceiverID id) const {
+  auto stateMachineItr = stateMachines_.find(id);
+  if (stateMachineItr == stateMachines_.end()) {
+    throw FbossError("Transceiver:", id, " doesn't exist");
+  }
+  const auto& lockedStateMachine =
+      stateMachineItr->second->getStateMachine().rlock();
+  return *lockedStateMachine;
+}
+
 bool TransceiverManager::getNeedResetDataPath(TransceiverID id) const {
   auto stateMachineItr = stateMachines_.find(id);
   if (stateMachineItr == stateMachines_.end()) {

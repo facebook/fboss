@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
@@ -58,6 +59,15 @@ class MockWedgeManager : public WedgeManager {
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>&
   getSynchronizedTransceivers() {
     return transceivers_;
+  }
+
+  Transceiver* getTransceiver(TransceiverID id) {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(id);
+        it != lockedTransceivers->end()) {
+      return it->second.get();
+    }
+    throw FbossError("Can't find Transceiver=", id);
   }
 
   int getNumQsfpModules() override {

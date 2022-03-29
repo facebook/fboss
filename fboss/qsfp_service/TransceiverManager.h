@@ -199,6 +199,9 @@ class TransceiverManager {
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
+  const state_machine<TransceiverStateMachine>& getStateMachineForTesting(
+      TransceiverID id) const;
+
   bool getNeedResetDataPath(TransceiverID id) const;
 
   // ========== Public functions for TransceiverStateMachine ==========
