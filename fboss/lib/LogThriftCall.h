@@ -84,6 +84,10 @@ class LogThriftCall {
     failed_ = true;
   }
 
+  std::string getIdentity() const {
+    return identity_;
+  }
+
  private:
   LogThriftCall(LogThriftCall const&) = delete;
   LogThriftCall& operator=(LogThriftCall const&) = delete;
@@ -92,6 +96,7 @@ class LogThriftCall {
   folly::LogLevel level_;
   folly::StringPiece func_;
   folly::StringPiece file_;
+  std::string identity_;
   uint32_t line_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
   bool failed_{false};

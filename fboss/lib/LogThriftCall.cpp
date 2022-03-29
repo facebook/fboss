@@ -31,27 +31,26 @@ LogThriftCall::LogThriftCall(
       line_(line),
       start_(std::chrono::steady_clock::now()) {
   std::string client;
-  std::string identity;
   if (!ctx) {
     client = "unknown";
-    identity = "unknown";
+    identity_ = "unknown";
   } else {
     Cpp2ConnContext* ctx2 = ctx->getConnectionContext();
     client = ctx2->getPeerAddress()->getAddressStr();
-    identity = ctx2->getPeerCommonName();
-    if (identity.empty()) {
-      identity = "unknown";
+    identity_ = ctx2->getPeerCommonName();
+    if (identity_.empty()) {
+      identity_ = "unknown";
     }
   }
   // this specific format is consumed by systemd-journald/rsyslogd
   if (paramsStr.empty()) {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request received from " << client << " ("
-        << identity << ")";
+        << identity_ << ")";
   } else {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request received from " << client << " ("
-        << identity << "). params: " << paramsStr;
+        << identity_ << "). params: " << paramsStr;
   }
 }
 
