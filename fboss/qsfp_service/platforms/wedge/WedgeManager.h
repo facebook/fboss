@@ -153,6 +153,10 @@ class WedgeManager : public TransceiverManager {
 
   void triggerVdmStatsCapture(std::vector<int32_t>& ids) override;
 
+  void setOverrideTcvrToPortAndProfileForTesting(
+      std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
+          std::nullopt) override;
+
  protected:
   void initTransceiverMap() override;
 
@@ -175,8 +179,6 @@ class WedgeManager : public TransceiverManager {
   WedgeManager& operator=(WedgeManager const&) = delete;
 
   void loadConfig() override;
-
-  void setOverrideTcvrToPortAndProfileForTest() override;
 
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;

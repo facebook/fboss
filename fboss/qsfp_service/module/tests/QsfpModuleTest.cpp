@@ -8,31 +8,21 @@
  *
  */
 
+#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
+
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
-#include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
-
-#include <folly/Memory.h>
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/module/QsfpModule.h"
-#include "fboss/qsfp_service/module/TransceiverImpl.h"
-#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
-#include "fboss/qsfp_service/module/sff/SffModule.h"
 
 #include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 using namespace ::testing;
 
-class QsfpModuleTest : public ::testing::Test {
+class QsfpModuleTest : public TransceiverManagerTestHelper {
  public:
   void SetUp() override {
-    wedgeManager_ = std::make_unique<MockWedgeManager>();
+    TransceiverManagerTestHelper::SetUp();
     // save some typing in most tests by creating the test qsfp
     // expecting 4 ports. Tests that need a different number of ports
     // can call setupQsfp() themselves.
@@ -41,45 +31,51 @@ class QsfpModuleTest : public ::testing::Test {
 
   void setupQsfp(unsigned int portsPerTransceiver) {
     auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl>>();
-    auto implPtr = transceiverImpl.get();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
-    qsfp_ = std::make_unique<MockSffModule>(
-        wedgeManager_.get(), std::move(transceiverImpl), portsPerTransceiver);
+    qsfp_ = static_cast<MockSffModule*>(
+        transceiverManager_->overrideTransceiverForTesting(
+            kTcvrID,
+            std::make_unique<MockSffModule>(
+                transceiverManager_.get(),
+                std::move(transceiverImpl),
+                portsPerTransceiver)));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(
         "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
+    gflags::SetCommandLineOptionWithMode(
+        "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
+
     // We're explicitly setting the value of the dirty bit, so fudge this
     EXPECT_CALL(*qsfp_, cacheIsValid()).WillRepeatedly(Return(true));
-    EXPECT_CALL(*implPtr, detectTransceiver()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(true));
     qsfp_->detectPresence();
   }
 
-  PortStatus portStatus(bool enabled, bool up, int32_t speed = 25000) {
-    // usese dummy tcvr mapping for now
-    TransceiverIdxThrift tcvr(
-        apache::thrift::FragileConstructor::FRAGILE, qsfp_->getID(), 0, {});
-    return PortStatus(
-        apache::thrift::FragileConstructor::FRAGILE,
-        enabled,
-        up,
-        false,
-        tcvr,
-        speed,
-        "");
+  void triggerPortsChanged(
+      const TransceiverManager::OverrideTcvrToPortAndProfile&
+          newTcvrToPortAndProfile,
+      bool needResetDataPath = false) {
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        newTcvrToPortAndProfile);
+    // Refresh once to trigger iphy
+    transceiverManager_->refreshStateMachines();
+    // Then we can call programTransceiver() directly so that we can check the
+    // error case
+    transceiverManager_->programTransceiver(kTcvrID, needResetDataPath);
   }
 
   NiceMock<MockTransceiverImpl>* transImpl_;
-  std::unique_ptr<MockWedgeManager> wedgeManager_;
-  std::unique_ptr<MockSffModule> qsfp_;
+  MockSffModule* qsfp_;
+  const TransceiverID kTcvrID = TransceiverID(0);
 };
 
 TEST_F(QsfpModuleTest, setRateSelect) {
   ON_CALL(*qsfp_, setRateSelectIfSupported(_, _, _))
       .WillByDefault(
-          Invoke(qsfp_.get(), &MockSffModule::actualSetRateSelectIfSupported));
+          Invoke(qsfp_, &MockSffModule::actualSetRateSelectIfSupported));
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(AtLeast(1));
 
@@ -140,8 +136,7 @@ TEST_F(QsfpModuleTest, retrieveRateSelectSetting) {
 
 TEST_F(QsfpModuleTest, setCdr) {
   ON_CALL(*qsfp_, setCdrIfSupported(_, _, _))
-      .WillByDefault(
-          Invoke(qsfp_.get(), &MockSffModule::actualSetCdrIfSupported));
+      .WillByDefault(Invoke(qsfp_, &MockSffModule::actualSetCdrIfSupported));
 
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setRateSelectIfSupported(_, _, _)).Times(AtLeast(1));
@@ -182,250 +177,117 @@ TEST_F(QsfpModuleTest, setCdr) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
   // should customize w/ 25G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
       .Times(1);
 
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
-  // Speeds don't match across ports, should throw
-  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false, 50000)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  }));
-}
-
-TEST_F(QsfpModuleTest, portsChangedSpeedMismatchButDisabled) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-  // should customize w/ 25G. Mismatched port is disabled
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
-      .Times(1);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(false, false, 50000)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(4), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        }}});
 }
 
 TEST_F(QsfpModuleTest, portsChanged50G) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
   // should customize w/ 50G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false, 50000)},
-      {2, portStatus(false, false)},
-      {3, portStatus(true, false, 50000)},
-      {4, portStatus(false, false)},
-  });
-}
 
-TEST_F(QsfpModuleTest, portsChangedAllUp) {
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, true)},
-      {2, portStatus(true, true)},
-      {3, portStatus(true, true)},
-      {4, portStatus(true, true)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedOneUp) {
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, true)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedAllDown) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedMissingPort) {
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedExtraPort) {
-  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-      {5, portStatus(true, false)},
-  }));
+  // We only store enabled ports
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER},
+            {PortID(3), cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER},
+        }}});
 }
 
 TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
   setupQsfp(1);
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-  });
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::HUNDREDG, _, _))
+      .Times(1);
+
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL},
+        }}});
 }
 
-TEST_F(QsfpModuleTest, portsChangedMissingPortOnePortPerModule) {
-  setupQsfp(1);
+TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
+  EXPECT_ANY_THROW(
+      triggerPortsChanged(
+          {{kTcvrID,
+            {
+                {PortID(1), cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER},
+                {PortID(3),
+                 cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            }}}););
+}
+
+TEST_F(QsfpModuleTest, skipCustomizingForRefresh) {
+  // With new state machine, we no longer use Transceiver::refresh() to
+  // customize transceiver. Instead, the state machine will use
+  // programTransceiver() to do the job following the new port programming order
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({});
-}
-
-TEST_F(QsfpModuleTest, portsChangedExtraPortOnePortPerModule) {
-  setupQsfp(1);
-  EXPECT_ANY_THROW(qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  }));
-}
-
-TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUp) {
-  // should not customize if any port is up or no ports are enabled
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(false, true)},
-      {2, portStatus(false, true)},
-      {3, portStatus(false, true)},
-      {4, portStatus(false, true)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedNonsensicalDisabledButUpOneEnabled) {
-  // This will never happen, but even if the only up ports are
-  // disabled we shouldn't customize
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(false, true)},
-      {2, portStatus(false, true)},
-      {3, portStatus(false, true)},
-      {4, portStatus(true, false)},
-  });
-}
-
-TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomize) {
-  // refresh, which should set module dirty_ = false
-  qsfp_->refresh();
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  // However, we should call customize when we next refresh (though
-  // not on subsequent refresh calls)
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(1);
-  qsfp_->refresh();
+  TransceiverManager::OverrideTcvrToPortAndProfile oneTcvrTo4X25G = {
+      {kTcvrID,
+       {
+           {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(4), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+       }}};
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      oneTcvrTo4X25G);
+  // Refresh once to trigger iphy
+  transceiverManager_->refreshStateMachines();
   qsfp_->refresh();
 }
 
-TEST_F(QsfpModuleTest, portsChangedNotDirtySafeToCustomizeStale) {
-  // refresh, which should set module dirty_ = false
-  qsfp_->refresh();
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  gflags::SetCommandLineOptionWithMode(
-      "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
-
-  // However, we should call customize when we next refresh
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(2);
-  qsfp_->refresh();
-
-  // With interval of 0, data should now be stale so we should
-  // customize again.
-  qsfp_->refresh();
-}
-
-TEST_F(QsfpModuleTest, portsChangedNotDirtyNotSafeToCustomize) {
-  // refresh, which should set module dirty_ = false
-  qsfp_->refresh();
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, true)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  // one up port should prevent customization on future refresh calls
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->refresh();
-  qsfp_->refresh();
-}
-
-TEST_F(QsfpModuleTest, portsChangedWithNewStateMachineNotSafeToCustomize) {
-  // refresh, which should set module dirty_ = false
-  qsfp_->refresh();
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  gflags::SetCommandLineOptionWithMode(
-      "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
-  gflags::SetCommandLineOptionWithMode(
-      "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
-
-  // Even with interval of 0 and all ports down, because it's using new state
-  // machine, we won't trigger customization at all.
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->refresh();
-  qsfp_->refresh();
-}
-
-TEST_F(QsfpModuleTest, refreshDirtyNoPorts) {
+TEST_F(QsfpModuleTest, skipCustomizingMissingIphyPorts) {
   // should not customize if we don't have knowledge of all ports
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->refresh();
+  transceiverManager_->programTransceiver(kTcvrID, false);
+}
+
+TEST_F(QsfpModuleTest, skipCustomizingMissingTransceiver) {
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  // Trigger transceiver removal
+  EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
+  qsfp_->detectPresence();
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(4), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        }}});
+}
+
+TEST_F(QsfpModuleTest, skipCustomizingCopperTransceiver) {
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  // Should get detected as copper and skip all customization
+  EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology())
+      .WillRepeatedly(Return(TransmitterTechnology::COPPER));
+
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+            {PortID(4), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        }}});
 }
 
 TEST_F(QsfpModuleTest, updateQsfpDataPartial) {
@@ -440,53 +302,12 @@ TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   // Bit of a hack to ensure we have flatMem_ == false.
   ON_CALL(*transImpl_, readTransceiver(_, _))
       .WillByDefault(DoAll(
-          InvokeWithoutArgs(qsfp_.get(), &MockSffModule::setFlatMem),
-          Return(0)));
+          InvokeWithoutArgs(qsfp_, &MockSffModule::setFlatMem), Return(0)));
 
   // Full updates do need to write to select higher pages
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(AtLeast(1));
 
   qsfp_->actualUpdateQsfpData(true);
-}
-
-TEST_F(QsfpModuleTest, skipCustomizingMissingPorts) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-  // set present_ = false, dirty_ = true
-  EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(false));
-  qsfp_->detectPresence();
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  // We should also not actually customize on subsequent refresh calls
-  qsfp_->refresh();
-  qsfp_->refresh();
-}
-
-TEST_F(QsfpModuleTest, skipCustomizingCopperPorts) {
-  ON_CALL(*qsfp_, getTransceiverInfo())
-      .WillByDefault(Return(qsfp_.get()->fakeInfo_));
-  // Should get detected as copper and skip all customization
-  EXPECT_CALL(*qsfp_, getQsfpTransmitterTechnology())
-      .WillRepeatedly(Return(TransmitterTechnology::COPPER));
-
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(0);
-  qsfp_->transceiverPortsChanged({
-      {1, portStatus(true, false)},
-      {2, portStatus(true, false)},
-      {3, portStatus(true, false)},
-      {4, portStatus(true, false)},
-  });
-
-  // We should also not actually customize on subsequent refresh calls
-  qsfp_->refresh();
-  qsfp_->refresh();
 }
 
 TEST_F(QsfpModuleTest, readTransceiver) {
@@ -559,5 +380,4 @@ TEST_F(QsfpModuleTest, populateSnapshots) {
   snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
   EXPECT_EQ(snapshots.size(), snapshots.maxSize());
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

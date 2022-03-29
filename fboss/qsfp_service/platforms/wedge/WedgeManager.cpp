@@ -128,7 +128,7 @@ void WedgeManager::initTransceiverMap() {
 
   // Set overrideTcvrToPortAndProfileForTest_ if
   // FLAGS_override_program_iphy_ports_for_test true.
-  setOverrideTcvrToPortAndProfileForTest();
+  setOverrideTcvrToPortAndProfileForTesting();
 
   refreshTransceivers();
 }
@@ -948,8 +948,11 @@ std::vector<PortID> WedgeManager::getMacsecCapablePorts() const {
       phy::ExternalPhy::Feature::MACSEC);
 }
 
-void WedgeManager::setOverrideTcvrToPortAndProfileForTest() {
-  if (FLAGS_override_program_iphy_ports_for_test) {
+void WedgeManager::setOverrideTcvrToPortAndProfileForTesting(
+    std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile) {
+  if (overrideTcvrToPortAndProfile) {
+    overrideTcvrToPortAndProfileForTest_ = *overrideTcvrToPortAndProfile;
+  } else if (FLAGS_override_program_iphy_ports_for_test) {
     const auto& chips = platformMapping_->getChips();
     for (auto chip : chips) {
       if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {

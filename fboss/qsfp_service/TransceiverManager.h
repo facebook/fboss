@@ -244,6 +244,21 @@ class TransceiverManager {
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
 
+  // An override of programmed iphy ports.
+  // Due to hw_test won't be able to get wedge_agent running, this override
+  // map will mimic the return of programmed iphy ports based on transceiver.
+  // NOTE: Only use in test
+  using OverrideTcvrToPortAndProfile = std::unordered_map<
+      TransceiverID,
+      std::unordered_map<PortID, cfg::PortProfileID>>;
+  virtual void setOverrideTcvrToPortAndProfileForTesting(
+      std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
+          std::nullopt) = 0;
+
+  Transceiver* overrideTransceiverForTesting(
+      TransceiverID id,
+      std::unique_ptr<Transceiver> overrideTcvr);
+
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.
   TransceiverInfo getTransceiverInfo(TransceiverID id);
@@ -308,15 +323,6 @@ class TransceiverManager {
   void publishLinkSnapshots(PortID portID);
 
   std::optional<TransceiverID> getTransceiverID(PortID id);
-
-  // An override of programmed iphy ports.
-  // Due to hw_test won't be able to get wedge_agent running, this override
-  // map will mimic the return of programmed iphy ports based on transceiver.
-  // NOTE: Only use in test
-  using OverrideTcvrToPortAndProfile = std::unordered_map<
-      TransceiverID,
-      std::unordered_map<PortID, cfg::PortProfileID>>;
-  virtual void setOverrideTcvrToPortAndProfileForTest() = 0;
 
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot

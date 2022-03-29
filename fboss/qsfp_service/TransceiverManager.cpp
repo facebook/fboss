@@ -548,14 +548,31 @@ void TransceiverManager::programTransceiver(
                << ". Can't find programmed iphy port and port info";
     return;
   }
-  // TODO(joseph5wu) Usually we only need to program optical Transceiver which
-  // doesn't need to support split-out copper cable for flex ports.
-  // Which means for the optical transceiver, it usually has one programmed
-  // iphy port and profile.
-  // If in the future, we need to support flex port copper transceiver
-  // programming, we might need to combine the speeds of all flex port to
-  // program such transceiver.
-  const auto profileID = programmedPortToPortInfo.begin()->second.profile;
+
+  // We don't support single transceiver for different speed software ports
+  // And we use the unified speed of software ports to program transceiver
+  std::optional<cfg::PortProfileID> unifiedProfile;
+  for (const auto& portToPortInfo : programmedPortToPortInfo) {
+    auto portProfile = portToPortInfo.second.profile;
+    if (!unifiedProfile) {
+      unifiedProfile = portProfile;
+    } else if (*unifiedProfile != portProfile) {
+      throw FbossError(
+          "Multiple profiles found for member ports of Transceiver=",
+          id,
+          ", profiles=[",
+          apache::thrift::util::enumNameSafe(*unifiedProfile),
+          ", ",
+          apache::thrift::util::enumNameSafe(portProfile),
+          "]");
+    }
+  }
+  // This should never happen
+  if (!unifiedProfile) {
+    throw FbossError(
+        "Can't find unified profile for member ports of Transceiver=", id);
+  }
+  const auto profileID = *unifiedProfile;
   auto profileCfgOpt = platformMapping_->getPortProfileConfig(
       PlatformPortProfileConfigMatcher(profileID));
   if (!profileCfgOpt) {
@@ -1364,5 +1381,13 @@ void TransceiverManager::setDiagsCapability(TransceiverID id) {
   }
   XLOG(DBG2) << "Skip setting DiagsCapability for Transceiver=" << id
              << ". Transceiver is not present";
+}
+
+Transceiver* TransceiverManager::overrideTransceiverForTesting(
+    TransceiverID id,
+    std::unique_ptr<Transceiver> overrideTcvr) {
+  auto lockedTransceivers = transceivers_.wlock();
+  lockedTransceivers->at(id).swap(overrideTcvr);
+  return lockedTransceivers->at(id).get();
 }
 } // namespace facebook::fboss
