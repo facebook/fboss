@@ -1221,10 +1221,16 @@ void QsfpModule::programTransceiver(
   auto programTcvrFunc = [this, speed, needResetDataPath]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
+      // Make sure customize xcvr first so that we can set the application code
+      // correctly and then call configureModule() later to program serdes like
+      // Rx equalizer setting based on QSFP config
+      customizeTransceiverLocked(speed);
+      // updateQsdpData so that we can make sure the new application code in
+      // cache gets updated before calling configureModule()
+      updateQsfpData(false);
       // Current configureModule() actually assumes the locked is obtained.
       // See CmisModule::configureModule(). Need to clean it up in the future.
       configureModule();
-      customizeTransceiverLocked(speed);
 
       TransceiverSettings settings = getTransceiverSettingsInfo();
       // We found that some module did not enable Rx output squelch by default,
