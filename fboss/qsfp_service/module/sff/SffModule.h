@@ -259,6 +259,8 @@ class SffModule : public QsfpModule {
     // no-op
   }
 
+  void clearTransceiverPrbsStats(phy::Side side) override;
+
  private:
   // no copy or assignment
   SffModule(SffModule const&) = delete;

@@ -880,6 +880,50 @@ void SffModule::updateQsfpData(bool allPages) {
   }
 }
 
+void SffModule::clearTransceiverPrbsStats(phy::Side side) {
+  // We are asked to clear the prbs stats, therefore reset the bit count
+  // reference points so that the BER calculations get reset too.
+
+  // Since we need to read/write from the module here, need to acquire the mutex
+  // and run this in i2c evb
+  auto clearTransceiverPrbsStatsLambda = [side, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    if (side == Side::SYSTEM) {
+      auto systemPrbs = systemPrbsSnapshot_.wlock();
+      for (auto laneId = 0; laneId < systemPrbs->bitErrorCount.size();
+           laneId++) {
+        systemPrbs->bitErrorCount[laneId] =
+            getPrbsBitErrorCountLocked(side, laneId);
+        systemPrbs->totalBitCount[laneId] =
+            getPrbsTotalBitCountLocked(side, laneId);
+      }
+    } else {
+      auto linePrbs = linePrbsSnapshot_.wlock();
+      for (auto laneId = 0; laneId < linePrbs->bitErrorCount.size(); laneId++) {
+        linePrbs->bitErrorCount[laneId] =
+            getPrbsBitErrorCountLocked(side, laneId);
+        linePrbs->totalBitCount[laneId] =
+            getPrbsTotalBitCountLocked(side, laneId);
+      }
+    }
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    clearTransceiverPrbsStatsLambda();
+  } else {
+    via(i2cEvb)
+        .thenValue([clearTransceiverPrbsStatsLambda](auto&&) mutable {
+          clearTransceiverPrbsStatsLambda();
+        })
+        .get();
+  }
+
+  // Call the base class implementation to clear the common stats
+  QsfpModule::clearTransceiverPrbsStats(side);
+}
+
 phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(phy::Side side) {
   // Initialize the counter snapshots if they are not already
   auto hostLanes = numHostLanes();
@@ -1432,8 +1476,8 @@ bool SffModule::supportRemediate() {
  * setDiagsCapability
  *
  * This function reads the module register from cache and populates the
- * diagnostic capability. This function is called from Module State Machine when
- * the MSM enters Module Discovered state after EEPROM read.
+ * diagnostic capability. This function is called from Module State Machine
+ * when the MSM enters Module Discovered state after EEPROM read.
  */
 void SffModule::setDiagsCapability() {
   auto diagsCapability = diagsCapability_.wlock();
