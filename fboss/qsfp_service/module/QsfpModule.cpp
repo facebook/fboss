@@ -647,6 +647,24 @@ void QsfpModule::refreshLocked() {
   updatePrbsStats();
 }
 
+void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
+  auto systemPrbs = systemPrbsStats_.wlock();
+  auto linePrbs = linePrbsStats_.wlock();
+
+  auto clearLaneStats = [](std::vector<phy::PrbsLaneStats>& laneStats) {
+    for (auto& laneStat : laneStats) {
+      laneStat.maxBer_ref() = 0;
+      laneStat.numLossOfLock_ref() = 0;
+      laneStat.timeSinceLastClear_ref() = std::time(nullptr);
+    }
+  };
+  if (side == phy::Side::SYSTEM) {
+    clearLaneStats(*systemPrbs->laneStats_ref());
+  } else {
+    clearLaneStats(*linePrbs->laneStats_ref());
+  }
+}
+
 void QsfpModule::updatePrbsStats() {
   auto systemPrbs = systemPrbsStats_.wlock();
   auto linePrbs = linePrbsStats_.wlock();

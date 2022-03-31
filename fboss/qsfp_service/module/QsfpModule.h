@@ -12,6 +12,7 @@
 #include <mutex>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -253,6 +254,8 @@ class QsfpModule : public Transceiver {
     }
     return (*diagsCapability).value().get_prbsLineCapabilities();
   }
+
+  void clearTransceiverPrbsStats(phy::Side side) override;
 
   TransceiverSnapshotCache getTransceiverSnapshots() const {
     // return a copy to avoid needing a lock in the caller

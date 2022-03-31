@@ -10,9 +10,10 @@
 #pragma once
 #include <cstdint>
 
-#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/futures/Future.h>
@@ -159,6 +160,8 @@ class Transceiver {
   virtual phy::PortPrbsState getPortPrbsState(phy::Side /* side */) = 0;
 
   virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) = 0;
+
+  virtual void clearTransceiverPrbsStats(phy::Side side) = 0;
 
   /*
    * Return true if such Transceiver can support remediation.
