@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/test/TrunkUtils.h"
 
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -24,12 +25,16 @@
 
 #include <folly/logging/xlog.h>
 
+namespace {
+constexpr auto kEcmpWidth = 8;
+constexpr auto kMaxDeviation = 25;
+const auto kMacAddress01 = folly::MacAddress("fe:bd:67:0e:09:db");
+const auto kMacAddress02 = folly::MacAddress("9a:5d:82:09:3a:d9");
+} // namespace
 namespace facebook::fboss {
 
 class HwHashPolarizationTests : public HwLinkStateDependentTest {
  private:
-  static constexpr auto kEcmpWidth = 8;
-  static constexpr auto kMaxDeviation = 25;
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
@@ -52,6 +57,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     return {
         masterLogicalPorts.begin(), masterLogicalPorts.begin() + kEcmpWidth};
   }
+
+ protected:
   std::map<PortID, HwPortStats> getStatsDelta(
       const std::map<PortID, HwPortStats>& before,
       const std::map<PortID, HwPortStats>& after) const {
@@ -64,7 +71,6 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     return delta;
   }
 
- protected:
   template <typename AddrT>
   void programRoutes() {
     auto ecmpPorts = getEcmpPorts();
@@ -98,7 +104,6 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       auto ethFrames = pktsReceived_.rlock();
       runSecondHash(*ethFrames, secondHashes, expectPolarization);
     };
-
     verifyAcrossWarmBoots(setup, verify);
   }
 
@@ -181,7 +186,6 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
         !expectPolarization);
   }
 
- private:
   folly::Synchronized<std::vector<utility::EthFrame>> pktsReceived_;
 };
 
@@ -193,15 +197,15 @@ TEST_F(HwHashPolarizationTests, fullXfullHash) {
 TEST_F(HwHashPolarizationTests, fullXHalfHash) {
   auto firstHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
   firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
+      LoadBalancerID::ECMP, kMacAddress01);
   firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("fe:bd:67:0e:09:db"));
+      LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
 
   auto secondHashes = utility::getEcmpHalfTrunkFullHashConfig(getPlatform());
   secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+      LoadBalancerID::ECMP, kMacAddress02);
   secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
+      LoadBalancerID::AGGREGATE_PORT, kMacAddress02);
 
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
 }
@@ -210,14 +214,14 @@ TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   // Setup 2 identical hashes with only the seed changed
   auto firstHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
   firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::ECMP, folly::MacAddress("fe:bd:67:0e:09:db"));
+      LoadBalancerID::ECMP, kMacAddress01);
   firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("fe:bd:67:0e:09:db"));
+      LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
   auto secondHashes = utility::getEcmpFullTrunkFullHashConfig(getPlatform());
   secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+      LoadBalancerID::ECMP, kMacAddress02);
   secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
-      LoadBalancerID::AGGREGATE_PORT, folly::MacAddress("9a:5d:82:09:3a:d9"));
+      LoadBalancerID::AGGREGATE_PORT, kMacAddress02);
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
 }
 
@@ -244,10 +248,9 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
       auto secondHashes =
           utility::getEcmpFullTrunkFullHashConfig(getPlatform());
       secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
-          LoadBalancerID::ECMP, folly::MacAddress("9a:5d:82:09:3a:d9"));
+          LoadBalancerID::ECMP, kMacAddress02);
       secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
-          LoadBalancerID::AGGREGATE_PORT,
-          folly::MacAddress("9a:5d:82:09:3a:d9"));
+          LoadBalancerID::AGGREGATE_PORT, kMacAddress02);
       auto frames = getFullHashedPackets(type, sai);
       runSecondHash(*frames, secondHashes, false);
     };
@@ -480,6 +483,198 @@ TEST_F(HwHashPolarizationTestSAITH4, With_TH3) {
 
 TEST_F(HwHashPolarizationTestSAITH4, With_TH4) {
   runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+}
+
+template <int kNumAggregatePorts, int kAggregatePortWidth>
+class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
+ private:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerVlanConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+    return cfg;
+  }
+
+  void addAggregatePorts(cfg::SwitchConfig* cfg) {
+    AggregatePortID curAggId{1};
+    for (auto i = 0; i < kNumAggregatePorts; ++i) {
+      std::vector<int32_t> members(kAggregatePortWidth);
+      for (auto j = 0; j < kAggregatePortWidth; ++j) {
+        members[j] = masterLogicalPortIds()[i * kAggregatePortWidth + j];
+      }
+      utility::addAggPort(curAggId++, members, cfg);
+    }
+  }
+
+  flat_set<PortDescriptor> getAggregatePorts() const {
+    flat_set<PortDescriptor> aggregatePorts;
+    for (auto i = 0; i < kNumAggregatePorts; ++i) {
+      aggregatePorts.insert(PortDescriptor(AggregatePortID(i + 1)));
+    }
+    return aggregatePorts;
+  }
+
+  void configureAggregatePorts() {
+    auto cfg = initialConfig();
+    addAggregatePorts(&cfg);
+    auto state = applyNewConfig(cfg);
+    applyNewState(utility::enableTrunkPorts(state));
+  }
+
+  template <typename AddrT>
+  void programRoutesForAggregatePorts() {
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper{getProgrammedState()};
+    applyNewState(
+        ecmpHelper.resolveNextHops(getProgrammedState(), getAggregatePorts()));
+    ecmpHelper.programRoutes(getRouteUpdater(), getAggregatePorts());
+  }
+
+  void configureAggPortsAndRoutes() {
+    configureAggregatePorts();
+    programRoutesForAggregatePorts<folly::IPAddressV4>();
+    programRoutesForAggregatePorts<folly::IPAddressV6>();
+  }
+
+  std::vector<PortID> getEgressPorts(
+      int numAggregatePorts = kNumAggregatePorts) const {
+    auto masterLogicalPorts = masterLogicalPortIds();
+    std::vector<PortID> egressPorts{};
+    for (auto i = 0; i < numAggregatePorts; ++i) {
+      for (auto j = 0; j < kAggregatePortWidth; ++j) {
+        auto port = masterLogicalPortIds()[i * kAggregatePortWidth + j];
+        egressPorts.push_back(port);
+      }
+    }
+    return egressPorts;
+  }
+
+  void runTrunkTest(
+      const std::vector<cfg::LoadBalancer>& firstHashes,
+      const std::vector<cfg::LoadBalancer>& secondHashes) {
+    auto setup = [this]() { configureAggPortsAndRoutes(); };
+    auto verify = [this, firstHashes, secondHashes]() {
+      runFirstHashTrunkTest(firstHashes);
+      auto ethFrames = pktsReceived_.rlock();
+      runSecondHashTrunkTest(*ethFrames, secondHashes, false);
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void runFirstHashTrunkTest(const std::vector<cfg::LoadBalancer>& hashes) {
+    auto ports = getEgressPorts(kNumAggregatePorts / 2);
+    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
+    auto preTestStats =
+        getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
+    {
+      HwTestPacketTrapEntry trapPkts(
+          getHwSwitch(), std::set<PortID>{ports.begin(), ports.end()});
+      // Set first hash
+      applyNewState(utility::addLoadBalancers(
+          getPlatform(), getProgrammedState(), hashes));
+
+      auto logicalPorts = masterLogicalPortIds();
+      auto portIter = logicalPorts.end() - 1;
+
+      for (auto isV6 : {true, false}) {
+        utility::pumpTraffic(isV6, getHwSwitch(), mac, firstVlan, *portIter);
+      }
+    } // stop capture
+
+    auto firstHashPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
+    EXPECT_TRUE(utility::isLoadBalanced(
+        getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
+  }
+
+  void runSecondHashTrunkTest(
+      const std::vector<utility::EthFrame>& rxPackets,
+      const std::vector<cfg::LoadBalancer>& secondHashes,
+      bool expectPolarization) {
+    XLOG(INFO) << " Num captured packets: " << rxPackets.size();
+    auto ports = getEgressPorts();
+    auto firstVlan = utility::firstVlanID(getProgrammedState());
+    auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
+    auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
+
+    // Set second hash
+    applyNewState(utility::addLoadBalancers(
+        getPlatform(), getProgrammedState(), secondHashes));
+    auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
+      return utility::makeUDPTxPacket(
+          getHwSwitch(),
+          firstVlan,
+          srcMac,
+          mac,
+          ipPayload.header().srcAddr,
+          ipPayload.header().dstAddr,
+          ipPayload.payload()->header().srcPort,
+          ipPayload.payload()->header().dstPort);
+    };
+
+    auto logicalPorts = masterLogicalPortIds();
+    auto portIter = logicalPorts.end() - 1;
+
+    for (auto& ethFrame : rxPackets) {
+      std::unique_ptr<TxPacket> pkt;
+      auto srcMac = ethFrame.header().srcAddr;
+      if (ethFrame.header().etherType ==
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+        pkt = makeTxPacket(srcMac, *ethFrame.v4PayLoad());
+      } else if (
+          ethFrame.header().etherType ==
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+        pkt = makeTxPacket(srcMac, *ethFrame.v6PayLoad());
+      } else {
+        XLOG(FATAL) << " Unexpected packet received, etherType: "
+                    << static_cast<int>(ethFrame.header().etherType);
+      }
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), *portIter);
+    }
+
+    auto secondHashPortStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
+    EXPECT_EQ(
+        utility::isLoadBalanced(
+            getStatsDelta(preTestStats, secondHashPortStats), kMaxDeviation),
+        !expectPolarization);
+  }
+
+ public:
+  void runFullHalfxFullHalfTest() {
+    auto firstHashes = utility::getEcmpFullTrunkHalfHashConfig(getPlatform());
+    firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
+        LoadBalancerID::ECMP, kMacAddress01);
+    firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
+        LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
+
+    auto secondHashes = utility::getEcmpFullTrunkHalfHashConfig(getPlatform());
+    secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
+        LoadBalancerID::ECMP, kMacAddress02);
+    secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
+        LoadBalancerID::AGGREGATE_PORT, kMacAddress02);
+
+    runTrunkTest(firstHashes, secondHashes);
+  }
+};
+
+using HwHashTrunk4x3PolarizationTests = HwHashTrunkPolarizationTests<4, 3>;
+using HwHashTrunk4x2PolarizationTests = HwHashTrunkPolarizationTests<4, 2>;
+using HwHashTrunk8x3PolarizationTests = HwHashTrunkPolarizationTests<8, 3>;
+using HwHashTrunk8x2PolarizationTests = HwHashTrunkPolarizationTests<8, 2>;
+
+TEST_F(HwHashTrunk4x3PolarizationTests, FullHalfxFullHalf) {
+  runFullHalfxFullHalfTest();
+}
+
+TEST_F(HwHashTrunk4x2PolarizationTests, FullHalfxFullHalf) {
+  runFullHalfxFullHalfTest();
+}
+
+TEST_F(HwHashTrunk8x3PolarizationTests, FullHalfxFullHalf) {
+  runFullHalfxFullHalfTest();
+}
+
+TEST_F(HwHashTrunk8x2PolarizationTests, FullHalfxFullHalf) {
+  runFullHalfxFullHalfTest();
 }
 
 } // namespace facebook::fboss
