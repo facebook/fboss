@@ -392,6 +392,8 @@ class CmisModule : public QsfpModule {
   phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
 
   void updateVdmCacheLocked();
+
+  friend class TransceiverStateMachineTest;
 };
 
 } // namespace fboss

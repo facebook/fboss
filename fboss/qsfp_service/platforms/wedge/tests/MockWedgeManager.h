@@ -34,6 +34,7 @@ class MockWedgeManager : public WedgeManager {
 
   MOCK_METHOD0(clearAllTransceiverReset, void());
   MOCK_METHOD1(triggerQsfpHardReset, void(int));
+  MOCK_METHOD1(verifyEepromChecksums, bool(TransceiverID));
 
   void overridePresence(unsigned int id, bool presence) {
     MockTransceiverI2CApi* mockApi =

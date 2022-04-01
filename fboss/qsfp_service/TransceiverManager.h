@@ -223,7 +223,7 @@ class TransceiverManager {
 
   void markLastDownTime(TransceiverID id) noexcept;
 
-  bool verifyEepromChecksums(TransceiverID id);
+  virtual bool verifyEepromChecksums(TransceiverID id);
 
   void setDiagsCapability(TransceiverID id);
   // ========== Public functions fo TransceiverStateMachine ==========

@@ -51,6 +51,10 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID, 4);
 
   const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_EQ(
+      info.transceiverManagementInterface_ref(),
+      TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
   EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR4_200G);
@@ -166,6 +170,10 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID, 1);
   const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_EQ(
+      info.transceiverManagementInterface_ref(),
+      TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
   EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::LR4_400G_10KM);
@@ -209,6 +217,10 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1), 4);
   const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_EQ(
+      info.transceiverManagementInterface_ref(),
+      TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 0);
 
