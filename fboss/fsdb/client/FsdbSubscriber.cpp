@@ -10,6 +10,7 @@ OperSubRequest FsdbSubscriber<SubUnit>::createRequest() const {
   operPath.raw() = subscribePath_;
   OperSubRequest request;
   request.path() = operPath;
+  request.subscriberId() = clientId();
   return request;
 }
 
