@@ -65,3 +65,8 @@ struct OperSubRequest {
 }
 
 struct OperSubInitResponse {}
+
+enum PubSubType {
+  PATH = 0,
+  DELTA = 1,
+}
