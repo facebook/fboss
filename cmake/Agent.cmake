@@ -77,6 +77,7 @@ target_link_libraries(utils
 
 add_library(stats
   fboss/agent/AggregatePortStats.cpp
+  fboss/agent/InterfaceStats.cpp
   fboss/agent/PortStats.cpp
   fboss/agent/SwitchStats.cpp
   fboss/agent/oss/AggregatePortStats.cpp
