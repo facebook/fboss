@@ -42,7 +42,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
     return clientId_;
   }
   State getState() const {
-    return state_.load();
+    return *state_.rlock();
   }
   bool serviceLoopRunning() const {
     return serviceLoopRunning_.load();
@@ -69,7 +69,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   std::string clientId_;
   folly::EventBase* streamEvb_;
   folly::EventBase* connRetryEvb_;
-  std::atomic<State> state_{State::DISCONNECTED};
+  folly::Synchronized<State> state_{State::DISCONNECTED};
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
   std::optional<folly::SocketAddress> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;

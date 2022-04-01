@@ -42,11 +42,19 @@ FsdbStreamClient::~FsdbStreamClient() {
 }
 
 void FsdbStreamClient::setState(State state) {
-  auto oldState = state_.load();
-  if (oldState == state) {
-    return;
+  State oldState;
+  {
+    auto stateLocked = state_.wlock();
+    oldState = *stateLocked;
+    if (oldState == state) {
+      XLOG(INFO) << "State not changing, skipping";
+      return;
+    } else if (oldState == State::CANCELLED) {
+      XLOG(INFO) << "Old state is CANCELLED, will not try to reconnect";
+      return;
+    }
+    *stateLocked = state;
   }
-  state_.store(state);
   if (state == State::CONNECTED) {
 #if FOLLY_HAS_COROUTINES
     auto startServiceLoop = ([this]() -> folly::coro::Task<void> {
