@@ -65,6 +65,3 @@ struct OperSubRequest {
 }
 
 struct OperSubInitResponse {}
-/*
- * The MODEL for the operational state should be defined below this line.
- */
