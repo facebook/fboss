@@ -62,6 +62,7 @@ struct OperPubFinalResponse {}
 struct OperSubRequest {
   1: fsdb_oper.OperPath path;
   2: fsdb_oper.OperProtocol protocol = fsdb_oper.OperProtocol.BINARY;
+  3: fsdb_common.SubscriberId subscriberId;
 }
 
 struct OperSubInitResponse {}
