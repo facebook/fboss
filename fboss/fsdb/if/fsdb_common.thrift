@@ -35,6 +35,8 @@ enum FsdbErrorCode {
   UNKNOWN_PUBLISHER = 8,
   INVALID_PATH = 9,
   PUBLISHER_NOT_PERMITTED = 10,
+  EMPTY_PUBLISHER_ID = 11,
+  EMPTY_SUBSCRIBER_ID = 12,
 }
 
 exception FsdbException {
