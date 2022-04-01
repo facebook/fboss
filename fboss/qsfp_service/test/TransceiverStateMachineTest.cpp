@@ -73,7 +73,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         // READ_EEPROM seperately, we have to make sure we updateQsfpData with
         // allPages=True after `DETECT_TRANSCEIVER` but before `READ_EEPROM`
         // to match the same behavior as QsfpModule::refreshLocked()
-        xcvr_->stateUpdate(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
         xcvr_->updateQsfpData(true);
         break;
       case TransceiverStateMachineState::DISCOVERED:
@@ -88,8 +89,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
             overrideTcvrToPortAndProfile_);
         transceiverManager_->refreshStateMachines();
-        // Use Transceiver::stateUpdate() to skip PhyManager check
-        xcvr_->stateUpdate(TransceiverStateMachineEvent::PROGRAM_XPHY);
+        // Use updateStateBlocking() to skip PhyManager check
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
         break;
       // TODO(joseph5wu) Will support the reset states later
       default:
@@ -134,7 +136,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
       // Trigger state update with `event`
-      xcvr_->stateUpdate(event);
+      transceiverManager_->updateStateBlocking(id_, event);
       auto curState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(curState, expectedState)
           << "Transceiver=0 state doesn't match after Event="
@@ -163,7 +165,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
       // Trigger state update with `event`
-      xcvr_->stateUpdate(event);
+      transceiverManager_->updateStateBlocking(id_, event);
       auto newState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(newState, state)
           << "Transceiver=0 state doesn't match after Event="

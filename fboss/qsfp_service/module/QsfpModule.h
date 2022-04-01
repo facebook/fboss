@@ -262,7 +262,9 @@ class QsfpModule : public Transceiver {
     return snapshots_.copy();
   }
 
-  void stateUpdate(TransceiverStateMachineEvent event);
+  // TODO(joseph5wu) Will eventually deprecate the following legacy state
+  // machine functions
+  void legacyModuleStateMachineStateUpdate(TransceiverStateMachineEvent event);
 
   int getLegacyModuleStateMachineCurrentState() const;
 

@@ -1041,7 +1041,8 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
   msmFunctionScheduler_.addFunctionOnce(
       [&]() {
         // Trigger the timeout event to MSM
-        stateUpdate(TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT);
+        legacyModuleStateMachineStateUpdate(
+            TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT);
       },
       // Name of the scheduled function/thread for identifying later
       folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
@@ -1150,7 +1151,8 @@ void QsfpModule::checkAgentModulePortSyncup() {
   }
 }
 
-void QsfpModule::stateUpdate(TransceiverStateMachineEvent event) {
+void QsfpModule::legacyModuleStateMachineStateUpdate(
+    TransceiverStateMachineEvent event) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   stateUpdateLocked(event);
 }
