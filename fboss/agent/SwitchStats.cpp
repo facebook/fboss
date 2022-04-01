@@ -266,6 +266,26 @@ AggregatePortStats* SwitchStats::createAggregatePortStats(
   return it->second.get();
 }
 
+InterfaceStats* SwitchStats::createInterfaceStats(
+    InterfaceID intfID,
+    std::string intfName) {
+  auto rv = intfIDToStats_.emplace(
+      intfID, std::make_unique<InterfaceStats>(intfID, intfName, this));
+  DCHECK(rv.second);
+  const auto& it = rv.first;
+  return it->second.get();
+}
+
+InterfaceStats* FOLLY_NULLABLE SwitchStats::intf(InterfaceID intfID) {
+  auto it = intfIDToStats_.find(intfID);
+  if (it != intfIDToStats_.end()) {
+    return it->second.get();
+  }
+  // Since InterfaceStats needs intfName from current switch state, let caller
+  // to decide whether it needs createPortStats function.
+  return nullptr;
+}
+
 void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   agentStats.linkFlaps() = getCumulativeValue(linkStateChange_);
 }

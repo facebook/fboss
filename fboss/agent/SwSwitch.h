@@ -40,6 +40,7 @@
 namespace facebook::fboss {
 
 class ArpHandler;
+class InterfaceStats;
 class IPv4Handler;
 class IPv6Handler;
 class LinkAggregationManager;
@@ -387,6 +388,14 @@ class SwSwitch : public HwSwitch::Callback {
    * thread.
    */
   PortStats* portStats(PortID port);
+
+  /*
+   * Get the InterfaceStats for the specified interface.
+   *
+   * Note that this returns a thread-local object specific to the current
+   * thread.
+   */
+  InterfaceStats* interfaceStats(InterfaceID intf);
 
   /*
    * Get Internal PhyInfo

@@ -1100,6 +1100,21 @@ PortStats* SwSwitch::portStats(const RxPacket* pkt) {
   return portStats(pkt->getSrcPort());
 }
 
+InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
+  auto intfStats = stats()->intf(intfID);
+  if (intfStats) {
+    return intfStats;
+  }
+  auto interfaceIf = getState()->getInterfaces()->getInterfaceIf(intfID);
+  if (!interfaceIf) {
+    XLOG(DBG0) << "Interface node doesn't exist, use default name=intf"
+               << intfID;
+    return stats()->createInterfaceStats(
+        intfID, folly::to<string>("intf", intfID));
+  }
+  return stats()->createInterfaceStats(intfID, interfaceIf->getName());
+}
+
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   map<int32_t, PortStatus> statusMap;
   std::shared_ptr<PortMap> portMap = getState()->getPorts();

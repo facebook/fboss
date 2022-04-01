@@ -14,6 +14,7 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
+#include "fboss/agent/InterfaceStats.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/types.h"
@@ -26,6 +27,8 @@ typedef boost::container::flat_map<PortID, std::unique_ptr<PortStats>>
     PortStatsMap;
 using AggregatePortStatsMap = boost::container::
     flat_map<AggregatePortID, std::unique_ptr<AggregatePortStats>>;
+using InterfaceStatsMap =
+    boost::container::flat_map<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
 class SwitchStats : public boost::noncopyable {
  public:
@@ -43,6 +46,8 @@ class SwitchStats : public boost::noncopyable {
 
   AggregatePortStats* FOLLY_NULLABLE
   aggregatePort(AggregatePortID aggregatePortID);
+
+  InterfaceStats* FOLLY_NULLABLE intf(InterfaceID intfID);
 
   /*
    * Getters.
@@ -62,6 +67,22 @@ class SwitchStats : public boost::noncopyable {
 
   void deletePortStats(PortID portID) {
     ports_.erase(portID);
+  }
+
+  InterfaceStatsMap* getInterfaceStats() {
+    return &intfIDToStats_;
+  }
+
+  const InterfaceStatsMap* getInterfaceStats() const {
+    return &intfIDToStats_;
+  }
+
+  InterfaceStats* createInterfaceStats(
+      InterfaceID intfID,
+      std::string intfName);
+
+  void deleteInterfaceStats(InterfaceID intfID) {
+    intfIDToStats_.erase(intfID);
   }
 
   void trappedPkt() {
@@ -511,6 +532,8 @@ class SwitchStats : public boost::noncopyable {
   PortStatsMap ports_;
 
   AggregatePortStatsMap aggregatePortIDToStats_;
+
+  InterfaceStatsMap intfIDToStats_;
 
   // Number of packets dropped by the PCAP distribution service
   TLCounter pcapDistFailure_;
