@@ -305,7 +305,9 @@ bool operator()(
     Source& /* src */,
     Target& /* trg */) {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  return fsm.get_attribute(transceiverMgrPtr)->areAllPortsDown(tcvrID);
+  bool result = fsm.get_attribute(transceiverMgrPtr)->areAllPortsDown(tcvrID);
+  XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID << "] Not all ports down";
+  return result;
 }
 };
 

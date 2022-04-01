@@ -1398,7 +1398,11 @@ Transceiver* TransceiverManager::overrideTransceiverForTesting(
     TransceiverID id,
     std::unique_ptr<Transceiver> overrideTcvr) {
   auto lockedTransceivers = transceivers_.wlock();
-  lockedTransceivers->at(id).swap(overrideTcvr);
+  // Keep the same logic as updateTransceiverMap()
+  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
+    lockedTransceivers->erase(it);
+  }
+  lockedTransceivers->emplace(id, std::move(overrideTcvr));
   return lockedTransceivers->at(id).get();
 }
 } // namespace facebook::fboss
