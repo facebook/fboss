@@ -672,6 +672,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
       {IPAddressV6("2401:db00:2110:3004::"), 64},
       {IPAddressV6("fe80::"), 64},
   };
+  CounterCache counters(sw);
   // Multicast router advertisement use switched api
   EXPECT_SWITCHED_PKT(
       sw,
@@ -803,6 +804,8 @@ TEST_F(NdpTest, RouterAdvertisement) {
           intfConfig->getNdpConfig(),
           9000,
           expectedPrefixes));
+  counters.update();
+  EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
 }
 
 TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {

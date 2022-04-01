@@ -14,6 +14,7 @@
 #include <folly/logging/xlog.h>
 #include <netinet/icmp6.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/InterfaceStats.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/ICMPHdr.h"
@@ -99,14 +100,15 @@ class IPv6RAImpl : private folly::AsyncTimeout {
 
   std::chrono::milliseconds interval_;
   folly::IOBuf buf_;
-  SwSwitch* const sw_{nullptr};
+  SwSwitch* sw_{nullptr};
+  InterfaceID intfID_;
 };
 
 IPv6RAImpl::IPv6RAImpl(
     SwSwitch* sw,
     const SwitchState* /*state*/,
     const Interface* intf)
-    : AsyncTimeout(sw->getBackgroundEvb()), sw_(sw) {
+    : AsyncTimeout(sw->getBackgroundEvb()), sw_(sw), intfID_(intf->getID()) {
   std::chrono::seconds raInterval(
       *intf->getNdpConfig().routerAdvertisementSeconds());
   interval_ = raInterval;
@@ -155,6 +157,7 @@ void IPv6RAImpl::sendRouteAdvertisement() {
   cursor.push(buf_.data(), buf_.length());
 
   sw_->sendNetworkControlPacketAsync(std::move(pkt), std::nullopt);
+  sw_->interfaceStats(intfID_)->sentRouterAdvertisement();
 }
 
 IPv6RouteAdvertiser::IPv6RouteAdvertiser(

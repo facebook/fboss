@@ -17,11 +17,12 @@ class InterfaceStats {
 
   void sentRouterAdvertisement();
 
+  std::string getCounterKey(const std::string& key);
+
  private:
   InterfaceStats(InterfaceStats const&) = delete;
   InterfaceStats& operator=(InterfaceStats const&) = delete;
 
-  std::string getCounterKey(const std::string& key);
   void clearCounters();
 
   InterfaceID intfID_;
