@@ -211,7 +211,7 @@ class TransceiverManager {
 
   void programInternalPhyPorts(TransceiverID id);
 
-  void programExternalPhyPorts(TransceiverID id);
+  virtual void programExternalPhyPorts(TransceiverID id);
 
   void programTransceiver(TransceiverID id, bool needResetDataPath);
 

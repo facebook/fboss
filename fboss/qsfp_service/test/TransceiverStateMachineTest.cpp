@@ -84,6 +84,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
             overrideTcvrToPortAndProfile_);
         transceiverManager_->refreshStateMachines();
         break;
+      case TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED:
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideTcvrToPortAndProfile_);
+        transceiverManager_->refreshStateMachines();
+        // Use Transceiver::stateUpdate() to skip PhyManager check
+        xcvr_->stateUpdate(TransceiverStateMachineEvent::PROGRAM_XPHY);
+        break;
       // TODO(joseph5wu) Will support the reset states later
       default:
         break;
@@ -101,8 +108,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         TransceiverStateMachineState::PRESENT,
         TransceiverStateMachineState::DISCOVERED,
         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
         // TODO(joseph5wu) Will support the reset states later
-        // TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
         // TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
         // TransceiverStateMachineState::ACTIVE,
         // TransceiverStateMachineState::INACTIVE,
@@ -114,6 +121,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   void verifyStateMachine(
       const std::set<TransceiverStateMachineState>& supportedStates,
       TransceiverStateMachineEvent event,
+      TransceiverStateMachineState expectedState,
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify) {
@@ -127,19 +135,33 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       preUpdate();
       // Trigger state update with `event`
       xcvr_->stateUpdate(event);
+      auto curState = transceiverManager_->getCurrentState(id_);
+      EXPECT_EQ(curState, expectedState)
+          << "Transceiver=0 state doesn't match after Event="
+          << apache::thrift::util::enumNameSafe(event)
+          << ", preState=" << apache::thrift::util::enumNameSafe(preState)
+          << ", expected new state="
+          << apache::thrift::util::enumNameSafe(expectedState)
+          << ", actual=" << apache::thrift::util::enumNameSafe(curState);
+
       // Verify the result after update finishes
-      verify(preState);
+      verify();
+
       // Remove from the state set
       states.erase(preState);
       ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
     }
   }
 
+  template <typename PRE_UPDATE_FN>
   void verifyStateUnchanged(
       TransceiverStateMachineEvent event,
-      std::set<TransceiverStateMachineState>& states) {
+      std::set<TransceiverStateMachineState>& states,
+      PRE_UPDATE_FN preUpdate) {
     for (auto state : states) {
       setState(state);
+      // Call preUpdate() before actual stateUpdate()
+      preUpdate();
       // Trigger state update with `event`
       xcvr_->stateUpdate(event);
       auto newState = transceiverManager_->getCurrentState(id_);
@@ -148,6 +170,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           << apache::thrift::util::enumNameSafe(event)
           << ", preState=" << apache::thrift::util::enumNameSafe(state)
           << ", newState=" << apache::thrift::util::enumNameSafe(newState);
+
+      ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
     }
   }
 
@@ -187,17 +211,14 @@ TEST_F(TransceiverStateMachineTest, detectTransceiver) {
   verifyStateMachine(
       {TransceiverStateMachineState::NOT_PRESENT},
       TransceiverStateMachineEvent::DETECT_TRANSCEIVER,
+      TransceiverStateMachineState::PRESENT /* expected state */,
       allStates,
       []() {} /* empty preUpdateFn */,
-      [this](TransceiverStateMachineState /* preState */) {
-        // New state should be PRESENT now
-        EXPECT_EQ(
-            transceiverManager_->getCurrentState(id_),
-            TransceiverStateMachineState::PRESENT);
-      });
+      []() {} /* empty verifyFn */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::DETECT_TRANSCEIVER, allStates);
+      TransceiverStateMachineEvent::DETECT_TRANSCEIVER, allStates, []() {
+      } /* empty preUpdateFn */);
 }
 
 TEST_F(TransceiverStateMachineTest, readEeprom) {
@@ -206,17 +227,13 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
   verifyStateMachine(
       {TransceiverStateMachineState::PRESENT},
       TransceiverStateMachineEvent::READ_EEPROM,
+      TransceiverStateMachineState::DISCOVERED /* expected state */,
       allStates,
       [this]() {
         // Make sure `discoverTransceiver` has been called
         EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(id_)).Times(1);
       },
-      [this](TransceiverStateMachineState /* preState */) {
-        // New state should be DISCOVERED now
-        EXPECT_EQ(
-            transceiverManager_->getCurrentState(id_),
-            TransceiverStateMachineState::DISCOVERED);
-
+      [this]() {
         // Enter DISCOVERED will also call `resetProgrammingAttributes`
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
@@ -235,7 +252,9 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
             false /* skipCheckingIndividualCapability */);
       });
   // Other states should not change even though we try to process the event
-  verifyStateUnchanged(TransceiverStateMachineEvent::READ_EEPROM, allStates);
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::READ_EEPROM, allStates, []() {
+      } /* empty preUpdateFn */);
 }
 
 TEST_F(TransceiverStateMachineTest, programIphy) {
@@ -245,20 +264,13 @@ TEST_F(TransceiverStateMachineTest, programIphy) {
       {TransceiverStateMachineState::NOT_PRESENT,
        TransceiverStateMachineState::DISCOVERED},
       TransceiverStateMachineEvent::PROGRAM_IPHY,
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED /* expected state */,
       allStates,
       [this]() {
         transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
             overrideTcvrToPortAndProfile_);
       },
-      [this](TransceiverStateMachineState preState) {
-        // New state should be IPHY_PORTS_PROGRAMMED now
-        auto curState = transceiverManager_->getCurrentState(id_);
-        EXPECT_EQ(curState, TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED)
-            << "Transceiver=0 state doesn't match after IPHY_PORTS_PROGRAMMED"
-            << ", preState=" << apache::thrift::util::enumNameSafe(preState)
-            << ", expected new state=IPHY_PORTS_PROGRAMMED"
-            << ", actual=" << apache::thrift::util::enumNameSafe(curState);
-
+      [this]() {
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         // Now isIphyProgrammed should be true
@@ -282,6 +294,75 @@ TEST_F(TransceiverStateMachineTest, programIphy) {
         }
       });
   // Other states should not change even though we try to process the event
-  verifyStateUnchanged(TransceiverStateMachineEvent::PROGRAM_IPHY, allStates);
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::PROGRAM_IPHY, allStates, []() {
+      } /* empty preUpdateFn */);
+}
+
+TEST_F(TransceiverStateMachineTest, programXphy) {
+  auto allStates = getAllStates();
+  // Only IPHY_PORTS_PROGRAMMED can accept PROGRAM_XPHY event
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineEvent::PROGRAM_XPHY,
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        // Make sure `programExternalPhyPorts` has been called
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+            .Times(1);
+      },
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isXphyProgrammed should be true
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      });
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::PROGRAM_XPHY, allStates, [this]() {
+        // Make sure `programExternalPhyPorts` has never been called
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+            .Times(0);
+      } /* empty preUpdateFn */);
+}
+
+ACTION(ThrowFbossError) {
+  throw FbossError("Mock FbossError");
+}
+TEST_F(TransceiverStateMachineTest, programXphyFailed) {
+  auto allStates = getAllStates();
+  // If programExternalPhyPorts() failed, state shouldn't change
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineEvent::PROGRAM_XPHY,
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+            .Times(2)
+            .WillOnce(ThrowFbossError());
+      },
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        // Now isXphyProgrammed should still be false
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+        // Then try again, it should succeed
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(newStateMachine.get_attribute(isIphyProgrammed));
+        // Now isXphyProgrammed should be true
+        EXPECT_TRUE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(newStateMachine.get_attribute(isTransceiverProgrammed));
+      });
 }
 } // namespace facebook::fboss
