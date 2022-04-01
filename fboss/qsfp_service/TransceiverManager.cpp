@@ -495,6 +495,13 @@ TransceiverManager::getProgrammedIphyPortToPortInfo(TransceiverID id) const {
   return {};
 }
 
+void TransceiverManager::resetProgrammedIphyPortToPortInfo(TransceiverID id) {
+  if (auto it = tcvrToPortInfo_.find(id); it != tcvrToPortInfo_.end()) {
+    auto portToPortInfoWithLock = it->second->wlock();
+    portToPortInfoWithLock->clear();
+  }
+}
+
 std::unordered_map<PortID, cfg::PortProfileID>
 TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
     TransceiverID id) const {

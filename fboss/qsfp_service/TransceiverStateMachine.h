@@ -86,6 +86,7 @@ void operator()(
   fsm.get_attribute(isXphyProgrammed) = false;
   fsm.get_attribute(isTransceiverProgrammed) = false;
   fsm.get_attribute(needMarkLastDownTime) = true;
+  fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
 }
 };
 

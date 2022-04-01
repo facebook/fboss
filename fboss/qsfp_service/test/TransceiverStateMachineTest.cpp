@@ -299,6 +299,49 @@ TEST_F(TransceiverStateMachineTest, programIphy) {
       } /* empty preUpdateFn */);
 }
 
+TEST_F(TransceiverStateMachineTest, programIphyFailed) {
+  auto allStates = getAllStates();
+  // If we never set overrideTcvrToPortAndProfile_, programming iphy won't work
+  verifyStateMachine(
+      {TransceiverStateMachineState::DISCOVERED},
+      TransceiverStateMachineEvent::PROGRAM_IPHY,
+      TransceiverStateMachineState::DISCOVERED /* expected state */,
+      allStates,
+      []() {} /* empty preUpdateFn */,
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isIphyProgrammed should still be false
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+
+        // checked programmed iphy ports
+        const auto& programmedIphyPorts =
+            transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
+        EXPECT_TRUE(programmedIphyPorts.empty());
+
+        // Now set the override transceiver to port and profile to make
+        // programming iphy ports work
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideTcvrToPortAndProfile_);
+        // Then try again, it should succeed
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_IPHY);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isIphyProgrammed should be true
+        EXPECT_TRUE(newStateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(newStateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(newStateMachine.get_attribute(isTransceiverProgrammed));
+        // checked programmed iphy ports
+        const auto& newProgrammedIphyPorts =
+            transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
+        EXPECT_EQ(newProgrammedIphyPorts.size(), 1);
+      });
+}
+
 TEST_F(TransceiverStateMachineTest, programXphy) {
   auto allStates = getAllStates();
   // Only IPHY_PORTS_PROGRAMMED can accept PROGRAM_XPHY event

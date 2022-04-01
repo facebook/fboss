@@ -226,6 +226,8 @@ class TransceiverManager {
   virtual bool verifyEepromChecksums(TransceiverID id);
 
   void setDiagsCapability(TransceiverID id);
+
+  void resetProgrammedIphyPortToPortInfo(TransceiverID id);
   // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status
