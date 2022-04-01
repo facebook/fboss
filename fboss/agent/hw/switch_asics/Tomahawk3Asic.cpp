@@ -57,6 +57,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::SAI_LAG_HASH:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
