@@ -8,8 +8,22 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _RouteEntryMap{
+    SAI_ATTR_MAP(Route, PacketAction),
+    SAI_ATTR_MAP(Route, NextHopId),
+    SAI_ATTR_MAP(Route, Metadata),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -63,25 +77,6 @@ sai_route_api_t* wrappedRouteApi() {
   return &routeWrappers;
 }
 
-void setRouteEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_ROUTE_ENTRY_ATTR_META_DATA:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(RouteEntry)
 
 } // namespace facebook::fboss
