@@ -8,8 +8,22 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _FdbEntryMap{
+    SAI_ATTR_MAP(Fdb, Type),
+    SAI_ATTR_MAP(Fdb, BridgePortId),
+    SAI_ATTR_MAP(Fdb, Metadata),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -62,25 +76,6 @@ sai_fdb_api_t* wrappedFdbApi() {
   return &fdbWrappers;
 }
 
-void setFdbEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_FDB_ENTRY_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_FDB_ENTRY_ATTR_META_DATA:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(FdbEntry)
 
 } // namespace facebook::fboss
