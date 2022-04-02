@@ -262,11 +262,29 @@ bool SaiPhyManager::setupMacsecState(
     bool dropUnencrypted) {
   for (const auto& port : portList) {
     auto portId = getPortId(port);
+    // If macsecDesired is False and we are trying to remove Macsec from a list
+    // of ports then from the portList, remove the ports which are not
+    // programmed in HW for Macsec
+    PlatformInfo* platInfo;
+    try {
+      platInfo = getPlatformInfo(portId);
+    } catch (FbossError& e) {
+      if (macsecDesired) {
+        throw;
+      } else {
+        continue;
+      }
+    }
     auto saiPlatform = getSaiPlatform(portId);
 
     auto updatePortsFn =
         [saiPlatform, this, portId, macsecDesired, dropUnencrypted](
             std::shared_ptr<SwitchState> in) {
+          auto portObj = in->getPorts()->getPortIf(portId);
+          if (!portObj && !macsecDesired) {
+            XLOG(DBG5) << "Port " << portId << " does not exists";
+            return std::shared_ptr<SwitchState>(nullptr);
+          }
           return portUpdateHelper(
               in,
               portId,
@@ -276,6 +294,7 @@ bool SaiPhyManager::setupMacsecState(
                 port->setMacsecDesired(macsecDesired);
               });
         };
+    XLOG(DBG5) << "Port " << portId << " Applying update";
     getPlatformInfo(portId)->applyUpdate(
         folly::sformat(
             "Setup Macsec state for port: {:s} Macsec desired: {:s} Drop unencrypted: {:s}",
