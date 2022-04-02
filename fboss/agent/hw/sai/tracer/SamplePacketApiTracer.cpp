@@ -7,9 +7,22 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <typeindex>
+#include <utility>
 
+#include "fboss/agent/hw/sai/api/SamplePacketApi.h"
 #include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _SamplePacketMap{
+    SAI_ATTR_MAP(SamplePacket, SampleRate),
+    SAI_ATTR_MAP(SamplePacket, Type),
+    SAI_ATTR_MAP(SamplePacket, Mode),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,23 +42,6 @@ sai_samplepacket_api_t* wrappedSamplePacketApi() {
   return &samplepacketWrappers;
 }
 
-void setSamplePacketAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_SAMPLEPACKET_ATTR_SAMPLE_RATE:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_SAMPLEPACKET_ATTR_TYPE:
-      case SAI_SAMPLEPACKET_ATTR_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(SamplePacket)
 
 } // namespace facebook::fboss
