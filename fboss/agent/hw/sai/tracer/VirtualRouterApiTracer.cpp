@@ -8,8 +8,20 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+#include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _VirtualRouterMap{
+    SAI_ATTR_MAP(VirtualRouter, SrcMac),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -37,19 +49,6 @@ sai_virtual_router_api_t* wrappedVirtualRouterApi() {
   return &virtualRouterWrappers;
 }
 
-void setVirtualRouterAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS:
-        macAddressAttr(attr_list, i, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(VirtualRouter)
 
 } // namespace facebook::fboss
