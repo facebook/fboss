@@ -8,9 +8,35 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap {
+  SAI_ATTR_MAP(EnhancedRemoteMirror, Type),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, MonitorPort),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, TruncateSize),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, Tos),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, ErspanEncapsulationType),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, GreProtocolType),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, Ttl),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, SrcIpAddress),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, DstIpAddress),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, SrcMacAddress),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, DstMacAddress),
+      SAI_ATTR_MAP(EnhancedRemoteMirror, IpHeaderVersion),
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+      SAI_ATTR_MAP(SflowMirror, UdpSrcPort),
+      SAI_ATTR_MAP(SflowMirror, UdpDstPort),
+#endif
+};
+} // namespace
 namespace facebook::fboss {
 
 WRAP_CREATE_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
@@ -29,48 +55,6 @@ sai_mirror_api_t* wrappedMirrorApi() {
   return &mirrorWrappers;
 }
 
-void setMirrorSessionAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MIRROR_SESSION_ATTR_MONITOR_PORT:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_MIRROR_SESSION_ATTR_TRUNCATE_SIZE:
-      case SAI_MIRROR_SESSION_ATTR_GRE_PROTOCOL_TYPE:
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:
-      case SAI_MIRROR_SESSION_ATTR_UDP_DST_PORT:
-#endif
-        attrLines.push_back(u16Attr(attr_list, i));
-        break;
-      case SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_MIRROR_SESSION_ATTR_TYPE:
-      case SAI_MIRROR_SESSION_ATTR_ERSPAN_ENCAPSULATION_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_MIRROR_SESSION_ATTR_TC:
-      case SAI_MIRROR_SESSION_ATTR_TOS:
-      case SAI_MIRROR_SESSION_ATTR_TTL:
-      case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      case SAI_MIRROR_SESSION_ATTR_SRC_MAC_ADDRESS:
-      case SAI_MIRROR_SESSION_ATTR_DST_MAC_ADDRESS:
-        macAddressAttr(attr_list, i, attrLines);
-        break;
-      case SAI_MIRROR_SESSION_ATTR_SRC_IP_ADDRESS:
-      case SAI_MIRROR_SESSION_ATTR_DST_IP_ADDRESS:
-        ipAttr(attr_list, i, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(MirrorSession)
 
 } // namespace facebook::fboss
