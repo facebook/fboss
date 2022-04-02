@@ -1567,6 +1567,15 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
     const cfg::AggregatePort& cfg) {
+  if ((*cfg.memberPorts()).size() >
+      platform_->getAsic()->getMaxLagMemberSize()) {
+    throw FbossError(
+        "Trying to set ",
+        (*cfg.memberPorts()).size(),
+        " lag members, ",
+        "which is greater than the hardware limit ",
+        platform_->getAsic()->getMaxLagMemberSize());
+  }
   std::vector<AggregatePort::Subport> subports(
       std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
 

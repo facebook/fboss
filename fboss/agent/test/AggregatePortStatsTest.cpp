@@ -202,3 +202,17 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   EXPECT_FALSE(counters.checkExist(initialFlapsCounterName));
   EXPECT_TRUE(counters.checkExist(updatedFlapsCounterName));
 }
+
+TEST(AggregatePortStats, AggregatePortMemberLimit) {
+  const AggregatePortID aggregatePortID = AggregatePortID(1);
+  const auto aggregatePortName = "Port-Channel1";
+
+  constexpr auto numPortMemberExceedingLimit = 1024;
+  std::shared_ptr<AggregatePort> baseAggPort = nullptr;
+  auto config = createConfig(aggregatePortID, aggregatePortName);
+  config.aggregatePorts()[0].memberPorts()->resize(numPortMemberExceedingLimit);
+  for (int i = 0; i < numPortMemberExceedingLimit; i++) {
+    *config.aggregatePorts()[0].memberPorts()[0].memberPortID() = i;
+  }
+  EXPECT_THROW(createTestHandle(&config), FbossError);
+}
