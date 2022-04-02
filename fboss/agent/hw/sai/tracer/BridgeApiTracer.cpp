@@ -8,8 +8,30 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _BridgeMap{
+    SAI_ATTR_MAP(Bridge, PortList),
+    SAI_ATTR_MAP(Bridge, Type),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _BridgePortMap{
+    SAI_ATTR_MAP(BridgePort, BridgeId),
+    SAI_ATTR_MAP(BridgePort, PortId),
+    SAI_ATTR_MAP(BridgePort, Type),
+    SAI_ATTR_MAP(BridgePort, FdbLearningMode),
+    SAI_ATTR_MAP(BridgePort, AdminState),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -98,47 +120,7 @@ sai_bridge_api_t* wrappedBridgeApi() {
   return &bridgeWrappers;
 }
 
-void setBridgePortAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_BRIDGE_PORT_ATTR_BRIDGE_ID:
-      case SAI_BRIDGE_PORT_ATTR_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_BRIDGE_PORT_ATTR_TYPE:
-      case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_BRIDGE_PORT_ATTR_ADMIN_STATE:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setBridgeAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_BRIDGE_ATTR_PORT_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_BRIDGE_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Bridge)
+SET_SAI_ATTRIBUTES(BridgePort)
 
 } // namespace facebook::fboss
