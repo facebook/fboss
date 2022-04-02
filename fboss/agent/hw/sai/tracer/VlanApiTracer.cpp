@@ -8,8 +8,27 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+#include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _VlanMap{
+    SAI_ATTR_MAP(Vlan, VlanId),
+    SAI_ATTR_MAP(Vlan, MemberList),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _VlanMemberMap{
+    SAI_ATTR_MAP(VlanMember, BridgePortId),
+    SAI_ATTR_MAP(VlanMember, VlanId),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -38,40 +57,7 @@ sai_vlan_api_t* wrappedVlanApi() {
   return &vlanWrappers;
 }
 
-void setVlanAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_VLAN_ATTR_VLAN_ID:
-        attrLines.push_back(u16Attr(attr_list, i));
-        break;
-      case SAI_VLAN_ATTR_MEMBER_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setVlanMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
-      case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Vlan)
+SET_SAI_ATTRIBUTES(VlanMember)
 
 } // namespace facebook::fboss
