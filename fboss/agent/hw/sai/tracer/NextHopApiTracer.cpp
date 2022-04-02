@@ -8,8 +8,24 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopMap{
+    SAI_ATTR_MAP(IpNextHop, Type),
+    SAI_ATTR_MAP(IpNextHop, RouterInterfaceId),
+    SAI_ATTR_MAP(IpNextHop, Ip),
+    SAI_ATTR_MAP(MplsNextHop, LabelStack),
+    SAI_ATTR_MAP(IpNextHop, DisableTtlDecrement),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,37 +45,6 @@ sai_next_hop_api_t* wrappedNextHopApi() {
   return &nextHopWrappers;
 }
 
-void setNextHopAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_NEXT_HOP_ATTR_IP:
-        ipAttr(attr_list, i, attrLines);
-        break;
-      case SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_NEXT_HOP_ATTR_LABELSTACK:
-        u32ListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_NEXT_HOP_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
-#else
-      case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
-#endif
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(NextHop)
 
 } // namespace facebook::fboss
