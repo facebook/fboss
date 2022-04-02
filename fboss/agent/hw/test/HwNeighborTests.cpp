@@ -1,10 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include <gtest/gtest.h>
+#include <algorithm>
 
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
@@ -16,8 +18,6 @@ template <typename AddrType, bool trunk = false>
 struct NeighborT {
   using IPAddrT = AddrType;
   static constexpr auto isTrunk = trunk;
-  static facebook::fboss::cfg::SwitchConfig initialConfig(
-      facebook::fboss::cfg::SwitchConfig config);
 
   template <typename AddrT = IPAddrT>
   std::enable_if_t<
@@ -41,40 +41,6 @@ using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true>;
 
 const facebook::fboss::AggregatePortID kAggID{1};
 
-template <>
-facebook::fboss::cfg::SwitchConfig PortNeighborV4::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  return config;
-}
-
-void setTrunk(facebook::fboss::cfg::SwitchConfig* config) {
-  std::vector<int> ports;
-  for (auto port : *config->ports()) {
-    ports.push_back(*port.logicalID());
-  }
-  facebook::fboss::utility::addAggPort(kAggID, ports, config);
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig TrunkNeighborV4::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  setTrunk(&config);
-  return config;
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig PortNeighborV6::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  return config;
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig TrunkNeighborV6::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  setTrunk(&config);
-  return config;
-}
-
 using NeighborTypes = ::testing::
     Types<PortNeighborV4, TrunkNeighborV4, PortNeighborV6, TrunkNeighborV6>;
 
@@ -90,11 +56,28 @@ class HwNeighborTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return NeighborT::initialConfig(utility::oneL3IntfTwoPortConfig(
+    auto cfg = utility::oneL3IntfTwoPortConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC));
+        cfg::PortLoopbackMode::MAC);
+    if (programToTrunk) {
+      // Keep member size to be less than/equal to HW limitation, but first add
+      // the two ports for testing.
+      std::set<int> portSet{
+          masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+      int idx = 0;
+      while (portSet.size() <
+             std::min(
+                 getAsic()->getMaxLagMemberSize(),
+                 static_cast<uint32_t>((*cfg.ports()).size()))) {
+        portSet.insert(*cfg.ports()[idx].logicalID());
+        idx++;
+      }
+      std::vector<int> ports(portSet.begin(), portSet.end());
+      facebook::fboss::utility::addAggPort(kAggID, ports, &cfg);
+    }
+    return cfg;
   }
 
   PortDescriptor portDescriptor() {

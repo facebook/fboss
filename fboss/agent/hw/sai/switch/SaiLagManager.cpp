@@ -53,7 +53,6 @@ LagSaiId SaiLagManager::addLag(
     setMemberState(member.second.get(), fwdState);
     members.emplace(std::move(member));
   }
-
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(lag->adapterKey()), vlanID);
   concurrentIndices_->aggregatePortIds.emplace(
