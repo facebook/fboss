@@ -8,8 +8,28 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMap{
+    SAI_ATTR_MAP(NextHopGroup, NextHopMemberList),
+    SAI_ATTR_MAP(NextHopGroup, Type),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMemberMap{
+    SAI_ATTR_MAP(NextHopGroupMember, NextHopGroupId),
+    SAI_ATTR_MAP(NextHopGroupMember, NextHopId),
+    SAI_ATTR_MAP(NextHopGroupMember, Weight),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -62,43 +82,7 @@ sai_next_hop_group_api_t* wrappedNextHopGroupApi() {
   return &nextHopGroupWrappers;
 }
 
-void setNextHopGroupAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setNextHopGroupMemberAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID:
-      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(NextHopGroup)
+SET_SAI_ATTRIBUTES(NextHopGroupMember)
 
 } // namespace facebook::fboss
