@@ -7,9 +7,27 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <typeindex>
+#include <utility>
 
-#include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
+#include "fboss/agent/hw/sai/api/WredApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+#include "fboss/agent/hw/sai/tracer/WredApiTracer.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _WredMap{
+    SAI_ATTR_MAP(Wred, GreenEnable),
+    SAI_ATTR_MAP(Wred, GreenMinThreshold),
+    SAI_ATTR_MAP(Wred, GreenMaxThreshold),
+    SAI_ATTR_MAP(Wred, GreenDropProbability),
+    SAI_ATTR_MAP(Wred, EcnMarkMode),
+    SAI_ATTR_MAP(Wred, EcnGreenMinThreshold),
+    SAI_ATTR_MAP(Wred, EcnGreenMaxThreshold),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,29 +47,6 @@ sai_wred_api_t* wrappedWredApi() {
   return &WredWrappers;
 }
 
-void setWredAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_WRED_ATTR_GREEN_ENABLE:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_WRED_ATTR_ECN_MARK_MODE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_WRED_ATTR_GREEN_MIN_THRESHOLD:
-      case SAI_WRED_ATTR_GREEN_MAX_THRESHOLD:
-      case SAI_WRED_ATTR_GREEN_DROP_PROBABILITY:
-      case SAI_WRED_ATTR_ECN_GREEN_MIN_THRESHOLD:
-      case SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Wred)
 
 } // namespace facebook::fboss
