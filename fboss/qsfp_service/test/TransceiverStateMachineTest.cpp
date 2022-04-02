@@ -90,6 +90,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           std::make_unique<CmisModule>(
               transceiverManager_.get(), std::move(xcvrImpl), 1));
     }
+    EXPECT_TRUE(xcvr->getLastDownTime() != 0);
 
     // Remove the override config we set before
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
@@ -102,6 +103,32 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void setState(TransceiverStateMachineState state) {
     xcvr_->detectPresence();
+    auto discoverTransceiver = [this]() {
+      // One refresh can finish discoverring xcvr after detectPresence
+      transceiverManager_->refreshStateMachines();
+    };
+    auto programIphy = [this]() {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideTcvrToPortAndProfile_);
+      // refreshStateMachines() will first refresh all transceivers to bring
+      // them to DISCOVERED state, and then program the iphy ports
+      transceiverManager_->refreshStateMachines();
+    };
+    auto programIphyAndXcvr = [this]() {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideTcvrToPortAndProfile_);
+      transceiverManager_->refreshStateMachines();
+      // Because MockWedgeManager doesn't have PhyManager, so this second
+      // refreshStateMachines() will actually trigger programming xcvr
+      transceiverManager_->refreshStateMachines();
+    };
+    auto setXcvtActiveState = [this, &programIphyAndXcvr](bool portUp) {
+      programIphyAndXcvr();
+      transceiverManager_->setOverrideAgentPortStatusForTesting(
+          portUp /* up */, true /* enabled */, false /* clearOnly */);
+      transceiverManager_->refreshStateMachines();
+    };
+
     switch (state) {
       case TransceiverStateMachineState::NOT_PRESENT:
         // default state is always NOT_PRESENT.
@@ -116,32 +143,28 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         xcvr_->updateQsfpData(true);
         break;
       case TransceiverStateMachineState::DISCOVERED:
-        transceiverManager_->refreshStateMachines();
+        discoverTransceiver();
         break;
       case TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED:
-        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-            overrideTcvrToPortAndProfile_);
-        transceiverManager_->refreshStateMachines();
+        programIphy();
         break;
       case TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED:
-        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-            overrideTcvrToPortAndProfile_);
-        transceiverManager_->refreshStateMachines();
+        programIphy();
         // Use updateStateBlocking() to skip PhyManager check
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
         break;
       case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
-        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-            overrideTcvrToPortAndProfile_);
-        transceiverManager_->refreshStateMachines();
-        // Because MockWedgeManager doesn't have PhyManager, so this second
-        // refreshStateMachines() will actually trigger programming xcvr
-        transceiverManager_->refreshStateMachines();
+        programIphyAndXcvr();
         break;
-      // TODO(joseph5wu) Will support the reset states later
-      default:
+      case TransceiverStateMachineState::ACTIVE:
+        setXcvtActiveState(true);
         break;
+      case TransceiverStateMachineState::INACTIVE:
+        setXcvtActiveState(false);
+        break;
+      case TransceiverStateMachineState::UPGRADING:
+        throw FbossError("Doesn't support UPGRADING state yet");
     }
     auto curState = transceiverManager_->getCurrentState(id_);
     EXPECT_EQ(curState, state)
@@ -158,9 +181,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+        TransceiverStateMachineState::ACTIVE,
+        TransceiverStateMachineState::INACTIVE,
         // TODO(joseph5wu) Will support the reset states later
-        // TransceiverStateMachineState::ACTIVE,
-        // TransceiverStateMachineState::INACTIVE,
         // TransceiverStateMachineState::UPGRADING,
     };
   }
@@ -588,5 +611,57 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       },
       true /* usesMockCmisModule */);
+}
+
+TEST_F(TransceiverStateMachineTest, portUp) {
+  auto allStates = getAllStates();
+  // Only TRANSCEIVER_PROGRAMMED and INACTIVE can accept PORT_UP event
+  verifyStateMachine(
+      {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::INACTIVE},
+      TransceiverStateMachineEvent::PORT_UP,
+      TransceiverStateMachineState::ACTIVE /* expected state */,
+      allStates,
+      []() {},
+      [this]() {
+        // Enter ACTIVE will also set `needMarkLastDownTime` to true
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      });
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(TransceiverStateMachineEvent::PORT_UP, allStates, []() {
+  } /* empty preUpdateFn */);
+}
+
+TEST_F(TransceiverStateMachineTest, portDown) {
+  auto allStates = getAllStates();
+  time_t beforeStateChangedTime{0};
+  // Only TRANSCEIVER_PROGRAMMED and ACTIVE can accept ALL_PORTS_DOWN event
+  verifyStateMachine(
+      {TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::ACTIVE},
+      TransceiverStateMachineEvent::ALL_PORTS_DOWN,
+      TransceiverStateMachineState::INACTIVE /* expected state */,
+      allStates,
+      [&beforeStateChangedTime]() {
+        beforeStateChangedTime = std::time(nullptr);
+        // Sleep 1s to avoid the state machine handle the event too fast
+        /* sleep override */
+        sleep(1);
+      },
+      [this, &beforeStateChangedTime]() {
+        // Enter INACTIVE will also mark last down time
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(needMarkLastDownTime));
+        // Check the lastDownTime should be updated
+        EXPECT_GT(
+            transceiverManager_->getLastDownTime(id_), beforeStateChangedTime);
+      });
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::ALL_PORTS_DOWN, allStates, []() {
+      } /* empty preUpdateFn */);
 }
 } // namespace facebook::fboss
