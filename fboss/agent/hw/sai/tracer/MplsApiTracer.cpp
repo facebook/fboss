@@ -8,8 +8,22 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _InsegEntryMap{
+    SAI_ATTR_MAP(InSeg, NextHopId),
+    SAI_ATTR_MAP(InSeg, PacketAction),
+    SAI_ATTR_MAP(InSeg, NumOfPop),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -62,25 +76,6 @@ sai_mpls_api_t* wrappedMplsApi() {
   return &mplsWrappers;
 }
 
-void setInsegEntryAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_INSEG_ENTRY_ATTR_NEXT_HOP_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_INSEG_ENTRY_ATTR_PACKET_ACTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_INSEG_ENTRY_ATTR_NUM_OF_POP:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(InsegEntry)
 
 } // namespace facebook::fboss
