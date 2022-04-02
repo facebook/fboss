@@ -579,6 +579,29 @@ class SaiTracer {
         case SAI_LAG_ATTR_LABEL: /* 9 */                                     \
           charDataAttr(attr_list, i, attrLines);                             \
           break;                                                             \
+        case SAI_MACSEC_SA_ATTR_AUTH_KEY:                                    \
+          u8ArrGenericAttr(                                                  \
+              static_cast<const uint8_t*>(attr_list[i].value.macsecauthkey), \
+              16,                                                            \
+              i,                                                             \
+              attrLines,                                                     \
+              "macsecauthkey");                                              \
+          break;                                                             \
+        case SAI_MACSEC_SA_ATTR_SAK:                                         \
+          u8ArrGenericAttr(                                                  \
+              static_cast<const uint8_t*>(attr_list[i].value.macsecsak),     \
+              32,                                                            \
+              i,                                                             \
+              attrLines,                                                     \
+              "macsecsak");                                                  \
+          break;                                                             \
+        case SAI_MACSEC_SA_ATTR_SALT:                                        \
+          u8ArrGenericAttr(                                                  \
+              static_cast<const uint8_t*>(attr_list[i].value.macsecsalt),    \
+              12,                                                            \
+              i,                                                             \
+              attrLines,                                                     \
+              "macsecsalt");                                                 \
         default:                                                             \
           XLOG(WARN) << "Unsupported object type " << #obj_type              \
                      << " attribute " << attr_list[i].id                     \

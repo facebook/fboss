@@ -1188,10 +1188,10 @@ vector<string> SaiTracer::setAttrList(
       setMacsecFlowAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_MACSEC_SA:
-      setMacsecSaAttributes(attr_list, attr_count, attrLines);
+      setMacsecSAAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_MACSEC_SC:
-      setMacsecScAttributes(attr_list, attr_count, attrLines);
+      setMacsecSCAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       setMirrorSessionAttributes(attr_list, attr_count, attrLines);

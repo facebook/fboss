@@ -8,8 +8,53 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/tracer/MacsecApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecMap{
+    SAI_ATTR_MAP(Macsec, Direction),
+    SAI_ATTR_MAP(Macsec, PhysicalBypass),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecPortMap{
+    SAI_ATTR_MAP(MacsecPort, PortID),
+    SAI_ATTR_MAP(MacsecPort, MacsecDirection),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSAMap {
+  SAI_ATTR_MAP(MacsecSA, AssocNum), SAI_ATTR_MAP(MacsecSA, AuthKey),
+      SAI_ATTR_MAP(MacsecSA, MacsecDirection),
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      SAI_ATTR_MAP(MacsecSA, SSCI),
+#endif
+      SAI_ATTR_MAP(MacsecSA, MinimumXpn), SAI_ATTR_MAP(MacsecSA, SAK),
+      SAI_ATTR_MAP(MacsecSA, Salt), SAI_ATTR_MAP(MacsecSA, SCID),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSCMap {
+  SAI_ATTR_MAP(MacsecSC, SCI), SAI_ATTR_MAP(MacsecSC, MacsecDirection),
+      SAI_ATTR_MAP(MacsecSC, ActiveEgressSAID), SAI_ATTR_MAP(MacsecSC, FlowID),
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
+      SAI_ATTR_MAP(MacsecSC, CipherSuite),
+#endif
+      SAI_ATTR_MAP(MacsecSC, SCIEnable),
+      SAI_ATTR_MAP(MacsecSC, ReplayProtectionEnable),
+      SAI_ATTR_MAP(MacsecSC, ReplayProtectionWindow),
+      SAI_ATTR_MAP(MacsecSC, SectagOffset),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecFlowMap{
+    SAI_ATTR_MAP(MacsecFlow, MacsecDirection),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -99,141 +144,10 @@ sai_macsec_api_t* wrappedMacsecApi() {
   return &macsecWrappers;
 }
 
-void setMacsecAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MACSEC_ATTR_DIRECTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_ATTR_PHYSICAL_BYPASS_ENABLE:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setMacsecPortAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MACSEC_PORT_ATTR_MACSEC_DIRECTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_PORT_ATTR_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setMacsecSaAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MACSEC_SA_ATTR_AN:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_SA_ATTR_MACSEC_DIRECTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-      case SAI_MACSEC_SA_ATTR_MACSEC_SSCI:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-#endif
-      case SAI_MACSEC_SA_ATTR_MINIMUM_XPN:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_SA_ATTR_SC_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_MACSEC_SA_ATTR_AUTH_KEY:
-        u8ArrGenericAttr(
-            static_cast<const uint8_t*>(attr_list[i].value.macsecauthkey),
-            16,
-            i,
-            attrLines,
-            "macsecauthkey");
-        break;
-      case SAI_MACSEC_SA_ATTR_SAK:
-        u8ArrGenericAttr(
-            static_cast<const uint8_t*>(attr_list[i].value.macsecsak),
-            32,
-            i,
-            attrLines,
-            "macsecsak");
-        break;
-      case SAI_MACSEC_SA_ATTR_SALT:
-        u8ArrGenericAttr(
-            static_cast<const uint8_t*>(attr_list[i].value.macsecsalt),
-            12,
-            i,
-            attrLines,
-            "macsecsalt");
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setMacsecScAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MACSEC_SC_ATTR_ACTIVE_EGRESS_SA_ID:
-      case SAI_MACSEC_SC_ATTR_FLOW_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-      case SAI_MACSEC_SC_ATTR_MACSEC_CIPHER_SUITE:
-#endif
-      case SAI_MACSEC_SC_ATTR_MACSEC_DIRECTION:
-      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_WINDOW:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_SC_ATTR_MACSEC_SCI:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      case SAI_MACSEC_SC_ATTR_MACSEC_EXPLICIT_SCI_ENABLE:
-      case SAI_MACSEC_SC_ATTR_MACSEC_REPLAY_PROTECTION_ENABLE:
-        attrLines.push_back(boolAttr(attr_list, i));
-        break;
-      case SAI_MACSEC_SC_ATTR_MACSEC_SECTAG_OFFSET:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setMacsecFlowAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_MACSEC_FLOW_ATTR_MACSEC_DIRECTION:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Macsec)
+SET_SAI_ATTRIBUTES(MacsecPort)
+SET_SAI_ATTRIBUTES(MacsecSA)
+SET_SAI_ATTRIBUTES(MacsecSC)
+SET_SAI_ATTRIBUTES(MacsecFlow)
 
 } // namespace facebook::fboss
