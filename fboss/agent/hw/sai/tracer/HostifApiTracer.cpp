@@ -8,8 +8,35 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapMap{
+    SAI_ATTR_MAP(HostifTrap, TrapType),
+    SAI_ATTR_MAP(HostifTrap, PacketAction),
+    SAI_ATTR_MAP(HostifTrap, TrapPriority),
+    SAI_ATTR_MAP(HostifTrap, TrapGroup),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _HostifTrapGroupMap{
+    SAI_ATTR_MAP(HostifTrapGroup, Queue),
+    SAI_ATTR_MAP(HostifTrapGroup, Policer),
+};
+
+std::map<int32_t, std::pair<std::string, std::size_t>> _HostifPacketMap{
+    SAI_ATTR_MAP(TxPacket, TxType),
+    SAI_ATTR_MAP(TxPacket, EgressPortOrLag),
+    SAI_ATTR_MAP(TxPacket, EgressQueueIndex),
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -66,65 +93,8 @@ sai_hostif_api_t* wrappedHostifApi() {
   return &hostifWrappers;
 }
 
-void setHostifTrapAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
-      case SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setHostifTrapGroupAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_HOSTIF_TRAP_GROUP_ATTR_POLICER:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void setHostifPacketAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(HostifTrap)
+SET_SAI_ATTRIBUTES(HostifTrapGroup)
+SET_SAI_ATTRIBUTES(HostifPacket)
 
 } // namespace facebook::fboss
