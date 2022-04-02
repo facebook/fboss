@@ -180,6 +180,11 @@ class HwAsic {
   virtual uint32_t getMaxWideEcmpSize() const = 0;
 
   /*
+   * The maximum number of lag member
+   */
+  virtual uint32_t getMaxLagMemberSize() const = 0;
+
+  /*
    * Port ID offset for system port. Default is 0.
    * This will be added to PortID and will be carried in the
    * sflow shim header

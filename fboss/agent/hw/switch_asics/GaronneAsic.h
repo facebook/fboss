@@ -61,6 +61,9 @@ class GaronneAsic : public TajoAsic {
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
   }
+  uint32_t getMaxLagMemberSize() const override {
+    return 512;
+  }
   int getSystemPortIDOffset() const override {
     return 1000;
   }

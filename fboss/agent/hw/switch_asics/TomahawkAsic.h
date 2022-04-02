@@ -55,6 +55,9 @@ class TomahawkAsic : public BroadcomAsic {
   uint32_t getMaxWideEcmpSize() const override {
     return 128;
   }
+  uint32_t getMaxLagMemberSize() const override {
+    return 256;
+  }
   uint32_t getPacketBufferUnitSize() const override {
     return 208;
   }
