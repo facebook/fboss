@@ -8,8 +8,26 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _SchedulerMap{
+    SAI_ATTR_MAP(Scheduler, SchedulingType),
+    SAI_ATTR_MAP(Scheduler, SchedulingWeight),
+    SAI_ATTR_MAP(Scheduler, MeterType),
+    SAI_ATTR_MAP(Scheduler, MinBandwidthRate),
+    SAI_ATTR_MAP(Scheduler, MinBandwidthBurstRate),
+    SAI_ATTR_MAP(Scheduler, MaxBandwidthRate),
+    SAI_ATTR_MAP(Scheduler, MaxBandwidthBurstRate),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,29 +47,6 @@ sai_scheduler_api_t* wrappedSchedulerApi() {
   return &schedulerWrappers;
 }
 
-void setSchedulerAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_SCHEDULER_ATTR_SCHEDULING_TYPE:
-      case SAI_SCHEDULER_ATTR_METER_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT:
-        attrLines.push_back(u8Attr(attr_list, i));
-        break;
-      case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE:
-      case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_BURST_RATE:
-      case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_RATE:
-      case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_BURST_RATE:
-        attrLines.push_back(u64Attr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(Scheduler)
 
 } // namespace facebook::fboss
