@@ -627,7 +627,7 @@ class QsfpModule : public Transceiver {
   QsfpModule& operator=(QsfpModule const&) = delete;
 
   void refreshLocked();
-  void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
+  virtual void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
 
   /*
    * Try to remediate such Transceiver if needed.

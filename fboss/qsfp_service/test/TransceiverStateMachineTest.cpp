@@ -18,6 +18,39 @@
 namespace facebook::fboss {
 
 /*
+ * Because this is a TransceiverStateMachine test, we only care the functions
+ * we need to call in the process of New Port Programming using the new state
+ * machine logic. We don't really care about whether the programming
+ * iphy/xphy/xcvr actually changes the hardware in a unit test.
+ * Therefore, we just need to mock the CmisModule and then check whether these
+ * functions have been called correctly.
+ */
+class MockCmisModule : public CmisModule {
+ public:
+  explicit MockCmisModule(
+      TransceiverManager* transceiverManager,
+      std::unique_ptr<TransceiverImpl> qsfpImpl,
+      unsigned int portsPerTransceiver)
+      : CmisModule(
+            transceiverManager,
+            std::move(qsfpImpl),
+            portsPerTransceiver) {
+    ON_CALL(*this, updateQsfpData(testing::_))
+        .WillByDefault(testing::Assign(&dirty_, false));
+  }
+
+  MOCK_METHOD0(configureModule, void());
+  MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
+
+  MOCK_CONST_METHOD1(
+      ensureRxOutputSquelchEnabled,
+      void(const std::vector<HostLaneSettings>&));
+  MOCK_METHOD0(resetDataPath, void());
+  MOCK_METHOD1(updateQsfpData, void(bool));
+  MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
+};
+
+/*
  * The recommended way to use TransceiverStateMachineTest to verify the event:
  * 1) Call getAllStates() to get all the states of state machine
  * 2) Call verifyStateMachine() with only the supported states to check the
@@ -29,7 +62,7 @@ namespace facebook::fboss {
  */
 class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
  public:
-  CmisModule* overrideCmisModule() {
+  CmisModule* overrideCmisModule(bool usesMockCmisModule = false) {
     // Set port status to DOWN so that we can remove the transceiver correctly
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         overrideTcvrToPortAndProfile_);
@@ -43,12 +76,20 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->overrideMgmtInterface(
         static_cast<int>(id_) + 1,
         uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
-    XLOG(INFO) << "Making CMIS QSFP for " << id_;
-    auto xcvr = static_cast<CmisModule*>(
-        transceiverManager_->overrideTransceiverForTesting(
-            id_,
-            std::make_unique<CmisModule>(
-                transceiverManager_.get(), std::move(xcvrImpl), 1)));
+    Transceiver* xcvr;
+    if (usesMockCmisModule) {
+      XLOG(INFO) << "Making Mock CMIS QSFP for " << id_;
+      xcvr = transceiverManager_->overrideTransceiverForTesting(
+          id_,
+          std::make_unique<MockCmisModule>(
+              transceiverManager_.get(), std::move(xcvrImpl), 1));
+    } else {
+      XLOG(INFO) << "Making CMIS QSFP for " << id_;
+      xcvr = transceiverManager_->overrideTransceiverForTesting(
+          id_,
+          std::make_unique<CmisModule>(
+              transceiverManager_.get(), std::move(xcvrImpl), 1));
+    }
 
     // Remove the override config we set before
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
@@ -56,13 +97,10 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->setOverrideAgentPortStatusForTesting(
         false /* up */, true /* enabled */, true /* clearOnly */);
 
-    return xcvr;
+    return static_cast<CmisModule*>(xcvr);
   }
 
   void setState(TransceiverStateMachineState state) {
-    // Always create a new transceiver so that we can make sure the state can
-    // go back to the beginning state
-    xcvr_ = overrideCmisModule();
     xcvr_->detectPresence();
     switch (state) {
       case TransceiverStateMachineState::NOT_PRESENT:
@@ -93,6 +131,14 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
         break;
+      case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
+        transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+            overrideTcvrToPortAndProfile_);
+        transceiverManager_->refreshStateMachines();
+        // Because MockWedgeManager doesn't have PhyManager, so this second
+        // refreshStateMachines() will actually trigger programming xcvr
+        transceiverManager_->refreshStateMachines();
+        break;
       // TODO(joseph5wu) Will support the reset states later
       default:
         break;
@@ -111,8 +157,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         TransceiverStateMachineState::DISCOVERED,
         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
         // TODO(joseph5wu) Will support the reset states later
-        // TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
         // TransceiverStateMachineState::ACTIVE,
         // TransceiverStateMachineState::INACTIVE,
         // TransceiverStateMachineState::UPGRADING,
@@ -126,12 +172,16 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       TransceiverStateMachineState expectedState,
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
-      VERIFY_FN verify) {
+      VERIFY_FN verify,
+      bool usesMockCmisModule = false) {
     for (auto preState : supportedStates) {
       if (states.find(preState) == states.end()) {
         // Current state is no longer in the state set, skip checking it
         continue;
       }
+      // Always create a new transceiver so that we can make sure the state can
+      // go back to the beginning state
+      xcvr_ = overrideCmisModule(usesMockCmisModule);
       setState(preState);
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -152,6 +202,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // Remove from the state set
       states.erase(preState);
       ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
+      ::testing::Mock::VerifyAndClearExpectations(xcvr_);
     }
   }
 
@@ -159,8 +210,12 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   void verifyStateUnchanged(
       TransceiverStateMachineEvent event,
       std::set<TransceiverStateMachineState>& states,
-      PRE_UPDATE_FN preUpdate) {
+      PRE_UPDATE_FN preUpdate,
+      bool usesMockCmisModule = false) {
     for (auto state : states) {
+      // Always create a new transceiver so that we can make sure the state can
+      // go back to the beginning state
+      xcvr_ = overrideCmisModule(usesMockCmisModule);
       setState(state);
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -174,16 +229,19 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           << ", newState=" << apache::thrift::util::enumNameSafe(newState);
 
       ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
+      ::testing::Mock::VerifyAndClearExpectations(xcvr_);
     }
   }
 
   CmisModule* xcvr_;
   const TransceiverID id_ = TransceiverID(0);
+  const cfg::PortProfileID profile_ =
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
   const TransceiverManager::OverrideTcvrToPortAndProfile
       overrideTcvrToPortAndProfile_ = {
           {id_,
            {
-               {PortID(1), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL},
+               {PortID(1), profile_},
            }}};
   const TransceiverManager::OverrideTcvrToPortAndProfile
       emptyOverrideTcvrToPortAndProfile_ = {};
@@ -409,5 +467,126 @@ TEST_F(TransceiverStateMachineTest, programXphyFailed) {
         EXPECT_TRUE(stateMachine.get_attribute(isXphyProgrammed));
         EXPECT_FALSE(newStateMachine.get_attribute(isTransceiverProgrammed));
       });
+}
+
+TEST_F(TransceiverStateMachineTest, programTransceiver) {
+  auto allStates = getAllStates();
+  // Both IPHY_PORTS_PROGRAMMED and XPHY_PORTS_PROGRAMMED
+  // can accept PROGRAM_TRANSCEIVER event
+  auto setExpectation = [this](bool isProgrammed) {
+    int callTimes = isProgrammed ? 1 : 0;
+    MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+    {
+      ::testing::InSequence s;
+      EXPECT_CALL(
+          *mockXcvr, customizeTransceiverLocked(cfg::PortSpeed::HUNDREDG))
+          .Times(callTimes);
+      EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(callTimes);
+      EXPECT_CALL(*mockXcvr, configureModule()).Times(callTimes);
+
+      const auto& info = transceiverManager_->getTransceiverInfo(id_);
+      if (auto settings = info.settings_ref()) {
+        if (auto hostLaneSettings = settings->hostLaneSettings_ref()) {
+          EXPECT_CALL(
+              *mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
+              .Times(callTimes);
+        }
+      }
+
+      EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(callTimes);
+
+      ModuleStatus moduleStatus;
+      EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus))
+          .Times(callTimes);
+    }
+
+    // Normal transceiver programming shouldn't trigger resetDataPath()
+    EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
+  };
+
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER,
+      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED /* expected state */,
+      allStates,
+      [&setExpectation]() { setExpectation(true); },
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+      },
+      true /* usesMockCmisModule */);
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER,
+      allStates,
+      [&setExpectation]() { setExpectation(false); },
+      true /* usesMockCmisModule */);
+}
+
+TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
+  auto allStates = getAllStates();
+  // If any function inside QsfpModule::programTransceiver() failed,
+  // state shouldn't change
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER,
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+
+        // Mock throw exception on one of the functions in
+        // QsfpModule::programTransceiver()
+        EXPECT_CALL(
+            *mockXcvr, customizeTransceiverLocked(cfg::PortSpeed::HUNDREDG))
+            .Times(2)
+            .WillOnce(ThrowFbossError());
+        EXPECT_CALL(*mockXcvr, configureModule()).Times(1);
+
+        // The rest functions are after customizeTransceiverLocked() and they
+        // should only be called once at the second time
+        const auto& info = transceiverManager_->getTransceiverInfo(id_);
+        if (auto settings = info.settings_ref()) {
+          if (auto hostLaneSettings = settings->hostLaneSettings_ref()) {
+            EXPECT_CALL(
+                *mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
+                .Times(1);
+          }
+        }
+        // 2 update qsfp data: one immediately after the successful
+        // customizeTransceiverLocked(), the second one is before
+        // updateCachedTransceiverInfoLocked() at the end
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(2);
+        ModuleStatus moduleStatus;
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus))
+            .Times(1);
+
+        // Normal transceiver programming shouldn't trigger resetDataPath()
+        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
+      },
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        // Now isTransceiverProgrammed should still be false
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+        // Then try again, it should succeed
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(newStateMachine.get_attribute(isIphyProgrammed));
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+      },
+      true /* usesMockCmisModule */);
 }
 } // namespace facebook::fboss

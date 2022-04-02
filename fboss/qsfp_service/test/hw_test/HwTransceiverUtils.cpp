@@ -49,6 +49,20 @@ void HwTransceiverUtils::verifyOpticsSettings(
     const TransceiverInfo& transceiver) {
   auto settings = apache::thrift::can_throw(*transceiver.settings());
 
+  for (auto& mediaLane :
+       apache::thrift::can_throw(*settings.mediaLaneSettings())) {
+    EXPECT_FALSE(*mediaLane.txDisable())
+        << "Transceiver:" << *transceiver.port()
+        << ", Lane=" << *mediaLane.lane()
+        << " txDisable doesn't match expected";
+    if (*transceiver.transceiver() == TransceiverType::QSFP) {
+      EXPECT_FALSE(*mediaLane.txSquelch())
+          << "Transceiver:" << *transceiver.port()
+          << ", Lane=" << *mediaLane.lane()
+          << " txSquelch doesn't match expected";
+    }
+  }
+
   if (*transceiver.transceiver() == TransceiverType::QSFP) {
     // Disable low power mode
     EXPECT_TRUE(
@@ -57,20 +71,13 @@ void HwTransceiverUtils::verifyOpticsSettings(
     EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
     EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
 
-    for (auto& mediaLane :
-         apache::thrift::can_throw(*settings.mediaLaneSettings())) {
-      EXPECT_FALSE(mediaLane.txSquelch().value());
-    }
-
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
-      EXPECT_FALSE(hostLane.rxSquelch().value());
+      EXPECT_FALSE(*hostLane.rxSquelch())
+          << "Transceiver:" << *transceiver.port()
+          << ", Lane=" << *hostLane.lane()
+          << " rxSquelch doesn't match expected";
     }
-  }
-
-  for (auto& mediaLane :
-       apache::thrift::can_throw(*settings.mediaLaneSettings())) {
-    EXPECT_FALSE(mediaLane.txDisable().value());
   }
 }
 
@@ -208,19 +215,15 @@ void HwTransceiverUtils::verifyDataPathEnabled(
   if (*mgmtInterface == TransceiverManagementInterface::CMIS) {
     // All lanes should have `false` Deinit
     if (auto hostLaneSignals = transceiver.hostLaneSignals()) {
-      auto lane = 0;
       for (const auto& laneSignals : *hostLaneSignals) {
-        if (auto dataPathDeInit = laneSignals.dataPathDeInit()) {
-          EXPECT_FALSE(*dataPathDeInit);
-        } else {
-          throw FbossError(
-              "Transceiver:",
-              *transceiver.port(),
-              " Lane:",
-              lane,
-              " is missing dataPathDeInit signal");
-        }
-        ++lane;
+        EXPECT_TRUE(laneSignals.dataPathDeInit().has_value())
+            << "Transceiver:" << *transceiver.port()
+            << ", Lane=" << *laneSignals.lane()
+            << " is missing dataPathDeInit signal";
+        EXPECT_FALSE(*laneSignals.dataPathDeInit())
+            << "Transceiver:" << *transceiver.port()
+            << ", Lane=" << *laneSignals.lane()
+            << " dataPathDeInit doesn't match expected";
       }
     } else {
       throw FbossError(
