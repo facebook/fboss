@@ -8,8 +8,21 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/tracer/QosMapApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _QosMapMap{
+    SAI_ATTR_MAP(QosMap, Type),
+    SAI_ATTR_MAP(QosMap, MapToValueList),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -29,24 +42,6 @@ sai_qos_map_api_t* wrappedQosMapApi() {
   return &qosMapWrappers;
 }
 
-void setQosMapAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  uint32_t listCount = 0;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_QOS_MAP_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_QOS_MAP_ATTR_MAP_TO_VALUE_LIST:
-        qosMapListAttr(attr_list, i, listCount++, attrLines);
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(QosMap)
 
 } // namespace facebook::fboss
