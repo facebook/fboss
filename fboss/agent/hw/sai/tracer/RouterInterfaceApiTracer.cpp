@@ -8,8 +8,24 @@
  *
  */
 
+#include <typeindex>
+#include <utility>
+
+#include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+using folly::to;
+
+namespace {
+std::map<int32_t, std::pair<std::string, std::size_t>> _RouterInterfaceMap{
+    SAI_ATTR_MAP(VlanRouterInterface, SrcMac),
+    SAI_ATTR_MAP(VlanRouterInterface, Type),
+    SAI_ATTR_MAP(VlanRouterInterface, VirtualRouterId),
+    SAI_ATTR_MAP(VlanRouterInterface, VlanId),
+    SAI_ATTR_MAP(VlanRouterInterface, Mtu),
+};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -81,29 +97,6 @@ sai_router_interface_api_t* wrappedRouterInterfaceApi() {
   return &routerInterfaceWrappers;
 }
 
-void setRouterInterfaceAttributes(
-    const sai_attribute_t* attr_list,
-    uint32_t attr_count,
-    std::vector<std::string>& attrLines) {
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
-        macAddressAttr(attr_list, i, attrLines);
-        break;
-      case SAI_ROUTER_INTERFACE_ATTR_TYPE:
-        attrLines.push_back(s32Attr(attr_list, i));
-        break;
-      case SAI_ROUTER_INTERFACE_ATTR_MTU:
-        attrLines.push_back(u32Attr(attr_list, i));
-        break;
-      case SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID:
-      case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
-        attrLines.push_back(oidAttr(attr_list, i));
-        break;
-      default:
-        break;
-    }
-  }
-}
+SET_SAI_ATTRIBUTES(RouterInterface)
 
 } // namespace facebook::fboss
