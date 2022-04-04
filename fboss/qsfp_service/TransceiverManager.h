@@ -528,5 +528,7 @@ class TransceiverManager {
    * qsfp_service warm boot related attributes
    */
   bool canWarmBoot_{false};
+
+  friend class TransceiverStateMachineTest;
 };
 } // namespace facebook::fboss

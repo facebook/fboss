@@ -379,8 +379,8 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
     XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
     IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    DISCOVERED             + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    PRESENT                + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    DISCOVERED             + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
+    PRESENT                + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     // Only remediate transciever if all ports are down
     INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED
 //  +------------------------------------------------------------------------------------------------------------+

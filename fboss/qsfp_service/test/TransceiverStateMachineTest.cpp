@@ -64,12 +64,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
  public:
   CmisModule* overrideCmisModule(bool usesMockCmisModule = false) {
     // Set port status to DOWN so that we can remove the transceiver correctly
-    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-        overrideTcvrToPortAndProfile_);
-    transceiverManager_->refreshStateMachines();
-    transceiverManager_->setOverrideAgentPortStatusForTesting(
-        false /* up */, true /* enabled */, false /* clearOnly */);
-    transceiverManager_->refreshStateMachines();
+    updateTransceiverActiveState(false /* up */, true /* enabled */);
 
     auto xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
     // This override function use ids starting from 1
@@ -95,8 +90,6 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     // Remove the override config we set before
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         emptyOverrideTcvrToPortAndProfile_);
-    transceiverManager_->setOverrideAgentPortStatusForTesting(
-        false /* up */, true /* enabled */, true /* clearOnly */);
 
     return static_cast<CmisModule*>(xcvr);
   }
@@ -202,14 +195,24 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         // Current state is no longer in the state set, skip checking it
         continue;
       }
+      XLOG(INFO) << "Verifying Transceiver=0 state CHANGED by using Event="
+                 << apache::thrift::util::enumNameSafe(event)
+                 << " from preState="
+                 << apache::thrift::util::enumNameSafe(preState)
+                 << " to newState="
+                 << apache::thrift::util::enumNameSafe(expectedState);
       // Always create a new transceiver so that we can make sure the state can
       // go back to the beginning state
       xcvr_ = overrideCmisModule(usesMockCmisModule);
       setState(preState);
+
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
+
       // Trigger state update with `event`
       transceiverManager_->updateStateBlocking(id_, event);
+
+      // Check current state matches expected state
       auto curState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(curState, expectedState)
           << "Transceiver=0 state doesn't match after Event="
@@ -229,21 +232,30 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     }
   }
 
-  template <typename PRE_UPDATE_FN>
+  template <typename PRE_UPDATE_FN, typename VERIFY_FN>
   void verifyStateUnchanged(
       TransceiverStateMachineEvent event,
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
+      VERIFY_FN verify,
       bool usesMockCmisModule = false) {
     for (auto state : states) {
+      XLOG(INFO) << "Verifying Transceiver=0 State="
+                 << apache::thrift::util::enumNameSafe(state)
+                 << " UNCHANGED by using Event="
+                 << apache::thrift::util::enumNameSafe(event);
       // Always create a new transceiver so that we can make sure the state can
       // go back to the beginning state
       xcvr_ = overrideCmisModule(usesMockCmisModule);
       setState(state);
+
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
+
       // Trigger state update with `event`
       transceiverManager_->updateStateBlocking(id_, event);
+
+      // Check new state doesn't change
       auto newState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(newState, state)
           << "Transceiver=0 state doesn't match after Event="
@@ -251,20 +263,48 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           << ", preState=" << apache::thrift::util::enumNameSafe(state)
           << ", newState=" << apache::thrift::util::enumNameSafe(newState);
 
+      // Verify the result after update finishes
+      verify();
+
       ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
       ::testing::Mock::VerifyAndClearExpectations(xcvr_);
     }
   }
 
+  void verifyResetProgrammingAttributes() {
+    // Check state machine attributes should be reset to default values
+    const auto& stateMachine =
+        transceiverManager_->getStateMachineForTesting(id_);
+    EXPECT_EQ(
+        stateMachine.get_attribute(transceiverMgrPtr),
+        transceiverManager_.get());
+    EXPECT_EQ(stateMachine.get_attribute(transceiverID), id_);
+    EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+    EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+    EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+    EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+    EXPECT_TRUE(
+        transceiverManager_->getProgrammedIphyPortToPortInfo(id_).empty());
+  }
+
+  void updateTransceiverActiveState(bool up, bool enabled) {
+    PortStatus status;
+    status.enabled() = enabled;
+    status.up() = up;
+    transceiverManager_->updateTransceiverActiveState(
+        {id_}, {{portId_, status}});
+  }
+
   CmisModule* xcvr_;
   const TransceiverID id_ = TransceiverID(0);
+  const PortID portId_ = PortID(1);
   const cfg::PortProfileID profile_ =
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
   const TransceiverManager::OverrideTcvrToPortAndProfile
       overrideTcvrToPortAndProfile_ = {
           {id_,
            {
-               {PortID(1), profile_},
+               {portId_, profile_},
            }}};
   const TransceiverManager::OverrideTcvrToPortAndProfile
       emptyOverrideTcvrToPortAndProfile_ = {};
@@ -275,17 +315,7 @@ TEST_F(TransceiverStateMachineTest, defaultState) {
   EXPECT_EQ(
       transceiverManager_->getCurrentState(id_),
       TransceiverStateMachineState::NOT_PRESENT);
-  // Check state machine attributes should be reset to default values
-  const auto& stateMachine =
-      transceiverManager_->getStateMachineForTesting(id_);
-  EXPECT_EQ(
-      stateMachine.get_attribute(transceiverMgrPtr), transceiverManager_.get());
-  EXPECT_EQ(stateMachine.get_attribute(transceiverID), id_);
-  EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
-  EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
-  EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-  EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
-  EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+  verifyResetProgrammingAttributes();
 }
 
 TEST_F(TransceiverStateMachineTest, detectTransceiver) {
@@ -296,12 +326,14 @@ TEST_F(TransceiverStateMachineTest, detectTransceiver) {
       TransceiverStateMachineEvent::DETECT_TRANSCEIVER,
       TransceiverStateMachineState::PRESENT /* expected state */,
       allStates,
-      []() {} /* empty preUpdateFn */,
-      []() {} /* empty verifyFn */);
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::DETECT_TRANSCEIVER, allStates, []() {
-      } /* empty preUpdateFn */);
+      TransceiverStateMachineEvent::DETECT_TRANSCEIVER,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
 }
 
 TEST_F(TransceiverStateMachineTest, readEeprom) {
@@ -336,8 +368,10 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
       });
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::READ_EEPROM, allStates, []() {
-      } /* empty preUpdateFn */);
+      TransceiverStateMachineEvent::READ_EEPROM,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
 }
 
 TEST_F(TransceiverStateMachineTest, programIphy) {
@@ -378,19 +412,21 @@ TEST_F(TransceiverStateMachineTest, programIphy) {
       });
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::PROGRAM_IPHY, allStates, []() {
-      } /* empty preUpdateFn */);
+      TransceiverStateMachineEvent::PROGRAM_IPHY,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
 }
 
 TEST_F(TransceiverStateMachineTest, programIphyFailed) {
-  auto allStates = getAllStates();
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::NOT_PRESENT,
+      TransceiverStateMachineState::DISCOVERED};
   // If we never set overrideTcvrToPortAndProfile_, programming iphy won't work
-  verifyStateMachine(
-      {TransceiverStateMachineState::DISCOVERED},
+  verifyStateUnchanged(
       TransceiverStateMachineEvent::PROGRAM_IPHY,
-      TransceiverStateMachineState::DISCOVERED /* expected state */,
-      allStates,
-      []() {} /* empty preUpdateFn */,
+      stateSet,
+      []() {} /* preUpdate */,
       [this]() {
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
@@ -412,6 +448,10 @@ TEST_F(TransceiverStateMachineTest, programIphyFailed) {
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_IPHY);
+
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED);
         const auto& newStateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         // Now isIphyProgrammed should be true
@@ -449,24 +489,26 @@ TEST_F(TransceiverStateMachineTest, programXphy) {
       });
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::PROGRAM_XPHY, allStates, [this]() {
+      TransceiverStateMachineEvent::PROGRAM_XPHY,
+      allStates,
+      [this]() {
         // Make sure `programExternalPhyPorts` has never been called
         EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
             .Times(0);
-      } /* empty preUpdateFn */);
+      } /* preUpdate */,
+      []() {} /* verify */);
 }
 
 ACTION(ThrowFbossError) {
   throw FbossError("Mock FbossError");
 }
 TEST_F(TransceiverStateMachineTest, programXphyFailed) {
-  auto allStates = getAllStates();
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED};
   // If programExternalPhyPorts() failed, state shouldn't change
-  verifyStateMachine(
-      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+  verifyStateUnchanged(
       TransceiverStateMachineEvent::PROGRAM_XPHY,
-      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED /* expected state */,
-      allStates,
+      stateSet,
       [this]() {
         EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
             .Times(2)
@@ -483,6 +525,10 @@ TEST_F(TransceiverStateMachineTest, programXphyFailed) {
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
+
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
         const auto& newStateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(newStateMachine.get_attribute(isIphyProgrammed));
@@ -549,18 +595,19 @@ TEST_F(TransceiverStateMachineTest, programTransceiver) {
       TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER,
       allStates,
       [&setExpectation]() { setExpectation(false); },
+      []() {} /* verify */,
       true /* usesMockCmisModule */);
 }
 
 TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
-  auto allStates = getAllStates();
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED};
   // If any function inside QsfpModule::programTransceiver() failed,
   // state shouldn't change
-  verifyStateMachine(
-      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+  verifyStateUnchanged(
       TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER,
-      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED /* expected state */,
-      allStates,
+      stateSet,
       [this]() {
         MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
 
@@ -603,6 +650,10 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
         const auto& newStateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(newStateMachine.get_attribute(isIphyProgrammed));
@@ -630,8 +681,11 @@ TEST_F(TransceiverStateMachineTest, portUp) {
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
       });
   // Other states should not change even though we try to process the event
-  verifyStateUnchanged(TransceiverStateMachineEvent::PORT_UP, allStates, []() {
-  } /* empty preUpdateFn */);
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::PORT_UP,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
 }
 
 TEST_F(TransceiverStateMachineTest, portDown) {
@@ -661,7 +715,89 @@ TEST_F(TransceiverStateMachineTest, portDown) {
       });
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::ALL_PORTS_DOWN, allStates, []() {
-      } /* empty preUpdateFn */);
+      TransceiverStateMachineEvent::ALL_PORTS_DOWN,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
+}
+
+TEST_F(TransceiverStateMachineTest, removeTransceiver) {
+  auto allStates = getAllStates();
+  // All states besides NOT_PRESENT can accept REMOVE_TRANSCEIVER event
+  // Only PRESENT and DISCOVERED don't need to check all ports down, since
+  // nothing is actually programmed yet.
+  // And INACTIVE also means ports are down so it should pass
+  verifyStateMachine(
+      {TransceiverStateMachineState::PRESENT,
+       TransceiverStateMachineState::DISCOVERED,
+       TransceiverStateMachineState::INACTIVE},
+      TransceiverStateMachineEvent::REMOVE_TRANSCEIVER,
+      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+      allStates,
+      []() {} /* preUpdate */,
+      [this]() { verifyResetProgrammingAttributes(); });
+
+  // Other after programming states need to make sure all ports down before
+  // removing such transceiver in case some transient i2c issue causes we can't
+  // detect a transceiver and accidentally remove it
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::ACTIVE},
+      TransceiverStateMachineEvent::REMOVE_TRANSCEIVER,
+      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+      allStates,
+      [this]() {
+        // Set port status to DOWN so that we can remove the transceiver
+        // correctly
+        updateTransceiverActiveState(false /* up */, true /* enabled */);
+      },
+      [this]() { verifyResetProgrammingAttributes(); });
+
+  // Only NOT_PRESENT left
+  EXPECT_EQ(allStates.size(), 1);
+  EXPECT_TRUE(
+      allStates.find(TransceiverStateMachineState::NOT_PRESENT) !=
+      allStates.end());
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::REMOVE_TRANSCEIVER,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */);
+}
+
+TEST_F(TransceiverStateMachineTest, removeTransceiverFailed) {
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+      TransceiverStateMachineState::ACTIVE};
+  // If never set port state to down, we can't change the state to NOT_PRESENT
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::REMOVE_TRANSCEIVER,
+      stateSet,
+      []() {} /* preUpdate */,
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isIphyProgrammed should still be true
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        const auto& programmedIphyPorts =
+            transceiverManager_->getProgrammedIphyPortToPortInfo(id_);
+        EXPECT_EQ(programmedIphyPorts.size(), 1);
+
+        // Set port status to DOWN so that we can remove the transceiver
+        // correctly
+        updateTransceiverActiveState(false /* up */, true /* enabled */);
+        // Then try again, it should succeed
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
+
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::NOT_PRESENT);
+        verifyResetProgrammingAttributes();
+      });
 }
 } // namespace facebook::fboss
