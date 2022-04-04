@@ -799,6 +799,9 @@ void TransceiverManager::updateTransceiverActiveState(
     XLOG(INFO) << "Syncing ports of transceiver " << tcvrID;
     bool portStatusChanged = false;
     bool anyPortUp = false;
+    bool isTcvrJustProgrammed =
+        (getCurrentState(tcvrID) ==
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
     { // lock block for portToPortInfo
       auto portToPortInfoWithLock = tcvrToPortInfoIt->second->wlock();
       for (auto& [portID, tcvrPortInfo] : *portToPortInfoWithLock) {
@@ -833,7 +836,9 @@ void TransceiverManager::updateTransceiverActiveState(
       // Make sure the port event will be added to the update queue under the
       // lock of portToPortInfo, so that it will make sure the cached status
       // and the state machine will be in sync
-      if (portStatusChanged) {
+      // Make sure we update active state for a transceiver which just
+      // finished programming
+      if (portStatusChanged || isTcvrJustProgrammed) {
         auto event = anyPortUp ? TransceiverStateMachineEvent::PORT_UP
                                : TransceiverStateMachineEvent::ALL_PORTS_DOWN;
         ++numPortStatusChanged;

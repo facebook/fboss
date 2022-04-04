@@ -11,11 +11,19 @@
 
 namespace facebook::fboss {
 
+class MockTransceiverPlatformApi : public TransceiverPlatformApi {
+ public:
+  MockTransceiverPlatformApi() = default;
+
+  MOCK_METHOD1(triggerQsfpHardReset, void(unsigned int));
+  MOCK_METHOD0(clearAllTransceiverReset, void());
+};
+
 class MockWedgeManager : public WedgeManager {
  public:
   MockWedgeManager(int numModules = 16, int numPortsPerModule = 4)
       : WedgeManager(
-            nullptr,
+            std::make_unique<MockTransceiverPlatformApi>(),
             makeFakePlatformMappnig(numModules, numPortsPerModule),
             PlatformMode::WEDGE) {
     numModules_ = numModules;

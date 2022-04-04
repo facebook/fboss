@@ -699,6 +699,8 @@ class QsfpModule : public Transceiver {
   virtual phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side /* side */) {
     return phy::PrbsStats{};
   }
+
+  friend class TransceiverStateMachineTest;
 };
 } // namespace fboss
 } // namespace facebook
