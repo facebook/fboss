@@ -203,4 +203,22 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
     2: phy.PrbsComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Change the PRBS setting on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void setInterfacePrbs(
+    1: string portName,
+    2: phy.PrbsComponent component,
+    3: phy.PortPrbsState state,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get the PRBS setting on a port.
+   */
+  phy.PortPrbsState getInterfacePrbsState(
+    1: string portName,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }

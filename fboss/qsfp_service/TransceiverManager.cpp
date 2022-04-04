@@ -1347,10 +1347,28 @@ void TransceiverManager::setPortPrbs(
     PortID portId,
     phy::PrbsComponent component,
     const phy::PortPrbsState& state) {
-  if (!phyManager_) {
-    throw FbossError("Current platform doesn't support xphy");
+  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+    if (auto tcvrID = getTransceiverID(portId)) {
+      phy::Side side = prbsComponentToPhySide(component);
+      auto lockedTransceivers = transceivers_.rlock();
+      if (auto it = lockedTransceivers->find(*tcvrID);
+          it != lockedTransceivers->end()) {
+        if (!it->second->setPortPrbs(side, state)) {
+          throw FbossError("Failed to set PRBS on transceiver ", *tcvrID);
+        }
+      } else {
+        throw FbossError("Can't find transceiver ", *tcvrID);
+      }
+    } else {
+      throw FbossError("Can't find transceiverID for portID ", portId);
+    }
+  } else {
+    if (!phyManager_) {
+      throw FbossError("Current platform doesn't support xphy");
+    }
+    phyManager_->setPortPrbs(portId, prbsComponentToPhySide(component), state);
   }
-  phyManager_->setPortPrbs(portId, prbsComponentToPhySide(component), state);
 }
 
 phy::PrbsStats TransceiverManager::getPortPrbsStats(
@@ -1405,6 +1423,47 @@ void TransceiverManager::getSupportedPrbsPolynomials(
         "PRBS on ",
         apache::thrift::util::enumNameSafe(component),
         " not supported by qsfp_service");
+  }
+}
+
+void TransceiverManager::setInterfacePrbs(
+    std::string portName,
+    phy::PrbsComponent component,
+    const phy::PortPrbsState& state) {
+  if (auto portID = getPortIDByPortName(portName)) {
+    setPortPrbs(*portID, component, state);
+  } else {
+    throw FbossError("Can't find a portID for portName ", portName);
+  }
+}
+
+void TransceiverManager::getInterfacePrbsState(
+    phy::PortPrbsState& prbsState,
+    std::string portName,
+    phy::PrbsComponent component) {
+  if (auto portID = getPortIDByPortName(portName)) {
+    if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+        component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+      if (auto tcvrID = getTransceiverID(*portID)) {
+        phy::Side side = prbsComponentToPhySide(component);
+        auto lockedTransceivers = transceivers_.rlock();
+        if (auto it = lockedTransceivers->find(*tcvrID);
+            it != lockedTransceivers->end()) {
+          prbsState = it->second->getPortPrbsState(side);
+          return;
+        } else {
+          throw FbossError("Can't find transceiver ", *tcvrID);
+        }
+      } else {
+        throw FbossError("Can't find transceiverID for portID ", *portID);
+      }
+    } else {
+      throw FbossError(
+          "getInterfacePrbsState not supported on component ",
+          apache::thrift::util::enumNameSafe(component));
+    }
+  } else {
+    throw FbossError("Can't find a portID for portName ", portName);
   }
 }
 

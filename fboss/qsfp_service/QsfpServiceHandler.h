@@ -95,6 +95,7 @@ class QsfpServiceHandler
   void getXphyInfo(phy::PhyInfo& response, int32_t portID) override;
 
   /*
+   * Handle: PortID
    * Change the PRBS setting on a port. Useful when debugging a link
    * down or flapping issue.
    */
@@ -102,6 +103,24 @@ class QsfpServiceHandler
       int32_t portId,
       phy::PrbsComponent component,
       std::unique_ptr<phy::PortPrbsState> state) override;
+
+  /*
+   * Handle: Interface name
+   * Change the PRBS setting on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void setInterfacePrbs(
+      std::unique_ptr<std::string> portName,
+      phy::PrbsComponent component,
+      std::unique_ptr<phy::PortPrbsState> state) override;
+
+  /*
+   * Get the PRBS state on a port
+   */
+  void getInterfacePrbsState(
+      phy::PortPrbsState& prbsState,
+      std::unique_ptr<std::string> portName,
+      phy::PrbsComponent component) override;
 
   /*
    * Get the PRBS stats on a port. Useful when debugging a link

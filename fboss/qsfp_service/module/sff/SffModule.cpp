@@ -1503,8 +1503,8 @@ bool SffModule::setPortPrbsLocked(
   {
     auto lockedDiagsCapability = diagsCapability_.rlock();
     if (auto diagsCapability = *lockedDiagsCapability) {
-      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
-          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
+      if ((side == Side::SYSTEM && *(diagsCapability->prbsSystem_ref())) ||
+          (side == Side::LINE && *(diagsCapability->prbsLine_ref()))) {
         // Check if there is an override function available for setting prbs
         // state
         if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
