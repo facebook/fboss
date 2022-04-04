@@ -110,6 +110,8 @@ class BcmPlatform : public Platform {
 
   virtual bool isBcmShellSupported() const;
 
+  virtual bool isDisableHotSwapSupported() const;
+
   virtual bool useQueueGportForCos() const = 0;
 
   virtual int getPortItm(BcmPort* bcmPort) const;

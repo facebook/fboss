@@ -29,7 +29,6 @@ class HwAsic {
     MPLS,
     MPLS_ECMP,
     SAI_MPLS_QOS,
-    HOT_SWAP,
     HASH_FIELDS_CUSTOMIZATION,
     QUEUE,
     ECN,

@@ -53,7 +53,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return true;
     case HwAsic::Feature::HOSTTABLE:
-    case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SCHEDULER_PPS:

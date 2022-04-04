@@ -34,6 +34,10 @@ bool BcmPlatform::isBcmShellSupported() const {
   return true;
 }
 
+bool BcmPlatform::isDisableHotSwapSupported() const {
+  return true;
+}
+
 void BcmPlatform::dumpHwConfig() const {
   auto hwConfigFile = getHwConfigDumpFile();
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {

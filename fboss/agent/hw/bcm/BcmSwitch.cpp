@@ -3358,7 +3358,7 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
 }
 
 void BcmSwitch::disableHotSwap() const {
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOT_SWAP)) {
+  if (getPlatform()->isDisableHotSwapSupported()) {
     switch (getPlatform()->getAsic()->getAsicType()) {
       case HwAsic::AsicType::ASIC_TYPE_FAKE:
       case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:

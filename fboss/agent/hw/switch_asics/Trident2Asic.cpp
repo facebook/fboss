@@ -9,7 +9,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
-    case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::SCHEDULER_PPS:
