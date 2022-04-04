@@ -9,6 +9,7 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -1373,6 +1374,38 @@ void TransceiverManager::clearPortPrbsStats(
     throw FbossError("Current platform doesn't support xphy");
   }
   phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
+}
+
+std::vector<prbs::PrbsPolynomial>
+TransceiverManager::getTransceiverPrbsCapabilities(
+    TransceiverID tcvrID,
+    phy::Side side) {
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(tcvrID);
+      it != lockedTransceivers->end()) {
+    return it->second->getPrbsCapabilities(side);
+  }
+  return std::vector<prbs::PrbsPolynomial>();
+}
+
+void TransceiverManager::getSupportedPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+    std::string portName,
+    phy::PrbsComponent component) {
+  phy::Side side = prbsComponentToPhySide(component);
+  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+    if (portNameToModule_.find(portName) == portNameToModule_.end()) {
+      throw FbossError("Can't find transceiver module for port ", portName);
+    }
+    prbsCapabilities = getTransceiverPrbsCapabilities(
+        TransceiverID(portNameToModule_[portName]), side);
+  } else {
+    throw FbossError(
+        "PRBS on ",
+        apache::thrift::util::enumNameSafe(component),
+        " not supported by qsfp_service");
+  }
 }
 
 std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(

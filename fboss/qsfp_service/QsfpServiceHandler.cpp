@@ -1,7 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "fboss/qsfp_service/QsfpServiceHandler.h"
 
+#include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
@@ -155,6 +157,14 @@ void QsfpServiceHandler::programXphyPort(
 void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portID) {
   auto log = LOG_THRIFT_CALL(INFO);
   response = manager_->getXphyInfo(PortID(portID));
+}
+
+void QsfpServiceHandler::getSupportedPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getSupportedPrbsPolynomials(prbsCapabilities, *portName, component);
 }
 
 void QsfpServiceHandler::setPortPrbs(

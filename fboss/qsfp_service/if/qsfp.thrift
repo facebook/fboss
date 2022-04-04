@@ -12,6 +12,7 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/lib/phy/prbs.thrift"
 
 service QsfpService extends phy.FbossCommonPhyCtrl {
   transceiver.TransceiverType getType(1: i32 idx);
@@ -193,4 +194,13 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: list<string> portNames,
     2: bool readFromHw = false,
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+
+  /*
+   * Returns the list of supported PRBS polynomials for the given port and
+   * prbs component
+   */
+  list<prbs.PrbsPolynomial> getSupportedPrbsPolynomials(
+    1: string portName,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }

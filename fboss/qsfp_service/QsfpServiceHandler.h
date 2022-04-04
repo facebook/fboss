@@ -7,6 +7,8 @@
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/mka_service/handlers/MacsecHandler.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
@@ -108,6 +110,15 @@ class QsfpServiceHandler
   void getPortPrbsStats(
       phy::PrbsStats& response,
       int32_t portId,
+      phy::PrbsComponent component) override;
+
+  /*
+   * Get the list of supported PRBS polynomials for the given port and
+   * prbs component
+   */
+  void getSupportedPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+      std::unique_ptr<std::string> portName,
       phy::PrbsComponent component) override;
 
   /*

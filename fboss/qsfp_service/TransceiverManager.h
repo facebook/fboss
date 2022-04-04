@@ -16,6 +16,8 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -293,6 +295,15 @@ class TransceiverManager {
   phy::PrbsStats getPortPrbsStats(PortID portId, phy::PrbsComponent component);
 
   void clearPortPrbsStats(PortID portId, phy::PrbsComponent component);
+
+  std::vector<prbs::PrbsPolynomial> getTransceiverPrbsCapabilities(
+      TransceiverID tcvrID,
+      phy::Side side);
+
+  void getSupportedPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+      std::string portName,
+      phy::PrbsComponent component);
 
   std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 
