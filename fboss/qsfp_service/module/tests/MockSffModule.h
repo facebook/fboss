@@ -58,6 +58,9 @@ class MockSffModule : public SffModule {
 
   MOCK_CONST_METHOD0(getQsfpTransmitterTechnology, TransmitterTechnology());
 
+  MOCK_METHOD0(ensureTxEnabled, void());
+  MOCK_METHOD0(resetLowPowerMode, void());
+
   // Provide way to call parent
   void actualSetCdrIfSupported(
       cfg::PortSpeed speed,

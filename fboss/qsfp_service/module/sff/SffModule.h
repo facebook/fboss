@@ -342,11 +342,11 @@ class SffModule : public QsfpModule {
   void remediateFlakyTransceiver() override;
 
   // make sure that tx_disable bits are clear
-  void ensureTxEnabled() override;
+  virtual void ensureTxEnabled() override;
 
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
-  void resetLowPowerMode() override;
+  virtual void resetLowPowerMode() override;
 
   // Some of the transceiver has set their channel control settings
   // different from the others which causes low signal quality when working

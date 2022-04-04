@@ -98,10 +98,14 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     auto overrideSffModule = [this] {
       auto xcvrImpl = std::make_unique<SffCwdm4Transceiver>(id_);
       XLOG(INFO) << "Making Mock SFF QSFP for " << id_;
-      return transceiverManager_->overrideTransceiverForTesting(
+      auto xcvr = transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSffModule>(
               transceiverManager_.get(), std::move(xcvrImpl), 1));
+
+      EXPECT_CALL(*static_cast<MockSffModule*>(xcvr), cacheIsValid())
+          .WillRepeatedly(::testing::Return(true));
+      return xcvr;
     };
 
     Transceiver* xcvr;
@@ -980,5 +984,101 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
             isTransceiverProgrammed));
       },
       TransceiverType::MOCK_CMIS);
+}
+
+TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
+  enableRemediationTesting();
+  auto allStates = getAllStates();
+  // Only INACTIVE can accept REMEDIATE_TRANSCEIVER event
+  verifyStateMachine(
+      {TransceiverStateMachineState::INACTIVE},
+      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
+        MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
+        EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
+      },
+      [this]() {
+        // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
+        // reprogram the xcvr again
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Now trigger program transceiver, it should move on to the next state
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
+      },
+      TransceiverType::MOCK_SFF);
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
+      allStates,
+      [this]() {
+        MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(0);
+        EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(0);
+      } /* preUpdate */,
+      []() {} /* verify */,
+      TransceiverType::MOCK_SFF);
+}
+
+TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
+  enableRemediationTesting();
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::INACTIVE};
+  // If ensureTxEnabled() failed, state shouldn't change
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
+      stateSet,
+      [this]() {
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+        MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled())
+            .Times(2)
+            .WillOnce(ThrowFbossError());
+        EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
+      },
+      [this]() {
+        // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
+        // reprogram the xcvr again
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+        // Then try again, it should succeed
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER);
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+        const auto& afterRemediationStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(afterRemediationStateMachine.get_attribute(
+            isTransceiverProgrammed));
+
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        const auto& afterProgrammingStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
+            isTransceiverProgrammed));
+      },
+      TransceiverType::MOCK_SFF);
 }
 } // namespace facebook::fboss
