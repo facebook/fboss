@@ -902,17 +902,6 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
     // We have retry mechanism to handle failure. No crash here
     XLOG(WARN) << "Failed to call wedge_agent getConfigAppliedInfo(). "
                << folly::exceptionStr(ex);
-    // Current agent might not support the new thrift api: getConfigAppliedInfo
-    // Fall back to use old thrift api: getLastConfigAppliedInMs
-    // TODO(joseph5wu) Will deprecate this call once we deprecate the old api
-    try {
-      newConfigAppliedInfo.lastAppliedInMs() =
-          wedgeAgentClient->sync_getLastConfigAppliedInMs();
-    } catch (const std::exception& oldApiEx) {
-      // We have retry mechanism to handle failure. No crash here
-      XLOG(WARN) << "Failed to call wedge_agent getLastConfigAppliedInMs(). "
-                 << folly::exceptionStr(oldApiEx);
-    }
 
     // For testing only, if overrideAgentConfigAppliedInfoForTesting_ is set,
     // use it directly; otherwise return without trigger any config changed

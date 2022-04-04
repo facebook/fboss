@@ -216,22 +216,25 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     };
   }
 
-  template <typename PRE_UPDATE_FN, typename VERIFY_FN>
+  template <
+      typename PRE_UPDATE_FN,
+      typename STATE_UPDATE_FN,
+      typename VERIFY_FN>
   void verifyStateMachine(
       const std::set<TransceiverStateMachineState>& supportedStates,
-      TransceiverStateMachineEvent event,
       TransceiverStateMachineState expectedState,
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
+      STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
-      TransceiverType type = TransceiverType::CMIS) {
+      TransceiverType type,
+      const std::string& updateStr) {
     for (auto preState : supportedStates) {
       if (states.find(preState) == states.end()) {
         // Current state is no longer in the state set, skip checking it
         continue;
       }
-      XLOG(INFO) << "Verifying Transceiver=0 state CHANGED by using Event="
-                 << apache::thrift::util::enumNameSafe(event)
+      XLOG(INFO) << "Verifying Transceiver=0 state CHANGED by " << updateStr
                  << " from preState="
                  << apache::thrift::util::enumNameSafe(preState)
                  << " to newState="
@@ -244,14 +247,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
 
-      // Trigger state update with `event`
-      transceiverManager_->updateStateBlocking(id_, event);
+      // Trigger state update
+      stateUpdate();
 
       // Check current state matches expected state
       auto curState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(curState, expectedState)
-          << "Transceiver=0 state doesn't match after Event="
-          << apache::thrift::util::enumNameSafe(event)
+          << "Transceiver=0 state doesn't match after " << updateStr
           << ", preState=" << apache::thrift::util::enumNameSafe(preState)
           << ", expected new state="
           << apache::thrift::util::enumNameSafe(expectedState)
@@ -268,17 +270,45 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   }
 
   template <typename PRE_UPDATE_FN, typename VERIFY_FN>
-  void verifyStateUnchanged(
+  void verifyStateMachine(
+      const std::set<TransceiverStateMachineState>& supportedStates,
       TransceiverStateMachineEvent event,
+      TransceiverStateMachineState expectedState,
       std::set<TransceiverStateMachineState>& states,
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
       TransceiverType type = TransceiverType::CMIS) {
+    auto stateUpdateFn = [this, event]() {
+      transceiverManager_->updateStateBlocking(id_, event);
+    };
+    auto stateUpdateFnStr = folly::to<std::string>(
+        "Event=", apache::thrift::util::enumNameSafe(event));
+    verifyStateMachine(
+        supportedStates,
+        expectedState,
+        states,
+        preUpdate,
+        stateUpdateFn,
+        verify,
+        type,
+        stateUpdateFnStr);
+  }
+
+  template <
+      typename PRE_UPDATE_FN,
+      typename STATE_UPDATE_FN,
+      typename VERIFY_FN>
+  void verifyStateUnchanged(
+      std::set<TransceiverStateMachineState>& states,
+      PRE_UPDATE_FN preUpdate,
+      STATE_UPDATE_FN stateUpdate,
+      VERIFY_FN verify,
+      TransceiverType type,
+      const std::string& updateStr) {
     for (auto state : states) {
       XLOG(INFO) << "Verifying Transceiver=0 State="
                  << apache::thrift::util::enumNameSafe(state)
-                 << " UNCHANGED by using Event="
-                 << apache::thrift::util::enumNameSafe(event);
+                 << " UNCHANGED by " << updateStr;
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
       xcvr_ = overrideTransceiver(type);
@@ -287,14 +317,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
 
-      // Trigger state update with `event`
-      transceiverManager_->updateStateBlocking(id_, event);
+      // Trigger state update
+      stateUpdate();
 
       // Check new state doesn't change
       auto newState = transceiverManager_->getCurrentState(id_);
       EXPECT_EQ(newState, state)
-          << "Transceiver=0 unchanged state doesn't match after Event="
-          << apache::thrift::util::enumNameSafe(event)
+          << "Transceiver=0 unchanged state doesn't match after " << updateStr
           << ", preState=" << apache::thrift::util::enumNameSafe(state)
           << ", newState=" << apache::thrift::util::enumNameSafe(newState);
 
@@ -304,6 +333,22 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       ::testing::Mock::VerifyAndClearExpectations(transceiverManager_.get());
       ::testing::Mock::VerifyAndClearExpectations(xcvr_);
     }
+  }
+
+  template <typename PRE_UPDATE_FN, typename VERIFY_FN>
+  void verifyStateUnchanged(
+      TransceiverStateMachineEvent event,
+      std::set<TransceiverStateMachineState>& states,
+      PRE_UPDATE_FN preUpdate,
+      VERIFY_FN verify,
+      TransceiverType type = TransceiverType::CMIS) {
+    auto stateUpdateFn = [this, event]() {
+      transceiverManager_->updateStateBlocking(id_, event);
+    };
+    auto stateUpdateFnStr = folly::to<std::string>(
+        "Event=", apache::thrift::util::enumNameSafe(event));
+    verifyStateUnchanged(
+        states, preUpdate, stateUpdateFn, verify, type, stateUpdateFnStr);
   }
 
   void verifyResetProgrammingAttributes() {
@@ -378,6 +423,22 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     gflags::SetCommandLineOptionWithMode(
         "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
     transceiverManager_->setPauseRemediation(0);
+  }
+
+  void triggerAgentConfigChanged(bool isAgentColdBoot) {
+    // Override ConfigAppliedInfo
+    ConfigAppliedInfo configAppliedInfo;
+    auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    configAppliedInfo.lastAppliedInMs() = currentInMs.count();
+    if (isAgentColdBoot) {
+      configAppliedInfo.lastColdbootAppliedInMs() = currentInMs.count();
+    }
+    transceiverManager_->setOverrideAgentConfigAppliedInfoForTesting(
+        configAppliedInfo);
+
+    std::vector<TransceiverID> transceivers = {id_};
+    transceiverManager_->triggerAgentConfigChangeEvent(transceivers);
   }
 
   QsfpModule* xcvr_;
@@ -1087,5 +1148,92 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
             isTransceiverProgrammed));
       },
       TransceiverType::MOCK_SFF);
+}
+
+TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
+  const auto stateUpdateFnStr = "Triggering Agent config changed w/ warm boot";
+  auto allStates = getAllStates();
+  // Instead of using transceiverManager_->updateStateBlocking(), use
+  // triggerAgentConfigChangeEvent() so that we can verify the logic inside this
+  // function too
+  // After programmed state can accept RESET_TO_DISCOVERED event
+  verifyStateMachine(
+      {TransceiverStateMachineState::ACTIVE,
+       TransceiverStateMachineState::INACTIVE,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineState::DISCOVERED /* expected state */,
+      allStates,
+      []() {} /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+      [this]() {
+        // Enter DISCOVERED will also call `resetProgrammingAttributes`
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      } /* verify */,
+      TransceiverType::CMIS,
+      stateUpdateFnStr);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      []() {} /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+      []() {} /* verify */,
+      TransceiverType::CMIS,
+      stateUpdateFnStr);
+}
+
+TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
+  const auto stateUpdateFnStr = "Triggering Agent config changed w/ cold boot";
+  auto allStates = getAllStates();
+  // Instead of using transceiverManager_->updateStateBlocking(), use
+  // triggerAgentConfigChangeEvent() so that we can verify the logic inside this
+  // function too
+  // After programmed state can accept RESET_TO_DISCOVERED event
+  verifyStateMachine(
+      {TransceiverStateMachineState::ACTIVE,
+       TransceiverStateMachineState::INACTIVE,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineState::DISCOVERED /* expected state */,
+      allStates,
+      [this]() {
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(1);
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+      [this]() {
+        // Enter DISCOVERED will also call `resetProgrammingAttributes`
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        // Cold boot agent will need a reset data path for CMIS module
+        EXPECT_TRUE(stateMachine.get_attribute(needResetDataPath));
+
+        // refresh twice state machine so that we can finish programming xcvr
+        transceiverManager_->refreshStateMachines();
+        transceiverManager_->refreshStateMachines();
+      } /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      []() {} /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+      []() {} /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
 }
 } // namespace facebook::fboss
