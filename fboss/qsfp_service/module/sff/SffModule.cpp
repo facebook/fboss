@@ -1177,14 +1177,16 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
  * Put logic here that should only be run on ports that have been
  * down for a long time. These are actions that are potentially more
  * disruptive, but have worked in the past to recover a transceiver.
+ * Only return true if there's an actual remediation happened
  */
-void SffModule::remediateFlakyTransceiver() {
+bool SffModule::remediateFlakyTransceiver() {
   XLOG(INFO) << "Performing potentially disruptive remediations on "
              << qsfpImpl_->getName();
 
   ensureTxEnabled();
   resetLowPowerMode();
   lastRemediateTime_ = std::time(nullptr);
+  return true;
 }
 void SffModule::resetLowPowerMode() {
   // Newer transceivers will have a auto-clearing reset bit that is

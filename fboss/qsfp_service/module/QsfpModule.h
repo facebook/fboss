@@ -513,8 +513,11 @@ class QsfpModule : public Transceiver {
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
+   * Only return true if there's an actual remediation happened
    */
-  virtual void remediateFlakyTransceiver() {}
+  virtual bool remediateFlakyTransceiver() {
+    return false;
+  }
 
   // make sure that tx_disable bits are clear
   virtual void ensureTxEnabled() {}

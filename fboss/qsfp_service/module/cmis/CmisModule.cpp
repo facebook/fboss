@@ -1657,22 +1657,28 @@ bool CmisModule::checkLaneConfigError() {
  * Put logic here that should only be run on ports that have been
  * down for a long time. These are actions that are potentially more
  * disruptive, but have worked in the past to recover a transceiver.
+ * Only return true if there's an actual remediation happened
  */
-void CmisModule::remediateFlakyTransceiver() {
+bool CmisModule::remediateFlakyTransceiver() {
   XLOG(INFO) << "Performing potentially disruptive remediations on "
              << qsfpImpl_->getName();
 
+  bool isRemediationTriggered = false;
   if (moduleResetCounter_ < kResetCounterLimit) {
     // This api accept 1 based module id however the module id in WedgeManager
     // is 0 based.
     transceiverManager_->getQsfpPlatformApi()->triggerQsfpHardReset(
         static_cast<unsigned int>(getID()) + 1);
     moduleResetCounter_++;
+    isRemediationTriggered = true;
   } else {
     XLOG(DBG2) << "Reached reset limit for module " << qsfpImpl_->getName();
   }
 
+  // Even though remediation might not trigger, we still need to update the
+  // lastRemediateTime_ so that we can use cool down before next remediation
   lastRemediateTime_ = std::time(nullptr);
+  return isRemediationTriggered;
 }
 
 void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {

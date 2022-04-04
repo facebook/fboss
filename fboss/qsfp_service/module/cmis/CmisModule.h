@@ -293,8 +293,9 @@ class CmisModule : public QsfpModule {
    * Put logic here that should only be run on ports that have been
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
+   * Only return true if there's an actual remediation happened
    */
-  void remediateFlakyTransceiver() override;
+  bool remediateFlakyTransceiver() override;
 
   virtual void setDiagsCapability() override;
 

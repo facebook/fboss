@@ -879,13 +879,12 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
           setProgramCmisModuleExpectation(true, s);
         }
 
-        // The sixth times should not trigger hard reset any more
+        // The sixth times should not trigger hard reset any more or xcvr
+        // reprogramming
         EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
             .Times(0)
             .InSequence(s);
-        // TODO(joseph5wu) If we didn't remediate this transceiver, maybe we
-        // shouldn't reprogram the xcvr again.
-        setProgramCmisModuleExpectation(true, s);
+        setProgramCmisModuleExpectation(false, s);
       },
       [this]() {
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
@@ -916,6 +915,11 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
           transceiverManager_->updateStateBlocking(
               id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
         }
+
+        auto curState = transceiverManager_->getCurrentState(id_);
+        EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
+            << "Transceiver=0 state doesn't match state expected=INACTIVE"
+            << ", actual=" << apache::thrift::util::enumNameSafe(curState);
       },
       TransceiverType::MOCK_CMIS);
   // Other states should not change even though we try to process the event
@@ -1001,6 +1005,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
         sleep(1);
 
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        ::testing::InSequence s;
         EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
       },
@@ -1028,6 +1033,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
       allStates,
       [this]() {
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        ::testing::InSequence s;
         EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(0);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(0);
       } /* preUpdate */,
@@ -1048,6 +1054,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
         /* sleep override */
         sleep(1);
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
+        ::testing::InSequence s;
         EXPECT_CALL(*mockXcvr, ensureTxEnabled())
             .Times(2)
             .WillOnce(ThrowFbossError());

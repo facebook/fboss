@@ -1312,8 +1312,9 @@ bool QsfpModule::tryRemediate() {
 }
 
 bool QsfpModule::tryRemediateLocked() {
-  if (shouldRemediate()) {
-    remediateFlakyTransceiver();
+  // Only update numRemediation_ iff this transceiver should remediate and
+  // remediation actually happens
+  if (shouldRemediate() && remediateFlakyTransceiver()) {
     ++numRemediation_;
     return true;
   }
