@@ -260,6 +260,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -962,6 +1002,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -1420,6 +1500,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -2127,6 +2247,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -2585,6 +2745,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -3292,6 +3492,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -3750,6 +3990,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -4457,6 +4737,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -4915,6 +5235,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -5622,6 +5982,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -6080,6 +6480,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY40",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -6787,6 +7227,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY40",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -7245,6 +7725,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY68",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -7952,6 +8472,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY68",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -8410,6 +8970,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY104",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -9117,6 +9717,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY104",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -9575,6 +10215,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -10282,6 +10962,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -10740,6 +11460,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -11447,6 +12207,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -11905,6 +12705,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -12612,6 +13452,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -13070,6 +13950,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -13777,6 +14697,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -14235,6 +15195,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -14942,6 +15942,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -15400,6 +16440,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY32",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -16107,6 +17187,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY32",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -16565,6 +17685,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY76",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -17272,6 +18432,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY76",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -17730,6 +18930,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY96",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -18437,6 +19677,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY96",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -18895,6 +20175,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -19602,6 +20922,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -20060,6 +21420,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -20767,6 +22167,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -21225,6 +22665,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -21932,6 +23412,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -22390,6 +23910,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -23097,6 +24657,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -23555,6 +25155,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -24262,6 +25902,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -24720,6 +26400,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY36",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -25427,6 +27147,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY36",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -25885,6 +27645,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY72",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -26592,6 +28392,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY72",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -27050,6 +28890,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY100",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -27757,6 +29637,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY100",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -28215,6 +30135,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -28922,6 +30882,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -29380,6 +31380,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -30087,6 +32127,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -30545,6 +32625,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -31252,6 +33372,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -31710,6 +33870,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -32417,6 +34617,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -32875,6 +35115,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -33582,6 +35862,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth2/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -34040,6 +36360,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY44",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -34747,6 +37107,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth3/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY44",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -35205,6 +37605,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY108",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -35912,6 +38352,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth5/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY108",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -36370,6 +38850,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY64",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -37077,6 +39597,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth4/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY64",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -37535,6 +40095,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -38242,6 +40842,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -38700,6 +41340,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -39407,6 +42087,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -39865,6 +42585,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -40572,6 +43332,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -41030,6 +43830,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -41737,6 +44577,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -42195,6 +45075,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY140",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -42902,6 +45822,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY140",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -43360,6 +46320,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY160",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -44067,6 +47067,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY160",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -44525,6 +47565,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY204",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -45232,6 +48312,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY204",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -45690,6 +48810,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY224",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -46397,6 +49557,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY224",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -46855,6 +50055,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -47562,6 +50802,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -48020,6 +51300,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -48727,6 +52047,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -49185,6 +52545,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -49892,6 +53292,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -50350,6 +53790,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -51057,6 +54537,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -51515,6 +55035,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY132",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -52222,6 +55782,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY132",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -52680,6 +56280,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY168",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -53387,6 +57027,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY168",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -53845,6 +57525,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY196",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -54552,6 +58272,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY196",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -55010,6 +58770,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY232",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -55717,6 +59517,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY232",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -56175,6 +60015,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -56882,6 +60762,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC48",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -57340,6 +61260,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -58047,6 +62007,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -58505,6 +62505,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -59212,6 +63252,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -59670,6 +63750,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -60377,6 +64497,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -60835,6 +64995,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY128",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/13",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -61542,6 +65742,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/14",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY128",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -62000,6 +66240,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY172",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/7",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -62707,6 +66987,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/8",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY172",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -63165,6 +67485,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY192",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/15",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -63872,6 +68232,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/16",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY192",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -64330,6 +68730,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY236",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/5",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -65037,6 +69477,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/6",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY236",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -65495,6 +69975,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -66202,6 +70722,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -66660,6 +71220,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -67367,6 +71967,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -67825,6 +72465,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -68532,6 +73212,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -68990,6 +73710,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -69697,6 +74457,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -70155,6 +74955,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY136",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/9",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -70862,6 +75702,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth6/10",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY136",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -71320,6 +76200,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY164",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/3",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -72027,6 +76947,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth7/4",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY164",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -72485,6 +77445,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY228",
                       "lane": 11
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/1",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 8
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 8
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -73192,6 +78192,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth9/2",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 12
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY228",
+                      "lane": 12
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
+                    }
+                  }
+                ]
+              }
+          },
           "23": {
               "pins": {
                 "iphy": [
@@ -73650,6 +78690,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/11",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 0
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -74352,6 +79432,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY200",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "12": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth8/12",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "xphySys": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 4
+                    }
+                  }
+                ],
+                "xphyLine": [
+                  {
+                    "id": {
+                      "chip": "XPHY200",
+                      "lane": 4
+                    },
+                    "polaritySwap": {
+                      "rx": false,
+                      "tx": false
                     }
                   }
                 ]
@@ -75832,6 +80952,193 @@ constexpr auto kJsonPlatformMappingStr = R"(
           143
         ],
         "profiles": [
+          12
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -6,
+              "pre2": 0,
+              "main": 71,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ],
+        "xphySys": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -6,
+              "pre2": 0,
+              "main": 71,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ],
+        "xphyLine": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -6,
+              "pre2": 0,
+              "main": 71,
+              "post": 0,
+              "post2": 0,
+              "post3": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          3,
+          4,
+          17,
+          18,
+          34,
+          35,
+          51,
+          52,
+          68,
+          69,
+          85,
+          86,
+          102,
+          103,
+          119,
+          120,
+          87,
+          88,
+          70,
+          71,
+          121,
+          122,
+          104,
+          105,
+          19,
+          20,
+          1,
+          2,
+          53,
+          54,
+          36,
+          37,
+          21,
+          22,
+          5,
+          6,
+          55,
+          56,
+          38,
+          39,
+          89,
+          90,
+          72,
+          73,
+          125,
+          126,
+          106,
+          107,
+          74,
+          75,
+          91,
+          92,
+          108,
+          109,
+          123,
+          124,
+          7,
+          8,
+          23,
+          24,
+          40,
+          41,
+          57,
+          58,
+          187,
+          188,
+          170,
+          171,
+          153,
+          154,
+          138,
+          139,
+          255,
+          256,
+          238,
+          239,
+          221,
+          222,
+          204,
+          205,
+          240,
+          241,
+          257,
+          258,
+          206,
+          207,
+          223,
+          224,
+          172,
+          173,
+          189,
+          190,
+          136,
+          137,
+          155,
+          156,
+          174,
+          175,
+          191,
+          192,
+          140,
+          141,
+          157,
+          158,
+          242,
+          243,
+          261,
+          262,
+          208,
+          209,
+          225,
+          226,
+          259,
+          260,
+          244,
+          245,
+          227,
+          228,
+          210,
+          211,
+          193,
+          194,
+          176,
+          177,
+          159,
+          160,
+          142,
+          143
+        ],
+        "profiles": [
           25
         ]
       },
@@ -76431,6 +81738,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
     }
   ],
   "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 12
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 3,
+          "interfaceMode": 1,
+          "interfaceType": 1
+        },
+        "xphyLine": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 2,
+          "interfaceMode": 47,
+          "interfaceType": 47
+        },
+        "xphySystem": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 3,
+          "interfaceMode": 46,
+          "interfaceType": 46
+        }
+      }
+    },
     {
       "factor": {
         "profileID": 4
