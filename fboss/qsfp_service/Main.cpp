@@ -5,6 +5,8 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
+#include "fboss/fsdb/Flags.h"
+#include "fboss/qsfp_service/QsfpFsdbSyncer.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/QsfpServiceSignalHandler.h"
@@ -76,6 +78,12 @@ int main(int argc, char** argv) {
       },
       std::chrono::seconds(FLAGS_loop_interval),
       "refreshStateMachines");
+
+  std::unique_ptr<QsfpFsdbSyncer> fsdbSyncer{nullptr};
+  if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncer =
+        std::make_unique<QsfpFsdbSyncer>(handler->getTransceiverManager());
+  }
 
   // Schedule the function to periodically send the I2c transaction
   // stats to the ServiceData object which gets pulled by FBagent.

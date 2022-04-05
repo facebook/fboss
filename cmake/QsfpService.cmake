@@ -4,7 +4,9 @@
 # cmake/FooBar.cmake
 
 add_library(qsfp_lib
+  fboss/qsfp_service/QsfpFsdbSyncer.cpp
   fboss/qsfp_service/oss/StatsPublisher.cpp
+  fboss/qsfp_service/oss/QsfpFsdbSyncer.cpp
   fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
   fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
@@ -20,6 +22,9 @@ target_link_libraries(qsfp_lib
     fb303::fb303
     FBThrift::thriftcpp2
     qsfp_service_client
+    fsdb_stream_client
+    fsdb_pub_sub
+    fsdb_flags
 )
 
 add_library(qsfp_config
