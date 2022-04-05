@@ -24,7 +24,8 @@ enum OperProtocol {
 }
 
 struct OperMetadata {
-  1: i64 generation;
+  1: optional i64 generation;
+  2: optional i64 lastConfirmedAtSecsSinceEpoch;
 }
 
 struct OperState {
