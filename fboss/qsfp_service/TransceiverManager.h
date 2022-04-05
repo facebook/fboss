@@ -466,8 +466,7 @@ class TransceiverManager {
   // Return the list of transceivers that have programming events
   std::vector<TransceiverID> triggerProgrammingEvents();
 
-  void triggerAgentConfigChangeEvent(
-      const std::vector<TransceiverID>& transceivers);
+  void triggerAgentConfigChangeEvent();
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
@@ -475,7 +474,7 @@ class TransceiverManager {
 
   std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 
-  std::vector<TransceiverID> getPresentTransceivers() const;
+  std::set<TransceiverID> getPresentTransceivers() const;
 
   // Check whether the specified stableTcvrs need remediation and then trigger
   // the remediation events to remediate such transceivers.

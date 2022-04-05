@@ -690,9 +690,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
     bool portStatusChanged = false;
     bool anyPortUp = false;
     bool isTcvrPresent =
-        (std::find(
-             presentTransceivers.begin(), presentTransceivers.end(), tcvrID) !=
-         presentTransceivers.end());
+        (presentTransceivers.find(tcvrID) != presentTransceivers.end());
     bool isTcvrJustProgrammed =
         (getCurrentState(tcvrID) ==
          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
@@ -864,10 +862,10 @@ void TransceiverManager::refreshStateMachines() {
 
   // Step2: Refresh all transceivers so that we can get an update
   // TransceiverInfo
-  const auto& transceiverIds = refreshTransceivers();
+  const auto& presentXcvrIds = refreshTransceivers();
 
   // Step3: Check whether there's a wedge_agent config change
-  triggerAgentConfigChangeEvent(transceiverIds);
+  triggerAgentConfigChangeEvent();
 
   if (FLAGS_use_new_state_machine) {
     // Step4: Once the transceivers are detected, trigger programming events
@@ -879,7 +877,7 @@ void TransceiverManager::refreshStateMachines() {
     // iphy without programming xphy or tcvr, the ports of such transceiver
     // will still be not stable to be remediated.
     std::vector<TransceiverID> stableTcvrs;
-    for (auto tcvrID : transceiverIds) {
+    for (auto tcvrID : presentXcvrIds) {
       if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
           programmedTcvrs.end()) {
         stableTcvrs.push_back(tcvrID);
@@ -889,8 +887,7 @@ void TransceiverManager::refreshStateMachines() {
   }
 }
 
-void TransceiverManager::triggerAgentConfigChangeEvent(
-    const std::vector<TransceiverID>& transceivers) {
+void TransceiverManager::triggerAgentConfigChangeEvent() {
   if (!FLAGS_use_new_state_machine) {
     return;
   }
@@ -965,6 +962,7 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
   // Update present transceiver state machine back to DISCOVERED
   // and absent transeiver state machine back to NOT_PRESENT
   int numResetToDiscovered{0}, numResetToNotPresent{0};
+  const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
   for (auto& stateMachine : stateMachines_) {
     // Only need to set true to `needResetDataPath` attribute here. And leave
@@ -975,8 +973,7 @@ void TransceiverManager::triggerAgentConfigChangeEvent(
           needResetDataPath) = true;
     }
     auto tcvrID = stateMachine.first;
-    if (std::find(transceivers.begin(), transceivers.end(), tcvrID) !=
-        transceivers.end()) {
+    if (presentTransceivers.find(tcvrID) != presentTransceivers.end()) {
       if (auto result = updateStateBlockingWithoutWait(
               tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED)) {
         ++numResetToDiscovered;
@@ -1056,11 +1053,13 @@ std::vector<PortID> TransceiverManager::getAllPlatformPorts(
   return ports;
 }
 
-std::vector<TransceiverID> TransceiverManager::getPresentTransceivers() const {
-  std::vector<TransceiverID> presentTcvrs;
+std::set<TransceiverID> TransceiverManager::getPresentTransceivers() const {
+  std::set<TransceiverID> presentTcvrs;
   auto lockedTransceivers = transceivers_.rlock();
   for (const auto& tcvrIt : *lockedTransceivers) {
-    presentTcvrs.push_back(tcvrIt.first);
+    if (tcvrIt.second->isPresent()) {
+      presentTcvrs.insert(tcvrIt.first);
+    }
   }
   return presentTcvrs;
 }

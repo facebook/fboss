@@ -49,6 +49,11 @@ class Transceiver {
    */
   virtual bool detectPresence() = 0;
 
+  // Return cached present state without asking from hardware
+  bool isPresent() const {
+    return present_;
+  }
+
   /*
    * Check if the transceiver is present or not and refresh data.
    */
@@ -192,6 +197,9 @@ class Transceiver {
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
+
+  // QSFP Presence status
+  bool present_{false};
 
  private:
   // no copy or assignment

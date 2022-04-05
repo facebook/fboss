@@ -310,8 +310,6 @@ class QsfpModule : public Transceiver {
 
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
-  // QSFP Presence status
-  bool present_{false};
   // Denotes if the cache value is valid or stale
   bool dirty_{true};
   // Flat memory systems don't support paged access to extra data

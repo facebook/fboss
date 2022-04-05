@@ -365,14 +365,12 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     TRANSCEIVER_PROGRAMMED + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
     XPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
     IPHY_PORTS_PROGRAMMED  + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
-    // Flip all states back to NOT_PRESENT state for RESET_TO_NOT_PRESENT event
+    // Flip all stable states back to NOT_PRESENT state for RESET_TO_NOT_PRESENT event
     ACTIVE                 + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     INACTIVE               + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     TRANSCEIVER_PROGRAMMED + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     XPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     IPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
-    DISCOVERED             + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
-    PRESENT                + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     // Remove transceiver only if all ports are down
     ACTIVE                 + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
     INACTIVE               + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,

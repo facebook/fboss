@@ -26,11 +26,18 @@ namespace facebook::fboss {
  * Therefore, we just need to mock the CmisModule and then check whether these
  * functions have been called correctly.
  */
+class MockCmisTransceiverImpl : public Cmis200GTransceiver {
+ public:
+  explicit MockCmisTransceiverImpl(int module) : Cmis200GTransceiver(module) {}
+
+  MOCK_METHOD0(detectTransceiver, bool());
+};
+
 class MockCmisModule : public CmisModule {
  public:
   explicit MockCmisModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl,
+      std::unique_ptr<MockCmisTransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver)
       : CmisModule(
             transceiverManager,
@@ -38,6 +45,10 @@ class MockCmisModule : public CmisModule {
             portsPerTransceiver) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
+  }
+
+  MockCmisTransceiverImpl* getTransceiverImpl() {
+    return static_cast<MockCmisTransceiverImpl*>(qsfpImpl_.get());
   }
 
   MOCK_METHOD0(configureModule, void());
@@ -75,19 +86,22 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     updateTransceiverActiveState(false /* up */, true /* enabled */);
 
     auto overrideCmisModule = [this](bool isMock) {
-      auto xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
       // This override function use ids starting from 1
       transceiverManager_->overrideMgmtInterface(
           static_cast<int>(id_) + 1,
           uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
       if (isMock) {
         XLOG(INFO) << "Making Mock CMIS QSFP for " << id_;
+        auto xcvrImpl = std::make_unique<MockCmisTransceiverImpl>(id_);
+        EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+            .WillRepeatedly(::testing::Return(true));
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<MockCmisModule>(
                 transceiverManager_.get(), std::move(xcvrImpl), 1));
       } else {
         XLOG(INFO) << "Making CMIS QSFP for " << id_;
+        auto xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<CmisModule>(
@@ -95,8 +109,12 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       }
     };
 
-    auto overrideSffModule = [this] {
+    auto overrideSffModule = [this]() {
       auto xcvrImpl = std::make_unique<SffCwdm4Transceiver>(id_);
+      // This override function use ids starting from 1
+      transceiverManager_->overrideMgmtInterface(
+          static_cast<int>(id_) + 1,
+          uint8_t(TransceiverModuleIdentifier::QSFP));
       XLOG(INFO) << "Making Mock SFF QSFP for " << id_;
       auto xcvr = transceiverManager_->overrideTransceiverForTesting(
           id_,
@@ -131,6 +149,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void setState(TransceiverStateMachineState state) {
     xcvr_->detectPresence();
+
     auto discoverTransceiver = [this]() {
       // One refresh can finish discoverring xcvr after detectPresence
       transceiverManager_->refreshStateMachines();
@@ -437,8 +456,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->setOverrideAgentConfigAppliedInfoForTesting(
         configAppliedInfo);
 
-    std::vector<TransceiverID> transceivers = {id_};
-    transceiverManager_->triggerAgentConfigChangeEvent(transceivers);
+    transceiverManager_->triggerAgentConfigChangeEvent();
   }
 
   QsfpModule* xcvr_;
@@ -1223,6 +1241,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
         // refresh twice state machine so that we can finish programming xcvr
         transceiverManager_->refreshStateMachines();
         transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       } /* verify */,
       TransceiverType::MOCK_CMIS,
       stateUpdateFnStr);
@@ -1231,6 +1250,116 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
   verifyStateUnchanged(
       allStates,
       []() {} /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+      []() {} /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
+}
+
+TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
+  const auto stateUpdateFnStr = "Triggering Agent config changed w/ warm boot";
+  auto allStates = getAllStates();
+  verifyStateMachine(
+      {TransceiverStateMachineState::ACTIVE,
+       TransceiverStateMachineState::INACTIVE,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+      allStates,
+      [this]() {
+        // Mock TransceiverImpl::detectTransceiver() to be false
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        auto xcvrImpl = mockXcvr->getTransceiverImpl();
+        EXPECT_CALL(*xcvrImpl, detectTransceiver())
+            .WillRepeatedly(::testing::Return(false));
+        xcvr_->detectPresence();
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+      [this]() {
+        // Enter DISCOVERED will also call `resetProgrammingAttributes`
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      } /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      [this]() {
+        // Mock TransceiverImpl::detectTransceiver() to be false
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        EXPECT_CALL(*mockXcvr->getTransceiverImpl(), detectTransceiver())
+            .WillRepeatedly(::testing::Return(false));
+        xcvr_->detectPresence();
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+      []() {} /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
+}
+
+TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
+  const auto stateUpdateFnStr = "Triggering Agent config changed w/ cold boot";
+  auto allStates = getAllStates();
+  // Use ABSENT_XCVR for such transceiver to make sure state can go back to
+  // NOT_PRESENT
+  verifyStateMachine(
+      {TransceiverStateMachineState::ACTIVE,
+       TransceiverStateMachineState::INACTIVE,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+      allStates,
+      [this]() {
+        // Mock TransceiverImpl::detectTransceiver() to be false
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        auto xcvrImpl = mockXcvr->getTransceiverImpl();
+        EXPECT_CALL(*xcvrImpl, detectTransceiver())
+            .WillRepeatedly(::testing::Return(false));
+        xcvr_->detectPresence();
+
+        // Even though agent cold boot, because transceiver is absent,
+        // resetDataPath() won't be called
+        EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+      [this]() {
+        // Enter DISCOVERED will also call `resetProgrammingAttributes`
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        // Cold boot agent will need a reset data path for CMIS module
+        EXPECT_TRUE(stateMachine.get_attribute(needResetDataPath));
+
+        // refresh twice state machine so that we can finish programming xcvr
+        transceiverManager_->refreshStateMachines();
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+      } /* verify */,
+      TransceiverType::MOCK_CMIS,
+      stateUpdateFnStr);
+
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      [this]() {
+        // Mock TransceiverImpl::detectTransceiver() to be false
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        auto xcvrImpl = mockXcvr->getTransceiverImpl();
+        EXPECT_CALL(*xcvrImpl, detectTransceiver())
+            .WillRepeatedly(::testing::Return(false));
+        xcvr_->detectPresence();
+      } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
