@@ -110,6 +110,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort,
       bool lineSide = false) const;
 
+  void attributesFromSaiStore(SaiPortTraits::CreateAttributes& attributes);
+
   SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPinConfigs(
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,

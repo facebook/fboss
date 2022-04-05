@@ -72,6 +72,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   }
   removeRemovedHandleIf(swPort->getID());
   SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(swPort);
+  attributesFromSaiStore(attributes);
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto handle = std::make_unique<SaiPortHandle>();
 
@@ -195,6 +196,54 @@ void SaiPortManager::changePort(
   }
   changeQueue(
       newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
+}
+
+void SaiPortManager::attributesFromSaiStore(
+    SaiPortTraits::CreateAttributes& attributes) {
+  SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
+  auto& store = saiStore_->get<SaiPortTraits>();
+  std::shared_ptr<SaiPort> port = store.get(portKey);
+  if (!port) {
+    return;
+  }
+  auto getAndSetAttribute = [](auto& storeAttrs, auto& swAttrs, auto type) {
+    std::get<std::optional<std::decay_t<decltype(type)>>>(swAttrs) =
+        std::get<std::optional<std::decay_t<decltype(type)>>>(storeAttrs);
+  };
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::IngressMirrorSession{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::EgressMirrorSession{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::IngressSampleMirrorSession{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::EgressSampleMirrorSession{});
+#endif
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::IngressSamplePacketEnable{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::EgressSamplePacketEnable{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosDscpToTcMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosTcToQueueMap{});
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
