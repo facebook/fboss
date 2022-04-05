@@ -34,6 +34,11 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  void waitForAllTransceiverStates(
+      bool up,
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
   bool lldpNeighborsOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other
@@ -84,6 +89,11 @@ class LinkTest : public AgentTest {
       TransceiverStateMachineState stateMachineState,
       uint32_t retries,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
+
+  void waitForLldpOnCabledPorts(
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
 
   void setCmdLineFlagOverrides() const override;
 

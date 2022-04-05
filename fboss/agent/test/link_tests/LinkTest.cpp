@@ -15,6 +15,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
@@ -34,6 +35,7 @@ void LinkTest::SetUp() {
   // Will lower the timeout back to 1min once we can support parallel
   // programming
   waitForAllCabledPorts(true, 60, 5s);
+  waitForAllTransceiverStates(true, 60, 5s);
   XLOG(INFO) << "Link Test setup ready";
 }
 
@@ -76,6 +78,12 @@ void LinkTest::waitForAllCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
+}
+
+void LinkTest::waitForAllTransceiverStates(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   waitForStateMachineState(
       cabledTransceivers_,
       up ? TransceiverStateMachineState::ACTIVE
@@ -226,10 +234,16 @@ std::string LinkTest::getPortName(PortID portId) const {
 }
 
 std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
+  waitForLldpOnCabledPorts();
   std::set<std::pair<PortID, PortID>> connectedPairs;
   for (auto cabledPort : cabledPorts_) {
     auto lldpNeighbors = sw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
-    CHECK_EQ(lldpNeighbors.size(), 1);
+    if (lldpNeighbors.size() != 1) {
+      XLOG(WARN) << "Wrong lldp neighbor size for port "
+                 << getPortName(cabledPort) << ", should be 1 but got "
+                 << lldpNeighbors.size();
+      continue;
+    }
     auto neighborPort = getPortID(lldpNeighbors.begin()->getPortId());
     // Insert sorted pairs, so that the same pair does not show up twice in the
     // set
@@ -301,6 +315,15 @@ void LinkTest::waitForStateMachineState(
       folly::join(",", badTransceivers),
       "] don't have expected TransceiverStateMachineState:",
       apache::thrift::util::enumNameSafe(stateMachineState));
+}
+
+void LinkTest::waitForLldpOnCabledPorts(
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  checkWithRetry(
+      [this]() { return lldpNeighborsOnAllCabledPorts(); },
+      retries,
+      msBetweenRetry);
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

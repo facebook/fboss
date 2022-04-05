@@ -21,10 +21,12 @@ TEST_F(LinkTest, ecmpShrink) {
             ecmpPorts.size()),
         ecmpPorts.size());
 
+    std::vector<PortID> ports;
     for (const auto& port : ecmpPorts) {
       setPortStatus(port.phyPortID(), false);
+      ports.push_back(port.phyPortID());
     }
-    EXPECT_NO_THROW(waitForAllCabledPorts(false));
+    EXPECT_NO_THROW(waitForLinkStatus(ports, false));
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
             sw()->getHw(),
@@ -36,7 +38,7 @@ TEST_F(LinkTest, ecmpShrink) {
     for (const auto& port : ecmpPorts) {
       setPortStatus(port.phyPortID(), true);
     }
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    EXPECT_NO_THROW(waitForLinkStatus(ports, true));
   };
 
   verifyAcrossWarmBoots(setup, verify);

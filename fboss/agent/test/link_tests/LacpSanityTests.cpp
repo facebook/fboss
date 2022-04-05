@@ -108,8 +108,10 @@ class LacpTest : public LinkTest {
       for (const auto& aggId : getAggPorts()) {
         const auto& aggPort =
             state->getAggregatePorts()->getAggregatePort(aggId);
-        EXPECT_NE(aggPort, nullptr);
-        EXPECT_EQ(aggPort->forwardingSubportCount(), aggPort->subportsCount());
+        if (aggPort == nullptr ||
+            aggPort->forwardingSubportCount() != aggPort->subportsCount()) {
+          return false;
+        }
         for (const auto& memberAndState : aggPort->subportAndFwdState()) {
           // Verify that member port is enabled
           if (memberAndState.second != AggregatePort::Forwarding::ENABLED)
