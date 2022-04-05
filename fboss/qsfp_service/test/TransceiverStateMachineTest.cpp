@@ -18,6 +18,14 @@
 
 namespace facebook::fboss {
 
+namespace {
+const auto kWarmBootAgentConfigChangedFnStr =
+    "Triggering Agent config changed w/ warm boot";
+const auto kColdBootAgentConfigChangedFnStr =
+    "Triggering Agent config changed w/ cold boot";
+const auto kRemediateTransceiverFnStr = "Remediating transceiver";
+} // namespace
+
 /*
  * Because this is a TransceiverStateMachine test, we only care the functions
  * we need to call in the process of New Port Programming using the new state
@@ -149,6 +157,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void setState(TransceiverStateMachineState state) {
     xcvr_->detectPresence();
+    // Pause remediation
+    transceiverManager_->setPauseRemediation(60);
 
     auto discoverTransceiver = [this]() {
       // One refresh can finish discoverring xcvr after detectPresence
@@ -441,7 +451,6 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
     gflags::SetCommandLineOptionWithMode(
         "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
-    transceiverManager_->setPauseRemediation(0);
   }
 
   void triggerAgentConfigChanged(bool isAgentColdBoot) {
@@ -459,8 +468,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->triggerAgentConfigChangeEvent();
   }
 
+  void triggerRemediateEvents() {
+    transceiverManager_->triggerRemediateEvents(stableXcvrIds_);
+  }
+
   QsfpModule* xcvr_;
   const TransceiverID id_ = TransceiverID(0);
+  const std::vector<TransceiverID> stableXcvrIds_ = {id_};
   const PortID portId_ = PortID(1);
   const cfg::PortProfileID profile_ =
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL;
@@ -940,10 +954,11 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
   // Only INACTIVE can accept REMEDIATE_TRANSCEIVER event
   verifyStateMachine(
       {TransceiverStateMachineState::INACTIVE},
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
       allStates,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -965,6 +980,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
             .InSequence(s);
         setProgramCmisModuleExpectation(false, s);
       },
+      [this]() { triggerRemediateEvents(); },
       [this]() {
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
@@ -1000,12 +1016,14 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
             << "Transceiver=0 state doesn't match state expected=INACTIVE"
             << ", actual=" << apache::thrift::util::enumNameSafe(curState);
       },
-      TransceiverType::MOCK_CMIS);
+      TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       allStates,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1016,8 +1034,10 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
                 transceiverManager_->getQsfpPlatformApi());
         EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(0);
       } /* preUpdate */,
+      [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
-      TransceiverType::MOCK_CMIS);
+      TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
@@ -1026,9 +1046,10 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
       TransceiverStateMachineState::INACTIVE};
   // If triggerQsfpHardReset() failed, state shouldn't change
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       stateSet,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1042,6 +1063,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
 
         setProgramCmisModuleExpectation(true);
       },
+      [this]() { triggerRemediateEvents(); },
       [this]() {
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
@@ -1066,7 +1088,8 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
             isTransceiverProgrammed));
       },
-      TransceiverType::MOCK_CMIS);
+      TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
@@ -1075,10 +1098,11 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
   // Only INACTIVE can accept REMEDIATE_TRANSCEIVER event
   verifyStateMachine(
       {TransceiverStateMachineState::INACTIVE},
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
       allStates,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1088,6 +1112,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
         EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
       },
+      [this]() { triggerRemediateEvents(); },
       [this]() {
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
@@ -1105,19 +1130,27 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
         // Now isTransceiverProgrammed should be true
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
       },
-      TransceiverType::MOCK_SFF);
+      TransceiverType::MOCK_SFF,
+      kRemediateTransceiverFnStr);
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       allStates,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
         ::testing::InSequence s;
         EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(0);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(0);
       } /* preUpdate */,
+      [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
-      TransceiverType::MOCK_SFF);
+      TransceiverType::MOCK_SFF,
+      kRemediateTransceiverFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
@@ -1126,12 +1159,14 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
       TransceiverStateMachineState::INACTIVE};
   // If ensureTxEnabled() failed, state shouldn't change
   verifyStateUnchanged(
-      TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER,
       stateSet,
       [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
+
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
         ::testing::InSequence s;
         EXPECT_CALL(*mockXcvr, ensureTxEnabled())
@@ -1139,6 +1174,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
             .WillOnce(ThrowFbossError());
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
       },
+      [this]() { triggerRemediateEvents(); },
       [this]() {
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
@@ -1165,11 +1201,11 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
             isTransceiverProgrammed));
       },
-      TransceiverType::MOCK_SFF);
+      TransceiverType::MOCK_SFF,
+      kRemediateTransceiverFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
-  const auto stateUpdateFnStr = "Triggering Agent config changed w/ warm boot";
   auto allStates = getAllStates();
   // Instead of using transceiverManager_->updateStateBlocking(), use
   // triggerAgentConfigChangeEvent() so that we can verify the logic inside this
@@ -1195,7 +1231,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
       } /* verify */,
       TransceiverType::CMIS,
-      stateUpdateFnStr);
+      kWarmBootAgentConfigChangedFnStr);
 
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -1204,11 +1240,10 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::CMIS,
-      stateUpdateFnStr);
+      kWarmBootAgentConfigChangedFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
-  const auto stateUpdateFnStr = "Triggering Agent config changed w/ cold boot";
   auto allStates = getAllStates();
   // Instead of using transceiverManager_->updateStateBlocking(), use
   // triggerAgentConfigChangeEvent() so that we can verify the logic inside this
@@ -1244,7 +1279,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       } /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kColdBootAgentConfigChangedFnStr);
 
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -1253,11 +1288,10 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kColdBootAgentConfigChangedFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
-  const auto stateUpdateFnStr = "Triggering Agent config changed w/ warm boot";
   auto allStates = getAllStates();
   verifyStateMachine(
       {TransceiverStateMachineState::ACTIVE,
@@ -1286,7 +1320,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
       } /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kWarmBootAgentConfigChangedFnStr);
 
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -1301,11 +1335,10 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kWarmBootAgentConfigChangedFnStr);
 }
 
 TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
-  const auto stateUpdateFnStr = "Triggering Agent config changed w/ cold boot";
   auto allStates = getAllStates();
   // Use ABSENT_XCVR for such transceiver to make sure state can go back to
   // NOT_PRESENT
@@ -1347,7 +1380,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
         EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
       } /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kColdBootAgentConfigChangedFnStr);
 
   // Other states should not change even though we try to process the event
   verifyStateUnchanged(
@@ -1363,6 +1396,6 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
-      stateUpdateFnStr);
+      kColdBootAgentConfigChangedFnStr);
 }
 } // namespace facebook::fboss
