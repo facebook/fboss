@@ -553,15 +553,22 @@ void WedgeManager::updateTransceiverMap() {
       // There are times when a module cannot be read however it's present.
       // Try to reset here since that may be able to bring it back.
       bool safeToReset = false;
-      if (auto iter = lockedPorts->find(TransceiverID(idx));
-          iter != lockedPorts->end()) {
-        // Check if we have expected ports info synced over and if all of
-        // the port is down. If any of them is not true then we will not
-        // perform the reset.
-        safeToReset = (iter->second.size() == portsPerTransceiver) &&
-            std::all_of(iter->second.begin(),
-                        iter->second.end(),
-                        [](const auto& port) { return !(*port.second.up()); });
+      TransceiverID id = TransceiverID(idx);
+      // Check if we have expected ports info synced over and if all of
+      // the ports are down. If any of them is not down then we will not
+      // perform the reset.
+      if (FLAGS_use_new_state_machine) {
+        safeToReset = areAllPortsDown(id);
+      } else {
+        // TODO(joseph5wu) Deprecate legacy WedgeManager::ports_
+        if (auto iter = lockedPorts->find(id); iter != lockedPorts->end()) {
+          safeToReset = (iter->second.size() == portsPerTransceiver) &&
+              std::all_of(iter->second.begin(),
+                          iter->second.end(),
+                          [](const auto& port) {
+                            return !(*port.second.up());
+                          });
+        }
       }
       if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
         XLOG(INFO) << "A present transceiver with unknown interface at " << idx
@@ -580,20 +587,26 @@ void WedgeManager::updateTransceiverMap() {
       continue;
     }
 
-    // Feed its port status to the newly constructed transceiver.
-    // However skip if ports have not been synced initially.
-    // transceiverPortsChanged will call refreshLocked which takes close to a
-    // second for a transceiver. Calling it for every transceiver at
-    // initialization is time consuming. Leaving that for refreshTransceivers
-    // which runs concurrently for each transceiver.
-    if (auto iter = lockedPorts->find(TransceiverID(idx));
-        iter != lockedPorts->end() && !iter->second.empty()) {
-      try {
-        lockedTransceivers->at(TransceiverID(idx))
-            ->transceiverPortsChanged(iter->second);
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Transceiver " << idx
-                  << ": Error calling transceiverPortsChanged: " << ex.what();
+    // TODO(joseph5wu) Deprecate legacy WedgeManager::ports_
+    // New state machine will use refreshStateMachine() to trigger different
+    // events so we don't need to rely on another transceiverPortsChanged()
+    // call here like legacy state machine
+    if (!FLAGS_use_new_state_machine) {
+      // Feed its port status to the newly constructed transceiver.
+      // However skip if ports have not been synced initially.
+      // transceiverPortsChanged will call refreshLocked which takes close to a
+      // second for a transceiver. Calling it for every transceiver at
+      // initialization is time consuming. Leaving that for refreshTransceivers
+      // which runs concurrently for each transceiver.
+      if (auto iter = lockedPorts->find(TransceiverID(idx));
+          iter != lockedPorts->end() && !iter->second.empty()) {
+        try {
+          lockedTransceivers->at(TransceiverID(idx))
+              ->transceiverPortsChanged(iter->second);
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "Transceiver " << idx
+                    << ": Error calling transceiverPortsChanged: " << ex.what();
+        }
       }
     }
   }
