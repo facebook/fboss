@@ -21,6 +21,7 @@ namespace fboss {
 static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
         {Ethernet10GComplianceCode::LR_10G, MediaInterfaceCode::LR_10G},
+        {Ethernet10GComplianceCode::SR_10G, MediaInterfaceCode::SR_10G},
 };
 
 // As per SFF-8472
