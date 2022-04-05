@@ -29,6 +29,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
 
   using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
+  MOCK_METHOD(
+      void,
+      getAggregatePortTable,
+      (std::vector<facebook::fboss::AggregatePortThrift>&));
 
   /* This unit test is a special case because the thrift spec for
   getRegexCounters uses "thread = eb".  This requires a pretty ugly mock
