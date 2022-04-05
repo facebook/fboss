@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -41,6 +42,12 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
        "Show ACL information",
        commandHandler<CmdShowAcl>},
+
+      {"show",
+       "aggregate-port",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+       "Show aggregate port information",
+       commandHandler<CmdShowAggregatePort>},
 
       {"show",
        "arp",
