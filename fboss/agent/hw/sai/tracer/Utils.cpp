@@ -10,6 +10,7 @@
 
 #include <iomanip>
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
@@ -537,6 +538,9 @@ void ipAttr(
     int i,
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.ipaddr.");
+  folly::IPAddress ipAddress =
+      facebook::fboss::fromSaiIpAddress(attr_list[i].value.ipaddr);
+  attrLines.push_back(to<string>("// ", ipAddress.str()));
 
   if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     attrLines.push_back(
