@@ -39,17 +39,21 @@ void oidListAttr(
   string prefix = to<string>("s_a", "[", i, "].value.objlist.");
   attrLines.push_back(
       to<string>(prefix, "count=", attr_list[i].value.objlist.count));
-  attrLines.push_back(
-      to<string>(prefix, "list=(sai_object_id_t*)(list_", listIndex, ")"));
-  for (int j = 0; j < std::min(attr_list[i].value.objlist.count, listLimit);
-       ++j) {
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "]=",
-        SaiTracer::getInstance()->getVariable(
-            attr_list[i].value.objlist.list[j])));
+  if (attr_list[i].value.objlist.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_object_id_t*)(list_", listIndex, ")"));
+    for (int j = 0; j < std::min(attr_list[i].value.objlist.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "]=",
+          SaiTracer::getInstance()->getVariable(
+              attr_list[i].value.objlist.list[j])));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
 
@@ -83,20 +87,23 @@ void aclEntryActionSaiObjectIdListAttr(
       to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
   attrLines.push_back(
       to<string>(prefix, "parameter.objlist.count=", objectListCount));
-  attrLines.push_back(to<string>(
-      prefix,
-      "parameter.objlist.list=(sai_object_id_t*)(list_",
-      listIndex,
-      ")"));
-
-  for (int j = 0; j < std::min(objectListCount, listLimit); ++j) {
+  if (attr_list[i].value.aclaction.parameter.objlist.list) {
     attrLines.push_back(to<string>(
         prefix,
-        "parameter.objlist.list[",
-        j,
-        "]=",
-        SaiTracer::getInstance()->getVariable(
-            attr_list[i].value.aclaction.parameter.objlist.list[j])));
+        "parameter.objlist.list=(sai_object_id_t*)(list_",
+        listIndex,
+        ")"));
+    for (int j = 0; j < std::min(objectListCount, listLimit); ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "parameter.objlist.list[",
+          j,
+          "]=",
+          SaiTracer::getInstance()->getVariable(
+              attr_list[i].value.aclaction.parameter.objlist.list[j])));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
 
@@ -288,14 +295,17 @@ void s8ListAttr(
   if (nullable && attr_list[i].value.s8list.count == 0) {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
   } else {
-    attrLines.push_back(
-        to<string>(prefix, "list=(sai_int8_t*)(list_", listIndex, ")"));
-  }
-
-  for (int j = 0; j < std::min(attr_list[i].value.s8list.count, listLimit);
-       ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "list[", j, "]=", attr_list[i].value.s8list.list[j]));
+    if (attr_list[i].value.s8list.list) {
+      attrLines.push_back(
+          to<string>(prefix, "list=(sai_int8_t*)(list_", listIndex, ")"));
+      for (int j = 0; j < std::min(attr_list[i].value.s8list.count, listLimit);
+           ++j) {
+        attrLines.push_back(to<string>(
+            prefix, "list[", j, "]=", attr_list[i].value.s8list.list[j]));
+      }
+    } else {
+      attrLines.push_back(to<string>(prefix, "list=NULL"));
+    }
   }
 }
 
@@ -313,10 +323,14 @@ void s32ListAttr(
       to<string>(prefix, "count=", attr_list[i].value.s32list.count));
   attrLines.push_back(
       to<string>(prefix, "list=(sai_int32_t*)(list_", listIndex, ")"));
-  for (int j = 0; j < std::min(attr_list[i].value.s32list.count, listLimit);
-       ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "list[", j, "]=", attr_list[i].value.s32list.list[j]));
+  if (attr_list[i].value.s32list.list) {
+    for (int j = 0; j < std::min(attr_list[i].value.s32list.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix, "list[", j, "]=", attr_list[i].value.s32list.list[j]));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
 
@@ -332,12 +346,16 @@ void u32ListAttr(
   string prefix = to<string>("s_a", "[", i, "].value.u32list.");
   attrLines.push_back(
       to<string>(prefix, "count=", attr_list[i].value.u32list.count));
-  attrLines.push_back(
-      to<string>(prefix, "list=(sai_uint32_t*)(list_", listIndex, ")"));
-  for (int j = 0; j < std::min(attr_list[i].value.u32list.count, listLimit);
-       ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "list[", j, "]=", attr_list[i].value.u32list.list[j]));
+  if (attr_list[i].value.u32list.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_uint32_t*)(list_", listIndex, ")"));
+    for (int j = 0; j < std::min(attr_list[i].value.u32list.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix, "list[", j, "]=", attr_list[i].value.u32list.list[j]));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
 
@@ -376,107 +394,111 @@ void qosMapListAttr(
 
   // TODO(zecheng): Find a way to know the type of key and value.
   // For now we can only set every single field
-  for (int j = 0; j < std::min(attr_list[i].value.qosmap.count, listLimit);
-       ++j) {
-    // Key
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.tc=",
-        attr_list[i].value.qosmap.list[j].key.tc));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.dscp=",
-        attr_list[i].value.qosmap.list[j].key.dscp));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.dot1p=",
-        attr_list[i].value.qosmap.list[j].key.dot1p));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.prio=",
-        attr_list[i].value.qosmap.list[j].key.prio));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.pg=",
-        attr_list[i].value.qosmap.list[j].key.pg));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.queue_index=",
-        attr_list[i].value.qosmap.list[j].key.queue_index));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.color=(sai_packet_color_t)",
-        attr_list[i].value.qosmap.list[j].key.color));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].key.mpls_exp=",
-        attr_list[i].value.qosmap.list[j].key.mpls_exp));
+  if (attr_list[i].value.qosmap.list) {
+    for (int j = 0; j < std::min(attr_list[i].value.qosmap.count, listLimit);
+         ++j) {
+      // Key
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.tc=",
+          attr_list[i].value.qosmap.list[j].key.tc));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.dscp=",
+          attr_list[i].value.qosmap.list[j].key.dscp));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.dot1p=",
+          attr_list[i].value.qosmap.list[j].key.dot1p));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.prio=",
+          attr_list[i].value.qosmap.list[j].key.prio));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.pg=",
+          attr_list[i].value.qosmap.list[j].key.pg));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.queue_index=",
+          attr_list[i].value.qosmap.list[j].key.queue_index));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.color=(sai_packet_color_t)",
+          attr_list[i].value.qosmap.list[j].key.color));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key.mpls_exp=",
+          attr_list[i].value.qosmap.list[j].key.mpls_exp));
 
-    // Value
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.tc=",
-        attr_list[i].value.qosmap.list[j].value.tc));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.dscp=",
-        attr_list[i].value.qosmap.list[j].value.dscp));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.dot1p=",
-        attr_list[i].value.qosmap.list[j].value.dot1p));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.prio=",
-        attr_list[i].value.qosmap.list[j].value.prio));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.pg=",
-        attr_list[i].value.qosmap.list[j].value.pg));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.queue_index=",
-        attr_list[i].value.qosmap.list[j].value.queue_index));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.color=(sai_packet_color_t)",
-        attr_list[i].value.qosmap.list[j].value.color));
-    attrLines.push_back(to<string>(
-        prefix,
-        "list[",
-        j,
-        "].value.mpls_exp=",
-        attr_list[i].value.qosmap.list[j].value.mpls_exp));
+      // Value
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.tc=",
+          attr_list[i].value.qosmap.list[j].value.tc));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.dscp=",
+          attr_list[i].value.qosmap.list[j].value.dscp));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.dot1p=",
+          attr_list[i].value.qosmap.list[j].value.dot1p));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.prio=",
+          attr_list[i].value.qosmap.list[j].value.prio));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.pg=",
+          attr_list[i].value.qosmap.list[j].value.pg));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.queue_index=",
+          attr_list[i].value.qosmap.list[j].value.queue_index));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.color=(sai_packet_color_t)",
+          attr_list[i].value.qosmap.list[j].value.color));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value.mpls_exp=",
+          attr_list[i].value.qosmap.list[j].value.mpls_exp));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
 
