@@ -45,12 +45,13 @@ std::array<folly::StringPiece, 24> HwPortFb303Stats::kPortStatKeys() {
   };
 }
 
-std::array<folly::StringPiece, 4> HwPortFb303Stats::kQueueStatKeys() {
+std::array<folly::StringPiece, 5> HwPortFb303Stats::kQueueStatKeys() {
   return {
       kOutCongestionDiscardsBytes(),
       kOutCongestionDiscards(),
       kOutBytes(),
-      kOutPkts()};
+      kOutPkts(),
+      kWredDroppedPackets()};
 }
 
 std::array<folly::StringPiece, 15> HwPortFb303Stats::kInMacsecPortStatKeys() {
@@ -266,6 +267,12 @@ void HwPortFb303Stats::updateStats(
         kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes_());
     updateQueueStat(
         kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets_());
+    if (curPortStats.queueWredDroppedPackets_()->size()) {
+      updateQueueStat(
+          kWredDroppedPackets(),
+          queueIdAndName.first,
+          *curPortStats.queueWredDroppedPackets_());
+    }
   }
   if (curPortStats.queueWatermarkBytes_()->size()) {
     updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes_());

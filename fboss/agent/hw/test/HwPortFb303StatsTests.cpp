@@ -195,7 +195,8 @@ void updateStats(HwPortFb303Stats& portStats) {
   // maps are empty
   *empty.queueOutDiscardPackets_() = *empty.queueOutDiscardBytes_() =
       *empty.queueOutBytes_() = *empty.queueOutPackets_() =
-          *empty.queueWatermarkBytes_() = {{1, 0}, {2, 0}};
+          *empty.queueWatermarkBytes_() =
+              *empty.queueWredDroppedPackets_() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
   portStats.updateStats(getInitedStats(), now);
 }
