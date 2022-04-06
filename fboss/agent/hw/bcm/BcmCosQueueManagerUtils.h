@@ -9,6 +9,7 @@
  */
 #pragma once
 #include "fboss/agent/hw/bcm/BcmCosQueueCounterType.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/PortQueue.h"
 
 extern "C" {
@@ -23,7 +24,9 @@ enum class BcmChip {
   TOMAHAWK4,
 };
 
-bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type);
+bcm_cosq_stat_t getBcmCosqStatType(
+    BcmCosQueueStatType type,
+    HwAsic::AsicType asic);
 
 const PortQueue& getDefaultPortQueueSettings(
     BcmChip chip,

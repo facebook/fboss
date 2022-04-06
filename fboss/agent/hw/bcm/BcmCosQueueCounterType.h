@@ -27,6 +27,7 @@ enum class BcmCosQueueStatType {
   OBM_LOSSY_LOW_PRI_DROPPED_PACKETS,
   OBM_LOSSY_LOW_PRI_DROPPED_BYTES,
   OBM_HIGH_WATERMARK,
+  WRED_DROPPED_PACKETS,
 };
 
 enum class BcmCosQueueCounterScope {
@@ -61,6 +62,7 @@ struct BcmCosQueueCounterType {
       case BcmCosQueueStatType::OUT_PACKETS:
       case BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS:
       case BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS:
+      case BcmCosQueueStatType::WRED_DROPPED_PACKETS:
         return cfg::CounterType::PACKETS;
       case BcmCosQueueStatType::DROPPED_BYTES:
       case BcmCosQueueStatType::OUT_BYTES:

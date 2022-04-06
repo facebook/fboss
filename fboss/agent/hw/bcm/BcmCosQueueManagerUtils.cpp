@@ -32,22 +32,6 @@ using AqmMap = facebook::fboss::PortQueueFields::AQMMap;
 
 constexpr int kWredDiscardProbability = 100;
 
-const std::map<BcmCosQueueStatType, bcm_cosq_stat_t> kBcmCosqStats = {
-    {BcmCosQueueStatType::DROPPED_BYTES, bcmCosqStatDroppedBytes},
-    {BcmCosQueueStatType::DROPPED_PACKETS, bcmCosqStatDroppedPackets},
-    {BcmCosQueueStatType::OUT_BYTES, bcmCosqStatOutBytes},
-    {BcmCosQueueStatType::OUT_PACKETS, bcmCosqStatOutPackets},
-    {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS,
-     bcmCosqStatOBMLossyHighPriDroppedPackets},
-    {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_BYTES,
-     bcmCosqStatOBMLossyHighPriDroppedBytes},
-    {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS,
-     bcmCosqStatOBMLossyLowPriDroppedPackets},
-    {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_BYTES,
-     bcmCosqStatOBMLossyLowPriDroppedBytes},
-    {BcmCosQueueStatType::OBM_HIGH_WATERMARK, bcmCosqStatOBMHighWatermark},
-};
-
 // Default Port Queue settings
 // Common settings among different chips
 constexpr uint8_t kDefaultPortQueueId = 0;
@@ -117,8 +101,39 @@ const auto kDefaultTH4PortQueueAqm = makeDefauleAqmMap(kDefaultTH4AqmThreshold);
 } // namespace
 
 namespace facebook::fboss::utility {
-bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type) {
-  return kBcmCosqStats.at(type);
+bcm_cosq_stat_t getBcmCosqStatType(
+    BcmCosQueueStatType type,
+    HwAsic::AsicType asic) {
+  static std::map<BcmCosQueueStatType, bcm_cosq_stat_t> cosqStats{};
+  if (cosqStats.size() == 0) {
+    std::map<BcmCosQueueStatType, bcm_cosq_stat_t> bcmCosqStats = {
+        {BcmCosQueueStatType::DROPPED_BYTES, bcmCosqStatDroppedBytes},
+        {BcmCosQueueStatType::DROPPED_PACKETS, bcmCosqStatDroppedPackets},
+        {BcmCosQueueStatType::OUT_BYTES, bcmCosqStatOutBytes},
+        {BcmCosQueueStatType::OUT_PACKETS, bcmCosqStatOutPackets},
+        {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_PACKETS,
+         bcmCosqStatOBMLossyHighPriDroppedPackets},
+        {BcmCosQueueStatType::OBM_LOSSY_HIGH_PRI_DROPPED_BYTES,
+         bcmCosqStatOBMLossyHighPriDroppedBytes},
+        {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_PACKETS,
+         bcmCosqStatOBMLossyLowPriDroppedPackets},
+        {BcmCosQueueStatType::OBM_LOSSY_LOW_PRI_DROPPED_BYTES,
+         bcmCosqStatOBMLossyLowPriDroppedBytes},
+        {BcmCosQueueStatType::OBM_HIGH_WATERMARK, bcmCosqStatOBMHighWatermark},
+    };
+
+    if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+        asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      bcmCosqStats[BcmCosQueueStatType::WRED_DROPPED_PACKETS] =
+          bcmCosqStatTotalDiscardDroppedPackets;
+    } else if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
+      bcmCosqStats[BcmCosQueueStatType::WRED_DROPPED_PACKETS] =
+          bcmCosqStatDiscardUCDroppedPackets;
+    }
+    cosqStats = bcmCosqStats;
+  }
+
+  return cosqStats.at(type);
 }
 
 const PortQueue& getTD2DefaultUCPortQueueSettings() {

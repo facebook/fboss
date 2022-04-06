@@ -1592,6 +1592,7 @@ BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
   portStats_.queueOutBytes_() = queueInitStats;
   portStats_.queueOutPackets_() = queueInitStats;
   portStats_.queueWatermarkBytes_() = queueInitStats;
+  portStats_.queueWredDroppedPackets_() = queueInitStats;
 }
 
 BcmPort::BcmPortStats::BcmPortStats(

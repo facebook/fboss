@@ -211,6 +211,15 @@ class BcmCosQueueManager {
       std::chrono::seconds now,
       HwPortStats* portStats = nullptr);
 
+  uint64_t getQueueStatValue(
+      int unit,
+      bcm_gport_t queueGport,
+      bcm_cos_queue_t queueID,
+      const std::string& portName,
+      int queueNum,
+      const BcmCosQueueCounterType& type,
+      const BcmEgressQueueTrafficCounterStats& flexCtrStats);
+
   virtual std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
       bcm_cos_queue_t cosQ,
       cfg::StreamType streamType) = 0;

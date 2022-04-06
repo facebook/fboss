@@ -106,7 +106,22 @@ int cosqGportTraverseCallback(
   return 0l;
 };
 
-uint64_t getQueueStatValue(
+} // unnamed namespace
+
+namespace facebook::fboss {
+
+BcmCosQueueManager::BcmCosQueueManager(
+    BcmSwitch* hw,
+    const std::string& portName,
+    bcm_gport_t portGport)
+    : hw_(hw), portName_(portName), portGport_(portGport) {
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+    // Make sure we get all the queue gports from hardware for portGport
+    getCosQueueGportsFromHw();
+  }
+}
+
+uint64_t BcmCosQueueManager::getQueueStatValue(
     int unit,
     bcm_gport_t queueGport,
     bcm_cos_queue_t queueID,
@@ -117,7 +132,8 @@ uint64_t getQueueStatValue(
   // If no flex counter stat is found, use the traditional way
   if (flexCtrStats.empty() ||
       !BcmEgressQueueFlexCounter::isSupported(type.statType)) {
-    auto bcmStatType = utility::getBcmCosqStatType(type.statType);
+    auto bcmStatType = utility::getBcmCosqStatType(
+        type.statType, hw_->getPlatform()->getAsic()->getAsicType());
     uint64_t value;
     auto rv = bcm_cosq_stat_get(unit, queueGport, queueID, bcmStatType, &value);
     bcmCheckError(
@@ -164,20 +180,6 @@ uint64_t getQueueStatValue(
         queueNum,
         " because of unsupported stream type:",
         apache::thrift::util::enumNameSafe(type.streamType));
-  }
-}
-} // unnamed namespace
-
-namespace facebook::fboss {
-
-BcmCosQueueManager::BcmCosQueueManager(
-    BcmSwitch* hw,
-    const std::string& portName,
-    bcm_gport_t portGport)
-    : hw_(hw), portName_(portName), portGport_(portGport) {
-  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-    // Make sure we get all the queue gports from hardware for portGport
-    getCosQueueGportsFromHw();
   }
 }
 
@@ -364,6 +366,8 @@ void BcmCosQueueManager::updateQueueStat(
       portStats->queueOutBytes_()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {
       portStats->queueOutPackets_()[cosQ] = value;
+    } else if (statType == BcmCosQueueStatType::WRED_DROPPED_PACKETS) {
+      portStats->queueWredDroppedPackets_()[cosQ] = value;
     }
   }
 }
@@ -676,12 +680,14 @@ void BcmCosQueueManager::updateQueueAggregatedStat(
       hw_->getUnit(),
       portGport_,
       -1,
-      utility::getBcmCosqStatType(statType),
+      utility::getBcmCosqStatType(
+          statType, hw_->getPlatform()->getAsic()->getAsicType()),
       &value);
   bcmCheckError(
       rv,
       "Unable to get aggregated cosq stat ",
-      utility::getBcmCosqStatType(statType),
+      utility::getBcmCosqStatType(
+          statType, hw_->getPlatform()->getAsic()->getAsicType()),
       " for ",
       portName_);
 

@@ -62,6 +62,10 @@ BcmPortQueueManager::getQueueCounterTypes() const {
        BcmCosQueueStatType::OUT_PACKETS,
        BcmCosQueueCounterScope::QUEUES,
        kOutPkts()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::WRED_DROPPED_PACKETS,
+       BcmCosQueueCounterScope::QUEUES,
+       kWredDroppedPackets()},
   };
 
   if (!hw_->getPlatform()->getAsic()->isSupported(
