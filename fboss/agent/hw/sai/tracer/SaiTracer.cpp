@@ -76,6 +76,11 @@ DEFINE_string(
     "/var/facebook/logs/fboss/sdk/sai_replayer.log",
     "File path to the SAI Replayer logs");
 
+DEFINE_string(
+    sai_replayer_sdk_log_level,
+    "CRITICAL",
+    "Turn on SAI SDK logging during replay. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
+
 DEFINE_int32(
     default_list_size,
     1024,
@@ -495,7 +500,17 @@ void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
   writeToFile(
       {to<string>("sai_", api_var, "_t* ", api_var),
        to<string>(
-           "sai_api_query((sai_api_t)", api_id, ",(void**)&", api_var, ")")});
+           "sai_api_query((sai_api_t)", api_id, ",(void**)&", api_var, ")"),
+       to<string>(
+           "rv = sai_log_set((sai_api_t)",
+           api_id,
+           ",(sai_log_level_t)",
+           saiLogLevelFromString(FLAGS_sai_replayer_sdk_log_level),
+           ")"),
+       to<string>(
+           "if(rv) printf(\"[ERROR] Failed to set log level for ",
+           saiApiTypeToString(api_id),
+           " API.\")")});
 }
 
 void SaiTracer::logSwitchCreateFn(
