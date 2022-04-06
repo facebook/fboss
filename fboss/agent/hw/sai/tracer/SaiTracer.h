@@ -140,6 +140,14 @@ class SaiTracer {
       const sai_attribute_t* attr,
       sai_status_t rv);
 
+  void logGetAttrFn(
+      const std::string& fn_name,
+      sai_object_id_t get_object_id,
+      uint32_t attr_count,
+      const sai_attribute_t* attr,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logSetAttrFn(
       const std::string& fn_name,
       sai_object_id_t set_object_id,
@@ -504,14 +512,23 @@ class SaiTracer {
     return rv;                                                                 \
   }
 
-#define WRAP_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type) \
-  sai_status_t wrap_get_##obj_type##_attribute(              \
-      sai_object_id_t obj_type##_id,                         \
-      uint32_t attr_count,                                   \
-      sai_attribute_t* attr_list) {                          \
-    return SaiTracer::getInstance()                          \
-        ->api_type##Api_->get_##obj_type##_attribute(        \
-            obj_type##_id, attr_count, attr_list);           \
+#define WRAP_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                  \
+  sai_status_t wrap_get_##obj_type##_attribute(                               \
+      sai_object_id_t obj_type##_id,                                          \
+      uint32_t attr_count,                                                    \
+      sai_attribute_t* attr_list) {                                           \
+    auto rv =                                                                 \
+        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_attribute( \
+            obj_type##_id, attr_count, attr_list);                            \
+                                                                              \
+    SaiTracer::getInstance()->logGetAttrFn(                                   \
+        "get_" #obj_type "_attribute",                                        \
+        obj_type##_id,                                                        \
+        attr_count,                                                           \
+        attr_list,                                                            \
+        sai_obj_type,                                                         \
+        rv);                                                                  \
+    return rv;                                                                \
   }
 
 #define SAI_ATTR_MAP(obj_type, attr_name)                                   \

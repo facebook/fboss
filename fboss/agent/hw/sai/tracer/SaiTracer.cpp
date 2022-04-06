@@ -65,6 +65,12 @@ DEFINE_bool(
     "At runtime, it should be disabled to reduce logging overhead."
     "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
 
+DEFINE_bool(
+    enable_get_attr_log,
+    false,
+    "Flag to indicate whether to log the get API calls. "
+    "At runtime, it should be disabled to reduce logging overhead.");
+
 DEFINE_string(
     sai_log,
     "/var/facebook/logs/fboss/sdk/sai_replayer.log",
@@ -977,6 +983,42 @@ void SaiTracer::logInsegEntrySetAttrFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logGetAttrFn(
+    const string& fn_name,
+    sai_object_id_t get_object_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
+    return;
+  }
+
+  vector<string> lines = setAttrList(attr, attr_count, object_type);
+  lines.push_back(
+      to<string>("memset(get_attribute,0,ATTR_SIZE*", maxAttrCount_, ")"));
+
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndRv(rv, get_object_id));
+
+  // Make getAttribute call
+  lines.push_back(to<string>(
+      "rv=",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(get_object_id),
+      ",",
+      attr_count,
+      ",get_attribute)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logSetAttrFn(
     const string& fn_name,
     sai_object_id_t set_object_id,
@@ -1095,7 +1137,7 @@ string SaiTracer::getVariable(sai_object_id_t object_id) {
   }
 
   return variables_.withRLock([&](auto& vars) {
-    return folly::get_default(vars, object_id, to<string>(object_id));
+    return folly::get_default(vars, object_id, to<string>(object_id, "U"));
   });
 }
 
@@ -1466,6 +1508,13 @@ void SaiTracer::setupGlobals() {
       FLAGS_default_list_size,
       ")")};
 
+  if (FLAGS_enable_get_attr_log) {
+    globalVar.push_back(to<string>(
+        "sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+        FLAGS_default_list_size,
+        ")"));
+  }
+
   for (int i = 0; i < FLAGS_default_list_count; i++) {
     globalVar.push_back(
         to<string>("int list_", i, "[", FLAGS_default_list_size, "]"));
@@ -1490,7 +1539,9 @@ void SaiTracer::setupGlobals() {
 
 void SaiTracer::writeFooter() {
   string footer = "free(s_a);\n}\n} // namespace facebook::fboss\n";
-
+  if (FLAGS_enable_get_attr_log) {
+    footer = "free(get_attribute);\n" + footer;
+  }
   asyncLogger_->appendLog(footer.c_str(), footer.size());
 }
 
