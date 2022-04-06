@@ -718,15 +718,14 @@ void QsfpModule::updatePrbsStats() {
 
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
-  if (*sysPrbsState.enabled_ref()) {
-    // Only update system prbs stats if it is enabled
+  if (managementInterface() == TransceiverManagementInterface::SFF) {
+    // TODO: Only doing this for SFF now until some bugs are fixed on the CMIS
+    // side
     auto stats = getPortPrbsStatsSideLocked(phy::Side::SYSTEM);
     updatePrbsStatEntry(*systemPrbs, stats);
     *systemPrbs = stats;
-  }
-  if (*linePrbsState.enabled_ref()) {
-    // Only update line prbs stats if it is enabled
-    auto stats = getPortPrbsStatsSideLocked(phy::Side::LINE);
+
+    stats = getPortPrbsStatsSideLocked(phy::Side::LINE);
     updatePrbsStatEntry(*linePrbs, stats);
     *linePrbs = stats;
   }

@@ -1373,15 +1373,30 @@ void TransceiverManager::setPortPrbs(
 phy::PrbsStats TransceiverManager::getPortPrbsStats(
     PortID portId,
     phy::PrbsComponent component) {
-  if (!phyManager_) {
-    throw FbossError("Current platform doesn't support xphy");
-  }
   phy::Side side = prbsComponentToPhySide(component);
-  phy::PrbsStats stats;
-  stats.laneStats() = phyManager_->getPortPrbsStats(portId, side);
-  stats.portId() = portId;
-  stats.component() = component;
-  return stats;
+  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto tcvrID = getTransceiverID(portId)) {
+      if (auto it = lockedTransceivers->find(*tcvrID);
+          it != lockedTransceivers->end()) {
+        return it->second->getPortPrbsStats(side);
+      } else {
+        throw FbossError("Can't find transceiver ", *tcvrID);
+      }
+    } else {
+      throw FbossError("Can't find transceiverID for portID ", portId);
+    }
+  } else {
+    if (!phyManager_) {
+      throw FbossError("Current platform doesn't support xphy");
+    }
+    phy::PrbsStats stats;
+    stats.laneStats() = phyManager_->getPortPrbsStats(portId, side);
+    stats.portId() = portId;
+    stats.component() = component;
+    return stats;
+  }
 }
 
 void TransceiverManager::clearPortPrbsStats(
@@ -1464,6 +1479,15 @@ void TransceiverManager::getInterfacePrbsState(
   } else {
     throw FbossError("Can't find a portID for portName ", portName);
   }
+}
+
+phy::PrbsStats TransceiverManager::getInterfacePrbsStats(
+    std::string portName,
+    phy::PrbsComponent component) {
+  if (auto portID = getPortIDByPortName(portName)) {
+    return getPortPrbsStats(*portID, component);
+  }
+  throw FbossError("Can't find a portID for portName ", portName);
 }
 
 std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(

@@ -315,6 +315,10 @@ class TransceiverManager {
       std::string portName,
       phy::PrbsComponent component);
 
+  phy::PrbsStats getInterfacePrbsStats(
+      std::string portName,
+      phy::PrbsComponent component);
+
   std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 
  protected:

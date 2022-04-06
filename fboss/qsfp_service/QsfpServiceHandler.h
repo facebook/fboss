@@ -123,6 +123,15 @@ class QsfpServiceHandler
       phy::PrbsComponent component) override;
 
   /*
+   * Get the PRBS stats on an interface. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void getInterfacePrbsStats(
+      phy::PrbsStats& response,
+      std::unique_ptr<std::string> portName,
+      phy::PrbsComponent component) override;
+
+  /*
    * Get the PRBS stats on a port. Useful when debugging a link
    * down or flapping issue.
    */

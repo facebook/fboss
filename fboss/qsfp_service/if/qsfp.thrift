@@ -221,4 +221,12 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
     2: phy.PrbsComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get the PRBS stats on an interface.
+   */
+  phy.PrbsStats getInterfacePrbsStats(
+    1: string portName,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }
