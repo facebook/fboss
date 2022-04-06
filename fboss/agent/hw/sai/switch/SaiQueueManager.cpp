@@ -50,6 +50,9 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
         hwPortStats.queueWatermarkBytes_()[queueId] = value;
         break;
+      case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
+        hwPortStats.queueWredDroppedPackets_()[queueId] = value;
+        break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
@@ -210,25 +213,63 @@ SaiQueueHandles SaiQueueManager::loadQueues(
   return queueHandles;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
+  static std::vector<sai_stat_id_t> nonWredCounterIds(
+      SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
+      SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
+  static std::vector<sai_stat_id_t> wredCounterIds{};
+  if (wredCounterIds.size() == 0) {
+    std::set_union(
+        SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
+        SaiQueueTraits::NonWatermarkCounterIdsToRead.end(),
+        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.begin(),
+        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.end(),
+        std::back_inserter(wredCounterIds));
+  }
+
+  /*
+   * Per-queue WRED discard counters need to be fetched for platforms
+   * supporting this feature and for non-multicast queues in Broadcom
+   * platforms.
+   */
+  if (((queueType == SAI_QUEUE_TYPE_MULTICAST) &&
+       (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_BCM)) ||
+      !platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    return nonWredCounterIds;
+  }
+
+  return wredCounterIds;
+}
+
 void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats,
     bool updateWatermarks) {
   hwPortStats.outCongestionDiscardPkts_() = 0;
-  static std::vector<sai_stat_id_t> nonWatermarkStatsRead(
-      SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
-      SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.end());
+  static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.end());
   for (auto queueHandle : queueHandles) {
+    /*
+     * The WRED_DROPPED_PACKETS counter is needed only for non-CPU
+     * ports and on platform supporting ECN/WRED, which is taken
+     * care of in the API supportedNonWatermarkCounterIdsRead().
+     * Hence, not using queueHandle->queue->updateStats() directly.
+     */
+    auto queueType = SaiApiTable::getInstance()->queueApi().getAttribute(
+        queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
+    queueHandle->queue->updateStats(
+        supportedNonWatermarkCounterIdsRead(queueType), SAI_STATS_MODE_READ);
+    queueHandle->queue->updateStats(
+        nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {
-      queueHandle->queue->updateStats();
-    } else {
       queueHandle->queue->updateStats(
-          nonWatermarkStatsRead, SAI_STATS_MODE_READ);
-      queueHandle->queue->updateStats(
-          nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
