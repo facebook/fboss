@@ -1402,10 +1402,25 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
 void TransceiverManager::clearPortPrbsStats(
     PortID portId,
     phy::PrbsComponent component) {
-  if (!phyManager_) {
+  phy::Side side = prbsComponentToPhySide(component);
+  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto tcvrID = getTransceiverID(portId)) {
+      if (auto it = lockedTransceivers->find(*tcvrID);
+          it != lockedTransceivers->end()) {
+        it->second->clearTransceiverPrbsStats(side);
+      } else {
+        throw FbossError("Can't find transceiver ", *tcvrID);
+      }
+    } else {
+      throw FbossError("Can't find transceiverID for portID ", portId);
+    }
+  } else if (!phyManager_) {
     throw FbossError("Current platform doesn't support xphy");
+  } else {
+    phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
   }
-  phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
 }
 
 std::vector<prbs::PrbsPolynomial>
@@ -1488,6 +1503,16 @@ phy::PrbsStats TransceiverManager::getInterfacePrbsStats(
     return getPortPrbsStats(*portID, component);
   }
   throw FbossError("Can't find a portID for portName ", portName);
+}
+
+void TransceiverManager::clearInterfacePrbsStats(
+    std::string portName,
+    phy::PrbsComponent component) {
+  if (auto portID = getPortIDByPortName(portName)) {
+    clearPortPrbsStats(*portID, component);
+  } else {
+    throw FbossError("Can't find a portID for portName ", portName);
+  }
 }
 
 std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(

@@ -229,4 +229,18 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
     2: phy.PrbsComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Clear the PRBS stats counter on an interface.
+   * This clearInterfacePrbsStats will result in:
+   * 1. Reset BER counters so that BER calculations start fresh from now
+   * 2. Reset maxBer
+   * 3. Reset numLossOfLock
+   * 4. Set timeSinceLastClear to now
+   * 5. Set timeSinceLastLocked to now if prbs is locked else epoch
+   */
+  void clearInterfacePrbsStats(
+    1: string portName,
+    2: phy.PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }

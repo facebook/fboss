@@ -712,6 +712,7 @@ void QsfpModule::updatePrbsStats() {
           newLane.timeSinceLastLocked_ref() =
               *oldLane.timeSinceLastLocked_ref();
         }
+        newLane.timeSinceLastClear_ref() = *oldLane.timeSinceLastClear_ref();
       }
     }
   };

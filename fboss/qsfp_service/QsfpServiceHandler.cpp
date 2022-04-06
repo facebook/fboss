@@ -191,6 +191,13 @@ void QsfpServiceHandler::getInterfacePrbsStats(
   response = manager_->getInterfacePrbsStats(*portName, component);
 }
 
+void QsfpServiceHandler::clearInterfacePrbsStats(
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->clearInterfacePrbsStats(*portName, component);
+}
+
 void QsfpServiceHandler::setPortPrbs(
     int32_t portId,
     phy::PrbsComponent component,
