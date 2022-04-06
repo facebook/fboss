@@ -14,10 +14,16 @@ struct FsdbPublisherMetadata {
 };
 class FsdbPublisherMetadataTracker {
  public:
+  FsdbPublisherMetadataTracker() = default;
+  ~FsdbPublisherMetadataTracker() = default;
   void registerPublisher(PublisherId publisher);
   void unregisterPublisher(PublisherId publisher);
 
  private:
+  FsdbPublisherMetadataTracker(const FsdbPublisherMetadataTracker&) = delete;
+  FsdbPublisherMetadataTracker& operator=(const FsdbPublisherMetadataTracker&) =
+      delete;
+
   folly::Synchronized<std::map<PublisherId, FsdbPublisherMetadata>>
       publisherId2Metadata_;
 };
