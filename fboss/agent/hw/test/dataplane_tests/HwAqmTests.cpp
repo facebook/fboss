@@ -448,6 +448,62 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  void runPerQueueWredDropStatsTest() {
+    const std::vector<int> wredQueueIds = {
+        utility::kOlympicSilverQueueId,
+        utility::kOlympicGoldQueueId,
+        utility::kOlympicEcn1QueueId};
+
+    auto setup = [=]() {
+      auto config{initialConfig()};
+      queueEcnWredThresholdSetup(false /* isEcn */, wredQueueIds, config);
+      applyNewConfig(config);
+      auto kEcmpWidthForTest = 1;
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getIntfMac()};
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      disableTTLDecrements(ecmpHelper6);
+    };
+
+    auto verify = [=]() {
+      // Using delta stats in this function, so get the stats before starting
+      auto beforeStats =
+          getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+
+      // Send traffic to all queues
+      constexpr auto kNumPacketsToSend{1000};
+      for (auto queueId : wredQueueIds) {
+        sendPkts(
+            utility::kOlympicQueueToDscp().at(queueId).front(),
+            false,
+            kNumPacketsToSend);
+      }
+
+      auto wredDropCountIncremented = [&](const auto& newStats) {
+        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        for (auto queueId : wredQueueIds) {
+          auto wredDrops = portStatsIter->second.queueWredDroppedPackets_()
+                               ->find(queueId)
+                               ->second -
+              (*beforeStats.queueWredDroppedPackets_())[queueId];
+          XLOG(DBG3) << "Queue : " << queueId << ", wredDrops : " << wredDrops;
+          if (wredDrops == 0) {
+            XLOG(DBG0) << "Queue " << queueId << " not seeing WRED drops!";
+            return false;
+          }
+        }
+        // All queues are seeing WRED drops!
+        XLOG(DBG0) << "WRED drops seen in all queues!";
+        return true;
+      };
+
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          wredDropCountIncremented, 20, std::chrono::milliseconds(200)));
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
 };
 
 TEST_F(HwAqmTest, verifyEcn) {
@@ -464,6 +520,10 @@ TEST_F(HwAqmTest, verifyWredDrop) {
 
 TEST_F(HwAqmTest, verifyWredThreshold) {
   runEcnWredThresholdTest(false /* isEcn */);
+}
+
+TEST_F(HwAqmTest, verifyPerQueueWredDropStats) {
+  runPerQueueWredDropStatsTest();
 }
 
 } // namespace facebook::fboss
