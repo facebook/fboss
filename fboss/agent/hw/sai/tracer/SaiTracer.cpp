@@ -856,7 +856,7 @@ void SaiTracer::logRemoveFn(
   writeToFile(lines);
 
   // Remove object from variables_
-  variables_.withWLock([&](auto& vars) { vars.erase(remove_object_id); });
+  variables_.erase(remove_object_id);
 }
 
 void SaiTracer::logRouteEntrySetAttrFn(
@@ -1124,7 +1124,7 @@ std::tuple<string, string> SaiTracer::declareVariable(
   string varName = to<string>(varPrefix, num);
 
   // Add this variable to the variable map
-  variables_.withWLock([&](auto& vars) { vars.emplace(*object_id, varName); });
+  variables_.emplace(*object_id, varName);
   return std::make_tuple(to<string>(varType, varName), varName);
 }
 
@@ -1136,9 +1136,8 @@ string SaiTracer::getVariable(sai_object_id_t object_id) {
     return "SAI_NULL_OBJECT_ID";
   }
 
-  return variables_.withRLock([&](auto& vars) {
-    return folly::get_default(vars, object_id, to<string>(object_id, "U"));
-  });
+  auto& varName = variables_[object_id];
+  return varName.empty() ? to<string>(object_id, "U") : varName;
 }
 
 vector<string> SaiTracer::setAttrList(

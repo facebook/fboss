@@ -23,7 +23,6 @@
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <folly/String.h>
-#include <folly/Synchronized.h>
 #include <gflags/gflags.h>
 
 extern "C" {
@@ -293,7 +292,7 @@ class SaiTracer {
   // varCounts map from object type to the current counter
   std::map<sai_object_type_t, std::atomic<uint32_t>> varCounts_;
   // variables_ map from object id to its variable name
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> variables_;
+  std::map<sai_object_id_t, std::string> variables_;
 
   std::map<sai_object_type_t, std::string> varNames_{
       {SAI_OBJECT_TYPE_ACL_COUNTER, "aclCounter_"},
