@@ -687,7 +687,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
   const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
   for (auto& [tcvrID, portToPortInfo] : tcvrToPortInfo_) {
-    bool portStatusChanged = false;
+    std::set<PortID> statusChangedPorts;
     bool anyPortUp = false;
     bool isTcvrPresent =
         (presentTransceivers.find(tcvrID) != presentTransceivers.end());
@@ -737,13 +737,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
               if (!cachedPortInfoIt->second.status ||
                   *cachedPortInfoIt->second.status->up() !=
                       *portStatusIt->second.up()) {
-                portStatusChanged = true;
-                try {
-                  publishLinkSnapshots(portID);
-                } catch (const std::exception& ex) {
-                  XLOG(ERR) << "Port " << portID
-                            << " failed publishLinkSnapshpts(): " << ex.what();
-                }
+                statusChangedPorts.insert(portID);
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
             }
@@ -754,7 +748,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       // whether we need port status event.
       // Make sure we update active state for a transceiver which just
       // finished programming
-      if (!event && (portStatusChanged || isTcvrJustProgrammed)) {
+      if (!event && ((!statusChangedPorts.empty()) || isTcvrJustProgrammed)) {
         event.emplace(
             anyPortUp ? TransceiverStateMachineEvent::PORT_UP
                       : TransceiverStateMachineEvent::ALL_PORTS_DOWN);
@@ -770,6 +764,16 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
         }
       }
     } // lock block for portToPortInfo
+    // After releasing portToPortInfo lock, publishLinkSnapshots() will use
+    // transceivers_ lock later
+    for (auto portID : statusChangedPorts) {
+      try {
+        publishLinkSnapshots(portID);
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Port " << portID
+                  << " failed publishLinkSnapshpts(): " << ex.what();
+      }
+    }
   }
   waitForAllBlockingStateUpdateDone(results);
   XLOG_IF(
@@ -796,7 +800,7 @@ void TransceiverManager::updateTransceiverActiveState(
       continue;
     }
     XLOG(INFO) << "Syncing ports of transceiver " << tcvrID;
-    bool portStatusChanged = false;
+    std::set<PortID> statusChangedPorts;
     bool anyPortUp = false;
     bool isTcvrJustProgrammed =
         (getCurrentState(tcvrID) ==
@@ -818,13 +822,7 @@ void TransceiverManager::updateTransceiverActiveState(
             anyPortUp = anyPortUp || *portStatusIt->second.up();
             if (!tcvrPortInfo.status ||
                 *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
-              portStatusChanged = true;
-              try {
-                publishLinkSnapshots(portID);
-              } catch (const std::exception& ex) {
-                XLOG(ERR) << "Port " << portID
-                          << " failed publishLinkSnapshpts(): " << ex.what();
-              }
+              statusChangedPorts.insert(portID);
             }
             // And also update the cached port status
             tcvrPortInfo.status = portStatusIt->second;
@@ -837,7 +835,7 @@ void TransceiverManager::updateTransceiverActiveState(
       // and the state machine will be in sync
       // Make sure we update active state for a transceiver which just
       // finished programming
-      if (portStatusChanged || isTcvrJustProgrammed) {
+      if ((!statusChangedPorts.empty()) || isTcvrJustProgrammed) {
         auto event = anyPortUp ? TransceiverStateMachineEvent::PORT_UP
                                : TransceiverStateMachineEvent::ALL_PORTS_DOWN;
         ++numPortStatusChanged;
@@ -846,6 +844,16 @@ void TransceiverManager::updateTransceiverActiveState(
         }
       }
     } // lock block for portToPortInfo
+    // After releasing portToPortInfo lock, publishLinkSnapshots() will use
+    // transceivers_ lock later
+    for (auto portID : statusChangedPorts) {
+      try {
+        publishLinkSnapshots(portID);
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Port " << portID
+                  << " failed publishLinkSnapshpts(): " << ex.what();
+      }
+    }
   }
   waitForAllBlockingStateUpdateDone(results);
   XLOG_IF(DBG2, numPortStatusChanged > 0)
