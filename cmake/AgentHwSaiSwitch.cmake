@@ -9,6 +9,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/SaiBridgeManager.cpp
   fboss/agent/hw/sai/switch/SaiBufferManager.cpp
+  fboss/agent/hw/sai/switch/SaiCounterManager.cpp
   fboss/agent/hw/sai/switch/SaiDebugCounterManager.cpp
   fboss/agent/hw/sai/switch/SaiFdbManager.cpp
   fboss/agent/hw/sai/switch/SaiHashManager.cpp

@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
@@ -59,6 +60,8 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiAclTableManager>(saiStore, this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(saiStore, this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(saiStore, this, platform);
+  counterManager_ =
+      std::make_unique<SaiCounterManager>(saiStore, this, platform);
   debugCounterManager_ =
       std::make_unique<SaiDebugCounterManager>(saiStore, this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(
@@ -129,6 +132,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   lagManager_.reset();
   bridgeManager_.reset();
   vlanManager_.reset();
+  counterManager_.reset();
   debugCounterManager_.reset();
   // Mirroring and port has a circular dependency. Monitor port
   // is an attribute of mirror and mirror oid is an attribute of
@@ -201,6 +205,13 @@ SaiBufferManager& SaiManagerTable::bufferManager() {
 }
 const SaiBufferManager& SaiManagerTable::bufferManager() const {
   return *bufferManager_;
+}
+
+SaiCounterManager& SaiManagerTable::counterManager() {
+  return *counterManager_;
+}
+const SaiCounterManager& SaiManagerTable::counterManager() const {
+  return *counterManager_;
 }
 
 SaiDebugCounterManager& SaiManagerTable::debugCounterManager() {
