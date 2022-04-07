@@ -145,7 +145,7 @@ class SnapshotClient:
         ) -> t.List[str]:
             possible_logfiles: t.List[str] = []
             timestamp: float = 0
-            for timestamp, filename in log_timestamps:
+            for timestamp, filename in sorted(log_timestamps):
                 # get all log files ending between the ranges, along with the first one after time_end
                 if (
                     time_start.timestamp() <= timestamp <= time_end.timestamp()
