@@ -30,6 +30,7 @@ class SaiPlatform;
 class SaiNextHopGroupHandle;
 class SaiStore;
 class SaiRouteManager;
+struct SaiCounterHandle;
 
 using SaiRoute = SaiObject<SaiRouteTraits>;
 
@@ -72,6 +73,7 @@ struct SaiRouteHandle {
       std::shared_ptr<ManagedRouteIpNextHop>,
       std::shared_ptr<ManagedRouteMplsNextHop>>;
   NextHopHandle nexthopHandle_;
+  std::shared_ptr<SaiCounterHandle> counterHandle_;
   std::shared_ptr<SaiRoute> route;
   sai_object_id_t nextHopAdapterKey() const;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle() const;
@@ -139,6 +141,12 @@ class SaiRouteManager {
       SaiRouteHandle* routeHandle,
       SaiRouteTraits::RouteEntry entry,
       std::shared_ptr<ManagedNextHopT> nexthop);
+
+  template <typename AddrT>
+  std::shared_ptr<SaiCounterHandle> getCounterHandleForRoute(
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      std::optional<SaiRouteTraits::Attributes::CounterID>& counterID);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

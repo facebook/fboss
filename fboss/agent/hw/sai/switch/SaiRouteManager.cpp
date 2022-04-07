@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -145,11 +146,14 @@ void SaiRouteManager::addOrUpdateRoute(
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
   SaiRouteHandle::NextHopHandle nextHopHandle;
   std::optional<SaiRouteTraits::Attributes::Metadata> metadata;
+  std::optional<SaiRouteTraits::Attributes::CounterID> counterID;
+  std::shared_ptr<SaiCounterHandle> counterHandle;
   if (newRoute->getClassID()) {
     metadata = static_cast<sai_uint32_t>(newRoute->getClassID().value());
   } else if (oldRoute && oldRoute->getClassID()) {
     metadata = 0;
   }
+  counterHandle = getCounterHandleForRoute(newRoute, oldRoute, counterID);
 
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -199,7 +203,7 @@ void SaiRouteManager::addOrUpdateRoute(
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(nextHopGroupId), metadata, std::nullopt};
+          packetAction, std::move(nextHopGroupId), metadata, counterID};
 #else
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(nextHopGroupId), metadata};
@@ -237,7 +241,7 @@ void SaiRouteManager::addOrUpdateRoute(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopId, metadata, std::nullopt};
+          packetAction, nextHopId, metadata, counterID};
 #else
       attributes =
           SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
@@ -275,6 +279,7 @@ void SaiRouteManager::addOrUpdateRoute(
   auto route = store.setObject(entry, attributes.value());
   routeHandle->route = route;
   routeHandle->nexthopHandle_ = nextHopHandle;
+  routeHandle->counterHandle_ = counterHandle;
 }
 
 template <typename AddrT>
@@ -363,6 +368,27 @@ void SaiRouteManager::clear() {
 std::shared_ptr<SaiObject<SaiRouteTraits>> SaiRouteManager::getRouteObject(
     SaiRouteTraits::AdapterHostKey routeKey) {
   return saiStore_->get<SaiRouteTraits>().get(routeKey);
+}
+
+template <typename AddrT>
+std::shared_ptr<SaiCounterHandle> SaiRouteManager::getCounterHandleForRoute(
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    std::optional<SaiRouteTraits::Attributes::CounterID>& counterID) {
+  std::shared_ptr<SaiCounterHandle> counterHandle;
+  // Counters are supported only with IPv6 prefixes
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    auto fwd = newRoute->getForwardInfo();
+    if (fwd.getCounterID().has_value()) {
+      counterHandle = managerTable_->counterManager().incRefOrAddRouteCounter(
+          fwd.getCounterID().value());
+      counterID.emplace(counterHandle->adapterKey());
+    } else if (
+        oldRoute && oldRoute->getForwardInfo().getCounterID().has_value()) {
+      counterID = 0;
+    }
+  }
+  return counterHandle;
 }
 
 template <

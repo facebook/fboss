@@ -10,9 +10,13 @@
 
 #pragma once
 
+#include <fboss/agent/hw/HwFb303Stats.h>
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+
+#include "fboss/lib/RefMap.h"
 
 #include <memory>
 
@@ -25,18 +29,45 @@ class SaiPlatform;
 
 using SaiCounter = SaiObjectWithCounters<SaiCounterTraits>;
 
+struct SaiCounterHandle {
+  std::shared_ptr<SaiCounter> counter;
+  std::string counterName;
+  std::shared_ptr<HwFb303Stats> statsMap;
+  SaiCounterHandle(std::string name, std::shared_ptr<HwFb303Stats> map)
+      : counterName(name), statsMap(map) {}
+  ~SaiCounterHandle() {
+    if (counter) {
+      counter.reset();
+      statsMap->removeStat(counterName);
+    }
+  }
+  CounterSaiId adapterKey() {
+    return counter->adapterKey();
+  }
+};
+
 class SaiCounterManager {
  public:
   explicit SaiCounterManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform)
-      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+    routeStats_ = std::make_shared<HwFb303Stats>();
+  }
+
+  std::shared_ptr<HwFb303Stats> getRouteStatsMapRef() {
+    return routeStats_;
+  }
+  std::shared_ptr<SaiCounterHandle> incRefOrAddRouteCounter(
+      std::string counterID);
 
  private:
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
+  FlatRefMap<RouteCounterID, SaiCounterHandle> routeCounters_;
+  std::shared_ptr<HwFb303Stats> routeStats_;
 };
 
 } // namespace facebook::fboss
