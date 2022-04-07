@@ -36,6 +36,9 @@ sai_status_t set_route_entry_attribute_fn(
     case SAI_ROUTE_ENTRY_ATTR_META_DATA:
       fr.metadata = attr->value.u32;
       break;
+    case SAI_ROUTE_ENTRY_ATTR_COUNTER_ID:
+      fr.counterId = attr->value.u32;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -90,6 +93,9 @@ sai_status_t get_route_entry_attribute_fn(
         break;
       case SAI_ROUTE_ENTRY_ATTR_META_DATA:
         attr_list[i].value.u32 = fr.metadata;
+        break;
+      case SAI_ROUTE_ENTRY_ATTR_COUNTER_ID:
+        attr_list[i].value.u32 = fr.counterId;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
