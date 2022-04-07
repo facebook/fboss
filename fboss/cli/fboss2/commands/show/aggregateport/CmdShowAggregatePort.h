@@ -69,29 +69,27 @@ class CmdShowAggregatePort
         queriedPorts.begin(), queriedPorts.end());
 
     for (const auto& entry : aggregatePortEntries) {
-      auto portName = *entry.name_ref();
+      auto portName = *entry.name();
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
         cli::AggregatePortEntry aggPortDetails;
-        aggPortDetails.name_ref() = portName;
-        aggPortDetails.description_ref() = *entry.description_ref();
-        aggPortDetails.minMembers_ref() = *entry.minimumLinkCount_ref();
-        aggPortDetails.configuredMembers_ref() =
-            entry.memberPorts_ref()->size();
+        aggPortDetails.name() = portName;
+        aggPortDetails.description() = *entry.description();
+        aggPortDetails.minMembers() = *entry.minimumLinkCount();
+        aggPortDetails.configuredMembers() = entry.memberPorts()->size();
         int32_t activeMemberCount = 0;
-        for (const auto& subport : *entry.memberPorts_ref()) {
+        for (const auto& subport : *entry.memberPorts()) {
           cli::AggregateMemberPortEntry memberDetails;
-          memberDetails.id_ref() = *subport.memberPortID_ref();
-          memberDetails.name_ref() =
-              *portInfo[*subport.memberPortID_ref()].name_ref();
-          memberDetails.isUp_ref() = *subport.isForwarding_ref();
-          memberDetails.lacpRate_ref() =
-              *subport.rate_ref() == LacpPortRateThrift::FAST ? "Fast" : "Slow";
-          if (*subport.isForwarding_ref()) {
+          memberDetails.id() = *subport.memberPortID();
+          memberDetails.name() = *portInfo[*subport.memberPortID()].name();
+          memberDetails.isUp() = *subport.isForwarding();
+          memberDetails.lacpRate() =
+              *subport.rate() == LacpPortRateThrift::FAST ? "Fast" : "Slow";
+          if (*subport.isForwarding()) {
             activeMemberCount++;
           }
           aggPortDetails.members()->push_back(memberDetails);
         }
-        aggPortDetails.activeMembers_ref() = activeMemberCount;
+        aggPortDetails.activeMembers() = activeMemberCount;
         model.aggregatePortEntries()->push_back(aggPortDetails);
       }
     }

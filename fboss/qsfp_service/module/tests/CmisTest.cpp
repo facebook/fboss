@@ -51,13 +51,13 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID, 4);
 
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_TRUE(info.transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface_ref(),
+      info.transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
-  EXPECT_EQ(info.moduleMediaInterface_ref(), MediaInterfaceCode::FR4_200G);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::FR4_200G);
   EXPECT_EQ(
       xcvr->numMediaLanes(),
       info.settings()->mediaInterface().value_or({}).size());
@@ -78,9 +78,9 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
     auto cmisData = xcvr->getDOMDataUnion().get_cmis();
     // NOTE the following cmis data are specifically set to 0x11 in
     // FakeTransceiverImpl
-    EXPECT_TRUE(cmisData.page14_ref());
+    EXPECT_TRUE(cmisData.page14());
     // SNR will be set
-    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
+    EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
     // Check VDM cache
     EXPECT_FALSE(xcvr->isVdmSupported());
   } else {
@@ -170,9 +170,9 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID, 1);
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_TRUE(info.transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface_ref(),
+      info.transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 8);
   EXPECT_EQ(xcvr->numMediaLanes(), 4);
@@ -193,19 +193,19 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     auto cmisData = xcvr->getDOMDataUnion().get_cmis();
     // NOTE the following cmis data are specifically set to 0x11 in
     // FakeTransceiverImpl
-    EXPECT_TRUE(cmisData.page14_ref());
+    EXPECT_TRUE(cmisData.page14());
     // SNR will be set
-    EXPECT_EQ(cmisData.page14_ref()->data()[0], 0x06);
+    EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
     // Check VDM cache
     EXPECT_TRUE(xcvr->isVdmSupported());
-    EXPECT_TRUE(cmisData.page20_ref());
-    EXPECT_EQ(cmisData.page20_ref()->data()[0], 0x00);
-    EXPECT_TRUE(cmisData.page21_ref());
-    EXPECT_EQ(cmisData.page21_ref()->data()[0], 0x00);
-    EXPECT_TRUE(cmisData.page24_ref());
-    EXPECT_EQ(cmisData.page24_ref()->data()[0], 0x15);
-    EXPECT_TRUE(cmisData.page25_ref());
-    EXPECT_EQ(cmisData.page25_ref()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page20());
+    EXPECT_EQ(cmisData.page20()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page21());
+    EXPECT_EQ(cmisData.page21()->data()[0], 0x00);
+    EXPECT_TRUE(cmisData.page24());
+    EXPECT_EQ(cmisData.page24()->data()[0], 0x15);
+    EXPECT_TRUE(cmisData.page25());
+    EXPECT_EQ(cmisData.page25()->data()[0], 0x00);
   } else {
     throw FbossError("Missing CMIS Module state");
   }
@@ -217,9 +217,9 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
   auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1), 4);
   const auto& info = xcvr->getTransceiverInfo();
-  EXPECT_TRUE(info.transceiverManagementInterface_ref());
+  EXPECT_TRUE(info.transceiverManagementInterface());
   EXPECT_EQ(
-      info.transceiverManagementInterface_ref(),
+      info.transceiverManagementInterface(),
       TransceiverManagementInterface::CMIS);
   EXPECT_EQ(xcvr->numHostLanes(), 4);
   EXPECT_EQ(xcvr->numMediaLanes(), 0);

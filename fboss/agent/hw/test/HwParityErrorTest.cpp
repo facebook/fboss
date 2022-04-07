@@ -77,7 +77,7 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     // Aggregate TL stats. In HwTests we don't start a TL aggregation thread.
     fb303::ThreadCachedServiceData::get()->publishStats();
     auto asicErrors = getHwSwitch()->getSwitchStats()->getHwAsicErrors();
-    return *asicErrors.correctedParityErrors_ref();
+    return *asicErrors.correctedParityErrors();
   }
 };
 

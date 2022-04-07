@@ -72,16 +72,16 @@ void FsdbSyncer::statsUpdated(const AgentStats& stats) {
     return;
   }
   fsdb::OperState stateUnit;
-  stateUnit.contents_ref() =
+  stateUnit.contents() =
       apache::thrift::BinarySerializer::serialize<std::string>(stats);
-  stateUnit.protocol_ref() = fsdb::OperProtocol::BINARY;
+  stateUnit.protocol() = fsdb::OperProtocol::BINARY;
   fsdbPubSubMgr_->publishStat(std::move(stateUnit));
 }
 
 void FsdbSyncer::publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas) {
   fsdb::OperDelta delta;
-  delta.changes_ref() = deltas;
-  delta.protocol_ref() = fsdb::OperProtocol::BINARY;
+  delta.changes() = deltas;
+  delta.protocol() = fsdb::OperProtocol::BINARY;
   fsdbPubSubMgr_->publishState(delta);
 }
 

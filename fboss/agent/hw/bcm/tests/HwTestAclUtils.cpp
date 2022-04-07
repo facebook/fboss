@@ -119,7 +119,7 @@ void checkAclEntryAndStatCount(
       bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
 
   const auto stats = bcmSwitch->getStatUpdater()->getHwTableStats();
-  ASSERT_EQ(aclCount, *stats.acl_entries_used_ref());
+  ASSERT_EQ(aclCount, *stats.acl_entries_used());
   ASSERT_EQ(
       aclCount, fpGroupNumAclEntries(bcmSwitch->getUnit(), defaultGroupID));
 
@@ -151,8 +151,8 @@ void checkAclStat(
   for (const auto& aclName : acls) {
     auto swTrafficCounter = getAclTrafficCounter(state, aclName);
     ASSERT_TRUE(swTrafficCounter);
-    ASSERT_EQ(statName, *swTrafficCounter->name_ref());
-    ASSERT_EQ(counterTypes, *swTrafficCounter->types_ref());
+    ASSERT_EQ(statName, *swTrafficCounter->name());
+    ASSERT_EQ(counterTypes, *swTrafficCounter->types());
     BcmAclStat::isStateSame(
         bcmSwitch, hwStat->getHandle(), swTrafficCounter.value());
   }

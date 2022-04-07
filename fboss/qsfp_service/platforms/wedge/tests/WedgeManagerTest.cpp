@@ -71,7 +71,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (auto i = 0; i < transceiverManager_->getNumQsfpModules(); i++) {
-    EXPECT_EQ(*transInfo[i].present_ref(), i != 4); // ID 5 was marked as absent
+    EXPECT_EQ(*transInfo[i].present(), i != 4); // ID 5 was marked as absent
   }
 }
 

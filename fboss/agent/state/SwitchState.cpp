@@ -89,9 +89,9 @@ SwitchStateFields::SwitchStateFields()
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
-  state.portMap_ref() = ports->toThrift();
-  state.vlanMap_ref() = vlans->toThrift();
-  state.aclMap_ref() = acls->toThrift();
+  state.portMap() = ports->toThrift();
+  state.vlanMap() = vlans->toThrift();
+  state.aclMap() = acls->toThrift();
   return state;
 }
 

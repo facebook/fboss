@@ -128,7 +128,7 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     SaiMacsecSecureAssoc* macsecSecureAssoc{nullptr};
     if (macsecSecureChannelHandle) {
       macsecSecureAssoc = macsecManager.getMacsecSecureAssoc(
-          portId, scIdentifier, direction, *sak.assocNum_ref() % 4);
+          portId, scIdentifier, direction, *sak.assocNum() % 4);
     }
 
     // Verify all macsec objects were created/destroyed
@@ -651,23 +651,15 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
     auto sakKey2 = sakKeyGen.getNext();
     auto sakKeyId2 = sakKeyIdGen.getNext();
     auto rxSak = makeSak(
-        remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        1);
+        remoteSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 1);
     auto txSak = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey2,
-        sakKeyId2,
-        0);
+        localSci, *platPort->second.mapping()->name(), sakKey2, sakKeyId2, 0);
 
     wedgeManager->programXphyPort(port, profile);
 
     // Set the MacsecDesired=True
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, true, true);
+        {*platPort->second.mapping()->name()}, true, true);
 
     // Install and verify the Macsec Tx Key
     XLOG(INFO) << "Install and verify Macsec TX key for port " << port;
@@ -683,7 +675,7 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
 
     // Set MacsecDesired=False which will cleanup Macsec on the port
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+        {*platPort->second.mapping()->name()}, false, false);
 
     // Verify no Macsec keys exits on Tx and Rx ports
     XLOG(INFO) << "Verify Macsec TX and RX keys got removed for port " << port;
@@ -727,23 +719,15 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
     auto sakKey2 = sakKeyGen.getNext();
     auto sakKeyId2 = sakKeyIdGen.getNext();
     auto rxSak = makeSak(
-        remoteSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey1,
-        sakKeyId1,
-        1);
+        remoteSci, *platPort->second.mapping()->name(), sakKey1, sakKeyId1, 1);
     auto txSak = makeSak(
-        localSci,
-        *platPort->second.mapping_ref()->name_ref(),
-        sakKey2,
-        sakKeyId2,
-        0);
+        localSci, *platPort->second.mapping()->name(), sakKey2, sakKeyId2, 0);
 
     wedgeManager->programXphyPort(port, profile);
 
     // Verify Macsec state does not exists
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+        {*platPort->second.mapping()->name()}, false, false);
     XLOG(INFO)
         << "Verify Macsec ACL does not exist by default after init for port "
         << port;
@@ -757,7 +741,7 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
         << "setupMacsecState with MacsecDesired=True and dropUnencrypted=True and verify for port "
         << port;
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, true, true);
+        {*platPort->second.mapping()->name()}, true, true);
     verifyMacsecAclSetup(
         port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, true, true);
     verifyMacsecAclSetup(
@@ -780,7 +764,7 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
         << "setupMacsecState with MacsecDesired=True and dropUnencrypted=False and verify for port "
         << port;
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, true, false);
+        {*platPort->second.mapping()->name()}, true, false);
     verifyMacsecAclSetup(
         port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, true, false);
     verifyMacsecAclSetup(
@@ -788,7 +772,7 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
 
     // Cleanup the Macsec state
     phyManager->setupMacsecState(
-        {*platPort->second.mapping_ref()->name_ref()}, false, false);
+        {*platPort->second.mapping()->name()}, false, false);
     verifyMacsecAclSetup(
         port, SAI_MACSEC_DIRECTION_EGRESS, phyManager, false, false);
     verifyMacsecAclSetup(

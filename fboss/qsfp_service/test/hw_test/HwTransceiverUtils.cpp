@@ -236,14 +236,14 @@ void HwTransceiverUtils::verifyDiagsCapability(
     const TransceiverInfo& transceiver,
     std::optional<DiagsCapability> diagsCapability,
     bool skipCheckingIndividualCapability) {
-  auto mgmtInterface = transceiver.transceiverManagementInterface_ref();
+  auto mgmtInterface = transceiver.transceiverManagementInterface();
   if (!mgmtInterface) {
     throw FbossError(
         "Transceiver:",
         *transceiver.port(),
         " is missing transceiverManagementInterface");
   }
-  auto mediaIntfCode = transceiver.moduleMediaInterface_ref();
+  auto mediaIntfCode = transceiver.moduleMediaInterface();
   if (!mediaIntfCode) {
     throw FbossError(
         "Transceiver:",
