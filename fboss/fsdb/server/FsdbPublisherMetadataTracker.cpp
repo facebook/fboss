@@ -22,4 +22,10 @@ void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
     }
   });
 }
+
+FsdbPublisherMetadataTracker::PublisherId2Metadata
+FsdbPublisherMetadataTracker::getAllMetadata() const {
+  auto pub2Metadata = publisherId2Metadata_.rlock();
+  return *pub2Metadata;
+}
 } // namespace facebook::fboss::fsdb
