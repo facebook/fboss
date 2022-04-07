@@ -189,6 +189,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "port-serdes";
     case SAI_OBJECT_TYPE_PORT_CONNECTOR:
       return "port-connector";
+    case SAI_OBJECT_TYPE_COUNTER:
+      return "counter";
     case SAI_OBJECT_TYPE_DEBUG_COUNTER:
       return "debug-counter";
     case SAI_OBJECT_TYPE_WRED:

@@ -525,6 +525,9 @@ class SaiStore {
       SaiObjectStore<SaiBridgePortTraits>,
       SaiObjectStore<SaiBufferPoolTraits>,
       SaiObjectStore<SaiBufferProfileTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      SaiObjectStore<SaiCounterTraits>,
+#endif
       SaiObjectStore<SaiDebugCounterTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiVlanTraits>,
