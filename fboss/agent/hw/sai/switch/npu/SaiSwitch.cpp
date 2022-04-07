@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -60,6 +61,10 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->aclTableManager().updateStats();
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->counterManager().updateStats();
   }
 }
 } // namespace facebook::fboss

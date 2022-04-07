@@ -44,4 +44,19 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
 #endif
 }
 
+void SaiCounterManager::updateStats() {
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  for (const auto& counter : routeCounters_) {
+    auto counterName = counter.first;
+    auto counterHandle = counter.second.lock();
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    counterHandle->counter->updateStats(
+        {SAI_COUNTER_STAT_BYTES}, SAI_STATS_MODE_READ);
+#endif
+    auto& stats = counterHandle->counter->getStats();
+    routeStats_->updateStat(now, counterName, stats.begin()->second);
+  }
+}
+
 } // namespace facebook::fboss
