@@ -840,6 +840,12 @@ void SaiSwitch::processSwitchSettingsChangedLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
     }
   }
+
+  if (oldSwitchSettings->getMaxRouteCounterIDs() !=
+      newSwitchSettings->getMaxRouteCounterIDs()) {
+    managerTable_->counterManager().setMaxRouteCounterIDs(
+        newSwitchSettings->getMaxRouteCounterIDs());
+  }
 }
 
 template <typename LockPolicyT>
