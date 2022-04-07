@@ -2,11 +2,16 @@
 
 #include "fboss/fsdb/server/FsdbPublisherMetadataTracker.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss::fsdb {
 
 void FsdbPublisherMetadataTracker::registerPublisher(PublisherId publisher) {
   publisherId2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
-    ++pub2Metadata[publisher].numOpenConnections;
+    auto& pubMetadata = pub2Metadata[publisher];
+    ++pubMetadata.numOpenConnections;
+    XLOG(DBG2) << " Publisher: " << publisher
+               << " open connections  : " << pubMetadata.numOpenConnections;
   });
 }
 void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
@@ -18,6 +23,7 @@ void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
     CHECK_GT(itr->second.numOpenConnections, 0);
     --itr->second.numOpenConnections;
     if (itr->second.numOpenConnections == 0) {
+      XLOG(DBG2) << " All open connections gone, removing : " << publisher;
       pub2Metadata.erase(itr);
     }
   });
