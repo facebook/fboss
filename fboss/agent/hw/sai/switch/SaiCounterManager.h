@@ -61,6 +61,7 @@ class SaiCounterManager {
   }
   std::shared_ptr<SaiCounterHandle> incRefOrAddRouteCounter(
       std::string counterID);
+  uint64_t getStats(std::string counterID) const;
   void updateStats();
 
  private:

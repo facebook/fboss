@@ -59,4 +59,13 @@ void SaiCounterManager::updateStats() {
   }
 }
 
+uint64_t SaiCounterManager::getStats(std::string counterID) const {
+  auto handle = routeCounters_.get(counterID);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  handle->counter->updateStats({SAI_COUNTER_STAT_BYTES}, SAI_STATS_MODE_READ);
+#endif
+  auto stats = handle->counter->getStats();
+  return stats.begin()->second;
+}
+
 } // namespace facebook::fboss

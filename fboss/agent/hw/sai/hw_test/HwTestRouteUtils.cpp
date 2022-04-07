@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -150,8 +151,20 @@ bool isHwRouteToNextHop(
 }
 
 uint64_t getRouteStat(
-    FOLLY_MAYBE_UNUSED const HwSwitch* hwSwitch,
-    FOLLY_MAYBE_UNUSED std::optional<RouteCounterID> counterID) {
-  throw FbossError("read hw route stats is unsupported for SAI");
+    const HwSwitch* hwSwitch,
+    std::optional<RouteCounterID> counterID) {
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
+  auto retries = 10;
+  auto initialStat =
+      saiSwitch->managerTable()->counterManager().getStats(*counterID);
+  do {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    auto currentStat =
+        saiSwitch->managerTable()->counterManager().getStats(*counterID);
+    if (initialStat != currentStat) {
+      return currentStat;
+    }
+  } while (retries-- > 0);
+  return initialStat;
 }
 } // namespace facebook::fboss::utility
