@@ -1525,6 +1525,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "12": {
+        "mapping": {
+          "id": 12,
+          "name": "eth1/2/4",
+          "controllingPort": 9,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG9",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/2",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "17": {
         "mapping": {
           "id": 17,
@@ -2377,6 +2502,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "20": {
+        "mapping": {
+          "id": 20,
+          "name": "eth1/3/4",
+          "controllingPort": 17,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG9",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG9",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "25": {
         "mapping": {
           "id": 25,
@@ -3218,6 +3468,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "28": {
+        "mapping": {
+          "id": 28,
+          "name": "eth1/4/4",
+          "controllingPort": 25,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG8",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/4",
@@ -4740,6 +5115,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "44": {
+        "mapping": {
+          "id": 44,
+          "name": "eth1/6/4",
+          "controllingPort": 41,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG8",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "49": {
         "mapping": {
           "id": 49,
@@ -5592,6 +6092,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "52": {
+        "mapping": {
+          "id": 52,
+          "name": "eth1/7/4",
+          "controllingPort": 49,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG10",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "57": {
         "mapping": {
           "id": 57,
@@ -6433,6 +7058,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "60": {
+        "mapping": {
+          "id": 60,
+          "name": "eth1/8/4",
+          "controllingPort": 57,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG11",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/8",
@@ -7955,6 +8705,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "76": {
+        "mapping": {
+          "id": 76,
+          "name": "eth1/10/4",
+          "controllingPort": 73,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG11",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "81": {
         "mapping": {
           "id": 81,
@@ -8807,6 +9682,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "84": {
+        "mapping": {
+          "id": 84,
+          "name": "eth1/11/4",
+          "controllingPort": 81,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG10",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "89": {
         "mapping": {
           "id": 89,
@@ -9648,6 +10648,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "92": {
+        "mapping": {
+          "id": 92,
+          "name": "eth1/12/4",
+          "controllingPort": 89,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG10",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG10",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/12",
@@ -11170,6 +12295,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "108": {
+        "mapping": {
+          "id": 108,
+          "name": "eth1/14/4",
+          "controllingPort": 105,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG7",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG7",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG7",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG7",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "113": {
         "mapping": {
           "id": 113,
@@ -12022,6 +13272,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "116": {
+        "mapping": {
+          "id": 116,
+          "name": "eth1/15/4",
+          "controllingPort": 113,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG6",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "121": {
         "mapping": {
           "id": 121,
@@ -12863,6 +14238,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "124": {
+        "mapping": {
+          "id": 124,
+          "name": "eth1/16/4",
+          "controllingPort": 121,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG6",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG6",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/16",
@@ -14385,6 +15885,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "140": {
+        "mapping": {
+          "id": 140,
+          "name": "eth1/18/4",
+          "controllingPort": 137,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/18",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "145": {
         "mapping": {
           "id": 145,
@@ -15237,6 +16862,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "148": {
+        "mapping": {
+          "id": 148,
+          "name": "eth1/19/4",
+          "controllingPort": 145,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG5",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/19",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "153": {
         "mapping": {
           "id": 153,
@@ -16078,6 +17828,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "156": {
+        "mapping": {
+          "id": 156,
+          "name": "eth1/20/4",
+          "controllingPort": 153,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/20",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/20",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/20",
@@ -17600,6 +19475,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "172": {
+        "mapping": {
+          "id": 172,
+          "name": "eth1/22/4",
+          "controllingPort": 169,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG1",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/22",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/22",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "177": {
         "mapping": {
           "id": 177,
@@ -18452,6 +20452,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "180": {
+        "mapping": {
+          "id": 180,
+          "name": "eth1/23/4",
+          "controllingPort": 177,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/23",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "185": {
         "mapping": {
           "id": 185,
@@ -19293,6 +21418,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "188": {
+        "mapping": {
+          "id": 188,
+          "name": "eth1/24/4",
+          "controllingPort": 185,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/24",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/24",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/24",
@@ -20815,6 +23065,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "204": {
+        "mapping": {
+          "id": 204,
+          "name": "eth1/26/4",
+          "controllingPort": 201,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG0",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/26",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG0",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "209": {
         "mapping": {
           "id": 209,
@@ -21667,6 +24042,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "212": {
+        "mapping": {
+          "id": 212,
+          "name": "eth1/27/4",
+          "controllingPort": 209,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG4",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/27",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "217": {
         "mapping": {
           "id": 217,
@@ -22508,6 +25008,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "220": {
+        "mapping": {
+          "id": 220,
+          "name": "eth1/28/4",
+          "controllingPort": 217,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/28",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/28",
@@ -24030,6 +26655,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "236": {
+        "mapping": {
+          "id": 236,
+          "name": "eth1/30/4",
+          "controllingPort": 233,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG3",
+                "lane": 11
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/30",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "241": {
         "mapping": {
           "id": 241,
@@ -24882,6 +27632,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "244": {
+        "mapping": {
+          "id": 244,
+          "name": "eth1/31/4",
+          "controllingPort": 241,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG2",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/31",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "249": {
         "mapping": {
           "id": 249,
@@ -25723,6 +28598,131 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   },
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "252": {
+        "mapping": {
+          "id": 252,
+          "name": "eth1/32/4",
+          "controllingPort": 249,
+          "pins": [
+            {
+              "a": {
+                "chip": "IFG2",
+                "lane": 19
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/32",
+                  "lane": 3
+                }
+              }
+            }
+          ]
+        },
+        "supportedProfiles": {
+          "11": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -75,
+                      "pre2": 0,
+                      "main": 800,
+                      "post": -125,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 59,
+                      "dspMode": 4,
+                      "afeTrim": 4,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "14": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "15": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "IFG2",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": -180,
+                      "pre2": 0,
+                      "main": 600,
+                      "post": -140,
+                      "post2": 0,
+                      "post3": 0
+                    },
+                    "rx": {
+                      "ctlCode": 40,
+                      "dspMode": 4,
+                      "afeTrim": 2,
+                      "acCouplingBypass": 1
+                    }
+                  }
+                ],
+                "transceiver": [
                   {
                     "id": {
                       "chip": "eth1/32",
