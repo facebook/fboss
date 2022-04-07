@@ -89,6 +89,12 @@ const BufferApi& SaiApiTable::bufferApi() const {
   return getApi<BufferApi>();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+const CounterApi& SaiApiTable::counterApi() const {
+  return getApi<CounterApi>();
+}
+#endif
+
 const DebugCounterApi& SaiApiTable::debugCounterApi() const {
   return getApi<DebugCounterApi>();
 }
