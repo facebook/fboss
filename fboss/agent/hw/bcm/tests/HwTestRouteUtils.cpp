@@ -67,24 +67,20 @@ uint64_t getBcmRouteCounter(
         0);
     XLOG(DBG2) << "Route counter id: " << hwCounterId.str()
                << " offset: " << counterIndex
-               << " pkts: " << COMPILER_64_LO(counterValue.value[0]);
-    return COMPILER_64_LO(counterValue.value[0]);
+               << " bytes: " << COMPILER_64_LO(counterValue.value[1]);
+    return COMPILER_64_LO(counterValue.value[1]);
 #else
     return 0;
 #endif
   } else {
     CHECK_EQ(
         bcm_stat_flex_counter_sync_get(
-            unit,
-            counterIndex,
-            bcmStatFlexStatPackets,
-            1,
-            &entry,
-            &routeCounter),
+            unit, counterIndex, bcmStatFlexStatBytes, 1, &entry, &routeCounter),
+
         0);
     XLOG(DBG2) << "Route counter id: " << hwCounterId.str()
-               << " pkts: " << COMPILER_64_LO(routeCounter.packets64);
-    return COMPILER_64_LO(routeCounter.packets64);
+               << " bytes: " << COMPILER_64_LO(routeCounter.bytes);
+    return COMPILER_64_LO(routeCounter.bytes);
   }
 }
 
