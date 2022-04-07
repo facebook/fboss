@@ -172,6 +172,7 @@ class SaiTracer {
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
+  sai_counter_api_t* counterApi_;
   sai_debug_counter_api_t* debugCounterApi_;
   sai_fdb_api_t* fdbApi_;
   sai_hash_api_t* hashApi_;
@@ -304,6 +305,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "bufferPool_"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
+      {SAI_OBJECT_TYPE_COUNTER, "counter_"},
       {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debugCounter_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_HOSTIF, "hostif_"},
@@ -351,6 +353,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "buffer_api->"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "buffer_api->"},
+      {SAI_OBJECT_TYPE_COUNTER, "counter_api->"},
       {SAI_OBJECT_TYPE_DEBUG_COUNTER, "debug_counter_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
@@ -552,7 +555,7 @@ class SaiTracer {
                            attr_name::ExtractSelectionType));               \
   }
 
-#define SET_SAI_ATTRIBUTES(obj_type)                                         \
+#define SET_SAI_REGULAR_ATTRIBUTES(obj_type)                                 \
   void set##obj_type##Attributes(                                            \
       const sai_attribute_t* attr_list,                                      \
       uint32_t attr_count,                                                   \
@@ -585,45 +588,93 @@ class SaiTracer {
           (*listFuncMatch->second)(attr_list, i, listCount++, attrLines);    \
           continue;                                                          \
         }                                                                    \
-      }                                                                      \
-      /* For attributes cannot handled by the aboved method */               \
-      switch (attr_list[i].id) {                                             \
-        case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO: /* 113 */                 \
-        case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME: /* 114 */                   \
-          s8ListAttr(attr_list, i, listCount++, attrLines, true);            \
-          break;                                                             \
-        case SAI_LAG_ATTR_LABEL: /* 9 */                                     \
-          charDataAttr(attr_list, i, attrLines);                             \
-          break;                                                             \
-        case SAI_MACSEC_SA_ATTR_AUTH_KEY:                                    \
-          u8ArrGenericAttr(                                                  \
-              static_cast<const uint8_t*>(attr_list[i].value.macsecauthkey), \
-              16,                                                            \
-              i,                                                             \
-              attrLines,                                                     \
-              "macsecauthkey");                                              \
-          break;                                                             \
-        case SAI_MACSEC_SA_ATTR_SAK:                                         \
-          u8ArrGenericAttr(                                                  \
-              static_cast<const uint8_t*>(attr_list[i].value.macsecsak),     \
-              32,                                                            \
-              i,                                                             \
-              attrLines,                                                     \
-              "macsecsak");                                                  \
-          break;                                                             \
-        case SAI_MACSEC_SA_ATTR_SALT:                                        \
-          u8ArrGenericAttr(                                                  \
-              static_cast<const uint8_t*>(attr_list[i].value.macsecsalt),    \
-              12,                                                            \
-              i,                                                             \
-              attrLines,                                                     \
-              "macsecsalt");                                                 \
-        default:                                                             \
-          XLOG(WARN) << "Unsupported object type " << #obj_type              \
-                     << " attribute " << attr_list[i].id                     \
-                     << " in Sai Replayer";                                  \
-      }                                                                      \
-    }                                                                        \
-  }
+      }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+#define SET_SAI_STRING_ATTRIBUTES(obj_type)                                  \
+  /* For attributes cannot handled by the aboved method */                   \
+  switch (attr_list[i].id) {                                                 \
+    case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO: /* 113 */                     \
+    case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME: /* 114 */                       \
+      s8ListAttr(attr_list, i, listCount++, attrLines, true);                \
+      break;                                                                 \
+    case SAI_LAG_ATTR_LABEL: /* 9 */                                         \
+    case SAI_COUNTER_ATTR_LABEL: /* 1 */                                     \
+      charDataAttr(attr_list, i, attrLines);                                 \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_AUTH_KEY:                                        \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecauthkey),     \
+          16,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecauthkey");                                                  \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_SAK:                                             \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecsak),         \
+          32,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecsak");                                                      \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_SALT:                                            \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecsalt),        \
+          12,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecsalt");                                                     \
+    default:                                                                 \
+      XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
+                 << attr_list[i].id << " in Sai Replayer";                   \
+  }                                                                          \
+  }                                                                          \
+  }
+#else
+#define SET_SAI_STRING_ATTRIBUTES(obj_type)                                  \
+  /* For attributes cannot handled by the aboved method */                   \
+  switch (attr_list[i].id) {                                                 \
+    case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO: /* 113 */                     \
+    case SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME: /* 114 */                       \
+      s8ListAttr(attr_list, i, listCount++, attrLines, true);                \
+      break;                                                                 \
+    case SAI_LAG_ATTR_LABEL: /* 9 */                                         \
+      charDataAttr(attr_list, i, attrLines);                                 \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_AUTH_KEY:                                        \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecauthkey),     \
+          16,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecauthkey");                                                  \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_SAK:                                             \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecsak),         \
+          32,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecsak");                                                      \
+      break;                                                                 \
+    case SAI_MACSEC_SA_ATTR_SALT:                                            \
+      u8ArrGenericAttr(                                                      \
+          static_cast<const uint8_t*>(attr_list[i].value.macsecsalt),        \
+          12,                                                                \
+          i,                                                                 \
+          attrLines,                                                         \
+          "macsecsalt");                                                     \
+    default:                                                                 \
+      XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
+                 << attr_list[i].id << " in Sai Replayer";                   \
+  }                                                                          \
+  }                                                                          \
+  }
+#endif
+
+// TODO - Combine this to once macro once the SAI SDK dependency is gone
+#define SET_SAI_ATTRIBUTES(obj_type)   \
+  SET_SAI_REGULAR_ATTRIBUTES(obj_type) \
+  SET_SAI_STRING_ATTRIBUTES(obj_type)
 } // namespace facebook::fboss
