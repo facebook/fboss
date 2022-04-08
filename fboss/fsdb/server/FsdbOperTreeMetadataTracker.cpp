@@ -6,16 +6,18 @@
 
 namespace facebook::fboss::fsdb {
 
-void FsdbOperTreeMetadataTracker::registerPublisher(PublisherId publisher) {
-  publisherId2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
+void FsdbOperTreeMetadataTracker::registerPublisherImpl(
+    const std::string& publisher) {
+  publisherRoot2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
     auto& pubMetadata = pub2Metadata[publisher];
     ++pubMetadata.numOpenConnections;
     XLOG(DBG2) << " Publisher: " << publisher
                << " open connections  : " << pubMetadata.numOpenConnections;
   });
 }
-void FsdbOperTreeMetadataTracker::unregisterPublisher(PublisherId publisher) {
-  publisherId2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
+void FsdbOperTreeMetadataTracker::unregisterPublisherImpl(
+    const std::string& publisher) {
+  publisherRoot2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
     auto itr = pub2Metadata.find(publisher);
     if (itr == pub2Metadata.end()) {
       return;
@@ -29,11 +31,11 @@ void FsdbOperTreeMetadataTracker::unregisterPublisher(PublisherId publisher) {
   });
 }
 
-void FsdbOperTreeMetadataTracker::updateMetadata(
-    const PublisherId& publisher,
+void FsdbOperTreeMetadataTracker::updateMetadataImpl(
+    const std::string& publisher,
     const OperMetadata& metadata,
     bool enforceForwardProgress) {
-  publisherId2Metadata_.withWLock([&](auto& pub2Metadata) {
+  publisherRoot2Metadata_.withWLock([&](auto& pub2Metadata) {
     auto itr = pub2Metadata.find(publisher);
     if (itr == pub2Metadata.end()) {
       throw std::runtime_error(
@@ -61,9 +63,19 @@ void FsdbOperTreeMetadataTracker::updateMetadata(
   });
 }
 
-FsdbOperTreeMetadataTracker::PublisherId2Metadata
+FsdbOperTreeMetadataTracker::PublisherRoot2Metadata
 FsdbOperTreeMetadataTracker::getAllMetadata() const {
-  auto pub2Metadata = publisherId2Metadata_.rlock();
+  auto pub2Metadata = publisherRoot2Metadata_.rlock();
   return *pub2Metadata;
+}
+
+std::optional<FsdbOperTreeMetadata>
+FsdbOperTreeMetadataTracker::getPublisherRootMetadataImpl(
+    const std::string& root) const {
+  auto pub2Metadata = publisherRoot2Metadata_.rlock();
+  auto itr = pub2Metadata->find(root);
+  return itr == pub2Metadata->end()
+      ? std::nullopt
+      : std::optional<FsdbOperTreeMetadata>(itr->second);
 }
 } // namespace facebook::fboss::fsdb

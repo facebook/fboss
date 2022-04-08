@@ -4,86 +4,88 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss::fsdb::test {
+namespace {
 auto constexpr kPublisherId = "publisher";
-class PublisherMetadataTrackerTest : public ::testing::Test {
+const std::vector<std::string> kPublishRoot{"agent"};
+} // namespace
+class PublisherTreeMetadataTrackerTest : public ::testing::Test {
  protected:
   FsdbOperTreeMetadata getMetadata(
-      const PublisherId& publisher = kPublisherId) const {
-    auto allMetadata = metadataTracker_.getAllMetadata();
-    auto itr = allMetadata.find(kPublisherId);
-    if (itr == allMetadata.end()) {
+      const std::vector<std::string>& path = kPublishRoot) const {
+    auto metadata = metadataTracker_.getPublisherRootMetadata(path);
+    if (!metadata) {
       throw std::runtime_error(
-          "Publisher: " + publisher + " metadata not found");
+          "Publisher root " + *path.begin() + " metadata not found");
     }
-    return itr->second;
+    return *metadata;
   }
   FsdbOperTreeMetadataTracker metadataTracker_;
 };
 
-TEST_F(PublisherMetadataTrackerTest, registerUnregisterPublishers) {
-  metadataTracker_.registerPublisher(kPublisherId);
-  metadataTracker_.registerPublisher(kPublisherId);
+TEST_F(PublisherTreeMetadataTrackerTest, registerUnregisterPublishers) {
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  metadataTracker_.unregisterPublisher(kPublisherId);
+  metadataTracker_.unregisterPublisherRoot(kPublishRoot);
   EXPECT_EQ(getMetadata().numOpenConnections, 1);
-  metadataTracker_.unregisterPublisher(kPublisherId);
+  metadataTracker_.unregisterPublisherRoot(kPublishRoot);
   EXPECT_THROW(getMetadata(), std::runtime_error);
 }
 
-TEST_F(PublisherMetadataTrackerTest, updateMetadataUnregisteredPublisher) {
+TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataUnregisteredPublisher) {
   EXPECT_THROW(
-      metadataTracker_.updateMetadata(kPublisherId, {}), std::runtime_error);
+      metadataTracker_.updateMetadata(kPublishRoot, {}), std::runtime_error);
 }
 
-TEST_F(PublisherMetadataTrackerTest, updateMetadata) {
-  metadataTracker_.registerPublisher(kPublisherId);
-  metadataTracker_.registerPublisher(kPublisherId);
+TEST_F(PublisherTreeMetadataTrackerTest, updateMetadata) {
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
   OperMetadata metadata;
   // Update lastConfirmedAtSecsSinceEpoch
   metadata.lastConfirmedAtSecsSinceEpoch() = 10;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 0);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   // No movement back
   metadata.lastConfirmedAtSecsSinceEpoch() = 9;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   // Update generation numbers
   metadata.generation() = 5;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
   // No movement back
   metadata.generation() = 4;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
 }
 
-TEST_F(PublisherMetadataTrackerTest, updateMetadataMoveback) {
-  metadataTracker_.registerPublisher(kPublisherId);
-  metadataTracker_.registerPublisher(kPublisherId);
+TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataMoveback) {
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
+  metadataTracker_.registerPublisherRoot(kPublishRoot);
   OperMetadata metadata;
   // Update lastConfirmedAtSecsSinceEpoch
   metadata.lastConfirmedAtSecsSinceEpoch() = 10;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 0);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   // Move back
   metadata.lastConfirmedAtSecsSinceEpoch() = 9;
-  metadataTracker_.updateMetadata(kPublisherId, metadata, false);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 9);
   // Update generation numbers
   metadata.generation() = 5;
-  metadataTracker_.updateMetadata(kPublisherId, metadata);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 9);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
   // Move back
   metadata.generation() = 4;
-  metadataTracker_.updateMetadata(kPublisherId, metadata, false);
+  metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
   EXPECT_EQ(*getMetadata().operMetadata.generation(), 4);
 }
 } // namespace facebook::fboss::fsdb::test
