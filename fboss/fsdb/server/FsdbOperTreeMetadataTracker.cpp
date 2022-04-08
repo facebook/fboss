@@ -1,12 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/fsdb/server/FsdbPublisherMetadataTracker.h"
+#include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::fsdb {
 
-void FsdbPublisherMetadataTracker::registerPublisher(PublisherId publisher) {
+void FsdbOperTreeMetadataTracker::registerPublisher(PublisherId publisher) {
   publisherId2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
     auto& pubMetadata = pub2Metadata[publisher];
     ++pubMetadata.numOpenConnections;
@@ -14,7 +14,7 @@ void FsdbPublisherMetadataTracker::registerPublisher(PublisherId publisher) {
                << " open connections  : " << pubMetadata.numOpenConnections;
   });
 }
-void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
+void FsdbOperTreeMetadataTracker::unregisterPublisher(PublisherId publisher) {
   publisherId2Metadata_.withWLock([&publisher](auto& pub2Metadata) {
     auto itr = pub2Metadata.find(publisher);
     if (itr == pub2Metadata.end()) {
@@ -29,7 +29,7 @@ void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
   });
 }
 
-void FsdbPublisherMetadataTracker::updateMetadata(
+void FsdbOperTreeMetadataTracker::updateMetadata(
     const PublisherId& publisher,
     const OperMetadata& metadata,
     bool enforceForwardProgress) {
@@ -61,8 +61,8 @@ void FsdbPublisherMetadataTracker::updateMetadata(
   });
 }
 
-FsdbPublisherMetadataTracker::PublisherId2Metadata
-FsdbPublisherMetadataTracker::getAllMetadata() const {
+FsdbOperTreeMetadataTracker::PublisherId2Metadata
+FsdbOperTreeMetadataTracker::getAllMetadata() const {
   auto pub2Metadata = publisherId2Metadata_.rlock();
   return *pub2Metadata;
 }

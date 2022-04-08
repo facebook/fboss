@@ -1,13 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/fsdb/server/FsdbPublisherMetadataTracker.h"
+#include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include <gtest/gtest.h>
 
 namespace facebook::fboss::fsdb::test {
 auto constexpr kPublisherId = "publisher";
 class PublisherMetadataTrackerTest : public ::testing::Test {
  protected:
-  FsdbPublisherMetadata getMetadata(
+  FsdbOperTreeMetadata getMetadata(
       const PublisherId& publisher = kPublisherId) const {
     auto allMetadata = metadataTracker_.getAllMetadata();
     auto itr = allMetadata.find(kPublisherId);
@@ -17,7 +17,7 @@ class PublisherMetadataTrackerTest : public ::testing::Test {
     }
     return itr->second;
   }
-  FsdbPublisherMetadataTracker metadataTracker_;
+  FsdbOperTreeMetadataTracker metadataTracker_;
 };
 
 TEST_F(PublisherMetadataTrackerTest, registerUnregisterPublishers) {

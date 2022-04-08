@@ -9,18 +9,18 @@
 #include <unordered_map>
 
 namespace facebook::fboss::fsdb {
-struct FsdbPublisherMetadata {
-  FsdbPublisherMetadata() {
+struct FsdbOperTreeMetadata {
+  FsdbOperTreeMetadata() {
     operMetadata.generation() = 0;
     operMetadata.lastConfirmedAtSecsSinceEpoch() = 0;
   }
   OperMetadata operMetadata;
   uint64_t numOpenConnections{0};
 };
-class FsdbPublisherMetadataTracker {
+class FsdbOperTreeMetadataTracker {
  public:
-  FsdbPublisherMetadataTracker() = default;
-  ~FsdbPublisherMetadataTracker() = default;
+  FsdbOperTreeMetadataTracker() = default;
+  ~FsdbOperTreeMetadataTracker() = default;
   void registerPublisher(PublisherId publisher);
   void unregisterPublisher(PublisherId publisher);
   void updateMetadata(
@@ -35,13 +35,13 @@ class FsdbPublisherMetadataTracker {
       bool enforceForwardProgress = true);
 
   using PublisherId2Metadata =
-      std::unordered_map<PublisherId, FsdbPublisherMetadata>;
+      std::unordered_map<PublisherId, FsdbOperTreeMetadata>;
 
   PublisherId2Metadata getAllMetadata() const;
 
  private:
-  FsdbPublisherMetadataTracker(const FsdbPublisherMetadataTracker&) = delete;
-  FsdbPublisherMetadataTracker& operator=(const FsdbPublisherMetadataTracker&) =
+  FsdbOperTreeMetadataTracker(const FsdbOperTreeMetadataTracker&) = delete;
+  FsdbOperTreeMetadataTracker& operator=(const FsdbOperTreeMetadataTracker&) =
       delete;
 
   folly::Synchronized<PublisherId2Metadata> publisherId2Metadata_;
