@@ -98,6 +98,49 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   return mode;
 }
 
+phy::FecMode getFecModeFromSaiFecMode(
+    sai_port_fec_mode_t fec,
+    cfg::PortProfileID profileID) {
+  phy::FecMode mode;
+  switch (fec) {
+    case SAI_PORT_FEC_MODE_NONE:
+      mode = phy::FecMode::NONE;
+      break;
+
+    case SAI_PORT_FEC_MODE_RS:
+      switch (profileID) {
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91:
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
+          mode = phy::FecMode::CL91;
+          break;
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
+        case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_COPPER:
+        case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
+        case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
+          mode = phy::FecMode::RS528;
+          break;
+        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
+        case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N:
+        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+        case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
+          mode = phy::FecMode::RS544_2N;
+          break;
+        default:
+          mode = phy::FecMode::NONE;
+      }
+      break;
+
+    case SAI_PORT_FEC_MODE_FC:
+      mode = phy::FecMode::CL74;
+      break;
+  }
+  return mode;
+}
+
 sai_port_ptp_mode_t getSaiPortPtpMode(bool enable) {
   // NOTE: SAI_PORT_PTP_MODE_TWO_STEP_TIMESTAMP is not supported
   return enable ? SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP

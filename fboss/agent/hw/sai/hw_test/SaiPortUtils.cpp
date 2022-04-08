@@ -354,6 +354,12 @@ void verifyFec(
   // retrive configured fec.
   auto expectedFec = utility::getSaiPortFecMode(*expectedProfileConfig.fec());
 
+  // Convert expectedFec back to FecMode to verify
+  // utility::getFecModeFromSaiFecMode
+  EXPECT_EQ(
+      utility::getFecModeFromSaiFecMode(expectedFec, profileID),
+      *expectedProfileConfig.fec());
+
   // retrive programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();
   auto programmedFec = portApi.getAttribute(

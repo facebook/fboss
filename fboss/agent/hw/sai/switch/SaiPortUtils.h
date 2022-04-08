@@ -35,4 +35,8 @@ sai_port_ptp_mode_t getSaiPortPtpMode(bool enable);
 cfg::PortLoopbackMode getCfgPortInternalLoopbackMode(
     sai_port_internal_loopback_mode_t mode);
 
+phy::FecMode getFecModeFromSaiFecMode(
+    sai_port_fec_mode_t fec,
+    cfg::PortProfileID profileID);
+
 } // namespace facebook::fboss::utility
