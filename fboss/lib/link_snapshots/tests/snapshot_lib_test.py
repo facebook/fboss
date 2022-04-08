@@ -36,8 +36,8 @@ PORT_NAME = "eth2/1/1"
 # redefined here instead of importing from snapshot_lib to catch log name typos
 AGENT_CURRENT_LOG = "/var/facebook/logs/fboss/wedge_agent.log"
 QSFP_CURRENT_LOG = "/var/facebook/logs/fboss/qsfp_service.log"
-AGENT_ARCHIVE_FMT = ARCHIVE_PATH + "wedge_agent.log-{}.gz"
-QSFP_ARCHIVE_FMT = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
+AGENT_ARCHIVE_FMT: str = ARCHIVE_PATH + "wedge_agent.log-{}.gz"
+QSFP_ARCHIVE_FMT: str = ARCHIVE_PATH + "qsfp_service.log-{}.gz"
 
 
 def build_iphy_snapshot(timestamp: int, port_name: str) -> LinkSnapshot:
