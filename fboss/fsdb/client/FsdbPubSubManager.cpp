@@ -129,30 +129,28 @@ void FsdbPubSubManager::createStatPathPublisher(
 }
 
 template <typename PublisherT, typename PubUnitT>
-void FsdbPubSubManager::publishImpl(
-    PublisherT* publisher,
-    const PubUnitT& pubUnit) {
+void FsdbPubSubManager::publishImpl(PublisherT* publisher, PubUnitT&& pubUnit) {
   if (!publisher) {
     throw std::runtime_error("Publisher must be created before publishing");
   }
   std::lock_guard<std::mutex> lk(publisherMutex_);
-  publisher->write(pubUnit);
+  publisher->write(std::forward<PubUnitT>(pubUnit));
 }
 
-void FsdbPubSubManager::publishState(const OperDelta& pubUnit) {
-  publishImpl(stateDeltaPublisher_.get(), pubUnit);
+void FsdbPubSubManager::publishState(OperDelta&& pubUnit) {
+  publishImpl(stateDeltaPublisher_.get(), std::move(pubUnit));
 }
 
-void FsdbPubSubManager::publishState(const OperState& pubUnit) {
-  publishImpl(statePathPublisher_.get(), pubUnit);
+void FsdbPubSubManager::publishState(OperState&& pubUnit) {
+  publishImpl(statePathPublisher_.get(), std::move(pubUnit));
 }
 
-void FsdbPubSubManager::publishStat(const OperDelta& pubUnit) {
-  publishImpl(statDeltaPublisher_.get(), pubUnit);
+void FsdbPubSubManager::publishStat(OperDelta&& pubUnit) {
+  publishImpl(statDeltaPublisher_.get(), std::move(pubUnit));
 }
 
-void FsdbPubSubManager::publishStat(const OperState& pubUnit) {
-  publishImpl(statPathPublisher_.get(), pubUnit);
+void FsdbPubSubManager::publishStat(OperState&& pubUnit) {
+  publishImpl(statPathPublisher_.get(), std::move(pubUnit));
 }
 
 void FsdbPubSubManager::addStateDeltaSubscription(

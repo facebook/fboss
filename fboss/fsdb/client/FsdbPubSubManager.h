@@ -40,10 +40,10 @@ class FsdbPubSubManager {
       int32_t fsdbPort = FLAGS_fsdbPort);
 
   /* Publisher APIs */
-  void publishState(const OperDelta& pubUnit);
-  void publishState(const OperState& pubUnit);
-  void publishStat(const OperDelta& pubUnit);
-  void publishStat(const OperState& pubUnit);
+  void publishState(OperDelta&& pubUnit);
+  void publishState(OperState&& pubUnit);
+  void publishStat(OperDelta&& pubUnit);
+  void publishStat(OperState&& pubUnit);
 
   /* Subscriber add APIs */
   void addStateDeltaSubscription(
@@ -103,7 +103,7 @@ class FsdbPubSubManager {
  private:
   // Publisher helpers
   template <typename PublisherT, typename PubUnitT>
-  void publishImpl(PublisherT* publisher, const PubUnitT& pubUnit);
+  void publishImpl(PublisherT* publisher, PubUnitT&& pubUnit);
   template <typename PublisherT>
   std::unique_ptr<PublisherT> createPublisherImpl(
       const std::lock_guard<std::mutex>& /*lk*/,

@@ -20,23 +20,17 @@ OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
 }
 
 template <typename PubUnit>
-void FsdbPublisher<PubUnit>::write(const PubUnit& pubUnit) {
-  bool ret{false};
-  if (pubUnit.metadata() &&
-      pubUnit.metadata()->lastConfirmedAtSecsSinceEpoch()) {
-    ret = toPublishQueue_.try_enqueue(pubUnit);
-  } else {
-    PubUnit unit = pubUnit;
-    if (!unit.metadata()) {
-      unit.metadata() = OperMetadata{};
-    }
+void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
+  if (!pubUnit.metadata()) {
+    pubUnit.metadata() = OperMetadata{};
+  }
+  if (!pubUnit.metadata()->lastConfirmedAtSecsSinceEpoch()) {
     auto now = std::chrono::system_clock::now();
-    unit.metadata()->lastConfirmedAtSecsSinceEpoch() =
+    pubUnit.metadata()->lastConfirmedAtSecsSinceEpoch() =
         std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
             .count();
-    ret = toPublishQueue_.try_enqueue(unit);
   }
-  if (!ret) {
+  if (!toPublishQueue_.try_enqueue(std::move(pubUnit))) {
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
     ex.message_ref() = "Unable to queue delta";
