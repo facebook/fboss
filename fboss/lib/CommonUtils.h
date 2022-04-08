@@ -100,7 +100,7 @@ inline int64_t getCumulativeValue(
     /* If any previous tests failed, do not run any more tests until   \
      * next iteration                                                  \
      */                                                                \
-    if (!WITH_RETRIES_pass) {                                          \
+    if (WITH_RETRIES_pass) {                                           \
       /* Set flag for upcoming asserts to read */                      \
       WITH_RETRIES_pass &= softTest;                                   \
     }                                                                  \
