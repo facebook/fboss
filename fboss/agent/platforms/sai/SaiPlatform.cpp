@@ -219,7 +219,12 @@ void SaiPlatform::initPorts() {
     } else if (platformMode == PlatformMode::FUJI) {
       saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::ELBERT) {
-      saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
+      if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+        saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
+      } else if (
+          getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+        // TODO: create SaiBcmElbertPlatformPort for iphy here
+      }
     } else if (platformMode == PlatformMode::LASSEN) {
       saiPort = std::make_unique<SaiLassenPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::SANDIA) {
