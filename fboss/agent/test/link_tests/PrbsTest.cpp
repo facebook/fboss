@@ -63,16 +63,47 @@ class PrbsTest : public LinkTest {
   }
 
   void runTest() {
+    phy::PortPrbsState enabledState;
+    enabledState.enabled_ref() = true;
+    enabledState.polynominal_ref() = static_cast<int>(Polynomial);
+
+    phy::PortPrbsState disabledState;
+    disabledState.enabled_ref() = false;
+
     // 1. Enable PRBS on all Ports
+    XLOG(INFO) << "Enabling PRBS";
+    checkWithRetry(
+        [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
+
     // 2. Check Prbs State on all ports, they all should be enabled
+    XLOG(INFO) << "Checking PRBS state after enabling PRBS";
+    checkWithRetry([this, &enabledState] {
+      return checkPrbsStateOnAllInterfaces(enabledState);
+    });
+
     // 3. Let PRBS run for 30 seconds so that we can check the BER later
+    /* sleep override */ std::this_thread::sleep_for(30s);
+
     // 4. Check PRBS stats, expect no loss of lock
     // 5. Clear PRBS stats
     // 6. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
     // 7. Disable PRBS on all Ports
+    XLOG(INFO) << "Disabling PRBS";
+    checkWithRetry([this, &disabledState] {
+      return setPrbsOnAllInterfaces(disabledState);
+    });
+
     // 8. Check Prbs State on all ports, they all should be disabled
+    XLOG(INFO) << "Checking PRBS state after disabling PRBS";
+    checkWithRetry([this, &disabledState] {
+      return checkPrbsStateOnAllInterfaces(disabledState);
+    });
+
     // 9. Link and traffic should come back up now
+    XLOG(INFO) << "Waiting for links and traffic to come back up";
+    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
   }
 
   virtual std::vector<std::pair<std::string, phy::PrbsComponent>>
@@ -81,6 +112,104 @@ class PrbsTest : public LinkTest {
  private:
   std::vector<std::pair<std::string, phy::PrbsComponent>>
       portsAndComponentsToTest_;
+
+  template <class Client>
+  bool setPrbsOnInterface(
+      Client* client,
+      std::string& interfaceName,
+      phy::PrbsComponent component,
+      phy::PortPrbsState& state) {
+    try {
+      client->sync_setInterfacePrbs(interfaceName, component, state);
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+    return true;
+  }
+
+  bool setPrbsOnAllInterfaces(phy::PortPrbsState& state) {
+    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
+      auto interfaceName = portAndComponentPair.first;
+      auto component = portAndComponentPair.second;
+      if (component == phy::PrbsComponent::ASIC) {
+        // TODO: Not supported yet
+        return false;
+      } else if (
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        // TODO: Not supported yet
+        return false;
+      } else {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        checkWithRetry([this,
+                        &interfaceName,
+                        component,
+                        &state,
+                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+          return setPrbsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
+              qsfpServiceClient.get(), interfaceName, component, state);
+        });
+      }
+    }
+    return true;
+  }
+
+  bool checkPrbsStateOnAllInterfaces(phy::PortPrbsState& state) {
+    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
+      auto interfaceName = portAndComponentPair.first;
+      auto component = portAndComponentPair.second;
+      if (component == phy::PrbsComponent::ASIC) {
+        // TODO: Not supported yet
+        return false;
+      } else if (
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        // TODO: Not supported yet
+        return false;
+      } else {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        checkWithRetry([this,
+                        &interfaceName,
+                        component,
+                        &state,
+                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+          return checkPrbsStateOnInterface<
+              facebook::fboss::QsfpServiceAsyncClient>(
+              qsfpServiceClient.get(), interfaceName, component, state);
+        });
+      }
+    }
+    return true;
+  }
+
+  template <class Client>
+  bool checkPrbsStateOnInterface(
+      Client* client,
+      std::string interfaceName,
+      phy::PrbsComponent component,
+      phy::PortPrbsState& expectedState) {
+    try {
+      phy::PortPrbsState state;
+      client->sync_getInterfacePrbsState(state, interfaceName, component);
+      if (*expectedState.enabled()) {
+        // Check both enabled state and polynomial when expected state is
+        // enabled
+        return *state.enabled() &&
+            *state.polynominal() == *expectedState.polynominal();
+      } else {
+        // Don't care about polynomial state when prbs is expected to be
+        // disabled
+        return !(*state.enabled());
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Checking PRBS State on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+  }
+
   template <class Client>
   bool checkPrbsSupportedOnInterface(
       Client* client,
