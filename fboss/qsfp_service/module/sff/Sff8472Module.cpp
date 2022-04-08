@@ -5,6 +5,7 @@
 #include <string>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/Sff8472FieldInfo.h"
@@ -359,6 +360,23 @@ Vendor Sff8472Module::getVendorInfo() {
   vendor.serialNumber() = getSfpString(Sff8472Field::VENDOR_SERIAL_NUMBER);
   vendor.dateCode() = getSfpString(Sff8472Field::VENDOR_MFG_DATE);
   return vendor;
+}
+
+bool Sff8472Module::remediateFlakyTransceiver() {
+  XLOG(INFO) << "Performing potentially disruptive remediations on "
+             << qsfpImpl_->getName();
+
+  // This api accept 1 based module id however the module id in WedgeManager
+  // is 0 based.
+  // Note that triggering a hard reset on a SFP module used with a QSFP-to-SFP
+  // adapter actually toggles the txDisable line
+  transceiverManager_->getQsfpPlatformApi()->triggerQsfpHardReset(
+      static_cast<unsigned int>(getID()) + 1);
+
+  // Even though remediation might not trigger, we still need to update the
+  // lastRemediateTime_ so that we can use cool down before next remediation
+  lastRemediateTime_ = std::time(nullptr);
+  return true;
 }
 
 } // namespace fboss

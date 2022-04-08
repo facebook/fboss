@@ -12,6 +12,7 @@
 
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
@@ -25,6 +26,42 @@ const auto kColdBootAgentConfigChangedFnStr =
     "Triggering Agent config changed w/ cold boot";
 const auto kRemediateTransceiverFnStr = "Remediating transceiver";
 } // namespace
+
+class MockSff8472TransceiverImpl : public Sfp10GTransceiver {
+ public:
+  explicit MockSff8472TransceiverImpl(int module) : Sfp10GTransceiver(module) {}
+
+  MOCK_METHOD0(detectTransceiver, bool());
+};
+
+class MockSff8472Module : public Sff8472Module {
+ public:
+  explicit MockSff8472Module(
+      TransceiverManager* transceiverManager,
+      std::unique_ptr<MockSff8472TransceiverImpl> qsfpImpl,
+      unsigned int portsPerTransceiver)
+      : Sff8472Module(
+            transceiverManager,
+            std::move(qsfpImpl),
+            portsPerTransceiver) {
+    ON_CALL(*this, updateQsfpData(testing::_))
+        .WillByDefault(testing::Assign(&dirty_, false));
+  }
+
+  MockSff8472TransceiverImpl* getTransceiverImpl() {
+    return static_cast<MockSff8472TransceiverImpl*>(qsfpImpl_.get());
+  }
+
+  MOCK_METHOD0(configureModule, void());
+  MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
+
+  MOCK_CONST_METHOD1(
+      ensureRxOutputSquelchEnabled,
+      void(const std::vector<HostLaneSettings>&));
+  MOCK_METHOD0(resetDataPath, void());
+  MOCK_METHOD1(updateQsfpData, void(bool));
+  MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
+};
 
 /*
  * Because this is a TransceiverStateMachine test, we only care the functions
@@ -86,6 +123,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     CMIS,
     MOCK_CMIS,
     MOCK_SFF,
+    MOCK_SFF8472,
   };
 
   QsfpModule* overrideTransceiver(
@@ -134,6 +172,20 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       return xcvr;
     };
 
+    auto overrideSff8472Module = [this]() {
+      transceiverManager_->overrideMgmtInterface(
+          static_cast<int>(id_) + 1,
+          uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
+      XLOG(INFO) << "Making Mock SFF8472 SFP for " << id_;
+      auto xcvrImpl = std::make_unique<MockSff8472TransceiverImpl>(id_);
+      EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+          .WillRepeatedly(::testing::Return(true));
+      return transceiverManager_->overrideTransceiverForTesting(
+          id_,
+          std::make_unique<MockSff8472Module>(
+              transceiverManager_.get(), std::move(xcvrImpl), 1));
+    };
+
     Transceiver* xcvr;
     switch (type) {
       case TransceiverType::CMIS:
@@ -144,6 +196,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         break;
       case TransceiverType::MOCK_SFF:
         xcvr = overrideSffModule();
+        break;
+      case TransceiverType::MOCK_SFF8472:
+        xcvr = overrideSff8472Module();
         break;
     }
     EXPECT_TRUE(xcvr->getLastDownTime() != 0);
@@ -1037,6 +1092,69 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
       [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
+      kRemediateTransceiverFnStr);
+}
+
+TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
+  enableRemediationTesting();
+  auto allStates = getAllStates();
+  // Only INACTIVE can accept REMEDIATE_TRANSCEIVER event
+  verifyStateMachine(
+      {TransceiverStateMachineState::INACTIVE},
+      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED /* expected state */,
+      allStates,
+      [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
+        // We trigger a hard reset as remediation
+        MockTransceiverPlatformApi* xcvrApi =
+            static_cast<MockTransceiverPlatformApi*>(
+                transceiverManager_->getQsfpPlatformApi());
+        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(1);
+      },
+      [this]() { triggerRemediateEvents(); },
+      [this]() {
+        // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
+        // reprogram the xcvr again
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Now trigger program transceiver, it should move on to the next state
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        EXPECT_EQ(
+            transceiverManager_->getCurrentState(id_),
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+        const auto& newStateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
+      },
+      TransceiverType::MOCK_SFF8472,
+      kRemediateTransceiverFnStr);
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      allStates,
+      [this]() {
+        // Before trigger remediation, remove remediation pause
+        transceiverManager_->setPauseRemediation(0);
+        // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
+        /* sleep override */
+        sleep(1);
+
+        // Make sure no triggerQsfpHardReset() has been called
+        MockTransceiverPlatformApi* xcvrApi =
+            static_cast<MockTransceiverPlatformApi*>(
+                transceiverManager_->getQsfpPlatformApi());
+        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(0);
+      } /* preUpdate */,
+      [this]() { triggerRemediateEvents(); },
+      []() {} /* verify */,
+      TransceiverType::MOCK_SFF8472,
       kRemediateTransceiverFnStr);
 }
 

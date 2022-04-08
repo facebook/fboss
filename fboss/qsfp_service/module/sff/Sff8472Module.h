@@ -119,6 +119,8 @@ class Sff8472Module : public QsfpModule {
 
   void updateQsfpData(bool allPages = true) override;
 
+  bool remediateFlakyTransceiver() override;
+
   double getQsfpDACLength() const override {
     return 0;
   }
