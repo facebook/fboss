@@ -1,8 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/lib/usb/tests/MockTransceiverI2CApi.h"
+#include <folly/logging/xlog.h>
 #include <exception>
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+
+#include "fboss/lib/usb/tests/MockTransceiverI2CApi.h"
 
 namespace facebook::fboss {
 
@@ -36,6 +38,15 @@ void MockTransceiverI2CApi::moduleRead(
     } else {
       buf[0] = uint8_t(TransceiverModuleIdentifier::QSFP28);
     }
+  } else if (const auto tcvrItor = overridenTransceivers_.find(module);
+             tcvrItor != overridenTransceivers_.end()) {
+    tcvrItor->second->readTransceiver(param, buf);
+  } else {
+    XLOG(ERR)
+        << "moduleRead(module=" << module << ", i2cAddress=" << i2cAddress
+        << ", offset=" << offset << ", len=" << len
+        << "): FIXME: Reading undefined data. Returning zerod data as workaround.";
+    memset(buf, 0, len);
   }
 }
 
@@ -58,5 +69,32 @@ void MockTransceiverI2CApi::overrideMgmtInterface(
     unsigned int id,
     uint8_t mgmt) {
   overridenMgmtInterface_[id] = mgmt;
+  switch (mgmt) {
+    case uint8_t(TransceiverModuleIdentifier::UNKNOWN):
+      overridenTransceivers_[id] =
+          std::make_unique<UnknownModuleIdentifierTransceiver>(id);
+      break;
+    case uint8_t(TransceiverModuleIdentifier::SFP_PLUS):
+      overridenTransceivers_[id] = std::make_unique<Sfp10GTransceiver>(id);
+      break;
+    case uint8_t(TransceiverModuleIdentifier::QSFP):
+    case uint8_t(TransceiverModuleIdentifier::QSFP_PLUS):
+    case uint8_t(TransceiverModuleIdentifier::QSFP28):
+      overridenTransceivers_[id] = std::make_unique<SffDacTransceiver>(id);
+      break;
+    case uint8_t(TransceiverModuleIdentifier::QSFP_DD):
+    case uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS):
+      overridenTransceivers_[id] = std::make_unique<Cmis200GTransceiver>(id);
+      break;
+    case uint8_t(TransceiverModuleIdentifier::MINIPHOTON_OBO):
+      overridenTransceivers_[id] =
+          std::make_unique<MiniphotonOBOTransceiver>(id);
+      break;
+    default:
+      overridenTransceivers_.erase(id);
+      XLOG(ERR) << "Unknown transceiver module identifier " << mgmt
+                << "for management interface " << id;
+      break;
+  }
 }
 } // namespace facebook::fboss

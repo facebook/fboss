@@ -4,6 +4,8 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
+
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook::fboss {
@@ -35,6 +37,8 @@ class MockTransceiverI2CApi : public TransceiverI2CApi {
  private:
   std::map<unsigned int, bool> overridenPresence_;
   std::map<unsigned int, uint8_t> overridenMgmtInterface_;
+  std::map<unsigned int, std::unique_ptr<FakeTransceiverImpl>>
+      overridenTransceivers_;
 };
 
 } // namespace facebook::fboss
