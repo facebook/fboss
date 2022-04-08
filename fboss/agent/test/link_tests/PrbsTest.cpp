@@ -85,6 +85,9 @@ class PrbsTest : public LinkTest {
     /* sleep override */ std::this_thread::sleep_for(30s);
 
     // 4. Check PRBS stats, expect no loss of lock
+    XLOG(INFO) << "Verifying PRBS stats";
+    checkPrbsStatsOnAllInterfaces();
+
     // 5. Clear PRBS stats
     // 6. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
@@ -208,6 +211,64 @@ class PrbsTest : public LinkTest {
                 << ex.what();
       return false;
     }
+  }
+
+  void checkPrbsStatsOnAllInterfaces() {
+    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
+      auto interfaceName = portAndComponentPair.first;
+      auto component = portAndComponentPair.second;
+      if (component == phy::PrbsComponent::ASIC) {
+        // TODO: Not supported yet
+        return;
+      } else if (
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        // TODO: Not supported yet
+        return;
+      } else {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        checkWithRetry([this,
+                        &interfaceName,
+                        component,
+                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+          return checkPrbsStatsOnInterface<
+              facebook::fboss::QsfpServiceAsyncClient>(
+              qsfpServiceClient.get(), interfaceName, component);
+        });
+      }
+    }
+  }
+
+  template <class Client>
+  bool checkPrbsStatsOnInterface(
+      Client* client,
+      std::string& interfaceName,
+      phy::PrbsComponent component) {
+    try {
+      phy::PrbsStats stats;
+      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+      EXPECT_FALSE(stats.get_laneStats().empty());
+      for (const auto& laneStat : stats.get_laneStats()) {
+        EXPECT_TRUE(laneStat.get_locked());
+        EXPECT_FALSE(laneStat.get_numLossOfLock());
+        EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
+        EXPECT_TRUE(laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
+        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+        XLOG(DBG2) << folly::sformat(
+            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}",
+            interfaceName,
+            laneStat.get_laneId(),
+            laneStat.get_locked(),
+            laneStat.get_numLossOfLock(),
+            laneStat.get_ber(),
+            laneStat.get_maxBer());
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+    return true;
   }
 
   template <class Client>
