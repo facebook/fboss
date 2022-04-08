@@ -20,6 +20,32 @@ template <
     phy::PrbsComponent ComponentA,
     phy::PrbsComponent ComponentZ>
 class PrbsTest : public LinkTest {
+ public:
+  bool checkPrbsSupported(
+      std::string& interfaceName,
+      phy::PrbsComponent component) {
+    if (component == phy::PrbsComponent::ASIC) {
+      // TODO: Not supported yet
+      return false;
+    } else if (
+        component == phy::PrbsComponent::GB_LINE ||
+        component == phy::PrbsComponent::GB_SYSTEM) {
+      // TODO: Not supported yet
+      return false;
+    } else {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      checkWithRetry([this,
+                      &interfaceName,
+                      component,
+                      qsfpServiceClient = std::move(qsfpServiceClient)] {
+        return checkPrbsSupportedOnInterface<
+            facebook::fboss::QsfpServiceAsyncClient>(
+            qsfpServiceClient.get(), interfaceName, component);
+      });
+    }
+    return true;
+  }
+
  protected:
   void SetUp() override {
     LinkTest::SetUp();
@@ -55,6 +81,23 @@ class PrbsTest : public LinkTest {
  private:
   std::vector<std::pair<std::string, phy::PrbsComponent>>
       portsAndComponentsToTest_;
+  template <class Client>
+  bool checkPrbsSupportedOnInterface(
+      Client* client,
+      std::string& interfaceName,
+      phy::PrbsComponent component) {
+    try {
+      std::vector<prbs::PrbsPolynomial> prbsCaps;
+      client->sync_getSupportedPrbsPolynomials(
+          prbsCaps, interfaceName, component);
+      return std::find(prbsCaps.begin(), prbsCaps.end(), Polynomial) !=
+          prbsCaps.end();
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+  }
 };
 
 template <
@@ -68,6 +111,40 @@ class TransceiverPrbsTest
   std::vector<std::pair<std::string, phy::PrbsComponent>> getPortsToTest()
       override {
     std::vector<std::pair<std::string, phy::PrbsComponent>> portsToTest;
+    if (ComponentA == ComponentZ) {
+      // Only possible when the component is the line side of transceiver.
+      // For system side, the other component should either be a GB or ASIC
+      CHECK(ComponentA == phy::PrbsComponent::TRANSCEIVER_LINE);
+      auto connectedPairs = this->getConnectedPairs();
+      for (const auto [port1, port2] : connectedPairs) {
+        auto portName1 = this->getPortName(port1);
+        auto portName2 = this->getPortName(port2);
+        auto tcvr1 = this->platform()
+                         ->getPlatformPort(port1)
+                         ->getTransceiverID()
+                         .value();
+        auto tcvr2 = this->platform()
+                         ->getPlatformPort(port2)
+                         ->getTransceiverID()
+                         .value();
+
+        auto checkValidMedia = [this](facebook::fboss::TransceiverID tcvrID) {
+          if (auto tcvrInfo = this->platform()->getQsfpCache()->getIf(tcvrID)) {
+            if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface_ref()) {
+              return *mediaInterface == Media;
+            }
+          }
+          return false;
+        };
+        if (!checkValidMedia(tcvr1) || !checkValidMedia(tcvr2) ||
+            !this->checkPrbsSupported(portName1, ComponentA) ||
+            !this->checkPrbsSupported(portName2, ComponentZ)) {
+          continue;
+        }
+        portsToTest.push_back({portName1, ComponentA});
+        portsToTest.push_back({portName2, ComponentZ});
+      }
+    }
     return portsToTest;
   }
 };
