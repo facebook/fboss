@@ -29,6 +29,38 @@ void FsdbPublisherMetadataTracker::unregisterPublisher(PublisherId publisher) {
   });
 }
 
+void FsdbPublisherMetadataTracker::updateMetadata(
+    const PublisherId& publisher,
+    const OperMetadata& metadata,
+    bool enforceForwardProgress) {
+  publisherId2Metadata_.withWLock([&](auto& pub2Metadata) {
+    auto itr = pub2Metadata.find(publisher);
+    if (itr == pub2Metadata.end()) {
+      throw std::runtime_error(
+          "Publisher: " + publisher +
+          " must be registered before adding metadata");
+    }
+    auto& operMetadata = itr->second.operMetadata;
+    if (enforceForwardProgress) {
+      if (metadata.generation()) {
+        operMetadata.generation() =
+            std::max(*operMetadata.generation(), *metadata.generation());
+      }
+      if (metadata.lastConfirmedAtSecsSinceEpoch()) {
+        operMetadata.lastConfirmedAtSecsSinceEpoch() = std::max(
+            *operMetadata.lastConfirmedAtSecsSinceEpoch(),
+            *metadata.lastConfirmedAtSecsSinceEpoch());
+      }
+    } else {
+      operMetadata.generation() =
+          metadata.generation().value_or(*operMetadata.generation());
+      operMetadata.lastConfirmedAtSecsSinceEpoch() =
+          metadata.lastConfirmedAtSecsSinceEpoch().value_or(
+              *operMetadata.lastConfirmedAtSecsSinceEpoch());
+    }
+  });
+}
+
 FsdbPublisherMetadataTracker::PublisherId2Metadata
 FsdbPublisherMetadataTracker::getAllMetadata() const {
   auto pub2Metadata = publisherId2Metadata_.rlock();
