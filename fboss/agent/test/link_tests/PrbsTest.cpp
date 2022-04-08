@@ -89,8 +89,16 @@ class PrbsTest : public LinkTest {
     checkPrbsStatsOnAllInterfaces();
 
     // 5. Clear PRBS stats
+    auto timestampBeforeClear = std::time(nullptr);
+    /* sleep override */ std::this_thread::sleep_for(1s);
+    XLOG(INFO) << "Clearing PRBS stats";
+    clearPrbsStatsOnAllInterfaces();
+
     // 6. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
+    XLOG(INFO) << "Verifying PRBS stats after clear";
+    checkPrbsStatsAfterClearOnAllInterfaces(timestampBeforeClear);
+
     // 7. Disable PRBS on all Ports
     XLOG(INFO) << "Disabling PRBS";
     checkWithRetry([this, &disabledState] {
@@ -263,6 +271,101 @@ class PrbsTest : public LinkTest {
             laneStat.get_ber(),
             laneStat.get_maxBer());
       }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+    return true;
+  }
+
+  void checkPrbsStatsAfterClearOnAllInterfaces(
+      std::time_t timestampBeforeClear) {
+    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
+      auto interfaceName = portAndComponentPair.first;
+      auto component = portAndComponentPair.second;
+      if (component == phy::PrbsComponent::ASIC) {
+        // TODO: Not supported yet
+        return;
+      } else if (
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        // TODO: Not supported yet
+        return;
+      } else {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        checkWithRetry([this,
+                        timestampBeforeClear,
+                        &interfaceName,
+                        component,
+                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+          return checkPrbsStatsAfterClearOnInterface<
+              facebook::fboss::QsfpServiceAsyncClient>(
+              qsfpServiceClient.get(),
+              timestampBeforeClear,
+              interfaceName,
+              component);
+        });
+      }
+    }
+  }
+
+  template <class Client>
+  bool checkPrbsStatsAfterClearOnInterface(
+      Client* client,
+      std::time_t timestampBeforeClear,
+      std::string& interfaceName,
+      phy::PrbsComponent component) {
+    try {
+      phy::PrbsStats stats;
+      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+      EXPECT_FALSE(stats.get_laneStats().empty());
+      for (const auto& laneStat : stats.get_laneStats()) {
+        EXPECT_TRUE(laneStat.get_locked());
+        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
+        EXPECT_GT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+                << ex.what();
+      return false;
+    }
+    return true;
+  }
+
+  void clearPrbsStatsOnAllInterfaces() {
+    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
+      auto interfaceName = portAndComponentPair.first;
+      auto component = portAndComponentPair.second;
+      if (component == phy::PrbsComponent::ASIC) {
+        // TODO: Not supported yet
+        return;
+      } else if (
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        // TODO: Not supported yet
+        return;
+      } else {
+        auto qsfpServiceClient = utils::createQsfpServiceClient();
+        checkWithRetry([this,
+                        &interfaceName,
+                        component,
+                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+          return clearPrbsStatsOnInterface<
+              facebook::fboss::QsfpServiceAsyncClient>(
+              qsfpServiceClient.get(), interfaceName, component);
+        });
+      }
+    }
+  }
+
+  template <class Client>
+  bool clearPrbsStatsOnInterface(
+      Client* client,
+      std::string& interfaceName,
+      phy::PrbsComponent component) {
+    try {
+      client->sync_clearInterfacePrbsStats(interfaceName, component);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
                 << ex.what();
