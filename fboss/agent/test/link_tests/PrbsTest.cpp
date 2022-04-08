@@ -70,48 +70,60 @@ class PrbsTest : public LinkTest {
     phy::PortPrbsState disabledState;
     disabledState.enabled_ref() = false;
 
-    // 1. Enable PRBS on all Ports
+    auto timestampBeforeClear = std::time(nullptr);
+    /* sleep override */ std::this_thread::sleep_for(1s);
+    XLOG(INFO) << "Clearing PRBS stats before starting the test";
+    clearPrbsStatsOnAllInterfaces();
+
+    // 1. Verify the last clear timestamp advanced and num loss of lock was
+    // reset to 0
+    XLOG(INFO) << "Verifying PRBS stats are cleared before starting the test";
+    checkPrbsStatsAfterClearOnAllInterfaces(
+        timestampBeforeClear, false /* prbsEnabled */);
+
+    // 2. Enable PRBS on all Ports
     XLOG(INFO) << "Enabling PRBS";
     checkWithRetry(
         [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
 
-    // 2. Check Prbs State on all ports, they all should be enabled
+    // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
     checkWithRetry([this, &enabledState] {
       return checkPrbsStateOnAllInterfaces(enabledState);
     });
 
-    // 3. Let PRBS run for 30 seconds so that we can check the BER later
+    // 4. Let PRBS run for 30 seconds so that we can check the BER later
     /* sleep override */ std::this_thread::sleep_for(30s);
 
-    // 4. Check PRBS stats, expect no loss of lock
+    // 5. Check PRBS stats, expect no loss of lock
     XLOG(INFO) << "Verifying PRBS stats";
     checkPrbsStatsOnAllInterfaces();
 
-    // 5. Clear PRBS stats
-    auto timestampBeforeClear = std::time(nullptr);
+    // 6. Clear PRBS stats
+    timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
     XLOG(INFO) << "Clearing PRBS stats";
     clearPrbsStatsOnAllInterfaces();
 
-    // 6. Verify the last clear timestamp advanced and that there was no
+    // 7. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
     XLOG(INFO) << "Verifying PRBS stats after clear";
-    checkPrbsStatsAfterClearOnAllInterfaces(timestampBeforeClear);
+    checkPrbsStatsAfterClearOnAllInterfaces(
+        timestampBeforeClear, true /* prbsEnabled */);
 
-    // 7. Disable PRBS on all Ports
+    // 8. Disable PRBS on all Ports
     XLOG(INFO) << "Disabling PRBS";
     checkWithRetry([this, &disabledState] {
       return setPrbsOnAllInterfaces(disabledState);
     });
 
-    // 8. Check Prbs State on all ports, they all should be disabled
+    // 9. Check Prbs State on all ports, they all should be disabled
     XLOG(INFO) << "Checking PRBS state after disabling PRBS";
     checkWithRetry([this, &disabledState] {
       return checkPrbsStateOnAllInterfaces(disabledState);
     });
 
-    // 9. Link and traffic should come back up now
+    // 10. Link and traffic should come back up now
     XLOG(INFO) << "Waiting for links and traffic to come back up";
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
@@ -280,7 +292,8 @@ class PrbsTest : public LinkTest {
   }
 
   void checkPrbsStatsAfterClearOnAllInterfaces(
-      std::time_t timestampBeforeClear) {
+      std::time_t timestampBeforeClear,
+      bool prbsEnabled) {
     for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
@@ -298,13 +311,15 @@ class PrbsTest : public LinkTest {
                         timestampBeforeClear,
                         &interfaceName,
                         component,
-                        qsfpServiceClient = std::move(qsfpServiceClient)] {
+                        qsfpServiceClient = std::move(qsfpServiceClient),
+                        prbsEnabled] {
           return checkPrbsStatsAfterClearOnInterface<
               facebook::fboss::QsfpServiceAsyncClient>(
               qsfpServiceClient.get(),
               timestampBeforeClear,
               interfaceName,
-              component);
+              component,
+              prbsEnabled);
         });
       }
     }
@@ -315,13 +330,14 @@ class PrbsTest : public LinkTest {
       Client* client,
       std::time_t timestampBeforeClear,
       std::string& interfaceName,
-      phy::PrbsComponent component) {
+      phy::PrbsComponent component,
+      bool prbsEnabled) {
     try {
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       EXPECT_FALSE(stats.get_laneStats().empty());
       for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_TRUE(laneStat.get_locked());
+        EXPECT_EQ(laneStat.get_locked(), prbsEnabled);
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
         EXPECT_GT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
       }
