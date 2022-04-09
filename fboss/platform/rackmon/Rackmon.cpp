@@ -100,13 +100,13 @@ bool Rackmon::probe(uint8_t addr) {
 }
 
 std::vector<uint8_t> Rackmon::inspectDormant() {
-  time_t curr = std::time(nullptr);
   std::vector<uint8_t> ret{};
   std::shared_lock lock(devicesMutex_);
   for (const auto& it : devices_) {
     if (it.second->isActive()) {
       continue;
     }
+    time_t curr = getTime();
     // If its more than 300s since last activity, start probing it.
     // change to something larger if required.
     if ((it.second->lastActive() + kDormantMinInactiveTime) < curr) {

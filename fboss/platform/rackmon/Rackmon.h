@@ -54,6 +54,10 @@ class Rackmon {
   // Try and recover dormant devices.
   void recoverDormant();
 
+  virtual time_t getTime() {
+    return std::time(nullptr);
+  }
+
   bool isDeviceKnown(uint8_t);
 
   // Monitor loop. Blocks forever as long as req_stop is true.

@@ -187,6 +187,7 @@ void ModbusDevice::setActive() {
   }
   // Clear the num failures so we consider it active.
   info_.numConsecutiveFailures = 0;
+  info_.mode = ModbusDeviceMode::ACTIVE;
 }
 
 ModbusDeviceRawData ModbusDevice::getRawData() {

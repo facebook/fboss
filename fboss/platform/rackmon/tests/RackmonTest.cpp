@@ -93,6 +93,7 @@ class MockRackmon : public Rackmon {
  public:
   MockRackmon() : Rackmon() {}
   MOCK_METHOD0(makeInterface, std::unique_ptr<Modbus>());
+  MOCK_METHOD0(getTime, time_t());
   const RegisterMapDatabase& getMap() {
     return getRegisterMapDatabase();
   }
@@ -319,4 +320,94 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   EXPECT_EQ(
       data[0].registerList[0].history[0].value.strValue, "abcdefghijklmnop");
   EXPECT_NEAR(data[0].registerList[0].history[0].timestamp, std::time(0), 10);
+}
+
+TEST_F(RackmonTest, DormantRecovery) {
+  MockRackmon mon;
+  bool commandTimeout = false;
+  auto make_flaky = [&commandTimeout]() {
+    json exp = R"({
+      "device_path": "/tmp/blah",
+      "baudrate": 19200
+    })"_json;
+    std::unique_ptr<Mock3Modbus> ptr =
+        std::make_unique<Mock3Modbus>(161, 160, 162, 19200);
+    EXPECT_CALL(*ptr, initialize(exp)).Times(1);
+    EXPECT_CALL(*ptr, isPresent()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*ptr, command(_, _, _, _, _))
+        .WillRepeatedly(Invoke(
+            [&commandTimeout](Msg&, Msg&, uint32_t, ModbusTime, ModbusTime) {
+              if (commandTimeout) {
+                throw TimeoutException();
+              }
+            }));
+    std::unique_ptr<Modbus> ptr2 = std::move(ptr);
+    return ptr2;
+  };
+  // Mock a modbus with no active devices,
+  // we expect rackmon to scan all of them on
+  // start up.
+  EXPECT_CALL(mon, makeInterface())
+      .Times(1)
+      .WillOnce(Return(ByMove(make_flaky())));
+  json ifaceConfig = R"({
+    "interfaces": [
+      {
+        "device_path": "/tmp/blah",
+        "baudrate": 19200
+      }
+    ]
+  })"_json;
+  json regmapConfig = R"({
+    "name": "orv2_psu",
+    "address_range": [161, 161],
+    "probe_register": 104,
+    "default_baudrate": 19200,
+    "preferred_baudrate": 19200,
+    "registers": [
+      {
+        "begin": 0,
+        "length": 1,
+        "name": "MFG_ID"
+      }
+    ]
+  })"_json;
+  mon.loadInterface(ifaceConfig);
+  mon.loadRegisterMap(regmapConfig);
+  mon.start(1s);
+
+  // Fake that a tick has elapsed on scan's pollthread.
+  mon.scanTick();
+  mon.monitorTick();
+  std::vector<ModbusDeviceInfo> devs = mon.listDevices();
+  EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].deviceAddress, 161);
+  EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
+
+  commandTimeout = true;
+
+  // Monitor for 10 more ticks, each time it is active.
+  // but we are expecting command to have failed
+  mon.monitorTick();
+  devs = mon.listDevices();
+  EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
+  mon.monitorTick();
+  devs = mon.listDevices();
+  EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].mode, ModbusDeviceMode::DORMANT);
+  commandTimeout = false;
+  EXPECT_CALL(mon, getTime())
+      .WillOnce(Return(std::time(nullptr) + 200))
+      .WillOnce(Return(std::time(nullptr) + 400));
+  // First time, we are only 200s past last time.
+  mon.scanTick();
+  devs = mon.listDevices();
+  EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].mode, ModbusDeviceMode::DORMANT);
+  // second time we are 400s past last time, so it should recover.
+  mon.scanTick();
+  devs = mon.listDevices();
+  EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
 }
