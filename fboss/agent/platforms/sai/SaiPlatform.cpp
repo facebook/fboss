@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
@@ -223,7 +224,7 @@ void SaiPlatform::initPorts() {
         saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
       } else if (
           getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
-        // TODO: create SaiBcmElbertPlatformPort for iphy here
+        saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
     } else if (platformMode == PlatformMode::LASSEN) {
       saiPort = std::make_unique<SaiLassenPlatformPort>(portId, this);

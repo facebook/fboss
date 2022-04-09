@@ -44,6 +44,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiBcmWedge400PlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmDarwinPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmDarwinPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmElbertPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiPlatformInit.cpp
@@ -58,6 +60,7 @@ target_link_libraries(sai_platform
   hw_switch_warmboot_helper
   fake_test_platform_mapping
   minipack_platform_mapping
+  elbert_platform_mapping
   yamp_platform_mapping
   fuji_platform_mapping
   galaxy_platform_mapping

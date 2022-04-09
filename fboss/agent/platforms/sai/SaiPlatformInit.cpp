@@ -15,6 +15,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
@@ -74,6 +75,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::SANDIA) {
     return std::make_unique<SaiSandiaPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::ELBERT) {
+    return std::make_unique<SaiBcmElbertPlatform>(
         std::move(productInfo), localMac);
   }
 
