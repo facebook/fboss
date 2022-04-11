@@ -25,6 +25,10 @@ class QsfpFsdbSyncer {
   explicit QsfpFsdbSyncer(TransceiverManager* transceiverMgr);
   ~QsfpFsdbSyncer();
 
+  fsdb::FsdbPubSubManager* pubSubMgr() {
+    return fsdbPubSubMgr_.get();
+  }
+
  private:
   std::vector<std::string> getStatePath() const;
   std::vector<std::string> getStatsPath() const;
