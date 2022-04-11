@@ -360,7 +360,7 @@ class CmisModule : public QsfpModule {
    * (Will be 1 on first read after a state change, and will read 0 on
    * subsequent reads)
    */
-  bool getModuleStateChanged();
+  virtual bool getModuleStateChanged();
 
   /*
    * ApplicationCode to ApplicationCodeSel mapping.
@@ -393,6 +393,10 @@ class CmisModule : public QsfpModule {
   phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
 
   void updateVdmCacheLocked();
+
+  void updateCmisStateChanged(
+      ModuleStatus& moduleStatus,
+      std::optional<ModuleStatus> curModuleStatus = std::nullopt) override;
 };
 
 } // namespace fboss

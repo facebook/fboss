@@ -2491,5 +2491,27 @@ void CmisModule::updateVdmCacheLocked() {
       {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
 }
 
+void CmisModule::updateCmisStateChanged(
+    ModuleStatus& moduleStatus,
+    std::optional<ModuleStatus> curModuleStatus) {
+  if (!present_) {
+    return;
+  }
+  // If `moduleStatus` already has true `cmisStateChanged`, no need to update
+  if (auto cmisStateChanged = moduleStatus.cmisStateChanged_ref();
+      cmisStateChanged && *cmisStateChanged) {
+    return;
+  }
+  // Otherwise, update it using curModuleStatus
+  if (curModuleStatus) {
+    if (auto curCmisStateChanged = curModuleStatus->cmisStateChanged_ref()) {
+      moduleStatus.cmisStateChanged() = *curCmisStateChanged;
+    }
+  } else {
+    // If curModuleStatus is nullopt, we call getModuleStateChanged() to get
+    // the latest moduleStateChanged
+    moduleStatus.cmisStateChanged() = getModuleStateChanged();
+  }
+}
 } // namespace fboss
 } // namespace facebook

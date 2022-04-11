@@ -253,11 +253,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
     info.identifier_ref() = getIdentifier();
     auto currentStatus = getModuleStatus();
-    if (currentStatus.cmisStateChanged() || moduleStatus.cmisStateChanged()) {
-      currentStatus.cmisStateChanged() = (currentStatus.cmisStateChanged() &&
-                                          *currentStatus.cmisStateChanged()) ||
-          (moduleStatus.cmisStateChanged() && *moduleStatus.cmisStateChanged());
-    }
+    // Use the input `moduleStatus` as the reference to update the
+    // `cmisStateChanged` for currentStatus, which will be used in the
+    // TransceiverInfo
+    updateCmisStateChanged(currentStatus, moduleStatus);
     info.status() = currentStatus;
     cacheStatusFlags(currentStatus);
 
@@ -596,14 +595,15 @@ void QsfpModule::refreshLocked() {
     stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   }
 
+  // Each of the reset functions need to check whether the transceiver is
+  // present or not, and then handle its own logic differently. Even though
+  // the transceiver might be absent here, we'll still go through all of the
+  // rest functions
   if (dirty_) {
     // make sure data is up to date before trying to customize.
     ensureOutOfReset();
     updateQsfpData(true);
-    // copy the clear-on-read register immediately in case we do another call to
-    // updateQsfpData later
-    moduleStatus.cmisStateChanged().copy_from(
-        getModuleStatus().cmisStateChanged());
+    updateCmisStateChanged(moduleStatus);
   }
 
   if (newTransceiverDetected) {
@@ -636,15 +636,19 @@ void QsfpModule::refreshLocked() {
     // number of writable fields on other qsfp pages, but we don't
     // currently use them.
     updateQsfpData(false);
-    if (getModuleStatus().cmisStateChanged_ref()) {
-      moduleStatus.cmisStateChanged() = (moduleStatus.cmisStateChanged() &&
-                                         *moduleStatus.cmisStateChanged()) ||
-          *getModuleStatus().cmisStateChanged_ref();
-    }
+    updateCmisStateChanged(moduleStatus);
   }
 
   updateCachedTransceiverInfoLocked(moduleStatus);
-  updatePrbsStats();
+  // Only update prbs stats if the transceiver is present.
+  // Should have this check inside of updatePrbsStats().
+  // However updatePrbsStats() is a public function and not lock safe as
+  // refresh() to get the qsfpModuleMutex_ first.
+  // TODO: Need to rethink whether all the following prbs stats functions should
+  // get the lock of qsfpModuleMutex_ first.
+  if (present_) {
+    updatePrbsStats();
+  }
 }
 
 void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {

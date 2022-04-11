@@ -17,10 +17,34 @@
 
 namespace facebook::fboss {
 
+class MockCmisModule : public CmisModule {
+ public:
+  template <typename XcvrImplT>
+  explicit MockCmisModule(
+      TransceiverManager* transceiverManager,
+      std::unique_ptr<XcvrImplT> qsfpImpl,
+      unsigned int portsPerTransceiver)
+      : CmisModule(
+            transceiverManager,
+            std::move(qsfpImpl),
+            portsPerTransceiver) {
+    ON_CALL(*this, getModuleStateChanged).WillByDefault([this]() {
+      // Only return true for the first read so that we can mimic the clear
+      // on read register
+      return (++moduleStateChangedReadTimes_) == 1;
+    });
+  }
+
+  MOCK_METHOD0(getModuleStateChanged, bool());
+
+ private:
+  uint8_t moduleStateChangedReadTimes_{0};
+};
+
 class CmisTest : public TransceiverManagerTestHelper {
  public:
   template <typename XcvrImplT>
-  CmisModule* overrideCmisModule(
+  MockCmisModule* overrideCmisModule(
       TransceiverID id,
       int numPortsPerXcvr,
       TransceiverModuleIdentifier identifier =
@@ -30,10 +54,10 @@ class CmisTest : public TransceiverManagerTestHelper {
     transceiverManager_->overrideMgmtInterface(
         static_cast<int>(id) + 1, uint8_t(identifier));
 
-    auto xcvr = static_cast<CmisModule*>(
+    auto xcvr = static_cast<MockCmisModule*>(
         transceiverManager_->overrideTransceiverForTesting(
             id,
-            std::make_unique<CmisModule>(
+            std::make_unique<MockCmisModule>(
                 transceiverManager_.get(),
                 std::move(xcvrImpl),
                 numPortsPerXcvr)));
@@ -66,6 +90,10 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
     EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_200G);
   }
   testCachedMediaSignals(xcvr);
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.status() && info.status()->cmisStateChanged() &&
+      *info.status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       info,
@@ -181,6 +209,10 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::LR4_10_400G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::LR4_400G_10KM);
   }
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.status() && info.status()->cmisStateChanged() &&
+      *info.status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
       info,

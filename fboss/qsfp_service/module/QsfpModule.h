@@ -701,6 +701,15 @@ class QsfpModule : public Transceiver {
     return phy::PrbsStats{};
   }
 
+  /*
+   * Update cmisStateChanged field of `moduleStatus` by comparing whether
+   * `curModuleStatus` has the `true` value of cmisStateChanged
+   * Only CMIS needs this
+   */
+  virtual void updateCmisStateChanged(
+      ModuleStatus& /* moduleStatus */,
+      std::optional<ModuleStatus> /* curModuleStatus */ = std::nullopt) {}
+
   friend class TransceiverStateMachineTest;
 };
 } // namespace fboss
