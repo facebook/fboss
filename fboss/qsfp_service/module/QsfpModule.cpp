@@ -721,8 +721,6 @@ void QsfpModule::updatePrbsStats() {
     }
   };
 
-  auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
-  auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
   if (managementInterface() == TransceiverManagementInterface::SFF) {
     // TODO: Only doing this for SFF now until some bugs are fixed on the CMIS
     // side
