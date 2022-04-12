@@ -687,7 +687,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
   const auto& presentTransceivers = getPresentTransceivers();
   BlockingStateUpdateResultList results;
   for (auto& [tcvrID, portToPortInfo] : tcvrToPortInfo_) {
-    std::set<PortID> statusChangedPorts;
+    std::unordered_set<PortID> statusChangedPorts;
     bool anyPortUp = false;
     bool isTcvrPresent =
         (presentTransceivers.find(tcvrID) != presentTransceivers.end());
@@ -792,6 +792,7 @@ void TransceiverManager::updateTransceiverActiveState(
     const std::map<int32_t, PortStatus>& portStatus) noexcept {
   int numPortStatusChanged{0};
   BlockingStateUpdateResultList results;
+  std::unordered_set<TransceiverID> needRefreshTranscevers;
   for (auto tcvrID : tcvrs) {
     auto tcvrToPortInfoIt = tcvrToPortInfo_.find(tcvrID);
     if (tcvrToPortInfoIt == tcvrToPortInfo_.end()) {
@@ -800,7 +801,7 @@ void TransceiverManager::updateTransceiverActiveState(
       continue;
     }
     XLOG(INFO) << "Syncing ports of transceiver " << tcvrID;
-    std::set<PortID> statusChangedPorts;
+    std::unordered_set<PortID> statusChangedPorts;
     bool anyPortUp = false;
     bool isTcvrJustProgrammed =
         (getCurrentState(tcvrID) ==
@@ -823,6 +824,12 @@ void TransceiverManager::updateTransceiverActiveState(
             if (!tcvrPortInfo.status ||
                 *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
               statusChangedPorts.insert(portID);
+              // Following current QsfpModule::transceiverPortsChanged() logic
+              // to make sure we'll always refresh the transceiver if we detect
+              // a port status changed. So that we can detect whether the
+              // transceiver is removed without waiting for the state machine
+              // routinely refreshing
+              needRefreshTranscevers.insert(tcvrID);
             }
             // And also update the cached port status
             tcvrPortInfo.status = portStatusIt->second;
@@ -859,6 +866,12 @@ void TransceiverManager::updateTransceiverActiveState(
   XLOG_IF(DBG2, numPortStatusChanged > 0)
       << "updateTransceiverActiveState has " << numPortStatusChanged
       << " transceivers need to update port status.";
+
+  if (!needRefreshTranscevers.empty()) {
+    XLOG(INFO) << needRefreshTranscevers.size()
+               << " transceivers have port status changed and need to refresh";
+    refreshTransceivers(needRefreshTranscevers);
+  }
 }
 
 void TransceiverManager::refreshStateMachines() {
@@ -1553,5 +1566,30 @@ Transceiver* TransceiverManager::overrideTransceiverForTesting(
   }
   lockedTransceivers->emplace(id, std::move(overrideTcvr));
   return lockedTransceivers->at(id).get();
+}
+
+std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
+    const std::unordered_set<TransceiverID>& transceivers) {
+  std::vector<TransceiverID> transceiverIds;
+  std::vector<folly::Future<folly::Unit>> futs;
+
+  auto lockedTransceivers = transceivers_.rlock();
+  auto nTransceivers =
+      transceivers.empty() ? lockedTransceivers->size() : transceivers.size();
+  XLOG(INFO) << "Start refreshing " << nTransceivers << " transceivers...";
+
+  for (const auto& transceiver : *lockedTransceivers) {
+    TransceiverID id = TransceiverID(transceiver.second->getID());
+    if (!transceivers.empty() && transceivers.find(id) == transceivers.end()) {
+      continue;
+    }
+    XLOG(DBG3) << "Fired to refresh TransceiverID=" << id;
+    transceiverIds.push_back(id);
+    futs.push_back(transceiver.second->futureRefresh());
+  }
+
+  folly::collectAll(futs.begin(), futs.end()).wait();
+  XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
+  return transceiverIds;
 }
 } // namespace facebook::fboss

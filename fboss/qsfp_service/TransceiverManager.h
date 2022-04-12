@@ -362,6 +362,12 @@ class TransceiverManager {
   // Called this after initializing all the xphys during warm boot
   void restoreWarmBootPhyState();
 
+  // Refresh specified Transceivers
+  // If `transceivers` is empty, we'll refresh all existing transceivers
+  // Return: The refreshed transceiver ids
+  std::vector<TransceiverID> refreshTransceivers(
+      const std::unordered_set<TransceiverID>& transceivers);
+
   OverrideTcvrToPortAndProfile overrideTcvrToPortAndProfileForTest_;
 
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>>

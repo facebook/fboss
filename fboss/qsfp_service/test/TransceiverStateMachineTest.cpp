@@ -105,6 +105,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(resetDataPath, void());
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
+  MOCK_CONST_METHOD0(ensureOutOfReset, void());
 };
 
 /*
@@ -525,6 +526,13 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void triggerRemediateEvents() {
     transceiverManager_->triggerRemediateEvents(stableXcvrIds_);
+  }
+
+  void setMockCmisPresence(bool isPresent) {
+    MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+    auto xcvrImpl = mockXcvr->getTransceiverImpl();
+    EXPECT_CALL(*xcvrImpl, detectTransceiver())
+        .WillRepeatedly(::testing::Return(isPresent));
   }
 
   QsfpModule* xcvr_;
@@ -1420,11 +1428,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
       TransceiverStateMachineState::NOT_PRESENT /* expected state */,
       allStates,
       [this]() {
-        // Mock TransceiverImpl::detectTransceiver() to be false
-        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        auto xcvrImpl = mockXcvr->getTransceiverImpl();
-        EXPECT_CALL(*xcvrImpl, detectTransceiver())
-            .WillRepeatedly(::testing::Return(false));
+        setMockCmisPresence(false);
         xcvr_->detectPresence();
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
@@ -1444,10 +1448,7 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
   verifyStateUnchanged(
       allStates,
       [this]() {
-        // Mock TransceiverImpl::detectTransceiver() to be false
-        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        EXPECT_CALL(*mockXcvr->getTransceiverImpl(), detectTransceiver())
-            .WillRepeatedly(::testing::Return(false));
+        setMockCmisPresence(false);
         xcvr_->detectPresence();
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
@@ -1469,15 +1470,12 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
       TransceiverStateMachineState::NOT_PRESENT /* expected state */,
       allStates,
       [this]() {
-        // Mock TransceiverImpl::detectTransceiver() to be false
-        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        auto xcvrImpl = mockXcvr->getTransceiverImpl();
-        EXPECT_CALL(*xcvrImpl, detectTransceiver())
-            .WillRepeatedly(::testing::Return(false));
+        setMockCmisPresence(false);
         xcvr_->detectPresence();
 
         // Even though agent cold boot, because transceiver is absent,
         // resetDataPath() won't be called
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
         EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
@@ -1504,16 +1502,47 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
   verifyStateUnchanged(
       allStates,
       [this]() {
-        // Mock TransceiverImpl::detectTransceiver() to be false
-        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        auto xcvrImpl = mockXcvr->getTransceiverImpl();
-        EXPECT_CALL(*xcvrImpl, detectTransceiver())
-            .WillRepeatedly(::testing::Return(false));
+        setMockCmisPresence(false);
         xcvr_->detectPresence();
       } /* preUpdate */,
       [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
       []() {} /* verify */,
       TransceiverType::MOCK_CMIS,
       kColdBootAgentConfigChangedFnStr);
+}
+
+TEST_F(TransceiverStateMachineTest, syncPortsOnRemovedTransceiver) {
+  std::set<TransceiverStateMachineState> stateSet = {
+      TransceiverStateMachineState::ACTIVE};
+  verifyStateMachine(
+      {TransceiverStateMachineState::ACTIVE},
+      TransceiverStateMachineState::NOT_PRESENT,
+      stateSet,
+      [this]() {
+        setMockCmisPresence(false);
+
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        ::testing::Sequence s;
+        // The first refreshLocked() should detect transceiver is removed
+        // and dirty, need to updateQsfpData fully
+        EXPECT_CALL(*mockXcvr, ensureOutOfReset());
+        EXPECT_CALL(*mockXcvr, updateQsfpData(true));
+        // Because transceiver is absent, we should use default ModuleStatus
+        // to update cached transceiver info
+        ModuleStatus moduleStatus;
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus));
+      } /* preUpdate */,
+      [this]() {
+        // Trigger active state change function just like wedge_agent calls
+        // qsfp_service syncPorts(). Bring down the ports
+        updateTransceiverActiveState(false /* up */, true /* enabled */);
+      } /* stateUpdate */,
+      [this]() {
+        // The TransceiverStateMachine should trigger a remove event during
+        // refresh(). Now check all programming attributes being removed.
+        verifyResetProgrammingAttributes();
+      } /* verify */,
+      TransceiverType::MOCK_CMIS,
+      "Triggering syncPorts with port down on a removed transceiver");
 }
 } // namespace facebook::fboss

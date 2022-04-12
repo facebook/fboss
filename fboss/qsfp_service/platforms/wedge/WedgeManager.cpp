@@ -30,14 +30,16 @@ DEFINE_bool(
     false,
     "Override wedge_agent programInternalPhyPorts(). For test only");
 
+namespace facebook {
+namespace fboss {
+
 namespace {
 
 constexpr int kSecAfterModuleOutOfReset = 2;
 
-} // namespace
+static const std::unordered_set<TransceiverID> kEmptryTransceiverIDs = {};
 
-namespace facebook {
-namespace fboss {
+} // namespace
 
 using LockedTransceiversPtr = folly::Synchronized<
     std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
@@ -391,12 +393,11 @@ void WedgeManager::syncPorts(
 // NOTE: this may refresh transceivers multiple times if they're newly plugged
 //  in, as refresh() is called both via updateTransceiverMap and futureRefresh
 std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
-  std::vector<TransceiverID> transceiverIds;
   try {
     wedgeI2cBus_->verifyBus(false);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Error calling verifyBus(): " << ex.what();
-    return transceiverIds;
+    return {};
   }
 
   clearAllTransceiverReset();
@@ -405,23 +406,8 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   // transceiver mapping and type here.
   updateTransceiverMap();
 
-  // Use block to set the scope of the rlock of transceivers_
-  {
-    std::vector<folly::Future<folly::Unit>> futs;
-    XLOG(INFO) << "Start refreshing all transceivers...";
-
-    auto lockedTransceivers = transceivers_.rlock();
-    for (const auto& transceiver : *lockedTransceivers) {
-      XLOG(DBG3) << "Fired to refresh transceiver "
-                 << transceiver.second->getID();
-      transceiverIds.push_back(TransceiverID(transceiver.second->getID()));
-      futs.push_back(transceiver.second->futureRefresh());
-    }
-
-    folly::collectAll(futs.begin(), futs.end()).wait();
-    XLOG(INFO) << "Finished refreshing all transceivers";
-  }
-  return transceiverIds;
+  // Finally refresh all transceivers without specifying any ids
+  return TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
 }
 
 int WedgeManager::scanTransceiverPresence(

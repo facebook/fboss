@@ -577,7 +577,7 @@ class QsfpModule : public Transceiver {
    * In the case of Minipack using Facebook FPGA, we need to clear the reset
    * register of QSFP whenever it is newly inserted.
    */
-  void ensureOutOfReset() const;
+  virtual void ensureOutOfReset() const;
 
   /*
    * Determine set speed of enabled member ports.
