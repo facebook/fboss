@@ -187,6 +187,8 @@ class SaiSwitch : public HwSwitch {
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const override;
 
+  phy::FecMode getPortFECMode(PortID port) const override;
+
  private:
   void gracefulExitImpl(folly::dynamic& switchState) override;
 

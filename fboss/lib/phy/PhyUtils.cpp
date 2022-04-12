@@ -15,6 +15,7 @@ bool isReedSolomonFec(phy::FecMode fec) {
     case phy::FecMode::NONE:
       return false;
   }
+  return false;
 }
 
 } // namespace facebook::fboss::utility

@@ -25,3 +25,11 @@ target_link_libraries(phy_management_base
   fboss_config_utils
   Folly::folly
 )
+
+add_library(phy_utils
+  fboss/lib/phy/PhyUtils.cpp
+)
+
+target_link_libraries(phy_utils
+  phy_cpp2
+)

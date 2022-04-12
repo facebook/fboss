@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/lib/phy/PhyUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -1372,6 +1373,14 @@ sai_port_eye_values_list_t SaiPortManager::getPortEyeValues(
   portEyeVal.list = portLaneList.data();
 
   return portEyeVal;
+}
+
+phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
+  auto handle = getPortHandle(portId);
+  auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());
+  auto profileID = platform_->getPort(portId)->getCurrentProfile();
+  return utility::getFecModeFromSaiFecMode(
+      static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
 }
 
 } // namespace facebook::fboss

@@ -2339,4 +2339,8 @@ uint32_t SaiSwitch::generateDeterministicSeed(
   }
   return seed;
 }
+
+phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
+  return managerTable_->portManager().getFECMode(portId);
+}
 } // namespace facebook::fboss

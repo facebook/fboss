@@ -181,6 +181,7 @@ target_link_libraries(core
   exponential_back_off
   fboss_config_utils
   phy_cpp2
+  phy_utils
   snapshot_manager
   transceiver_cpp2
   alert_logger

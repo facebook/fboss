@@ -366,5 +366,8 @@ void verifyFec(
       saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::FecMode{});
 
   EXPECT_EQ(expectedFec, programmedFec);
+
+  // Verify the getPortFecMode function
+  EXPECT_EQ(saiSwitch->getPortFECMode(portID), *expectedProfileConfig.fec());
 }
 } // namespace facebook::fboss::utility

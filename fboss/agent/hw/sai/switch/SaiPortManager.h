@@ -176,6 +176,8 @@ class SaiPortManager {
 
   void enableAfeAdaptiveMode(PortID portId);
 
+  phy::FecMode getFECMode(PortID portId) const;
+
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void addRemovedHandle(PortID portID);
