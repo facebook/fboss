@@ -77,24 +77,6 @@ class SaiObjectStore {
     return saiObjectTypeToString(SaiObjectTraits::ObjectType);
   }
 
-  bool shouldSkipReloadingObjects() {
-#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_0_0_4_ODP)
-    // TODO(zecheng): Skip reloading Tam objects for switches warmbooting
-    // from 4.2* to 5* This is because brcm-sai no longer support Tam related
-    // objects, but move the logic to switch events. Once all brcm-sai switches
-    // are upgraded to 5.0, there should be no more Tam objects and we can
-    // remove the following check.
-    if (SaiObjectTraits::ObjectType == SAI_OBJECT_TYPE_TAM ||
-        SaiObjectTraits::ObjectType == SAI_OBJECT_TYPE_TAM_EVENT ||
-        SaiObjectTraits::ObjectType == SAI_OBJECT_TYPE_TAM_EVENT_ACTION ||
-        SaiObjectTraits::ObjectType == SAI_OBJECT_TYPE_TAM_REPORT) {
-      XLOG(INFO) << "Skip reloading " << objectTypeName() << " entries.";
-      return true;
-    }
-#endif
-    return false;
-  }
-
   /*
    * This routine will help load sai objects owned by the SAI Adapter.
    * For instance, sai queue objects are owned by the adapter and will not be
@@ -164,9 +146,6 @@ class SaiObjectStore {
                     SaiObjectTraits::kConditionAttributes;
               }),
           keys.end());
-    }
-    if (shouldSkipReloadingObjects()) {
-      return;
     }
     for (const auto k : keys) {
       ObjectType obj = getObject(k, adapterKeys2AdapterHostKey);
