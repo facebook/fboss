@@ -31,8 +31,7 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     std::shared_ptr<THRIFT_HANDLER>& handler,
     int port,
     bool isDuplex,
-    bool setupSSL,
-    bool /* isStreaming */) {
+    bool setupSSL) {
   // Start the thrift server
   auto server = std::make_unique<apache::thrift::ThriftServer>();
   server->setTaskExpireTime(

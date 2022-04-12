@@ -80,8 +80,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
         handler,
         FLAGS_thrift_port,
         false /* isDuplex */,
-        true /* setupSSL*/,
-        true /* isStreaming */);
+        true /* setupSSL*/);
     SignalHandler signalHandler(eventBase);
     server->serve();
   });

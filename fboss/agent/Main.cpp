@@ -313,12 +313,7 @@ int AgentInitializer::initAgent() {
 
   // Start the thrift server
   server_ = setupThriftServer(
-      *eventBase_,
-      handler,
-      FLAGS_port,
-      true /*isDuplex*/,
-      true /*setupSSL*/,
-      true /*isStreaming*/);
+      *eventBase_, handler, FLAGS_port, true /*isDuplex*/, true /*setupSSL*/);
 
   handler->setSSLPolicy(server_->getSSLPolicy());
 
