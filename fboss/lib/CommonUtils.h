@@ -59,32 +59,43 @@ inline int64_t getCumulativeValue(
  * WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(someBoolExpr()));
  *
  * The first example will run the code block up to 30 times and with 1s sleeps
- * in between. If a single ASSERT_EVENTUALLY_* fails, we'll loop back, sleep and
- * retry. Important to note that we don't evaluate future checks if earlier ones
- * fail, which means we can null check an object in an assert and then deference
- * safely. After all retries, we will hard assert all checks.
+ * in between.
+ * ASSERT_EVENTUALLY: If a single ASSERT_EVENTUALLY fails, we'll loop back,
+ * sleep and retry. Important to note that we don't evaluate future checks if
+ * earlier ones fail, which means we can null check an object in an assert and
+ * then deference safely. After all retries, we will hard ASSERT all checks.
+ * EXPECT_EVENTUALLY: Unlike ASSERT_EVENTUALLY, during retries EXPECT_EVENTUALLY
+ * will continue execution in case of failure. After all retires we will hard
+ * EXPECT all checks
  */
-#define WITH_RETRIES_N_TIMED(tests, maxRetries, sleepTime)                     \
-  {                                                                            \
-    int WITH_RETRIES_tries = 0;                                                \
-    while (WITH_RETRIES_tries++ < maxRetries) {                                \
-      /* Do not sleep on first iteration */                                    \
-      if (WITH_RETRIES_tries != 1) {                                           \
-        std::this_thread::sleep_for(sleepTime);                                \
-      }                                                                        \
-      /* Only switch to hard test on last retry */                             \
-      const bool WITH_RETRIES_softTest = WITH_RETRIES_tries != maxRetries;     \
-      bool WITH_RETRIES_pass = true;                                           \
-      /* _CHECK_EVENTUALLY (used ONLY in conjunction with WITH_RETIRES*)       \
-       * will read WITH_RETRIES_softTest to decide how to assert, and will set \
-       * WITH_RETRIES_pass in case of failures                                 \
-       */                                                                      \
-      tests;                                                                   \
-      /* If all tests pass, we can break out early */                          \
-      if (WITH_RETRIES_pass) {                                                 \
-        break;                                                                 \
-      }                                                                        \
-    }                                                                          \
+// Exception not subclassing std::exception to avoid being caught by user code
+struct _SoftAssertFail {};
+#define WITH_RETRIES_N_TIMED(tests, maxRetries, sleepTime)              \
+  {                                                                     \
+    int WITH_RETRIES_tries = 0;                                         \
+    while (WITH_RETRIES_tries++ < maxRetries) {                         \
+      /* Do not sleep on first iteration */                             \
+      if (WITH_RETRIES_tries != 1) {                                    \
+        std::this_thread::sleep_for(sleepTime);                         \
+      }                                                                 \
+      /* Only switch to hard test on last retry */                      \
+      bool WITH_RETRIES_softTest = WITH_RETRIES_tries != maxRetries;    \
+      bool WITH_RETRIES_pass = true;                                    \
+      /* _ASSERT_EVENTUALLY and _EXPECT_EVENTUALLY will read            \
+       * WITH_RETRIES_softTest to decide how to assert.                 \
+       * - soft expects will set WITH_RETRIES_pass in case of failures  \
+       * - soft asserts will throw _SoftAssertFail so we can loop again \
+       */                                                               \
+      try {                                                             \
+        tests;                                                          \
+      } catch (const _SoftAssertFail&) {                                \
+        continue;                                                       \
+      }                                                                 \
+      /* If all tests pass, we can break out early */                   \
+      if (WITH_RETRIES_pass) {                                          \
+        break;                                                          \
+      }                                                                 \
+    }                                                                   \
   }
 
 // Helper with default sleep time
@@ -95,15 +106,21 @@ inline int64_t getCumulativeValue(
 #define WITH_RETRIES(tests) WITH_RETRIES_N(tests, 30);
 
 // Should ONLY be used inside WITH_RETIRES*. See helpers below
-#define _CHECK_EVENTUALLY(softTest, hardTest)                          \
+#define _ASSERT_EVENTUALLY(softTest, hardTest)                         \
   if (WITH_RETRIES_softTest) {                                         \
-    /* If any previous tests failed, do not run any more tests until   \
-     * next iteration                                                  \
-     */                                                                \
-    if (WITH_RETRIES_pass) {                                           \
-      /* Set flag for upcoming asserts to read */                      \
-      WITH_RETRIES_pass &= softTest;                                   \
+    /* If single test fails, continue */                               \
+    if (!(softTest)) {                                                 \
+      throw _SoftAssertFail();                                         \
     }                                                                  \
+  } else                                                               \
+    /* Skip braces and semi to allow logging with ASSERT(b) << msg; */ \
+    hardTest
+
+// Should ONLY be used inside WITH_RETIRES*. See helpers below
+#define _EXPECT_EVENTUALLY(softTest, hardTest)                         \
+  if (WITH_RETRIES_softTest) {                                         \
+    /* evaluate test but continue execution  */                        \
+    WITH_RETRIES_pass &= softTest;                                     \
   } else                                                               \
     /* Skip braces and semi to allow logging with ASSERT(b) << msg; */ \
     hardTest
@@ -112,15 +129,16 @@ inline int64_t getCumulativeValue(
  * Helpers to ONLY be used inside WITH_RETIRES*. See usage described in
  * WITH_RETRIES_N_TIMED
  */
-#define EXPECT_EVENTUALLY_TRUE(expr) _CHECK_EVENTUALLY(expr, EXPECT_TRUE(expr))
-#define ASSERT_EVENTUALLY_TRUE(expr) _CHECK_EVENTUALLY(expr, ASSERT_TRUE(expr))
-#define EXPECT_EVENTUALLY_FALSE(expr) \
-  _CHECK_EVENTUALLY(!expr, EXPECT_FALSE(expr))
+#define ASSERT_EVENTUALLY_TRUE(expr) _ASSERT_EVENTUALLY(expr, ASSERT_TRUE(expr))
 #define ASSERT_EVENTUALLY_FALSE(expr) \
-  _CHECK_EVENTUALLY(!expr, ASSERT_FALSE(expr))
-#define EXPECT_EVENTUALLY_EQ(expr1, expr2) \
-  _CHECK_EVENTUALLY(expr1 == expr2, EXPECT_EQ(expr1, expr2))
+  _ASSERT_EVENTUALLY(!expr, ASSERT_FALSE(expr))
 #define ASSERT_EVENTUALLY_EQ(expr1, expr2) \
-  _CHECK_EVENTUALLY(expr1 == expr2, ASSERT_EQ(expr1, expr2))
+  _ASSERT_EVENTUALLY(expr1 == expr2, ASSERT_EQ(expr1, expr2))
+
+#define EXPECT_EVENTUALLY_TRUE(expr) _EXPECT_EVENTUALLY(expr, EXPECT_TRUE(expr))
+#define EXPECT_EVENTUALLY_FALSE(expr) \
+  _EXPECT_EVENTUALLY(!expr, EXPECT_FALSE(expr))
+#define EXPECT_EVENTUALLY_EQ(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 == expr2, EXPECT_EQ(expr1, expr2))
 
 } // namespace facebook::fboss
