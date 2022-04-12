@@ -1,12 +1,21 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
+#include "fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.h"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 
-namespace facebook::fboss::platform::helpers {
-/*
- *checkCmdStatus
- *Validate the command exit status of system() for errors
- */
+namespace facebook::fboss::platform::fw_util {
+
+bool checkFileExists(std::string path) {
+  std::ifstream ifile;
+  ifile.open(path);
+  if (ifile) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 void printUsage(std::string upgradable_components) {
   std::cout << "usage:" << std::endl;
@@ -152,4 +161,4 @@ void flashromBiosUpgrade(
   }
 }
 
-} // namespace facebook::fboss::platform::helpers
+} // namespace facebook::fboss::platform::fw_util

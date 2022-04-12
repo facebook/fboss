@@ -6,13 +6,12 @@
 #include <algorithm>
 #include <unordered_set>
 #include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
-#include "fboss/platform/helpers/FirmwareUpgradeHelper.h"
-#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.h"
 
 #define DARWIN_CPLD_ADDR 0x23
 #define DARWIN_FAN_ADDR 0x60
 #define DARWIN_CPLD_JTAG_REG_ADDR 0x0c
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fw_util {
 
 class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
  public:
@@ -49,4 +48,4 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   std::string getFullScCpldPath(void);
 };
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fw_util

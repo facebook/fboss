@@ -2,13 +2,12 @@
 
 #include "fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.h"
 #include <gflags/gflags.h>
-#include "fboss/lib/CommonFileUtils.h"
+#include <filesystem>
+#include <iostream>
 
 DEFINE_bool(h, false, "Help");
 
-using namespace facebook::fboss::platform::helpers;
-
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fw_util {
 
 UpgradeBinaryDarwin::UpgradeBinaryDarwin() {
   /*Detect the sc_bus # on master 2 bus 0 */
@@ -153,7 +152,7 @@ std::string UpgradeBinaryDarwin::getBiosVersion() {
 std::string UpgradeBinaryDarwin::getFullScCpldPath() {
   if (checkFileExists(darwin_sc_cpld_path)) {
     for (auto const& dir_entry :
-         recursive_directory_iterator(darwin_sc_cpld_path)) {
+         std::filesystem::recursive_directory_iterator(darwin_sc_cpld_path)) {
       if (dir_entry.path().string().find(blackhawkRegister) !=
           std::string::npos) {
         return dir_entry.path().string() + "/";
@@ -311,4 +310,4 @@ int UpgradeBinaryDarwin::parseCommandLine(
   return EX_OK;
 }
 
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fw_util

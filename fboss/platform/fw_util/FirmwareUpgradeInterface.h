@@ -3,11 +3,11 @@
 
 #include <string>
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fw_util {
 class FirmwareUpgradeInterface {
  public:
   FirmwareUpgradeInterface() {}
   virtual void upgradeFirmware(int, char**, std::string) = 0;
   virtual ~FirmwareUpgradeInterface() = default;
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fw_util

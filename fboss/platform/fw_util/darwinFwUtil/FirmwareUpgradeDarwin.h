@@ -5,7 +5,7 @@
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
 // include for new class
 
-namespace facebook::fboss::platform {
+namespace facebook::fboss::platform::fw_util {
 class FirmwareUpgradeDarwin : public FirmwareUpgradeInterface {
  public:
   FirmwareUpgradeDarwin();
@@ -24,4 +24,4 @@ class FirmwareUpgradeDarwin : public FirmwareUpgradeInterface {
   const std::string createLayoutCmd = layout + " > " + layoutPath;
   std::string chip;
 };
-} // namespace facebook::fboss::platform
+} // namespace facebook::fboss::platform::fw_util
