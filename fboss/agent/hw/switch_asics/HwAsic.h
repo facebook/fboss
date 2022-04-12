@@ -99,6 +99,7 @@ class HwAsic {
     SAI_MPLS_TTL_1_TRAP,
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
     PMD_RX_LOCK_STATUS,
+    SAI_FEC_COUNTERS,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

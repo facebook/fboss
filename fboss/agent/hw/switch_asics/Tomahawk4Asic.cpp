@@ -69,6 +69,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
