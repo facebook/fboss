@@ -128,6 +128,19 @@ void FsdbPubSubManager::createStatPathPublisher(
       fsdbPort);
 }
 
+void FsdbPubSubManager::removeStateDeltaPublisher() {
+  stateDeltaPublisher_.reset();
+}
+void FsdbPubSubManager::removeStatePathPublisher() {
+  statePathPublisher_.reset();
+}
+void FsdbPubSubManager::removeStatDeltaPublisher() {
+  statDeltaPublisher_.reset();
+}
+void FsdbPubSubManager::removeStatPathPublisher() {
+  statPathPublisher_.reset();
+}
+
 template <typename PublisherT, typename PubUnitT>
 void FsdbPubSubManager::publishImpl(PublisherT* publisher, PubUnitT&& pubUnit) {
   if (!publisher) {

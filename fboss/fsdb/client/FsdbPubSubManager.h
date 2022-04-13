@@ -39,6 +39,12 @@ class FsdbPubSubManager {
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
 
+  /* Publisher remove APIs */
+  void removeStateDeltaPublisher();
+  void removeStatePathPublisher();
+  void removeStatDeltaPublisher();
+  void removeStatPathPublisher();
+
   /* Publisher APIs */
   void publishState(OperDelta&& pubUnit);
   void publishState(OperState&& pubUnit);
