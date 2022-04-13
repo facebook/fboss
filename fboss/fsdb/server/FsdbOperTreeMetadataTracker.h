@@ -109,10 +109,6 @@ class FsdbOperTreeMetadataTracker {
       const OperMetadata& metadata,
       bool enforceForwardProgress);
 
-  FsdbOperTreeMetadataTracker(const FsdbOperTreeMetadataTracker&) = delete;
-  FsdbOperTreeMetadataTracker& operator=(const FsdbOperTreeMetadataTracker&) =
-      delete;
-
-  folly::Synchronized<PublisherRoot2Metadata> publisherRoot2Metadata_;
+  PublisherRoot2Metadata publisherRoot2Metadata_;
 };
 } // namespace facebook::fboss::fsdb
