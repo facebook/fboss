@@ -59,7 +59,9 @@ DEFAULT_LOGGER.setLevel("INFO")
 
 
 class Backend(enum.Enum):
+    # pyre-fixme[20]: Argument `value` expected.
     SCUBA = enum.auto()
+    # pyre-fixme[20]: Argument `value` expected.
     SSH = enum.auto()
 
 
