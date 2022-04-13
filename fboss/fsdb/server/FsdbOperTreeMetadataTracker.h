@@ -89,6 +89,10 @@ class FsdbOperTreeMetadataTracker {
     checkPath(begin, end);
     return getPublisherRootMetadataImpl(*begin);
   }
+  std::optional<FsdbOperTreeMetadata> getPublisherRootMetadata(
+      const std::string& root) const {
+    return getPublisherRootMetadataImpl(root);
+  }
 
  private:
   std::optional<FsdbOperTreeMetadata> getPublisherRootMetadataImpl(
