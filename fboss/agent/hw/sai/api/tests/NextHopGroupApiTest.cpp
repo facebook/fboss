@@ -176,6 +176,37 @@ TEST_F(NextHopGroupApiTest, setNextHopGroupMemberAttributes) {
   EXPECT_EQ(nextHopWeightGot, nextHopWeight);
 }
 
+TEST_F(NextHopGroupApiTest, bulkSetNextHopGroupMemberAttributes) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  auto groupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  checkNextHopGroup(groupId);
+
+  int numMembers = 2;
+  sai_uint32_t nextHopWeight = 2;
+  std::vector<SaiNextHopGroupMemberTraits::AdapterKey> memberAdapterKeys;
+  for (auto idx = 0; idx < numMembers; idx++) {
+    memberAdapterKeys.emplace_back(
+        createNextHopGroupMember(groupId, idx, nextHopWeight));
+    checkNextHopGroupMember(groupId, memberAdapterKeys[idx], nextHopWeight);
+  }
+
+  std::vector<sai_uint32_t> newWeights = {3, 4};
+  std::vector<SaiNextHopGroupMemberTraits::Attributes::Weight> weights;
+  for (const auto weight : newWeights) {
+    weights.emplace_back(weight);
+  }
+  EXPECT_NO_THROW(
+      nextHopGroupApi->bulkSetAttributes(memberAdapterKeys, weights));
+  for (auto idx = 0; idx < memberAdapterKeys.size(); idx++) {
+    EXPECT_EQ(
+        nextHopGroupApi->getAttribute(
+            memberAdapterKeys[idx],
+            SaiNextHopGroupMemberTraits::Attributes::Weight()),
+        newWeights[idx]);
+  }
+#endif
+}
+
 TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   SaiNextHopGroupTraits::Attributes::Type t{SAI_NEXT_HOP_GROUP_TYPE_ECMP};
   EXPECT_EQ("Type: 0", fmt::format("{}", t));
