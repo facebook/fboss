@@ -95,6 +95,9 @@ class MockAsic : public HwAsic {
   uint32_t getMaxVariableWidthEcmpSize() const override {
     return 128;
   }
+  uint32_t getMaxEcmpSize() const override {
+    return 512;
+  }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
   }

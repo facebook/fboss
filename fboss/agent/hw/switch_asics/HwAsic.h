@@ -199,6 +199,8 @@ class HwAsic {
   static std::vector<AsicType> getAllHwAsicList();
 
   virtual uint32_t getMaxVariableWidthEcmpSize() const = 0;
+
+  virtual uint32_t getMaxEcmpSize() const = 0;
 };
 
 } // namespace facebook::fboss

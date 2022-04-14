@@ -101,6 +101,9 @@ class FakeAsic : public HwAsic {
   uint32_t getPacketBufferDescriptorSize() const override {
     return 0;
   }
+  uint32_t getMaxEcmpSize() const override {
+    return 512;
+  }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_FAKE;
   }

@@ -182,6 +182,10 @@ void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(std::make_pair(
       SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
   kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
+  if (!getWarmBootHelper()->canWarmBoot()) {
+    kSaiProfileValues.insert(std::make_pair(
+        SAI_KEY_NUM_ECMP_MEMBERS, std::to_string(getAsic()->getMaxEcmpSize())));
+  }
 }
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {

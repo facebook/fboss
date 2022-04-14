@@ -72,6 +72,9 @@ class Trident2Asic : public BroadcomAsic {
   uint32_t getMaxVariableWidthEcmpSize() const override {
     return 1024;
   }
+  uint32_t getMaxEcmpSize() const override {
+    return 1024;
+  }
 };
 
 } // namespace facebook::fboss

@@ -69,4 +69,8 @@ uint32_t CredoF104Asic::getPacketBufferDescriptorSize() const {
 uint32_t CredoF104Asic::getMaxVariableWidthEcmpSize() const {
   return 512;
 }
+uint32_t CredoF104Asic::getMaxEcmpSize() const {
+  return 4096;
+}
+
 }; // namespace facebook::fboss
