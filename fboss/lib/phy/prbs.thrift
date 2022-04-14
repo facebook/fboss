@@ -20,4 +20,13 @@ enum PrbsPolynomial {
   PRBS31 = 31,
   PRBS49 = 49,
   PRBS58 = 58,
+  // Gray encoded patterns for PAM4 (assigning 1xx value for differentiation)
+  PRBS7Q = 107,
+  PRBS9Q = 109,
+  PRBS13Q = 113,
+  PRBS15Q = 115,
+  PRBS23Q = 123,
+  PRBS31Q = 131,
+  // Misc
+  PRBSSSPRQ = 200,
 }

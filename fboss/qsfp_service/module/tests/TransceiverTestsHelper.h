@@ -44,6 +44,9 @@ class TransceiverTestsHelper {
       const std::string& expectedFwRev,
       const std::string& expectedDspFw,
       const std::string& expecedBuildRev);
+  void verifyPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& expectedPolynomials,
+      std::vector<prbs::PrbsPolynomial>& foundPolynomials);
 
  private:
   const TransceiverInfo& info_;

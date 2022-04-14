@@ -192,6 +192,21 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   tests.verifyLaneInterrupts(laneInterrupts, xcvr->numMediaLanes());
   tests.verifyGlobalInterrupts("temp", 1, 1, 0, 1);
   tests.verifyGlobalInterrupts("vcc", 1, 0, 1, 0);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_TRUE(diagsCap.has_value());
+  std::vector<prbs::PrbsPolynomial> expectedPolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q};
+
+  auto linePrbsCapability = *(*diagsCap).prbsLineCapabilities();
+  auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
+  tests.verifyPrbsPolynomials(expectedPolynomials, linePrbsCapability);
+  tests.verifyPrbsPolynomials(expectedPolynomials, sysPrbsCapability);
 }
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
@@ -244,6 +259,26 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_TRUE(diagsCap.has_value());
+  std::vector<prbs::PrbsPolynomial> expectedSysPolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q};
+  std::vector<prbs::PrbsPolynomial> expectedLinePolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q};
+
+  auto linePrbsCapability = *(*diagsCap).prbsLineCapabilities();
+  auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
+
+  tests.verifyPrbsPolynomials(expectedLinePolynomials, linePrbsCapability);
+  tests.verifyPrbsPolynomials(expectedSysPolynomials, sysPrbsCapability);
 }
 
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {

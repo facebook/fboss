@@ -3,11 +3,13 @@
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 
 #include <boost/assign.hpp>
+#include <boost/bimap.hpp>
 #include <cmath>
 #include <iomanip>
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -177,6 +179,11 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PATTERN_CAPABILITY, {CmisPages::PAGE13, 129, 1}},
     {CmisField::DIAGNOSTIC_CAPABILITY, {CmisPages::PAGE13, 130, 1}},
     {CmisField::PATTERN_CHECKER_CAPABILITY, {CmisPages::PAGE13, 131, 1}},
+    {CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS, {CmisPages::PAGE13, 132, 2}},
+    {CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
+     {CmisPages::PAGE13, 134, 2}},
+    {CmisField::HOST_SUPPORTED_CHECKER_PATTERNS, {CmisPages::PAGE13, 136, 2}},
+    {CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS, {CmisPages::PAGE13, 138, 2}},
     {CmisField::HOST_GEN_ENABLE, {CmisPages::PAGE13, 144, 1}},
     {CmisField::HOST_GEN_INV, {CmisPages::PAGE13, 145, 1}},
     {CmisField::HOST_GEN_PRE_FEC, {CmisPages::PAGE13, 147, 1}},
@@ -298,14 +305,25 @@ static std::map<CmisPages, checksumInfoStruct> checksumInfoCmis = {
      {kPage2CsumRangeStart, kPage2CsumRangeLength, CmisField::PAGE2_CSUM}},
 };
 
-static std::map<uint32_t, uint32_t> prbsPatternMap = {
-    {7, 11},
-    {9, 9},
-    {13, 7},
-    {15, 5},
-    {23, 2},
-    {31, 0},
-};
+// Bidirectional map for storing the mapping of prbs polynomial to patternID in
+// the spec
+using PrbsMap = boost::bimap<prbs::PrbsPolynomial, uint32_t>;
+// clang-format off
+const PrbsMap prbsPatternMap = boost::assign::list_of<PrbsMap::relation>(
+  prbs::PrbsPolynomial::PRBS7, 11)(
+  prbs::PrbsPolynomial::PRBS9, 9)(
+  prbs::PrbsPolynomial::PRBS13, 7)(
+  prbs::PrbsPolynomial::PRBS15, 5)(
+  prbs::PrbsPolynomial::PRBS23, 3)(
+  prbs::PrbsPolynomial::PRBS31, 1)(
+  prbs::PrbsPolynomial::PRBS7Q, 10)(
+  prbs::PrbsPolynomial::PRBS9Q, 8)(
+  prbs::PrbsPolynomial::PRBS13Q, 6)(
+  prbs::PrbsPolynomial::PRBS15Q, 4)(
+  prbs::PrbsPolynomial::PRBS23Q, 2)(
+  prbs::PrbsPolynomial::PRBS31Q, 0)(
+  prbs::PrbsPolynomial::PRBSSSPRQ, 12);
+// clang-format on
 
 void getQsfpFieldAddress(
     CmisField field,
@@ -2040,6 +2058,38 @@ void CmisModule::setDiagsCapability() {
         }
       };
 
+      auto getPrbsCapabilities =
+          [&](CmisField generatorField,
+              CmisField checkerField) -> std::vector<prbs::PrbsPolynomial> {
+        int offset;
+        int length;
+        int dataAddress;
+        getQsfpFieldAddress(generatorField, dataAddress, offset, length);
+        CHECK_EQ(length, 2);
+        getQsfpFieldAddress(checkerField, dataAddress, offset, length);
+        CHECK_EQ(length, 2);
+
+        uint8_t generatorCapsData[2];
+        readFromCacheOrHw(generatorField, generatorCapsData);
+        uint16_t generatorCaps =
+            (generatorCapsData[1] << 8) | generatorCapsData[0];
+
+        uint8_t checkerCapsData[2];
+        readFromCacheOrHw(checkerField, checkerCapsData);
+        uint16_t checkerCaps = (checkerCapsData[1] << 8) | checkerCapsData[0];
+
+        std::vector<prbs::PrbsPolynomial> caps;
+        for (auto patternIDPolynomialPair : prbsPatternMap.right) {
+          // We claim PRBS polynomial is supported when both generator and
+          // checker support the polynomial
+          if (generatorCaps & (1 << patternIDPolynomialPair.first) &&
+              checkerCaps & (1 << patternIDPolynomialPair.first)) {
+            caps.push_back(patternIDPolynomialPair.second);
+          }
+        }
+        return caps;
+      };
+
       uint8_t data;
       readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
       diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
@@ -2061,6 +2111,16 @@ void CmisModule::setDiagsCapability() {
             (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
         diags.prbsSystem() =
             (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
+        if (*diags.prbsLine()) {
+          diags.prbsLineCapabilities() = getPrbsCapabilities(
+              CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
+              CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS);
+        }
+        if (*diags.prbsSystem()) {
+          diags.prbsSystemCapabilities() = getPrbsCapabilities(
+              CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
+              CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
+        }
       }
 
       *diagsCapability = diags;
@@ -2263,8 +2323,9 @@ bool CmisModule::setPortPrbsLocked(
   }
 
   // Return error for invalid PRBS polynominal
-  auto prbsPatternItr = prbsPatternMap.find(prbs.polynominal().value());
-  if (prbsPatternItr == prbsPatternMap.end()) {
+  auto prbsPatternItr = prbsPatternMap.left.find(
+      static_cast<prbs::PrbsPolynomial>(*prbs.polynominal()));
+  if (prbsPatternItr == prbsPatternMap.left.end()) {
     XLOG(ERR) << folly::sformat(
         "Module {:s} PRBS Polynominal {:d} not supported",
         qsfpImpl_->getName(),

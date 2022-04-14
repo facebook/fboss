@@ -81,6 +81,14 @@ void testCachedMediaSignals(QsfpModule* qsfp) {
       gflags::SET_FLAGS_DEFAULT);
 }
 
+void TransceiverTestsHelper::verifyPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& expectedPolynomials,
+    std::vector<prbs::PrbsPolynomial>& foundPolynomials) {
+  std::sort(expectedPolynomials.begin(), expectedPolynomials.end());
+  std::sort(foundPolynomials.begin(), foundPolynomials.end());
+  EXPECT_EQ(expectedPolynomials, foundPolynomials);
+}
+
 void TransceiverTestsHelper::verifyVendorName(const std::string& expected) {
   EXPECT_EQ(expected, *info_.vendor().value_or({}).name());
 }
