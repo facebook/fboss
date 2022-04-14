@@ -70,6 +70,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
   nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
+  nextHopGroupHandle->saiStore_ = saiStore_;
+  nextHopGroupHandle->maxVariableWidthEcmpSize =
+      platform_->getAsic()->getMaxVariableWidthEcmpSize();
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
   for (const auto& swNextHop : swNextHops) {
@@ -114,6 +117,12 @@ std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
     const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes) {
   auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
   return store.setObject(key, attributes);
+}
+
+std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::getSaiObject(
+    const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key) {
+  auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
+  return store.get(key);
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {
@@ -178,10 +187,19 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
       nexthopGroupId_, nexthopId};
   // In fixed width case, the member is added with weight 0
-  // and proper weight is set through bulk set api
+  // and proper weight is set through bulk set api. check comments
+  // associated with SaiNextHopGroupHandle::bulkProgramMembers for details
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
       nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
 
+  // In fixed width case, do not recreate member with 0 weight
+  // if it already exists.
+  if (fixedWidthMode_) {
+    auto existingObj = manager_->getSaiObject(adapterHostKey);
+    if (existingObj) {
+      createAttributes = existingObj->attributes();
+    }
+  }
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   if (fixedWidthMode_) {
@@ -198,7 +216,9 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
     /* removed */) {
   XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
   if (fixedWidthMode_) {
-    // notify nhgroup to bulk program with 0 weight
+    // notify nhgroup to bulk program with 0 weight. In fixed width mode
+    // member cannot be removed directly. check comments associated with
+    // SaiNextHopGroupHandle::bulkProgramMembers for details
     nhgroup_->memberRemoved({this->getObject()->adapterHostKey(), weight_});
   }
   /* remove nexthop group member if next hop is removed */
@@ -224,10 +244,90 @@ void SaiNextHopGroupHandle::memberRemoved(
   bulkProgramMembers(memberInfo, false /* added */, updateHardware);
 }
 
+/*
+ * Perform a bulk update of ecmp member weights.
+ * Some ASICs support a fixed width ecmp mode in which the total weight
+ * of ECMP members can be significantly higher than regular mode.
+ * However the total member weight needs to fixed (eg 512)
+ * for the life of the object. Hence members cannot be added or
+ * removed individually from the nexthop group as it will result
+ * in having less or more total weight than the original count.
+ * In fixed width mode, member addition and deletion are performed
+ * through the following sequence.
+ * Member add:
+ *     - Add new member to nexthop group with weight 0
+ *     - Bulk set the weight of all members in group such that the
+ *       total weight remains the same.
+ * Member removal:
+ *     - Bulk set the weight of member to be removed to 0 and the weights
+ *       of remaining members such that total weight remains the same
+ *     - Remove the member with weight 0 from nexthop group
+ */
 void SaiNextHopGroupHandle::bulkProgramMembers(
-    SaiNextHopGroupMemberInfo /* modifiedMemberInfo */,
-    bool /* added */,
-    bool /* updateHardware */) {}
+    SaiNextHopGroupMemberInfo modifiedMemberInfo,
+    bool added,
+    bool updateHardware) {
+  if (added) {
+    fixedWidthNextHopGroupMembers_.insert(modifiedMemberInfo);
+  } else {
+    if (fixedWidthNextHopGroupMembers_.find(modifiedMemberInfo) ==
+        fixedWidthNextHopGroupMembers_.end()) {
+      XLOG(DBG2) << "Cannot find member to delete for fixed width ecmp";
+      return;
+    }
+    fixedWidthNextHopGroupMembers_.erase(modifiedMemberInfo);
+  }
+  if (!updateHardware) {
+    return;
+  }
+  std::vector<uint64_t> memberWeights;
+  uint64_t totalWeight{0};
+  for (const auto& member : fixedWidthNextHopGroupMembers_) {
+    const auto& weight = member.second.value();
+    totalWeight += weight;
+    memberWeights.emplace_back(weight);
+  }
+  // normalize the weights to ecmp width if needed
+  if (totalWeight > maxVariableWidthEcmpSize) {
+    RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
+        memberWeights, FLAGS_ecmp_width);
+  }
+  std::vector<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKeys;
+  std::vector<SaiNextHopGroupMemberTraits::Attributes::Weight> weights;
+  int idx = 0;
+  for (const auto& member : fixedWidthNextHopGroupMembers_) {
+    auto [adapterHostKey, weight] = member;
+    adapterHostKeys.emplace_back(adapterHostKey);
+    weights.emplace_back(memberWeights.at(idx++));
+  }
+  // For removed entry, set the weight to 0 before deleting
+  // the member from hardware
+  if (!added) {
+    adapterHostKeys.emplace_back(modifiedMemberInfo.first);
+    weights.emplace_back(0);
+  }
+  if (adapterHostKeys.size()) {
+    auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
+    store.setObjects(adapterHostKeys, weights);
+  }
+}
+
+SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
+  if (fixedWidthMode) {
+    std::vector<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKeys;
+    for (const auto& member : fixedWidthNextHopGroupMembers_) {
+      adapterHostKeys.emplace_back(member.first);
+    }
+    if (adapterHostKeys.size()) {
+      // Bulk set member weights to 0 so that members can be removed from
+      // group member destructor without violating fixed width restriction
+      std::vector<SaiNextHopGroupMemberTraits::Attributes::Weight> weights(
+          fixedWidthNextHopGroupMembers_.size(), 0);
+      auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
+      store.setObjects(adapterHostKeys, weights);
+    }
+  }
+}
 
 template <typename NextHopTraits>
 std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {

@@ -143,6 +143,8 @@ struct SaiNextHopGroupHandle {
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
   bool fixedWidthMode{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
+  uint32_t maxVariableWidthEcmpSize;
+  SaiStore* saiStore_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -160,6 +162,7 @@ struct SaiNextHopGroupHandle {
       SaiNextHopGroupMemberInfo modifiedMemberInfo,
       bool added,
       bool updateHardware);
+  ~SaiNextHopGroupHandle();
 };
 
 class SaiNextHopGroupManager {
@@ -175,6 +178,9 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
       const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
+
+  std::shared_ptr<SaiNextHopGroupMember> getSaiObject(
+      const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key);
 
   std::string listManagedObjects() const;
 
