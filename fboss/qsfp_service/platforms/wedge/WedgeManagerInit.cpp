@@ -35,6 +35,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createYampWedgeManager();
   } else if (mode == PlatformMode::DARWIN) {
     return createDarwinWedgeManager();
+  } else if (mode == PlatformMode::LASSEN) {
+    return createLassenWedgeManager();
   } else if (mode == PlatformMode::ELBERT) {
     return createElbertWedgeManager();
   } else if (

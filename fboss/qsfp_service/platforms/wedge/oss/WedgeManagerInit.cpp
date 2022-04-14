@@ -26,6 +26,10 @@ std::unique_ptr<WedgeManager> createDarwinWedgeManager() {
   return std::unique_ptr<WedgeManager>{};
 }
 
+std::unique_ptr<WedgeManager> createLassenWedgeManager() {
+  return std::unique_ptr<WedgeManager>{};
+}
+
 std::unique_ptr<WedgeManager> createElbertWedgeManager() {
   return std::unique_ptr<WedgeManager>{};
 }
