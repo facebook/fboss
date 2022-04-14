@@ -13,8 +13,13 @@ namespace folly {
 class CancellationToken;
 }
 
+namespace apache::thrift {
+template <class>
+class Client;
+} // namespace apache::thrift
+
 namespace facebook::fboss::fsdb {
-class FsdbServiceAsyncClient;
+class FsdbService;
 
 class FsdbStreamClient : public folly::AsyncTimeout {
  public:
@@ -62,7 +67,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
  protected:
   void setState(State state);
 #ifndef IS_OSS
-  std::unique_ptr<FsdbServiceAsyncClient> client_;
+  std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
 
  private:
