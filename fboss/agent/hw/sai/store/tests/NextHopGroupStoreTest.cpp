@@ -245,3 +245,61 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
   EXPECT_EQ(iter->second, json);
 }
+
+TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  // Create a next hop group
+  auto nextHopGroupId = createNextHopGroup();
+
+  // Create two next hops and two next hop group members
+  folly::IPAddress ip1{"10.10.10.1"};
+  folly::IPAddress ip2{"10.10.10.2"};
+  sai_uint32_t weight1 = 1;
+  sai_uint32_t weight2 = 2;
+  sai_uint32_t weight3 = 3;
+  sai_uint32_t weight4 = 4;
+
+  auto nextHopId1 = createNextHop(ip1);
+  auto nextHopId2 = createNextHop(ip2);
+
+  createNextHopGroupMember(nextHopGroupId, nextHopId1, weight1);
+  createNextHopGroupMember(nextHopGroupId, nextHopId2, weight2);
+
+  // perform a warm boot load
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNextHopGroupTraits>();
+
+  SaiNextHopGroupTraits::AdapterHostKey k;
+  k.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
+  k.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
+
+  auto got = store.get(k);
+  EXPECT_TRUE(got);
+
+  auto& memberStore = s.get<SaiNextHopGroupMemberTraits>();
+  SaiNextHopGroupMemberTraits::AdapterHostKey k1{nextHopGroupId, nextHopId1};
+  SaiNextHopGroupMemberTraits::AdapterHostKey k2{nextHopGroupId, nextHopId2};
+
+  // Do bulk set of weights
+  std::vector<SaiNextHopGroupMemberTraits::Attributes::Weight> weights = {
+      weight3, weight4};
+  std::vector<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKeys = {
+      k1, k2};
+  memberStore.setObjects(adapterHostKeys, weights);
+  auto got1 = memberStore.get(k1);
+  auto got2 = memberStore.get(k2);
+  EXPECT_TRUE(got1);
+  EXPECT_TRUE(got2);
+  EXPECT_EQ(
+      got1->attributes(),
+      (SaiNextHopGroupMemberTraits::CreateAttributes{
+          nextHopGroupId, nextHopId1, weight3}));
+  EXPECT_EQ(
+      got2->attributes(),
+      (SaiNextHopGroupMemberTraits::CreateAttributes{
+          nextHopGroupId, nextHopId2, weight4}));
+#endif
+}
