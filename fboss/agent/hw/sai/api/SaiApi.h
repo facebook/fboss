@@ -318,6 +318,64 @@ class SaiApi {
     setAttributeUnlocked(key, attr);
   }
 
+  template <typename AdapterKeyT, typename AttrT>
+  void bulkSetAttributesUnlocked(
+      std::vector<AdapterKeyT>& adapterKeys,
+      std::vector<AttrT>& attributes) const {
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
+    if (UNLIKELY(failHwWrites())) {
+      XLOG(
+          FATAL,
+          "Attempting bulk set SAI attributes while hw writes are blocked");
+    }
+    if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
+      auto id = typename AttrT::AttributeId()();
+      if (!id.has_value()) {
+        // if attribute is not supported, do not set it
+        XLOG(
+            FATAL,
+            "attempting to bulk set unsupported extension SAI attribute");
+      }
+    }
+    std::vector<sai_attribute_t> attrs;
+    for (const auto& attr : attributes) {
+      attrs.emplace_back(*saiAttr(attr));
+    }
+    sai_status_t status;
+    sai_status_t retStatus[adapterKeys.size()];
+    {
+      TIME_CALL;
+      status = impl()._bulkSetAttribute(
+          adapterKeys.data(), attrs.data(), retStatus, adapterKeys.size());
+    }
+    saiApiCheckError(
+        status, apiType(), fmt::format("Failed to bulk set attribute"));
+    for (auto idx = 0; idx < adapterKeys.size(); idx++) {
+      saiApiCheckError(
+          retStatus[idx],
+          apiType(),
+          fmt::format(
+              "Failed to set attribute {} to {}",
+              adapterKeys[idx],
+              attributes[idx]));
+      XLOGF(
+          DBG5,
+          "bulk set SAI attribute of {} to {}",
+          adapterKeys[idx],
+          attributes[idx]);
+    }
+  }
+
+  template <typename AdapterKeyT, typename AttrT>
+  void bulkSetAttributes(
+      std::vector<AdapterKeyT>& adapterKeys,
+      std::vector<AttrT>& attributes) const {
+    auto g{SaiApiLock::getInstance()->lock()};
+    return bulkSetAttributesUnlocked(adapterKeys, attributes);
+  }
+
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
