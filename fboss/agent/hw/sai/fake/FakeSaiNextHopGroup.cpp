@@ -164,7 +164,13 @@ sai_status_t get_next_hop_group_member_attribute_fn(
 sai_status_t set_next_hop_group_member_attribute_fn(
     sai_object_id_t next_hop_group_member_id,
     const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& nextHopGroupMember =
+      fs->nextHopGroupManager.getMember(next_hop_group_member_id);
   switch (attr->id) {
+    case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
+      nextHopGroupMember.weight = attr->value.u32;
+      break;
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }

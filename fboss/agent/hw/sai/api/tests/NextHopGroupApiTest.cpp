@@ -150,8 +150,6 @@ TEST_F(NextHopGroupApiTest, getNextHopGroupMemberAttributes) {
   EXPECT_EQ(nextHopWeightGot, nextHopWeight);
 }
 
-// SAI spec does not support setting any attribute for next hop group member
-// post creation.
 TEST_F(NextHopGroupApiTest, setNextHopGroupMemberAttributes) {
   auto groupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   checkNextHopGroup(groupId);
@@ -172,8 +170,10 @@ TEST_F(NextHopGroupApiTest, setNextHopGroupMemberAttributes) {
   EXPECT_THROW(
       nextHopGroupApi->setAttribute(nextHopGroupMemberId, nextHopGroupId),
       SaiApiError);
-  EXPECT_THROW(
-      nextHopGroupApi->setAttribute(nextHopGroupMemberId, weight), SaiApiError);
+  EXPECT_NO_THROW(nextHopGroupApi->setAttribute(nextHopGroupMemberId, weight));
+  auto nextHopWeightGot = nextHopGroupApi->getAttribute(
+      nextHopGroupMemberId, SaiNextHopGroupMemberTraits::Attributes::Weight());
+  EXPECT_EQ(nextHopWeightGot, nextHopWeight);
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
