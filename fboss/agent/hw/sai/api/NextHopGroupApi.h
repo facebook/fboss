@@ -136,6 +136,26 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
       const sai_attribute_t* attr) const {
     return api_->set_next_hop_group_member_attribute(id, attr);
   }
+  sai_status_t _bulkSetAttribute(
+      NextHopGroupMemberSaiId* ids,
+      const sai_attribute_t* attr,
+      sai_status_t* retStatus,
+      size_t objectCount) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    sai_object_id_t rawIds[objectCount];
+    for (auto idx = 0; idx < objectCount; idx++) {
+      rawIds[idx] = *rawSaiId(&ids[idx]);
+    }
+    return api_->set_next_hop_group_members_attribute(
+        objectCount,
+        rawIds,
+        attr,
+        SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
+        retStatus);
+#else
+    return SAI_STATUS_NOT_SUPPORTED;
+#endif
+  }
 
   sai_next_hop_group_api_t* api_;
   friend class SaiApi<NextHopGroupApi>;
