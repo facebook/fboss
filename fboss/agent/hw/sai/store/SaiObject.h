@@ -387,6 +387,15 @@ class SaiObject {
     ownedByAdapter_ = ownedByAdapter;
   }
 
+  template <typename AttrT>
+  static void bulkSetAttributes(
+      std::vector<typename SaiObjectTraits::AdapterKey>& adapterKeys,
+      std::vector<AttrT>& attributes) {
+    auto& api =
+        SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
+    api.bulkSetAttributes(adapterKeys, attributes);
+  }
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr, bool skipHwWrite) {
