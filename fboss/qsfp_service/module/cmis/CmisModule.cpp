@@ -2406,6 +2406,68 @@ bool CmisModule::setPortPrbsLocked(
   return true;
 }
 
+// This function expects caller to hold the qsfp module level lock
+phy::PortPrbsState CmisModule::getPortPrbsStateLocked(Side side) {
+  if (flatMem_) {
+    return phy::PortPrbsState();
+  }
+  {
+    auto lockedDiagsCapability = diagsCapability_.rlock();
+    // Return a default PortPrbsState(with PRBS state as disabled) if the module
+    // is not capable of PRBS
+    if (auto diagsCapability = *lockedDiagsCapability) {
+      if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
+          (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
+        return phy::PortPrbsState();
+      }
+    }
+  }
+  phy::PortPrbsState state;
+
+  int offset, length, dataAddress;
+  uint8_t laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
+                                               : ((1 << numHostLanes()) - 1);
+
+  auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
+                                                : CmisField::HOST_GEN_ENABLE;
+  // Set the page to 0x13 first
+  uint8_t page = 0x13;
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+  uint8_t generator;
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &generator);
+
+  cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
+                                           : CmisField::HOST_CHECKER_ENABLE;
+  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+  uint8_t checker;
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &checker);
+  state.enabled() = (generator == checker && generator == laneMask);
+
+  // If state is enabled, check the polynomial
+  if (*state.enabled()) {
+    cmisRegister = (side == phy::Side::LINE)
+        ? CmisField::MEDIA_PATTERN_SELECT_LANE_8_1
+        : CmisField::HOST_PATTERN_SELECT_LANE_8_1;
+    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+    uint8_t pattern;
+    // Intentionally reading only 1 byte instead of 'length'
+    // We assume the same polynomial is configured on all lanes so only reading
+    // 1 byte which gives the polynomial configured on lane 0
+    qsfpImpl_->readTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &pattern);
+    auto polynomialItr = prbsPatternMap.right.find(pattern & 0xF);
+    if (polynomialItr != prbsPatternMap.right.end()) {
+      state.polynominal() = static_cast<uint32_t>(polynomialItr->second);
+    }
+  }
+  return state;
+}
+
 /*
  * getPortPrbsStatsSideLocked
  *

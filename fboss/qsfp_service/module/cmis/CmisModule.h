@@ -97,6 +97,11 @@ class CmisModule : public QsfpModule {
    */
   bool verifyEepromChecksums() override;
 
+  /*
+   * Returns the current state of prbs (enabled/polynomial)
+   */
+  PortPrbsState getPortPrbsStateLocked(Side side) override;
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
