@@ -133,6 +133,7 @@ class NextHopGroupMember {
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
+  bool fixedWidthMode{false};
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -159,6 +160,8 @@ class SaiNextHopGroupManager {
   std::string listManagedObjects() const;
 
  private:
+  bool isFixedWidthNextHopGroup(
+      const RouteNextHopEntry::NextHopSet& swNextHops) const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

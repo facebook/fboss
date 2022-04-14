@@ -17,6 +17,8 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
@@ -67,6 +69,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
+  nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
   for (const auto& swNextHop : swNextHops) {
@@ -82,6 +85,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     nextHopGroupHandle->members_.push_back(result.first);
   }
   return nextHopGroupHandle;
+}
+
+bool SaiNextHopGroupManager::isFixedWidthNextHopGroup(
+    const RouteNextHopEntry::NextHopSet& swNextHops) const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::WIDE_ECMP)) {
+    return false;
+  }
+  auto totalWeight = 0;
+  for (const auto& swNextHop : swNextHops) {
+    auto weight = swNextHop.weight() == ECMP_WEIGHT ? 1 : swNextHop.weight();
+    totalWeight += weight;
+  }
+  if (totalWeight > platform_->getAsic()->getMaxVariableWidthEcmpSize()) {
+    return true;
+  }
+  return false;
 }
 
 std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
