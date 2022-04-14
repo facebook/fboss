@@ -223,6 +223,44 @@ class SaiObjectStore {
     return object;
   }
 
+  template <typename AttrT>
+  void setObjects(
+      std::vector<typename SaiObjectTraits::AdapterHostKey>& adapterHostKeys,
+      std::vector<AttrT>& attributes,
+      bool notify = true) {
+    std::vector<typename SaiObjectTraits::AdapterKey> adapterKeys;
+    CHECK_EQ(adapterHostKeys.size(), attributes.size());
+    for (const auto& adapterHostKey : adapterHostKeys) {
+      XLOGF(
+          DBG5,
+          "SaiStore bulk setting {} object {}",
+          objectTypeName(),
+          adapterHostKey);
+      auto existingObj = objects_.ref(adapterHostKey);
+      if (!existingObj) {
+        throw FbossError("Bulk set called for non existing object");
+      }
+      auto adapterKey = existingObj->adapterKey();
+      adapterKeys.emplace_back(adapterKey);
+    }
+
+    SaiObject<SaiObjectTraits>::bulkSetAttributes(adapterKeys, attributes);
+
+    auto idx = 0;
+    for (const auto& adapterHostKey : adapterHostKeys) {
+      auto existingObj = objects_.ref(adapterHostKey);
+      existingObj->checkAndSetAttribute(
+          std::optional<AttrT>{std::forward<AttrT>(attributes[idx++])},
+          true /* skipHwWrite */);
+      if (notify) {
+        if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+          existingObj->notifyAfterCreate(existingObj);
+        }
+      }
+      XLOGF(DBG5, "SaiStore bulk set object {}", *existingObj);
+    }
+  }
+
   std::shared_ptr<ObjectType> get(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
     XLOGF(DBG5, "SaiStore get object {}", adapterHostKey);
