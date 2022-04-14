@@ -24,7 +24,6 @@ class FakeAsic : public HwAsic {
       case Feature::PTP_TC_PCS:
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::NON_UNICAST_HASH:
-      case Feature::WIDE_ECMP:
       // Can be removed once CS00012110063 is resolved
       case Feature::SAI_PORT_SPEED_CHANGE:
       case Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER: // TODO(pshaikh):
@@ -84,7 +83,7 @@ class FakeAsic : public HwAsic {
     return 0;
   }
   uint32_t getMaxWideEcmpSize() const override {
-    return 128;
+    return 512;
   }
   uint32_t getMaxLagMemberSize() const override {
     return 256;
