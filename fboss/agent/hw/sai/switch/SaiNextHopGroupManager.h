@@ -182,6 +182,9 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupMember> getSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key);
 
+  std::shared_ptr<SaiNextHopGroupMember> getSaiObjectFromWBCache(
+      const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key);
+
   std::string listManagedObjects() const;
 
  private:

@@ -271,6 +271,16 @@ class SaiObjectStore {
     return objects_.ref(adapterHostKey);
   }
 
+  std::shared_ptr<ObjectType> getWarmbootHandle(
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
+    XLOGF(DBG5, "SaiStore get from WB cache object {}", adapterHostKey);
+    auto itr = warmBootHandles_.find(adapterHostKey);
+    if (itr != warmBootHandles_.end()) {
+      return itr->second;
+    }
+    return nullptr;
+  }
+
   std::shared_ptr<ObjectType> find(
       const typename SaiObjectTraits::AdapterKey& adapterKey) {
     XLOGF(DBG5, "SaiStore find object {}", adapterKey);

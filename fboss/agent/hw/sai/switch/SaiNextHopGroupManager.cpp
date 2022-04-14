@@ -125,6 +125,13 @@ std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::getSaiObject(
   return store.get(key);
 }
 
+std::shared_ptr<SaiNextHopGroupMember>
+SaiNextHopGroupManager::getSaiObjectFromWBCache(
+    const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key) {
+  auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
+  return store.getWarmbootHandle(key);
+}
+
 std::string SaiNextHopGroupManager::listManagedObjects() const {
   std::set<std::string> outputs{};
   for (auto entry : handles_) {
@@ -192,19 +199,26 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
       nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
 
-  // In fixed width case, do not recreate member with 0 weight
-  // if it already exists.
+  bool bulkUpdate{true};
   if (fixedWidthMode_) {
+    // In fixed width case, do not recreate member with 0 weight
+    // if it already exists.
     auto existingObj = manager_->getSaiObject(adapterHostKey);
     if (existingObj) {
       createAttributes = existingObj->attributes();
+      // For warmboot, avoid bulk set as all members may not
+      // be active yet.
+      if (manager_->getSaiObjectFromWBCache(adapterHostKey)) {
+        bulkUpdate = false;
+      }
     }
   }
+
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program correct weight
-    nhgroup_->memberAdded({adapterHostKey, weight_});
+    nhgroup_->memberAdded({adapterHostKey, weight_}, bulkUpdate);
   }
   XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString();
 }
