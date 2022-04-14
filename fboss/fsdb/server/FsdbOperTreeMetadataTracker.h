@@ -11,7 +11,6 @@
 namespace facebook::fboss::fsdb {
 struct FsdbOperTreeMetadata {
   FsdbOperTreeMetadata() {
-    operMetadata.generation() = 0;
     operMetadata.lastConfirmedAtSecsSinceEpoch() = 0;
   }
   OperMetadata operMetadata;
@@ -50,7 +49,7 @@ class FsdbOperTreeMetadataTracker {
       const Path& path,
       const OperMetadata& metadata,
       // Since multiple streams/threads could be updating
-      // timestamps, generation numbers at different times
+      // timestamps, at different times
       // Its possible to have a update that came in earlier
       // endup updating metadata later. So as a aid to
       // that, help enforcing forward progress while holding
@@ -64,7 +63,7 @@ class FsdbOperTreeMetadataTracker {
       PathItr end,
       const OperMetadata& metadata,
       // Since multiple streams/threads could be updating
-      // timestamps, generation numbers at different times
+      // timestamps at different times
       // Its possible to have a update that came in earlier
       // endup updating metadata later. So as a aid to
       // that, help enforcing forward progress while holding

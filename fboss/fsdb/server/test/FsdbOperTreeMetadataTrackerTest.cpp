@@ -45,22 +45,12 @@ TEST_F(PublisherTreeMetadataTrackerTest, updateMetadata) {
   metadata.lastConfirmedAtSecsSinceEpoch() = 10;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 0);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   // No movement back
   metadata.lastConfirmedAtSecsSinceEpoch() = 9;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
-  // Update generation numbers
-  metadata.generation() = 5;
-  metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
-  // No movement back
-  metadata.generation() = 4;
-  metadataTracker_.updateMetadata(kPublishRoot, metadata);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
 }
 
 TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataMoveback) {
@@ -71,21 +61,9 @@ TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataMoveback) {
   metadata.lastConfirmedAtSecsSinceEpoch() = 10;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 0);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
   // Move back
   metadata.lastConfirmedAtSecsSinceEpoch() = 9;
   metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
   EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 9);
-  // Update generation numbers
-  metadata.generation() = 5;
-  metadataTracker_.updateMetadata(kPublishRoot, metadata);
-  EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 9);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 5);
-  // Move back
-  metadata.generation() = 4;
-  metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
-  EXPECT_EQ(*getMetadata().operMetadata.generation(), 4);
 }
 } // namespace facebook::fboss::fsdb::test

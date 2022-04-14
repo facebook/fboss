@@ -39,19 +39,12 @@ void FsdbOperTreeMetadataTracker::updateMetadataImpl(
   }
   auto& operMetadata = itr->second.operMetadata;
   if (enforceForwardProgress) {
-    if (metadata.generation()) {
-      operMetadata.generation() = std::max(
-          operMetadata.generation().value_or(0),
-          metadata.generation().value_or(0));
-    }
     if (metadata.lastConfirmedAtSecsSinceEpoch()) {
       operMetadata.lastConfirmedAtSecsSinceEpoch() = std::max(
           operMetadata.lastConfirmedAtSecsSinceEpoch().value_or(0),
           metadata.lastConfirmedAtSecsSinceEpoch().value_or(0));
     }
   } else {
-    operMetadata.generation() =
-        metadata.generation().value_or(*operMetadata.generation());
     operMetadata.lastConfirmedAtSecsSinceEpoch() =
         metadata.lastConfirmedAtSecsSinceEpoch().value_or(
             *operMetadata.lastConfirmedAtSecsSinceEpoch());
