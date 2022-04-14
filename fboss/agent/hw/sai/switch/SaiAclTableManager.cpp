@@ -1088,26 +1088,39 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
    * Ebro either does not support following qualifier or enabling those
    * overflows max key width. Thus, disable those on Ebro for now.
    */
-  bool isTajo =
+  bool isEbro =
       platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO;
+  bool isGaronne = platform_->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_GARONNE;
   bool isTrident2 = platform_->getAsic()->getAsicType() ==
       HwAsic::AsicType::ASIC_TYPE_TRIDENT2;
-
-  if (isTajo) {
-    return {
-        cfg::AclTableQualifier::SRC_IPV6,
-        cfg::AclTableQualifier::DST_IPV6,
-        cfg::AclTableQualifier::SRC_IPV4,
-        cfg::AclTableQualifier::DST_IPV4,
-        cfg::AclTableQualifier::IP_PROTOCOL,
-        cfg::AclTableQualifier::DSCP,
-        cfg::AclTableQualifier::IP_TYPE,
-        cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::LOOKUP_CLASS_L2,
-        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+  std::set<cfg::AclTableQualifier> tajoQualifiers = {
+      cfg::AclTableQualifier::SRC_IPV6,
+      cfg::AclTableQualifier::DST_IPV6,
+      cfg::AclTableQualifier::SRC_IPV4,
+      cfg::AclTableQualifier::DST_IPV4,
+      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::DSCP,
+      cfg::AclTableQualifier::IP_TYPE,
+      cfg::AclTableQualifier::TTL,
+      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+  if (isEbro) {
+    return tajoQualifiers;
   }
-  std::set<cfg::AclTableQualifier> qualifiers = {
+  if (isGaronne) {
+    /*
+     * (TODO): Garonne does not support class ID yet. prune it from
+     * qualifier list for now.
+     */
+    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+    return tajoQualifiers;
+  }
+
+  std::set<cfg::AclTableQualifier> bcmQualifiers = {
       cfg::AclTableQualifier::SRC_IPV6,
       cfg::AclTableQualifier::DST_IPV6,
       cfg::AclTableQualifier::SRC_IPV4,
@@ -1140,10 +1153,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
    * run out resources).
    */
   if (isTrident2) {
-    qualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+    bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
   }
 
-  return qualifiers;
+  return bcmQualifiers;
 }
 
 void SaiAclTableManager::addDefaultAclTable() {
