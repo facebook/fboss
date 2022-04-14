@@ -24,7 +24,8 @@ enum OperProtocol {
 }
 
 struct OperMetadata {
-  1: optional i64 lastConfirmedAtSecsSinceEpoch;
+  // lastConfirmedAt measured in seconds since epoch
+  1: optional i64 lastConfirmedAt;
 }
 
 struct OperState {

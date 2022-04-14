@@ -41,15 +41,15 @@ TEST_F(PublisherTreeMetadataTrackerTest, updateMetadata) {
   metadataTracker_.registerPublisherRoot(kPublishRoot);
   metadataTracker_.registerPublisherRoot(kPublishRoot);
   OperMetadata metadata;
-  // Update lastConfirmedAtSecsSinceEpoch
-  metadata.lastConfirmedAtSecsSinceEpoch() = 10;
+  // Update lastConfirmedAt
+  metadata.lastConfirmedAt() = 10;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
+  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAt(), 10);
   // No movement back
-  metadata.lastConfirmedAtSecsSinceEpoch() = 9;
+  metadata.lastConfirmedAt() = 9;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 10);
+  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAt(), 10);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
 }
 
@@ -57,13 +57,13 @@ TEST_F(PublisherTreeMetadataTrackerTest, updateMetadataMoveback) {
   metadataTracker_.registerPublisherRoot(kPublishRoot);
   metadataTracker_.registerPublisherRoot(kPublishRoot);
   OperMetadata metadata;
-  // Update lastConfirmedAtSecsSinceEpoch
-  metadata.lastConfirmedAtSecsSinceEpoch() = 10;
+  // Update lastConfirmedAt
+  metadata.lastConfirmedAt() = 10;
   metadataTracker_.updateMetadata(kPublishRoot, metadata);
   EXPECT_EQ(getMetadata().numOpenConnections, 2);
   // Move back
-  metadata.lastConfirmedAtSecsSinceEpoch() = 9;
+  metadata.lastConfirmedAt() = 9;
   metadataTracker_.updateMetadata(kPublishRoot, metadata, false);
-  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAtSecsSinceEpoch(), 9);
+  EXPECT_EQ(*getMetadata().operMetadata.lastConfirmedAt(), 9);
 }
 } // namespace facebook::fboss::fsdb::test

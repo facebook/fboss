@@ -24,9 +24,9 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
   if (!pubUnit.metadata()) {
     pubUnit.metadata() = OperMetadata{};
   }
-  if (!pubUnit.metadata()->lastConfirmedAtSecsSinceEpoch()) {
+  if (!pubUnit.metadata()->lastConfirmedAt()) {
     auto now = std::chrono::system_clock::now();
-    pubUnit.metadata()->lastConfirmedAtSecsSinceEpoch() =
+    pubUnit.metadata()->lastConfirmedAt() =
         std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
             .count();
   }
