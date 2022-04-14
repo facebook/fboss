@@ -63,12 +63,14 @@ class ManagedSaiNextHopGroupMember
       SaiNextHopGroupManager* manager,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
-      NextHopWeight weight)
+      NextHopWeight weight,
+      bool fixedWidthMode)
       : Base(managedNextHop->adapterHostKey()),
         manager_(manager),
         managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
-        weight_(weight) {}
+        weight_(weight),
+        fixedWidthMode_(fixedWidthMode) {}
 
   ~ManagedSaiNextHopGroupMember() {
     this->resetObject();
@@ -91,6 +93,7 @@ class ManagedSaiNextHopGroupMember
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
   NextHopWeight weight_;
+  bool fixedWidthMode_;
 };
 
 class NextHopGroupMember {
@@ -104,7 +107,8 @@ class NextHopGroupMember {
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       ManagedSaiNextHop managedSaiNextHop,
-      NextHopWeight nextHopWeight);
+      NextHopWeight nextHopWeight,
+      bool fixedWidthMode);
 
   bool isProgrammed() const {
     return std::visit(

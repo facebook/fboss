@@ -81,7 +81,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
         ? 1
         : resolvedNextHop.weight();
     auto result = nextHopGroupMembers_.refOrEmplace(
-        key, this, nextHopGroupId, managedNextHop, weight);
+        key,
+        this,
+        nextHopGroupId,
+        managedNextHop,
+        weight,
+        nextHopGroupHandle->fixedWidthMode);
     nextHopGroupHandle->members_.push_back(result.first);
   }
   return nextHopGroupHandle;
@@ -137,7 +142,8 @@ NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     ManagedSaiNextHop managedSaiNextHop,
-    NextHopWeight nextHopWeight) {
+    NextHopWeight nextHopWeight,
+    bool fixedWidthMode) {
   std::visit(
       [=](auto managedNextHop) {
         using ObjectTraits = typename std::decay_t<
@@ -146,7 +152,11 @@ NextHopGroupMember::NextHopGroupMember(
         std::ignore = key;
         using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
-            manager, managedNextHop, nexthopGroupId, nextHopWeight);
+            manager,
+            managedNextHop,
+            nexthopGroupId,
+            nextHopWeight,
+            fixedWidthMode);
         SaiObjectEventPublisher::getInstance()->get<ObjectTraits>().subscribe(
             managedMember);
         managedNextHopGroupMember_ = managedMember;
