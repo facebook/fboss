@@ -35,10 +35,14 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiNextHopGroupManager;
 class SaiStore;
+struct SaiNextHopGroupHandle;
 
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
+using SaiNextHopGroupMemberInfo = std::pair<
+    SaiNextHopGroupMemberTraits::AdapterHostKey,
+    SaiNextHopGroupMemberTraits::Attributes::Weight>;
 
 template <typename T>
 class ManagedNextHop;
@@ -61,12 +65,14 @@ class ManagedSaiNextHopGroupMember
       typename SaiNextHopGroupMemberTraits::Attributes::Weight;
   ManagedSaiNextHopGroupMember(
       SaiNextHopGroupManager* manager,
+      SaiNextHopGroupHandle* nhgroup,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       NextHopWeight weight,
       bool fixedWidthMode)
       : Base(managedNextHop->adapterHostKey()),
         manager_(manager),
+        nhgroup_(nhgroup),
         managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
         weight_(weight),
@@ -78,11 +84,7 @@ class ManagedSaiNextHopGroupMember
 
   void createObject(PublisherObjects added);
 
-  void removeObject(size_t /*index*/, PublisherObjects /*removed*/) {
-    XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
-    /* remove nexthop group member if next hop is removed */
-    this->resetObject();
-  }
+  void removeObject(size_t index, PublisherObjects removed);
 
   void handleLinkDown() {}
 
@@ -90,6 +92,7 @@ class ManagedSaiNextHopGroupMember
 
  private:
   SaiNextHopGroupManager* manager_;
+  SaiNextHopGroupHandle* nhgroup_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
   NextHopWeight weight_;
@@ -105,6 +108,7 @@ class NextHopGroupMember {
 
   NextHopGroupMember(
       SaiNextHopGroupManager* manager,
+      SaiNextHopGroupHandle* nhgroup,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       ManagedSaiNextHop managedSaiNextHop,
       NextHopWeight nextHopWeight,
@@ -138,6 +142,7 @@ struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
   bool fixedWidthMode{false};
+  std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -145,6 +150,16 @@ struct SaiNextHopGroupHandle {
     return nextHopGroup->adapterKey();
   }
   size_t nextHopGroupSize() const;
+  void memberAdded(
+      SaiNextHopGroupMemberInfo memberInfo,
+      bool updateHardware = true);
+  void memberRemoved(
+      SaiNextHopGroupMemberInfo memberInfo,
+      bool updateHardware = true);
+  void bulkProgramMembers(
+      SaiNextHopGroupMemberInfo modifiedMemberInfo,
+      bool added,
+      bool updateHardware);
 };
 
 class SaiNextHopGroupManager {

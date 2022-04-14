@@ -83,6 +83,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     auto result = nextHopGroupMembers_.refOrEmplace(
         key,
         this,
+        nextHopGroupHandle.get(),
         nextHopGroupId,
         managedNextHop,
         weight,
@@ -140,6 +141,7 @@ std::string SaiNextHopGroupManager::listManagedObjects() const {
 
 NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
+    SaiNextHopGroupHandle* nhgroup,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     ManagedSaiNextHop managedSaiNextHop,
     NextHopWeight nextHopWeight,
@@ -153,6 +155,7 @@ NextHopGroupMember::NextHopGroupMember(
         using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
             manager,
+            nhgroup,
             managedNextHop,
             nexthopGroupId,
             nextHopWeight,
@@ -174,12 +177,32 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
 
   SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
       nexthopGroupId_, nexthopId};
+  // In fixed width case, the member is added with weight 0
+  // and proper weight is set through bulk set api
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
-      nexthopGroupId_, nexthopId, weight_};
+      nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
 
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
+  if (fixedWidthMode_) {
+    // notify nhgroup to bulk program correct weight
+    nhgroup_->memberAdded({adapterHostKey, weight_});
+  }
   XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString();
+}
+
+template <typename NextHopTraits>
+void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
+    size_t /* index */,
+    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
+    /* removed */) {
+  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
+  if (fixedWidthMode_) {
+    // notify nhgroup to bulk program with 0 weight
+    nhgroup_->memberRemoved({this->getObject()->adapterHostKey(), weight_});
+  }
+  /* remove nexthop group member if next hop is removed */
+  this->resetObject();
 }
 
 size_t SaiNextHopGroupHandle::nextHopGroupSize() const {
@@ -188,6 +211,23 @@ size_t SaiNextHopGroupHandle::nextHopGroupSize() const {
         return member->isProgrammed();
       });
 }
+
+void SaiNextHopGroupHandle::memberAdded(
+    SaiNextHopGroupMemberInfo memberInfo,
+    bool updateHardware) {
+  bulkProgramMembers(memberInfo, true /* added */, updateHardware);
+}
+
+void SaiNextHopGroupHandle::memberRemoved(
+    SaiNextHopGroupMemberInfo memberInfo,
+    bool updateHardware) {
+  bulkProgramMembers(memberInfo, false /* added */, updateHardware);
+}
+
+void SaiNextHopGroupHandle::bulkProgramMembers(
+    SaiNextHopGroupMemberInfo /* modifiedMemberInfo */,
+    bool /* added */,
+    bool /* updateHardware */) {}
 
 template <typename NextHopTraits>
 std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
