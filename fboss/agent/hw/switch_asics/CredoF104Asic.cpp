@@ -66,5 +66,7 @@ uint32_t CredoF104Asic::getPacketBufferUnitSize() const {
 uint32_t CredoF104Asic::getPacketBufferDescriptorSize() const {
   throw FbossError("CredoF104Asic doesn't support MMU feature");
 }
-
+uint32_t CredoF104Asic::getMaxVariableWidthEcmpSize() const {
+  return 512;
+}
 }; // namespace facebook::fboss

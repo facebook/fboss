@@ -64,6 +64,9 @@ class TomahawkAsic : public BroadcomAsic {
   uint32_t getPacketBufferDescriptorSize() const override {
     return 64;
   }
+  uint32_t getMaxVariableWidthEcmpSize() const override {
+    return 128;
+  }
 };
 
 } // namespace facebook::fboss

@@ -46,5 +46,6 @@ class CredoF104Asic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_CREDO;
   }
+  uint32_t getMaxVariableWidthEcmpSize() const override;
 };
 } // namespace facebook::fboss

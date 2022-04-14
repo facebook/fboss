@@ -79,6 +79,9 @@ class EbroAsic : public TajoAsic {
   uint32_t getPacketBufferDescriptorSize() const override {
     return 40;
   }
+  uint32_t getMaxVariableWidthEcmpSize() const override {
+    return 512;
+  }
 };
 
 } // namespace facebook::fboss

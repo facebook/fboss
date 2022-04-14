@@ -197,6 +197,8 @@ class HwAsic {
   virtual std::optional<uint32_t> getPortSerdesPreemphasis() const = 0;
 
   static std::vector<AsicType> getAllHwAsicList();
+
+  virtual uint32_t getMaxVariableWidthEcmpSize() const = 0;
 };
 
 } // namespace facebook::fboss

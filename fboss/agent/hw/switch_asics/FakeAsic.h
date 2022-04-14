@@ -104,6 +104,9 @@ class FakeAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_FAKE;
   }
+  uint32_t getMaxVariableWidthEcmpSize() const override {
+    return 128;
+  }
 };
 
 } // namespace facebook::fboss
