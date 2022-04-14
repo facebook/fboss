@@ -204,3 +204,31 @@ TEST_F(NextHopGroupManagerTest, testNextHopGroupMemberWeights) {
       SaiNextHopGroupMemberTraits::Attributes::Weight{});
   EXPECT_EQ(weight, 42);
 }
+
+TEST_F(NextHopGroupManagerTest, testFixedWidthNextHopGroupMemberWeights) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  FLAGS_ecmp_width = 512;
+  resolveArp(intf0.id, h0);
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), 64};
+  resolveArp(intf1.id, h1);
+  ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), 65};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
+  auto saiNextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          swNextHops);
+  auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+
+  auto nextHopGroupId = saiNextHopGroup->adapterKey();
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList memberList{};
+  auto members = nextHopGroupApi.getAttribute(nextHopGroupId, memberList);
+  EXPECT_EQ(members.size(), 2);
+  auto newWeight = nextHopGroupApi.getAttribute(
+                       NextHopGroupMemberSaiId(members[0]),
+                       SaiNextHopGroupMemberTraits::Attributes::Weight{}) +
+      nextHopGroupApi.getAttribute(
+          NextHopGroupMemberSaiId(members[1]),
+          SaiNextHopGroupMemberTraits::Attributes::Weight{});
+  EXPECT_EQ(newWeight, 512);
+#endif
+}
