@@ -177,6 +177,32 @@ sai_status_t set_next_hop_group_member_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_next_hop_group_members_attribute_fn(
+    uint32_t object_count,
+    const sai_object_id_t* object_id,
+    const sai_attribute_t* attr_list,
+    sai_bulk_op_error_mode_t /* mode */,
+    sai_status_t* object_statuses) {
+  auto fs = FakeSai::getInstance();
+  auto setMemberAttribute = [](auto& attr, auto& member) {
+    switch (attr.id) {
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
+        member.weight = attr.value.u32;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+    return SAI_STATUS_SUCCESS;
+  };
+  for (int count = 0; count < object_count; count++) {
+    auto& nextHopGroupMember =
+        fs->nextHopGroupManager.getMember(object_id[count]);
+    object_statuses[count] =
+        setMemberAttribute(attr_list[count], nextHopGroupMember);
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_next_hop_group_api_t _next_hop_group_api;
@@ -197,6 +223,10 @@ void populate_next_hop_group_api(
       &set_next_hop_group_member_attribute_fn;
   _next_hop_group_api.get_next_hop_group_member_attribute =
       &get_next_hop_group_member_attribute_fn;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  _next_hop_group_api.set_next_hop_group_members_attribute =
+      &set_next_hop_group_members_attribute_fn;
+#endif
   *next_hop_group_api = &_next_hop_group_api;
 }
 
