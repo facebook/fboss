@@ -2023,42 +2023,40 @@ void CmisModule::setDiagsCapability() {
       XLOG(INFO) << "Setting diag capability for Transceiver="
                  << qsfpImpl_->getName();
       DiagsCapability diags;
-      uint8_t data;
 
-      auto readFromCacheOrHw = [&](CmisField field) -> uint8_t {
-        uint8_t dataVal;
+      auto readFromCacheOrHw = [&](CmisField field, uint8_t* data) {
         int offset;
         int length;
         int dataAddress;
         getQsfpFieldAddress(field, dataAddress, offset, length);
         if (cacheIsValid()) {
-          getQsfpValue(dataAddress, offset, 1, &dataVal);
+          getQsfpValue(dataAddress, offset, length, data);
         } else {
           uint8_t page = static_cast<uint8_t>(dataAddress);
           qsfpImpl_->writeTransceiver(
               {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
           qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataVal);
+              {TransceiverI2CApi::ADDR_QSFP, offset, length}, data);
         }
-        return dataVal;
       };
 
-      data = readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT);
+      uint8_t data;
+      readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
       diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
       diags.diagnostics() =
           (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
 
-      data = readFromCacheOrHw(CmisField::CDB_SUPPORT);
+      readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
       diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
 
       if (*diags.diagnostics()) {
-        data = readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY);
+        readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);
         diags.loopbackSystem() =
             (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
         diags.loopbackLine() =
             (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
 
-        data = readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY);
+        readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
         diags.prbsLine() =
             (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
         diags.prbsSystem() =
