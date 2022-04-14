@@ -65,7 +65,8 @@ class GaronneAsic : public TajoAsic {
     return 512;
   }
   int getSystemPortIDOffset() const override {
-    return 1000;
+    /* For Garonne, valid system port IDs are from 4 to 640 */
+    return 100;
   }
   uint32_t getSflowShimHeaderSize() const override {
     return 9;

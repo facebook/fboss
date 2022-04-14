@@ -21,7 +21,8 @@ namespace {
 std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
     const SaiPlatform* platform,
     PortID portId) {
-  if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO) {
+  if (platform->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     return std::optional<SaiPortTraits::Attributes::SystemPortId>{
         portId + platform->getAsic()->getSystemPortIDOffset()};
   }
