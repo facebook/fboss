@@ -1,0 +1,98 @@
+{
+  "permissions": [
+    {
+      "action": "BaseService",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FacebookService",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "NeighborListenerClient",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "PacketStream",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "SaiCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    }
+  ],
+  "point_of_contact": {
+    "id_type": "ONCALL",
+    "id_data": "fboss_dev"
+  }
+}
