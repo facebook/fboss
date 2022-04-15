@@ -2488,7 +2488,10 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
     return phy::PrbsStats{};
   }
 
-  prbsStats.portId() = qsfpImpl_->getNum();
+  prbsStats.portId() = getID();
+  prbsStats.component() = side == Side::SYSTEM
+      ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
+      : phy::PrbsComponent::TRANSCEIVER_LINE;
 
   // The PRBS information is in page 0x14 so set the page first
   uint8_t page = 0x14;
@@ -2539,6 +2542,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
 
     prbsStats.laneStats()->push_back(laneStats);
   }
+  prbsStats.timeCollected() = std::time(nullptr);
   return prbsStats;
 }
 
