@@ -56,6 +56,12 @@ WRAP_SET_ATTR_FUNC(
     next_hop_group_member,
     SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
     nextHopGroup);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+WRAP_BULK_SET_ATTR_FUNC(
+    next_hop_group_member,
+    SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
+    nextHopGroup);
+#endif
 WRAP_GET_ATTR_FUNC(
     next_hop_group_member,
     SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER,
@@ -76,6 +82,10 @@ sai_next_hop_group_api_t* wrappedNextHopGroupApi() {
       &wrap_remove_next_hop_group_member;
   nextHopGroupWrappers.set_next_hop_group_member_attribute =
       &wrap_set_next_hop_group_member_attribute;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  nextHopGroupWrappers.set_next_hop_group_members_attribute =
+      &wrap_set_next_hop_group_members_attribute;
+#endif
   nextHopGroupWrappers.get_next_hop_group_member_attribute =
       &wrap_get_next_hop_group_member_attribute;
 

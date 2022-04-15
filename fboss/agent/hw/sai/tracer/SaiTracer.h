@@ -154,6 +154,16 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logBulkSetAttrFn(
+      const std::string& fn_name,
+      uint32_t object_count,
+      const sai_object_id_t* object_id,
+      const sai_attribute_t* attr_list,
+      sai_bulk_op_error_mode_t mode,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logSendHostifPacketFn(
       sai_object_id_t hostif_id,
       sai_size_t buffer_size,
@@ -531,6 +541,29 @@ class SaiTracer {
         sai_obj_type,                                                         \
         rv);                                                                  \
     return rv;                                                                \
+  }
+
+#define WRAP_BULK_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)              \
+  sai_status_t wrap_set_##obj_type##s_attribute(                               \
+      uint32_t object_count,                                                   \
+      const sai_object_id_t* object_id,                                        \
+      const sai_attribute_t* attr_list,                                        \
+      sai_bulk_op_error_mode_t mode,                                           \
+      sai_status_t* object_statuses) {                                         \
+    auto rv =                                                                  \
+        SaiTracer::getInstance()->api_type##Api_->set_##obj_type##s_attribute( \
+            object_count, object_id, attr_list, mode, object_statuses);        \
+                                                                               \
+    SaiTracer::getInstance()->logBulkSetAttrFn(                                \
+        "set_" #obj_type "s_attribute",                                        \
+        object_count,                                                          \
+        object_id,                                                             \
+        attr_list,                                                             \
+        mode,                                                                  \
+        object_statuses,                                                       \
+        sai_obj_type,                                                          \
+        rv);                                                                   \
+    return rv;                                                                 \
   }
 
 #define SAI_ATTR_MAP(obj_type, attr_name)                                   \

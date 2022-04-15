@@ -1073,6 +1073,56 @@ void SaiTracer::logSetAttrFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logBulkSetAttrFn(
+    const std::string& fn_name,
+    uint32_t object_count,
+    const sai_object_id_t* object_id,
+    const sai_attribute_t* attr_list,
+    sai_bulk_op_error_mode_t mode,
+    sai_status_t* object_statuses,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup attributes
+  vector<string> lines = setAttrList(attr_list, object_count, object_type);
+
+  // Setup object ids
+  for (int i = 0; i < object_count; ++i) {
+    lines.push_back(
+        to<string>("obj_list[", i, "]=", getVariable(object_id[i])));
+  }
+
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
+
+  // Make set bulk attribute call
+  lines.push_back(to<string>(
+      "rv=",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      object_count,
+      ",obj_list,s_a,(sai_bulk_op_error_mode_t)",
+      mode,
+      ",object_statuses)"));
+
+  // Log object status
+  string objectStatusStr = "// Status:";
+  for (int i = 0; i < object_count; ++i) {
+    objectStatusStr += to<string>(" ", object_statuses[i]);
+  }
+  lines.push_back(objectStatusStr);
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logSendHostifPacketFn(
     sai_object_id_t hostif_id,
     sai_size_t buffer_size,
@@ -1554,6 +1604,10 @@ void SaiTracer::setupGlobals() {
   globalVar.push_back("uint32_t expected_object_count");
   globalVar.push_back("uint32_t object_count");
   globalVar.push_back("std::vector<sai_object_key_t> object_list");
+  globalVar.push_back(to<string>(
+      "sai_status_t object_statuses[", FLAGS_default_list_size, "]"));
+  globalVar.push_back(
+      to<string>("sai_object_id_t obj_list[", FLAGS_default_list_size, "]"));
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
