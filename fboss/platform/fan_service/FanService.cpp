@@ -9,14 +9,12 @@
 #include "common/time/Time.h"
 
 namespace facebook::fboss::platform {
-FanService::FanService(std::string configFileName) {
+FanService::FanService() {
   lastControlExecutionTimeSec_ = 0;
   lastSensorFetchTimeSec_ = 0;
 
   pBsp_ = NULL;
   pSensorData_ = NULL;
-
-  cfgFile_ = configFileName;
 
   return;
 }
@@ -65,7 +63,7 @@ void FanService::kickstart() {
 
   // Read Config
   pConfig_ = std::make_shared<ServiceConfig>();
-  pConfig_->parse(cfgFile_);
+  pConfig_->parse();
 
   // Get the proper BSP object from BSP factory,
   // according to the parsed config, then run init routine.

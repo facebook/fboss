@@ -1,5 +1,7 @@
 // Copyright 2021- Facebook. All rights reserved.
 #include "ServiceConfig.h"
+#include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 const std::string TABLE_100G = "speed_100";
 const std::string TABLE_200G = "speed_200";
@@ -7,6 +9,7 @@ const std::string TABLE_400G = "speed_400";
 const std::string TABLE_800G = "speed_800";
 
 namespace facebook::fboss::platform {
+
 ServiceConfig::ServiceConfig() {
   prepareDict();
   jsonConfig_ = "";
@@ -22,23 +25,34 @@ ServiceConfig::ServiceConfig() {
   watchdogEnable_ = false;
 }
 
-int ServiceConfig::parse(std::string filename) {
+int ServiceConfig::parse() {
   // Read the raw text from the file
   std::string contents;
-  try {
-    std::ifstream file;
-    file.open(filename.c_str(), std::ios::in);
-    if (!file) {
-      throw facebook::fboss::FbossError(
-          "Unable to open config file ", filename);
-    }
-    contents = std::string(
-        (std::istreambuf_iterator<char>(file)),
-        std::istreambuf_iterator<char>());
-  } catch (std::exception& e) {
-    throw facebook::fboss::FbossError(
-        "Failed to read config file ", filename, " : ", e.what());
+  fboss::PlatformMode platformMode;
+
+  XLOG(INFO) << "Detecting the platform type. FRUID File path : "
+             << FLAGS_fruid_filepath;
+  fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);
+  productInfo.initialize();
+  platformMode = productInfo.getMode();
+
+  XLOG(INFO) << "Trying to fetch the configuration for :  "
+             << toString(platformMode);
+
+  // Get the config string of this platform type
+  switch (platformMode) {
+    case PlatformMode::DARWIN:
+      contents = getDarwinFSConfig();
+      break;
+    case PlatformMode::FAKE_WEDGE:
+      contents = getMokujinFSConfig();
+      break;
+    default:
+      throw FbossError(
+          "Platform not supported yet : ", productInfo.getProductName());
   }
+
+  XLOG(INFO) << "The configuration fetched. Parsing...";
 
   // Parse the string contents into json
   jsonConfig_ = folly::parseJson(contents);
@@ -702,6 +716,8 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMokujin;
   configDict_["lassen"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspLassen;
+  configDict_["sandia"] =
+      fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspSandia;
   configDict_["minipack3"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgBspMinipack3;
   configDict_["pwm_boost_value"] =
@@ -835,7 +851,5 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin;
   configDict_["pwm_range_max"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax;
-  configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
-  configDict_["scale"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgScale;
 }
 } // namespace facebook::fboss::platform

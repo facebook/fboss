@@ -12,7 +12,6 @@ DEFINE_int32(
     control_interval,
     5,
     "How often we will read sensors and change fan pwm");
-DEFINE_string(config_file, "fan_service.json", "Config File");
 DEFINE_string(mock_input, "", "Mock Input File");
 DEFINE_string(mock_output, "", "Mock Output File");
 
@@ -55,17 +54,14 @@ int main(int argc, char** argv) {
   // No Thrift service will be created at all.
   if (FLAGS_mock_input != "") {
     // Run as Mock mode
-    facebook::fboss::platform::FanService mockedFanService(FLAGS_config_file);
+    facebook::fboss::platform::FanService mockedFanService;
     mockedFanService.kickstart();
     int rc = mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
     exit(rc);
   }
 
   // Create Fan Service Object as unique_ptr
-  XLOG(INFO) << "Starting FanService as a service config file "
-             << FLAGS_config_file;
-  auto fanService = std::make_unique<facebook::fboss::platform::FanService>(
-      FLAGS_config_file);
+  auto fanService = std::make_unique<facebook::fboss::platform::FanService>();
 
   // Setup Thrift Server. Nothing special.
   // Later, we install our handler in this server

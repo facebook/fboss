@@ -83,6 +83,7 @@ enum FsvcConfigDictIndex {
   kFsvcCfgPwmTransition = 75,
   kFsvcCfgValue = 77,
   kFsvcCfgScale = 78,
+  kFsvcCfgBspSandia = 79,
 }
 
 enum ZoneType {

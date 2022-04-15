@@ -26,7 +26,7 @@ namespace facebook::fboss::platform {
 class FanService {
  public:
   // Constructor / destructor
-  FanService(std::string configFileName);
+  FanService();
   ~FanService() {} // Make compiler happy in handling smart pointers
   // Instantiates all classes used by Fan Service
   void kickstart();
@@ -49,8 +49,6 @@ class FanService {
   std::shared_ptr<SensorData> pSensorData_;
   // Check if fan pwm was programmed with transitionValue yet.
   bool transitionValueSet_;
-  // Config File Name
-  std::string cfgFile_;
   // The timestamp of the last PWM control logic execution
   uint64_t lastControlExecutionTimeSec_;
   // The timestamp of the last sensor data fetch

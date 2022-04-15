@@ -31,6 +31,9 @@
 
 namespace facebook::fboss::platform {
 
+std::string getDarwinFSConfig();
+std::string getMokujinFSConfig();
+
 struct Zone {
  public:
   fan_config_structs::ZoneType type;
@@ -252,7 +255,7 @@ class ServiceConfig {
   //
 
   ServiceConfig();
-  int parse(std::string filename);
+  int parse();
   fan_config_structs::FsvcConfigDictIndex convertKeywordToIndex(
       std::string keyword) const;
   float getPwmBoostValue() const;
