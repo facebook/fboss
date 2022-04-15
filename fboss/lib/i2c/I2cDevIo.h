@@ -28,9 +28,14 @@ class I2cDevIoError : public std::exception {
 class I2cDevIo {
  public:
   explicit I2cDevIo(const std::string& devName);
-  ~I2cDevIo();
-  void read(uint8_t addr, uint8_t offset, uint8_t* buf, int len);
-  void write(uint8_t addr, uint8_t offset, const uint8_t* buf, int len);
+  virtual ~I2cDevIo();
+  virtual void read(uint8_t addr, uint8_t offset, uint8_t* buf, int len);
+  virtual void write(uint8_t addr, uint8_t offset, const uint8_t* buf, int len);
+
+ protected:
+  int getFileHandle() {
+    return fd_;
+  }
 
  private:
   std::string devName_;
