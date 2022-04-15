@@ -18,6 +18,42 @@
 
 using namespace facebook::fboss;
 
+namespace {
+enum class BitsflowLockdownLevels {
+  FORWARDING_ONLY = 1,
+  FORWARDING_WITH_LOCAL_CLIENTS = 2,
+  FORWARDING_WITH_NON_WRITE_CLIENTS = 3,
+  FORWARDING_WITH_SPECIFIC_WRITE_CLIENTS = 4,
+  DISABLED = 5,
+};
+
+/*
+ * These ACLs are copied from configerator, where the bitsflow ACLs
+ * are generated, desired to keep it in sync once in a while though
+ * its not a requirement.
+ */
+std::map<BitsflowLockdownLevels, std::string> lockdownLevelAcl = {
+    {BitsflowLockdownLevels::FORWARDING_ONLY,
+     "bitsflow_fboss_wedge_agent_forwarding_only.materialized_JSON"},
+    {BitsflowLockdownLevels::FORWARDING_WITH_LOCAL_CLIENTS,
+     "bitsflow_fboss_wedge_agent_forwarding_with_local_clients.materialized_JSON"},
+    {BitsflowLockdownLevels::FORWARDING_WITH_NON_WRITE_CLIENTS,
+     "bitsflow_fboss_wedge_agent_forwarding_with_non_write_clients.materialized_JSON"},
+    {BitsflowLockdownLevels::FORWARDING_WITH_SPECIFIC_WRITE_CLIENTS,
+     "bitsflow_fboss_wedge_agent_forwarding_with_specific_write_clients.materialized_JSON"},
+    {BitsflowLockdownLevels::DISABLED, ""}};
+
+const auto kBitsflowAclsPath{"fboss/agent/test/files/bitsflow_acls/"};
+std::string getStaticFileAclPath(BitsflowLockdownLevels level) {
+  std::string aclPath = "";
+  auto iter = lockdownLevelAcl.find(level);
+  if (iter != lockdownLevelAcl.end()) {
+    aclPath = kBitsflowAclsPath + iter->second;
+  }
+  return aclPath;
+}
+} // namespace
+
 class BitsflowAclTest : public ::testing::Test {
  public:
   void initialSetup() {
