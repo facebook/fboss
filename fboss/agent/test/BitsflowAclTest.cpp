@@ -54,6 +54,15 @@ class BitsflowAclTest : public ::testing::Test {
       thriftServer_->serve();
       XLOG(DBG0) << "Stopping thrift server thread ...";
     });
+
+    // Wait until thrift server starts
+    while (true) {
+      auto evb = thriftServer_->getServeEventBase();
+      if (evb != nullptr and evb->isRunning()) {
+        break;
+      }
+      std::this_thread::yield();
+    }
   }
 
   SwSwitch* sw_;
