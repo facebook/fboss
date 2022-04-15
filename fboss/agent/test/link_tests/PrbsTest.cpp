@@ -69,6 +69,7 @@ class PrbsTest : public LinkTest {
 
     phy::PortPrbsState disabledState;
     disabledState.enabled_ref() = false;
+    disabledState.polynominal_ref() = static_cast<int>(Polynomial);
 
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
@@ -486,3 +487,5 @@ class TransceiverPrbsTest
   }
 
 PRBS_TRANSCEIVER_TEST(FR1_100G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31);
+
+PRBS_TRANSCEIVER_TEST(FR4_200G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31Q);
