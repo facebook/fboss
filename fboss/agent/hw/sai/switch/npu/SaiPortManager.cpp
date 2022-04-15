@@ -74,6 +74,27 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   removeRemovedHandleIf(swPort->getID());
   SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(swPort);
   attributesFromSaiStore(attributes);
+
+  /**
+   * Remove port handles if the new HwLaneList contains hw lanes that are used
+   * by the removed handles. E.g. Port1 (HwLaneList[1,2]), Port2
+   * (HwLaneList[3,4]) are removed to create new Port2 (HwLaneList[1,2,3,4]).
+   * Port1 would be added to removedHandles_, but not removed by the SDK yet.
+   * Therefore, check new hw lanes and remove ports in SDK accordingly.
+   */
+  auto newHwLanes = GET_ATTR(Port, HwLaneList, attributes);
+  for (auto& [removedPortId, removedHandle] : removedHandles_) {
+    auto removedHwLanes =
+        GET_ATTR(Port, HwLaneList, removedHandle->port->attributes());
+    for (auto removedHwLane : removedHwLanes) {
+      if (std::find(newHwLanes.begin(), newHwLanes.end(), removedHwLane) !=
+          newHwLanes.end()) {
+        removeRemovedHandleIf(removedPortId);
+        break;
+      }
+    }
+  }
+
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto handle = std::make_unique<SaiPortHandle>();
 
