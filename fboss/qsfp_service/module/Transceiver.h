@@ -197,6 +197,7 @@ class Transceiver {
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
+  virtual bool shouldRemediateLocked() = 0;
 
   // QSFP Presence status
   bool present_{false};

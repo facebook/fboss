@@ -622,6 +622,8 @@ class QsfpModule : public Transceiver {
   folly::Synchronized<phy::PrbsStats> systemPrbsStats_;
   folly::Synchronized<phy::PrbsStats> linePrbsStats_;
 
+  bool shouldRemediateLocked() override;
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

@@ -738,7 +738,39 @@ void QsfpModule::updatePrbsStats() {
 }
 
 bool QsfpModule::shouldRemediate() {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
+  auto shouldRemediateFunc = [this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    return shouldRemediateLocked();
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    return shouldRemediateFunc();
+  } else {
+    bool shouldRemediateResult = false;
+    via(i2cEvb)
+        .thenValue(
+            [&shouldRemediateResult, shouldRemediateFunc](auto&&) mutable {
+              shouldRemediateResult = shouldRemediateFunc();
+            })
+        .get();
+    return shouldRemediateResult;
+  }
+}
+
+bool QsfpModule::shouldRemediateLocked() {
   if (!supportRemediate()) {
+    return false;
+  }
+
+  auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
+  auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
+  if (*sysPrbsState.enabled() || *linePrbsState.enabled()) {
+    XLOG(INFO) << "Skipping remediation because PRBS is enabled. System: "
+               << *sysPrbsState.enabled()
+               << ", Line: " << *linePrbsState.enabled();
     return false;
   }
 
@@ -1319,7 +1351,7 @@ bool QsfpModule::tryRemediate() {
 bool QsfpModule::tryRemediateLocked() {
   // Only update numRemediation_ iff this transceiver should remediate and
   // remediation actually happens
-  if (shouldRemediate() && remediateFlakyTransceiver()) {
+  if (shouldRemediateLocked() && remediateFlakyTransceiver()) {
     ++numRemediation_;
     return true;
   }
