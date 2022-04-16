@@ -7,34 +7,34 @@
 namespace facebook::fboss::fsdb {
 
 void FsdbOperTreeMetadataTracker::registerPublisherRoot(
-    const std::string& publisher) {
-  auto& pubMetadata = publisherRoot2Metadata_[publisher];
+    const std::string& publisherRoot) {
+  auto& pubMetadata = publisherRoot2Metadata_[publisherRoot];
   ++pubMetadata.numOpenConnections;
-  XLOG(DBG2) << " Publisher: " << publisher
+  XLOG(DBG2) << " Publisher: " << publisherRoot
              << " open connections  : " << pubMetadata.numOpenConnections;
 }
 void FsdbOperTreeMetadataTracker::unregisterPublisherRoot(
-    const std::string& publisher) {
-  auto itr = publisherRoot2Metadata_.find(publisher);
+    const std::string& publisherRoot) {
+  auto itr = publisherRoot2Metadata_.find(publisherRoot);
   if (itr == publisherRoot2Metadata_.end()) {
     return;
   }
   CHECK_GT(itr->second.numOpenConnections, 0);
   --itr->second.numOpenConnections;
   if (itr->second.numOpenConnections == 0) {
-    XLOG(DBG2) << " All open connections gone, removing : " << publisher;
+    XLOG(DBG2) << " All open connections gone, removing : " << publisherRoot;
     publisherRoot2Metadata_.erase(itr);
   }
 }
 
 void FsdbOperTreeMetadataTracker::updateMetadata(
-    const std::string& publisher,
+    const std::string& publisherRoot,
     const OperMetadata& metadata,
     bool enforceForwardProgress) {
-  auto itr = publisherRoot2Metadata_.find(publisher);
+  auto itr = publisherRoot2Metadata_.find(publisherRoot);
   if (itr == publisherRoot2Metadata_.end()) {
     throw std::runtime_error(
-        "Publisher: " + publisher +
+        "Publisher root: " + publisherRoot +
         " must be registered before adding metadata");
   }
   auto& operMetadata = itr->second.operMetadata;
