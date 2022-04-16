@@ -6,14 +6,14 @@
 
 namespace facebook::fboss::fsdb {
 
-void FsdbOperTreeMetadataTracker::registerPublisherImpl(
+void FsdbOperTreeMetadataTracker::registerPublisherRoot(
     const std::string& publisher) {
   auto& pubMetadata = publisherRoot2Metadata_[publisher];
   ++pubMetadata.numOpenConnections;
   XLOG(DBG2) << " Publisher: " << publisher
              << " open connections  : " << pubMetadata.numOpenConnections;
 }
-void FsdbOperTreeMetadataTracker::unregisterPublisherImpl(
+void FsdbOperTreeMetadataTracker::unregisterPublisherRoot(
     const std::string& publisher) {
   auto itr = publisherRoot2Metadata_.find(publisher);
   if (itr == publisherRoot2Metadata_.end()) {
@@ -27,7 +27,7 @@ void FsdbOperTreeMetadataTracker::unregisterPublisherImpl(
   }
 }
 
-void FsdbOperTreeMetadataTracker::updateMetadataImpl(
+void FsdbOperTreeMetadataTracker::updateMetadata(
     const std::string& publisher,
     const OperMetadata& metadata,
     bool enforceForwardProgress) {
@@ -55,7 +55,7 @@ FsdbOperTreeMetadataTracker::getAllMetadata() const {
 }
 
 std::optional<FsdbOperTreeMetadata>
-FsdbOperTreeMetadataTracker::getPublisherRootMetadataImpl(
+FsdbOperTreeMetadataTracker::getPublisherRootMetadata(
     const std::string& root) const {
   auto itr = publisherRoot2Metadata_.find(root);
   return itr == publisherRoot2Metadata_.end()

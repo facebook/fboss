@@ -5,17 +5,16 @@
 
 namespace facebook::fboss::fsdb::test {
 namespace {
-auto constexpr kPublisherId = "publisher";
-const std::vector<std::string> kPublishRoot{"agent"};
+const std::string kPublishRoot{"agent"};
 } // namespace
 class PublisherTreeMetadataTrackerTest : public ::testing::Test {
  protected:
   FsdbOperTreeMetadata getMetadata(
-      const std::vector<std::string>& path = kPublishRoot) const {
-    auto metadata = metadataTracker_.getPublisherRootMetadata(path);
+      const std::string& root = kPublishRoot) const {
+    auto metadata = metadataTracker_.getPublisherRootMetadata(root);
     if (!metadata) {
       throw std::runtime_error(
-          "Publisher root " + *path.begin() + " metadata not found");
+          "Publisher root " + root + " metadata not found");
     }
     return *metadata;
   }
