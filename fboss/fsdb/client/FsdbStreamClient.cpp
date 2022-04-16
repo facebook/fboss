@@ -69,9 +69,14 @@ void FsdbStreamClient::setState(State state) {
           co_await serviceLoop();
         } catch (const folly::OperationCancelled&) {
           XLOG(DBG2) << "Service loop cancelled :" << clientId();
+        } catch (const fsdb::FsdbException& ex) {
+          XLOG(ERR) << clientId() << " Fsdb error "
+                    << apache::thrift::util::enumNameSafe(ex.get_errorCode())
+                    << ": " << ex.get_message();
+          setState(State::DISCONNECTED);
         } catch (const std::exception& ex) {
           XLOG(ERR) << clientId()
-                    << " Server error: " << folly::exceptionStr(ex);
+                    << " Unknown error: " << folly::exceptionStr(ex);
           setState(State::DISCONNECTED);
         }
       } catch (const std::exception& ex) {
