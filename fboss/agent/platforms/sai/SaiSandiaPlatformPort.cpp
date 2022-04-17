@@ -12,16 +12,6 @@
 
 namespace facebook::fboss {
 
-uint32_t SaiSandiaPlatformPort::getPhysicalLaneId(
-    uint32_t chipId,
-    uint32_t logicalLaneId) const {
-  return (chipId << 8) + logicalLaneId;
-}
-
-bool SaiSandiaPlatformPort::supportsTransceiver() const {
-  return true;
-}
-
 void SaiSandiaPlatformPort::linkStatusChanged(
     bool /* up */,
     bool /* adminUp */) {}

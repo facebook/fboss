@@ -7,12 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/sai/SaiLassenPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 
 namespace facebook::fboss {
 
-uint32_t SaiLassenPlatformPort::getCurrentLedState() const {
-  return static_cast<uint32_t>(currentLedState_);
+uint32_t SaiTajoPlatformPort::getPhysicalLaneId(
+    uint32_t chipId,
+    uint32_t logicalLaneId) const {
+  return (chipId << 8) + logicalLaneId;
 }
 
+bool SaiTajoPlatformPort::supportsTransceiver() const {
+  return true;
+}
 } // namespace facebook::fboss

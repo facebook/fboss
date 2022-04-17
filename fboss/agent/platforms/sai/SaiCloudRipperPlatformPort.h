@@ -11,22 +11,20 @@
 
 #include "fboss/agent/platforms/common/ExternalPhyPort.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/lib/fpga/FbDomFpga.h"
 #include "fboss/lib/phy/NullPortStats.h"
 
 namespace facebook::fboss {
 class SaiCloudRipperPlatform;
-class SaiCloudRipperPlatformPort : public SaiPlatformPort,
+class SaiCloudRipperPlatformPort : public SaiTajoPlatformPort,
                                    public ExternalPhyPort<
                                        SaiCloudRipperPlatform,
                                        NullPortStats,
                                        SaiPlatformPort> {
  public:
   explicit SaiCloudRipperPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiPlatformPort(id, platform) {}
-  virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
-      const override;
-  virtual bool supportsTransceiver() const override;
+      : SaiTajoPlatformPort(id, platform) {}
   uint32_t getCurrentLedState() const override;
   void portChanged(std::shared_ptr<Port> newPort, std::shared_ptr<Port> oldPort)
       override;

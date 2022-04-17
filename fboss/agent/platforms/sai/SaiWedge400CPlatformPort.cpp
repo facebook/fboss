@@ -14,16 +14,6 @@ DEFINE_bool(skip_led_programming, false, "Skip programming LED");
 
 namespace facebook::fboss {
 
-uint32_t SaiWedge400CPlatformPort::getPhysicalLaneId(
-    uint32_t chipId,
-    uint32_t logicalLaneId) const {
-  return (chipId << 8) + logicalLaneId;
-}
-
-bool SaiWedge400CPlatformPort::supportsTransceiver() const {
-  return true;
-}
-
 void SaiWedge400CPlatformPort::linkStatusChanged(bool up, bool adminUp) {
   if (FLAGS_skip_led_programming) {
     // LED programming should be skipped

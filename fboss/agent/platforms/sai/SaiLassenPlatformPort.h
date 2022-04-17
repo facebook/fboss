@@ -9,17 +9,14 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 
 namespace facebook::fboss {
 
-class SaiLassenPlatformPort : public SaiPlatformPort {
+class SaiLassenPlatformPort : public SaiTajoPlatformPort {
  public:
   explicit SaiLassenPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiPlatformPort(id, platform) {}
-  virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
-      const override;
-  virtual bool supportsTransceiver() const override;
+      : SaiTajoPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
   uint32_t getCurrentLedState() const override;

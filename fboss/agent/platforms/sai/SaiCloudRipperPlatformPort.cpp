@@ -12,16 +12,6 @@
 
 namespace facebook::fboss {
 
-uint32_t SaiCloudRipperPlatformPort::getPhysicalLaneId(
-    uint32_t chipId,
-    uint32_t logicalLaneId) const {
-  return (chipId << 8) + logicalLaneId;
-}
-
-bool SaiCloudRipperPlatformPort::supportsTransceiver() const {
-  return true;
-}
-
 uint32_t SaiCloudRipperPlatformPort::getCurrentLedState() const {
   // TODO(vsp): LED logic is different for CR compared to Wedge400C, this needs
   // to be re-visited
