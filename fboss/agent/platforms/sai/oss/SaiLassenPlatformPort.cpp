@@ -11,18 +11,10 @@
 
 namespace facebook::fboss {
 
-uint32_t SaiLassenPlatformPort::getPhysicalLaneId(
-    uint32_t chipId,
-    uint32_t logicalLaneId) const {
-  return (chipId << 8) + logicalLaneId;
-}
+void SaiLassenPlatformPort::linkStatusChanged(
+    bool /* up */,
+    bool /* adminUp */) {}
 
-bool SaiLassenPlatformPort::supportsTransceiver() const {
-  return true;
-}
-
-uint32_t SaiLassenPlatformPort::getCurrentLedState() const {
-  return static_cast<uint32_t>(currentLedState_);
-}
+void SaiLassenPlatformPort::externalState(PortLedExternalState /* lfs */) {}
 
 } // namespace facebook::fboss

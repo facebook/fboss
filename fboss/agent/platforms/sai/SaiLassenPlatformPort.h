@@ -10,7 +10,6 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
-#include "fboss/lib/fpga/FbDomFpga.h"
 
 namespace facebook::fboss {
 
@@ -29,9 +28,7 @@ class SaiLassenPlatformPort : public SaiPlatformPort {
       std::shared_ptr<Port> /*oldPort*/) override {}
 
  private:
-  FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;
-  void setLedStatus(FbDomFpga::LedColor state) const;
-  FbDomFpga::LedColor currentLedState_;
+  uint32_t currentLedState_{0};
 };
 
 } // namespace facebook::fboss
