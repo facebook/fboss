@@ -118,6 +118,11 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
     }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS) &&
+        !getHwSwitchEnsemble()->isSai()) {
+      bitmask |= MPLS_INVARIANT;
+    }
     return bitmask;
   }
 };
@@ -144,6 +149,11 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
     }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS) &&
+        !getHwSwitchEnsemble()->isSai()) {
+      bitmask |= MPLS_INVARIANT;
+    }
     return bitmask;
   }
 };
@@ -169,6 +179,11 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
     }
     if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
       bitmask |= LOAD_BALANCER_INVARIANT;
+    }
+    // MPLS on SAI is not supported yet
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS) &&
+        !getHwSwitchEnsemble()->isSai()) {
+      bitmask |= MPLS_INVARIANT;
     }
     return bitmask;
   }
