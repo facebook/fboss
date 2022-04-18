@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
@@ -15,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
@@ -22,6 +24,10 @@
 #include <thread>
 
 using namespace std::chrono_literals;
+
+namespace {
+constexpr int kAggId{500};
+} // unnamed namespace
 
 namespace facebook::fboss {
 
@@ -99,6 +105,34 @@ class HwPacketSendReceiveTest : public HwLinkStateDependentTest {
   }
   std::atomic<int> srcPort_{-1};
   std::atomic<int> numPkts_{0};
+};
+
+class HwPacketSendReceiveLagTest : public HwPacketSendReceiveTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, getAsic());
+    std::vector<int32_t> ports{
+        masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+    utility::addAggPort(kAggId, ports, &cfg, cfg::LacpPortRate::SLOW);
+    return cfg;
+  }
+  void packetReceived(RxPacket* pkt) noexcept override {
+    XLOG(DBG1) << "packet received from port " << pkt->getSrcPort()
+               << " lag port " << pkt->getSrcAggregatePort();
+    srcPort_ = pkt->getSrcPort();
+    srcAggregatePort_ = pkt->getSrcAggregatePort();
+    numPkts_++;
+  }
+  int getLastPktSrcAggregatePort() {
+    return srcAggregatePort_;
+  }
+  std::atomic<int> srcAggregatePort_{-1};
 };
 
 class HwPacketFloodTest : public HwLinkStateDependentTest {
@@ -375,6 +409,48 @@ TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
           std::move(txPacket), port, std::nullopt);
       ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
       EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto payLoadSize = 256;
+    static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
+    payload[0] = 0x1; // sub-version of lacp packet
+    auto expectedNumPktsReceived = 1;
+    for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+      // verify lacp packet properly sent and received from lag
+      auto txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          LACPDU::kSlowProtocolsDstMac(),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
+          payload);
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), port, std::nullopt);
+      ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+      EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
+
+      // verify lldp packet properly sent and received from lag
+      txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          folly::MacAddress("01:80:c2:00:00:0e"),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+          std::vector<uint8_t>(payLoadSize, 0xff));
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), port, std::nullopt);
+      ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+      EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
