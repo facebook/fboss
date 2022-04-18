@@ -415,7 +415,9 @@ TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
 }
 
 TEST_F(HwPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
-  auto setup = [=]() {};
+  auto setup = [=]() {
+    applyNewState(utility::enableTrunkPorts(getProgrammedState()));
+  };
   auto verify = [=]() {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
