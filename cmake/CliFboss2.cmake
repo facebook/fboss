@@ -104,6 +104,14 @@ add_fbthrift_cpp_library(
   DEPENDS
     mka_structs_cpp2
 )
+
+add_fbthrift_cpp_library(
+  show_route_model
+  fboss/cli/fboss2/commands/show/route/model.thrift
+  OPTIONS
+    json
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -122,6 +130,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRoute.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
@@ -171,6 +180,7 @@ target_link_libraries(fboss2
   show_interface_traffic
   show_interface_status
   show_interface_phymap
+  show_route_model
   ${RE2}
 )
 

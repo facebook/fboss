@@ -31,6 +31,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
 namespace facebook::fboss {
@@ -125,6 +126,12 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show Transceiver information",
        commandHandler<CmdShowTransceiver>},
+
+      {"show",
+       "route",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST,
+       "Show route information",
+       commandHandler<CmdShowRoute>},
 
       {"clear",
        "arp",

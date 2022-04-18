@@ -30,6 +30,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -122,6 +123,7 @@ CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
+template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
 
 static bool hasRun = false;
 
