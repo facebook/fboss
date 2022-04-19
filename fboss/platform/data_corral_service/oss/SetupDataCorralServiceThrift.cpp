@@ -8,14 +8,14 @@
  *
  */
 
-#include "fboss/platform/misc_service/SetupMiscServiceThrift.h"
+#include "fboss/platform/data_corral_service/SetupDataCorralServiceThrift.h"
 
-namespace facebook::fboss::platform::misc_service {
+namespace facebook::fboss::platform::data_corral_service {
 
 void runServer(
     facebook::services::ServiceFrameworkLight& /*service*/,
     std::shared_ptr<apache::thrift::ThriftServer> /*thriftServer*/,
-    MiscServiceThriftHandler* /*handler*/,
+    DataCorralServiceThriftHandler* /*handler*/,
     bool /*loopForever*/) {}
 
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service

@@ -11,8 +11,8 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/platform/misc_service/MiscServiceImpl.h"
-#include "fboss/platform/misc_service/if/gen-cpp2/MiscServiceThrift.h"
+#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
+#include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
 
 namespace facebook::services {
 class ServiceFrameworkLight;
@@ -21,21 +21,21 @@ namespace apache::thrift {
 class ThriftServer;
 }
 
-namespace facebook::fboss::platform::misc_service {
+namespace facebook::fboss::platform::data_corral_service {
 
-class MiscServiceThriftHandler;
+class DataCorralServiceThriftHandler;
 
-class MiscServiceTest : public ::testing::Test {
+class DataCorralServiceTest : public ::testing::Test {
  public:
-  ~MiscServiceTest() override;
+  ~DataCorralServiceTest() override;
   void SetUp() override;
   void TearDown() override;
 
  protected:
-  MiscFruidReadResponse getFruid(bool uncached);
-  MiscServiceImpl* getService();
+  DataCorralFruidReadResponse getFruid(bool uncached);
+  DataCorralServiceImpl* getService();
   std::unique_ptr<services::ServiceFrameworkLight> service_;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
-  std::shared_ptr<MiscServiceThriftHandler> thriftHandler_;
+  std::shared_ptr<DataCorralServiceThriftHandler> thriftHandler_;
 };
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service

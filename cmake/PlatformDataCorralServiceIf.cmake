@@ -4,14 +4,13 @@
 # cmake/FooBar.cmake
 
 add_fbthrift_cpp_library(
-  misc_service_cpp2
-  fboss/platform/misc_service/if/misc_service.thrift
+  data_corral_service_cpp2
+  fboss/platform/data_corral_service/if/data_corral_service.thrift
   SERVICES
-    MiscServiceThrift
+    DataCorralServiceThrift
   OPTIONS
     json
   DEPENDS
     fb303_cpp2
     fboss_cpp2
 )
-

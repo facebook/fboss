@@ -21,17 +21,17 @@ class ThriftServer;
 
 DECLARE_int32(thrift_port);
 
-namespace facebook::fboss::platform::misc_service {
-class MiscServiceThriftHandler;
+namespace facebook::fboss::platform::data_corral_service {
+class DataCorralServiceThriftHandler;
 
 std::pair<
     std::shared_ptr<apache::thrift::ThriftServer>,
-    std::shared_ptr<MiscServiceThriftHandler>>
+    std::shared_ptr<DataCorralServiceThriftHandler>>
 setupThrift();
 
 void runServer(
     facebook::services::ServiceFrameworkLight& service,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    MiscServiceThriftHandler* handler,
+    DataCorralServiceThriftHandler* handler,
     bool loopForever = true);
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service

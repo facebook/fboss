@@ -110,8 +110,8 @@ class CmdGlobalOptions {
     return sensorServiceThriftPort_;
   }
 
-  int getMiscServiceThriftPort() const {
-    return miscServiceThriftPort_;
+  int getDataCorralServiceThriftPort() const {
+    return dataCorralServiceThriftPort_;
   }
 
   int getBmcHttpPort() const {
@@ -151,7 +151,7 @@ class CmdGlobalOptions {
   int bmcHttpPort_{8443};
   int rackmonThriftPort_{7910};
   int sensorServiceThriftPort_{5970};
-  int miscServiceThriftPort_{5971};
+  int dataCorralServiceThriftPort_{5971};
   std::string color_{"yes"};
   std::vector<std::string> filters_{};
 };

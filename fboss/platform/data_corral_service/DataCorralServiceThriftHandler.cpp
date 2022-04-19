@@ -8,16 +8,16 @@
  *
  */
 
-#include "fboss/platform/misc_service/MiscServiceThriftHandler.h"
+#include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include <folly/logging/xlog.h>
 #include "fboss/lib/LogThriftCall.h"
 
-namespace facebook::fboss::platform::misc_service {
+namespace facebook::fboss::platform::data_corral_service {
 
-void MiscServiceThriftHandler::getFruid(
-    MiscFruidReadResponse& response,
+void DataCorralServiceThriftHandler::getFruid(
+    DataCorralFruidReadResponse& response,
     bool uncached) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  response.fruidData() = miscService_->getFruid(uncached);
+  response.fruidData() = dataCorralService_->getFruid(uncached);
 }
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service

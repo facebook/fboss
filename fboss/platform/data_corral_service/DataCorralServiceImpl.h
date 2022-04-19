@@ -13,22 +13,22 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "fboss/platform/misc_service/if/gen-cpp2/misc_service_types.h"
+#include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 #include "folly/Synchronized.h"
 
-namespace facebook::fboss::platform::misc_service {
+namespace facebook::fboss::platform::data_corral_service {
 
 struct SensorLiveData {
   float value;
   int64_t timeStamp;
 };
 
-class MiscServiceImpl {
+class DataCorralServiceImpl {
  public:
-  MiscServiceImpl() {
+  DataCorralServiceImpl() {
     init();
   }
-  explicit MiscServiceImpl(const std::string& platformName)
+  explicit DataCorralServiceImpl(const std::string& platformName)
       : platformName_{platformName} {
     init();
   }
@@ -45,4 +45,4 @@ class MiscServiceImpl {
   void init();
 };
 
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service

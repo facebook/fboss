@@ -9,14 +9,14 @@
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #endif
+#include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
+#include "fboss/platform/data_corral_service/SetupDataCorralServiceThrift.h"
 #include "fboss/platform/helpers/Init.h"
-#include "fboss/platform/misc_service/MiscServiceThriftHandler.h"
-#include "fboss/platform/misc_service/SetupMiscServiceThrift.h"
 
 using namespace facebook;
 using namespace facebook::services;
 using namespace facebook::fboss::platform;
-using namespace facebook::fboss::platform::misc_service;
+using namespace facebook::fboss::platform::data_corral_service;
 
 int main(int argc, char** argv) {
   gflags::SetCommandLineOptionWithMode(
@@ -36,11 +36,11 @@ int main(int argc, char** argv) {
   scheduler.start();
 
 #ifndef IS_OSS
-  facebook::services::ServiceFrameworkLight service("Misc Service");
+  facebook::services::ServiceFrameworkLight service("Data Corral Service");
   // Finally, run the Thrift server
   runServer(service, server, handler.get());
 #endif
-  XLOG(INFO) << "misc_service exits";
+  XLOG(INFO) << "data_corral_service exits";
 
   return 0;
 }

@@ -13,7 +13,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/platform/misc_service/MiscServiceImpl.h"
+#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/weutil/Weutil.h"
 
 namespace {
@@ -21,14 +21,14 @@ namespace {
 
 } // namespace
 
-namespace facebook::fboss::platform::misc_service {
+namespace facebook::fboss::platform::data_corral_service {
 
-void MiscServiceImpl::init() {
+void DataCorralServiceImpl::init() {
   // ToDo
-  XLOG(INFO) << "Init MiscServiceImpl";
+  XLOG(INFO) << "Init DataCorralServiceImpl";
 }
 
-std::vector<FruIdData> MiscServiceImpl::getFruid(bool uncached) {
+std::vector<FruIdData> DataCorralServiceImpl::getFruid(bool uncached) {
   std::vector<FruIdData> vData;
 
   if (uncached || fruid_.empty()) {
@@ -44,4 +44,4 @@ std::vector<FruIdData> MiscServiceImpl::getFruid(bool uncached) {
 
   return vData;
 }
-} // namespace facebook::fboss::platform::misc_service
+} // namespace facebook::fboss::platform::data_corral_service
