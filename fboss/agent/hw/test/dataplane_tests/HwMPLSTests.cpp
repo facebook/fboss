@@ -187,6 +187,15 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getRouteUpdater(), {port}, {{port, std::move(stack)}}, {label}, type);
   }
 
+  void addRoute(LabelID label, LabelNextHopEntry& nexthop) {
+    auto updater = getRouteUpdater();
+    MplsRoute route;
+    route.topLabel_ref() = label;
+    route.nextHops_ref() = util::fromRouteNextHopSet(nexthop.getNextHopSet());
+    updater->addRoute(ClientID::BGPD, route);
+    updater->program();
+  }
+
   std::unique_ptr<utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>
       ecmpSwapHelper_;
 
@@ -579,6 +588,37 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
     auto hdr = v6PayLoad->header();
     EXPECT_EQ(hdr.srcAddr, folly::IPAddress("1001::"));
     EXPECT_EQ(hdr.dstAddr, folly::IPAddress("1::0"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMPLSTest, punt2Cpu) {
+  if (this->skipTest()) {
+    return;
+  }
+  auto setup = [=]() {
+    this->setup();
+    LabelNextHopEntry nexthop{
+        LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
+    this->addRoute(LabelID(1101), nexthop);
+  };
+  auto verify = [=]() {
+    HwTestPacketSnooper snooper(
+        this->getHwSwitchEnsemble(), this->masterLogicalPortIds()[1]);
+
+    // send mpls packet with label
+    this->sendMplsPacket(
+        1101,
+        this->masterLogicalPortIds()[1],
+        EXP(0),
+        128,
+        folly::IPAddressV6("1::0"));
+    // mpls packet should be punted to cpu
+    auto frame = snooper.waitForPacket(1);
+    ASSERT_TRUE(frame.has_value());
+
+    auto mplsPayLoad = frame->mplsPayLoad();
+    ASSERT_TRUE(mplsPayLoad.has_value());
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
