@@ -12,7 +12,7 @@
 DEFINE_int32(
     fsdb_reconnect_ms,
     1000,
-    "re-connect to fsdbm timer in milliseconds");
+    "reconnect to fsdb timer in milliseconds");
 
 namespace facebook::fboss::fsdb {
 FsdbStreamClient::FsdbStreamClient(

@@ -136,10 +136,13 @@ class FsdbPubSubManager {
       const std::string& fsdbHost,
       int32_t fsdbPort = FLAGS_fsdbPort);
 
-  folly::ScopedEventBaseThread reconnectThread_;
-  folly::ScopedEventBaseThread statsPublisherStreamEvbThread_;
-  folly::ScopedEventBaseThread statePublisherStreamEvbThread_;
-  folly::ScopedEventBaseThread subscribersStreamEvbThread_;
+  folly::ScopedEventBaseThread reconnectThread_{"FsdbReconnectThread"};
+  folly::ScopedEventBaseThread statsPublisherStreamEvbThread_{
+      "FsdbStatsPublisherThread"};
+  folly::ScopedEventBaseThread statePublisherStreamEvbThread_{
+      "FsdbStatePublisherThread"};
+  folly::ScopedEventBaseThread subscribersStreamEvbThread_{
+      "FSdbSubscriberThread"};
   const std::string clientId_;
   std::mutex publisherMutex_;
   // State Publishers

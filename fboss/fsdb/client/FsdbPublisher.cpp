@@ -5,6 +5,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/logging/xlog.h>
 #include <chrono>
 
 namespace facebook::fboss::fsdb {
@@ -31,6 +32,7 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
             .count();
   }
   if (!toPublishQueue_.try_enqueue(std::move(pubUnit))) {
+    XLOG(ERR) << "Could not enqueue pub unit";
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
     ex.message_ref() = "Unable to queue delta";
