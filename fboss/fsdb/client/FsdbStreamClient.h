@@ -57,6 +57,9 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   void createClient(const std::string& ip, uint16_t port);
   void resetClient();
   void connectToServer(const std::string& ip, uint16_t port);
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<void> serviceLoopWrapper();
+#endif
 
   void timeoutExpired() noexcept override;
 
