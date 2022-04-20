@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/RouteUpdateLogger.h"
+#include <fboss/agent/test/TestUtils.h>
 #include <folly/IPAddress.h>
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -190,33 +191,20 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     expectNoAdded();
   }
 
-  std::shared_ptr<SwitchState> addLabel(
-      const std::shared_ptr<SwitchState>& state,
-      Label label,
-      ClientID client = ClientID::OPENR) {
-    auto newState = state->clone();
-    auto entry = std::make_shared<LabelForwardingEntry>(
-        label,
+  void addLabel(Label label, ClientID client = ClientID::OPENR) {
+    SwSwitchRouteUpdateWrapper updater = sw->getRouteUpdater();
+    updater.addRoute(
         client,
-        LabelNextHopEntry{
-            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE});
-    auto labelFib =
-        newState->getLabelForwardingInformationBase()->modify(&newState);
-    labelFib->addNode(entry);
-    newState->publish();
-    return newState;
+        label.value(),
+        RouteNextHopEntry(
+            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+    updater.program();
   }
 
-  std::shared_ptr<SwitchState> removeLabel(
-      const std::shared_ptr<SwitchState>& state,
-      Label label,
-      ClientID client = ClientID::OPENR) {
-    auto newState = state->clone();
-    auto labelFib =
-        newState->getLabelForwardingInformationBase()->modify(&newState);
-    labelFib->unprogramLabel(&newState, label, client);
-    newState->publish();
-    return newState;
+  void removeLabel(Label label, ClientID client = ClientID::OPENR) {
+    SwSwitchRouteUpdateWrapper updater = sw->getRouteUpdater();
+    updater.delRoute(label.value(), client);
+    updater.program();
   }
 
   std::shared_ptr<SwitchState> initState;
@@ -421,11 +409,11 @@ TEST_F(RouteUpdateLoggerTest, LabelAdded) {
   startLogging(200);
   startLogging(300);
 
-  auto state = addLabel(initState, 100);
-  state = addLabel(state, 200);
-  state = addLabel(state, 300);
+  addLabel(100);
+  addLabel(200);
+  addLabel(300);
 
-  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  waitForStateUpdates(sw);
   EXPECT_EQ(3, mockMplsRouteLogger->added.size());
 }
 
@@ -434,26 +422,25 @@ TEST_F(RouteUpdateLoggerTest, LabelRemoved) {
   startLogging(200);
   startLogging(300);
 
-  auto state = addLabel(initState, 100);
-  state = addLabel(state, 200);
-  state = addLabel(state, 300);
-  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  addLabel(100);
+  addLabel(200);
+  addLabel(300);
+  waitForStateUpdates(sw);
   EXPECT_EQ(3, mockMplsRouteLogger->added.size());
 
-  auto newState = removeLabel(state, 300);
-  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  removeLabel(300);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->removed.size());
 }
 
 TEST_F(RouteUpdateLoggerTest, LabelChanged) {
   startLogging(100);
 
-  auto state = addLabel(initState, 100);
-  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  addLabel(100);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->added.size());
-  auto newState = removeLabel(state, 100);
-  newState = addLabel(newState, 100, ClientID::STATIC_ROUTE);
-  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  addLabel(100, ClientID::STATIC_ROUTE);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
 }
 
@@ -462,36 +449,33 @@ TEST_F(RouteUpdateLoggerTest, MultipleSubscribers) {
   startLogging(100, "bar");
   startLogging(100, "foobar");
 
-  auto state = addLabel(initState, 100);
-  state = addLabel(state, 200);
+  addLabel(100);
+  addLabel(200);
 
-  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->added.size());
   EXPECT_EQ(3, mockMplsRouteLogger->addedFor.size());
 
   stopLogging(100, "foo");
-  auto newState = removeLabel(state, 100);
-  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  removeLabel(100);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->removed.size());
   EXPECT_EQ(2, mockMplsRouteLogger->removedFor.size());
 
   startLogging(200, "foo");
   startLogging(200, "bar");
   startLogging(200, "foobar");
-  auto anotherNewState = removeLabel(newState, 200);
-  anotherNewState = addLabel(anotherNewState, 200, ClientID::STATIC_ROUTE);
-  routeUpdateLogger->stateUpdated(StateDelta(newState, anotherNewState));
+  addLabel(200, ClientID::STATIC_ROUTE);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
   EXPECT_EQ(3, mockMplsRouteLogger->changedFor.size());
 
   stopLogging(200, "foobar");
   mockMplsRouteLogger->changed.clear();
   mockMplsRouteLogger->changedFor.clear();
-  auto oneMoreNewState =
-      removeLabel(anotherNewState, 200, ClientID::STATIC_ROUTE);
-  oneMoreNewState = addLabel(oneMoreNewState, 200);
+  removeLabel(200, ClientID::STATIC_ROUTE);
 
-  routeUpdateLogger->stateUpdated(StateDelta(anotherNewState, oneMoreNewState));
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
   EXPECT_EQ(2, mockMplsRouteLogger->changedFor.size());
 }
@@ -500,18 +484,17 @@ TEST_F(RouteUpdateLoggerTest, TrackAllLabelsManySubscribers) {
   startLogging(-1, "foo");
   startLogging(-1, "bar");
 
-  auto state = addLabel(initState, 100);
-  state = addLabel(state, 200);
-  state = addLabel(state, 300);
+  addLabel(100);
+  addLabel(200);
+  addLabel(300);
 
-  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  waitForStateUpdates(sw);
   EXPECT_EQ(3, mockMplsRouteLogger->added.size());
   EXPECT_EQ(6, mockMplsRouteLogger->addedFor.size());
 
   stopLogging(-1, "bar");
-  auto newState = removeLabel(state, 100);
-  newState = addLabel(newState, 100, ClientID::STATIC_ROUTE);
-  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  addLabel(100, ClientID::STATIC_ROUTE);
+  waitForStateUpdates(sw);
   EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
   EXPECT_EQ(1, mockMplsRouteLogger->changedFor.size());
 }
