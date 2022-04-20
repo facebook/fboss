@@ -8,7 +8,9 @@
 
 #include <folly/logging/xlog.h>
 
-DEFINE_bool(mpls_rib, false, "Enable mpls rib");
+// Enable label route handling in Routing Information Base
+// which allows recursive resolution of mpls routes
+DEFINE_bool(mpls_rib, true, "Enable mpls rib");
 
 namespace facebook::fboss {
 

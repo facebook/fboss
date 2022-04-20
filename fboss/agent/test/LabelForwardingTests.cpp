@@ -492,46 +492,27 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
   std::vector<folly::IPAddress> ips0{
       folly::IPAddress("10.0.0.101"),
       folly::IPAddress("10.0.55.101"),
-      folly::IPAddress("10.0.0.1"), // invalid, self address
-  };
-  for (auto i = 0; i < 3; i++) {
-    NextHopThrift nexthop;
-
-    nexthop.mplsAction() = MplsAction();
-    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
-    nexthop.address()->addr()->append(
-        reinterpret_cast<const char*>(ips0[i].bytes()),
-        folly::IPAddressV4::byteCount());
-    mplsRoute0.nextHops()->emplace_back(nexthop);
-  }
-
-  auto routes0 = std::make_unique<std::vector<MplsRoute>>();
-  routes0->push_back(mplsRoute0);
-  EXPECT_THROW(
-      this->thriftHandler->addMplsRoutes(
-          static_cast<int>(ClientID::OPENR), std::move(routes0)),
-      FbossError);
-
-  MplsRoute mplsRoute1;
-  *mplsRoute1.topLabel() = 10010;
-  std::vector<folly::IPAddress> ips1{
-      folly::IPAddress("10.0.0.101"),
-      folly::IPAddress("10.0.55.101"),
       folly::IPAddress("fe80:db00::101"), // invalid, link local address
   };
   for (auto i = 0; i < 3; i++) {
     NextHopThrift nexthop;
 
     nexthop.mplsAction() = MplsAction();
-    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
-    nexthop.address()->addr()->append(
-        reinterpret_cast<const char*>(ips0[i].bytes()),
-        folly::IPAddressV4::byteCount());
-    mplsRoute1.nextHops()->emplace_back(nexthop);
+    *nexthop.mplsAction()->action_ref() = MplsActionCode::PHP;
+    if (ips0[i].isV6()) {
+      nexthop.address()->addr()->append(
+          reinterpret_cast<const char*>(ips0[i].bytes()),
+          folly::IPAddressV6::byteCount());
+    } else {
+      nexthop.address()->addr()->append(
+          reinterpret_cast<const char*>(ips0[i].bytes()),
+          folly::IPAddressV4::byteCount());
+    }
+    mplsRoute0.nextHops()->emplace_back(nexthop);
   }
 
   auto routes1 = std::make_unique<std::vector<MplsRoute>>();
-  routes1->push_back(mplsRoute1);
+  routes1->push_back(mplsRoute0);
   EXPECT_THROW(
       this->thriftHandler->addMplsRoutes(
           static_cast<int>(ClientID::OPENR), std::move(routes1)),

@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
+#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 
 using namespace ::testing;
@@ -22,6 +24,12 @@ class BcmLabelSwitchActionTest : public BcmTest {
   cfg::SwitchConfig initialConfig() const override {
     return utility::twoL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
+  }
+
+  void SetUp() override {
+    BcmTest::SetUp();
+    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState(), RouterID(0));
   }
 
   std::shared_ptr<SwitchState> initState() {
@@ -36,58 +44,46 @@ class BcmLabelSwitchActionTest : public BcmTest {
         ClientID::OPENR,
         util::getSwapLabelNextHopEntry(
             AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId))));
+            InterfaceID(utility::kBaseVlanId),
+            {folly::IPAddress("1.1.1.1")})));
     entries_.push_back(std::make_shared<LabelForwardingEntry>(
         5002,
         ClientID::OPENR,
         util::getPhpLabelNextHopEntry(
             AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId))));
+            InterfaceID(utility::kBaseVlanId),
+            {folly::IPAddress("1.1.1.1")})));
     entries_.push_back(std::make_shared<LabelForwardingEntry>(
         5003,
         ClientID::OPENR,
         util::getPopLabelNextHopEntry(
             AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId))));
+            InterfaceID(utility::kBaseVlanId),
+            {folly::IPAddress("1.1.1.1")})));
     entries_.push_back(std::make_shared<LabelForwardingEntry>(
         5004,
         ClientID::OPENR,
         util::getPushLabelNextHopEntry(
             AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId))));
-  }
-
-  void addLabelForwardingEntry(
-      std::shared_ptr<SwitchState>* state,
-      std::shared_ptr<LabelForwardingEntry> entry) {
-    auto* lFib = (*state)->getLabelForwardingInformationBase()->modify(state);
-    lFib->addNode(std::move(entry));
-  }
-
-  void removeLabelForwardingEntry(
-      std::shared_ptr<SwitchState>* state,
-      const std::shared_ptr<LabelForwardingEntry>& entry) {
-    auto* lFib = (*state)->getLabelForwardingInformationBase()->modify(state);
-    auto deletingEntry = lFib->getLabelForwardingEntry(entry->getID());
-    lFib->removeNode(deletingEntry);
+            InterfaceID(utility::kBaseVlanId),
+            {folly::IPAddress("1.1.1.1")})));
   }
 
   void addAllTestLabelForwardingEntries() {
     auto oldState = initState();
     auto newState = oldState->clone();
-    for (auto& entry : entries_) {
-      LabelForwardingInformationBase::resolve(entry);
-      addLabelForwardingEntry(&newState, entry);
-    }
+    ecmpHelper_->resolveNextHops(
+        newState, {PortDescriptor(masterLogicalPortIds()[0])});
     applyNewState(newState);
+    for (auto& entry : entries_) {
+      addMplsRoute(entry);
+    }
   }
 
   void removeAllTestLabelForwardingEntries() {
-    auto newState = getProgrammedState()->clone();
     for (auto& entry : entries_) {
-      removeLabelForwardingEntry(&newState, entry);
+      removeMplsRoute(entry);
     }
-    applyNewState(newState);
   }
 
   void verifyTestLabelForwardingEntry(
@@ -183,7 +179,24 @@ class BcmLabelSwitchActionTest : public BcmTest {
     }
   }
 
+  void addMplsRoute(std::shared_ptr<LabelForwardingEntry> entry) {
+    LabelForwardingInformationBase::resolve(entry);
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
+    MplsRoute route;
+    route.topLabel_ref() = entry->getID().value();
+    route.nextHops_ref() =
+        util::fromRouteNextHopSet(entry->getForwardInfo().getNextHopSet());
+    updater.addRoute(entry->getBestEntry().first, route);
+    updater.program();
+  }
+
+  void removeMplsRoute(std::shared_ptr<LabelForwardingEntry> entry) {
+    auto updater = getHwSwitchEnsemble()->getRouteUpdater();
+    updater.delRoute(entry->getID().value(), ClientID(786));
+    updater.program();
+  }
   std::vector<std::shared_ptr<LabelForwardingEntry>> entries_;
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
 TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {

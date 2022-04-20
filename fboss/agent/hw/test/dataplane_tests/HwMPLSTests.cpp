@@ -518,11 +518,11 @@ TYPED_TEST(HwMPLSTest, Pop) {
   }
   auto setup = [=]() {
     this->setup();
-    // pop and lookup 1101
-    this->programLabelPop(1101);
     // setup route for 2001::, dest ip under label 1101
     this->addRoute(
         folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
+    // pop and lookup 1101
+    this->programLabelPop(1101);
   };
   auto verify = [=]() {
     auto outPktsBefore = getPortOutPkts(

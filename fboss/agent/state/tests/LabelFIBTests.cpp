@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <fboss/agent/state/LabelForwardingInformationBase.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -111,10 +112,14 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
   auto generated =
       LabelForwardingInformationBase::fromFollyDynamic(lFib->toFollyDynamic());
 
-  EXPECT_TRUE(lFib->getLabelForwardingEntry(5001)->isSame(
-      generated->getLabelForwardingEntry(5001).get()));
-  EXPECT_TRUE(lFib->getLabelForwardingEntry(5002)->isSame(
-      generated->getLabelForwardingEntry(5002).get()));
+  auto ribEntry1 = lFib->getLabelForwardingEntry(5001);
+  LabelForwardingInformationBase::noRibToRibEntryConvertor(ribEntry1);
+  EXPECT_TRUE(
+      ribEntry1->isSame(generated->getLabelForwardingEntry(5001).get()));
+  auto ribEntry2 = lFib->getLabelForwardingEntry(5002);
+  LabelForwardingInformationBase::noRibToRibEntryConvertor(ribEntry2);
+  EXPECT_TRUE(
+      ribEntry2->isSame(generated->getLabelForwardingEntry(5002).get()));
 }
 
 TEST(LabelFIBTests, forEachAdded) {
