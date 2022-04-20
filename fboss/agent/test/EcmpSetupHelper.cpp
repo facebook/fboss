@@ -502,9 +502,9 @@ std::vector<PortDescriptor> EcmpSetupAnyNPorts<IPAddrT>::ecmpPortDescs(
 }
 
 template <typename IPAddrT>
-std::shared_ptr<SwitchState>
-MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
+void MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
+    std::unique_ptr<RouteUpdateWrapper> updater,
     const boost::container::flat_set<PortDescriptor>& portDescriptors,
     const std::vector<NextHopWeight>& weights) const {
   std::vector<NextHopWeight> hopWeights;
@@ -530,13 +530,11 @@ MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
     }
   }
 
-  outputState->getLabelForwardingInformationBase()->programLabel(
-      &outputState,
-      topLabel_,
-      ClientID(0),
-      AdminDistance::DIRECTLY_CONNECTED,
-      std::move(nhops));
-  return outputState;
+  MplsRoute route;
+  route.topLabel_ref() = topLabel_.value();
+  route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+  updater->addRoute(ClientID(0), route);
+  updater->program();
 }
 
 template <typename IPAddrT>
@@ -662,13 +660,13 @@ std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
 }
 
 template <typename IPAddrT>
-std::shared_ptr<SwitchState>
-MplsEcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
+void MplsEcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
     const std::shared_ptr<SwitchState>& inputState,
+    std::unique_ptr<RouteUpdateWrapper> updater,
     size_t width,
     const std::vector<NextHopWeight>& weights) const {
-  return mplsEcmpSetupTargetedPorts_.setupECMPForwarding(
-      inputState, getPortDescs(width), weights);
+  mplsEcmpSetupTargetedPorts_.setupECMPForwarding(
+      inputState, std::move(updater), getPortDescs(width), weights);
 }
 
 template class BaseEcmpSetupHelper<

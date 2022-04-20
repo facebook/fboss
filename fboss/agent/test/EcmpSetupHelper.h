@@ -239,8 +239,9 @@ class MplsEcmpSetupTargetedPorts
 
   virtual EcmpMplsNextHop<IPAddrT> nhop(PortDescriptor portDesc) const override;
 
-  std::shared_ptr<SwitchState> setupECMPForwarding(
+  void setupECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,
+      std::unique_ptr<RouteUpdateWrapper> updater,
       const boost::container::flat_set<PortDescriptor>& nhops,
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
@@ -367,8 +368,9 @@ class MplsEcmpSetupAnyNPorts {
       LabelForwardingAction::LabelForwardingType actionType)
       : mplsEcmpSetupTargetedPorts_(inputState, topLabel, actionType) {}
 
-  std::shared_ptr<SwitchState> setupECMPForwarding(
+  void setupECMPForwarding(
       const std::shared_ptr<SwitchState>& inputState,
+      std::unique_ptr<RouteUpdateWrapper> updater,
       size_t width,
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;

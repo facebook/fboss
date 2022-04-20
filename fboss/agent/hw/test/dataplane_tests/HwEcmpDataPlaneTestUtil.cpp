@@ -207,8 +207,10 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::programRoutes(
   auto* ensemble = BaseT::getEnsemble();
   auto state =
       helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth);
-  auto newState = helper->setupECMPForwarding(state, ecmpWidth, weights);
-  ensemble->applyNewState(newState);
+  ensemble->applyNewState(state);
+  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+      ensemble->getRouteUpdater());
+  helper->setupECMPForwarding(state, std::move(updater), ecmpWidth, weights);
 }
 
 template <typename AddrT>

@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/agent/RouteUpdateWrapper.h>
 #include <fboss/agent/hw/test/LoadBalancerUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
@@ -99,6 +100,11 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     applyNewState(utility::enableTrunkPorts(state));
   }
 
+  std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> getRouteUpdater() {
+    return std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
+        getHwSwitchEnsemble()->getRouteUpdater());
+  }
+
   template <typename ECMP_HELPER>
   void programRoutes(const ECMP_HELPER& ecmpHelper, const AggPortInfo aggInfo) {
     applyNewState(ecmpHelper.resolveNextHops(
@@ -131,7 +137,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     applyNewState(ecmpHelper.resolveNextHops(
         getProgrammedState(), getAggregatePorts(aggInfo)));
     auto ports = getAggregatePorts(aggInfo);
-    applyNewState(ecmpHelper.setupECMPForwarding(getProgrammedState(), ports));
+    ecmpHelper.setupECMPForwarding(
+        getProgrammedState(), getRouteUpdater(), ports);
   }
 
  protected:
