@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include "fboss/agent/hw/bcm/BcmLabelSwitchAction.h"
 
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -67,6 +68,16 @@ class BcmLabelSwitchActionTest : public BcmTest {
             AdminDistance::DIRECTLY_CONNECTED,
             InterfaceID(utility::kBaseVlanId),
             {folly::IPAddress("1.1.1.1")})));
+    entries_.push_back(std::make_shared<LabelForwardingEntry>(
+        5005,
+        ClientID::OPENR,
+        util::getPushLabelNextHopEntry(
+            AdminDistance::DIRECTLY_CONNECTED,
+            InterfaceID(utility::kBaseVlanId))));
+    LabelNextHopEntry nexthop{
+        LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(5006, ClientID::OPENR, nexthop));
   }
 
   void addAllTestLabelForwardingEntries() {
@@ -87,23 +98,33 @@ class BcmLabelSwitchActionTest : public BcmTest {
   }
 
   void verifyTestLabelForwardingEntry(
-      const std::shared_ptr<LabelForwardingEntry>& entry) {
+      const std::shared_ptr<LabelForwardingEntry>& mplsEntry) {
+    auto state = getHwSwitchEnsemble()->getProgrammedState();
+    auto entry =
+        state->getLabelForwardingInformationBase()->getLabelForwardingEntryIf(
+            mplsEntry->getID());
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
     info.label = entry->getID().value();
     info.port = BCM_GPORT_INVALID;
     auto rv = bcm_mpls_tunnel_switch_get(getHwSwitch()->getUnit(), &info);
+    LabelForwardingAction::LabelForwardingType labelForwardingType{
+        LabelForwardingAction::LabelForwardingType::NOOP};
+    auto action = entry->getForwardInfo().getAction();
+    if (action != LabelNextHopEntry::Action::DROP &&
+        action != LabelNextHopEntry::Action::TO_CPU) {
+      labelForwardingType = entry->getForwardInfo()
+                                .getNextHopSet()
+                                .begin()
+                                ->labelForwardingAction()
+                                ->type();
+    }
     ASSERT_EQ(rv, BCM_E_NONE);
     EXPECT_EQ(info.label, static_cast<int32_t>(entry->getID().value()));
     EXPECT_EQ(
         info.action,
         utility::getLabelSwitchAction(
-            entry->getForwardInfo().getAction(),
-            entry->getForwardInfo()
-                .getNextHopSet()
-                .begin()
-                ->labelForwardingAction()
-                ->type()));
+            entry->getForwardInfo().getAction(), labelForwardingType));
 
     if (info.action == BCM_MPLS_SWITCH_ACTION_POP) {
       // no egress_if or next hop for "POP"
@@ -116,13 +137,21 @@ class BcmLabelSwitchActionTest : public BcmTest {
               0, entry->getForwardInfo().normalizedNextHops()));
       EXPECT_EQ(info.egress_if, reference->getEgressId());
     } else {
+      int egressId;
       // for php reuse L3 egresses
-      auto reference = getHwSwitch()->getMultiPathNextHopTable()->getNextHop(
-          BcmMultiPathNextHopKey(
-              0,
-              utility::stripLabelForwarding(
-                  entry->getForwardInfo().normalizedNextHops())));
-      EXPECT_EQ(info.egress_if, reference->getEgressId());
+      if (action == LabelNextHopEntry::Action::DROP) {
+        egressId = getHwSwitch()->getDropEgressId();
+      } else if (action == LabelNextHopEntry::Action::TO_CPU) {
+        egressId = getHwSwitch()->getToCPUEgressId();
+      } else {
+        auto reference = getHwSwitch()->getMultiPathNextHopTable()->getNextHop(
+            BcmMultiPathNextHopKey(
+                0,
+                utility::stripLabelForwarding(
+                    entry->getForwardInfo().normalizedNextHops())));
+        egressId = reference->getEgressId();
+      }
+      EXPECT_EQ(info.egress_if, egressId);
     }
   }
 
