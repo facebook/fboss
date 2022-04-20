@@ -2834,6 +2834,9 @@ void BcmSwitch::processChangedLabelForwardingInformationBase(
 
 void BcmSwitch::processAddedLabelForwardingEntry(
     const std::shared_ptr<Route<LabelID>>& addedEntry) {
+  if (!isValidLabelForwardingEntry(addedEntry.get())) {
+    throw FbossError("Invalid MPLS routes");
+  }
   writableLabelMap()->processAddedLabelSwitchAction(
       addedEntry->getID().value(), addedEntry->getForwardInfo());
 }
@@ -2847,6 +2850,9 @@ void BcmSwitch::processRemovedLabelForwardingEntry(
 void BcmSwitch::processChangedLabelForwardingEntry(
     const std::shared_ptr<Route<LabelID>>& /*oldEntry*/,
     const std::shared_ptr<Route<LabelID>>& newEntry) {
+  if (!isValidLabelForwardingEntry(newEntry.get())) {
+    throw FbossError("Invalid MPLS routes");
+  }
   writableLabelMap()->processChangedLabelSwitchAction(
       newEntry->getID().value(), newEntry->getForwardInfo());
 }
@@ -3336,7 +3342,8 @@ bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
     if (!entryForClient) {
       continue;
     }
-    if (!isValidLabeledNextHopSet(platform_, entryForClient->getNextHopSet())) {
+    if (!FLAGS_mpls_rib &&
+        !isValidLabeledNextHopSet(platform_, entryForClient->getNextHopSet())) {
       return false;
     }
   }

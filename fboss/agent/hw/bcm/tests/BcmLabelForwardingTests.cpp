@@ -1,4 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
+#include <fboss/agent/FbossError.h>
+#include <fboss/agent/test/TestUtils.h>
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
@@ -24,41 +26,39 @@ class BcmLabelForwardingTests : public BcmTest {
     return ResolvedNextHop(
         nexthop, InterfaceID(1), NextHopWeight(0), std::move(forwardingAction));
   }
+  void programLabel(ClientID client, Label label, LabelNextHopSet nhops) {
+    auto updater = getRouteUpdater();
+    MplsRoute route;
+    route.topLabel_ref() = label.value();
+    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    updater->addRoute(client, std::move(route));
+    updater->program();
+  }
 };
 
 TEST_F(BcmLabelForwardingTests, ValidLabelFIBDelta) {
   LabelNextHopSet nexthops;
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.1"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1001)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.2"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1002)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.3"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1003)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.4"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1004)));
 
   auto oldState = getProgrammedState();
-  auto newState = oldState->clone();
-  auto* labelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
-
-  labelFib->programLabel(
-      &newState,
-      1000,
-      ClientID::OPENR,
-      AdminDistance::DIRECTLY_CONNECTED,
-      std::move(nexthops));
-
-  EXPECT_EQ(labelFib->isPublished(), false);
-  newState->publish();
+  programLabel(ClientID::OPENR, 1000, nexthops);
+  auto newState = getProgrammedState();
+  EXPECT_NE(oldState, newState);
   EXPECT_EQ(
       this->getHwSwitch()->isValidStateUpdate(StateDelta(oldState, newState)),
       true);
@@ -67,42 +67,27 @@ TEST_F(BcmLabelForwardingTests, ValidLabelFIBDelta) {
 TEST_F(BcmLabelForwardingTests, InvalidLabelFIBDelta) {
   LabelNextHopSet nexthops;
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.1"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1001)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.2"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1002)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.3"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::SWAP, 1003)));
   nexthops.insert(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.4"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH,
           LabelForwardingAction::LabelStack{1001, 1002})));
 
   auto oldState = getProgrammedState();
-  auto newState = oldState->clone();
-
-  auto* labelFib =
-      newState->getLabelForwardingInformationBase().get()->modify(&newState);
-
-  labelFib->programLabel(
-      &newState,
-      1000,
-      ClientID::OPENR,
-      AdminDistance::DIRECTLY_CONNECTED,
-      nexthops);
-
-  EXPECT_EQ(labelFib->isPublished(), false);
-  newState->publish();
-
-  EXPECT_EQ(
-      this->getHwSwitch()->isValidStateUpdate(StateDelta(oldState, newState)),
-      false);
+  EXPECT_THROW(programLabel(ClientID::OPENR, 1000, nexthops), FbossError);
+  auto newState = getProgrammedState();
+  EXPECT_EQ(oldState, newState);
 }
 
 TEST_F(BcmLabelForwardingTests, ValidPushStack) {
@@ -111,26 +96,18 @@ TEST_F(BcmLabelForwardingTests, ValidPushStack) {
     stack.push_back(1001 + i);
   }
 
-  auto state = getProgrammedState();
-  auto newState = state->clone();
-  auto* writeableLabelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
   LabelNextHopSet nexthops;
   nexthops.emplace(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.1"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack))));
 
-  writeableLabelFib->programLabel(
-      &newState,
-      1000,
-      ClientID::OPENR,
-      AdminDistance::DIRECTLY_CONNECTED,
-      std::move(nexthops));
-
-  newState->publish();
+  auto oldState = getProgrammedState();
+  programLabel(ClientID::OPENR, 1000, nexthops);
+  auto newState = getProgrammedState();
+  EXPECT_NE(oldState, newState);
   EXPECT_EQ(
-      this->getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)),
+      this->getHwSwitch()->isValidStateUpdate(StateDelta(oldState, newState)),
       true);
 }
 
@@ -141,27 +118,16 @@ TEST_F(BcmLabelForwardingTests, InvalidPushStack) {
     stack.push_back(1001 + i);
   }
 
-  auto state = getProgrammedState();
-  auto newState = state->clone();
-  auto* writeableLabelFib =
-      newState->getLabelForwardingInformationBase()->modify(&newState);
   LabelNextHopSet nexthops;
   nexthops.emplace(getLabelNextHop(
-      folly::IPAddressV4("10.0.0.1"),
+      folly::IPAddressV4("1.1.1.1"),
       LabelForwardingAction(
           LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack))));
 
-  writeableLabelFib->programLabel(
-      &newState,
-      1000,
-      ClientID::OPENR,
-      AdminDistance::DIRECTLY_CONNECTED,
-      std::move(nexthops));
-
-  newState->publish();
-  EXPECT_EQ(
-      this->getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)),
-      false);
+  auto oldState = getProgrammedState();
+  EXPECT_THROW(programLabel(ClientID::OPENR, 1000, nexthops), FbossError);
+  auto newState = getProgrammedState();
+  EXPECT_EQ(oldState, newState);
 }
 
 } // namespace facebook::fboss
