@@ -609,6 +609,11 @@ void QsfpModule::refreshLocked() {
   if (newTransceiverDetected) {
     // Data has been read for the new optics
     stateUpdateLocked(TransceiverStateMachineEvent::READ_EEPROM);
+    // Issue an allPages=false update to pick up the new qsfp data after we
+    // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
+    // capabilities and we can use this to make sure the current QsfpData has
+    // updated pages without waiting for the next refresh
+    updateQsfpData(false);
   }
 
   // The following should be deprecated after switching to use new state machine

@@ -2035,99 +2035,95 @@ void CmisModule::setDiagsCapability() {
     // diagsCapability isn't valid either
     return;
   }
-  {
-    auto diagsCapability = diagsCapability_.wlock();
-    if (!diagsCapability->has_value()) {
-      XLOG(INFO) << "Setting diag capability for Transceiver="
-                 << qsfpImpl_->getName();
-      DiagsCapability diags;
+  auto diagsCapability = diagsCapability_.wlock();
+  if (!diagsCapability->has_value()) {
+    XLOG(INFO) << "Setting diag capability for Transceiver="
+               << qsfpImpl_->getName();
+    DiagsCapability diags;
 
-      auto readFromCacheOrHw = [&](CmisField field, uint8_t* data) {
-        int offset;
-        int length;
-        int dataAddress;
-        getQsfpFieldAddress(field, dataAddress, offset, length);
-        if (cacheIsValid()) {
-          getQsfpValue(dataAddress, offset, length, data);
-        } else {
-          uint8_t page = static_cast<uint8_t>(dataAddress);
-          qsfpImpl_->writeTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-          qsfpImpl_->readTransceiver(
-              {TransceiverI2CApi::ADDR_QSFP, offset, length}, data);
-        }
-      };
+    auto readFromCacheOrHw = [&](CmisField field, uint8_t* data) {
+      int offset;
+      int length;
+      int dataAddress;
+      getQsfpFieldAddress(field, dataAddress, offset, length);
+      if (cacheIsValid()) {
+        getQsfpValue(dataAddress, offset, length, data);
+      } else {
+        uint8_t page = static_cast<uint8_t>(dataAddress);
+        qsfpImpl_->writeTransceiver(
+            {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        qsfpImpl_->readTransceiver(
+            {TransceiverI2CApi::ADDR_QSFP, offset, length}, data);
+      }
+    };
 
-      auto getPrbsCapabilities =
-          [&](CmisField generatorField,
-              CmisField checkerField) -> std::vector<prbs::PrbsPolynomial> {
-        int offset;
-        int length;
-        int dataAddress;
-        getQsfpFieldAddress(generatorField, dataAddress, offset, length);
-        CHECK_EQ(length, 2);
-        getQsfpFieldAddress(checkerField, dataAddress, offset, length);
-        CHECK_EQ(length, 2);
+    auto getPrbsCapabilities =
+        [&](CmisField generatorField,
+            CmisField checkerField) -> std::vector<prbs::PrbsPolynomial> {
+      int offset;
+      int length;
+      int dataAddress;
+      getQsfpFieldAddress(generatorField, dataAddress, offset, length);
+      CHECK_EQ(length, 2);
+      getQsfpFieldAddress(checkerField, dataAddress, offset, length);
+      CHECK_EQ(length, 2);
 
-        uint8_t generatorCapsData[2];
-        readFromCacheOrHw(generatorField, generatorCapsData);
-        uint16_t generatorCaps =
-            (generatorCapsData[1] << 8) | generatorCapsData[0];
+      uint8_t generatorCapsData[2];
+      readFromCacheOrHw(generatorField, generatorCapsData);
+      uint16_t generatorCaps =
+          (generatorCapsData[1] << 8) | generatorCapsData[0];
 
-        uint8_t checkerCapsData[2];
-        readFromCacheOrHw(checkerField, checkerCapsData);
-        uint16_t checkerCaps = (checkerCapsData[1] << 8) | checkerCapsData[0];
+      uint8_t checkerCapsData[2];
+      readFromCacheOrHw(checkerField, checkerCapsData);
+      uint16_t checkerCaps = (checkerCapsData[1] << 8) | checkerCapsData[0];
 
-        std::vector<prbs::PrbsPolynomial> caps;
-        for (auto patternIDPolynomialPair : prbsPatternMap.right) {
-          // We claim PRBS polynomial is supported when both generator and
-          // checker support the polynomial
-          if (generatorCaps & (1 << patternIDPolynomialPair.first) &&
-              checkerCaps & (1 << patternIDPolynomialPair.first)) {
-            caps.push_back(patternIDPolynomialPair.second);
-          }
-        }
-        return caps;
-      };
-
-      uint8_t data;
-      readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
-      diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
-      diags.diagnostics() =
-          (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
-
-      readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
-      diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
-
-      if (*diags.diagnostics()) {
-        readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);
-        diags.loopbackSystem() =
-            (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
-        diags.loopbackLine() =
-            (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
-
-        readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
-        diags.prbsLine() =
-            (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
-        diags.prbsSystem() =
-            (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
-        if (*diags.prbsLine()) {
-          diags.prbsLineCapabilities() = getPrbsCapabilities(
-              CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
-              CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS);
-        }
-        if (*diags.prbsSystem()) {
-          diags.prbsSystemCapabilities() = getPrbsCapabilities(
-              CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
-              CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
+      std::vector<prbs::PrbsPolynomial> caps;
+      for (auto patternIDPolynomialPair : prbsPatternMap.right) {
+        // We claim PRBS polynomial is supported when both generator and
+        // checker support the polynomial
+        if (generatorCaps & (1 << patternIDPolynomialPair.first) &&
+            checkerCaps & (1 << patternIDPolynomialPair.first)) {
+          caps.push_back(patternIDPolynomialPair.second);
         }
       }
+      return caps;
+    };
 
-      *diagsCapability = diags;
+    uint8_t data;
+    readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
+    diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
+    diags.diagnostics() =
+        (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
+
+    readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
+    diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+
+    if (*diags.diagnostics()) {
+      readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);
+      diags.loopbackSystem() =
+          (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
+      diags.loopbackLine() =
+          (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+
+      readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
+      diags.prbsLine() =
+          (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
+      diags.prbsSystem() =
+          (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
+      if (*diags.prbsLine()) {
+        diags.prbsLineCapabilities() = getPrbsCapabilities(
+            CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
+            CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS);
+      }
+      if (*diags.prbsSystem()) {
+        diags.prbsSystemCapabilities() = getPrbsCapabilities(
+            CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
+            CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
+      }
     }
-  } // Release diagsCapability_ lock
-  // If VDM capability has been identified then update VDM cache
-  updateVdmCacheLocked();
+
+    *diagsCapability = diags;
+  }
 }
 
 /*
