@@ -31,22 +31,14 @@ class TestFsdbStreamClient : public FsdbStreamClient {
   }
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoop() override {
-    try {
-      auto [gen, pipe] = folly::coro::AsyncPipe<int>::create();
-      pipe.write(1);
-      while (auto intgen = co_await gen.next()) {
-        if (isCancelled()) {
-          XLOG(DBG2) << " Detected cancellation";
-          break;
-        }
+    auto [gen, pipe] = folly::coro::AsyncPipe<int>::create();
+    pipe.write(1);
+    while (auto intgen = co_await gen.next()) {
+      if (isCancelled()) {
+        XLOG(DBG2) << " Detected cancellation";
+        break;
       }
-    } catch (const folly::OperationCancelled&) {
-      XLOG(DBG2) << "Packet Stream Operation cancelled";
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << clientId() << " Server error: " << folly::exceptionStr(ex);
-      setState(State::DISCONNECTED);
     }
-    XLOG(DBG2) << "Client Cancellation Completed";
     co_return;
   }
 #endif

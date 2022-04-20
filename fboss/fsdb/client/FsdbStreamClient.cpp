@@ -105,28 +105,23 @@ void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
 
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
+  XLOG(INFO) << " Service loop started: " << clientId();
+  serviceLoopRunning_.store(true);
+  SCOPE_EXIT {
+    XLOG(INFO) << " Service loop done: " << clientId();
+    serviceLoopRunning_.store(false);
+  };
   try {
-    XLOG(INFO) << " Service loop started: " << clientId();
-    serviceLoopRunning_.store(true);
-    SCOPE_EXIT {
-      XLOG(INFO) << " Service loop done: " << clientId();
-      serviceLoopRunning_.store(false);
-    };
-    try {
-      co_await serviceLoop();
-    } catch (const folly::OperationCancelled&) {
-      XLOG(DBG2) << "Service loop cancelled :" << clientId();
-    } catch (const fsdb::FsdbException& ex) {
-      XLOG(ERR) << clientId() << " Fsdb error "
-                << apache::thrift::util::enumNameSafe(ex.get_errorCode())
-                << ": " << ex.get_message();
-      setState(State::DISCONNECTED);
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << clientId() << " Unknown error: " << folly::exceptionStr(ex);
-      setState(State::DISCONNECTED);
-    }
+    co_await serviceLoop();
+  } catch (const folly::OperationCancelled&) {
+    XLOG(DBG2) << "Service loop cancelled :" << clientId();
+  } catch (const fsdb::FsdbException& ex) {
+    XLOG(ERR) << clientId() << " Fsdb error "
+              << apache::thrift::util::enumNameSafe(ex.get_errorCode()) << ": "
+              << ex.get_message();
+    setState(State::DISCONNECTED);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Service loop broken:" << ex.what();
+    XLOG(ERR) << clientId() << " Unknown error: " << folly::exceptionStr(ex);
     setState(State::DISCONNECTED);
   }
   co_return;
