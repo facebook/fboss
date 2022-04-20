@@ -94,6 +94,15 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
     return helper->nhop(PortDescriptor(masterLogicalPortIds()[i]));
   }
 
+  void setupLabelRibRoute(LabelNextHopSet nhops) {
+    auto updater = getRouteUpdater();
+    MplsRoute route;
+    route.topLabel_ref() = kTopLabel.value();
+    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    updater->addRoute(ClientID(0), std::move(route));
+    updater->program();
+  }
+
   void setupLabelSwitchActionWithOneNextHop(
       LabelForwardingAction::LabelForwardingType action) {
     auto helper = setupECMPHelper(kTopLabel, action);
@@ -106,14 +115,8 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
         testNhop.action};
     nhops.insert(nexthop);
     applyNewState(helper->resolveNextHop(getProgrammedState(), testNhop));
-    auto newState = getProgrammedState()->clone();
-    newState->getLabelForwardingInformationBase()->programLabel(
-        &newState,
-        kTopLabel,
-        ClientID(0),
-        AdminDistance::DIRECTLY_CONNECTED,
-        std::move(nhops));
-    applyNewState(newState);
+
+    setupLabelRibRoute(nhops);
   }
 
   void setupLabelSwitchActionWithMultiNextHop(
@@ -130,14 +133,7 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
           NextHopWeight(1), // TODO - support ECMP_WEIGHT
           testNhop.action});
     }
-    auto newState = getProgrammedState()->clone();
-    newState->getLabelForwardingInformationBase()->programLabel(
-        &newState,
-        kTopLabel,
-        ClientID(0),
-        AdminDistance::DIRECTLY_CONNECTED,
-        std::move(nhops));
-    applyNewState(newState);
+    setupLabelRibRoute(nhops);
   }
 
   void verifyLabelSwitchAction(
