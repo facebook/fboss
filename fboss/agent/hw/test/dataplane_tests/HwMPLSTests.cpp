@@ -171,46 +171,20 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
   }
 
-  Label programLabelSwap(PortDescriptor port) {
-    auto state = ecmpHelper_->resolveNextHops(
+  void addRoute(
+      LabelID label,
+      PortDescriptor port,
+      LabelForwardingAction::LabelStack stack = {},
+      LabelForwardingAction::LabelForwardingType type =
+          LabelForwardingAction::LabelForwardingType::SWAP) {
+    applyNewState(ecmpHelper_->resolveNextHops(
         getProgrammedState(),
         {
             port,
-        });
-    applyNewState(ecmpSwapHelper_->setupECMPForwarding(state, {port}));
-    auto swapNextHop = ecmpSwapHelper_->nhop(port);
-    return swapNextHop.action.swapWith().value();
-  }
+        }));
 
-  void programLabelPop(Label label) {
-    // program MPLS route to POP
-    auto state = getProgrammedState();
-    state = state->clone();
-    auto* labelFib = state->getLabelForwardingInformationBase()->modify(&state);
-
-    LabelForwardingAction popAndLookup(
-        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
-    UnresolvedNextHop nexthop(folly::IPAddress("::1"), 1, popAndLookup);
-    labelFib->programLabel(
-        &state,
-        label,
-        ClientID::STATIC_ROUTE,
-        AdminDistance::STATIC_ROUTE,
-        {nexthop});
-    applyNewState(state);
-  }
-
-  void programLabelPhp(PortDescriptor port) {
-    utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> phpEcmpHelper(
-        getProgrammedState(),
-        kTopLabel,
-        LabelForwardingAction::LabelForwardingType::PHP);
-    auto state = phpEcmpHelper.resolveNextHops(
-        getProgrammedState(),
-        {
-            port,
-        });
-    applyNewState(phpEcmpHelper.setupECMPForwarding(state, {port}));
+    ecmpHelper_->programMplsRoutes(
+        getRouteUpdater(), {port}, {{port, std::move(stack)}}, {label}, type);
   }
 
   std::unique_ptr<utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6>>
@@ -417,9 +391,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
   }
   auto setup = [=]() {
     this->setup();
-    // setup ip2mpls route to 2401::201:ab00/120 through
-    // port 0 w/ stack {101, 102}
-    this->programLabelSwap(this->getPortDescriptor(0));
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
   auto verify = [=]() {
     uint32_t expectedOutLabel = utility::getLabelSwappedWithForTopLabel(
@@ -487,7 +459,7 @@ TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
   }
   auto setup = [=]() {
     this->setup();
-    this->programLabelSwap(this->getPortDescriptor(0));
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
 
   auto verify = [=]() {
@@ -518,11 +490,15 @@ TYPED_TEST(HwMPLSTest, Pop) {
   }
   auto setup = [=]() {
     this->setup();
+    // pop and lookup 1101
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
     // setup route for 2001::, dest ip under label 1101
     this->addRoute(
         folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
-    // pop and lookup 1101
-    this->programLabelPop(1101);
   };
   auto verify = [=]() {
     auto outPktsBefore = getPortOutPkts(
@@ -544,7 +520,11 @@ TYPED_TEST(HwMPLSTest, Php) {
   auto setup = [=]() {
     this->setup();
     // php to exit out of port 0
-    this->programLabelPhp(this->getPortDescriptor(0));
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::PHP);
   };
   auto verify = [=]() {
     auto outPktsBefore = getPortOutPkts(
@@ -566,7 +546,11 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
   auto setup = [=]() {
     this->setup();
     // pop and lookup 1101
-    this->programLabelPop(1101);
+    this->addRoute(
+        LabelID(1101),
+        this->getPortDescriptor(0),
+        {},
+        LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   };
   auto verify = [=]() {
     HwTestPacketSnooper snooper(
@@ -602,7 +586,7 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
 TYPED_TEST(HwMPLSTest, ExpiringTTL) {
   auto setup = [=]() {
     this->setup();
-    this->programLabelSwap(this->getPortDescriptor(0));
+    this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
   auto verify = [=]() {
     this->sendMplsPktAndVerifyTrappedCpuQueue(
