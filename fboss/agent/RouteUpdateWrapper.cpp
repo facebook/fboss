@@ -74,6 +74,16 @@ void RouteUpdateWrapper::addRoute(ClientID clientId, const MplsRoute& route) {
   ribMplsRoutesToAddDel_[{RouterID(0), clientId}].toAdd.emplace_back(route);
 }
 
+void RouteUpdateWrapper::addRoute(
+    ClientID clientId,
+    MplsLabel label,
+    RouteNextHopEntry entry) {
+  MplsRoute tempRoute;
+  tempRoute.topLabel_ref() = label;
+  tempRoute.nextHops_ref() = util::fromRouteNextHopSet(entry.getNextHopSet());
+  addRoute(clientId, std::move(tempRoute));
+}
+
 void RouteUpdateWrapper::delRoute(MplsLabel label, ClientID clientId) {
   ribMplsRoutesToAddDel_[std::make_pair(RouterID(0), clientId)]
       .toDel.emplace_back(label);
