@@ -6,5 +6,18 @@ packages:
       buck:fboss/cli/fboss2:fboss2:
         fboss/cli/fboss2/fboss2:
           path: /usr/local/bin/fboss2
+      buck:fboss/cli/fboss2:fboss2-tab-complete:
+        fboss/cli/fboss2/fboss2-tab-complete/fboss2-tab-complete:
+          path: /usr/local/bin/_fboss2_completion
     change_log_paths:
       - 'fboss/cli/fboss2'
+    pre_build:
+      - echo -e "#!/bin/bash\n\ncomplete -C /usr/local/bin/_fboss2_completion fboss2" > /tmp/fboss2_completion.sh
+      - echo -e "#compdef fboss2\n\ncomplete -C /usr/local/bin/_fboss2_completion fboss2" > /tmp/fboss2_completion.zsh
+    static:
+      /tmp/fboss2_completion.sh:
+        path: '/usr/share/bash-completion/completions/fboss2'
+        mode: '0644'
+      /tmp/fboss2_completion.zsh:
+        path: '/usr/share/zsh/site-functions/_fboss2'
+        mode: '0644'
