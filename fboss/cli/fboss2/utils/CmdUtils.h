@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <CLI/CLI.hpp>
 #include <folly/IPAddress.h>
 #include <string>
 #include <variant>
@@ -26,6 +27,10 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
   OBJECT_ARG_TYPE_DEBUG_LEVEL,
 };
+
+// Called after CLI11 is initlized but before parsing, for any final
+// initialization steps
+void postAppInit(int argc, char* argv[], CLI::App& app);
 
 const folly::IPAddress getIPFromHost(const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);

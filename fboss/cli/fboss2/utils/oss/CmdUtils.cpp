@@ -11,6 +11,8 @@
 
 namespace facebook::fboss::utils {
 
+void postAppInit(int /* argc */, char* /* argv */[], CLI::App& /* app */) {}
+
 std::vector<std::string> getHostsInSmcTier(
     const std::string& /* parentTierName */) {
   return {};
