@@ -38,6 +38,10 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
       std::chrono::milliseconds(FLAGS_thrift_task_expire_timeout * 1000));
   server->getEventBaseManager()->setEventBase(&eventBase, false);
   server->setInterface(handler);
+  // Since thrift calls may involve programming HW, don't
+  // set queue timeouts
+  server->setQueueTimeout(std::chrono::milliseconds(0));
+  server->setSocketQueueTimeout(std::chrono::milliseconds(0));
   if (isDuplex) {
     server->setDuplex(true);
   }

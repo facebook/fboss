@@ -21,6 +21,10 @@ setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager) {
       std::move(transceiverManager), macsecHandler);
   handler->init();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
+  // Since thrift calls may involve programming HW, don't
+  // set queue timeouts
+  server->setQueueTimeout(std::chrono::milliseconds(0));
+  server->setSocketQueueTimeout(std::chrono::milliseconds(0));
   server->setPort(FLAGS_port);
   server->setInterface(handler);
   return std::make_pair(server, handler);
