@@ -936,6 +936,15 @@ sai_status_t set_acl_counter_attribute_fn(
   }
 
   switch (attr->id) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    case SAI_ACL_COUNTER_ATTR_LABEL:
+      std::copy(
+          attr->value.chardata,
+          attr->value.chardata + aclCounter.label.size(),
+          std::begin(aclCounter.label));
+      res = SAI_STATUS_SUCCESS;
+      break;
+#endif
     case SAI_ACL_COUNTER_ATTR_PACKETS:
       aclCounter.counterPackets = attr->value.u64;
       res = SAI_STATUS_SUCCESS;
@@ -963,6 +972,14 @@ sai_status_t get_acl_counter_attribute_fn(
       case SAI_ACL_COUNTER_ATTR_TABLE_ID:
         attr_list[i].value.oid = aclCounter.tableId;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      case SAI_ACL_COUNTER_ATTR_LABEL:
+        std::copy(
+            std::begin(aclCounter.label),
+            std::end(aclCounter.label),
+            attr_list[i].value.chardata);
+        break;
+#endif
       case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
         attr_list[i].value.booldata = aclCounter.enablePacketCount;
         break;

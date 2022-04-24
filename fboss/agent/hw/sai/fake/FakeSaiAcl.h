@@ -296,6 +296,10 @@ class FakeAclCounter {
 
   sai_object_id_t tableId;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  std::array<char, 32> label;
+#endif
+
   bool enablePacketCount{false};
   bool enableByteCount{false};
 
