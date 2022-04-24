@@ -464,6 +464,7 @@ void checkAclStat(
         aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
     auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
+    // Get counter corresponding to the ACL entry
     auto aclCounterIdGot =
         SaiApiTable::getInstance()
             ->aclApi()
@@ -471,7 +472,44 @@ void checkAclStat(
                 AclEntrySaiId(aclEntryId),
                 SaiAclEntryTraits::Attributes::ActionCounter())
             .getData();
+    EXPECT_NE(aclCounterIdGot, SAI_NULL_OBJECT_ID);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    // Counter name must match what was previously configured
+    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::Label());
+    std::string aclCounterNameGotStr(aclCounterNameGot.data());
+    EXPECT_EQ(statName, aclCounterNameGotStr);
+
+    // Verify that only the configured 'types' (byte/packet) of counters are
+    // configured.
+    bool packetCountEnabledExpected = false;
+    bool byteCountEnabledExpected = false;
+    for (auto counterType : counterTypes) {
+      switch (counterType) {
+        case cfg::CounterType::PACKETS:
+          packetCountEnabledExpected = true;
+          break;
+        case cfg::CounterType::BYTES:
+          byteCountEnabledExpected = true;
+        default:
+          EXPECT_FALSE(true);
+      }
+    }
+
+    bool packetCountEnabledGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            AclCounterSaiId(aclCounterIdGot),
+            SaiAclCounterTraits::Attributes::EnablePacketCount());
+    bool byteCountEnabledGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            AclCounterSaiId(aclCounterIdGot),
+            SaiAclCounterTraits::Attributes::EnableByteCount());
+
+    EXPECT_EQ(packetCountEnabledExpected, packetCountEnabledGot);
+    EXPECT_EQ(byteCountEnabledExpected, byteCountEnabledGot);
+#else
     bool packetCountEnabledGot = false;
     bool byteCountEnabledGot = false;
 
@@ -496,6 +534,7 @@ void checkAclStat(
           EXPECT_FALSE(true);
       }
     }
+#endif
   }
 }
 
