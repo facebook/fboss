@@ -3065,11 +3065,53 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
   return checkSumGood;
 }
 
+/*
+ * setModulePrbs
+ *
+ * Starts or stops the PRBS generator and checker on a module. This function
+ * needs qsfp_service running as it makes thrift call to it for setting PRBS
+ * mode on a module (or list of ports). This functiuon supports PBS31Q only.
+ */
 void setModulePrbs(
     folly::EventBase& evb,
     std::vector<PortID> portList,
-    bool start) {}
+    bool start) {
+  phy::PortPrbsState prbsState;
+  prbsState.enabled_ref() = start;
+  prbsState.polynominal_ref() = 131;
+  auto client = getQsfpClient(evb);
+  for (auto port : portList) {
+    client->sync_setPortPrbs(
+        port, phy::PrbsComponent::TRANSCEIVER_LINE, prbsState);
+  }
+}
 
-void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {}
+/*
+ * getModulePrbsStats
+ *
+ * Prints the PRBS status (Lock status and BER values) for a module where PRBS
+ * is running.
+ */
+void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
+  auto client = getQsfpClient(evb);
+  for (auto port : portList) {
+    phy::PrbsStats prbsStats;
+    client->sync_getPortPrbsStats(
+        prbsStats, port, phy::PrbsComponent::TRANSCEIVER_LINE);
+
+    printf(
+        "PRBS time collected: %s\n",
+        getLocalTime(*prbsStats.timeCollected_ref()).c_str());
+    for (auto laneStats : prbsStats.laneStats_ref().value()) {
+      printf("Lane: %d\n", laneStats.laneId_ref().value());
+      printf(
+          "  Locked: %s\n",
+          (laneStats.locked_ref().value() ? "True" : "False"));
+      printf("  BER: %e\n", laneStats.ber_ref().value());
+      printf("  Max BER: %e\n", laneStats.maxBer_ref().value());
+      printf("  Num Loss of lock: %d\n", laneStats.numLossOfLock_ref().value());
+    }
+  }
+}
 
 } // namespace facebook::fboss
