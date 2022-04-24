@@ -479,6 +479,11 @@ struct SaiAclCounterTraits {
     using TableId =
         SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_TABLE_ID, sai_object_id_t>;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    using Label =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_LABEL, SaiCharArray32>;
+#endif
+
     using EnablePacketCount =
         SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT, bool>;
     using EnableByteCount =
@@ -493,11 +498,17 @@ struct SaiAclCounterTraits {
   using AdapterKey = AclCounterSaiId;
   using AdapterHostKey = std::tuple<
       Attributes::TableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      std::optional<Attributes::Label>,
+#endif
       std::optional<Attributes::EnablePacketCount>,
       std::optional<Attributes::EnableByteCount>>;
 
   using CreateAttributes = std::tuple<
       Attributes::TableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      std::optional<Attributes::Label>,
+#endif
       std::optional<Attributes::EnablePacketCount>,
       std::optional<Attributes::EnableByteCount>,
       std::optional<Attributes::CounterPackets>,
@@ -505,6 +516,9 @@ struct SaiAclCounterTraits {
 };
 
 SAI_ATTRIBUTE_NAME(AclCounter, TableId);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+SAI_ATTRIBUTE_NAME(AclCounter, Label);
+#endif
 SAI_ATTRIBUTE_NAME(AclCounter, EnablePacketCount);
 SAI_ATTRIBUTE_NAME(AclCounter, EnableByteCount);
 SAI_ATTRIBUTE_NAME(AclCounter, CounterPackets);

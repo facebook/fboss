@@ -389,6 +389,27 @@ SaiAclTableManager::addAclCounter(
 
   SaiAclCounterTraits::Attributes::TableId aclTableId{
       aclTableHandle->aclTable->adapterKey()};
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  SaiCharArray32 counterLabel{};
+  if ((*trafficCount.name()).size() > 31) {
+    throw FbossError(
+        "ACL Counter Label:",
+        *trafficCount.name(),
+        " size ",
+        (*trafficCount.name()).size(),
+        " exceeds max(31)");
+  }
+
+  std::copy(
+      (*trafficCount.name()).begin(),
+      (*trafficCount.name()).end(),
+      counterLabel.begin());
+
+  std::optional<SaiAclCounterTraits::Attributes::Label> aclCounterLabel{
+      counterLabel};
+#endif
+
   std::optional<SaiAclCounterTraits::Attributes::EnablePacketCount>
       enablePacketCount{false};
   std::optional<SaiAclCounterTraits::Attributes::EnableByteCount>
@@ -417,18 +438,22 @@ SaiAclTableManager::addAclCounter(
     aclStats_.reinitStat(statName, std::nullopt);
   }
 
-  SaiAclCounterTraits::AdapterHostKey adapterHostKey{
-      aclTableId,
-      enablePacketCount,
-      enableByteCount,
+  SaiAclCounterTraits::AdapterHostKey adapterHostKey {
+    aclTableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        aclCounterLabel,
+#endif
+        enablePacketCount, enableByteCount,
   };
 
-  SaiAclCounterTraits::CreateAttributes attributes{
-      aclTableId,
-      enablePacketCount,
-      enableByteCount,
-      std::nullopt, // counterPackets
-      std::nullopt, // counterBytes
+  SaiAclCounterTraits::CreateAttributes attributes {
+    aclTableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        aclCounterLabel,
+#endif
+        enablePacketCount, enableByteCount,
+        std::nullopt, // counterPackets
+        std::nullopt, // counterBytes
   };
 
   auto& aclCounterStore = saiStore_->get<SaiAclCounterTraits>();

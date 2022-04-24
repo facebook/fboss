@@ -374,6 +374,12 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  std::array<char, 32> kCounterLabel() const {
+    return {"aclCounter1"};
+  }
+#endif
+
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{kPriority()};
@@ -483,6 +489,10 @@ class AclApiTest : public ::testing::Test {
   AclCounterSaiId createAclCounter(AclTableSaiId aclTableId) const {
     SaiAclCounterTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    SaiAclCounterTraits::Attributes::Label label{kCounterLabel()};
+#endif
+
     SaiAclCounterTraits::Attributes::EnablePacketCount
         enablePacketCountAttribute{kEnablePacketCount()};
     SaiAclCounterTraits::Attributes::EnableByteCount enableByteCountAttribute{
@@ -494,11 +504,14 @@ class AclApiTest : public ::testing::Test {
         kCounterBytes()};
 
     return aclApi->create<SaiAclCounterTraits>(
-        {aclTableIdAttribute,
-         enablePacketCountAttribute,
-         enableByteCountAttribute,
-         counterPacketsAttribute,
-         counterBytesAttribute},
+        {
+          aclTableIdAttribute,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+              label,
+#endif
+              enablePacketCountAttribute, enableByteCountAttribute,
+              counterPacketsAttribute, counterBytesAttribute
+        },
         kSwitchID());
   }
 
@@ -911,6 +924,11 @@ TEST_F(AclApiTest, getAclCounterAttribute) {
   auto aclCounterId = createAclCounter(aclTableId);
   checkAclCounter(aclTableId, aclCounterId);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  auto aclCounterLabel = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::Label());
+#endif
+
   auto aclEnablePacketCount = aclApi->getAttribute(
       aclCounterId, SaiAclCounterTraits::Attributes::EnablePacketCount());
   auto aclEnableByteCount = aclApi->getAttribute(
@@ -920,6 +938,10 @@ TEST_F(AclApiTest, getAclCounterAttribute) {
       aclCounterId, SaiAclCounterTraits::Attributes::CounterPackets());
   auto aclCounterBytes = aclApi->getAttribute(
       aclCounterId, SaiAclCounterTraits::Attributes::CounterBytes());
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  EXPECT_EQ(aclCounterLabel, kCounterLabel());
+#endif
 
   EXPECT_EQ(aclEnablePacketCount, kEnablePacketCount());
   EXPECT_EQ(aclEnableByteCount, kEnableByteCount());
@@ -1194,17 +1216,31 @@ TEST_F(AclApiTest, setAclCounterAttribute) {
   EXPECT_THROW(
       aclApi->setAttribute(aclCounterId, aclEnableByteCount), SaiApiError);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  std::array<char, 32> counterLabel2{"acl2"};
+  SaiAclCounterTraits::Attributes::Label aclCounterLabel{counterLabel2};
+#endif
   SaiAclCounterTraits::Attributes::CounterPackets aclCounterPackets{10};
   SaiAclCounterTraits::Attributes::CounterBytes aclCounterBytes{20};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  aclApi->setAttribute(aclCounterId, aclCounterLabel);
+#endif
   aclApi->setAttribute(aclCounterId, aclCounterPackets);
   aclApi->setAttribute(aclCounterId, aclCounterBytes);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  auto aclCounterLabelGot = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::Label());
+#endif
   auto aclCounterPacketsGot = aclApi->getAttribute(
       aclCounterId, SaiAclCounterTraits::Attributes::CounterPackets());
   auto aclCounterBytesGot = aclApi->getAttribute(
       aclCounterId, SaiAclCounterTraits::Attributes::CounterBytes());
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  EXPECT_EQ(aclCounterLabelGot, counterLabel2);
+#endif
   EXPECT_EQ(aclCounterPacketsGot, 10);
   EXPECT_EQ(aclCounterBytesGot, 20);
 }

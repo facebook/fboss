@@ -169,6 +169,12 @@ class AclTableStoreTest : public SaiStoreTest {
     return {110, 111};
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  std::array<char, 32> kCounterLabel() const {
+    return {"aclCounter1"};
+  }
+#endif
+
   bool kEnablePacketCount() const {
     return true;
   }
@@ -262,11 +268,12 @@ class AclTableStoreTest : public SaiStoreTest {
     SaiAclCounterTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     return saiApiTable->aclApi().create<SaiAclCounterTraits>(
         {
-            aclTableIdAttribute,
-            this->kEnablePacketCount(),
-            this->kEnableByteCount(),
-            this->kCounterPackets(),
-            this->kCounterBytes(),
+          aclTableIdAttribute,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+              this->kCounterLabel(),
+#endif
+              this->kEnablePacketCount(), this->kEnableByteCount(),
+              this->kCounterPackets(), this->kCounterBytes(),
         },
         0);
   }
@@ -310,8 +317,13 @@ TEST_P(AclTableStoreParamTest, loadAclCounter) {
   s.reload();
   auto& store = s.get<SaiAclCounterTraits>();
 
-  SaiAclCounterTraits::AdapterHostKey k{
-      aclTableId, this->kEnablePacketCount(), this->kEnableByteCount()};
+  SaiAclCounterTraits::AdapterHostKey k {
+    aclTableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        this->kCounterLabel(),
+#endif
+        this->kEnablePacketCount(), this->kEnableByteCount()
+  };
 
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
@@ -423,15 +435,22 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
 TEST_P(AclTableStoreParamTest, AclCounterCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
-  SaiAclCounterTraits::CreateAttributes c{
-      aclTableId,
-      this->kEnablePacketCount(),
-      this->kEnableByteCount(),
-      this->kCounterPackets(),
-      this->kCounterBytes()};
+  SaiAclCounterTraits::CreateAttributes c {
+    aclTableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        this->kCounterLabel(),
+#endif
+        this->kEnablePacketCount(), this->kEnableByteCount(),
+        this->kCounterPackets(), this->kCounterBytes()
+  };
 
-  SaiAclCounterTraits::AdapterHostKey k{
-      aclTableId, this->kEnablePacketCount(), this->kEnableByteCount()};
+  SaiAclCounterTraits::AdapterHostKey k {
+    aclTableId,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        this->kCounterLabel(),
+#endif
+        this->kEnablePacketCount(), this->kEnableByteCount()
+  };
 
   SaiObject<SaiAclCounterTraits> obj = createObj<SaiAclCounterTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclCounter, TableId, obj.attributes()), aclTableId);
