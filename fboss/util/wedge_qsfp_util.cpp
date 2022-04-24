@@ -279,6 +279,9 @@ DEFINE_string(
     "",
     "Batch file for bulk read/write operations, Format: OP(R/W) Offset Value DelayMS");
 DEFINE_uint32(i2c_address, 0x50, "i2c address");
+DEFINE_bool(prbs_start, false, "Start the PRBS on a module line side");
+DEFINE_bool(prbs_stop, false, "Stop the PRBS on a module line side");
+DEFINE_bool(prbs_stats, false, "Get the PRBS stats from a module line side");
 
 namespace {
 struct ModulePartInfo_s {
@@ -3061,5 +3064,12 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
 
   return checkSumGood;
 }
+
+void setModulePrbs(
+    folly::EventBase& evb,
+    std::vector<PortID> portList,
+    bool start) {}
+
+void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {}
 
 } // namespace facebook::fboss

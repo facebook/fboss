@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
+#include "fboss/agent/types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/i2c/FirmwareUpgrader.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -55,6 +56,9 @@ DECLARE_bool(vdm_info);
 DECLARE_bool(batch_ops);
 DECLARE_string(batchfile);
 DECLARE_uint32(i2c_address);
+DECLARE_bool(prbs_start);
+DECLARE_bool(prbs_stop);
+DECLARE_bool(prbs_stats);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
@@ -239,5 +243,11 @@ void bucketize(
     std::vector<std::vector<unsigned int>>& bucket);
 
 std::vector<int> getPidForProcess(std::string proccessName);
+
+void setModulePrbs(
+    folly::EventBase& evb,
+    std::vector<PortID> portList,
+    bool start);
+void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList);
 
 } // namespace facebook::fboss
