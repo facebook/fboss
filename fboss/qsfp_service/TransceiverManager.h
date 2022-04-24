@@ -273,6 +273,8 @@ class TransceiverManager {
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName);
 
+  std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
+
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
   void publishLinkSnapshots(std::string portName);
@@ -485,8 +487,6 @@ class TransceiverManager {
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
   void updateTransceiverPortStatus() noexcept;
-
-  std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 
   std::set<TransceiverID> getPresentTransceivers() const;
 
