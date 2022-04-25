@@ -51,12 +51,15 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldEthertype),
 };
 
-std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap{
-    SAI_ATTR_MAP(AclCounter, TableId),
-    SAI_ATTR_MAP(AclCounter, EnablePacketCount),
-    SAI_ATTR_MAP(AclCounter, EnableByteCount),
-    SAI_ATTR_MAP(AclCounter, CounterPackets),
-    SAI_ATTR_MAP(AclCounter, CounterBytes),
+std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap {
+  SAI_ATTR_MAP(AclCounter, TableId),
+      SAI_ATTR_MAP(AclCounter, EnablePacketCount),
+      SAI_ATTR_MAP(AclCounter, EnableByteCount),
+      SAI_ATTR_MAP(AclCounter, CounterPackets),
+      SAI_ATTR_MAP(AclCounter, CounterBytes),
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      SAI_ATTR_MAP(AclCounter, Label),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableGroupMap{
@@ -218,7 +221,7 @@ sai_acl_api_t* wrappedAclApi() {
   return &aclWrappers;
 }
 
-SET_SAI_ATTRIBUTES(AclCounter)
+SET_SAI_ATTRIBUTES_ACL_COUNTER(AclCounter)
 SET_SAI_ATTRIBUTES(AclTable)
 SET_SAI_ATTRIBUTES(AclEntry)
 SET_SAI_ATTRIBUTES(AclTableGroup)

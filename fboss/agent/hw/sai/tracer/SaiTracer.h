@@ -706,8 +706,32 @@ class SaiTracer {
   }
 #endif
 
+#define SET_SAI_STRING_ATTRIBUTES_ACL_COUNTER(obj_type)                      \
+  switch (attr_list[i].id) {                                                 \
+    case SAI_ACL_COUNTER_ATTR_LABEL: /* 5 */                                 \
+      charDataAttr(attr_list, i, attrLines);                                 \
+      break;                                                                 \
+    default:                                                                 \
+      XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
+                 << attr_list[i].id << " in Sai Replayer";                   \
+  }                                                                          \
+  }                                                                          \
+  }
+
 // TODO - Combine this to once macro once the SAI SDK dependency is gone
 #define SET_SAI_ATTRIBUTES(obj_type)   \
   SET_SAI_REGULAR_ATTRIBUTES(obj_type) \
   SET_SAI_STRING_ATTRIBUTES(obj_type)
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+#define SET_SAI_ATTRIBUTES_ACL_COUNTER(obj_type) \
+  SET_SAI_REGULAR_ATTRIBUTES(obj_type)           \
+  SET_SAI_STRING_ATTRIBUTES_ACL_COUNTER(obj_type)
+#else
+#define SET_SAI_ATTRIBUTES_ACL_COUNTER(obj_type) \
+  SET_SAI_REGULAR_ATTRIBUTES(obj_type)           \
+  }                                              \
+  }
+#endif
+
 } // namespace facebook::fboss
