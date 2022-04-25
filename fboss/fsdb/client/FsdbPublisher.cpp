@@ -21,6 +21,16 @@ OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
 }
 
 template <typename PubUnit>
+void FsdbPublisher<PubUnit>::handleStateChange(State oldState, State newState) {
+  if (newState != State::CONNECTED) {
+    // If we went to any other state than CONNECTED, clear the publish queue.
+    // Per FSDB protocol, publishers are required to do a full-sync post
+    // reconnect, so there is no point storing previous states.
+    auto newQueue = makeQueue();
+    (*toPublishQueue_.wlock()).swap(newQueue);
+  }
+}
+template <typename PubUnit>
 void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
   if (!pubUnit.metadata()) {
     pubUnit.metadata() = OperMetadata{};
@@ -31,7 +41,7 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
         std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
             .count();
   }
-  if (!toPublishQueue_.try_enqueue(std::move(pubUnit))) {
+  if (!(*toPublishQueue_.rlock())->try_enqueue(std::move(pubUnit))) {
     XLOG(ERR) << "Could not enqueue pub unit";
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
@@ -45,12 +55,12 @@ folly::coro::AsyncGenerator<std::optional<PubUnit>>
 FsdbPublisher<PubUnit>::createGenerator() {
   while (true) {
     PubUnit pubUnit;
-    if (toPublishQueue_.try_dequeue_for(
-            pubUnit, std::chrono::milliseconds(10))) {
-      co_yield pubUnit;
-    } else {
-      co_yield std::nullopt;
+    bool dequeued{false};
+    {
+      dequeued = (*toPublishQueue_.rlock())
+                     ->try_dequeue_for(pubUnit, std::chrono::milliseconds(10));
     }
+    co_yield dequeued ? std::optional<PubUnit>(pubUnit) : std::nullopt;
   }
 }
 #endif
