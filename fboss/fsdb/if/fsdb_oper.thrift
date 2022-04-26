@@ -52,7 +52,7 @@ struct OperDelta {
 }
 
 struct OperPubRequest {
-  1: fsdb_oper.OperPath path;
+  1: OperPath path;
   2: fsdb_common.PublisherId publisherId;
 }
 
@@ -61,8 +61,8 @@ struct OperPubInitResponse {}
 struct OperPubFinalResponse {}
 
 struct OperSubRequest {
-  1: fsdb_oper.OperPath path;
-  2: fsdb_oper.OperProtocol protocol = fsdb_oper.OperProtocol.BINARY;
+  1: OperPath path;
+  2: OperProtocol protocol = OperProtocol.BINARY;
   3: fsdb_common.SubscriberId subscriberId;
 }
 
