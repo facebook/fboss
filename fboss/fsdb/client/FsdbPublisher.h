@@ -33,8 +33,21 @@ class FsdbPublisher : public FsdbStreamClient {
             streamEvb,
             connRetryEvb,
             [this, stateChangeCb](State oldState, State newState) {
-              handleStateChange(oldState, newState);
-              stateChangeCb(oldState, newState);
+              if (newState == State::CONNECTED) {
+                // For CONNECTED, first setup internal state and
+                // then let clients know. Clients will want to
+                // immediately start queueing up state post
+                // CONNECTED, get publisher ready for that.
+                handleStateChange(oldState, newState);
+                stateChangeCb(oldState, newState);
+              } else {
+                // For state != CONNECTED, first clear out internal
+                // state and then let clients know. This lets client
+                // take any actions *before* publisher state is
+                // cleared out.
+                stateChangeCb(oldState, newState);
+                handleStateChange(oldState, newState);
+              }
             }),
         toPublishQueue_(makeQueue()),
         publishPath_(publishPath),
