@@ -38,6 +38,7 @@ enum FsdbErrorCode {
   EMPTY_PUBLISHER_ID = 11,
   EMPTY_SUBSCRIBER_ID = 12,
   ALL_PUBLISHERS_GONE = 13,
+  DISCONNECTED = 14,
 }
 
 exception FsdbException {

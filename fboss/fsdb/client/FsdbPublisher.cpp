@@ -22,12 +22,14 @@ OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
 
 template <typename PubUnit>
 void FsdbPublisher<PubUnit>::handleStateChange(State oldState, State newState) {
+  auto toPublishQueueWPtr = toPublishQueue_.wlock();
   if (newState != State::CONNECTED) {
-    // If we went to any other state than CONNECTED, clear the publish queue.
+    // If we went to any other state than CONNECTED, reset the publish queue.
     // Per FSDB protocol, publishers are required to do a full-sync post
     // reconnect, so there is no point storing previous states.
-    auto newQueue = makeQueue();
-    (*toPublishQueue_.wlock()).swap(newQueue);
+    toPublishQueueWPtr->reset();
+  } else {
+    (*toPublishQueueWPtr) = makeQueue();
   }
 }
 template <typename PubUnit>
@@ -41,14 +43,17 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
         std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
             .count();
   }
-  if (!(*toPublishQueue_.rlock())->try_enqueue(std::move(pubUnit))) {
+  auto toPublishQueueRPtr = toPublishQueue_.rlock();
+  if (!(*toPublishQueueRPtr) ||
+      !(*toPublishQueueRPtr)->try_enqueue(std::move(pubUnit))) {
     XLOG(ERR) << "Could not enqueue pub unit";
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
-    ex.message_ref() = "Unable to queue delta";
+    ex.message_ref() = "Unable to queue pub unit";
     throw ex;
   }
 }
+
 #if FOLLY_HAS_COROUTINES
 template <typename PubUnit>
 folly::coro::AsyncGenerator<std::optional<PubUnit>>
@@ -57,8 +62,18 @@ FsdbPublisher<PubUnit>::createGenerator() {
     PubUnit pubUnit;
     bool dequeued{false};
     {
-      dequeued = (*toPublishQueue_.rlock())
-                     ->try_dequeue_for(pubUnit, std::chrono::milliseconds(10));
+      auto toPublishQueueRPtr = toPublishQueue_.rlock();
+      if (*toPublishQueueRPtr) {
+        dequeued =
+            (*toPublishQueueRPtr)
+                ->try_dequeue_for(pubUnit, std::chrono::milliseconds(10));
+      } else {
+        XLOG(ERR) << "Publish queue is null, unable to dequeue";
+        FsdbException ex;
+        ex.errorCode_ref() = FsdbErrorCode::DISCONNECTED;
+        ex.message_ref() = "Publisher queue is null, cannot dequeue";
+        throw ex;
+      }
     }
     co_yield dequeued ? std::optional<PubUnit>(pubUnit) : std::nullopt;
   }

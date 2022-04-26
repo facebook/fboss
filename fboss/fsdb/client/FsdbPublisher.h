@@ -33,8 +33,8 @@ class FsdbPublisher : public FsdbStreamClient {
             streamEvb,
             connRetryEvb,
             [this, stateChangeCb](State oldState, State newState) {
-              stateChangeCb(oldState, newState);
               handleStateChange(oldState, newState);
+              stateChangeCb(oldState, newState);
             }),
         toPublishQueue_(makeQueue()),
         publishPath_(publishPath),
@@ -43,7 +43,8 @@ class FsdbPublisher : public FsdbStreamClient {
   void write(PubUnit pubUnit);
 
   ssize_t queueSize() const {
-    return (*toPublishQueue_.rlock())->size();
+    auto toPublishQueueRPtr = toPublishQueue_.rlock();
+    return *toPublishQueueRPtr ? (*toPublishQueueRPtr)->size() : 0;
   }
   bool publishStats() const {
     return publishStats_;
