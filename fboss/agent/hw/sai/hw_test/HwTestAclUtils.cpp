@@ -493,6 +493,7 @@ void checkAclStat(
           break;
         case cfg::CounterType::BYTES:
           byteCountEnabledExpected = true;
+          break;
         default:
           EXPECT_FALSE(true);
       }
