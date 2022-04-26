@@ -21,7 +21,9 @@ OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
 }
 
 template <typename PubUnit>
-void FsdbPublisher<PubUnit>::handleStateChange(State oldState, State newState) {
+void FsdbPublisher<PubUnit>::handleStateChange(
+    State /*oldState*/,
+    State newState) {
   auto toPublishQueueWPtr = toPublishQueue_.wlock();
   if (newState != State::CONNECTED) {
     // If we went to any other state than CONNECTED, reset the publish queue.
@@ -59,14 +61,14 @@ template <typename PubUnit>
 folly::coro::AsyncGenerator<std::optional<PubUnit>>
 FsdbPublisher<PubUnit>::createGenerator() {
   while (true) {
-    PubUnit pubUnit;
-    bool dequeued{false};
     {
       auto toPublishQueueRPtr = toPublishQueue_.rlock();
       if (*toPublishQueueRPtr) {
-        dequeued =
-            (*toPublishQueueRPtr)
-                ->try_dequeue_for(pubUnit, std::chrono::milliseconds(10));
+        PubUnit pubUnit;
+        co_yield(*toPublishQueueRPtr)
+                ->try_dequeue_for(pubUnit, std::chrono::milliseconds(10))
+            ? std::optional<PubUnit>(pubUnit)
+            : std::nullopt;
       } else {
         XLOG(ERR) << "Publish queue is null, unable to dequeue";
         FsdbException ex;
@@ -75,7 +77,6 @@ FsdbPublisher<PubUnit>::createGenerator() {
         throw ex;
       }
     }
-    co_yield dequeued ? std::optional<PubUnit>(pubUnit) : std::nullopt;
   }
 }
 #endif
