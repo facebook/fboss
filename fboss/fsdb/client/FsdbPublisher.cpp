@@ -45,10 +45,16 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
         std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
             .count();
   }
-  auto toPublishQueueRPtr = toPublishQueue_.rlock();
-  if (!(*toPublishQueueRPtr) ||
-      !(*toPublishQueueRPtr)->try_enqueue(std::move(pubUnit))) {
+  auto toPublishQueueUPtr = toPublishQueue_.ulock();
+  if (!(*toPublishQueueUPtr) ||
+      !(*toPublishQueueUPtr)->try_enqueue(std::move(pubUnit))) {
     XLOG(ERR) << "Could not enqueue pub unit";
+    if (*toPublishQueueUPtr) {
+      XLOG(ERR) << "Queue overflow, reset queue pointer";
+      // Reset queue pointer so the service loop breaks and we fall
+      // back to full sync protocol
+      toPublishQueueUPtr.moveFromUpgradeToWrite()->reset();
+    }
     FsdbException ex;
     ex.errorCode_ref() = FsdbErrorCode::DROPPED;
     ex.message_ref() = "Unable to queue pub unit";
