@@ -111,6 +111,9 @@ class LogThriftCall {
   LogThriftCall(LogThriftCall const&) = delete;
   LogThriftCall& operator=(LogThriftCall const&) = delete;
 
+  std::optional<std::string> getIdentityFromConnContext(
+      apache::thrift::Cpp2ConnContext* ctx) const;
+
   folly::Logger logger_;
   folly::LogLevel level_;
   folly::StringPiece func_;

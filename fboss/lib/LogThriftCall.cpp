@@ -15,6 +15,12 @@
 using apache::thrift::Cpp2ConnContext;
 using apache::thrift::Cpp2RequestContext;
 
+namespace {
+
+auto constexpr kUnknown = "unknown";
+
+}
+
 namespace facebook::fboss {
 LogThriftCall::LogThriftCall(
     const folly::Logger& logger,
@@ -31,25 +37,22 @@ LogThriftCall::LogThriftCall(
       file_(file),
       line_(line),
       start_(std::chrono::steady_clock::now()) {
-  std::string client;
-  if (!ctx) {
-    client = "unknown";
-    identity_ = "unknown";
-  } else {
+  std::string client = kUnknown;
+  std::optional<std::string> identity;
+  if (ctx) {
     Cpp2ConnContext* ctx2 = ctx->getConnectionContext();
     client = ctx2->getPeerAddress()->getAddressStr();
-    identity_ = ctx2->getPeerCommonName();
-    if (identity_.empty()) {
-      identity_ = "unknown";
+    identity = getIdentityFromConnContext(ctx2);
+  }
+
+  if (identityEnvFallback && !identity) {
+    XLOG(ERR) << "Identity fallback set: " << identityEnvFallback;
+    if (auto const fallback = getenv(identityEnvFallback)) {
+      identity = std::string(fallback);
     }
   }
 
-  if (identityEnvFallback && identity_ == "unknown") {
-    XLOG(ERR) << "Identity fallback set: " << identityEnvFallback;
-    if (auto const fallback = getenv(identityEnvFallback)) {
-      identity_ = std::string(fallback);
-    }
-  }
+  identity_ = identity.value_or(kUnknown);
 
   // this specific format is consumed by systemd-journald/rsyslogd
   if (paramsStr.empty()) {

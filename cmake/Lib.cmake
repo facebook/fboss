@@ -14,6 +14,7 @@ target_link_libraries(radix_tree
 
 add_library(log_thrift_call
   fboss/lib/LogThriftCall.cpp
+  fboss/lib/oss/LogThriftCall.cpp
 )
 
 target_link_libraries(log_thrift_call
