@@ -86,7 +86,12 @@ void checkGportQosMap(
       BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3,
       &qosPolicyHandle);
   bcmCheckError(rv, "fail to get the Qos maps of gport=", gport);
-  ASSERT_EQ(qosPolicyHandle, qosPolicy->getHandle(BcmQosMap::Type::IP_INGRESS));
+
+  auto handle = qosPolicy->getHandle(BcmQosMap::Type::IP_INGRESS);
+  // Cast the returned handle to the same type. For more context, refer
+  // https://fb.workplace.com/groups/2737905709809114/permalink/3191881447744869/
+  decltype(handle) returnedHandle(qosPolicyHandle);
+  ASSERT_EQ(returnedHandle, handle);
 }
 
 void checkPortQosMap(
