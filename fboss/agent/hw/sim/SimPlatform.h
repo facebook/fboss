@@ -49,6 +49,9 @@ class SimPlatform : public Platform {
   QsfpCache* getQsfpCache() const override {
     return nullptr;
   }
+  HwSwitchWarmBootHelper* getWarmBootHelper() override {
+    return nullptr;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

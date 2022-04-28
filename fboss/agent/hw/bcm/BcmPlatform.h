@@ -12,6 +12,7 @@
 #include <map>
 #include <string>
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 extern "C" {
 #include <bcm/types.h>
@@ -28,7 +29,6 @@ DECLARE_string(hw_config_file);
 namespace facebook::fboss {
 
 class BcmPlatformPort;
-class BcmWarmBootHelper;
 class PortQueue;
 class PortPgConfig;
 class BufferPoolCfg;
@@ -106,7 +106,9 @@ class BcmPlatform : public Platform {
   virtual const PortQueue& getDefaultControlPlaneQueueSettings(
       cfg::StreamType streamType) const = 0;
 
-  virtual BcmWarmBootHelper* getWarmBootHelper() = 0;
+  virtual BcmWarmBootHelper* getWarmBootHelper() override {
+    return warmBootHelper_.get();
+  }
 
   virtual bool isBcmShellSupported() const;
 
@@ -135,6 +137,9 @@ class BcmPlatform : public Platform {
    * the SDK can read. Later this map is used to initialize the chip
    */
   void dumpHwConfig() const;
+
+ protected:
+  std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 
  private:
   // Forbidden copy constructor and assignment operator

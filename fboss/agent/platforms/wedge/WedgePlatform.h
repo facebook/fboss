@@ -71,9 +71,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   TransceiverIdxThrift getPortMapping(PortID port, cfg::PortSpeed /* speed */)
       const override;
   PlatformPort* getPlatformPort(PortID id) const override;
-  BcmWarmBootHelper* getWarmBootHelper() override {
-    return warmBootHelper_.get();
-  }
 
   QsfpCache* getQsfpCache() const override {
     return qsfpCache_.get();
@@ -116,7 +113,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::unique_ptr<BcmSwitch> hw_;
 
   std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
-  std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 
 } // namespace facebook::fboss

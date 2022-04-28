@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Port.h"
@@ -32,7 +33,14 @@ class LacpTest : public LinkTest {
 
   void setupConfigFlag() override {
     XLOG(INFO) << "setup up config flag";
-    if (checkFileExists(platform()->getWarmBootDir() + "/can_warm_boot_0")) {
+    bool canWarmBoot = false;
+    if (platform()->getWarmBootHelper()) {
+      canWarmBoot = platform()->getWarmBootHelper()->canWarmBoot();
+    } else {
+      canWarmBoot =
+          checkFileExists(platform()->getWarmBootDir() + "/can_warm_boot_0");
+    }
+    if (canWarmBoot) {
       XLOG(INFO) << "use previous running agent config for warmboot init";
       FLAGS_config = platform()->getRunningConfigDumpFile();
       platform()->reloadConfig();

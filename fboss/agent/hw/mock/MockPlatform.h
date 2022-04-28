@@ -25,6 +25,7 @@ class MockHwSwitch;
 class HwTestHandle;
 class MockPlatformPort;
 class PhyInterfaceHandler;
+class HwSwitchWarmBootHelper;
 
 /*
  * MockPlatform is a mockable interface to a Platform. Non-critical
@@ -48,6 +49,7 @@ class MockPlatform : public Platform {
   static const folly::IPAddressV6& getMockLinkLocalIp6();
   PlatformPort* getPlatformPort(PortID id) const override;
   PhyInterfaceHandler* getPhyInterfaceHandler() override;
+  HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));

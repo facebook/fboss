@@ -104,4 +104,7 @@ PhyInterfaceHandler* MockPlatform::getPhyInterfaceHandler() {
   throw FbossError("Mock platforms don't have phy interfaces.");
 }
 
+HwSwitchWarmBootHelper* MockPlatform::getWarmBootHelper() {
+  throw FbossError("Mock platforms don't have warmboot helper.");
+}
 } // namespace facebook::fboss

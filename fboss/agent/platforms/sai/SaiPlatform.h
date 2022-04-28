@@ -36,7 +36,6 @@ DECLARE_string(hw_config_file);
 namespace facebook::fboss {
 
 class SaiSwitch;
-class HwSwitchWarmBootHelper;
 class AutoInitQsfpCache;
 class QsfpCache;
 
@@ -64,7 +63,7 @@ class SaiPlatform : public Platform, public StateObserver {
   void generateHwConfigFile();
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
-  HwSwitchWarmBootHelper* getWarmBootHelper();
+  HwSwitchWarmBootHelper* getWarmBootHelper() override;
   void stateUpdated(const StateDelta& delta) override;
   QsfpCache* getQsfpCache() const override;
 

@@ -30,6 +30,7 @@ class SwSwitch;
 class ThriftHandler;
 struct ProductInfo;
 class HwAsic;
+class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class QsfpCache;
 enum class PlatformMode : char;
@@ -296,6 +297,7 @@ class Platform {
   virtual uint64_t getIntrTimeout() {
     return 0;
   }
+  virtual HwSwitchWarmBootHelper* getWarmBootHelper() = 0;
 
  private:
   /*
