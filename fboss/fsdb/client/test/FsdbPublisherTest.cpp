@@ -85,13 +85,11 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   EXPECT_EQ(streamPublisher_->queueSize(), streamPublisher_->queueCapacity());
   // Queue capacity is not precise (~10% slack is typical), try to
   // push 2Xcapacity elements
-  EXPECT_THROW(
-      [&]() {
-        for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {
-          streamPublisher_->write(OperDelta{});
-        }
-      }(),
-      FsdbException);
+  bool writeFailed = false;
+  for (auto i = 0; i < streamPublisher_->queueCapacity() && !writeFailed; ++i) {
+    writeFailed = !streamPublisher_->write(OperDelta{});
+  }
+  EXPECT_TRUE(writeFailed);
 
   EXPECT_EQ(streamPublisher_->queueSize(), 0);
   // Generator should break the service loop

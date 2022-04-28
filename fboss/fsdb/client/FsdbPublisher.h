@@ -53,7 +53,7 @@ class FsdbPublisher : public FsdbStreamClient {
         publishPath_(publishPath),
         publishStats_(publishStats) {}
 
-  void write(PubUnit pubUnit);
+  bool write(PubUnit pubUnit);
 
   ssize_t queueSize() const {
     auto toPublishQueueRPtr = toPublishQueue_.rlock();

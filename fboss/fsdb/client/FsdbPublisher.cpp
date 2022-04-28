@@ -35,7 +35,7 @@ void FsdbPublisher<PubUnit>::handleStateChange(
   }
 }
 template <typename PubUnit>
-void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
+bool FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
   if (!pubUnit.metadata()) {
     pubUnit.metadata() = OperMetadata{};
   }
@@ -55,11 +55,9 @@ void FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
       // back to full sync protocol
       toPublishQueueUPtr.moveFromUpgradeToWrite()->reset();
     }
-    FsdbException ex;
-    ex.errorCode_ref() = FsdbErrorCode::DROPPED;
-    ex.message_ref() = "Unable to queue pub unit";
-    throw ex;
+    return false;
   }
+  return true;
 }
 
 #if FOLLY_HAS_COROUTINES
