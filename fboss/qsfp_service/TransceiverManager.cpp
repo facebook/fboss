@@ -1119,6 +1119,11 @@ bool TransceiverManager::areAllPortsDown(TransceiverID id) const noexcept {
     return false;
   }
   auto portToPortInfoWithLock = portToPortInfoIt->second->rlock();
+  if (portToPortInfoWithLock->empty()) {
+    XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
+               << " in cached tcvrToPortInfo_";
+    return false;
+  }
   for (const auto& [portID, portInfo] : *portToPortInfoWithLock) {
     if (!portInfo.status.has_value()) {
       // If no status set, assume ports are up so we won't trigger any
