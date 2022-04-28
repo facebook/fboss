@@ -13,5 +13,5 @@ add_library(platform_utils
 target_link_libraries(platform_utils
   Folly::folly
   FBThrift::thriftcpp2
+  ${RE2}
 )
-

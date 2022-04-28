@@ -434,6 +434,10 @@ find_library(RE2 re2)
 find_path(RE2_INCLUDE_DIR NAMES re2/re2.h)
 include_directories(${RE2_INCLUDE_DIR})
 
+find_library(EXPRTK exprtk)
+find_path(EXPRTK_INCLUDE_DIR NAMES exprtk.hpp)
+include_directories(${EXPRTK_INCLUDE_DIR})
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
