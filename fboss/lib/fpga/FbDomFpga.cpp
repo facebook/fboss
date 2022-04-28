@@ -59,6 +59,7 @@ uint32_t FbDomFpga::getQsfpsPresence() {
 }
 
 void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
+  std::lock_guard<std::mutex> g(qsfpResetRegLock_);
   uint32_t currentResetReg = io_->read(kFacebookFpgaQsfpResetReg);
   // 1 to hold QSFP reset active. 0 to release QSFP reset.
   uint32_t newResetReg = ~(0x1 << qsfp) & currentResetReg;
@@ -78,6 +79,7 @@ void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
  * which call it through Minipack.*Manager class
  */
 void FbDomFpga::triggerQsfpHardReset(int qsfp) {
+  std::lock_guard<std::mutex> g(qsfpResetRegLock_);
   uint32_t originalResetReg = io_->read(kFacebookFpgaQsfpResetReg);
 
   // 1: hold QSFP in reset state
@@ -104,6 +106,7 @@ void FbDomFpga::triggerQsfpHardReset(int qsfp) {
 
 // This function will bring all the transceivers out of reset.
 void FbDomFpga::clearAllTransceiverReset() {
+  std::lock_guard<std::mutex> g(qsfpResetRegLock_);
   XLOG(DBG5) << "Clearing all transceiver out of reset.";
   // For each bit, 1 to hold QSFP reset active. 0 to release QSFP reset.
   io_->write(kFacebookFpgaQsfpResetReg, 0x0);

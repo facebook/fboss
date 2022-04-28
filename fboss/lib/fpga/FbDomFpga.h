@@ -61,6 +61,11 @@ class FbDomFpga {
  private:
   static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
   std::unique_ptr<FpgaMemoryRegion> io_;
+  // Due to one dom fpga might control multiple transceivers and all these
+  // transceivers use the same register to control the reset mode, we need to
+  // make sure there's a lock everytime when we access
+  // `kFacebookFpgaQsfpResetReg` register
+  std::mutex qsfpResetRegLock_;
 };
 
 } // namespace facebook::fboss
