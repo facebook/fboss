@@ -182,10 +182,6 @@ void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(std::make_pair(
       SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
   kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
-  if (!getWarmBootHelper()->canWarmBoot()) {
-    kSaiProfileValues.insert(std::make_pair(
-        SAI_KEY_NUM_ECMP_MEMBERS, std::to_string(getAsic()->getMaxEcmpSize())));
-  }
 }
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
@@ -335,41 +331,45 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
 
   return {
-      initSwitch,
-      hwInfo, // hardware info
-      srcMac, // source mac
-      std::nullopt, // shell
-      std::nullopt, // ecmp hash v4
-      std::nullopt, // ecmp hash v6
-      std::nullopt, // lag hash v4
-      std::nullopt, // lag hash v6
-      std::nullopt, // ecmp hash seed
-      std::nullopt, // lag hash seed
-      std::nullopt, // ecmp hash algo
-      std::nullopt, // lag hash algo
-      std::nullopt, // restart warm
-      std::nullopt, // qos dscp to tc map
-      std::nullopt, // qos tc to queue map
-      std::nullopt, // qos exp to tc map
-      std::nullopt, // qos tc to exp map
-      macAgingTime,
-      std::nullopt, // ingress acl
-      aclFieldList,
-      std::nullopt, // tam object list
-      useEcnThresholds,
-      std::nullopt, // counter refresh interval
-      std::nullopt, // Firmware path name
-      std::nullopt, // Firmware load method
-      std::nullopt, // Firmware load type
-      std::nullopt, // Hardware access bus
-      std::nullopt, // Platform context
-      std::nullopt, // Switch profile id
-      std::nullopt, // Switch id
-      std::nullopt, // Max system cores
-      std::nullopt, // System port config list
-      std::nullopt, // Switch type
-      std::nullopt, // Read function
-      std::nullopt, // Write function
+    initSwitch,
+        hwInfo, // hardware info
+        srcMac, // source mac
+        std::nullopt, // shell
+        std::nullopt, // ecmp hash v4
+        std::nullopt, // ecmp hash v6
+        std::nullopt, // lag hash v4
+        std::nullopt, // lag hash v6
+        std::nullopt, // ecmp hash seed
+        std::nullopt, // lag hash seed
+        std::nullopt, // ecmp hash algo
+        std::nullopt, // lag hash algo
+        std::nullopt, // restart warm
+        std::nullopt, // qos dscp to tc map
+        std::nullopt, // qos tc to queue map
+        std::nullopt, // qos exp to tc map
+        std::nullopt, // qos tc to exp map
+        macAgingTime,
+        std::nullopt, // ingress acl
+        aclFieldList,
+        std::nullopt, // tam object list
+        useEcnThresholds,
+        std::nullopt, // counter refresh interval
+        std::nullopt, // Firmware path name
+        std::nullopt, // Firmware load method
+        std::nullopt, // Firmware load type
+        std::nullopt, // Hardware access bus
+        std::nullopt, // Platform context
+        std::nullopt, // Switch profile id
+        std::nullopt, // Switch id
+        std::nullopt, // Max system cores
+        std::nullopt, // System port config list
+        std::nullopt, // Switch type
+        std::nullopt, // Read function
+        std::nullopt, // Write function
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+        std::nullopt, // Max ECMP member count
+        std::nullopt, // ECMP member count
+#endif
   };
 }
 

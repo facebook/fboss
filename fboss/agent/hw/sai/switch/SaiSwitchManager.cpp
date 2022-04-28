@@ -87,6 +87,14 @@ SaiSwitchManager::SaiSwitchManager(
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    auto maxEcmpCount = SaiApiTable::getInstance()->switchApi().getAttribute(
+        switch_->adapterKey(),
+        SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});
+    XLOG(DBG2) << "Got max ecmp member count " << maxEcmpCount;
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpMemberCount{maxEcmpCount});
+#endif
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();

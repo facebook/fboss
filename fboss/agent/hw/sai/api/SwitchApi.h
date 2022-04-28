@@ -354,6 +354,18 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL,
         sai_uint32_t,
         SaiInt1Default>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    using MaxEcmpMemberCount = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_ECMP_MEMBER_COUNT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using EcmpMemberCount = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECMP_MEMBER_COUNT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
 
     /* extension attributes */
     struct AttributeLedIdWrapper {
@@ -424,7 +436,13 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SysPortConfigList>,
       std::optional<Attributes::SwitchType>,
       std::optional<Attributes::RegisterReadFn>,
-      std::optional<Attributes::RegisterWriteFn>>;
+      std::optional<Attributes::RegisterWriteFn>
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      ,
+      std::optional<Attributes::MaxEcmpMemberCount>,
+      std::optional<Attributes::EcmpMemberCount>
+#endif
+      >;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -502,6 +520,10 @@ SAI_ATTRIBUTE_NAME(Switch, RegisterReadFn)
 SAI_ATTRIBUTE_NAME(Switch, RegisterWriteFn)
 
 SAI_ATTRIBUTE_NAME(Switch, HwEccErrorInitiate)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+SAI_ATTRIBUTE_NAME(Switch, MaxEcmpMemberCount)
+SAI_ATTRIBUTE_NAME(Switch, EcmpMemberCount)
+#endif
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
