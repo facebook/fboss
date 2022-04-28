@@ -14,8 +14,8 @@ namespace facebook::fboss::fsdb {
 template <typename PubUnit>
 class FsdbPublisher : public FsdbStreamClient {
   using QueueT = folly::DMPSCQueue<PubUnit, true /*may block*/>;
+  static constexpr auto kPubQueueCapacity{2000};
   static std::unique_ptr<QueueT> makeQueue() {
-    static constexpr auto kPubQueueCapacity{2000};
     return std::make_unique<QueueT>(kPubQueueCapacity);
   }
 
@@ -58,6 +58,9 @@ class FsdbPublisher : public FsdbStreamClient {
   ssize_t queueSize() const {
     auto toPublishQueueRPtr = toPublishQueue_.rlock();
     return *toPublishQueueRPtr ? (*toPublishQueueRPtr)->size() : 0;
+  }
+  size_t queueCapacity() const {
+    return kPubQueueCapacity;
   }
   bool publishStats() const {
     return publishStats_;
