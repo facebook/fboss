@@ -255,6 +255,11 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE:
       // no-op
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    case SAI_SWITCH_ATTR_ECMP_MEMBER_COUNT:
+      sw.setEcmpMemberCount(attr->value.u32);
+      break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -482,6 +487,14 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE:
         // noop;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      case SAI_SWITCH_ATTR_MAX_ECMP_MEMBER_COUNT:
+        attr[i].value.u32 = sw.getMaxEcmpMemberCount();
+        break;
+      case SAI_SWITCH_ATTR_ECMP_MEMBER_COUNT:
+        attr[i].value.u32 = sw.getEcmpMemberCount();
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
