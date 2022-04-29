@@ -38,7 +38,7 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    std::string fmtString = "{:<22}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
+    constexpr auto fmtString = "{:<22}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
 
     out << fmt::format(
         fmtString,

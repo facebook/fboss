@@ -57,7 +57,7 @@ class CmdShowPortQueue
   }
 
   void printOutput(const RetType& portId2PortInfoThrift) {
-    std::string fmtString = "{:<7}{:<20}{:<25}{:<10}{:<15}{:<15}\n";
+    constexpr auto fmtString = "{:<7}{:<20}{:<25}{:<10}{:<15}{:<15}\n";
 
     for (auto const& [portId, portInfo] : portId2PortInfoThrift) {
       std::ignore = portId;

@@ -43,7 +43,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    std::string fmtString = "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
+    constexpr auto fmtString = "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
 
     out << fmt::format(
         fmtString,
