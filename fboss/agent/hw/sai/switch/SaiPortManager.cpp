@@ -40,6 +40,12 @@ using namespace std::chrono;
 
 namespace facebook::fboss {
 namespace {
+
+void setUninitializedStatsToZero(long& counter) {
+  counter =
+      counter == hardware_stats_constants::STAT_UNINITIALIZED() ? 0 : counter;
+}
+
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
@@ -99,6 +105,18 @@ void fillHwPortStats(
         break;
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.wredDroppedPackets_() = value;
+        break;
+      case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
+        // SDK provides clear-on-read counter but we store it as a monotonic
+        // counter
+        hwPortStats.fecCorrectableErrors() =
+            *hwPortStats.fecCorrectableErrors() + value;
+        break;
+      case SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES:
+        // SDK provides clear-on-read counter but we store it as a monotonic
+        // counter
+        hwPortStats.fecUncorrectableErrors() =
+            *hwPortStats.fecUncorrectableErrors() + value;
         break;
       default:
         if (counterId ==
@@ -622,6 +640,22 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
   return getQueueHandleImpl(swId, saiQueueConfig);
 }
 
+const std::vector<sai_stat_id_t>& SaiPortManager::fecStatIds(
+    PortID portId) const {
+  static std::vector<sai_stat_id_t> ids;
+  if (ids.size()) {
+    return ids;
+  }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
+      utility::isReedSolomonFec(getFECMode(portId))) {
+#if defined(SAI_VERSION_7_2_0_0_ODP)
+    ids.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES);
+    ids.push_back(SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES);
+#endif
+  }
+  return ids;
+}
+
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
@@ -639,12 +673,16 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   // All stats start with a unitialized (-1) value. If there are no in
   // discards (first collection) we will just report that -1 as the monotonic
   // counter. Instead set it to 0 if uninintialized
-  *curPortStats.inDiscards_() = *curPortStats.inDiscards_() ==
-          hardware_stats_constants::STAT_UNINITIALIZED()
-      ? 0
-      : *curPortStats.inDiscards_();
+  setUninitializedStatsToZero(*curPortStats.inDiscards_());
+  setUninitializedStatsToZero(*curPortStats.fecCorrectableErrors());
+  setUninitializedStatsToZero(*curPortStats.fecUncorrectableErrors());
+
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
+  auto fecCounters = fecStatIds(portId);
+  if (!fecCounters.empty()) {
+    handle->port->updateStats(fecCounters, SAI_STATS_MODE_READ_AND_CLEAR);
+  }
   const auto& counters = handle->port->getStats();
   fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {

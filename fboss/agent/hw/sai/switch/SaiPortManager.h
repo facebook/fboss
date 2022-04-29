@@ -191,6 +191,7 @@ class SaiPortManager {
 
   void setQosMapsOnAllPorts(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
   const std::vector<sai_stat_id_t>& supportedStats() const;
+  const std::vector<sai_stat_id_t>& fecStatIds(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
