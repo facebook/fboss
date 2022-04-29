@@ -298,7 +298,7 @@ bool operator()(
 }
 };
 
-BOOST_MSM_EUML_ACTION(areAllPortsDown) {
+BOOST_MSM_EUML_ACTION(isSafeToRemove) {
 template <class Event, class Fsm, class Source, class Target>
 bool operator()(
     const Event& /* ev */,
@@ -306,8 +306,21 @@ bool operator()(
     Source& /* src */,
     Target& /* trg */) {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  bool result = fsm.get_attribute(transceiverMgrPtr)->areAllPortsDown(tcvrID);
-  XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID << "] Not all ports down";
+  // Current areAllPortsDown() returns false if there's no programmed ports
+  // But for case like a present transceiver w/ only disabled ports, we should
+  // still allow to remove such transceiver. And since this function should
+  // be only called after the programmed stage, it should be safe to remove
+  // a transceiver if there's no enabled/programmed port on it
+  auto xcvrMgr = fsm.get_attribute(transceiverMgrPtr);
+  bool isEnabled = !xcvrMgr->getProgrammedIphyPortToPortInfo(tcvrID).empty();
+  if (!isEnabled) {
+    XLOG(DBG2) << "[Transceiver:" << tcvrID
+              << "] No enabled ports. Safe to remove";
+    return true;
+  }
+  bool result = xcvrMgr->areAllPortsDown(tcvrID);
+  XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
+                        << "] Not all ports down. Not Safe to remove";
   return result;
 }
 };
@@ -372,11 +385,11 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     XPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     IPHY_PORTS_PROGRAMMED  + RESET_TO_NOT_PRESENT                              / logStateChanged == NOT_PRESENT,
     // Remove transceiver only if all ports are down
-    ACTIVE                 + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    INACTIVE               + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
-    IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [areAllPortsDown]          / logStateChanged == NOT_PRESENT,
+    ACTIVE                 + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
+    INACTIVE               + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
+    TRANSCEIVER_PROGRAMMED + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
+    XPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
+    IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
     DISCOVERED             + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     PRESENT                + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     // Only remediate transciever if all ports are down
