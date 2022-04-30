@@ -39,7 +39,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
   }
 
   std::string kCounterName() const {
-    return "dscp_counter";
+    return utility::getCounterName("dscp_counter");
   }
 
   void addDscpCounterAcl(cfg::SwitchConfig* config) {
