@@ -582,4 +582,37 @@ uint64_t getAclInOutPackets(
   return counterPackets;
 }
 
+std::string getCounterName(std::string counterName) {
+  /*
+   * Label attribute for ACL counter was introduced in SAI Spec v1.10.2
+   * PR: https://github.com/opencomputeproject/SAI/pull/1430
+   *
+   * Consider following sequence:
+   *  - FBOSS using 5.1.0.3 (SAI Spec < v1.10.2, thus no label attr).
+   *  - FBOSS creates ACL counter with non-empty label.
+   *  - FBOSS warmboots to 7.2.0.0 (SAI Spec v1.10.1, thus label attr).
+   *  - Get attr label returns empty string as 5.1.0.3 did not save label.
+   *  - Delta processing attempts to modify ACL counter which is unexpected
+   *    (we don't expect warmboot to cause hardware programming here).
+   *
+   * Workaround:
+   *  - Use empty counter name for now, thus while warmbooting from 5.1 to 7.2,
+   *    SaiSwitch does not detect any delta.
+   *  - This allows us to run ALL ACL counter tests for 5.1 to 7.2 warmboot.
+   *  - In future, once we move away from 5.1 altogether, revert to original
+   *    behavior of setting non-empty ACL counter.
+   *  - This workaround only works when a test configures a single ACL counter.
+   *    For a test that requires multiple ACL counters, the test must
+   *    distinguish between the counters using counter names. These tests are
+   *    marked as known bad for 5.1 to 7.2 as 5.1 cannot support this.
+   *  - This has a positive side-effect: this gives 7.2 test coverage with
+   *    non-empty ACL counte name.
+   */
+#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_2_0_0_ODP)
+  return "";
+#else
+  return counterName;
+#endif
+}
+
 } // namespace facebook::fboss::utility

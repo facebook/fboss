@@ -232,4 +232,9 @@ uint64_t getAclInOutPackets(
   return value;
 }
 
+std::string getCounterName(std::string counterName) {
+  // See SAI test definition on why this function is needed for now.
+  return counterName;
+}
+
 } // namespace facebook::fboss::utility
