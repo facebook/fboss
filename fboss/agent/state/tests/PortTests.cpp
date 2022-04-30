@@ -635,24 +635,24 @@ TEST(AggregatePort, ToFromJSON) {
   for (const auto& subport : aggPort->sortedSubports()) {
     EXPECT_EQ(1, subport.priority);
     EXPECT_EQ(
-        subport.portID == 44 ? cfg::LacpPortRate::SLOW
-                             : cfg::LacpPortRate::FAST,
+        (subport.portID == PortID{44}) ? cfg::LacpPortRate::SLOW
+                                       : cfg::LacpPortRate::FAST,
         subport.rate);
     EXPECT_EQ(
-        subport.portID == 43 ? cfg::LacpPortActivity::PASSIVE
-                             : cfg::LacpPortActivity::ACTIVE,
+        (subport.portID == PortID{43}) ? cfg::LacpPortActivity::PASSIVE
+                                       : cfg::LacpPortActivity::ACTIVE,
         subport.activity);
     EXPECT_EQ(
-        subport.portID == 42 ? AggregatePort::Forwarding::DISABLED
-                             : AggregatePort::Forwarding::ENABLED,
+        (subport.portID == PortID{42}) ? AggregatePort::Forwarding::DISABLED
+                                       : AggregatePort::Forwarding::ENABLED,
         aggPort->getForwardingState(subport.portID));
 
     auto partnerInfo = aggPort->getPartnerState(subport.portID);
     EXPECT_EQ(
-        subport.portID == 42
-            ? 0
-            : (subport.portID == 43 ? lacpState | LacpState::SHORT_TIMEOUT
-                                    : lacpState),
+        (subport.portID == PortID{42}) ? 0
+            : (subport.portID == PortID{43})
+            ? (lacpState | LacpState::SHORT_TIMEOUT)
+            : lacpState,
         partnerInfo.state);
   }
 

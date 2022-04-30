@@ -390,7 +390,7 @@ TEST(PlatformConfigUtilsTests, GetTransceiverId) {
   auto transceiverId = utility::getTransceiverId(
       getPlatformPortEntryWithXPHY(), getPlatformChips());
   EXPECT_TRUE(transceiverId);
-  EXPECT_EQ(transceiverId.value(), 2);
+  EXPECT_EQ(transceiverId.value(), TransceiverID{2});
 
   transceiverId = utility::getTransceiverId(
       getPlatformPortEntryWithoutTransceiver(), getPlatformChips());
