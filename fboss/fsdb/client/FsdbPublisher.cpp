@@ -55,6 +55,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit pubUnit) {
       // back to full sync protocol
       toPublishQueueUPtr.moveFromUpgradeToWrite()->reset();
     }
+    writeErrors_.addValue(1);
     return false;
   }
   return true;

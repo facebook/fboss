@@ -96,6 +96,13 @@ TEST_F(StreamPublisherTest, overflowQueue) {
     writeFailed = !streamPublisher_->write(OperDelta{});
   }
   EXPECT_TRUE(writeFailed);
+  WITH_RETRIES({
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".writeErrors.sum.60"),
+        1);
+  });
 
   EXPECT_EQ(streamPublisher_->queueSize(), 0);
   // Generator should break the service loop

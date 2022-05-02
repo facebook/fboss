@@ -57,7 +57,12 @@ class FsdbPublisher : public FsdbStreamClient {
             }),
         toPublishQueue_(makeQueue()),
         publishPath_(publishPath),
-        publishStats_(publishStats) {}
+        publishStats_(publishStats),
+        writeErrors_(
+            fb303::ThreadCachedServiceData::get()->getThreadStats(),
+            getCounterPrefix() + ".writeErrors",
+            fb303::SUM,
+            fb303::RATE) {}
 
   bool write(PubUnit pubUnit);
 
@@ -85,5 +90,6 @@ class FsdbPublisher : public FsdbStreamClient {
   folly::Synchronized<std::unique_ptr<QueueT>> toPublishQueue_;
   const std::vector<std::string> publishPath_;
   const bool publishStats_;
+  fb303::ThreadCachedServiceData::TLTimeseries writeErrors_;
 };
 } // namespace facebook::fboss::fsdb
