@@ -27,6 +27,11 @@ static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
 
 // As per SFF-8472
 static QsfpFieldInfo<Sff8472Field, Sff8472Pages>::QsfpFieldMap sfpFields = {
+    // Fields for reading an entire page
+    {Sff8472Field::PAGE_LOWER_A0,
+     {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 0, 128}},
+    {Sff8472Field::PAGE_LOWER_A2,
+     {TransceiverI2CApi::ADDR_QSFP_A2, Sff8472Pages::LOWER, 0, 128}},
     // Address A0h fields
     {Sff8472Field::IDENTIFIER,
      {TransceiverI2CApi::ADDR_QSFP, Sff8472Pages::LOWER, 0, 1}},
@@ -102,6 +107,24 @@ const uint8_t* Sff8472Module::getSfpValuePtr(
       transceiverI2CAddress);
 }
 
+void Sff8472Module::readSff8472Field(Sff8472Field field, uint8_t* data) {
+  int dataLength, dataPage, dataOffset;
+  uint8_t transceiverI2CAddress;
+  getSfpFieldAddress(
+      field, dataPage, dataOffset, dataLength, transceiverI2CAddress);
+  qsfpImpl_->readTransceiver(
+      {transceiverI2CAddress, dataOffset, dataLength}, data);
+}
+
+void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
+  int dataLength, dataPage, dataOffset;
+  uint8_t transceiverI2CAddress;
+  getSfpFieldAddress(
+      field, dataPage, dataOffset, dataLength, transceiverI2CAddress);
+  qsfpImpl_->writeTransceiver(
+      {transceiverI2CAddress, dataOffset, dataLength}, data);
+}
+
 void Sff8472Module::getSfpValue(
     int dataAddress,
     int offset,
@@ -146,9 +169,7 @@ void Sff8472Module::updateQsfpData(bool allPages) {
     XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
                << " sfp data cache refresh for transceiver "
                << folly::to<std::string>(qsfpImpl_->getName());
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP_A2, 0, sizeof(a2LowerPage_)},
-        a2LowerPage_);
+    readSff8472Field(Sff8472Field::PAGE_LOWER_A2, a2LowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
 
@@ -158,8 +179,7 @@ void Sff8472Module::updateQsfpData(bool allPages) {
       return;
     }
 
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(a0LowerPage_)}, a0LowerPage_);
+    readSff8472Field(Sff8472Field::PAGE_LOWER_A0, a0LowerPage_);
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.

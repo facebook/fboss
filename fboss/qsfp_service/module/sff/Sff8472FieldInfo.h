@@ -40,6 +40,9 @@ enum class Sff8472Field {
   VENDOR_REVISION_NUMBER,
   VENDOR_SERIAL_NUMBER,
   VENDOR_MFG_DATE,
+
+  PAGE_LOWER_A0,
+  PAGE_LOWER_A2,
 };
 
 enum FieldMasks : uint8_t {

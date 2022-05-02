@@ -133,6 +133,15 @@ class Sff8472Module : public QsfpModule {
     // no-op
   }
 
+  /* Helper function to read/write a SFF8472Field. The function will extract the
+   * i2cAddress, page number, offset and length information from the
+   * Sff8472Field and then make the corresponding qsfpImpl->readTransceiver and
+   * qsfpImpl->writeTransceiver calls. The user should avoid making direct calls
+   * to qsfpImpl->read/writeTransceiver and instead do register IO using
+   * readSff8472Field/writeSff8472Field helper functions. */
+  void readSff8472Field(Sff8472Field field, uint8_t* data);
+  void writeSff8472Field(Sff8472Field field, uint8_t* data);
+
  protected:
   uint8_t a0LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t a2LowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
