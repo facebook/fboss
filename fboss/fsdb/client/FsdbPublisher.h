@@ -20,6 +20,9 @@ class FsdbPublisher : public FsdbStreamClient {
   static std::unique_ptr<QueueT> makeQueue() {
     return std::make_unique<QueueT>(kPubQueueCapacity);
   }
+  std::string typeStr() {
+    return std::is_same_v<PubUnit, OperDelta> ? "Delta" : "Path";
+  }
 
  public:
   FsdbPublisher(
@@ -35,7 +38,8 @@ class FsdbPublisher : public FsdbStreamClient {
             streamEvb,
             connRetryEvb,
             folly::sformat(
-                "fsdb{}Publisher_{}",
+                "fsdb{}{}Publisher_{}",
+                typeStr(),
                 (publishStats ? "Stat" : "State"),
                 folly::join('_', publishPath)),
             [this, stateChangeCb](State oldState, State newState) {

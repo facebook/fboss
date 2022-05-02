@@ -14,6 +14,10 @@
 namespace facebook::fboss::fsdb {
 template <typename SubUnit>
 class FsdbSubscriber : public FsdbStreamClient {
+  std::string typeStr() {
+    return std::is_same_v<SubUnit, OperDelta> ? "Delta" : "Path";
+  }
+
  public:
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
   FsdbSubscriber(
@@ -30,7 +34,8 @@ class FsdbSubscriber : public FsdbStreamClient {
             streamEvb,
             connRetryEvb,
             folly::sformat(
-                "fsdb{}Subscriber_{}",
+                "fsdb{}{}Subscriber_{}",
+                typeStr(),
                 (subscribeStats ? "Stat" : "State"),
                 folly::join('_', subscribePath)),
             stateChangeCb),
