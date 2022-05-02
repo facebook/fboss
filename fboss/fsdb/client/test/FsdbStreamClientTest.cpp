@@ -98,12 +98,13 @@ class StreamClientTest : public ::testing::Test {
 
 TEST_F(StreamClientTest, connectAndCancel) {
   streamClient_->setServerToConnect("::1", FLAGS_fsdbPort);
-  EXPECT_EQ(streamClient_->getCounterPrefix(), "test_fsdb_client");
+  auto counterPrefix = streamClient_->getCounterPrefix();
+  EXPECT_EQ(counterPrefix, "test_fsdb_client");
   EXPECT_EQ(
-      fb303::ServiceData::get()->getCounter("test_fsdb_client.connected"), 0);
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
   streamClient_->markConnected();
   EXPECT_EQ(
-      fb303::ServiceData::get()->getCounter("test_fsdb_client.connected"), 1);
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CONNECTED);
@@ -113,6 +114,8 @@ TEST_F(StreamClientTest, connectAndCancel) {
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CANCELLED);
   verifyServiceLoopRunning(false);
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
 }
 
 TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {

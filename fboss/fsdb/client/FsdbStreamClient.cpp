@@ -71,8 +71,10 @@ void FsdbStreamClient::setState(State state) {
 #if FOLLY_HAS_COROUTINES
     folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
 #endif
+    fb303::fbData->setCounter(getConnectedCounterName(), 0);
   } else if (state == State::DISCONNECTED) {
     disconnectEvents_.addValue(1);
+    fb303::fbData->setCounter(getConnectedCounterName(), 0);
   }
   stateChangeCb_(oldState, state);
 }

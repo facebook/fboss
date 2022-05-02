@@ -101,8 +101,16 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   // Generator should break the service loop
   streamPublisher_->startGenerator();
 #if FOLLY_HAS_COROUTINES
-  WITH_RETRIES(
-      EXPECT_EVENTUALLY_FALSE(streamPublisher_->isConnectedToServer()));
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_FALSE(streamPublisher_->isConnectedToServer());
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    EXPECT_EVENTUALLY_EQ(
+        fb303::ServiceData::get()->getCounter(
+            counterPrefix + ".disconnects.sum.60"),
+        1);
+  });
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
 #endif
 }
 
