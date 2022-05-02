@@ -58,6 +58,11 @@ HwPortStats sendPacketsWithQueueBuildup(
     PortID port,
     int numPackets);
 
+/*
+ * Get shared pool size in bytes for egress, applicable for Broadcom platforms
+ */
+uint32_t getEgressSharedPoolLimitBytes(HwSwitch* hwSwitch);
+
 } // namespace utility
 
 } // namespace facebook::fboss
