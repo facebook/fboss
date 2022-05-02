@@ -76,8 +76,13 @@ class StreamPublisherTest : public ::testing::Test {
 };
 
 TEST_F(StreamPublisherTest, overflowQueue) {
-  EXPECT_EQ(streamPublisher_->getCounterPrefix(), "fsdbStatePublisher_agent");
+  auto counterPrefix = streamPublisher_->getCounterPrefix();
+  EXPECT_EQ(counterPrefix, "fsdbStatePublisher_agent");
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
   streamPublisher_->markConnected();
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
   EXPECT_TRUE(streamPublisher_->isConnectedToServer());
 
   for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {

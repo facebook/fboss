@@ -4,6 +4,7 @@
 #include "fboss/fsdb/Flags.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 #include <folly/experimental/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
@@ -98,7 +99,11 @@ class StreamClientTest : public ::testing::Test {
 TEST_F(StreamClientTest, connectAndCancel) {
   streamClient_->setServerToConnect("::1", FLAGS_fsdbPort);
   EXPECT_EQ(streamClient_->getCounterPrefix(), "test_fsdb_client");
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter("test_fsdb_client.connected"), 0);
   streamClient_->markConnected();
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter("test_fsdb_client.connected"), 1);
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
       FsdbStreamClient::State::CONNECTED);
@@ -109,6 +114,7 @@ TEST_F(StreamClientTest, connectAndCancel) {
       FsdbStreamClient::State::CANCELLED);
   verifyServiceLoopRunning(false);
 }
+
 TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {
   auto streamClient2 = std::make_unique<TestFsdbStreamClient>(
       streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
