@@ -459,6 +459,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
         false /* isEcn */, kThresholdBytes, kDroppedPackets);
   }
 
+  void runEcnThresholdTest() {
+    constexpr auto kMarkedPackets{50};
+    constexpr auto kThresholdBytes{utility::kQueueConfigAqmsEcnThresholdMinMax};
+    validateEcnWredThresholds(
+        true /* isEcn */, kThresholdBytes, kMarkedPackets);
+  }
+
   void runPerQueueWredDropStatsTest() {
     const std::vector<int> wredQueueIds = {
         utility::kOlympicSilverQueueId,
