@@ -80,6 +80,7 @@ enum VdmConfigType {
 // As per CMIS4.0
 static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Lower Page
+    {CmisField::PAGE_LOWER, {CmisPages::LOWER, 0, 1}},
     {CmisField::IDENTIFIER, {CmisPages::LOWER, 0, 1}},
     {CmisField::REVISION_COMPLIANCE, {CmisPages::LOWER, 1, 1}},
     {CmisField::FLAT_MEM, {CmisPages::LOWER, 2, 1}},
@@ -99,6 +100,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::BANK_SELECT, {CmisPages::LOWER, 126, 1}},
     {CmisField::PAGE_SELECT_BYTE, {CmisPages::LOWER, 127, 1}},
     // Page 00h
+    {CmisField::PAGE_UPPER00H, {CmisPages::PAGE00, 128, 128}},
     {CmisField::VENDOR_NAME, {CmisPages::PAGE00, 129, 16}},
     {CmisField::VENDOR_OUI, {CmisPages::PAGE00, 145, 3}},
     {CmisField::PART_NUMBER, {CmisPages::PAGE00, 148, 16}},
@@ -109,6 +111,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MEDIA_INTERFACE_TECHNOLOGY, {CmisPages::PAGE00, 212, 1}},
     {CmisField::PAGE0_CSUM, {CmisPages::PAGE00, 222, 1}},
     // Page 01h
+    {CmisField::PAGE_UPPER01H, {CmisPages::PAGE01, 128, 128}},
     {CmisField::LENGTH_SMF, {CmisPages::PAGE01, 132, 1}},
     {CmisField::LENGTH_OM5, {CmisPages::PAGE01, 133, 1}},
     {CmisField::LENGTH_OM4, {CmisPages::PAGE01, 134, 1}},
@@ -124,6 +127,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
     {CmisField::PAGE1_CSUM, {CmisPages::PAGE01, 255, 1}},
     // Page 02h
+    {CmisField::PAGE_UPPER02H, {CmisPages::PAGE02, 128, 128}},
     {CmisField::TEMPERATURE_THRESH, {CmisPages::PAGE02, 128, 8}},
     {CmisField::VCC_THRESH, {CmisPages::PAGE02, 136, 8}},
     {CmisField::TX_PWR_THRESH, {CmisPages::PAGE02, 176, 8}},
@@ -131,6 +135,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_PWR_THRESH, {CmisPages::PAGE02, 192, 8}},
     {CmisField::PAGE2_CSUM, {CmisPages::PAGE02, 255, 1}},
     // Page 10h
+    {CmisField::PAGE_UPPER10H, {CmisPages::PAGE10, 128, 128}},
     {CmisField::DATA_PATH_DEINIT, {CmisPages::PAGE10, 128, 1}},
     {CmisField::TX_POLARITY_FLIP, {CmisPages::PAGE10, 129, 1}},
     {CmisField::TX_DISABLE, {CmisPages::PAGE10, 130, 1}},
@@ -151,6 +156,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_CONTROL_POST_CURSOR, {CmisPages::PAGE10, 166, 4}},
     {CmisField::RX_CONTROL_MAIN, {CmisPages::PAGE10, 170, 4}},
     // Page 11h
+    {CmisField::PAGE_UPPER11H, {CmisPages::PAGE11, 128, 128}},
     {CmisField::DATA_PATH_STATE, {CmisPages::PAGE11, 128, 4}},
     {CmisField::TX_FAULT_FLAG, {CmisPages::PAGE11, 135, 1}},
     {CmisField::TX_LOS_FLAG, {CmisPages::PAGE11, 136, 1}},
@@ -175,6 +181,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_OUT_POST_CURSOR, {CmisPages::PAGE11, 227, 4}},
     {CmisField::RX_OUT_MAIN, {CmisPages::PAGE11, 231, 4}},
     // Page 13h
+    {CmisField::PAGE_UPPER13H, {CmisPages::PAGE13, 128, 128}},
     {CmisField::LOOPBACK_CAPABILITY, {CmisPages::PAGE13, 128, 1}},
     {CmisField::PATTERN_CAPABILITY, {CmisPages::PAGE13, 129, 1}},
     {CmisField::DIAGNOSTIC_CAPABILITY, {CmisPages::PAGE13, 130, 1}},
@@ -216,6 +223,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::HOST_BERT_LOL, {CmisPages::PAGE13, 212, 1}},
     {CmisField::MEDIA_BERT_LOL, {CmisPages::PAGE13, 213, 1}},
     // Page 14h
+    {CmisField::PAGE_UPPER14H, {CmisPages::PAGE14, 128, 128}},
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
     {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
     {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
@@ -225,28 +233,33 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MEDIA_BER_HOST_SNR, {CmisPages::PAGE14, 208, 16}},
     {CmisField::MEDIA_SNR, {CmisPages::PAGE14, 240, 16}},
     // Page 20h
+    {CmisField::PAGE_UPPER20H, {CmisPages::PAGE20, 128, 128}},
     {CmisField::VDM_CONF_SNR_MEDIA_IN, {CmisPages::PAGE20, 128, 8}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE20, 144, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE20, 146, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE20, 148, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_CUR, {CmisPages::PAGE20, 150, 2}},
     // Page 21h
+    {CmisField::PAGE_UPPER21H, {CmisPages::PAGE21, 128, 128}},
     {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MIN, {CmisPages::PAGE21, 160, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MAX, {CmisPages::PAGE21, 162, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_AVG, {CmisPages::PAGE21, 164, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_CUR, {CmisPages::PAGE21, 166, 2}},
     // Page 24h
+    {CmisField::PAGE_UPPER24H, {CmisPages::PAGE24, 128, 128}},
     {CmisField::VDM_VAL_SNR_MEDIA_IN, {CmisPages::PAGE24, 128, 8}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE24, 144, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE24, 146, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE24, 148, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_CUR, {CmisPages::PAGE24, 150, 2}},
     // Page 25h
+    {CmisField::PAGE_UPPER25H, {CmisPages::PAGE25, 128, 128}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MIN, {CmisPages::PAGE25, 160, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_MAX, {CmisPages::PAGE25, 162, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_AVG, {CmisPages::PAGE25, 164, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_HOST_IN_CUR, {CmisPages::PAGE25, 166, 2}},
     // Page 2Fh
+    {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
     {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
@@ -358,6 +371,42 @@ CmisModule::CmisModule(
 }
 
 CmisModule::~CmisModule() {}
+
+void CmisModule::readCmisField(
+    CmisField field,
+    uint8_t* data,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    // Only change page when it's not a flatMem module (which don't allow
+    // changing page) and when the skipPageChange argument is not true
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    qsfpImpl_->writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  }
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+}
+
+void CmisModule::writeCmisField(
+    CmisField field,
+    uint8_t* data,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (static_cast<CmisPages>(dataPage) != CmisPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    // Only change page when it's not a flatMem module (which don't allow
+    // changing page) and when the skipPageChange argument is not true
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    qsfpImpl_->writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  }
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+}
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
   int dataOffset;

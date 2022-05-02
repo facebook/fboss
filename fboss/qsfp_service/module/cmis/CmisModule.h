@@ -327,6 +327,19 @@ class CmisModule : public QsfpModule {
   CmisModule(CmisModule const&) = delete;
   CmisModule& operator=(CmisModule const&) = delete;
 
+  /* Helper function to read/write a CmisField. The function will extract the
+   * page number, offset and length information from the CmisField and then make
+   * the corresponding qsfpImpl->readTransceiver and qsfpImpl->writeTransceiver
+   * calls. The user should avoid making direct calls to
+   * qsfpImpl->read/writeTransceiver and instead do register IO using
+   * readCmisField/writeCmisField helper functions. The helper function will
+   * also change the page when it's supported by the transceiver and when not
+   * specifically asked to skip page change (for batch operations). */
+  void
+  readCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+  void
+  writeCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
