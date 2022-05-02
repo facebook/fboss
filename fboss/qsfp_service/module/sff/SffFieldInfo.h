@@ -23,6 +23,10 @@ namespace fboss {
 enum class SffPages;
 
 enum class SffField {
+  // Fields for entire page reads
+  PAGE_LOWER,
+  PAGE_UPPER0,
+  PAGE_UPPER3,
   // Shared QSFP and SFP fields:
   IDENTIFIER, // Type of Transceiver
   STATUS, // Support flags for upper pages

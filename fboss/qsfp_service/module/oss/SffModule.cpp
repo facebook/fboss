@@ -53,5 +53,15 @@ const std::optional<phy::PrbsStats> SffModule::getPortPrbsStatsOverrideLocked(
     phy::Side /* side */) {
   return std::nullopt;
 }
+
+void SffModule::readSffFr1Field(
+    SffFr1Field /* field */,
+    uint8_t* /* data */,
+    bool /* skipPageChange */){};
+
+void SffModule::writeSffFr1Field(
+    SffFr1Field /* field */,
+    uint8_t* /* data */,
+    bool /* skipPageChange */){};
 } // namespace fboss
 } // namespace facebook

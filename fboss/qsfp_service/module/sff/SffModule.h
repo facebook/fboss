@@ -18,6 +18,7 @@ enum class SffPages : int {
 };
 
 enum class SffField;
+enum class SffFr1Field;
 
 class SffModule : public QsfpModule {
  public:
@@ -265,6 +266,42 @@ class SffModule : public QsfpModule {
   // no copy or assignment
   SffModule(SffModule const&) = delete;
   SffModule& operator=(SffModule const&) = delete;
+
+  /* Helper function to read/write a SFFField. The function will extract the
+   * page number, offset and length information from the SffField and then make
+   * the corresponding qsfpImpl->readTransceiver and qsfpImpl->writeTransceiver
+   * calls. The user should avoid making direct calls to
+   * qsfpImpl->read/writeTransceiver and instead do register IO using
+   * readSffField/writeSffField helper functions. The helper function will also
+   * change the page when it's supported by the transceiver and when not
+   * specifically asked to skip page change (for batch operations). */
+  void readSffField(SffField field, uint8_t* data, bool skipPageChange = false);
+  void
+  writeSffField(SffField field, uint8_t* data, bool skipPageChange = false);
+  void readSffFr1Field(
+      SffFr1Field field,
+      uint8_t* data,
+      bool skipPageChange = false);
+  void writeSffFr1Field(
+      SffFr1Field field,
+      uint8_t* data,
+      bool skipPageChange = false);
+
+  /* readField and writeField are not intended to be used directly in the
+   * application code. These just help the readSffField/writeSffField to make
+   * the appropriate read/writeTransceiver calls. */
+  void readField(
+      int dataPage,
+      int dataOffset,
+      int dataLength,
+      uint8_t* data,
+      bool skipPageChange);
+  void writeField(
+      int dataPage,
+      int dataOffset,
+      int dataLength,
+      uint8_t* data,
+      bool skipPageChange);
 
   enum : unsigned int {
     EEPROM_DEFAULT = 255,

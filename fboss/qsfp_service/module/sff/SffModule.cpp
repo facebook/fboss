@@ -172,6 +172,60 @@ SffModule::SffModule(
 
 SffModule::~SffModule() {}
 
+void SffModule::readSffField(
+    SffField field,
+    uint8_t* data,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  readField(dataPage, dataOffset, dataLength, data, skipPageChange);
+}
+
+void SffModule::writeSffField(
+    SffField field,
+    uint8_t* data,
+    bool skipPageChange) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  writeField(dataPage, dataOffset, dataLength, data, skipPageChange);
+}
+
+void SffModule::readField(
+    int dataPage,
+    int dataOffset,
+    int dataLength,
+    uint8_t* data,
+    bool skipPageChange) {
+  if (static_cast<SffPages>(dataPage) != SffPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    // Only change page when it's not a flatMem module (which don't allow
+    // changing page) and when the skipPageChange argument is not true
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    qsfpImpl_->writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  }
+  qsfpImpl_->readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+}
+
+void SffModule::writeField(
+    int dataPage,
+    int dataOffset,
+    int dataLength,
+    uint8_t* data,
+    bool skipPageChange) {
+  if (static_cast<SffPages>(dataPage) != SffPages::LOWER && !flatMem_ &&
+      !skipPageChange) {
+    // Only change page when it's not a flatMem module (which don't allow
+    // changing page) and when the skipPageChange argument is not true
+    uint8_t page = static_cast<uint8_t>(dataPage);
+    qsfpImpl_->writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+  }
+  qsfpImpl_->writeTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+}
+
 FlagLevels SffModule::getQsfpSensorFlags(SffField fieldName) {
   int offset;
   int length;
