@@ -5,6 +5,8 @@
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/Format.h>
+#include <folly/String.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 
 #include <functional>
@@ -23,7 +25,15 @@ class FsdbSubscriber : public FsdbStreamClient {
       bool subscribeStats,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {})
-      : FsdbStreamClient(clientId, streamEvb, connRetryEvb, stateChangeCb),
+      : FsdbStreamClient(
+            clientId,
+            streamEvb,
+            connRetryEvb,
+            folly::sformat(
+                "fsdb{}Subscriber_{}",
+                (subscribeStats ? "Stat" : "State"),
+                folly::join('_', subscribePath)),
+            stateChangeCb),
         operSubUnitUpdate_(operSubUnitUpdate),
         subscribePath_(subscribePath),
         subscribeStats_(subscribeStats) {}

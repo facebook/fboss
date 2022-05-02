@@ -30,6 +30,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
       const std::string& clientId,
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
+      const std::string& counterPrefix,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {});
   virtual ~FsdbStreamClient() override;
@@ -78,6 +79,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   folly::EventBase* streamEvb_;
   folly::EventBase* connRetryEvb_;
   folly::Synchronized<State> state_{State::DISCONNECTED};
+  std::string counterPrefix_;
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
   std::optional<folly::SocketAddress> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;

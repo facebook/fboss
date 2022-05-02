@@ -21,6 +21,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
             "test_fsdb_client",
             streamEvb,
             timerEvb,
+            "test_fsdb_client",
             [this](auto oldState, auto newState) {
               EXPECT_NE(oldState, newState);
               lastStateUpdateSeen_ = newState;

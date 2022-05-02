@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <folly/Format.h>
+#include <folly/String.h>
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -32,6 +34,10 @@ class FsdbPublisher : public FsdbStreamClient {
             clientId,
             streamEvb,
             connRetryEvb,
+            folly::sformat(
+                "fsdb{}Publisher_{}",
+                (publishStats ? "Stat" : "State"),
+                folly::join('_', publishPath)),
             [this, stateChangeCb](State oldState, State newState) {
               if (newState == State::CONNECTED) {
                 // For CONNECTED, first setup internal state and

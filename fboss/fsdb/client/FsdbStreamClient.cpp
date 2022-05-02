@@ -19,11 +19,13 @@ FsdbStreamClient::FsdbStreamClient(
     const std::string& clientId,
     folly::EventBase* streamEvb,
     folly::EventBase* connRetryEvb,
+    const std::string& counterPrefix,
     FsdbStreamStateChangeCb stateChangeCb)
     : folly::AsyncTimeout(connRetryEvb),
       clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
+      counterPrefix_(counterPrefix),
       clientEvbThread_(
           std::make_unique<folly::ScopedEventBaseThread>(clientId)),
       stateChangeCb_(stateChangeCb) {
