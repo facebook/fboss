@@ -264,16 +264,10 @@ uint8_t FbFpgaI2cController::readByte(
       rtc_,
       channel,
       offset);
-  if (eventBase_->isInEventBaseThread()) {
-    buf = syncedFbI2c_.lock()->readByte(channel, offset, i2cAddress);
-  } else {
-    via(eventBase_.get())
-        .thenValue([&](auto&&) mutable {
-          buf = syncedFbI2c_.lock()->readByte(channel, offset, i2cAddress);
-        })
-        .get();
-  }
-  return buf;
+  // As this is a sync and blocking function, we don't have to dump it to
+  // EventBase to run the functions. So that we can avoid unexpected
+  // EventBase chain issue
+  return syncedFbI2c_.lock()->readByte(channel, offset, i2cAddress);
 }
 
 void FbFpgaI2cController::read(
@@ -287,15 +281,10 @@ void FbFpgaI2cController::read(
       rtc_,
       channel,
       offset);
-  if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->read(channel, offset, buf, i2cAddress);
-  } else {
-    via(eventBase_.get())
-        .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->read(channel, offset, buf, i2cAddress);
-        })
-        .get();
-  }
+  // As this is a sync and blocking function, we don't have to dump it to
+  // EventBase to run the functions. So that we can avoid unexpected
+  // EventBase chain issue
+  syncedFbI2c_.lock()->read(channel, offset, buf, i2cAddress);
 }
 
 void FbFpgaI2cController::writeByte(
@@ -310,15 +299,10 @@ void FbFpgaI2cController::writeByte(
       channel,
       offset,
       val);
-  if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->writeByte(channel, offset, val, i2cAddress);
-  } else {
-    via(eventBase_.get())
-        .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->writeByte(channel, offset, val, i2cAddress);
-        })
-        .get();
-  }
+  // As this is a sync and blocking function, we don't have to dump it to
+  // EventBase to run the functions. So that we can avoid unexpected
+  // EventBase chain issue
+  syncedFbI2c_.lock()->writeByte(channel, offset, val, i2cAddress);
 }
 
 void FbFpgaI2cController::write(
@@ -332,15 +316,10 @@ void FbFpgaI2cController::write(
       rtc_,
       channel,
       offset);
-  if (eventBase_->isInEventBaseThread()) {
-    syncedFbI2c_.lock()->write(channel, offset, buf, i2cAddress);
-  } else {
-    via(eventBase_.get())
-        .thenValue([=](auto&&) mutable {
-          syncedFbI2c_.lock()->write(channel, offset, buf, i2cAddress);
-        })
-        .get();
-  }
+  // As this is a sync and blocking function, we don't have to dump it to
+  // EventBase to run the functions. So that we can avoid unexpected
+  // EventBase chain issue
+  syncedFbI2c_.lock()->write(channel, offset, buf, i2cAddress);
 }
 
 folly::EventBase* FbFpgaI2cController::getEventBase() {
