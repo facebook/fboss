@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
@@ -78,6 +79,10 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 #endif
 
  private:
+  const std::string& getConnectedCounterName() {
+    static const std::string name{counterPrefix_ + ".connected"};
+    return name;
+  }
   std::string clientId_;
   folly::EventBase* streamEvb_;
   folly::EventBase* connRetryEvb_;
@@ -90,6 +95,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 #if FOLLY_HAS_COROUTINES
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
+  fb303::ThreadCachedServiceData::TLTimeseries disconnectEvents_;
 };
 
 } // namespace facebook::fboss::fsdb

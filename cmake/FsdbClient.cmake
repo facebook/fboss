@@ -26,4 +26,5 @@ target_link_libraries(fsdb_pub_sub
   fsdb_stream_client
   Folly::folly
   FBThrift::thriftcpp2
+  fb303::fb303
 )

@@ -28,12 +28,17 @@ FsdbStreamClient::FsdbStreamClient(
       counterPrefix_(counterPrefix),
       clientEvbThread_(
           std::make_unique<folly::ScopedEventBaseThread>(clientId)),
-      stateChangeCb_(stateChangeCb) {
+      stateChangeCb_(stateChangeCb),
+      disconnectEvents_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          counterPrefix_ + ".disconnects",
+          fb303::SUM,
+          fb303::RATE) {
   if (!streamEvb_ || !connRetryEvb) {
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
   }
-
+  fb303::fbData->setCounter(getConnectedCounterName(), 0);
   connRetryEvb->runInEventBaseThread(
       [this] { scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
 }
@@ -58,6 +63,7 @@ void FsdbStreamClient::setState(State state) {
     *stateLocked = state;
   }
   if (state == State::CONNECTED) {
+    fb303::fbData->setCounter(getConnectedCounterName(), 1);
 #if FOLLY_HAS_COROUTINES
     serviceLoopScope_.add(serviceLoopWrapper().scheduleOn(streamEvb_));
 #endif
@@ -65,6 +71,8 @@ void FsdbStreamClient::setState(State state) {
 #if FOLLY_HAS_COROUTINES
     folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
 #endif
+  } else if (state == State::DISCONNECTED) {
+    disconnectEvents_.addValue(1);
   }
   stateChangeCb_(oldState, state);
 }
