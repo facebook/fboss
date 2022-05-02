@@ -79,9 +79,8 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 #endif
 
  private:
-  const std::string& getConnectedCounterName() {
-    static const std::string name{counterPrefix_ + ".connected"};
-    return name;
+  std::string getConnectedCounterName() {
+    return counterPrefix_ + ".connected";
   }
   std::string clientId_;
   folly::EventBase* streamEvb_;
