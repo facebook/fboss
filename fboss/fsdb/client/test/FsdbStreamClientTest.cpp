@@ -97,6 +97,7 @@ class StreamClientTest : public ::testing::Test {
 
 TEST_F(StreamClientTest, connectAndCancel) {
   streamClient_->setServerToConnect("::1", FLAGS_fsdbPort);
+  EXPECT_EQ(streamClient_->getCounterPrefix(), "test_fsdb_client");
   streamClient_->markConnected();
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),

@@ -76,6 +76,7 @@ class StreamPublisherTest : public ::testing::Test {
 };
 
 TEST_F(StreamPublisherTest, overflowQueue) {
+  EXPECT_EQ(streamPublisher_->getCounterPrefix(), "fsdbStatePublisher_agent");
   streamPublisher_->markConnected();
   EXPECT_TRUE(streamPublisher_->isConnectedToServer());
 

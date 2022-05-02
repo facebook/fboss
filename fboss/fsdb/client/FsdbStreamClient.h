@@ -53,6 +53,9 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   bool serviceLoopRunning() const {
     return serviceLoopRunning_.load();
   }
+  const std::string& getCounterPrefix() const {
+    return counterPrefix_;
+  }
 
  private:
   void createClient(const std::string& ip, uint16_t port);
