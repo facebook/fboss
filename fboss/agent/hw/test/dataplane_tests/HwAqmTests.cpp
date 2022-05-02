@@ -348,7 +348,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
   void validateEcnWredThresholds(
       bool isEcn,
       int thresholdBytes,
-      int markedOrDroppedPacketCount) {
+      int markedOrDroppedPacketCount,
+      std::optional<std::function<void(HwPortStats&, HwPortStats&, int)>>
+          verifyPacketCountFn = std::nullopt,
+      std::optional<std::function<void(cfg::SwitchConfig&)>> setupFn =
+          std::nullopt) {
     constexpr auto kQueueId{0};
     /*
      * Good to keep the payload size such that the whole packet with
@@ -390,6 +394,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto config{initialConfig()};
       queueEcnWredThresholdSetup(isEcn, {kQueueId}, config);
       queueEcnWredThresholdSetup(!isEcn, {kQueueId}, config);
+      // Include any config setup needed per test case
+      if (setupFn.has_value()) {
+        (*setupFn)(config);
+      }
       applyNewConfig(config);
 
       // No traffic loop needed, so send traffic to a different MAC
@@ -441,10 +449,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
       EXPECT_GE(deltaOutPackets, kExpectedOutPackets);
       XLOG(DBG0) << "Delta out pkts: " << deltaOutPackets;
 
-      if (isEcn) {
-        verifyEcnMarkedPacketCount(after, before, markedOrDroppedPacketCount);
-      } else {
-        verifyWredDroppedPacketCount(after, before, markedOrDroppedPacketCount);
+      if (verifyPacketCountFn.has_value()) {
+        (*verifyPacketCountFn)(after, before, markedOrDroppedPacketCount);
       }
     };
 
@@ -456,14 +462,20 @@ class HwAqmTest : public HwLinkStateDependentTest {
     constexpr auto kThresholdBytes{
         utility::kQueueConfigAqmsWredThresholdMinMax};
     validateEcnWredThresholds(
-        false /* isEcn */, kThresholdBytes, kDroppedPackets);
+        false /* isEcn */,
+        kThresholdBytes,
+        kDroppedPackets,
+        verifyWredDroppedPacketCount);
   }
 
   void runEcnThresholdTest() {
     constexpr auto kMarkedPackets{50};
     constexpr auto kThresholdBytes{utility::kQueueConfigAqmsEcnThresholdMinMax};
     validateEcnWredThresholds(
-        true /* isEcn */, kThresholdBytes, kMarkedPackets);
+        true /* isEcn */,
+        kThresholdBytes,
+        kMarkedPackets,
+        verifyEcnMarkedPacketCount);
   }
 
   void runPerQueueWredDropStatsTest() {
