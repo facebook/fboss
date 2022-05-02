@@ -268,12 +268,12 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.cpp
   fboss/agent/hw/test/dataplane_tests/Hw2QueueToOlympicQoSTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwWatermarkTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp

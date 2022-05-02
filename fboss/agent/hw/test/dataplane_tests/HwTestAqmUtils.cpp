@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/test/dataplane_tests/HwTestWatermarkUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 
