@@ -24,6 +24,40 @@
 
 #include <folly/IPAddress.h>
 
+namespace {
+/*
+ * Ensure that the number of dropped packets is as expected. Allow for
+ * an error to account for more / less drops while its worked out.
+ */
+void verifyWredDroppedPacketCount(
+    facebook::fboss::HwPortStats& after,
+    facebook::fboss::HwPortStats& before,
+    int expectedDroppedPkts) {
+  constexpr auto kAcceptableError = 2;
+  auto deltaWredDroppedPackets =
+      *after.wredDroppedPackets_() - *before.wredDroppedPackets_();
+  XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
+  EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
+  EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
+}
+
+/*
+ * Ensure that the number of marked packets is as expected. Allow for
+ * an error to account for more / less marking while its worked out.
+ */
+void verifyEcnMarkedPacketCount(
+    facebook::fboss::HwPortStats& after,
+    facebook::fboss::HwPortStats& before,
+    int expectedMarkedPkts) {
+  constexpr auto kAcceptableError = 2;
+  auto deltaEcnMarkedPackets =
+      *after.outEcnCounter_() - *before.outEcnCounter_();
+  XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets;
+  EXPECT_GT(deltaEcnMarkedPackets, expectedMarkedPkts - kAcceptableError);
+  EXPECT_LT(deltaEcnMarkedPackets, expectedMarkedPkts + kAcceptableError);
+}
+} // namespace
+
 namespace facebook::fboss {
 
 class HwAqmTest : public HwLinkStateDependentTest {
@@ -158,38 +192,6 @@ class HwAqmTest : public HwLinkStateDependentTest {
             utility::kQueueConfigAqmsWredDropProbability);
       }
     }
-  }
-
-  /*
-   * Ensure that the number of dropped packets is as expected. Allow for
-   * an error to account for more / less drops while its worked out.
-   */
-  void verifyWredDroppedPacketCount(
-      HwPortStats& after,
-      HwPortStats& before,
-      int expectedDroppedPkts) {
-    constexpr auto kAcceptableError = 2;
-    auto deltaWredDroppedPackets =
-        *after.wredDroppedPackets_() - *before.wredDroppedPackets_();
-    XLOG(DBG0) << "Delta WRED dropped pkts: " << deltaWredDroppedPackets;
-    EXPECT_GT(deltaWredDroppedPackets, expectedDroppedPkts - kAcceptableError);
-    EXPECT_LT(deltaWredDroppedPackets, expectedDroppedPkts + kAcceptableError);
-  }
-
-  /*
-   * Ensure that the number of marked packets is as expected. Allow for
-   * an error to account for more / less marking while its worked out.
-   */
-  void verifyEcnMarkedPacketCount(
-      HwPortStats& after,
-      HwPortStats& before,
-      int expectedMarkedPkts) {
-    constexpr auto kAcceptableError = 2;
-    auto deltaEcnMarkedPackets =
-        *after.outEcnCounter_() - *before.outEcnCounter_();
-    XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets;
-    EXPECT_GT(deltaEcnMarkedPackets, expectedMarkedPkts - kAcceptableError);
-    EXPECT_LT(deltaEcnMarkedPackets, expectedMarkedPkts + kAcceptableError);
   }
 
  protected:
