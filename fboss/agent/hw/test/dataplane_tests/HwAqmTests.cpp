@@ -343,7 +343,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
         std::chrono::milliseconds(std::chrono::seconds(1)));
   }
 
-  void runEcnWredThresholdTest(bool isEcn) {
+  void validateEcnWredThresholds(
+      bool isEcn,
+      int thresholdBytes,
+      int markedOrDroppedPacketCount) {
     constexpr auto kQueueId{0};
     /*
      * Good to keep the payload size such that the whole packet with
@@ -351,14 +354,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
      * simple and accurate.
      */
     constexpr auto kPayloadLength{30};
-    constexpr auto kDroppedPackets{50};
-    constexpr auto kMarkedPackets{50};
-
     const int kTxPacketLen =
         kPayloadLength + EthHdr::SIZE + IPv6Hdr::size() + TCPHeader::size();
-    const int kThresholdBytes = isEcn
-        ? utility::kQueueConfigAqmsEcnThresholdMinMax
-        : utility::kQueueConfigAqmsWredThresholdMinMax;
     /*
      * The ECN/WRED threshold are rounded down for TAJO as opposed to
      * being rounded up to the next cell size for Broadcom.
@@ -375,12 +372,12 @@ class HwAqmTest : public HwLinkStateDependentTest {
     int numPacketsToSend =
         ceil(
             (double)utility::getRoundedBufferThreshold(
-                getHwSwitch(), kThresholdBytes, roundUp) /
+                getHwSwitch(), thresholdBytes, roundUp) /
             utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
-        (isEcn ? kMarkedPackets : kDroppedPackets);
+        markedOrDroppedPacketCount;
     XLOG(DBG3) << "Rounded threshold: "
                << utility::getRoundedBufferThreshold(
-                      getHwSwitch(), kThresholdBytes)
+                      getHwSwitch(), thresholdBytes, roundUp)
                << ", effective bytes per pkt: "
                << utility::getEffectiveBytesPerPacket(
                       getHwSwitch(), kTxPacketLen)
@@ -418,8 +415,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
           numPacketsToSend);
 
       // For ECN all packets are sent out, for WRED, account for drops!
-      const uint64_t kExpectedOutPackets =
-          isEcn ? numPacketsToSend : numPacketsToSend - kDroppedPackets;
+      const uint64_t kDroppedPackets = isEcn ? 0 : markedOrDroppedPacketCount;
+      const uint64_t kExpectedOutPackets = isEcn
+          ? numPacketsToSend
+          : numPacketsToSend - markedOrDroppedPacketCount;
 
       waitForExpectedThresholdTestStats(
           isEcn,
@@ -440,13 +439,21 @@ class HwAqmTest : public HwLinkStateDependentTest {
       XLOG(DBG0) << "Delta out pkts: " << deltaOutPackets;
 
       if (isEcn) {
-        verifyEcnMarkedPacketCount(after, before, kMarkedPackets);
+        verifyEcnMarkedPacketCount(after, before, markedOrDroppedPacketCount);
       } else {
-        verifyWredDroppedPacketCount(after, before, kDroppedPackets);
+        verifyWredDroppedPacketCount(after, before, markedOrDroppedPacketCount);
       }
     };
 
     verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void runWredThresholdTest() {
+    constexpr auto kDroppedPackets{50};
+    constexpr auto kThresholdBytes{
+        utility::kQueueConfigAqmsWredThresholdMinMax};
+    validateEcnWredThresholds(
+        false /* isEcn */, kThresholdBytes, kDroppedPackets);
   }
 
   void runPerQueueWredDropStatsTest() {
@@ -519,7 +526,7 @@ TEST_F(HwAqmTest, verifyWredDrop) {
 }
 
 TEST_F(HwAqmTest, verifyWredThreshold) {
-  runEcnWredThresholdTest(false /* isEcn */);
+  runWredThresholdTest();
 }
 
 TEST_F(HwAqmTest, verifyPerQueueWredDropStats) {
