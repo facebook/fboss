@@ -387,6 +387,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       auto config{initialConfig()};
       queueEcnWredThresholdSetup(isEcn, {kQueueId}, config);
+      queueEcnWredThresholdSetup(!isEcn, {kQueueId}, config);
       applyNewConfig(config);
 
       // No traffic loop needed, so send traffic to a different MAC
