@@ -12,7 +12,7 @@ typedef i32 MplsLabel
 const MplsLabel MAX_MPLS_LABEL = 0xfffff;
 
 // first element represents bottom of stack, last element represents top of stack
-typedef list<MplsLabel> MplsLabelStack
+typedef list<i32> MplsLabelStack
 
 enum MplsActionCode {
   PUSH = 0,
