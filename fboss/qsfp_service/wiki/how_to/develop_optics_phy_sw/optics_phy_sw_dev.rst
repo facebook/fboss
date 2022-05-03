@@ -94,7 +94,7 @@ QSFP service
     [netops@fsw002.p035.f01.rva3.tfbnw.net ~]$ fboss amidrain
     1 is DRAINED
     % buck build @mode/opt --show-output //fboss/qsfp_service:qsfp_service
-    % fbossdeploy qsfp-service canary-on --build neteng.fboss.qsfp_service fsw002.p035.f01.rva3.tfbnw.net --skip-drain "already drained"
+    % fbossdeploy qsfp-service canary-on --build neteng.fboss.qsfp_service fsw002.p035.f01.rva3.tfbnw.net
     [netops@fsw002.p035.f01.rva3.tfbnw.net ~]$ /etc/packages/neteng-fboss-qsfp_service/current/qsfp_service --version
 
 Force a link down and then validate that the remediation counter increments its value:
@@ -106,7 +106,7 @@ Force a link down and then validate that the remediation counter increments its 
 Finally, canary off qsfp_service from this switch and undrain it:
 ::
 
-    % fbossdeploy qsfp-service canary-off fsw002.p035.f01.rva3.tfbnw.net --skip-drain "already drained"
+    % fbossdeploy qsfp-service canary-off fsw002.p035.f01.rva3.tfbnw.net
     % drainer undrain job:3104343&>
     [netops@fsw002.p035.f01.rva3.tfbnw.net ~]$ fboss amidrain
     1 is NOT DRAINED
