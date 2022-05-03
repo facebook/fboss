@@ -234,26 +234,16 @@ void QsfpServiceHandler::validateHandler() const {
   }
 }
 
-/* TODO(rajank): Move/enable this for mka warmboot support
-void QsfpServiceHandler::updateWarmBootConfig() const {
-  if (configFile_.empty()) {
-    return;
-  }
-  if (!mka::MKASerializer::getInstance()->writeMKAActiveSakSessionSet(
-          configFile_, sakSet_)) {
-    XLOG(ERR) << "Failed to update SAK Warmboot Config at: " << configFile_;
-  }
-}
-*/
-
 void QsfpServiceHandler::listHwObjects(
     std::string& out,
     std::unique_ptr<std::vector<HwObjectType>> hwObjects,
     bool cached) {
+  auto log = LOG_THRIFT_CALL(INFO);
   out = manager_->listHwObjects(*hwObjects, cached);
 }
 
 bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
+  auto log = LOG_THRIFT_CALL(INFO);
   return manager_->getSdkState(*fileName);
 }
 
