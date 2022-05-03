@@ -100,7 +100,7 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::WEDGE400;
     } else if (
         modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0 ||
-        modelName.find("DCS-7060") == 0) {
+        modelName.find("DCS-7060") == 0 || modelName.find("Rackhawk") == 0) {
       mode_ = PlatformMode::DARWIN;
     } else if (modelName.find("Wedge") == 0 || modelName.find("WEDGE") == 0) {
       mode_ = PlatformMode::WEDGE;
