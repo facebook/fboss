@@ -55,7 +55,7 @@ class MockSff8472Module : public Sff8472Module {
   MOCK_METHOD0(configureModule, void());
   MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
 
-  MOCK_CONST_METHOD1(
+  MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
   MOCK_METHOD0(resetDataPath, void());
@@ -99,7 +99,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(configureModule, void());
   MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
 
-  MOCK_CONST_METHOD1(
+  MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
       void(const std::vector<HostLaneSettings>&));
   MOCK_METHOD0(resetDataPath, void());

@@ -359,7 +359,7 @@ class CmisModule : public QsfpModule {
    * This function is to ensure that Rx output squelch is always enabled.
    */
   void ensureRxOutputSquelchEnabled(
-      const std::vector<HostLaneSettings>& hostLaneSettings) const override;
+      const std::vector<HostLaneSettings>& hostLaneSettings) override;
 
   /*
    * Check if the module has accepted the lane configuration specified by

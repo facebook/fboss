@@ -80,7 +80,7 @@ enum VdmConfigType {
 // As per CMIS4.0
 static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Lower Page
-    {CmisField::PAGE_LOWER, {CmisPages::LOWER, 0, 1}},
+    {CmisField::PAGE_LOWER, {CmisPages::LOWER, 0, 128}},
     {CmisField::IDENTIFIER, {CmisPages::LOWER, 0, 1}},
     {CmisField::REVISION_COMPLIANCE, {CmisPages::LOWER, 1, 1}},
     {CmisField::FLAT_MEM, {CmisPages::LOWER, 2, 1}},
@@ -148,10 +148,15 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SQUELCH_DISABLE, {CmisPages::PAGE10, 139, 1}},
     {CmisField::STAGE_CTRL_SET_0, {CmisPages::PAGE10, 143, 1}},
     {CmisField::STAGE_CTRL_SET0_IMMEDIATE, {CmisPages::PAGE10, 144, 1}},
+    {CmisField::APP_SEL_ALL_LANES, {CmisPages::PAGE10, 145, 8}},
     {CmisField::APP_SEL_LANE_1, {CmisPages::PAGE10, 145, 1}},
     {CmisField::APP_SEL_LANE_2, {CmisPages::PAGE10, 146, 1}},
     {CmisField::APP_SEL_LANE_3, {CmisPages::PAGE10, 147, 1}},
     {CmisField::APP_SEL_LANE_4, {CmisPages::PAGE10, 148, 1}},
+    {CmisField::APP_SEL_LANE_5, {CmisPages::PAGE10, 149, 1}},
+    {CmisField::APP_SEL_LANE_6, {CmisPages::PAGE10, 150, 1}},
+    {CmisField::APP_SEL_LANE_7, {CmisPages::PAGE10, 151, 1}},
+    {CmisField::APP_SEL_LANE_8, {CmisPages::PAGE10, 152, 1}},
     {CmisField::RX_CONTROL_PRE_CURSOR, {CmisPages::PAGE10, 162, 4}},
     {CmisField::RX_CONTROL_POST_CURSOR, {CmisPages::PAGE10, 166, 4}},
     {CmisField::RX_CONTROL_MAIN, {CmisPages::PAGE10, 170, 4}},
@@ -194,21 +199,39 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::HOST_GEN_ENABLE, {CmisPages::PAGE13, 144, 1}},
     {CmisField::HOST_GEN_INV, {CmisPages::PAGE13, 145, 1}},
     {CmisField::HOST_GEN_PRE_FEC, {CmisPages::PAGE13, 147, 1}},
-    {CmisField::HOST_PATTERN_SELECT_LANE_8_1, {CmisPages::PAGE13, 148, 4}},
+    {CmisField::HOST_PATTERN_SELECT_LANE_2_1, {CmisPages::PAGE13, 148, 1}},
+    {CmisField::HOST_PATTERN_SELECT_LANE_4_3, {CmisPages::PAGE13, 149, 1}},
+    {CmisField::HOST_PATTERN_SELECT_LANE_6_5, {CmisPages::PAGE13, 150, 1}},
+    {CmisField::HOST_PATTERN_SELECT_LANE_8_7, {CmisPages::PAGE13, 151, 1}},
     {CmisField::MEDIA_GEN_ENABLE, {CmisPages::PAGE13, 152, 1}},
     {CmisField::MEDIA_GEN_INV, {CmisPages::PAGE13, 153, 1}},
     {CmisField::MEDIA_GEN_PRE_FEC, {CmisPages::PAGE13, 155, 1}},
-    {CmisField::MEDIA_PATTERN_SELECT_LANE_8_1, {CmisPages::PAGE13, 156, 4}},
+    {CmisField::MEDIA_PATTERN_SELECT_LANE_2_1, {CmisPages::PAGE13, 156, 1}},
+    {CmisField::MEDIA_PATTERN_SELECT_LANE_4_3, {CmisPages::PAGE13, 157, 1}},
+    {CmisField::MEDIA_PATTERN_SELECT_LANE_6_5, {CmisPages::PAGE13, 158, 1}},
+    {CmisField::MEDIA_PATTERN_SELECT_LANE_8_7, {CmisPages::PAGE13, 159, 1}},
     {CmisField::HOST_CHECKER_ENABLE, {CmisPages::PAGE13, 160, 1}},
     {CmisField::HOST_CHECKER_INV, {CmisPages::PAGE13, 161, 1}},
     {CmisField::HOST_CHECKER_POST_FEC, {CmisPages::PAGE13, 163, 1}},
-    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_1,
-     {CmisPages::PAGE13, 164, 4}},
+    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
+     {CmisPages::PAGE13, 164, 1}},
+    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
+     {CmisPages::PAGE13, 165, 1}},
+    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
+     {CmisPages::PAGE13, 166, 1}},
+    {CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
+     {CmisPages::PAGE13, 167, 1}},
     {CmisField::MEDIA_CHECKER_ENABLE, {CmisPages::PAGE13, 168, 1}},
     {CmisField::MEDIA_CHECKER_INV, {CmisPages::PAGE13, 169, 1}},
     {CmisField::MEDIA_CHECKER_POST_FEC, {CmisPages::PAGE13, 171, 1}},
-    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_1,
-     {CmisPages::PAGE13, 172, 4}},
+    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
+     {CmisPages::PAGE13, 172, 1}},
+    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
+     {CmisPages::PAGE13, 173, 1}},
+    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_6_5,
+     {CmisPages::PAGE13, 174, 1}},
+    {CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_7,
+     {CmisPages::PAGE13, 175, 1}},
     {CmisField::REF_CLK_CTRL, {CmisPages::PAGE13, 176, 1}},
     {CmisField::BER_CTRL, {CmisPages::PAGE13, 177, 1}},
     {CmisField::HOST_NEAR_LB_EN, {CmisPages::PAGE13, 180, 1}},
@@ -262,6 +285,17 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
     {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
+};
+
+static std::unordered_map<int, CmisField> laneToAppSelField = {
+    {0, CmisField::APP_SEL_LANE_1},
+    {1, CmisField::APP_SEL_LANE_2},
+    {2, CmisField::APP_SEL_LANE_3},
+    {3, CmisField::APP_SEL_LANE_4},
+    {4, CmisField::APP_SEL_LANE_5},
+    {5, CmisField::APP_SEL_LANE_6},
+    {6, CmisField::APP_SEL_LANE_7},
+    {7, CmisField::APP_SEL_LANE_8},
 };
 
 static CmisFieldMultiplier qsfpMultiplier = {
@@ -1432,47 +1466,23 @@ void CmisModule::updateQsfpData(bool allPages) {
     XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
                << " qsfp data cache refresh for transceiver "
                << folly::to<std::string>(qsfpImpl_->getName());
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_)}, lowerPage_);
+    readCmisField(CmisField::PAGE_LOWER, lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
     setQsfpFlatMem();
 
-    // If we have flat memory, we don't have to set the page
+    readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {
-      uint8_t page = 0x00;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-    }
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page0_)}, page0_);
-    if (!flatMem_) {
-      uint8_t page = 0x10;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-      qsfpImpl_->readTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page10_)}, page10_);
-
-      page = 0x11;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-      qsfpImpl_->readTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page11_)}, page11_);
+      readCmisField(CmisField::PAGE_UPPER10H, page10_);
+      readCmisField(CmisField::PAGE_UPPER11H, page11_);
 
       bool isReady =
           ((CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1) ==
            CmisModuleState::READY);
       if (isReady) {
-        page = 0x14;
         auto diagFeature = (uint8_t)DiagnosticFeatureEncoding::SNR;
-        qsfpImpl_->writeTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-        qsfpImpl_->writeTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(diagFeature)},
-            &diagFeature);
-        qsfpImpl_->readTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_)}, page14_);
-
+        writeCmisField(CmisField::DIAG_SEL, &diagFeature);
+        readCmisField(CmisField::PAGE_UPPER14H, page14_);
         updateVdmCacheLocked();
       }
     }
@@ -1485,23 +1495,9 @@ void CmisModule::updateQsfpData(bool allPages) {
     }
 
     if (!flatMem_) {
-      uint8_t page = 0x01;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-      qsfpImpl_->readTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page01_)}, page01_);
-
-      page = 0x02;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-      qsfpImpl_->readTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page02_)}, page02_);
-
-      page = 0x13;
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-      qsfpImpl_->readTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page13_)}, page13_);
+      readCmisField(CmisField::PAGE_UPPER01H, page01_);
+      readCmisField(CmisField::PAGE_UPPER02H, page02_);
+      readCmisField(CmisField::PAGE_UPPER13H, page13_);
     }
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
@@ -1579,7 +1575,6 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
     }
 
     auto setApplicationSelectCode = [this, &capabilityIter]() {
-      int offset2, length2, dataAddress2;
       // Currently we will have only one data path and apply the default
       // settings. So assume the lower four bits are all zero here.
       // CMIS4.0-8.7.3
@@ -1590,9 +1585,6 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
           qsfpImpl_->getName(),
           newApSelCode);
 
-      getQsfpFieldAddress(
-          CmisField::APP_SEL_LANE_1, dataAddress2, offset2, length2);
-
       // We can't use numHostLanes() to get the hostLaneCount here since that
       // function relies on the configured application select but at this point
       // appSel hasn't been updated.
@@ -1602,19 +1594,11 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         // For now we don't have complicated lane assignment. Either using first
         // four lanes for 100G/200G or all eight lanes for 400G.
         uint8_t laneApSelCode = (channel < hostLanes) ? newApSelCode : 0;
-        qsfpImpl_->writeTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP,
-             offset2 + channel,
-             sizeof(laneApSelCode)},
-            &laneApSelCode);
+        writeCmisField(laneToAppSelField[channel], &laneApSelCode);
       }
       uint8_t applySet0 = (hostLanes == 8) ? 0xff : 0x0f;
 
-      getQsfpFieldAddress(
-          CmisField::STAGE_CTRL_SET_0, dataAddress2, offset2, length2);
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset2, sizeof(applySet0)},
-          &applySet0);
+      writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
 
       XLOG(INFO) << folly::sformat(
           "Transceiver: {:s} set application to {:#x}",
@@ -1653,27 +1637,16 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
  * lane configuration like Rx Equalizer setting etc
  */
 bool CmisModule::checkLaneConfigError() {
-  int offset;
-  int length;
-  int dataAddress;
   bool success;
 
-  // Set the page to 0x11 for lane config status
-  uint8_t page = 0x11;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
   uint8_t configErrors[4];
-  getQsfpFieldAddress(
-      CmisField::CONFIG_ERROR_LANES, dataAddress, offset, length);
 
   // In case some channel information is not available then we can retry after
   // lane init time
   int retryCount = 2;
   while (retryCount) {
     retryCount--;
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, length}, configErrors);
+    readCmisField(CmisField::CONFIG_ERROR_LANES, configErrors);
 
     bool allStatusAvailable = true;
     success = true;
@@ -1777,8 +1750,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   currentModuleControl = currentModuleControl | (1 << 6);
 
   // first set to low power
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &currentModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
 
   // Transceivers need a bit of time to handle the low power setting
   // we just sent. We should be able to use the status register to be
@@ -1788,8 +1760,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   // then enable target power class
   currentModuleControl = currentModuleControl & 0x3f;
 
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &currentModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
 
   XLOG(INFO) << folly::sformat(
       "Port {:s}: QSFP module control field set to {:#x}",
@@ -1798,7 +1769,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 }
 
 void CmisModule::ensureRxOutputSquelchEnabled(
-    const std::vector<HostLaneSettings>& hostLanesSettings) const {
+    const std::vector<HostLaneSettings>& hostLanesSettings) {
   bool allLanesRxOutputSquelchEnabled = true;
   for (auto& hostLaneSettings : hostLanesSettings) {
     if (hostLaneSettings.rxSquelch().has_value() &&
@@ -1809,22 +1780,10 @@ void CmisModule::ensureRxOutputSquelchEnabled(
   }
 
   if (!allLanesRxOutputSquelchEnabled) {
-    int offset;
-    int length;
-    int dataAddress;
     uint8_t enableAllLaneRxOutputSquelch = 0x0;
 
-    // Flip to page 0x10 to get prepared.
-    uint8_t page = 0x10;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
-    getQsfpFieldAddress(
-        CmisField::RX_SQUELCH_DISABLE, dataAddress, offset, length);
-
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, length},
-        &enableAllLaneRxOutputSquelch);
+    writeCmisField(
+        CmisField::RX_SQUELCH_DISABLE, &enableAllLaneRxOutputSquelch);
     XLOG(INFO) << "Transceiver " << folly::to<std::string>(qsfpImpl_->getName())
                << ": Enabled Rx output squelch on all lanes.";
   }
@@ -1941,7 +1900,6 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   uint8_t currPre[4], currPost[4], currMain[4];
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   bool changePre = false, changePost = false, changeMain = false;
-  int offset, length, dataAddress;
   uint8_t numLanes = numHostLanes();
 
   XLOG(INFO) << folly::sformat(
@@ -1955,11 +1913,6 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     desiredMain[i] = ((*rxEqualizer.mainAmplitude() & 0xf) << 4) |
         (*rxEqualizer.mainAmplitude() & 0xf);
   }
-
-  // Flip to page 0x11 to read current values
-  uint8_t page = 0x11;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
 
   auto compareSettings = [numLanes](
                              uint8_t currSettings[],
@@ -1978,38 +1931,22 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   };
 
   // Compare current Pre cursor value to see if the change is needed
-  getQsfpFieldAddress(
-      CmisField::RX_OUT_PRE_CURSOR, dataAddress, offset, length);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currPre);
-  compareSettings(currPre, desiredPre, length, changePre);
+  readCmisField(CmisField::RX_OUT_PRE_CURSOR, currPre);
+  compareSettings(currPre, desiredPre, 4, changePre);
 
   // Compare current Post cursor value to see if the change is needed
-  getQsfpFieldAddress(
-      CmisField::RX_OUT_POST_CURSOR, dataAddress, offset, length);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currPost);
-  compareSettings(currPost, desiredPost, length, changePost);
+  readCmisField(CmisField::RX_OUT_POST_CURSOR, currPost);
+  compareSettings(currPost, desiredPost, 4, changePost);
 
   // Compare current Rx Main value to see if the change is needed
-  getQsfpFieldAddress(CmisField::RX_OUT_MAIN, dataAddress, offset, length);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, currMain);
-  compareSettings(currMain, desiredMain, length, changeMain);
+  readCmisField(CmisField::RX_OUT_MAIN, currMain);
+  compareSettings(currMain, desiredMain, 4, changeMain);
 
   // If anything is changed then apply the change and trigger it
   if (changePre || changePost || changeMain) {
-    // Flip to page 0x10 to change the values
-    page = 0x10;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
     // Apply the change for pre/post/main if needed
     if (changePre) {
-      getQsfpFieldAddress(
-          CmisField::RX_CONTROL_PRE_CURSOR, dataAddress, offset, length);
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredPre);
+      writeCmisField(CmisField::RX_CONTROL_PRE_CURSOR, desiredPre);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2019,10 +1956,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
           desiredPre[3]);
     }
     if (changePost) {
-      getQsfpFieldAddress(
-          CmisField::RX_CONTROL_POST_CURSOR, dataAddress, offset, length);
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredPost);
+      writeCmisField(CmisField::RX_CONTROL_POST_CURSOR, desiredPost);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2032,10 +1966,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
           desiredPost[3]);
     }
     if (changeMain) {
-      getQsfpFieldAddress(
-          CmisField::RX_CONTROL_MAIN, dataAddress, offset, length);
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset, length}, desiredMain);
+      writeCmisField(CmisField::RX_CONTROL_MAIN, desiredMain);
       XLOG(INFO) << folly::sformat(
           "Module {:s} customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
           qsfpImpl_->getName(),
@@ -2046,22 +1977,17 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     }
 
     // Apply the change using stage 0 control
-    getQsfpFieldAddress(CmisField::APP_SEL_LANE_1, dataAddress, offset, length);
     uint8_t stage0Control[8];
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, 8}, stage0Control);
+    readCmisField(CmisField::APP_SEL_ALL_LANES, stage0Control);
     for (int i = 0; i < numLanes; i++) {
       stage0Control[i] |= 1;
+      writeCmisField(
+          laneToAppSelField[i], stage0Control, true /* skipPageChange */);
     }
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, numLanes}, stage0Control);
 
     // Trigger the stage 0 control values to be operational in optics
-    getQsfpFieldAddress(
-        CmisField::STAGE_CTRL_SET0_IMMEDIATE, dataAddress, offset, length);
     uint8_t stage0ControlTrigger = (1 << numLanes) - 1;
-    qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, length}, &stage0ControlTrigger);
+    writeCmisField(CmisField::STAGE_CTRL_SET0_IMMEDIATE, &stage0ControlTrigger);
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
@@ -2098,11 +2024,7 @@ void CmisModule::setDiagsCapability() {
       if (cacheIsValid()) {
         getQsfpValue(dataAddress, offset, length, data);
       } else {
-        uint8_t page = static_cast<uint8_t>(dataAddress);
-        qsfpImpl_->writeTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-        qsfpImpl_->readTransceiver(
-            {TransceiverI2CApi::ADDR_QSFP, offset, length}, data);
+        readCmisField(field, data);
       }
     };
 
@@ -2280,46 +2202,25 @@ void CmisModule::latchAndReadVdmDataLocked() {
       "latchAndReadVdmDataLocked for module {}", qsfpImpl_->getName());
 
   // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
-  uint8_t page = 0x2f;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  getQsfpFieldAddress(
-      CmisField::VDM_LATCH_REQUEST, dataAddress, offset, length);
   uint8_t latchRequest;
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
+  readCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
 
   latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
   // Hold the latch to read the VDM data
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
+  writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
 
   // Wait tNack time
   /* sleep override */
   usleep(kUsecVdmLatchHold);
 
   // Read data for publishing to ODS
-  page = 0x24;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
-
-  page = 0x25;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
+  readCmisField(CmisField::PAGE_UPPER24H, page24_);
+  readCmisField(CmisField::PAGE_UPPER25H, page25_);
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
-  page = 0x2f;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
   // Release the latch to resume VDM data collection
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &latchRequest);
-
+  writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
   // Wait tNack time
   /* sleep override */
   usleep(kUsecVdmLatchHold);
@@ -2381,23 +2282,24 @@ bool CmisModule::setPortPrbsLocked(
   auto prbsPolynominal = prbsPatternItr->second;
   auto start = prbs.enabled().value();
 
-  // Set the page to 0x13 first
-  uint8_t page = 0x13;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
   // Step 1: Set the pattern for Generator (for starting case)
   if (start) {
-    auto cmisRegister = (side == phy::Side::LINE)
-        ? CmisField::MEDIA_PATTERN_SELECT_LANE_8_1
-        : CmisField::HOST_PATTERN_SELECT_LANE_8_1;
-    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+    auto mediaFields = {
+        CmisField::MEDIA_PATTERN_SELECT_LANE_2_1,
+        CmisField::MEDIA_PATTERN_SELECT_LANE_4_3,
+        CmisField::MEDIA_PATTERN_SELECT_LANE_6_5,
+        CmisField::MEDIA_PATTERN_SELECT_LANE_8_7};
+    auto hostFields = {
+        CmisField::HOST_PATTERN_SELECT_LANE_2_1,
+        CmisField::HOST_PATTERN_SELECT_LANE_4_3,
+        CmisField::HOST_PATTERN_SELECT_LANE_6_5,
+        CmisField::HOST_PATTERN_SELECT_LANE_8_7};
+    auto cmisRegisters = (side == phy::Side::LINE) ? mediaFields : hostFields;
 
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
-    for (int i = 0; i < length; i++) {
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset + i, 1}, &patternVal);
+    for (auto field : cmisRegisters) {
+      writeCmisField(field, &patternVal);
     }
   }
 
@@ -2413,33 +2315,35 @@ bool CmisModule::setPortPrbsLocked(
 
   auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
                                                 : CmisField::HOST_GEN_ENABLE;
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
-
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &startLaneMask);
+  writeCmisField(cmisRegister, &startLaneMask);
 
   // Step 3: Set the pattern for Checker (for starting case)
   if (start) {
-    cmisRegister = (side == phy::Side::LINE)
-        ? CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_1
-        : CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_1;
-    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+    auto mediaFields = {
+        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
+        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
+        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_6_5,
+        CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_8_7,
+    };
+    auto hostFields = {
+        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_2_1,
+        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_4_3,
+        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_6_5,
+        CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
+    };
+    auto cmisFields = (side == phy::Side::LINE) ? mediaFields : hostFields;
 
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
-    for (int i = 0; i < length; i++) {
-      qsfpImpl_->writeTransceiver(
-          {TransceiverI2CApi::ADDR_QSFP, offset + i, 1}, &patternVal);
+    for (auto field : cmisFields) {
+      writeCmisField(field, &patternVal);
     }
   }
 
   // Step 4: Start/Stop the checker
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
                                            : CmisField::HOST_CHECKER_ENABLE;
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
-
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &startLaneMask);
+  writeCmisField(cmisRegister, &startLaneMask);
 
   XLOG(INFO) << folly::sformat(
       "PRBS on module {:s} side {:s} Lanemask {:#x} {:s}",
@@ -2475,36 +2379,25 @@ phy::PortPrbsState CmisModule::getPortPrbsStateLocked(Side side) {
 
   auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
                                                 : CmisField::HOST_GEN_ENABLE;
-  // Set the page to 0x13 first
-  uint8_t page = 0x13;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
   uint8_t generator;
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &generator);
+  readCmisField(cmisRegister, &generator);
 
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
                                            : CmisField::HOST_CHECKER_ENABLE;
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
   uint8_t checker;
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &checker);
+  readCmisField(cmisRegister, &checker);
   state.enabled() = (generator == checker && generator == laneMask);
 
   // If state is enabled, check the polynomial
   if (*state.enabled()) {
     cmisRegister = (side == phy::Side::LINE)
-        ? CmisField::MEDIA_PATTERN_SELECT_LANE_8_1
-        : CmisField::HOST_PATTERN_SELECT_LANE_8_1;
-    getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
+        ? CmisField::MEDIA_PATTERN_SELECT_LANE_2_1
+        : CmisField::HOST_PATTERN_SELECT_LANE_2_1;
     uint8_t pattern;
     // Intentionally reading only 1 byte instead of 'length'
     // We assume the same polynomial is configured on all lanes so only reading
     // 1 byte which gives the polynomial configured on lane 0
-    qsfpImpl_->readTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &pattern);
+    readCmisField(cmisRegister, &pattern);
     auto polynomialItr = prbsPatternMap.right.find(pattern & 0xF);
     if (polynomialItr != prbsPatternMap.right.end()) {
       state.polynominal() = static_cast<uint32_t>(polynomialItr->second);
@@ -2538,39 +2431,28 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
       ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
       : phy::PrbsComponent::TRANSCEIVER_LINE;
 
-  // The PRBS information is in page 0x14 so set the page first
-  uint8_t page = 0x14;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
   // Step1: Get the lane locked mask for PRBS checker
   uint8_t checkerLockMask;
   auto cmisRegister = (side == phy::Side::LINE)
       ? CmisField::MEDIA_LANE_CHECKER_LOL_LATCH
       : CmisField::HOST_LANE_CHECKER_LOL_LATCH;
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &checkerLockMask);
+  readCmisField(cmisRegister, &checkerLockMask);
 
   // Step 2: Get BER values for all the lanes
   int numLanes = (side == phy::Side::LINE) ? numMediaLanes() : numHostLanes();
 
   // Step 2.a: Set the Diag Sel register to collect the BER values and wait
   // for some time
-  getQsfpFieldAddress(CmisField::DIAG_SEL, dataAddress, offset, length);
   uint8_t diagSel = 1; // Diag Sel 1 is to obtain BER values
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, 1}, &diagSel);
+  writeCmisField(CmisField::DIAG_SEL, &diagSel);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
   // Step 2.b: Read the BER values for all lanes
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_BER_HOST_SNR
                                            : CmisField::HOST_BER;
-  getQsfpFieldAddress(cmisRegister, dataAddress, offset, length);
   std::array<uint8_t, 16> laneBerList;
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, laneBerList.data());
+  readCmisField(cmisRegister, laneBerList.data());
 
   // Step 3: Put all the lane info in return structure and return
   for (auto laneId = 0; laneId < numLanes; laneId++) {
@@ -2597,18 +2479,9 @@ void CmisModule::resetDataPath() {
 
 void CmisModule::resetDataPathWithFunc(
     std::optional<std::function<void()>> afterDataPathDeinitFunc) {
-  int offset, length, dataAddress;
-
-  // Flip to page 0x10 to get prepared.
-  uint8_t page = 0x10;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-
   // First deactivate all the lanes
-  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
   uint8_t dataPathDeInit = 0xff;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataPathDeInit);
+  writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
@@ -2618,10 +2491,8 @@ void CmisModule::resetDataPathWithFunc(
   }
 
   // Release the lanes from DeInit.
-  getQsfpFieldAddress(CmisField::DATA_PATH_DEINIT, dataAddress, offset, length);
   dataPathDeInit = 0x0;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, offset, length}, &dataPathDeInit);
+  writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
@@ -2636,29 +2507,10 @@ void CmisModule::updateVdmCacheLocked() {
                << " doesn't support VDM, skip updating VDM cache";
     return;
   }
-  uint8_t page = 0x20;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page20_)}, page20_);
-
-  page = 0x21;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page21_)}, page21_);
-
-  page = 0x24;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page24_)}, page24_);
-
-  page = 0x25;
-  qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
-  qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page25_)}, page25_);
+  readCmisField(CmisField::PAGE_UPPER20H, page20_);
+  readCmisField(CmisField::PAGE_UPPER21H, page21_);
+  readCmisField(CmisField::PAGE_UPPER24H, page24_);
+  readCmisField(CmisField::PAGE_UPPER25H, page25_);
 }
 
 void CmisModule::updateCmisStateChanged(

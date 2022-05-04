@@ -600,7 +600,7 @@ class QsfpModule : public Transceiver {
    * enabled.
    */
   virtual void ensureRxOutputSquelchEnabled(
-      const std::vector<HostLaneSettings>& /*hostLaneSettings*/) const {}
+      const std::vector<HostLaneSettings>& /*hostLaneSettings*/) {}
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() {
     return std::nullopt;
