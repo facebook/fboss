@@ -59,7 +59,7 @@ class FsdbPublisher : public FsdbStreamClient {
                 handleStateChange(oldState, newState);
               }
             }),
-        toPublishQueue_(makeQueue()),
+        toPublishQueue_(nullptr),
         publishPath_(publishPath),
         publishStats_(publishStats),
         writeErrors_(

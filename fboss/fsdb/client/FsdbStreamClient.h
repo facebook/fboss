@@ -12,6 +12,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #endif
 
+#include <gtest/gtest_prod.h>
 #include <atomic>
 #include <functional>
 
@@ -63,6 +64,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
     return counterPrefix_;
   }
 
+ protected:
 #ifndef IS_OSS
   template <typename PubUnit>
   using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;
@@ -84,7 +86,13 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   void createClient(const std::string& ip, uint16_t port);
   void resetClient();
   void connectToServer(const std::string& ip, uint16_t port);
+
+  // Returns prev state
+  State setState(State state);
+
   void timeoutExpired() noexcept override;
+
+  void scheduleServiceLoop();
 
 #if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
   folly::coro::Task<void> serviceLoopWrapper();
@@ -93,7 +101,6 @@ class FsdbStreamClient : public folly::AsyncTimeout {
 #endif
 
  protected:
-  void setState(State state);
 #ifndef IS_OSS
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
@@ -115,6 +122,10 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
   fb303::ThreadCachedServiceData::TLTimeseries disconnectEvents_;
+
+  FRIEND_TEST(StreamClientTest, connectAndCancel);
+  FRIEND_TEST(StreamClientTest, multipleStreamClientsOnSameEvb);
+  FRIEND_TEST(StreamPublisherTest, overflowQueue);
 };
 
 } // namespace facebook::fboss::fsdb

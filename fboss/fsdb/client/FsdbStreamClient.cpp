@@ -48,35 +48,30 @@ FsdbStreamClient::~FsdbStreamClient() {
   CHECK(isCancelled());
 }
 
-void FsdbStreamClient::setState(State state) {
+FsdbStreamClient::State FsdbStreamClient::setState(State state) {
   State oldState;
   {
     auto stateLocked = state_.wlock();
     oldState = *stateLocked;
     if (oldState == state) {
       XLOG(INFO) << "State not changing, skipping";
-      return;
+      return oldState;
     } else if (oldState == State::CANCELLED) {
       XLOG(INFO) << "Old state is CANCELLED, will not try to reconnect";
-      return;
+      return oldState;
     }
     *stateLocked = state;
   }
   if (state == State::CONNECTED) {
     fb303::fbData->setCounter(getConnectedCounterName(), 1);
-#if FOLLY_HAS_COROUTINES
-    serviceLoopScope_.add(serviceLoopWrapper().scheduleOn(streamEvb_));
-#endif
-  } else if (state == State::CANCELLED) {
-#if FOLLY_HAS_COROUTINES
-    folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
-#endif
-    fb303::fbData->setCounter(getConnectedCounterName(), 0);
   } else if (state == State::DISCONNECTED) {
     disconnectEvents_.addValue(1);
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
+  } else if (state == State::CANCELLED) {
+    fb303::fbData->setCounter(getConnectedCounterName(), 0);
   }
   stateChangeCb_(oldState, state);
+  return oldState;
 }
 
 void FsdbStreamClient::setServerToConnect(
@@ -98,21 +93,29 @@ void FsdbStreamClient::timeoutExpired() noexcept {
 }
 
 bool FsdbStreamClient::isConnectedToServer() const {
-  return (getState() == State::CONNECTED);
+  return getState() == State::CONNECTED;
 }
 
 void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
+  // Need to be in reconnect thread otherwise may race with cancellations
+  CHECK(connRetryEvb_->getEventBase()->isInEventBaseThread());
   CHECK(getState() == State::DISCONNECTED);
 
   streamEvb_->runInEventBaseThreadAndWait([this, ip, port]() {
     try {
       createClient(ip, port);
-      setState(State::CONNECTED);
+      scheduleServiceLoop();
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();
       setState(State::DISCONNECTED);
     }
   });
+}
+
+void FsdbStreamClient::scheduleServiceLoop() {
+#if FOLLY_HAS_COROUTINES
+  serviceLoopScope_.add(serviceLoopWrapper().scheduleOn(streamEvb_));
+#endif
 }
 
 #if FOLLY_HAS_COROUTINES
@@ -125,6 +128,7 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
   };
   try {
     auto stream = co_await setupStream();
+    setState(State::CONNECTED);
     co_await serveStream(std::move(stream));
   } catch (const folly::OperationCancelled&) {
     XLOG(DBG2) << "Service loop cancelled :" << clientId();
@@ -145,13 +149,15 @@ void FsdbStreamClient::cancel() {
   XLOG(DBG2) << "Canceling FsdbStreamClient: " << clientId();
 
   // already disconnected;
-  if (getState() == State::CANCELLED) {
+  if (setState(State::CANCELLED) == State::CANCELLED) {
     XLOG(WARNING) << clientId() << " already cancelled";
     return;
   }
   serverAddress_.reset();
   connRetryEvb_->runInEventBaseThreadAndWait([this] { cancelTimeout(); });
-  setState(State::CANCELLED);
+#if FOLLY_HAS_COROUTINES
+  folly::coro::blockingWait(serviceLoopScope_.cancelAndJoinAsync());
+#endif
   resetClient();
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
