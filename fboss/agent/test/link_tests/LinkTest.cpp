@@ -92,6 +92,37 @@ void LinkTest::waitForAllTransceiverStates(
       msBetweenRetry);
 }
 
+// Wait until we have successfully fetched transceiver info (and thus know
+// which transceivers are available for testing)
+std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
+    std::vector<int32_t> transceiverIds,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  std::map<int32_t, TransceiverInfo> info;
+  while (retries--) {
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getTransceiverInfo(info, transceiverIds);
+    } catch (const std::exception& ex) {
+      XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+                 << folly::exceptionStr(ex);
+    }
+    // Make sure we have at least one present transceiver
+    for (const auto& it : info) {
+      if (*it.second.present()) {
+        return info;
+      }
+    }
+    XLOG(INFO) << "TransceiverInfo was empty";
+    if (retries) {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+
+  throw FbossError("TransceiverInfo was never populated.");
+}
+
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -119,24 +150,30 @@ std::tuple<std::vector<PortID>, std::string>
 LinkTest::getOpticalCabledPortsAndNames() const {
   std::string opticalPortNames;
   std::vector<PortID> opticalPorts;
-
+  std::vector<int32_t> transceiverIds;
   for (const auto& port : getCabledPorts()) {
     auto portName = getPortName(port);
-    auto trcvId = platform()->getPlatformPort(port)->getTransceiverID().value();
-    std::optional<TransceiverInfo> trcvInfo =
-        platform()->getQsfpCache()->getIf(trcvId);
+    auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
+    transceiverIds.push_back(tcvrId);
+  }
 
-    if (trcvInfo) {
+  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  for (const auto& port : getCabledPorts()) {
+    auto portName = getPortName(port);
+    auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
+    auto tcvrInfo = transceiverInfos.find(tcvrId);
+
+    if (tcvrInfo != transceiverInfos.end()) {
       if (TransmitterTechnology::OPTICAL ==
-          *(trcvInfo->cable().value_or({}).transmitterTech())) {
+          *(tcvrInfo->second.cable().value_or({}).transmitterTech())) {
         opticalPorts.push_back(port);
         opticalPortNames += portName + " ";
       } else {
-        XLOG(INFO) << "Transceiver: " << trcvId + 1 << ", " << portName
+        XLOG(INFO) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
       }
     } else {
-      XLOG(INFO) << "TransceiverInfo of transceiver: " << trcvId + 1 << ", "
+      XLOG(INFO) << "TransceiverInfo of transceiver: " << tcvrId + 1 << ", "
                  << portName << ", is not present, skip it";
     }
   }

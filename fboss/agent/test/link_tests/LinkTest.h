@@ -39,6 +39,12 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
+      std::vector<int32_t> transceiverIds,
+      uint32_t retries = 2,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::seconds(10))) const;
   bool lldpNeighborsOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other

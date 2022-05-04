@@ -179,6 +179,7 @@ void AgentTest::waitForLinkStatus(
       folly::join(",", getPortNames(badPorts)));
   throw FbossError(msg);
 }
+
 void AgentTest::setupConfigFlag() {
   // Nothing to setup by default
 }
