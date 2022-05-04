@@ -29,6 +29,13 @@ struct TransceiverAccessParameter {
 
   TransceiverAccessParameter(uint8_t i2cAddress_, int offset_, int len_)
       : i2cAddress(i2cAddress_), offset(offset_), len(len_) {}
+
+  TransceiverAccessParameter(
+      uint8_t i2cAddress_,
+      int offset_,
+      int len_,
+      int page_)
+      : i2cAddress(i2cAddress_), offset(offset_), len(len_), page(page_) {}
 };
 
 class I2cError : public std::exception {
