@@ -32,7 +32,11 @@ class TestFsdbStreamClient : public FsdbStreamClient {
     cancel();
   }
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<void> serviceLoop() override {
+  folly::coro::Task<StreamT> setupStream() override {
+    co_return StreamT();
+  }
+
+  folly::coro::Task<void> serveStream(StreamT&& /* stream */) override {
     auto [gen, pipe] = folly::coro::AsyncPipe<int>::create();
     pipe.write(1);
     while (auto intgen = co_await gen.next()) {

@@ -31,7 +31,11 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
     cancel();
   }
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<void> serviceLoop() override {
+  folly::coro::Task<StreamT> setupStream() override {
+    co_return StreamT();
+  }
+
+  folly::coro::Task<void> serveStream(StreamT&& /* stream */) override {
     auto gen = createGenerator();
     generatorStart_.wait();
     while (auto pubUnit = co_await gen.next()) {

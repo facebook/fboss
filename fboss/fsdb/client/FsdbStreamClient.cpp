@@ -124,7 +124,8 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
     serviceLoopRunning_.store(false);
   };
   try {
-    co_await serviceLoop();
+    auto stream = co_await setupStream();
+    co_await serveStream(std::move(stream));
   } catch (const folly::OperationCancelled&) {
     XLOG(DBG2) << "Service loop cancelled :" << clientId();
   } catch (const fsdb::FsdbException& ex) {

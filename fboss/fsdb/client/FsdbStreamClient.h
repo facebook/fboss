@@ -6,6 +6,11 @@
 #include <folly/SocketAddress.h>
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <thrift/lib/cpp2/async/ClientBufferedStream.h>
+#include <thrift/lib/cpp2/async/Sink.h>
+#ifndef IS_OSS
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#endif
 
 #include <atomic>
 #include <functional>
@@ -58,18 +63,33 @@ class FsdbStreamClient : public folly::AsyncTimeout {
     return counterPrefix_;
   }
 
+#ifndef IS_OSS
+  template <typename PubUnit>
+  using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;
+  template <typename SubUnit>
+  using SubStreamT = apache::thrift::ClientBufferedStream<SubUnit>;
+  using StatePubStreamT = PubStreamT<OperState>;
+  using DeltaPubStreamT = PubStreamT<OperDelta>;
+  using StateSubStreamT = SubStreamT<OperState>;
+  using DeltaSubStreamT = SubStreamT<OperDelta>;
+
+  using StreamT = std::variant<
+      StatePubStreamT,
+      DeltaPubStreamT,
+      StateSubStreamT,
+      DeltaSubStreamT>;
+#endif
+
  private:
   void createClient(const std::string& ip, uint16_t port);
   void resetClient();
   void connectToServer(const std::string& ip, uint16_t port);
-#if FOLLY_HAS_COROUTINES
-  folly::coro::Task<void> serviceLoopWrapper();
-#endif
-
   void timeoutExpired() noexcept override;
 
-#if FOLLY_HAS_COROUTINES
-  virtual folly::coro::Task<void> serviceLoop() = 0;
+#if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
+  folly::coro::Task<void> serviceLoopWrapper();
+  virtual folly::coro::Task<StreamT> setupStream() = 0;
+  virtual folly::coro::Task<void> serveStream(StreamT&& stream) = 0;
 #endif
 
  protected:
