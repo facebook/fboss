@@ -498,7 +498,7 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
     NextHopThrift nexthop;
 
     nexthop.mplsAction() = MplsAction();
-    *nexthop.mplsAction()->action_ref() = MplsActionCode::PHP;
+    *nexthop.mplsAction()->action() = MplsActionCode::PHP;
     if (ips0[i].isV6()) {
       nexthop.address()->addr()->append(
           reinterpret_cast<const char*>(ips0[i].bytes()),

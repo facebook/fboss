@@ -212,8 +212,8 @@ class BcmLabelSwitchActionTest : public BcmTest {
     LabelForwardingInformationBase::resolve(entry);
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     MplsRoute route;
-    route.topLabel_ref() = entry->getID().value();
-    route.nextHops_ref() =
+    route.topLabel() = entry->getID().value();
+    route.nextHops() =
         util::fromRouteNextHopSet(entry->getForwardInfo().getNextHopSet());
     updater.addRoute(entry->getBestEntry().first, route);
     updater.program();

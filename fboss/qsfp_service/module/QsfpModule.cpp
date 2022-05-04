@@ -80,10 +80,10 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
   CHECK_GE(offset, 0);
   CHECK_LE(offset, 4);
-  flags.warn_ref()->low_ref() = (*data & (1 << offset));
-  flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
-  flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
-  flags.alarm_ref()->high_ref() = (*data & (1 << ++offset));
+  flags.warn()->low() = (*data & (1 << offset));
+  flags.warn()->high() = (*data & (1 << ++offset));
+  flags.alarm()->low() = (*data & (1 << ++offset));
+  flags.alarm()->high() = (*data & (1 << ++offset));
 
   return flags;
 }
@@ -195,9 +195,9 @@ bool QsfpModule::detectPresenceLocked() {
     // we need to fill in the essential info before parsing the DOM data
     // which may not be available.
     TransceiverInfo info;
-    info.present_ref() = present_;
-    info.transceiver_ref() = type();
-    info.port_ref() = qsfpImpl_->getNum();
+    info.present() = present_;
+    info.transceiver() = type();
+    info.port() = qsfpImpl_->getNum();
     *info_.wlock() = info;
   }
   return currentQsfpStatus;
@@ -205,53 +205,53 @@ bool QsfpModule::detectPresenceLocked() {
 
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   TransceiverInfo info;
-  info.present_ref() = present_;
-  info.transceiver_ref() = type();
-  info.port_ref() = qsfpImpl_->getNum();
+  info.present() = present_;
+  info.transceiver() = type();
+  info.port() = qsfpImpl_->getNum();
   if (present_) {
     auto nMediaLanes = numMediaLanes();
-    info.mediaLaneSignals_ref() = std::vector<MediaLaneSignals>(nMediaLanes);
-    if (!getSignalsPerMediaLane(*info.mediaLaneSignals_ref())) {
-      info.mediaLaneSignals_ref()->clear();
+    info.mediaLaneSignals() = std::vector<MediaLaneSignals>(nMediaLanes);
+    if (!getSignalsPerMediaLane(*info.mediaLaneSignals())) {
+      info.mediaLaneSignals()->clear();
     } else {
-      cacheMediaLaneSignals(*info.mediaLaneSignals_ref());
+      cacheMediaLaneSignals(*info.mediaLaneSignals());
     }
 
-    info.sensor_ref() = getSensorInfo();
-    info.vendor_ref() = getVendorInfo();
-    info.cable_ref() = getCableInfo();
+    info.sensor() = getSensorInfo();
+    info.vendor() = getVendorInfo();
+    info.cable() = getCableInfo();
     if (auto threshold = getThresholdInfo()) {
-      info.thresholds_ref() = *threshold;
+      info.thresholds() = *threshold;
     }
-    info.settings_ref() = getTransceiverSettingsInfo();
+    info.settings() = getTransceiverSettingsInfo();
 
     for (int i = 0; i < nMediaLanes; i++) {
       Channel chan;
-      chan.channel_ref() = i;
-      info.channels_ref()->push_back(chan);
+      chan.channel() = i;
+      info.channels()->push_back(chan);
     }
-    if (!getSensorsPerChanInfo(*info.channels_ref())) {
-      info.channels_ref()->clear();
+    if (!getSensorsPerChanInfo(*info.channels())) {
+      info.channels()->clear();
     }
 
-    info.hostLaneSignals_ref() = std::vector<HostLaneSignals>(numHostLanes());
-    if (!getSignalsPerHostLane(*info.hostLaneSignals_ref())) {
-      info.hostLaneSignals_ref()->clear();
+    info.hostLaneSignals() = std::vector<HostLaneSignals>(numHostLanes());
+    if (!getSignalsPerHostLane(*info.hostLaneSignals())) {
+      info.hostLaneSignals()->clear();
     }
 
     if (auto transceiverStats = getTransceiverStats()) {
-      info.stats_ref() = *transceiverStats;
+      info.stats() = *transceiverStats;
     }
 
-    info.signalFlag_ref() = getSignalFlagInfo();
-    cacheSignalFlags(*info.signalFlag_ref());
+    info.signalFlag() = getSignalFlagInfo();
+    cacheSignalFlags(*info.signalFlag());
 
     if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
-      info.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
+      info.extendedSpecificationComplianceCode() = *extSpecCompliance;
     }
-    info.transceiverManagementInterface_ref() = managementInterface();
+    info.transceiverManagementInterface() = managementInterface();
 
-    info.identifier_ref() = getIdentifier();
+    info.identifier() = getIdentifier();
     auto currentStatus = getModuleStatus();
     // Use the input `moduleStatus` as the reference to update the
     // `cmisStateChanged` for currentStatus, which will be used in the
@@ -267,28 +267,28 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
 
     if (auto vdmStats = getVdmDiagsStatsInfo()) {
-      info.vdmDiagsStats_ref() = *vdmStats;
+      info.vdmDiagsStats() = *vdmStats;
 
       // If the StatsPublisher thread has triggered the VDM data capture then
       // capure this data into transceiverInfo cache
       if (captureVdmStats_) {
-        info.vdmDiagsStatsForOds_ref() = *vdmStats;
+        info.vdmDiagsStatsForOds() = *vdmStats;
       } else {
         // If the VDM is not updated in this cycle then retain older values
         auto cachedTcvrInfo = getTransceiverInfo();
-        if (cachedTcvrInfo.vdmDiagsStatsForOds_ref()) {
-          info.vdmDiagsStatsForOds_ref() =
-              cachedTcvrInfo.vdmDiagsStatsForOds_ref().value();
+        if (cachedTcvrInfo.vdmDiagsStatsForOds()) {
+          info.vdmDiagsStatsForOds() =
+              cachedTcvrInfo.vdmDiagsStatsForOds().value();
         }
       }
       captureVdmStats_ = false;
     }
 
-    info.timeCollected_ref() = lastRefreshTime_;
-    info.remediationCounter_ref() = numRemediation_;
-    info.eepromCsumValid_ref() = verifyEepromChecksums();
+    info.timeCollected() = lastRefreshTime_;
+    info.remediationCounter() = numRemediation_;
+    info.eepromCsumValid() = verifyEepromChecksums();
 
-    info.moduleMediaInterface_ref() = getModuleMediaInterface();
+    info.moduleMediaInterface() = getModuleMediaInterface();
   }
 
   phy::LinkSnapshot snapshot;
@@ -322,10 +322,10 @@ bool QsfpModule::safeToCustomize() const {
   bool anyEnabled{false};
   for (const auto& port : ports_) {
     const auto& status = port.second;
-    if (*status.up_ref()) {
+    if (*status.up()) {
       return false;
     }
-    anyEnabled = anyEnabled || *status.enabled_ref();
+    anyEnabled = anyEnabled || *status.enabled();
   }
 
   // Only return safe if at least one port is enabled
@@ -366,8 +366,8 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   for (const auto& port : ports_) {
     const auto& status = port.second;
-    auto newSpeed = cfg::PortSpeed(*status.speedMbps_ref());
-    if (!(*status.enabled_ref()) || speed == newSpeed) {
+    auto newSpeed = cfg::PortSpeed(*status.speedMbps());
+    if (!(*status.enabled()) || speed == newSpeed) {
       continue;
     }
 
@@ -382,14 +382,10 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
 }
 
 void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
-  signalFlagCache_.txLos_ref() =
-      *signalflag.txLos_ref() | *signalFlagCache_.txLos_ref();
-  signalFlagCache_.rxLos_ref() =
-      *signalflag.rxLos_ref() | *signalFlagCache_.rxLos_ref();
-  signalFlagCache_.txLol_ref() =
-      *signalflag.txLol_ref() | *signalFlagCache_.txLol_ref();
-  signalFlagCache_.rxLol_ref() =
-      *signalflag.rxLol_ref() | *signalFlagCache_.rxLol_ref();
+  signalFlagCache_.txLos() = *signalflag.txLos() | *signalFlagCache_.txLos();
+  signalFlagCache_.rxLos() = *signalflag.rxLos() | *signalFlagCache_.rxLos();
+  signalFlagCache_.txLol() = *signalflag.txLol() | *signalFlagCache_.txLol();
+  signalFlagCache_.rxLol() = *signalflag.rxLol() | *signalFlagCache_.rxLol();
 }
 
 void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {
@@ -404,16 +400,15 @@ void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {
 void QsfpModule::cacheMediaLaneSignals(
     const std::vector<MediaLaneSignals>& mediaSignals) {
   for (const auto& signal : mediaSignals) {
-    if (mediaSignalsCache_.find(*signal.lane_ref()) ==
-        mediaSignalsCache_.end()) {
+    if (mediaSignalsCache_.find(*signal.lane()) == mediaSignalsCache_.end()) {
       // Initialize all lanes to false if an entry in the cache doesn't exist
       // yet
-      mediaSignalsCache_[*signal.lane_ref()].lane_ref() = *signal.lane_ref();
-      mediaSignalsCache_[*signal.lane_ref()].txFault_ref() = false;
+      mediaSignalsCache_[*signal.lane()].lane() = *signal.lane();
+      mediaSignalsCache_[*signal.lane()].txFault() = false;
     }
-    if (auto txFault = signal.txFault_ref()) {
+    if (auto txFault = signal.txFault()) {
       if (*txFault) {
-        mediaSignalsCache_[*signal.lane_ref()].txFault_ref() = true;
+        mediaSignalsCache_[*signal.lane()].txFault() = true;
       }
     }
   }
@@ -469,17 +464,17 @@ void QsfpModule::transceiverPortsChanged(
 
     for (auto& it : ports) {
       CHECK(
-          TransceiverID(*it.second.transceiverIdx_ref()
-                             .value_or({})
-                             .transceiverId_ref()) == getID());
+          TransceiverID(
+              *it.second.transceiverIdx().value_or({}).transceiverId()) ==
+          getID());
 
       // Record this port in the changed port list if:
       //  - The existing port status is empty (first time sync from agent)
       //  - The new port status synced from Agent is different from existing
       //  port status
-      if (ports_[it.first].profileID_ref()->empty() ||
-          (*ports_[it.first].up_ref() != *it.second.up_ref())) {
-        if (*ports_[it.first].up_ref() != *it.second.up_ref()) {
+      if (ports_[it.first].profileID()->empty() ||
+          (*ports_[it.first].up() != *it.second.up())) {
+        if (*ports_[it.first].up() != *it.second.up()) {
           anyStateChanged = true;
         }
         changedPortList.push_back(it.first);
@@ -517,7 +512,7 @@ void QsfpModule::transceiverPortsChanged(
       // instance
       uint32_t modulePortId = getSystemPortToModulePortIdLocked(it);
 
-      if (*ports_[it].up_ref()) {
+      if (*ports_[it].up()) {
         // Generate Port up event
         if (modulePortId < portStateMachines_.size()) {
           portStateMachines_[modulePortId].process_event(
@@ -628,7 +623,7 @@ void QsfpModule::refreshLocked() {
     // We found that some module did not enable Rx output squelch by default,
     // which introduced some difficulty to bring link back up when flapped.
     // Here we ensure that Rx output squelch is always enabled.
-    if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
+    if (auto hostLaneSettings = settings.hostLaneSettings()) {
       ensureRxOutputSquelchEnabled(*hostLaneSettings);
     }
   }
@@ -662,15 +657,15 @@ void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
 
   auto clearLaneStats = [](std::vector<phy::PrbsLaneStats>& laneStats) {
     for (auto& laneStat : laneStats) {
-      laneStat.maxBer_ref() = 0;
-      laneStat.numLossOfLock_ref() = 0;
-      laneStat.timeSinceLastClear_ref() = std::time(nullptr);
+      laneStat.maxBer() = 0;
+      laneStat.numLossOfLock() = 0;
+      laneStat.timeSinceLastClear() = std::time(nullptr);
     }
   };
   if (side == phy::Side::SYSTEM) {
-    clearLaneStats(*systemPrbs->laneStats_ref());
+    clearLaneStats(*systemPrbs->laneStats());
   } else {
-    clearLaneStats(*linePrbs->laneStats_ref());
+    clearLaneStats(*linePrbs->laneStats());
   }
 }
 
@@ -679,49 +674,45 @@ void QsfpModule::updatePrbsStats() {
   auto linePrbs = linePrbsStats_.wlock();
 
   // Initialize the stats if they didn't exist before
-  if (!(*systemPrbs->laneStats_ref()).size()) {
-    systemPrbs->portId_ref() = getID();
-    systemPrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
-    systemPrbs->laneStats_ref() =
-        std::vector<phy::PrbsLaneStats>(numHostLanes());
+  if (!(*systemPrbs->laneStats()).size()) {
+    systemPrbs->portId() = getID();
+    systemPrbs->component() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
+    systemPrbs->laneStats() = std::vector<phy::PrbsLaneStats>(numHostLanes());
   }
-  if (!(*linePrbs->laneStats_ref()).size()) {
-    linePrbs->portId_ref() = getID();
-    linePrbs->component_ref() = phy::PrbsComponent::TRANSCEIVER_LINE;
-    linePrbs->laneStats_ref() =
-        std::vector<phy::PrbsLaneStats>(numMediaLanes());
+  if (!(*linePrbs->laneStats()).size()) {
+    linePrbs->portId() = getID();
+    linePrbs->component() = phy::PrbsComponent::TRANSCEIVER_LINE;
+    linePrbs->laneStats() = std::vector<phy::PrbsLaneStats>(numMediaLanes());
   }
 
   auto updatePrbsStatEntry = [](const phy::PrbsStats& oldStat,
                                 phy::PrbsStats& newStat) {
-    for (const auto& oldLane : *oldStat.laneStats_ref()) {
-      for (auto& newLane : *newStat.laneStats_ref()) {
-        if (*newLane.laneId_ref() != *oldLane.laneId_ref()) {
+    for (const auto& oldLane : *oldStat.laneStats()) {
+      for (auto& newLane : *newStat.laneStats()) {
+        if (*newLane.laneId() != *oldLane.laneId()) {
           continue;
         }
         // Update numLossOfLock
-        if (!(*newLane.locked_ref()) && *oldLane.locked_ref()) {
-          newLane.numLossOfLock_ref() = *oldLane.numLossOfLock_ref() + 1;
+        if (!(*newLane.locked()) && *oldLane.locked()) {
+          newLane.numLossOfLock() = *oldLane.numLossOfLock() + 1;
         } else {
-          newLane.numLossOfLock_ref() = *oldLane.numLossOfLock_ref();
+          newLane.numLossOfLock() = *oldLane.numLossOfLock();
         }
         // Update maxBer only if there is a lock
-        if (*newLane.locked_ref() &&
-            *newLane.ber_ref() > *oldLane.maxBer_ref()) {
-          newLane.maxBer_ref() = *newLane.ber_ref();
+        if (*newLane.locked() && *newLane.ber() > *oldLane.maxBer()) {
+          newLane.maxBer() = *newLane.ber();
         } else {
-          newLane.maxBer_ref() = *oldLane.maxBer_ref();
+          newLane.maxBer() = *oldLane.maxBer();
         }
         // Update timeSinceLastLocked
         // If previously there was no lock and now there is, update
         // timeSinceLastLocked to now
-        if (!(*oldLane.locked_ref()) && *newLane.locked_ref()) {
-          newLane.timeSinceLastLocked_ref() = *newStat.timeCollected_ref();
+        if (!(*oldLane.locked()) && *newLane.locked()) {
+          newLane.timeSinceLastLocked() = *newStat.timeCollected();
         } else {
-          newLane.timeSinceLastLocked_ref() =
-              *oldLane.timeSinceLastLocked_ref();
+          newLane.timeSinceLastLocked() = *oldLane.timeSinceLastLocked();
         }
-        newLane.timeSinceLastClear_ref() = *oldLane.timeSinceLastClear_ref();
+        newLane.timeSinceLastClear() = *oldLane.timeSinceLastClear();
       }
     }
   };
@@ -815,12 +806,12 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl_ref());
+    setPowerOverrideIfSupported(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setCdrIfSupported(speed, *settings.cdrTx_ref(), *settings.cdrRx_ref());
+      setCdrIfSupported(speed, *settings.cdrTx(), *settings.cdrRx());
       setRateSelectIfSupported(
-          speed, *settings.rateSelect_ref(), *settings.rateSelectSetting_ref());
+          speed, *settings.rateSelect(), *settings.rateSelectSetting());
     }
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
@@ -865,15 +856,15 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  auto length = param.length_ref().has_value() ? *(param.length_ref()) : 1;
+  auto length = param.length().has_value() ? *(param.length()) : 1;
   auto iobuf = folly::IOBuf::createCombined(length);
   if (!present_) {
     return iobuf;
   }
   try {
-    auto offset = *(param.offset_ref());
-    if (param.page_ref().has_value()) {
-      uint8_t page = *(param.page_ref());
+    auto offset = *(param.offset());
+    if (param.page().has_value()) {
+      uint8_t page = *(param.page());
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
@@ -924,9 +915,9 @@ bool QsfpModule::writeTransceiverLocked(
     return false;
   }
   try {
-    auto offset = *(param.offset_ref());
-    if (param.page_ref().has_value()) {
-      uint8_t page = *(param.page_ref());
+    auto offset = *(param.offset());
+    if (param.page().has_value()) {
+      uint8_t page = *(param.page());
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
@@ -947,16 +938,16 @@ SignalFlags QsfpModule::readAndClearCachedSignalFlags() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   SignalFlags signalFlag;
   // Store the cached data before clearing it.
-  signalFlag.txLos_ref() = *signalFlagCache_.txLos_ref();
-  signalFlag.rxLos_ref() = *signalFlagCache_.rxLos_ref();
-  signalFlag.txLol_ref() = *signalFlagCache_.txLol_ref();
-  signalFlag.rxLol_ref() = *signalFlagCache_.rxLol_ref();
+  signalFlag.txLos() = *signalFlagCache_.txLos();
+  signalFlag.rxLos() = *signalFlagCache_.rxLos();
+  signalFlag.txLol() = *signalFlagCache_.txLol();
+  signalFlag.rxLol() = *signalFlagCache_.rxLol();
 
   // Clear the cached data after read.
-  signalFlagCache_.txLos_ref() = 0;
-  signalFlagCache_.rxLos_ref() = 0;
-  signalFlagCache_.txLol_ref() = 0;
-  signalFlagCache_.rxLol_ref() = 0;
+  signalFlagCache_.txLos() = 0;
+  signalFlagCache_.rxLos() = 0;
+  signalFlagCache_.txLol() = 0;
+  signalFlagCache_.rxLol() = 0;
   return signalFlag;
 }
 
@@ -968,7 +959,7 @@ QsfpModule::readAndClearCachedMediaLaneSignals() {
 
   // Clear the cached data after read.
   for (auto& signal : mediaSignalsCache_) {
-    signal.second.txFault_ref() = false;
+    signal.second.txFault() = false;
   }
   return mediaSignals;
 }
@@ -1179,8 +1170,8 @@ void QsfpModule::checkAgentModulePortSyncup() {
 
     // If the module port status has been synced up from agent then based
     // on port up/down status, raise the port status machine event
-    if (!port.second.profileID_ref()->empty()) {
-      if (*port.second.up_ref()) {
+    if (!port.second.profileID()->empty()) {
+      if (*port.second.up()) {
         // Raise port up event to PSM
         portStateMachines_[modulePortId].process_event(
             MODULE_PORT_EVENT_AGENT_PORT_UP);
@@ -1298,7 +1289,7 @@ void QsfpModule::programTransceiver(
       // We found that some module did not enable Rx output squelch by default,
       // which introduced some difficulty to bring link back up when flapped.
       // Here we ensure that Rx output squelch is always enabled.
-      if (auto hostLaneSettings = settings.hostLaneSettings_ref()) {
+      if (auto hostLaneSettings = settings.hostLaneSettings()) {
         ensureRxOutputSquelchEnabled(*hostLaneSettings);
       }
 

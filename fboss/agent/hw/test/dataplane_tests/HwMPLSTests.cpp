@@ -190,8 +190,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
   void addRoute(LabelID label, LabelNextHopEntry& nexthop) {
     auto updater = getRouteUpdater();
     MplsRoute route;
-    route.topLabel_ref() = label;
-    route.nextHops_ref() = util::fromRouteNextHopSet(nexthop.getNextHopSet());
+    route.topLabel() = label;
+    route.nextHops() = util::fromRouteNextHopSet(nexthop.getNextHopSet());
     updater->addRoute(ClientID::BGPD, route);
     updater->program();
   }

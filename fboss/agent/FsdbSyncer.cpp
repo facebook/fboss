@@ -80,8 +80,8 @@ void FsdbSyncer::statsUpdated(const AgentStats& stats) {
 
 void FsdbSyncer::publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas) {
   fsdb::OperDelta delta;
-  delta.changes_ref() = std::move(deltas);
-  delta.protocol_ref() = fsdb::OperProtocol::BINARY;
+  delta.changes() = std::move(deltas);
+  delta.protocol() = fsdb::OperProtocol::BINARY;
   fsdbPubSubMgr_->publishState(std::move(delta));
 }
 

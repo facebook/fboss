@@ -531,8 +531,8 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
   }
 
   MplsRoute route;
-  route.topLabel_ref() = topLabel_.value();
-  route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+  route.topLabel() = topLabel_.value();
+  route.nextHops() = util::fromRouteNextHopSet(nhops);
   updater->addRoute(ClientID(0), route);
   updater->program();
 }

@@ -3077,8 +3077,8 @@ void setModulePrbs(
     std::vector<PortID> portList,
     bool start) {
   phy::PortPrbsState prbsState;
-  prbsState.enabled_ref() = start;
-  prbsState.polynominal_ref() = 131;
+  prbsState.enabled() = start;
+  prbsState.polynominal() = 131;
   auto client = getQsfpClient(evb);
   for (auto port : portList) {
     client->sync_setPortPrbs(
@@ -3101,15 +3101,13 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
 
     printf(
         "PRBS time collected: %s\n",
-        getLocalTime(*prbsStats.timeCollected_ref()).c_str());
-    for (auto laneStats : prbsStats.laneStats_ref().value()) {
-      printf("Lane: %d\n", laneStats.laneId_ref().value());
-      printf(
-          "  Locked: %s\n",
-          (laneStats.locked_ref().value() ? "True" : "False"));
-      printf("  BER: %e\n", laneStats.ber_ref().value());
-      printf("  Max BER: %e\n", laneStats.maxBer_ref().value());
-      printf("  Num Loss of lock: %d\n", laneStats.numLossOfLock_ref().value());
+        getLocalTime(*prbsStats.timeCollected()).c_str());
+    for (auto laneStats : prbsStats.laneStats().value()) {
+      printf("Lane: %d\n", laneStats.laneId().value());
+      printf("  Locked: %s\n", (laneStats.locked().value() ? "True" : "False"));
+      printf("  BER: %e\n", laneStats.ber().value());
+      printf("  Max BER: %e\n", laneStats.maxBer().value());
+      printf("  Num Loss of lock: %d\n", laneStats.numLossOfLock().value());
     }
   }
 }

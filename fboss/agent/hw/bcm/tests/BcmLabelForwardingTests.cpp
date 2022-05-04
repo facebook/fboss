@@ -29,8 +29,8 @@ class BcmLabelForwardingTests : public BcmTest {
   void programLabel(ClientID client, Label label, LabelNextHopSet nhops) {
     auto updater = getRouteUpdater();
     MplsRoute route;
-    route.topLabel_ref() = label.value();
-    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    route.topLabel() = label.value();
+    route.nextHops() = util::fromRouteNextHopSet(nhops);
     updater->addRoute(client, std::move(route));
     updater->program();
   }

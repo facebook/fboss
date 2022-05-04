@@ -79,8 +79,8 @@ void RouteUpdateWrapper::addRoute(
     MplsLabel label,
     RouteNextHopEntry entry) {
   MplsRoute tempRoute;
-  tempRoute.topLabel_ref() = label;
-  tempRoute.nextHops_ref() = util::fromRouteNextHopSet(entry.getNextHopSet());
+  tempRoute.topLabel() = label;
+  tempRoute.nextHops() = util::fromRouteNextHopSet(entry.getNextHopSet());
   addRoute(clientId, std::move(tempRoute));
 }
 

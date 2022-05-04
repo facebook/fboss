@@ -97,8 +97,8 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
   void setupLabelRibRoute(LabelNextHopSet nhops) {
     auto updater = getRouteUpdater();
     MplsRoute route;
-    route.topLabel_ref() = kTopLabel.value();
-    route.nextHops_ref() = util::fromRouteNextHopSet(nhops);
+    route.topLabel() = kTopLabel.value();
+    route.nextHops() = util::fromRouteNextHopSet(nhops);
     updater->addRoute(ClientID(0), std::move(route));
     updater->program();
   }

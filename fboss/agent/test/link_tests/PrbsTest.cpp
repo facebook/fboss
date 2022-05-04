@@ -64,12 +64,12 @@ class PrbsTest : public LinkTest {
 
   void runTest() {
     phy::PortPrbsState enabledState;
-    enabledState.enabled_ref() = true;
-    enabledState.polynominal_ref() = static_cast<int>(Polynomial);
+    enabledState.enabled() = true;
+    enabledState.polynominal() = static_cast<int>(Polynomial);
 
     phy::PortPrbsState disabledState;
-    disabledState.enabled_ref() = false;
-    disabledState.polynominal_ref() = static_cast<int>(Polynomial);
+    disabledState.enabled() = false;
+    disabledState.polynominal() = static_cast<int>(Polynomial);
 
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
@@ -440,7 +440,7 @@ class TransceiverPrbsTest
 
         auto checkValidMedia = [this](facebook::fboss::TransceiverID tcvrID) {
           if (auto tcvrInfo = this->platform()->getQsfpCache()->getIf(tcvrID)) {
-            if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface_ref()) {
+            if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface()) {
               return *mediaInterface == Media;
             }
           }
