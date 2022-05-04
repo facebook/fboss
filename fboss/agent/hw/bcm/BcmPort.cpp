@@ -149,7 +149,11 @@ void fec_stat_accumulate(
 
   rv = bcm_port_phy_control_get(unit, port, type, &count);
   if (BCM_FAILURE(rv)) {
-    count = 0;
+    return;
+  }
+
+  if (*accumulator == hardware_stats_constants::STAT_UNINITIALIZED()) {
+    *accumulator = 0;
   }
 
   COMPILER_64_ADD_32(*accumulator, count);
