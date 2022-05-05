@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/gen/Base.h>
@@ -44,9 +45,22 @@ void AgentHwTest::setupConfigFlag() {
 void AgentHwTest::SetUp() {
   AgentTest::SetUp();
   // TODO: handle warmboot
-  // TODO: set port preemphasis 0 so cabled ports do not come up
+  // Set preempahsis to 0, so ports state can be manipulated by just setting
+  // loopback mode (lopbackMode::NONE == down), loopbackMode::{MAC, PHY} == up)
+  sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
+    std::shared_ptr<SwitchState> newState{state};
+    for (auto& port : *newState->getPorts()) {
+      auto newPort = port->modify(&newState);
+      auto pinConfigs = newPort->getPinConfigs();
+      for (auto& pin : pinConfigs) {
+        pin.tx() = phy::TxSettings();
+      }
+      newPort->resetPinConfigs(pinConfigs);
+    }
+    return newState;
+  });
+
   auto config = initialConfig();
-  sw()->applyConfig("Initial config with ports up", config);
   std::vector<PortID> enabledPorts =
       folly::gen::from(*config.ports()) |
       folly::gen::filter([](const auto& port) {
@@ -56,6 +70,11 @@ void AgentHwTest::SetUp() {
       folly::gen::map(
           [](const auto& port) { return PortID(*port.logicalID()); }) |
       folly::gen::as();
+
+  // Make sure ports are down from initial config applied in setupConfigFlag
+  waitForLinkStatus(enabledPorts, false);
+  // Reapply initalConfig to bring loopback ports up
+  sw()->applyConfig("Initial config with ports up", config);
   waitForLinkStatus(enabledPorts, true);
 }
 } // namespace facebook::fboss

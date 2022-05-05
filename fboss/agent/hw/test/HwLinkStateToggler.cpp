@@ -110,6 +110,7 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   for (auto& port : *cfg.ports()) {
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
+    // TODO: use sw port's pinConfigs to set this
     setPortPreemphasis(
         hwEnsemble_->getProgrammedState()->getPorts()->getPort(
             PortID(*port.logicalID())),

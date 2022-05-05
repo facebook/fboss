@@ -395,7 +395,7 @@ void HwSwitchEnsemble::stopObservers() {
 
 void HwSwitchEnsemble::gracefulExit() {
   if (thriftThread_) {
-    // Join thrif thread. Thrift calls will fail post
+    // Join thrift thread. Thrift calls will fail post
     // warm boot exit sequence initiated below
     thriftThread_->join();
   }

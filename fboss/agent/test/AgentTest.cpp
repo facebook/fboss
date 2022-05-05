@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentTest.h"
 #include <folly/gen/Base.h>
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
