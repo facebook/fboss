@@ -282,7 +282,8 @@ QsfpCache* SaiPlatform::getQsfpCache() const {
 
 PortID SaiPlatform::findPortID(
     cfg::PortSpeed speed,
-    std::vector<uint32_t> lanes) const {
+    std::vector<uint32_t> lanes,
+    PortSaiId /*portSaiId*/) const {
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
     if (!platformPort->getProfileIDBySpeedIf(speed) ||

@@ -150,7 +150,8 @@ class SaiPortManager {
   std::shared_ptr<PortMap> reconstructPortsFromStore() const;
 
   std::shared_ptr<Port> swPortFromAttributes(
-      SaiPortTraits::CreateAttributes attributees) const;
+      SaiPortTraits::CreateAttributes attributees,
+      PortSaiId portSaiId) const;
 
   void updateStats(PortID portID, bool updateWatermarks = false);
 

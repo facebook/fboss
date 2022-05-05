@@ -407,7 +407,7 @@ TEST_F(PortManagerTest, swPortFromAttributes) {
   auto& portMgr = saiManagerTable->portManager();
   portMgr.addPort(swPort);
   auto attrs = portMgr.attributesFromSwPort(swPort);
-  auto newPort = portMgr.swPortFromAttributes(attrs);
+  auto newPort = portMgr.swPortFromAttributes(attrs, PortSaiId(1));
   EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
 }
 

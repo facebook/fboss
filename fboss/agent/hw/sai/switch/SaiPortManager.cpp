@@ -537,10 +537,11 @@ bool SaiPortManager::createOnlyAttributeChanged(
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
-    SaiPortTraits::CreateAttributes attributes) const {
+    SaiPortTraits::CreateAttributes attributes,
+    PortSaiId portSaiId) const {
   auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
   auto lanes = GET_ATTR(Port, HwLaneList, attributes);
-  auto portID = platform_->findPortID(speed, lanes);
+  auto portID = platform_->findPortID(speed, lanes, portSaiId);
   auto platformPort = platform_->getPort(portID);
   auto port = std::make_shared<Port>(portID, folly::to<std::string>(portID));
 
@@ -756,7 +757,8 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
   auto portMap = std::make_shared<PortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
-    auto port = swPortFromAttributes(saiPort->attributes());
+    auto port =
+        swPortFromAttributes(saiPort->attributes(), saiPort->adapterKey());
     portMap->addNode(port);
   }
   return portMap;

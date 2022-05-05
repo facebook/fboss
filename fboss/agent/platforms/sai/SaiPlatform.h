@@ -21,6 +21,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <memory>
 #include <vector>
@@ -76,7 +77,10 @@ class SaiPlatform : public Platform, public StateObserver {
     return masterLogicalPortIds_;
   }
 
-  PortID findPortID(cfg::PortSpeed speed, std::vector<uint32_t> lanes) const;
+  virtual PortID findPortID(
+      cfg::PortSpeed speed,
+      std::vector<uint32_t> lanes,
+      PortSaiId portSaiId) const;
 
   bool supportsAddRemovePort() const override {
     return true;
@@ -125,12 +129,12 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
   virtual void updatePorts(const StateDelta& delta);
+  std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
   void updateQsfpCache(const StateDelta& delta);
-  std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
   std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
   // List of controlling ports on platform. Each of these then
