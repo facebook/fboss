@@ -685,6 +685,23 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   int bcm_stat_group_destroy(int unit, uint32 stat_counter_id) override;
 
+  int bcm_stat_group_create(
+      int unit,
+      bcm_stat_object_t object,
+      bcm_stat_group_mode_t group_mode,
+      uint32* stat_counter_id,
+      uint32* num_entries) override;
+
+  int bcm_l3_ingress_stat_attach(
+      int unit,
+      bcm_if_t intf_id,
+      uint32 stat_counter_id) override;
+
+  int bcm_l3_egress_stat_attach(
+      int unit,
+      bcm_if_t intf_id,
+      uint32 stat_counter_id) override;
+
   int bcm_stat_group_mode_id_create(
       int unit,
       uint32 flags,

@@ -1781,6 +1781,23 @@ int __real_bcm_stat_custom_group_create(
 
 int __real_bcm_stat_group_destroy(int unit, uint32 stat_counter_id);
 
+int __real_bcm_stat_group_create(
+    int unit,
+    bcm_stat_object_t object,
+    bcm_stat_group_mode_t group_mode,
+    uint32* stat_counter_id,
+    uint32* num_entries);
+
+int __real_bcm_l3_ingress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id);
+
+int __real_bcm_l3_egress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id);
+
 int __real_bcm_stat_group_mode_id_create(
     int unit,
     uint32 flags,
@@ -4283,6 +4300,30 @@ int __wrap_bcm_stat_custom_group_create(
 
 int __wrap_bcm_stat_group_destroy(int unit, uint32 stat_counter_id) {
   CALL_WRAPPERS_RV(bcm_stat_group_destroy(unit, stat_counter_id));
+}
+
+int __wrap_bcm_stat_group_create(
+    int unit,
+    bcm_stat_object_t object,
+    bcm_stat_group_mode_t group_mode,
+    uint32* stat_counter_id,
+    uint32* num_entries) {
+  CALL_WRAPPERS_RV(bcm_stat_group_create(
+      unit, object, group_mode, stat_counter_id, num_entries));
+}
+
+int __wrap_bcm_l3_ingress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id) {
+  CALL_WRAPPERS_RV(bcm_l3_ingress_stat_attach(unit, intf_id, stat_counter_id));
+}
+
+int __wrap_bcm_l3_egress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id) {
+  CALL_WRAPPERS_RV(bcm_l3_egress_stat_attach(unit, intf_id, stat_counter_id));
 }
 
 int __wrap_bcm_stat_group_mode_id_create(

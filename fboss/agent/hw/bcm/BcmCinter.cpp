@@ -3903,6 +3903,59 @@ int BcmCinter::bcm_stat_group_destroy(int unit, uint32 stat_counter_id) {
   return 0;
 }
 
+int BcmCinter::bcm_stat_group_create(
+    int unit,
+    bcm_stat_object_t object,
+    bcm_stat_group_mode_t group_mode,
+    uint32* stat_counter_id,
+    uint32* /*num_entries*/) {
+  string statCounterVar = getNextStateCounterVar();
+  string numEntriesVar = "num_entries_" + statCounterVar;
+  vector<string> cintLines;
+  cintLines.push_back(to<string>("uint32 ", statCounterVar));
+  cintLines.push_back(to<string>("uint32 ", numEntriesVar));
+  { statCounterIdVars.wlock()->emplace(*stat_counter_id, statCounterVar); }
+  auto funcCint = wrapFunc(to<string>(
+      "bcm_stat_group_create(",
+      makeParamStr(
+          unit,
+          object,
+          group_mode,
+          to<string>("&", statCounterVar),
+          to<string>("&", numEntriesVar)),
+      ")"));
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(funcCint.begin()),
+      make_move_iterator(funcCint.end()));
+  writeCintLines(std::move(cintLines));
+  return 0;
+};
+
+int BcmCinter::bcm_l3_ingress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id) {
+  auto cint = wrapFunc(to<string>(
+      "bcm_l3_ingress_stat_attach(",
+      makeParamStr(unit, getCintVar(l3IntfIdVars, intf_id), stat_counter_id),
+      ")"));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_egress_stat_attach(
+    int unit,
+    bcm_if_t intf_id,
+    uint32 stat_counter_id) {
+  auto cint = wrapFunc(to<string>(
+      "bcm_l3_egress_stat_attach(",
+      makeParamStr(unit, getCintVar(l3IntfIdVars, intf_id), stat_counter_id),
+      ")"));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_stat_group_mode_id_create(
     int unit,
     uint32 flags,
