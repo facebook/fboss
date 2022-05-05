@@ -65,6 +65,19 @@ class IPv6Handler : public StateObserver {
       const folly::IPAddressV6& targetIP);
 
   /*
+   * Only tests use this API directly, otherwise should only be invoked
+   * internally in response to incoming packets
+   */
+  void sendNeighborAdvertisement(
+      VlanID vlan,
+      folly::MacAddress srcMac,
+      folly::IPAddressV6 srcIP,
+      folly::MacAddress dstMac,
+      folly::IPAddressV6 dstIP,
+      const std::optional<PortDescriptor>& portDescriptor =
+          std::optional<PortDescriptor>());
+
+  /*
    * These two static methods are for sending out an NDP solicitation.
    * The second version actually calls the first and is there
    * for the convenience of the caller. The first version
@@ -154,15 +167,6 @@ class IPv6Handler : public StateObserver {
       folly::io::Cursor cursor);
 
   bool checkNdpPacket(const ICMPHeaders& hdr, const RxPacket* pkt) const;
-
-  void sendNeighborAdvertisement(
-      VlanID vlan,
-      folly::MacAddress srcMac,
-      folly::IPAddressV6 srcIP,
-      folly::MacAddress dstMac,
-      folly::IPAddressV6 dstIP,
-      const std::optional<PortDescriptor>& portDescriptor =
-          std::optional<PortDescriptor>());
 
   void resolveDestAndHandlePacket(
       IPv6Hdr hdr,
