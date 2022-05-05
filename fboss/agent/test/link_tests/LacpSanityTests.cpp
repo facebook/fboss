@@ -42,7 +42,7 @@ class LacpTest : public LinkTest {
     }
     if (canWarmBoot) {
       XLOG(INFO) << "use previous running agent config for warmboot init";
-      FLAGS_config = platform()->getRunningConfigDumpFile();
+      FLAGS_config = getTestConfigPath();
       platform()->reloadConfig();
     }
   }
@@ -68,22 +68,7 @@ class LacpTest : public LinkTest {
                << getAggPorts()[1];
     addAggPort(getAggPorts()[1], ports2, &config, cfg::LacpPortRate::SLOW);
     sw()->applyConfig("Reconfigure", config);
-    dumpRunningConfig();
-  }
-
-  void dumpRunningConfig() {
-    // dump new running config, that would be picked up in warmboot init
-    cfg::AgentConfig testConfig;
-    utility::setPortToDefaultProfileIDMap(
-        std::make_shared<PortMap>(), platform());
-    testConfig.sw() = sw()->getConfig();
-    const auto& baseConfig = platform()->config();
-    testConfig.platform() = *baseConfig->thrift.platform();
-    auto newcfg = AgentConfig(
-        testConfig,
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            testConfig));
-    newcfg.dumpConfig(platform()->getRunningConfigDumpFile());
+    dumpRunningConfig(getTestConfigPath());
   }
 
   std::vector<AggregatePortID> getAggPorts() const {

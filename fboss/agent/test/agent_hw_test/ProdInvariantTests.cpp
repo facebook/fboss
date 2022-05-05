@@ -84,9 +84,7 @@ void ProdInvariantTest::setupConfigFlag() {
   auto newcfg = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
-  auto testConfigDir = platform()->getPersistentStateDir() + "/agent_test/";
-  auto newCfgFile = testConfigDir + "/agent_test.conf";
-  utilCreateDir(testConfigDir);
+  auto newCfgFile = getTestConfigPath();
   newcfg.dumpConfig(newCfgFile);
   FLAGS_config = newCfgFile;
   // reload config so that test config is loaded

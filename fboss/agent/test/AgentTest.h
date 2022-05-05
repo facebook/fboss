@@ -92,6 +92,16 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
     verifyAcrossWarmBoots([]() {}, verify, []() {}, []() {});
   }
 
+  std::string getAgentTestDir() const {
+    return platform()->getPersistentStateDir() + "/agent_test/";
+  }
+
+  std::string getTestConfigPath() const {
+    return getAgentTestDir() + "/agent_test.conf";
+  }
+
+  void dumpRunningConfig(const std::string& targetDir);
+
  private:
   template <typename AddrT>
   void resolveNeighbor(

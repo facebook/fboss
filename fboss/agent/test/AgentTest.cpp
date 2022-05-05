@@ -26,6 +26,7 @@ void AgentTest::setupAgent() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       initPlatform);
+  utilCreateDir(getAgentTestDir());
   setupConfigFlag();
   asyncInitThread_.reset(
       new std::thread([this] { AgentInitializer::initAgent(); }));
@@ -210,6 +211,17 @@ void AgentTest::assertNoInDiscards() {
     // Allow for a few rounds of stat collection
     sleep(1);
   }
+}
+
+void AgentTest::dumpRunningConfig(const std::string& targetDir) {
+  cfg::AgentConfig testConfig;
+  testConfig.sw() = sw()->getConfig();
+  const auto& baseConfig = platform()->config();
+  testConfig.platform() = *baseConfig->thrift.platform();
+  auto newcfg = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  newcfg.dumpConfig(targetDir);
 }
 
 AgentTest::~AgentTest() {}
