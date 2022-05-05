@@ -97,11 +97,24 @@ target_link_libraries(agent_test_lib
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(agent_hw_test_lib
+  fboss/agent/test/AgentHwTest.cpp
+)
+
+target_link_libraries(agent_hw_test_lib
+  agent_test_lib
+  main
+  fboss_agent
+  config_factory
+  fboss_config_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 add_library(multinode_tests
   fboss/agent/test/MultiNodeTest.cpp
   fboss/agent/test/MultiNodeLacpTests.cpp
   fboss/agent/test/MultiNodeLoadBalancerTests.cpp
-
 )
 
 target_link_libraries(multinode_tests
@@ -114,4 +127,3 @@ target_link_libraries(multinode_tests
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
-
