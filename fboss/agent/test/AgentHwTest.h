@@ -17,6 +17,7 @@ namespace facebook::fboss {
 class AgentHwTest : public AgentTest {
  public:
   void SetUp() override;
+  void TearDown() override;
 
   const std::vector<PortID>& masterLogicalPortIds() const {
     return masterLogicalPortIds_;
