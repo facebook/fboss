@@ -16,6 +16,8 @@ namespace facebook::fboss {
 // Base class for sw+hw integration tests that can run on single nodes
 class AgentHwTest : public AgentTest {
  public:
+  void SetUp() override;
+
   const std::vector<PortID>& masterLogicalPortIds() const {
     return masterLogicalPortIds_;
   }
