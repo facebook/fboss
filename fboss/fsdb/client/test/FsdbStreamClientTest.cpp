@@ -2,7 +2,6 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/Flags.h"
-#include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
@@ -14,7 +13,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace facebook::fboss::fsdb {
+namespace facebook::fboss::fsdb::test {
 
 class TestFsdbStreamClient : public FsdbStreamClient {
  public:
@@ -49,9 +48,11 @@ class TestFsdbStreamClient : public FsdbStreamClient {
     co_return;
   }
 #endif
-
   std::optional<FsdbStreamClient::State> lastStateUpdateSeen() const {
     return lastStateUpdateSeen_.load();
+  }
+  void markConnected() {
+    setState(State::CONNECTED);
   }
 
  private:
@@ -76,41 +77,24 @@ class StreamClientTest : public ::testing::Test {
       bool expectRunning,
       const std::vector<TestFsdbStreamClient*>& clients) const {
 #if FOLLY_HAS_COROUTINES
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(std::all_of(
-          clients.begin(),
-          clients.end(),
-          [expectRunning](const auto& streamClient) {
-            return streamClient->serviceLoopRunning() == expectRunning;
-          }));
-    });
-#endif
-  }
-  void verifyState(
-      FsdbStreamClient::State state,
-      const std::vector<TestFsdbStreamClient*>& clients) const {
-#if FOLLY_HAS_COROUTINES
-    WITH_RETRIES(
-        std::for_each(clients.begin(), clients.end(), [&](const auto& client) {
-          EXPECT_EVENTUALLY_EQ(client->lastStateUpdateSeen(), state);
-          auto connectedCounter =
-              state == FsdbStreamClient::State::CONNECTED ? 1 : 0;
-          auto counterPrefix = client->getCounterPrefix();
-          EXPECT_EVENTUALLY_EQ(
-              fb303::ServiceData::get()->getCounter(
-                  counterPrefix + ".connected"),
-              connectedCounter);
-        }));
+    WITH_RETRIES_N(
+        {
+          EXPECT_EVENTUALLY_TRUE(std::all_of(
+              clients.begin(),
+              clients.end(),
+              [expectRunning](const auto& streamClient) {
+                return streamClient->serviceLoopRunning() == expectRunning;
+              }));
+        },
+        kRetries);
 #endif
   }
   void verifyServiceLoopRunning(bool expectRunning) const {
     verifyServiceLoopRunning(expectRunning, {streamClient_.get()});
   }
-  void verifyState(FsdbStreamClient::State state) const {
-    verifyState(state, {streamClient_.get()});
-  }
 
  protected:
+  static auto constexpr kRetries = 60;
   std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
   std::unique_ptr<TestFsdbStreamClient> streamClient_;
@@ -122,28 +106,30 @@ TEST_F(StreamClientTest, connectAndCancel) {
   EXPECT_EQ(counterPrefix, "test_fsdb_client");
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
-  streamClient_->scheduleServiceLoop();
+  streamClient_->markConnected();
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
+  EXPECT_EQ(
+      *streamClient_->lastStateUpdateSeen(),
+      FsdbStreamClient::State::CONNECTED);
   verifyServiceLoopRunning(true);
-  verifyState(FsdbStreamClient::State::CONNECTED);
   streamClient_->cancel();
+  EXPECT_EQ(
+      *streamClient_->lastStateUpdateSeen(),
+      FsdbStreamClient::State::CANCELLED);
   verifyServiceLoopRunning(false);
-  verifyState(FsdbStreamClient::State::CANCELLED);
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
 }
 
 TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {
   auto streamClient2 = std::make_unique<TestFsdbStreamClient>(
       streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
-  streamClient_->scheduleServiceLoop();
-  streamClient2->scheduleServiceLoop();
+  streamClient_->markConnected();
+  streamClient2->markConnected();
   verifyServiceLoopRunning(true, {streamClient_.get(), streamClient2.get()});
-  verifyState(
-      FsdbStreamClient::State::CONNECTED,
-      {streamClient_.get(), streamClient2.get()});
   streamClient_->cancel();
   streamClient2->cancel();
   verifyServiceLoopRunning(false, {streamClient_.get(), streamClient2.get()});
-  verifyState(
-      FsdbStreamClient::State::CANCELLED,
-      {streamClient_.get(), streamClient2.get()});
 }
-} // namespace facebook::fboss::fsdb
+} // namespace facebook::fboss::fsdb::test

@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace facebook::fboss::fsdb {
+namespace facebook::fboss::fsdb::test {
 
 namespace {
 class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
@@ -25,11 +25,7 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
             {"agent"},
             streamEvb,
             timerEvb,
-            false,
-            [this](auto oldState, auto newState) {
-              EXPECT_NE(oldState, newState);
-              lastStateUpdateSeen_ = newState;
-            }) {}
+            false) {}
 
   ~TestFsdbStreamPublisher() override {
     cancel();
@@ -51,17 +47,14 @@ class TestFsdbStreamPublisher : public FsdbPublisher<OperDelta> {
     co_return;
   }
 #endif
+  void markConnected() {
+    setState(State::CONNECTED);
+  }
   void startGenerator() {
     generatorStart_.post();
   }
 
-  std::optional<FsdbStreamClient::State> lastStateUpdateSeen() const {
-    return lastStateUpdateSeen_.load();
-  }
-
  private:
-  std::atomic<std::optional<FsdbStreamClient::State>> lastStateUpdateSeen_{
-      std::nullopt};
   folly::Baton<> generatorStart_;
 };
 
@@ -91,22 +84,15 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   EXPECT_EQ(counterPrefix, "fsdbDeltaStatePublisher_agent");
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 0);
-  streamPublisher_->scheduleServiceLoop();
-
-  // connecting and writing relies on service loop running which requires
-  // coroutines
-#if FOLLY_HAS_COROUTINES
-  WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
-      streamPublisher_->lastStateUpdateSeen(),
-      FsdbStreamClient::State::CONNECTED));
+  streamPublisher_->markConnected();
   EXPECT_EQ(
       fb303::ServiceData::get()->getCounter(counterPrefix + ".connected"), 1);
+  EXPECT_TRUE(streamPublisher_->isConnectedToServer());
 
   for (auto i = 0; i < streamPublisher_->queueCapacity(); ++i) {
     streamPublisher_->write(OperDelta{});
   }
   EXPECT_EQ(streamPublisher_->queueSize(), streamPublisher_->queueCapacity());
-#endif
   // Queue capacity is not precise (~10% slack is typical), try to
   // push 2Xcapacity elements
   bool writeFailed = false;
@@ -139,4 +125,4 @@ TEST_F(StreamPublisherTest, overflowQueue) {
 #endif
 }
 
-} // namespace facebook::fboss::fsdb
+} // namespace facebook::fboss::fsdb::test
