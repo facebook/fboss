@@ -13,6 +13,7 @@
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <filesystem>
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/GetSensorConfig.h"
 
@@ -66,7 +67,16 @@ void SensorServiceImpl::init() {
 
   for (auto& sensor : *sensorTable_.sensorMapList()) {
     for (auto& sensorIter : sensor.second) {
-      sensorNameMap_[*sensorIter.second.path()] = sensorIter.first;
+      // Check if file exists, if not, check if the path is regex pattern
+      std::string path = *sensorIter.second.path();
+      if (std::filesystem::exists(std::filesystem::path(path))) {
+        sensorNameMap_[path] = sensorIter.first;
+      } else {
+        std::string realPath = findFileFromRegex(path);
+        if (!realPath.empty()) {
+          sensorNameMap_[realPath] = sensorIter.first;
+        }
+      }
     }
   }
 
@@ -74,14 +84,17 @@ void SensorServiceImpl::init() {
     XLOG(INFO) << pair.first << ": ";
     for (auto& sensorPair : pair.second) {
       XLOG(INFO) << *sensorPair.second.path() << " ";
-      for (auto& sensorMap : *sensorPair.second.thresholdMap()) {
-        XLOG(INFO) << static_cast<int>(sensorMap.first) << " : "
-                   << sensorMap.second;
+      for (auto& threshPair : *sensorPair.second.thresholdMap()) {
+        XLOG(INFO) << static_cast<int>(threshPair.first) << " : "
+                   << threshPair.second;
+      }
+      if (sensorPair.second.compute().has_value()) {
+        XLOG(INFO) << "compute: " << *sensorPair.second.compute();
       }
     }
   }
 
-  XLOG(INFO) << "-------------------";
+  XLOG(INFO) << "-----------------------------------------------";
 }
 
 std::optional<SensorData> SensorServiceImpl::getSensorData(
