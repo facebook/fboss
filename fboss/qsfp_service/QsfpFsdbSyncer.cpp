@@ -30,7 +30,7 @@ QsfpFsdbSyncer::QsfpFsdbSyncer(TransceiverManager* transceiverMgr)
   }
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbPubSubMgr_->createStatPathPublisher(
-        getStatePath(), [this](auto oldState, auto newState) {
+        getStatsPath(), [this](auto oldState, auto newState) {
           handleStatsPublisherStateChanged(oldState, newState);
         });
   }

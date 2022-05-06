@@ -30,8 +30,8 @@ class QsfpFsdbSyncer {
   }
 
  private:
-  std::vector<std::string> getStatePath() const;
-  std::vector<std::string> getStatsPath() const;
+  const std::vector<std::string>& getStatePath() const;
+  const std::vector<std::string>& getStatsPath() const;
 
   void handleStatePublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,

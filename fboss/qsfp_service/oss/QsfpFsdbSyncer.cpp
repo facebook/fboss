@@ -13,12 +13,14 @@
 namespace facebook {
 namespace fboss {
 
-std::vector<std::string> QsfpFsdbSyncer::getStatePath() const {
-  return {};
+const std::vector<std::string>& QsfpFsdbSyncer::getStatePath() const {
+  static const std::vector<std::string> statePath;
+  return statePath;
 }
 
-std::vector<std::string> QsfpFsdbSyncer::getStatsPath() const {
-  return {};
+const std::vector<std::string>& QsfpFsdbSyncer::getStatsPath() const {
+  static const std::vector<std::string> statsPath;
+  return statsPath;
 }
 
 } // namespace fboss
