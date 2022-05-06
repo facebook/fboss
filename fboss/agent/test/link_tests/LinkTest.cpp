@@ -357,8 +357,8 @@ void LinkTest::waitForStateMachineState(
 void LinkTest::waitForLldpOnCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  checkWithRetry(
-      [this]() { return lldpNeighborsOnAllCabledPorts(); },
+  WITH_RETRIES_N_TIMED(
+      { ASSERT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts()); },
       retries,
       msBetweenRetry);
 }
