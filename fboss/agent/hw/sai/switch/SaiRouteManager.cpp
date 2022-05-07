@@ -382,7 +382,9 @@ std::shared_ptr<SaiCounterHandle> SaiRouteManager::getCounterHandleForRoute(
     if (fwd.getCounterID().has_value()) {
       counterHandle = managerTable_->counterManager().incRefOrAddRouteCounter(
           fwd.getCounterID().value());
-      counterID.emplace(counterHandle->adapterKey());
+      if (counterHandle) {
+        counterID.emplace(counterHandle->adapterKey());
+      }
     } else if (
         oldRoute && oldRoute->getForwardInfo().getCounterID().has_value()) {
       counterID = 0;
