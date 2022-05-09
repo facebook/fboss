@@ -64,7 +64,8 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
       if (!route || !route->isResolved()) {
         continue;
       }
-      RouteNextHopSet routeNextHops = route->getForwardInfo().getNextHopSet();
+      RouteNextHopSet routeNextHops =
+          route->getForwardInfo().normalizedNextHops();
       nexthops.merge(std::move(routeNextHops));
     } else {
       const auto route = sw_->longestMatch<folly::IPAddressV6>(
@@ -72,7 +73,8 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
       if (!route || !route->isResolved()) {
         continue;
       }
-      RouteNextHopSet routeNextHops = route->getForwardInfo().getNextHopSet();
+      RouteNextHopSet routeNextHops =
+          route->getForwardInfo().normalizedNextHops();
       nexthops.merge(std::move(routeNextHops));
     }
   }

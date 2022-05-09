@@ -201,7 +201,7 @@ class AclNexthopHandlerTest : public ::testing::Test {
       nhops.emplace(ResolvedNextHop(
           IPAddress(intfAndIP.second),
           intfAndIP.first,
-          ECMP_WEIGHT,
+          UCMP_DEFAULT_WEIGHT,
           labelAction));
       ++idx;
     }
@@ -275,7 +275,8 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopSingleNexthop) {
   auto matchingPrefixes = this->getMatchingPrefixes(1);
   auto nexthopIps = this->getResolvedNexthops(2);
   auto longestPrefix1 = this->makePrefix(matchingPrefixes[0]);
-  RouteNextHopSet nexthops1 = makeResolvedNextHops(nexthopIps);
+  RouteNextHopSet nexthops1 =
+      makeResolvedNextHops(nexthopIps, UCMP_DEFAULT_WEIGHT);
   this->addRoute(longestPrefix1, nexthops1);
   this->verifyResolvedNexthopsInAclAction(kAclName, nexthops1);
 
@@ -284,9 +285,11 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopSingleNexthop) {
   this->delRoute(longestPrefix1);
   this->verifyResolvedNexthopsInAclAction(kAclName, kEmptyNexthopSet);
 
-  RouteNextHopSet nexthops2 = makeResolvedNextHops({
-      nexthopIps[0],
-  });
+  RouteNextHopSet nexthops2 = makeResolvedNextHops(
+      {
+          nexthopIps[0],
+      },
+      UCMP_DEFAULT_WEIGHT);
   this->addRoute(longestPrefix1, nexthops2);
   this->verifyResolvedNexthopsInAclAction(kAclName, nexthops2);
 }
@@ -298,14 +301,18 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthop) {
       });
 
   auto nexthopIps = this->getResolvedNexthops(4);
-  RouteNextHopSet nexthops1 = makeResolvedNextHops({
-      nexthopIps[0],
-      nexthopIps[1],
-  });
-  RouteNextHopSet nexthops2 = makeResolvedNextHops({
-      nexthopIps[2],
-      nexthopIps[3],
-  });
+  RouteNextHopSet nexthops1 = makeResolvedNextHops(
+      {
+          nexthopIps[0],
+          nexthopIps[1],
+      },
+      UCMP_DEFAULT_WEIGHT);
+  RouteNextHopSet nexthops2 = makeResolvedNextHops(
+      {
+          nexthopIps[2],
+          nexthopIps[3],
+      },
+      UCMP_DEFAULT_WEIGHT);
   auto matchingPrefixes = this->getMatchingPrefixes(2);
   auto longestPrefix1 = this->makePrefix(matchingPrefixes[0]);
   this->addRoute(longestPrefix1, nexthops1);
@@ -323,12 +330,16 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthop) {
   this->delRoute(longestPrefix2);
   this->verifyResolvedNexthopsInAclAction(kAclName, kEmptyNexthopSet);
 
-  RouteNextHopSet nexthops3 = makeResolvedNextHops({
-      nexthopIps[0],
-  });
-  RouteNextHopSet nexthops4 = makeResolvedNextHops({
-      nexthopIps[2],
-  });
+  RouteNextHopSet nexthops3 = makeResolvedNextHops(
+      {
+          nexthopIps[0],
+      },
+      UCMP_DEFAULT_WEIGHT);
+  RouteNextHopSet nexthops4 = makeResolvedNextHops(
+      {
+          nexthopIps[2],
+      },
+      UCMP_DEFAULT_WEIGHT);
   this->addRoute(longestPrefix1, nexthops3);
   this->addRoute(longestPrefix2, nexthops4);
 

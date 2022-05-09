@@ -549,11 +549,12 @@ RouteNextHopSet makeNextHops(
   return nhops;
 }
 RouteNextHopSet makeResolvedNextHops(
-    std::vector<std::pair<InterfaceID, std::string>> intfAndIPs) {
+    std::vector<std::pair<InterfaceID, std::string>> intfAndIPs,
+    uint32_t weight) {
   RouteNextHopSet nhops;
   for (auto intfAndIP : intfAndIPs) {
-    nhops.emplace(ResolvedNextHop(
-        IPAddress(intfAndIP.second), intfAndIP.first, ECMP_WEIGHT));
+    nhops.emplace(
+        ResolvedNextHop(IPAddress(intfAndIP.second), intfAndIP.first, weight));
   }
   return nhops;
 }

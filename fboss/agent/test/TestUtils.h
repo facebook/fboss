@@ -271,7 +271,8 @@ inline RouteNextHopSet makeNextHops(const std::vector<AddrT>& ips) {
 }
 
 RouteNextHopSet makeResolvedNextHops(
-    std::vector<std::pair<InterfaceID, std::string>> intfAndIP);
+    std::vector<std::pair<InterfaceID, std::string>> intfAndIP,
+    uint32_t weight = ECMP_WEIGHT);
 
 RoutePrefixV4 makePrefixV4(std::string str);
 
