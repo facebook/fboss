@@ -39,5 +39,9 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
   return nullptr;
 }
 
+bool isElbert8DD() {
+  return false;
+}
+
 } // namespace fboss
 } // namespace facebook

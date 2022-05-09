@@ -36,5 +36,8 @@ std::unique_ptr<WedgeManager> createDarwinWedgeManager();
 std::unique_ptr<WedgeManager> createLassenWedgeManager();
 
 std::unique_ptr<WedgeManager> createElbertWedgeManager();
+
+bool isElbert8DD();
+
 } // namespace fboss
 } // namespace facebook
