@@ -3,6 +3,6 @@
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   stats_publisher
-   thrift_server
+   *
