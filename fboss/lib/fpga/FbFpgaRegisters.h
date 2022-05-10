@@ -225,4 +225,186 @@ inline std::ostream& operator<<(std::ostream& os, const MdioStatus& status) {
   return os;
 }
 
+enum class SpiRegisterType {
+  SPI_DESC_UPPER,
+  SPI_DESC_LOWER,
+  SPI_MASTER_CSR,
+  SPI_CTRL_RESET,
+  SPI_WRITE_DATA_BLOCK,
+  SPI_READ_DATA_BLOCK,
+};
+
+struct SpiRegisterAddr {
+  uint32_t baseAddr;
+  uint32_t addrIncr;
+};
+
+class SpiRegisterAddrConstants {
+ public:
+  static SpiRegisterAddr getSpiRegisterAddr(SpiRegisterType type);
+};
+
+template <class DataUnion>
+struct SpiRegister {
+  virtual ~SpiRegister() {}
+  uint32_t getBaseAddr() {
+    return addr_.baseAddr;
+  }
+  uint32_t getAddrIncr() {
+    return addr_.addrIncr;
+  }
+  DataUnion dataUnion;
+
+ protected:
+  SpiRegisterAddr addr_;
+};
+
+union SpiMasterCsrDataUnion {
+  using addr = std::integral_constant<uint32_t, 0x10>;
+
+  uint32_t reg;
+  struct __attribute__((packed)) {
+    uint32_t clkDivider : 8;
+    uint32_t reserved1 : 3;
+    uint32_t cpha : 1;
+    uint32_t reserved2 : 3;
+    uint32_t cpol : 1;
+    uint32_t tbb : 4;
+    uint32_t tss : 4;
+    uint32_t revision : 8;
+  };
+};
+
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const SpiMasterCsrDataUnion& csr) {
+  os << "SpiMasterCsrDataUnion: clkDivider=0x" << std::hex << csr.clkDivider
+     << " cpha=0x" << csr.cpha << " cpol=0x" << csr.cpol << " tbb=0x" << csr.tbb
+     << " tss=0x" << csr.tss << " revision=0x" << csr.revision;
+  return os;
+}
+
+struct SpiMasterCsr : SpiRegister<SpiMasterCsrDataUnion> {
+  SpiMasterCsr() {
+    addr_ = SpiRegisterAddrConstants::getSpiRegisterAddr(
+        SpiRegisterType::SPI_MASTER_CSR);
+  }
+};
+
+union SpiCtrlResetDataUnion {
+  using addr = std::integral_constant<uint32_t, 0x10>;
+
+  uint32_t reg;
+  struct __attribute__((packed)) {
+    uint32_t reset : 1;
+    uint32_t reserved1 : 31;
+  };
+};
+
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const SpiCtrlResetDataUnion& reset) {
+  os << "SpiCtrlResetDataUnion: reset=0x" << std::hex << reset.reset;
+  return os;
+}
+
+struct SpiCtrlReset : SpiRegister<SpiCtrlResetDataUnion> {
+  SpiCtrlReset() {
+    addr_ = SpiRegisterAddrConstants::getSpiRegisterAddr(
+        SpiRegisterType::SPI_CTRL_RESET);
+  }
+};
+
+union SpiDescriptorLowerDataUnion {
+  using addr = std::integral_constant<uint32_t, 0x10>;
+
+  uint32_t reg;
+  struct __attribute__((packed)) {
+    uint32_t spiDoneIntrEnable : 1;
+    uint32_t spiErrIntrEnable : 1;
+    uint32_t reserved1 : 6;
+    uint32_t lengthOfData : 9;
+    uint32_t reserved2 : 12;
+    uint32_t csnMode : 1;
+    uint32_t reserved3 : 1;
+    uint32_t valid : 1;
+  };
+};
+
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const SpiDescriptorLowerDataUnion& desc) {
+  os << "SpiDescriptorLowerDataUnion: spiDoneIntrEnable=0x" << std::hex
+     << desc.spiDoneIntrEnable << " spiErrIntrEnable=0x"
+     << desc.spiErrIntrEnable << " lengthOfData=0x" << desc.lengthOfData
+     << " csnMode=0x" << desc.csnMode << " valid=0x" << desc.valid;
+  return os;
+}
+
+struct SpiDescriptorLower : SpiRegister<SpiDescriptorLowerDataUnion> {
+  SpiDescriptorLower() {
+    addr_ = SpiRegisterAddrConstants::getSpiRegisterAddr(
+        SpiRegisterType::SPI_DESC_LOWER);
+  }
+};
+
+union SpiDescriptorUpperDataUnion {
+  using addr = std::integral_constant<uint32_t, 0x10>;
+
+  uint32_t reg;
+  struct __attribute__((packed)) {
+    uint32_t spiDone : 1;
+    uint32_t spiErr : 1;
+    uint32_t spiBusy : 1;
+    uint32_t reserved1 : 29;
+  };
+};
+
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const SpiDescriptorUpperDataUnion& desc) {
+  os << "SpiDescriptorUpperDataUnion: spiDone=0x" << std::hex << desc.spiDone
+     << " spiErr=0x" << desc.spiErr << " spiBusy=0x" << desc.spiBusy;
+  return os;
+}
+
+struct SpiDescriptorUpper : SpiRegister<SpiDescriptorUpperDataUnion> {
+  SpiDescriptorUpper() {
+    addr_ = SpiRegisterAddrConstants::getSpiRegisterAddr(
+        SpiRegisterType::SPI_DESC_UPPER);
+  }
+};
+
+union SpiWriteDataBlockDataUnion {
+  using addr = std::integral_constant<uint32_t, 0x10>;
+
+  uint32_t reg;
+  struct __attribute__((packed)) {
+    uint32_t bank : 2;
+    uint32_t reserved1 : 5;
+    uint32_t transferDirection : 1; // 0 for read, 1 for write
+    uint32_t numBytes : 7; // length of bytes - 1, 0 = 1 byte, 0x7F = 128 bytes
+    uint32_t reserved2 : 1;
+    uint32_t pageNumber : 8;
+    uint32_t registerOffset : 8;
+  };
+};
+
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const SpiWriteDataBlockDataUnion& data) {
+  os << "SpiWriteDataBlockDataUnion: bank=0x" << std::hex << data.bank
+     << " transferDirection=0x" << data.transferDirection << " numBytes=0x"
+     << data.numBytes << " pageNumber=0x" << data.pageNumber
+     << " registerOffset=0x" << data.registerOffset;
+  return os;
+}
+
+struct SpiWriteDataBlock : SpiRegister<SpiWriteDataBlockDataUnion> {
+  SpiWriteDataBlock() {
+    addr_ = SpiRegisterAddrConstants::getSpiRegisterAddr(
+        SpiRegisterType::SPI_WRITE_DATA_BLOCK);
+  }
+};
+
 } // namespace facebook::fboss
