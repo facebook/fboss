@@ -35,6 +35,7 @@ WRAP_CREATE_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
 WRAP_REMOVE_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
 WRAP_SET_ATTR_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
 WRAP_GET_ATTR_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
+WRAP_CLEAR_STATS_FUNC(queue, SAI_OBJECT_TYPE_QUEUE, queue);
 
 sai_status_t wrap_get_queue_stats(
     sai_object_id_t queue_id,
@@ -53,14 +54,6 @@ sai_status_t wrap_get_queue_stats_ext(
     uint64_t* counters) {
   return SaiTracer::getInstance()->queueApi_->get_queue_stats_ext(
       queue_id, number_of_counters, counter_ids, mode, counters);
-}
-
-sai_status_t wrap_clear_queue_stats(
-    sai_object_id_t queue_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids) {
-  return SaiTracer::getInstance()->queueApi_->clear_queue_stats(
-      queue_id, number_of_counters, counter_ids);
 }
 
 sai_queue_api_t* wrappedQueueApi() {
