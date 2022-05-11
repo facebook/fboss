@@ -6,6 +6,7 @@
 
 #include "fboss/lib/fpga/FbFpgaI2c.h"
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
+#include "fboss/lib/fpga/FbFpgaSpi.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
 #include "fboss/lib/fpga/MinipackLed.h"
 #include "fboss/lib/fpga/MinipackPimController.h"
@@ -28,6 +29,7 @@ class MinipackBasePimContainer : public MultiPimPlatformPimContainer {
   FbFpgaPimQsfpController* getPimQsfpController();
 
   virtual FbFpgaI2cController* getI2cController(unsigned int port) = 0;
+  virtual FbFpgaSpiController* getSpiController(unsigned int port) = 0;
 
   MinipackLed* getLedController(int qsfp) const;
 

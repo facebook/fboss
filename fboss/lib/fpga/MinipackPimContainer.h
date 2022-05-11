@@ -17,6 +17,9 @@ class MinipackPimContainer : public MinipackBasePimContainer {
   ~MinipackPimContainer() override {}
 
   FbFpgaI2cController* getI2cController(unsigned int port) override;
+  FbFpgaSpiController* getSpiController(unsigned int /* port */) override {
+    return nullptr;
+  }
 
  private:
   std::vector<std::unique_ptr<FbFpgaI2cController>> i2cControllers_;
