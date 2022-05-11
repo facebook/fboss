@@ -39,22 +39,13 @@ WRAP_REMOVE_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 WRAP_SET_ATTR_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 WRAP_GET_ATTR_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 WRAP_GET_STATS_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
+WRAP_GET_STATS_EXT_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 WRAP_CLEAR_STATS_FUNC(buffer_pool, SAI_OBJECT_TYPE_BUFFER_POOL, buffer);
 
 WRAP_CREATE_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
 WRAP_REMOVE_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
 WRAP_SET_ATTR_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
 WRAP_GET_ATTR_FUNC(buffer_profile, SAI_OBJECT_TYPE_BUFFER_PROFILE, buffer);
-
-sai_status_t wrap_get_buffer_pool_stats_ext(
-    sai_object_id_t buffer_pool_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids,
-    sai_stats_mode_t mode,
-    uint64_t* counters) {
-  return SaiTracer::getInstance()->bufferApi_->get_buffer_pool_stats_ext(
-      buffer_pool_id, number_of_counters, counter_ids, mode, counters);
-}
 
 sai_buffer_api_t* wrappedBufferApi() {
   static sai_buffer_api_t bufferWrappers;

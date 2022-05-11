@@ -1184,7 +1184,8 @@ void SaiTracer::logGetStatsFn(
     const sai_stat_id_t* counter_ids,
     const uint64_t* counters,
     sai_object_type_t object_type,
-    sai_status_t rv) {
+    sai_status_t rv,
+    int mode) {
   if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
     return;
   }
@@ -1209,7 +1210,9 @@ void SaiTracer::logGetStatsFn(
       getVariable(object_id),
       ",",
       number_of_counters,
-      ",&counter_list,&counter_vals)"));
+      ",&counter_list,",
+      mode ? to<string>("(sai_stats_mode_t)", mode, ",") : "",
+      "&counter_vals)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));

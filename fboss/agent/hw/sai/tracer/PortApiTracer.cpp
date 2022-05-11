@@ -76,6 +76,7 @@ WRAP_REMOVE_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 WRAP_SET_ATTR_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 WRAP_GET_ATTR_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 WRAP_GET_STATS_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
+WRAP_GET_STATS_EXT_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 WRAP_CLEAR_STATS_FUNC(port, SAI_OBJECT_TYPE_PORT, port);
 
 WRAP_CREATE_FUNC(port_serdes, SAI_OBJECT_TYPE_PORT_SERDES, port);
@@ -87,16 +88,6 @@ WRAP_CREATE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_REMOVE_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_SET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
 WRAP_GET_ATTR_FUNC(port_connector, SAI_OBJECT_TYPE_PORT_CONNECTOR, port);
-
-sai_status_t wrap_get_port_stats_ext(
-    sai_object_id_t port_id,
-    uint32_t number_of_counters,
-    const sai_stat_id_t* counter_ids,
-    sai_stats_mode_t mode,
-    uint64_t* counters) {
-  return SaiTracer::getInstance()->portApi_->get_port_stats_ext(
-      port_id, number_of_counters, counter_ids, mode, counters);
-}
 
 sai_status_t wrap_clear_port_all_stats(sai_object_id_t port_id) {
   return SaiTracer::getInstance()->portApi_->clear_port_all_stats(port_id);
