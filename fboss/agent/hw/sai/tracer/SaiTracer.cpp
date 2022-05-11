@@ -1177,6 +1177,46 @@ void SaiTracer::logSendHostifPacketFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logGetStatsFn(
+    const std::string& fn_name,
+    sai_object_id_t object_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    const uint64_t* counters,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
+    return;
+  }
+  vector<string> lines = {
+      to<string>("memset(counter_list,0,4*", maxAttrCount_, ")"),
+      to<string>("memset(counter_vals,0,8*", maxAttrCount_, ")")};
+  for (int i = 0; i < number_of_counters; ++i) {
+    lines.push_back(to<string>("// Value:", counters[i]));
+    lines.push_back(to<string>("counter_list[", i, "]=", counter_ids[i]));
+  }
+
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndRv(rv, object_id));
+
+  // Make clearStats call
+  lines.push_back(to<string>(
+      "rv=",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(object_id),
+      ",",
+      number_of_counters,
+      ",&counter_list,&counter_vals)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logClearStatsFn(
     const std::string& fn_name,
     sai_object_id_t object_id,
@@ -1648,6 +1688,8 @@ void SaiTracer::setupGlobals() {
       to<string>("sai_object_id_t obj_list[", FLAGS_default_list_size, "]"));
   globalVar.push_back(
       to<string>("sai_stat_id_t counter_list[", FLAGS_default_list_size, "]"));
+  globalVar.push_back(
+      to<string>("uint64_t counter_vals[", FLAGS_default_list_size, "]"));
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;

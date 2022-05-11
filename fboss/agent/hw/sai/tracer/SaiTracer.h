@@ -172,6 +172,15 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
+  void logGetStatsFn(
+      const std::string& fn_name,
+      sai_object_id_t object_id,
+      uint32_t number_of_counters,
+      const sai_stat_id_t* counter_ids,
+      const uint64_t* counters,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logClearStatsFn(
       const std::string& fn_name,
       sai_object_id_t object_id,
@@ -572,6 +581,27 @@ class SaiTracer {
         sai_obj_type,                                                          \
         rv);                                                                   \
     return rv;                                                                 \
+  }
+
+#define WRAP_GET_STATS_FUNC(obj_type, sai_obj_type, api_type)             \
+  sai_status_t wrap_get_##obj_type##_stats(                               \
+      sai_object_id_t obj_type##_id,                                      \
+      uint32_t num_of_counters,                                           \
+      const sai_stat_id_t* counter_ids,                                   \
+      uint64_t* counters) {                                               \
+    auto rv =                                                             \
+        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_stats( \
+            obj_type##_id, num_of_counters, counter_ids, counters);       \
+                                                                          \
+    SaiTracer::getInstance()->logGetStatsFn(                              \
+        "get_" #obj_type "_stats",                                        \
+        obj_type##_id,                                                    \
+        num_of_counters,                                                  \
+        counter_ids,                                                      \
+        counters,                                                         \
+        sai_obj_type,                                                     \
+        rv);                                                              \
+    return rv;                                                            \
   }
 
 #define WRAP_CLEAR_STATS_FUNC(obj_type, sai_obj_type, api_type)             \
