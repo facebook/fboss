@@ -36,7 +36,15 @@ class FbFpgaSpi : public I2cController {
   void writeByte(uint8_t offset, uint8_t val, int page);
   void write(uint8_t offset, int page, folly::ByteRange buf);
 
+  void initializeSPIController(bool forceInit);
+
  private:
+  template <typename Register>
+  void readReg(Register& value);
+  template <typename Register>
+  void writeReg(Register& value);
+  uint32_t getRegAddr(uint32_t regBase, uint32_t regIncr);
+
   FbDomFpga* fpga_{nullptr};
   std::unique_ptr<FbDomFpga> io_;
 
@@ -66,6 +74,8 @@ class FbFpgaSpiController {
   const I2cControllerStats getI2cControllerPlatformStats() const {
     return syncedFbSpi_.lock()->getI2cControllerPlatformStats();
   }
+
+  void initializeSPIController(bool forceInit);
 
  private:
   folly::Synchronized<FbFpgaSpi, std::mutex> syncedFbSpi_;

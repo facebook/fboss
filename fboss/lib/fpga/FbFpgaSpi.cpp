@@ -59,6 +59,41 @@ void FbFpgaSpi::write(
   // TODO:
 }
 
+template <typename Register>
+void FbFpgaSpi::readReg(Register& reg) {
+  reg.dataUnion.reg =
+      fpga_->read(getRegAddr(reg.getBaseAddr(), reg.getAddrIncr()));
+}
+
+template <typename Register>
+void FbFpgaSpi::writeReg(Register& reg) {
+  fpga_->write(
+      getRegAddr(reg.getBaseAddr(), reg.getAddrIncr()), reg.dataUnion.reg);
+}
+
+uint32_t FbFpgaSpi::getRegAddr(uint32_t regBase, uint32_t regIncr) {
+  return regBase + regIncr * spiId_;
+}
+
+void FbFpgaSpi::initializeSPIController(bool forceInit) {
+  SpiMasterCsr masterCsr;
+  readReg(masterCsr);
+  // If tbb is not 6us and clock is not 12.5MHz, then set those attributes. If
+  // the values are already set, don't reset the SPI controller unnecessarily
+  if (forceInit || masterCsr.dataUnion.tbb != 6 ||
+      masterCsr.dataUnion.clkDivider != 1) {
+    XLOG(INFO) << "Configuring SPI controller " << spiId_;
+    SpiCtrlReset ctrlReset;
+    ctrlReset.dataUnion.reg = 0;
+    ctrlReset.dataUnion.reset = 1;
+    writeReg(ctrlReset);
+
+    masterCsr.dataUnion.tbb = 6;
+    masterCsr.dataUnion.clkDivider = 1;
+    writeReg(masterCsr);
+  }
+}
+
 FbFpgaSpiController::FbFpgaSpiController(
     FbDomFpga* fpga,
     uint32_t spiId,
@@ -136,6 +171,10 @@ void FbFpgaSpiController::write(
       offset);
 
   syncedFbSpi_.lock()->write(offset, page, buf);
+}
+
+void FbFpgaSpiController::initializeSPIController(bool forceInit) {
+  syncedFbSpi_.lock()->initializeSPIController(forceInit);
 }
 
 folly::EventBase* FbFpgaSpiController::getEventBase() {
