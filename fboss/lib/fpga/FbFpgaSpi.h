@@ -44,6 +44,13 @@ class FbFpgaSpi : public I2cController {
   template <typename Register>
   void writeReg(Register& value);
   uint32_t getRegAddr(uint32_t regBase, uint32_t regIncr);
+  // Waits till the SPI transaction is done
+  bool waitForSpiDone();
+  // Checks the flow control byte and returns true if it's asserted
+  bool flowControlAsserted();
+  // Triggers a dummy read to confirm that the OBO is ready for read/write
+  // transactions. This needs to be done before every read/write txn to the OBO
+  bool oboReadyForIO();
 
   FbDomFpga* fpga_{nullptr};
   std::unique_ptr<FbDomFpga> io_;

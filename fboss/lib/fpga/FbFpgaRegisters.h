@@ -353,8 +353,8 @@ union SpiDescriptorUpperDataUnion {
 
   uint32_t reg;
   struct __attribute__((packed)) {
-    uint32_t spiDone : 1;
-    uint32_t spiErr : 1;
+    uint32_t spiDone : 1; // Write 1 to clear
+    uint32_t spiErr : 1; // Write 1 to clear
     uint32_t spiBusy : 1;
     uint32_t reserved1 : 29;
   };

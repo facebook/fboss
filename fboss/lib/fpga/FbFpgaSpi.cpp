@@ -14,6 +14,12 @@
 #include <algorithm>
 #include <thread>
 
+namespace {
+constexpr uint32_t kFacebookFpgaSPIReadBlock = 0x4200;
+constexpr uint32_t kFlowControlAsserted = 0xFF;
+constexpr uint32_t kDataIOBlockSize = 0x400;
+} // unnamed namespace
+
 namespace facebook::fboss {
 FbFpgaSpi::FbFpgaSpi(FbDomFpga* fpga, uint32_t spiId, uint32_t pimId)
     : I2cController(
@@ -92,6 +98,72 @@ void FbFpgaSpi::initializeSPIController(bool forceInit) {
     masterCsr.dataUnion.clkDivider = 1;
     writeReg(masterCsr);
   }
+}
+
+bool FbFpgaSpi::flowControlAsserted() {
+  // Check if the flow control byte 5 (indexed 0) is 0xff (flow control
+  // asserted)
+  uint32_t readBlockAddr =
+      getRegAddr(kFacebookFpgaSPIReadBlock, kDataIOBlockSize);
+  uint32_t data = fpga_->read(readBlockAddr + 4);
+  return ((data >> 16) & 0xF) == kFlowControlAsserted;
+}
+
+bool FbFpgaSpi::waitForSpiDone() {
+  SpiDescriptorUpper descUpper;
+  readReg(descUpper);
+  int retries = 20;
+  while ((!descUpper.dataUnion.spiErr && !descUpper.dataUnion.spiDone) &&
+         --retries) {
+    /* sleep override */
+    usleep(1000);
+    readReg(descUpper);
+  }
+
+  if (descUpper.dataUnion.spiErr || !descUpper.dataUnion.spiDone) {
+    XLOG(DBG3) << "SPI: " << spiId_ << ", SPI done not set or SPI Error set "
+               << descUpper.dataUnion;
+    return false;
+  }
+
+  if (flowControlAsserted()) {
+    XLOG(DBG3) << "SPI: " << spiId_ << ", Flow control asserted";
+    return false;
+  }
+  return true;
+}
+
+bool FbFpgaSpi::oboReadyForIO() {
+  // Here we trigger a dummy read of 1 byte in page 0xA0 which we know
+  // doesn't result in flow control assertion
+  SpiDescriptorLower descLower;
+  SpiDescriptorUpper descUpper;
+  SpiWriteDataBlock writeDataBlock;
+
+  descLower.dataUnion.reg = 0;
+  descUpper.dataUnion.reg = 0;
+  writeDataBlock.dataUnion.reg = 0;
+
+  writeDataBlock.dataUnion.transferDirection = 0; // read
+  writeDataBlock.dataUnion.numBytes = 0; // 1 byte
+  writeDataBlock.dataUnion.pageNumber = 0xa0;
+  writeDataBlock.dataUnion.registerOffset = 0x80; // 128
+  writeReg(writeDataBlock);
+
+  descLower.dataUnion.spiDoneIntrEnable = 1;
+  descLower.dataUnion.spiErrIntrEnable = 1;
+  descLower.dataUnion.lengthOfData = 7; // 6 preheader + 1 byte of read
+  descLower.dataUnion.valid = 1;
+
+  // Writing 1 to spiDone and spiErr clears these bits so that we can read the
+  // updated status later
+  descUpper.dataUnion.spiDone = 1;
+  descUpper.dataUnion.spiErr = 1;
+
+  writeReg(descUpper);
+  writeReg(descLower);
+
+  return waitForSpiDone();
 }
 
 FbFpgaSpiController::FbFpgaSpiController(
