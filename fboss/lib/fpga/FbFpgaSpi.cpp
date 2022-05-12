@@ -15,6 +15,7 @@
 #include <thread>
 
 namespace {
+constexpr uint32_t kFacebookFpgaSPIWriteBlock = 0x4000;
 constexpr uint32_t kFacebookFpgaSPIReadBlock = 0x4200;
 constexpr uint32_t kFlowControlAsserted = 0xFF;
 constexpr uint32_t kDataIOBlockSize = 0x400;
@@ -114,11 +115,70 @@ void FbFpgaSpi::writeByte(uint8_t offset, uint8_t val, int page) {
   write(offset, page, folly::ByteRange(&val, 1));
 }
 
-void FbFpgaSpi::write(
-    uint8_t /* offset */,
-    int /* page */,
-    folly::ByteRange /* buf */) {
-  // TODO:
+void FbFpgaSpi::write(uint8_t offset, int page, folly::ByteRange buf) {
+  SpiDescriptorLower descLower;
+  SpiDescriptorUpper descUpper;
+  SpiWriteDataBlock writeDataBlock;
+  std::string logMsgPrefix = folly::sformat(
+      "SpiWrite: SpiId: {:d}, offset: {:x}, page: {:x}", spiId_, offset, page);
+
+  // Increment the counter for total write transactions issued
+  incrWriteTotal();
+
+  if (!oboReadyForIO()) {
+    incrWriteFailed();
+    throw FbFpgaSpiError(folly::to<std::string>(
+        logMsgPrefix, " - write failed, OBO is not ready"));
+  }
+
+  // Write the IO information in the data block
+  writeDataBlock.dataUnion.reg = 0;
+  writeDataBlock.dataUnion.transferDirection = 1; // write
+  writeDataBlock.dataUnion.numBytes = buf.size() - 1;
+  writeDataBlock.dataUnion.pageNumber = 0;
+  writeDataBlock.dataUnion.registerOffset = offset;
+  writeReg(writeDataBlock);
+
+  // Set data Buffer
+  uint32_t writeBlockAddr =
+      getRegAddr(kFacebookFpgaSPIWriteBlock, kDataIOBlockSize);
+  size_t numBytes = 0;
+  for (size_t bytesWritten = 4; bytesWritten < 6 + buf.size();
+       bytesWritten += 4) {
+    uint32_t data;
+    size_t bytesToCopy = std::min(buf.size() - numBytes, (size_t)4);
+    if (bytesWritten == 4) {
+      bytesToCopy = std::min(bytesToCopy, (size_t)2);
+    }
+    std::memcpy(&data, buf.begin() + numBytes, bytesToCopy);
+    if (bytesWritten == 4) {
+      data = data << 16;
+    }
+    fpga_->write(writeBlockAddr + bytesWritten, data);
+    numBytes += bytesToCopy;
+  }
+
+  // Set Upper Descriptor
+  descUpper.dataUnion.reg = 0;
+  descUpper.dataUnion.spiDone = 1;
+  descUpper.dataUnion.spiErr = 1;
+  writeReg(descUpper);
+
+  // Set Lower Descriptor
+
+  descLower.dataUnion.reg = 0;
+  descLower.dataUnion.spiDoneIntrEnable = 1;
+  descLower.dataUnion.spiErrIntrEnable = 1;
+  descLower.dataUnion.lengthOfData = buf.size() + 6;
+  descLower.dataUnion.valid = 1;
+  writeReg(descLower);
+  if (!waitForSpiDone()) {
+    incrWriteFailed();
+    throw FbFpgaSpiError(folly::to<std::string>(
+        logMsgPrefix, " - write failed, SPI txn is not done"));
+  }
+  // Update the number of bytes written
+  incrWriteBytes(buf.size());
 }
 
 template <typename Register>
