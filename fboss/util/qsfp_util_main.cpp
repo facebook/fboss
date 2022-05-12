@@ -332,17 +332,26 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_prbs_start || FLAGS_prbs_stop || FLAGS_prbs_stats) {
       std::vector<PortID> swPortList;
+      std::vector<std::string> swPortNames;
       if (wedgeManager.get()) {
         swPortList = wedgeManager->getAllPlatformPorts(
             static_cast<TransceiverID>(portNum - 1));
+
+        for (auto swPort : swPortList) {
+          auto pName = wedgeManager->getPortNameByPortId(swPort);
+          if (pName.has_value()) {
+            swPortNames.push_back(pName.value());
+          }
+        }
       }
+
       if (FLAGS_prbs_start) {
         printf(
             "Starting PRBS on Module %d, this will bring down link\n", portNum);
-        setModulePrbs(evb, swPortList, true);
+        setModulePrbs(evb, swPortNames, true);
       } else if (FLAGS_prbs_stop) {
         printf("Stopping PRBS on Module %d\n", portNum);
-        setModulePrbs(evb, swPortList, false);
+        setModulePrbs(evb, swPortNames, false);
       } else if (FLAGS_prbs_stats) {
         printf("Showing PRBS stats for Module %d\n", portNum);
         getModulePrbsStats(evb, swPortList);

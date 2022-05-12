@@ -351,13 +351,13 @@ class SffModule : public QsfpModule {
    */
   const std::optional<bool> setPortPrbsOverrideLocked(
       phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */);
+      const prbs::InterfacePrbsState& /* prbs */);
   /*
    * 100G-FR1 modules have a proprietary method to set the prbs state
    */
   bool setFr1PortPrbsOverrideLocked(
       phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */);
+      const prbs::InterfacePrbsState& /* prbs */);
 
   /*
    * Provides the option to override the implementation of getPortPrbsStats for
@@ -408,7 +408,7 @@ class SffModule : public QsfpModule {
    */
   bool setPortPrbsLocked(
       phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */) override;
+      const prbs::InterfacePrbsState& /* prbs */) override;
 
   /*
    * Allows the option to override the implementation of getting total bit count

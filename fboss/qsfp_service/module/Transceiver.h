@@ -160,7 +160,7 @@ class Transceiver {
 
   virtual bool setPortPrbs(
       phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */) = 0;
+      const prbs::InterfacePrbsState& /* prbs */) = 0;
 
   virtual prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) = 0;
 

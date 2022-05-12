@@ -28,7 +28,7 @@ SffModule::getPortPrbsStateOverrideLocked(Side /* side */) {
 
 const std::optional<bool> SffModule::setPortPrbsOverrideLocked(
     phy::Side /* side */,
-    const phy::PortPrbsState& /* prbs */) {
+    const prbs::InterfacePrbsState& /* prbs */) {
   return std::nullopt;
 }
 

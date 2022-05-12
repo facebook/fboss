@@ -170,7 +170,7 @@ void QsfpServiceHandler::getSupportedPrbsPolynomials(
 void QsfpServiceHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
     phy::PrbsComponent component,
-    std::unique_ptr<phy::PortPrbsState> state) {
+    std::unique_ptr<prbs::InterfacePrbsState> state) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->setInterfacePrbs(*portName, component, *state);
 }

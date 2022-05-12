@@ -3074,14 +3074,15 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
  */
 void setModulePrbs(
     folly::EventBase& evb,
-    std::vector<PortID> portList,
+    std::vector<std::string> portList,
     bool start) {
-  phy::PortPrbsState prbsState;
-  prbsState.enabled() = start;
-  prbsState.polynominal() = 131;
+  prbs::InterfacePrbsState prbsState;
+  prbsState.generatorEnabled() = start;
+  prbsState.checkerEnabled() = start;
+  prbsState.polynomial() = prbs::PrbsPolynomial::PRBS31Q;
   auto client = getQsfpClient(evb);
   for (auto port : portList) {
-    client->sync_setPortPrbs(
+    client->sync_setInterfacePrbs(
         port, phy::PrbsComponent::TRANSCEIVER_LINE, prbsState);
   }
 }

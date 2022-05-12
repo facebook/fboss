@@ -414,7 +414,9 @@ void QsfpModule::cacheMediaLaneSignals(
   }
 }
 
-bool QsfpModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
+bool QsfpModule::setPortPrbs(
+    phy::Side side,
+    const prbs::InterfacePrbsState& prbs) {
   bool status = false;
   auto setPrbsLambda = [&status, side, prbs, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);

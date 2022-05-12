@@ -246,7 +246,7 @@ std::vector<int> getPidForProcess(std::string proccessName);
 
 void setModulePrbs(
     folly::EventBase& evb,
-    std::vector<PortID> portList,
+    std::vector<std::string> portList,
     bool start);
 void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList);
 

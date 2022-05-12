@@ -1502,9 +1502,11 @@ void SffModule::setDiagsCapability() {
  */
 bool SffModule::setPortPrbsLocked(
     phy::Side side,
-    const phy::PortPrbsState& prbs) {
-  auto enable = *(prbs.enabled());
-  auto polynomial = *(prbs.polynominal());
+    const prbs::InterfacePrbsState& prbs) {
+  auto enable = (prbs.generatorEnabled().has_value() &&
+                 prbs.generatorEnabled().value()) ||
+      (prbs.checkerEnabled().has_value() && prbs.checkerEnabled().value());
+  auto polynomial = *(prbs.polynomial());
   {
     auto lockedDiagsCapability = diagsCapability_.rlock();
     if (auto diagsCapability = *lockedDiagsCapability) {
@@ -1516,7 +1518,7 @@ bool SffModule::setPortPrbsLocked(
           XLOG(INFO) << folly::sformat(
               "Module {:s} : Prbs {:d} {:s} on {:s} side",
               qsfpImpl_->getName(),
-              polynomial,
+              apache::thrift::util::enumNameSafe(polynomial),
               enable ? "enabled" : "disabled",
               apache::thrift::util::enumNameSafe(side));
           return true;

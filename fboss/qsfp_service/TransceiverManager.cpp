@@ -1386,11 +1386,17 @@ phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
 void TransceiverManager::setInterfacePrbs(
     std::string portName,
     phy::PrbsComponent component,
-    const phy::PortPrbsState& state) {
+    const prbs::InterfacePrbsState& state) {
   // Get the port ID first
   auto portId = getPortIDByPortName(portName);
   if (!portId.has_value()) {
     throw FbossError("Can't find a portID for portName ", portName);
+  }
+
+  // Sanity check
+  if (!state.generatorEnabled().has_value() &&
+      !state.checkerEnabled().has_value()) {
+    throw FbossError("Neither generator or checker specified for PRBS setting");
   }
 
   if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
@@ -1413,8 +1419,14 @@ void TransceiverManager::setInterfacePrbs(
     if (!phyManager_) {
       throw FbossError("Current platform doesn't support xphy");
     }
+    // PhyManager is using old portPrbsState
+    phy::PortPrbsState phyPrbs;
+    phyPrbs.polynominal() = static_cast<int>(state.polynomial().value());
+    phyPrbs.enabled() = (state.generatorEnabled().has_value() &&
+                         state.generatorEnabled().value()) ||
+        (state.checkerEnabled().has_value() && state.checkerEnabled().value());
     phyManager_->setPortPrbs(
-        portId.value(), prbsComponentToPhySide(component), state);
+        portId.value(), prbsComponentToPhySide(component), phyPrbs);
   }
 }
 
@@ -1512,7 +1524,11 @@ void TransceiverManager::setPortPrbs(
     throw FbossError("Can't find a portName for portId ", portId);
   }
 
-  setInterfacePrbs(portName.value(), component, state);
+  prbs::InterfacePrbsState newState;
+  newState.polynomial() = prbs::PrbsPolynomial(state.polynominal().value());
+  newState.generatorEnabled() = state.enabled().value();
+  newState.checkerEnabled() = state.enabled().value();
+  setInterfacePrbs(portName.value(), component, newState);
 }
 
 void TransceiverManager::getInterfacePrbsState(

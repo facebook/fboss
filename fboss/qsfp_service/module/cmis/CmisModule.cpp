@@ -2264,7 +2264,7 @@ bool CmisModule::getModuleStateChanged() {
  */
 bool CmisModule::setPortPrbsLocked(
     phy::Side side,
-    const phy::PortPrbsState& prbs) {
+    const prbs::InterfacePrbsState& prbs) {
   int offset, length, dataAddress;
 
   // If PRBS is not supported then return
@@ -2278,17 +2278,25 @@ bool CmisModule::setPortPrbsLocked(
 
   // Return error for invalid PRBS polynominal
   auto prbsPatternItr = prbsPatternMap.left.find(
-      static_cast<prbs::PrbsPolynomial>(*prbs.polynominal()));
+      static_cast<prbs::PrbsPolynomial>(*prbs.polynomial()));
   if (prbsPatternItr == prbsPatternMap.left.end()) {
     XLOG(ERR) << folly::sformat(
-        "Module {:s} PRBS Polynominal {:d} not supported",
+        "Module {:s} PRBS Polynominal {} not supported",
         qsfpImpl_->getName(),
-        prbs.polynominal().value());
+        apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
     return false;
   }
 
   auto prbsPolynominal = prbsPatternItr->second;
-  auto start = prbs.enabled().value();
+  bool start;
+  if (prbs.generatorEnabled().has_value()) {
+    start = prbs.generatorEnabled().value();
+  } else if (prbs.checkerEnabled().has_value()) {
+    start = prbs.checkerEnabled().value();
+  } else {
+    XLOG(ERR) << "Invalid generator/checker input";
+    return false;
+  }
 
   // Step 1: Set the pattern for Generator (for starting case)
   if (start) {

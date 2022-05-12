@@ -63,23 +63,15 @@ class PrbsTest : public LinkTest {
   }
 
   void runTest() {
-    phy::PortPrbsState enabledState;
-    enabledState.enabled() = true;
-    enabledState.polynominal() = static_cast<int>(Polynomial);
+    prbs::InterfacePrbsState enabledState;
+    enabledState.generatorEnabled() = true;
+    enabledState.checkerEnabled() = true;
+    enabledState.polynomial() = prbs::PrbsPolynomial(Polynomial);
 
-    phy::PortPrbsState disabledState;
-    disabledState.enabled() = false;
-    disabledState.polynominal() = static_cast<int>(Polynomial);
-
-    prbs::InterfacePrbsState enabledStateToCheck;
-    enabledStateToCheck.generatorEnabled() = true;
-    enabledStateToCheck.checkerEnabled() = true;
-    enabledStateToCheck.polynomial() = prbs::PrbsPolynomial(Polynomial);
-
-    prbs::InterfacePrbsState disabledStateToCheck;
-    disabledStateToCheck.generatorEnabled() = false;
-    disabledStateToCheck.checkerEnabled() = false;
-    disabledStateToCheck.polynomial() = prbs::PrbsPolynomial(Polynomial);
+    prbs::InterfacePrbsState disabledState;
+    disabledState.generatorEnabled() = false;
+    disabledState.checkerEnabled() = false;
+    disabledState.polynomial() = prbs::PrbsPolynomial(Polynomial);
 
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
@@ -99,8 +91,8 @@ class PrbsTest : public LinkTest {
 
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
-    checkWithRetry([this, &enabledStateToCheck] {
-      return checkPrbsStateOnAllInterfaces(enabledStateToCheck);
+    checkWithRetry([this, &enabledState] {
+      return checkPrbsStateOnAllInterfaces(enabledState);
     });
 
     // 4. Let PRBS run for 30 seconds so that we can check the BER later
@@ -130,8 +122,8 @@ class PrbsTest : public LinkTest {
 
     // 9. Check Prbs State on all ports, they all should be disabled
     XLOG(INFO) << "Checking PRBS state after disabling PRBS";
-    checkWithRetry([this, &disabledStateToCheck] {
-      return checkPrbsStateOnAllInterfaces(disabledStateToCheck);
+    checkWithRetry([this, &disabledState] {
+      return checkPrbsStateOnAllInterfaces(disabledState);
     });
 
     // 10. Link and traffic should come back up now
@@ -152,7 +144,7 @@ class PrbsTest : public LinkTest {
       Client* client,
       std::string& interfaceName,
       phy::PrbsComponent component,
-      phy::PortPrbsState& state) {
+      prbs::InterfacePrbsState& state) {
     try {
       client->sync_setInterfacePrbs(interfaceName, component, state);
     } catch (const std::exception& ex) {
@@ -163,7 +155,7 @@ class PrbsTest : public LinkTest {
     return true;
   }
 
-  bool setPrbsOnAllInterfaces(phy::PortPrbsState& state) {
+  bool setPrbsOnAllInterfaces(prbs::InterfacePrbsState& state) {
     for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;

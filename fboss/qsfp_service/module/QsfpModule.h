@@ -300,8 +300,9 @@ class QsfpModule : public Transceiver {
 
   void updatePrbsStats();
 
-  bool setPortPrbs(phy::Side /* side */, const phy::PortPrbsState& /* prbs */)
-      override;
+  bool setPortPrbs(
+      phy::Side /* side */,
+      const prbs::InterfacePrbsState& /* prbs */) override;
 
   prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) override;
 
@@ -692,7 +693,7 @@ class QsfpModule : public Transceiver {
    */
   virtual bool setPortPrbsLocked(
       phy::Side /* side */,
-      const phy::PortPrbsState& /* prbs */) {
+      const prbs::InterfacePrbsState& /* prbs */) {
     return false;
   }
 

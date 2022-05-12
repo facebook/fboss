@@ -211,7 +211,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   void setInterfacePrbs(
     1: string portName,
     2: phy.PrbsComponent component,
-    3: phy.PortPrbsState state,
+    3: prbs.InterfacePrbsState state,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
