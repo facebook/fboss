@@ -30,3 +30,9 @@ enum PrbsPolynomial {
   // Misc
   PRBSSSPRQ = 200,
 }
+
+struct InterfacePrbsState {
+  1: PrbsPolynomial polynomial;
+  2: optional bool generatorEnabled;
+  3: optional bool checkerEnabled;
+}
