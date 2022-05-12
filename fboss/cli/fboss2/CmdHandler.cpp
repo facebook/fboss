@@ -25,6 +25,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
@@ -114,6 +115,9 @@ template void
 CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePrbs, CmdShowInterfacePrbsTraits>::run();
+template void CmdHandler<
+    CmdShowInterfacePrbsCapabilities,
+    CmdShowInterfacePrbsCapabilitiesTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
 template void

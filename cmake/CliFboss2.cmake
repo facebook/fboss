@@ -112,6 +112,16 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  show_interface_prbs_capabilities
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    prbs_cpp2
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -140,6 +150,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
@@ -151,6 +162,7 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
+  fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/utils/oss/CLIParserUtils.cpp
@@ -182,6 +194,7 @@ target_link_libraries(fboss2
   show_interface_traffic
   show_interface_status
   show_interface_phymap
+  show_interface_prbs_capabilities
   show_route_model
   ${RE2}
 )
