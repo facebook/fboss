@@ -25,8 +25,13 @@ void MinipackBaseI2cBus::moduleRead(
       offset,
       len);
 
-  systemContainer_->getPimContainer(pim)->getI2cController(port)->read(
-      port, offset, folly::MutableByteRange(buf, len));
+  if (auto i2cController =
+          systemContainer_->getPimContainer(pim)->getI2cController(port)) {
+    i2cController->read(port, offset, folly::MutableByteRange(buf, len));
+  } else {
+    systemContainer_->getPimContainer(pim)->getSpiController(port)->read(
+        offset, *param.page, folly::MutableByteRange(buf, len));
+  }
 }
 
 void MinipackBaseI2cBus::moduleWrite(
@@ -48,8 +53,13 @@ void MinipackBaseI2cBus::moduleWrite(
       offset,
       len);
 
-  systemContainer_->getPimContainer(pim)->getI2cController(port)->write(
-      port, offset, folly::ByteRange(data, len));
+  if (auto i2cController =
+          systemContainer_->getPimContainer(pim)->getI2cController(port)) {
+    i2cController->write(port, offset, folly::ByteRange(data, len));
+  } else {
+    systemContainer_->getPimContainer(pim)->getSpiController(port)->write(
+        offset, *param.page, folly::ByteRange(data, len));
+  }
 }
 
 bool MinipackBaseI2cBus::isPresent(unsigned int module) {
