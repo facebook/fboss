@@ -59,6 +59,8 @@ DECLARE_uint32(i2c_address);
 DECLARE_bool(prbs_start);
 DECLARE_bool(prbs_stop);
 DECLARE_bool(prbs_stats);
+DECLARE_bool(generator);
+DECLARE_bool(checker);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 

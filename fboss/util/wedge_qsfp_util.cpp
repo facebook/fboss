@@ -279,9 +279,17 @@ DEFINE_string(
     "",
     "Batch file for bulk read/write operations, Format: OP(R/W) Offset Value DelayMS");
 DEFINE_uint32(i2c_address, 0x50, "i2c address");
-DEFINE_bool(prbs_start, false, "Start the PRBS on a module line side");
-DEFINE_bool(prbs_stop, false, "Stop the PRBS on a module line side");
+DEFINE_bool(
+    prbs_start,
+    false,
+    "Start the PRBS on a module line side, use with --generator or --checker");
+DEFINE_bool(
+    prbs_stop,
+    false,
+    "Stop the PRBS on a module line side, use with --generator or --checker");
 DEFINE_bool(prbs_stats, false, "Get the PRBS stats from a module line side");
+DEFINE_bool(generator, false, "Start or Stop PRBS Generator side");
+DEFINE_bool(checker, false, "Start or Stop PRBS Checker side");
 
 namespace {
 struct ModulePartInfo_s {
@@ -3077,9 +3085,19 @@ void setModulePrbs(
     std::vector<std::string> portList,
     bool start) {
   prbs::InterfacePrbsState prbsState;
-  prbsState.generatorEnabled() = start;
-  prbsState.checkerEnabled() = start;
+
   prbsState.polynomial() = prbs::PrbsPolynomial::PRBS31Q;
+  if (!FLAGS_generator && !FLAGS_checker) {
+    prbsState.generatorEnabled() = start;
+    prbsState.checkerEnabled() = start;
+  }
+  if (FLAGS_generator) {
+    prbsState.generatorEnabled() = start;
+  }
+  if (FLAGS_checker) {
+    prbsState.checkerEnabled() = start;
+  }
+
   auto client = getQsfpClient(evb);
   for (auto port : portList) {
     client->sync_setInterfacePrbs(

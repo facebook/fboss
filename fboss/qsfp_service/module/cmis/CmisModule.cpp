@@ -2288,18 +2288,26 @@ bool CmisModule::setPortPrbsLocked(
   }
 
   auto prbsPolynominal = prbsPatternItr->second;
-  bool start;
-  if (prbs.generatorEnabled().has_value()) {
-    start = prbs.generatorEnabled().value();
-  } else if (prbs.checkerEnabled().has_value()) {
-    start = prbs.checkerEnabled().value();
-  } else {
+
+  bool startGen{false}, stopGen{false};
+  bool startChk{false}, stopChk{false};
+  if (!prbs.generatorEnabled().has_value() &&
+      !prbs.checkerEnabled().has_value()) {
     XLOG(ERR) << "Invalid generator/checker input";
     return false;
   }
 
+  if (prbs.generatorEnabled().has_value()) {
+    startGen = prbs.generatorEnabled().value();
+    stopGen = !prbs.generatorEnabled().value();
+  }
+  if (prbs.checkerEnabled().has_value()) {
+    startChk = prbs.checkerEnabled().value();
+    stopChk = !prbs.checkerEnabled().value();
+  }
+
   // Step 1: Set the pattern for Generator (for starting case)
-  if (start) {
+  if (startGen) {
     auto mediaFields = {
         CmisField::MEDIA_PATTERN_SELECT_LANE_2_1,
         CmisField::MEDIA_PATTERN_SELECT_LANE_4_3,
@@ -2320,21 +2328,31 @@ bool CmisModule::setPortPrbsLocked(
   }
 
   // Step 2: Start/Stop the generator
-  uint8_t startLaneMask;
   // Get the bitmask for Start/Stop of generator/checker on the given side
-  if (start) {
-    startLaneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
-                                              : ((1 << numHostLanes()) - 1);
-  } else {
-    startLaneMask = 0;
-  }
-
   auto cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_GEN_ENABLE
                                                 : CmisField::HOST_GEN_ENABLE;
-  writeCmisField(cmisRegister, &startLaneMask);
+
+  if (startGen || stopGen) {
+    uint8_t startGenLaneMask;
+    if (startGen) {
+      startGenLaneMask = (side == phy::Side::LINE)
+          ? ((1 << numMediaLanes()) - 1)
+          : ((1 << numHostLanes()) - 1);
+    } else {
+      startGenLaneMask = 0;
+    }
+    writeCmisField(cmisRegister, &startGenLaneMask);
+
+    XLOG(INFO) << folly::sformat(
+        "PRBS Generator on module {:s} side {:s} Lanemask {:#x} {:s}",
+        qsfpImpl_->getName(),
+        ((side == phy::Side::LINE) ? "Line" : "Host"),
+        startGenLaneMask,
+        (startGen ? "Started" : "Stopped"));
+  }
 
   // Step 3: Set the pattern for Checker (for starting case)
-  if (start) {
+  if (startChk) {
     auto mediaFields = {
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_2_1,
         CmisField::MEDIA_CHECKER_PATTERN_SELECT_LANE_4_3,
@@ -2359,14 +2377,25 @@ bool CmisModule::setPortPrbsLocked(
   // Step 4: Start/Stop the checker
   cmisRegister = (side == phy::Side::LINE) ? CmisField::MEDIA_CHECKER_ENABLE
                                            : CmisField::HOST_CHECKER_ENABLE;
-  writeCmisField(cmisRegister, &startLaneMask);
 
-  XLOG(INFO) << folly::sformat(
-      "PRBS on module {:s} side {:s} Lanemask {:#x} {:s}",
-      qsfpImpl_->getName(),
-      ((side == phy::Side::LINE) ? "Line" : "Host"),
-      startLaneMask,
-      (start ? "Started" : "Stopped"));
+  if (startChk || stopChk) {
+    uint8_t startChkLaneMask;
+    if (startChk) {
+      startChkLaneMask = (side == phy::Side::LINE)
+          ? ((1 << numMediaLanes()) - 1)
+          : ((1 << numHostLanes()) - 1);
+    } else {
+      startChkLaneMask = 0;
+    }
+    writeCmisField(cmisRegister, &startChkLaneMask);
+
+    XLOG(INFO) << folly::sformat(
+        "PRBS Checker on module {:s} side {:s} Lanemask {:#x} {:s}",
+        qsfpImpl_->getName(),
+        ((side == phy::Side::LINE) ? "Line" : "Host"),
+        startChkLaneMask,
+        (startChk ? "Started" : "Stopped"));
+  }
 
   return true;
 }
