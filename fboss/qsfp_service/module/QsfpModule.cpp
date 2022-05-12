@@ -657,11 +657,15 @@ void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
   auto systemPrbs = systemPrbsStats_.wlock();
   auto linePrbs = linePrbsStats_.wlock();
 
-  auto clearLaneStats = [](std::vector<phy::PrbsLaneStats>& laneStats) {
+  auto clearLaneStats = [this](std::vector<phy::PrbsLaneStats>& laneStats) {
     for (auto& laneStat : laneStats) {
+      laneStat.ber() = 0;
       laneStat.maxBer() = 0;
       laneStat.numLossOfLock() = 0;
       laneStat.timeSinceLastClear() = std::time(nullptr);
+
+      XLOG(INFO) << "Transceiver=" << qsfpImpl_->getName() << " Lane "
+                 << *laneStat.laneId() << " ber and maxBer cleared";
     }
   };
   if (side == phy::Side::SYSTEM) {
@@ -687,37 +691,43 @@ void QsfpModule::updatePrbsStats() {
     linePrbs->laneStats() = std::vector<phy::PrbsLaneStats>(numMediaLanes());
   }
 
-  auto updatePrbsStatEntry = [](const phy::PrbsStats& oldStat,
-                                phy::PrbsStats& newStat) {
-    for (const auto& oldLane : *oldStat.laneStats()) {
-      for (auto& newLane : *newStat.laneStats()) {
-        if (*newLane.laneId() != *oldLane.laneId()) {
-          continue;
+  auto updatePrbsStatEntry =
+      [this](const phy::PrbsStats& oldStat, phy::PrbsStats& newStat) {
+        for (const auto& oldLane : *oldStat.laneStats()) {
+          for (auto& newLane : *newStat.laneStats()) {
+            if (*newLane.laneId() != *oldLane.laneId()) {
+              continue;
+            }
+            // Update numLossOfLock
+            if (!(*newLane.locked()) && *oldLane.locked()) {
+              newLane.numLossOfLock() = *oldLane.numLossOfLock() + 1;
+            } else {
+              newLane.numLossOfLock() = *oldLane.numLossOfLock();
+            }
+            // Update maxBer only if there is a lock
+            if (*newLane.locked() && *newLane.ber() > *oldLane.maxBer()) {
+              newLane.maxBer() = *newLane.ber();
+            } else {
+              newLane.maxBer() = *oldLane.maxBer();
+            }
+            XLOG(DBG5) << "Transceiver=" << qsfpImpl_->getName() << " Lane "
+                       << *newLane.laneId()
+                       << " Lock=" << (*newLane.locked() ? "Y" : "N")
+                       << " ber=" << *newLane.ber()
+                       << " maxBer=" << *newLane.maxBer();
+
+            // Update timeSinceLastLocked
+            // If previously there was no lock and now there is, update
+            // timeSinceLastLocked to now
+            if (!(*oldLane.locked()) && *newLane.locked()) {
+              newLane.timeSinceLastLocked() = *newStat.timeCollected();
+            } else {
+              newLane.timeSinceLastLocked() = *oldLane.timeSinceLastLocked();
+            }
+            newLane.timeSinceLastClear() = *oldLane.timeSinceLastClear();
+          }
         }
-        // Update numLossOfLock
-        if (!(*newLane.locked()) && *oldLane.locked()) {
-          newLane.numLossOfLock() = *oldLane.numLossOfLock() + 1;
-        } else {
-          newLane.numLossOfLock() = *oldLane.numLossOfLock();
-        }
-        // Update maxBer only if there is a lock
-        if (*newLane.locked() && *newLane.ber() > *oldLane.maxBer()) {
-          newLane.maxBer() = *newLane.ber();
-        } else {
-          newLane.maxBer() = *oldLane.maxBer();
-        }
-        // Update timeSinceLastLocked
-        // If previously there was no lock and now there is, update
-        // timeSinceLastLocked to now
-        if (!(*oldLane.locked()) && *newLane.locked()) {
-          newLane.timeSinceLastLocked() = *newStat.timeCollected();
-        } else {
-          newLane.timeSinceLastLocked() = *oldLane.timeSinceLastLocked();
-        }
-        newLane.timeSinceLastClear() = *oldLane.timeSinceLastClear();
-      }
-    }
-  };
+      };
 
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);

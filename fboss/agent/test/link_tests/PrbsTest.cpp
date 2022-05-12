@@ -85,7 +85,15 @@ class PrbsTest : public LinkTest {
         timestampBeforeClear, false /* prbsEnabled */);
 
     // 2. Enable PRBS on all Ports
-    XLOG(INFO) << "Enabling PRBS";
+    XLOG(INFO) << "Enabling PRBS Generator on all ports";
+    enabledState.generatorEnabled() = true;
+    enabledState.checkerEnabled().reset();
+    checkWithRetry(
+        [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
+
+    XLOG(INFO) << "Enabling PRBS Checker on all ports";
+    enabledState.checkerEnabled() = true;
+    enabledState.generatorEnabled().reset();
     checkWithRetry(
         [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
 
@@ -110,6 +118,7 @@ class PrbsTest : public LinkTest {
 
     // 7. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
+    /* sleep override */ std::this_thread::sleep_for(20s);
     XLOG(INFO) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);
