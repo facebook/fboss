@@ -47,11 +47,67 @@ uint8_t FbFpgaSpi::readByte(uint8_t offset, int page) {
   return byte;
 }
 
-void FbFpgaSpi::read(
-    uint8_t /* offset */,
-    int /* page */,
-    folly::MutableByteRange /* buf */) {
-  // TODO:
+void FbFpgaSpi::read(uint8_t offset, int page, folly::MutableByteRange buf) {
+  SpiDescriptorLower descLower;
+  SpiDescriptorUpper descUpper;
+  SpiWriteDataBlock writeDataBlock;
+  std::string logMsgPrefix = folly::sformat(
+      "SpiRead: SpiId: {:d}, offset: {:x}, page: {:x}", spiId_, offset, page);
+
+  // Increment the counter for total read transactions issued
+  incrReadTotal();
+
+  if (!oboReadyForIO()) {
+    incrReadFailed();
+    throw FbFpgaSpiError(folly::to<std::string>(
+        logMsgPrefix, " - read failed, OBO is not ready"));
+  }
+
+  // Write the IO information in the data block
+  writeDataBlock.dataUnion.reg = 0;
+  writeDataBlock.dataUnion.transferDirection = 0; // read
+  writeDataBlock.dataUnion.numBytes = buf.size() - 1;
+  writeDataBlock.dataUnion.pageNumber = page;
+  writeDataBlock.dataUnion.registerOffset = offset;
+  writeReg(writeDataBlock);
+
+  descLower.dataUnion.reg = 0;
+  descLower.dataUnion.spiDoneIntrEnable = 1;
+  descLower.dataUnion.spiErrIntrEnable = 1;
+  descLower.dataUnion.lengthOfData = buf.size() + 6;
+  descLower.dataUnion.valid = 1;
+
+  descUpper.dataUnion.reg = 0;
+  descUpper.dataUnion.spiDone = 1;
+  descUpper.dataUnion.spiErr = 1;
+
+  writeReg(descUpper);
+  writeReg(descLower);
+
+  if (!waitForSpiDone()) {
+    incrReadFailed();
+    throw FbFpgaSpiError(folly::to<std::string>(
+        logMsgPrefix, " - read failed, SPI txn is not done"));
+  } else {
+    uint32_t readBlockAddr =
+        getRegAddr(kFacebookFpgaSPIReadBlock, kDataIOBlockSize);
+    size_t numBytes = 0;
+    // The first 6 bytes are preheader and need to be skipped in the read.
+    // Therefore, start from offset 4 which skips the first 4 bytes, and then
+    // trim the 2nd byte to remove the other 2 (6-4) bytes
+    for (size_t bytesRead = 4; bytesRead < 6 + buf.size(); bytesRead += 4) {
+      uint32_t data = fpga_->read(readBlockAddr + bytesRead);
+      size_t bytesToCopy = std::min(buf.size() - numBytes, (size_t)4);
+      if (bytesRead == 4) {
+        data = data >> 16;
+        bytesToCopy = std::min(bytesToCopy, (size_t)2);
+      }
+      std::memcpy(buf.begin() + numBytes, &data, bytesToCopy);
+      numBytes += bytesToCopy;
+    }
+    // Update the number of bytes read
+    incrReadBytes(buf.size());
+  }
 }
 
 void FbFpgaSpi::writeByte(uint8_t offset, uint8_t val, int page) {
