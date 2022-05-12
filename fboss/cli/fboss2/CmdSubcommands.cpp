@@ -70,6 +70,9 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE) {
       subCmd->add_option("msg", args, "Message");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT) {
+      subCmd->add_option("component", args, "PRBS component");
     }
   }
   return subCmd;

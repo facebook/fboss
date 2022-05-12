@@ -25,6 +25,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
@@ -89,7 +90,7 @@ const CommandTree& kCommandTree() {
        {
            {"counters",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-            "Show Interace Counters",
+            "Show Interface Counters",
             commandHandler<CmdShowInterfaceCounters>,
             {
                 {"mka",
@@ -100,27 +101,31 @@ const CommandTree& kCommandTree() {
 
            {"errors",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-            "Show Interace Error Counters",
+            "Show Interface Error Counters",
             commandHandler<CmdShowInterfaceErrors>},
 
            {"flaps",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-            "Show Interace Flap Counters",
+            "Show Interface Flap Counters",
             commandHandler<CmdShowInterfaceFlaps>},
 
            {"traffic",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-            "Show Interace Traffic",
+            "Show Interface Traffic",
             commandHandler<CmdShowInterfaceTraffic>},
 
            {"status",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-            "Show Interace Status",
+            "Show Interface Status",
             commandHandler<CmdShowInterfaceStatus>},
            {"phymap",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show External Phy Port Map",
             commandHandler<CmdShowInterfacePhymap>},
+           {"prbs",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT,
+            "Show PRBS information",
+            commandHandler<CmdShowInterfacePrbs>},
        }},
       {"show",
        "transceiver",
