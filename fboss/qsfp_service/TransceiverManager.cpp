@@ -1383,13 +1383,19 @@ phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
 }
 } // namespace
 
-void TransceiverManager::setPortPrbs(
-    PortID portId,
+void TransceiverManager::setInterfacePrbs(
+    std::string portName,
     phy::PrbsComponent component,
     const phy::PortPrbsState& state) {
+  // Get the port ID first
+  auto portId = getPortIDByPortName(portName);
+  if (!portId.has_value()) {
+    throw FbossError("Can't find a portID for portName ", portName);
+  }
+
   if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
       component == phy::PrbsComponent::TRANSCEIVER_LINE) {
-    if (auto tcvrID = getTransceiverID(portId)) {
+    if (auto tcvrID = getTransceiverID(portId.value())) {
       phy::Side side = prbsComponentToPhySide(component);
       auto lockedTransceivers = transceivers_.rlock();
       if (auto it = lockedTransceivers->find(*tcvrID);
@@ -1401,13 +1407,14 @@ void TransceiverManager::setPortPrbs(
         throw FbossError("Can't find transceiver ", *tcvrID);
       }
     } else {
-      throw FbossError("Can't find transceiverID for portID ", portId);
+      throw FbossError("Can't find transceiverID for portID ", portId.value());
     }
   } else {
     if (!phyManager_) {
       throw FbossError("Current platform doesn't support xphy");
     }
-    phyManager_->setPortPrbs(portId, prbsComponentToPhySide(component), state);
+    phyManager_->setPortPrbs(
+        portId.value(), prbsComponentToPhySide(component), state);
   }
 }
 
@@ -1496,15 +1503,16 @@ void TransceiverManager::getSupportedPrbsPolynomials(
   }
 }
 
-void TransceiverManager::setInterfacePrbs(
-    std::string portName,
+void TransceiverManager::setPortPrbs(
+    PortID portId,
     phy::PrbsComponent component,
     const phy::PortPrbsState& state) {
-  if (auto portID = getPortIDByPortName(portName)) {
-    setPortPrbs(*portID, component, state);
-  } else {
-    throw FbossError("Can't find a portID for portName ", portName);
+  auto portName = getPortNameByPortId(portId);
+  if (!portName.has_value()) {
+    throw FbossError("Can't find a portName for portId ", portId);
   }
+
+  setInterfacePrbs(portName.value(), component, state);
 }
 
 void TransceiverManager::getInterfacePrbsState(
