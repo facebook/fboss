@@ -275,6 +275,9 @@ class TransceiverManager {
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName);
 
+  // Function to convert port id to port name
+  std::optional<std::string> getPortNameByPortId(PortID portId);
+
   std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;

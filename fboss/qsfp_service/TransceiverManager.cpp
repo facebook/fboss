@@ -1063,6 +1063,21 @@ std::optional<PortID> TransceiverManager::getPortIDByPortName(
   return std::nullopt;
 }
 
+/*
+ * getPortNameByPortId
+ *
+ * This function takes the software port id and returns corresponding port name
+ * string (ie: eth2/1/1)
+ */
+std::optional<std::string> TransceiverManager::getPortNameByPortId(
+    PortID portId) {
+  auto portMapIt = portNameToPortID_.right.find(portId);
+  if (portMapIt != portNameToPortID_.right.end()) {
+    return portMapIt->second;
+  }
+  return std::nullopt;
+}
+
 std::vector<PortID> TransceiverManager::getAllPlatformPorts(
     TransceiverID tcvrID) const {
   std::vector<PortID> ports;
