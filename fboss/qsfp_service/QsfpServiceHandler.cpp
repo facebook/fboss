@@ -176,7 +176,7 @@ void QsfpServiceHandler::setInterfacePrbs(
 }
 
 void QsfpServiceHandler::getInterfacePrbsState(
-    phy::PortPrbsState& prbsState,
+    prbs::InterfacePrbsState& prbsState,
     std::unique_ptr<std::string> portName,
     phy::PrbsComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);

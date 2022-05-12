@@ -1516,7 +1516,7 @@ void TransceiverManager::setPortPrbs(
 }
 
 void TransceiverManager::getInterfacePrbsState(
-    phy::PortPrbsState& prbsState,
+    prbs::InterfacePrbsState& prbsState,
     std::string portName,
     phy::PrbsComponent component) {
   if (auto portID = getPortIDByPortName(portName)) {

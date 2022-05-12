@@ -2364,22 +2364,22 @@ bool CmisModule::setPortPrbsLocked(
 }
 
 // This function expects caller to hold the qsfp module level lock
-phy::PortPrbsState CmisModule::getPortPrbsStateLocked(Side side) {
+prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
   if (flatMem_) {
-    return phy::PortPrbsState();
+    return prbs::InterfacePrbsState();
   }
   {
     auto lockedDiagsCapability = diagsCapability_.rlock();
-    // Return a default PortPrbsState(with PRBS state as disabled) if the module
-    // is not capable of PRBS
+    // Return a default InterfacePrbsState(with PRBS state as disabled) if the
+    // module is not capable of PRBS
     if (auto diagsCapability = *lockedDiagsCapability) {
       if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
           (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
-        return phy::PortPrbsState();
+        return prbs::InterfacePrbsState();
       }
     }
   }
-  phy::PortPrbsState state;
+  prbs::InterfacePrbsState state;
 
   int offset, length, dataAddress;
   uint8_t laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
@@ -2394,10 +2394,14 @@ phy::PortPrbsState CmisModule::getPortPrbsStateLocked(Side side) {
                                            : CmisField::HOST_CHECKER_ENABLE;
   uint8_t checker;
   readCmisField(cmisRegister, &checker);
-  state.enabled() = (generator == checker && generator == laneMask);
+
+  state.generatorEnabled() = generator == laneMask;
+  state.checkerEnabled() = checker == laneMask;
+  // PRBS is enabled if either generator is enabled or the checker is enabled
+  auto enabled = ((generator == laneMask) || (checker == laneMask));
 
   // If state is enabled, check the polynomial
-  if (*state.enabled()) {
+  if (enabled) {
     cmisRegister = (side == phy::Side::LINE)
         ? CmisField::MEDIA_PATTERN_SELECT_LANE_2_1
         : CmisField::HOST_PATTERN_SELECT_LANE_2_1;
@@ -2408,7 +2412,7 @@ phy::PortPrbsState CmisModule::getPortPrbsStateLocked(Side side) {
     readCmisField(cmisRegister, &pattern);
     auto polynomialItr = prbsPatternMap.right.find(pattern & 0xF);
     if (polynomialItr != prbsPatternMap.right.end()) {
-      state.polynominal() = static_cast<uint32_t>(polynomialItr->second);
+      state.polynomial() = prbs::PrbsPolynomial(polynomialItr->second);
     }
   }
   return state;

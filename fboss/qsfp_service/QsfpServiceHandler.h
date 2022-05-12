@@ -118,7 +118,7 @@ class QsfpServiceHandler
    * Get the PRBS state on a port
    */
   void getInterfacePrbsState(
-      phy::PortPrbsState& prbsState,
+      prbs::InterfacePrbsState& prbsState,
       std::unique_ptr<std::string> portName,
       phy::PrbsComponent component) override;
 

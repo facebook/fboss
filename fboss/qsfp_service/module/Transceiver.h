@@ -162,7 +162,7 @@ class Transceiver {
       phy::Side /* side */,
       const phy::PortPrbsState& /* prbs */) = 0;
 
-  virtual phy::PortPrbsState getPortPrbsState(phy::Side /* side */) = 0;
+  virtual prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) = 0;
 
   virtual phy::PrbsStats getPortPrbsStats(phy::Side /* side */) = 0;
 

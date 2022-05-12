@@ -71,6 +71,16 @@ class PrbsTest : public LinkTest {
     disabledState.enabled() = false;
     disabledState.polynominal() = static_cast<int>(Polynomial);
 
+    prbs::InterfacePrbsState enabledStateToCheck;
+    enabledStateToCheck.generatorEnabled() = true;
+    enabledStateToCheck.checkerEnabled() = true;
+    enabledStateToCheck.polynomial() = prbs::PrbsPolynomial(Polynomial);
+
+    prbs::InterfacePrbsState disabledStateToCheck;
+    disabledStateToCheck.generatorEnabled() = false;
+    disabledStateToCheck.checkerEnabled() = false;
+    disabledStateToCheck.polynomial() = prbs::PrbsPolynomial(Polynomial);
+
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
     XLOG(INFO) << "Clearing PRBS stats before starting the test";
@@ -89,8 +99,8 @@ class PrbsTest : public LinkTest {
 
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
-    checkWithRetry([this, &enabledState] {
-      return checkPrbsStateOnAllInterfaces(enabledState);
+    checkWithRetry([this, &enabledStateToCheck] {
+      return checkPrbsStateOnAllInterfaces(enabledStateToCheck);
     });
 
     // 4. Let PRBS run for 30 seconds so that we can check the BER later
@@ -120,8 +130,8 @@ class PrbsTest : public LinkTest {
 
     // 9. Check Prbs State on all ports, they all should be disabled
     XLOG(INFO) << "Checking PRBS state after disabling PRBS";
-    checkWithRetry([this, &disabledState] {
-      return checkPrbsStateOnAllInterfaces(disabledState);
+    checkWithRetry([this, &disabledStateToCheck] {
+      return checkPrbsStateOnAllInterfaces(disabledStateToCheck);
     });
 
     // 10. Link and traffic should come back up now
@@ -180,7 +190,7 @@ class PrbsTest : public LinkTest {
     return true;
   }
 
-  bool checkPrbsStateOnAllInterfaces(phy::PortPrbsState& state) {
+  bool checkPrbsStateOnAllInterfaces(prbs::InterfacePrbsState& state) {
     for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
@@ -213,19 +223,31 @@ class PrbsTest : public LinkTest {
       Client* client,
       std::string interfaceName,
       phy::PrbsComponent component,
-      phy::PortPrbsState& expectedState) {
+      prbs::InterfacePrbsState& expectedState) {
     try {
-      phy::PortPrbsState state;
+      prbs::InterfacePrbsState state;
       client->sync_getInterfacePrbsState(state, interfaceName, component);
-      if (*expectedState.enabled()) {
+      if (expectedState.generatorEnabled().has_value() &&
+          expectedState.generatorEnabled().value()) {
         // Check both enabled state and polynomial when expected state is
         // enabled
-        return *state.enabled() &&
-            *state.polynominal() == *expectedState.polynominal();
+        return state.generatorEnabled().has_value() &&
+            state.generatorEnabled().value() &&
+            (*state.polynomial() == *expectedState.polynomial());
+      } else if (
+          expectedState.checkerEnabled().has_value() &&
+          expectedState.checkerEnabled().value()) {
+        // Check the checker enabled state
+        return state.checkerEnabled().has_value() &&
+            state.checkerEnabled().value() &&
+            (*state.polynomial() == *expectedState.polynomial());
       } else {
-        // Don't care about polynomial state when prbs is expected to be
-        // disabled
-        return !(*state.enabled());
+        // Generator and checker should both be disabled
+        return !(
+            (state.generatorEnabled().has_value() &&
+             state.generatorEnabled().value()) ||
+            (state.checkerEnabled().has_value() &&
+             state.checkerEnabled().value()));
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Checking PRBS State on " << interfaceName << " failed with "

@@ -433,8 +433,8 @@ bool QsfpModule::setPortPrbs(phy::Side side, const phy::PortPrbsState& prbs) {
   return status;
 }
 
-phy::PortPrbsState QsfpModule::getPortPrbsState(phy::Side side) {
-  phy::PortPrbsState state;
+prbs::InterfacePrbsState QsfpModule::getPortPrbsState(phy::Side side) {
+  prbs::InterfacePrbsState state;
   auto getPrbsStateLambda = [&state, side, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     state = getPortPrbsStateLocked(side);
@@ -720,13 +720,15 @@ void QsfpModule::updatePrbsStats() {
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
   // Only update stats when prbs is enabled
-  if (*sysPrbsState.enabled()) {
+  if (sysPrbsState.checkerEnabled().has_value() &&
+      sysPrbsState.checkerEnabled().value()) {
     auto stats = getPortPrbsStatsSideLocked(phy::Side::SYSTEM);
     updatePrbsStatEntry(*systemPrbs, stats);
     *systemPrbs = stats;
   }
 
-  if (*linePrbsState.enabled()) {
+  if (linePrbsState.checkerEnabled().has_value() &&
+      linePrbsState.checkerEnabled().value()) {
     auto stats = getPortPrbsStatsSideLocked(phy::Side::LINE);
     updatePrbsStatEntry(*linePrbs, stats);
     *linePrbs = stats;
@@ -763,10 +765,21 @@ bool QsfpModule::shouldRemediateLocked() {
 
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
-  if (*sysPrbsState.enabled() || *linePrbsState.enabled()) {
+
+  auto linePrbsEnabled =
+      ((linePrbsState.generatorEnabled().has_value() &&
+        linePrbsState.generatorEnabled().value()) ||
+       (linePrbsState.checkerEnabled().has_value() &&
+        linePrbsState.checkerEnabled().value()));
+  auto sysPrbsEnabled =
+      ((sysPrbsState.generatorEnabled().has_value() &&
+        sysPrbsState.generatorEnabled().value()) ||
+       (sysPrbsState.checkerEnabled().has_value() &&
+        sysPrbsState.checkerEnabled().value()));
+
+  if (linePrbsEnabled || sysPrbsEnabled) {
     XLOG(INFO) << "Skipping remediation because PRBS is enabled. System: "
-               << *sysPrbsState.enabled()
-               << ", Line: " << *linePrbsState.enabled();
+               << sysPrbsEnabled << ", Line: " << linePrbsEnabled;
     return false;
   }
 

@@ -1532,15 +1532,15 @@ bool SffModule::setPortPrbsLocked(
 }
 
 // This function expects caller to hold the qsfp module level lock
-phy::PortPrbsState SffModule::getPortPrbsStateLocked(Side side) {
+prbs::InterfacePrbsState SffModule::getPortPrbsStateLocked(Side side) {
   {
     auto lockedDiagsCapability = diagsCapability_.rlock();
-    // Return a default PortPrbsState(with PRBS state as disabled) if the
+    // Return a default InterfacePrbsState(with PRBS state as disabled) if the
     // module is not capable of PRBS
     if (auto diagsCapability = *lockedDiagsCapability) {
       if ((side == Side::SYSTEM && !*(diagsCapability->prbsSystem())) ||
           (side == Side::LINE && !*(diagsCapability->prbsLine()))) {
-        return phy::PortPrbsState();
+        return prbs::InterfacePrbsState();
       }
     }
   }
@@ -1549,7 +1549,7 @@ phy::PortPrbsState SffModule::getPortPrbsStateLocked(Side side) {
   if (auto prbsState = getPortPrbsStateOverrideLocked(side)) {
     return *prbsState;
   }
-  return phy::PortPrbsState();
+  return prbs::InterfacePrbsState();
 }
 } // namespace fboss
 } // namespace facebook

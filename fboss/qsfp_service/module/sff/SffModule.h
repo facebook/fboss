@@ -338,12 +338,12 @@ class SffModule : public QsfpModule {
   /*
    * Provides the option to override the prbs state for certain transceivers
    */
-  const std::optional<phy::PortPrbsState> getPortPrbsStateOverrideLocked(
+  const std::optional<prbs::InterfacePrbsState> getPortPrbsStateOverrideLocked(
       Side side);
   /*
    * 100G-FR1 modules have a proprietary method to get the prbs state
    */
-  const phy::PortPrbsState getFr1PortPrbsStateOverrideLocked(Side side);
+  const prbs::InterfacePrbsState getFr1PortPrbsStateOverrideLocked(Side side);
 
   /*
    * Provides the option to override the implementation of setPortPrbs for
@@ -399,7 +399,7 @@ class SffModule : public QsfpModule {
   /*
    * Returns the current state of prbs (enabled/polynomial)
    */
-  PortPrbsState getPortPrbsStateLocked(Side side) override;
+  prbs::InterfacePrbsState getPortPrbsStateLocked(Side side) override;
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line

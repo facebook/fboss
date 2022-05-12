@@ -21,7 +21,7 @@ const std::optional<DiagsCapability> SffModule::getDiagsCapabilityOverride() {
   return std::nullopt;
 }
 
-const std::optional<phy::PortPrbsState>
+const std::optional<prbs::InterfacePrbsState>
 SffModule::getPortPrbsStateOverrideLocked(Side /* side */) {
   return std::nullopt;
 }

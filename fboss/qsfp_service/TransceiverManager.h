@@ -318,7 +318,7 @@ class TransceiverManager {
       const phy::PortPrbsState& state);
 
   void getInterfacePrbsState(
-      phy::PortPrbsState& prbsState,
+      prbs::InterfacePrbsState& prbsState,
       std::string portName,
       phy::PrbsComponent component);
 
