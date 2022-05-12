@@ -27,9 +27,7 @@ class SaiBcmElbertPlatform : public SaiBcmPlatform {
   }
 
   uint32_t numCellsAvailable() const override {
-    // This depends on bcm config, see D33198369
-    // Currently return a random value, will update it later
-    return 127977;
+    return 223662;
   }
 
   void initLEDs() override {}

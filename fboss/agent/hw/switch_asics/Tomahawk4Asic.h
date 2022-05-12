@@ -43,6 +43,9 @@ class Tomahawk4Asic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override {
     return 2 * 234606 * 254;
   }
+  uint32_t getMMUCellSize() const {
+    return 254;
+  }
   uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
       const override {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/

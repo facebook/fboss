@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
@@ -87,10 +88,9 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       break;
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       CHECK_EQ(maxEgressPoolSize, availableBuffer);
       break;
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      XLOG(FATAL) << " TODO, Handle buffer pools for ASIC ";
   }
 }
 
@@ -128,7 +128,12 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return kCellsAvailable *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4: {
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
+      return kCellsAvailable *
+          static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
+    }
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       throw FbossError(
           "Not supported to get max egress pool for ASIC: ",
