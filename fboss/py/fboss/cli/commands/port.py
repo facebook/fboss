@@ -64,7 +64,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         # expand to 'T' and beyond by adding in the proper unit
         for factor, unit in [(0, ""), (3, "K"), (6, "M"), (9, "G")]:
             if value < 1000:
-                bps_per_unit = bps / 10 ** factor
+                bps_per_unit = bps / 10**factor
                 suffix = "{}bps".format(unit)
                 break
             value /= 1000
@@ -85,7 +85,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         admin_status = "ENABLED" if port_info.adminState else "DISABLED"
         oper_status = "UP" if port_info.operState else "DOWN"
 
-        speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
+        speed, suffix = self._convert_bps(port_info.speedMbps * (10**6))
         vlans = " ".join(str(vlan) for vlan in (port_info.vlans or []))
 
         fec_status = port_info.fecMode
