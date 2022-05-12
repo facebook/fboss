@@ -50,7 +50,7 @@ TransceiverManager::TransceiverManager(
   for (const auto& [portIDInt, platformPort] : platformPorts) {
     PortID portID = PortID(portIDInt);
     const auto& portName = *platformPort.mapping()->name();
-    portNameToPortID_.emplace(portName, portID);
+    portNameToPortID_.insert(PortNameIdMap::value_type(portName, portID));
     SwPortInfo portInfo;
     portInfo.name = portName;
     portInfo.tcvrID = utility::getTransceiverId(platformPort, chips);
@@ -1056,8 +1056,8 @@ void TransceiverManager::waitForAllBlockingStateUpdateDone(
  */
 std::optional<PortID> TransceiverManager::getPortIDByPortName(
     const std::string& portName) {
-  auto portMapIt = portNameToPortID_.find(portName);
-  if (portMapIt != portNameToPortID_.end()) {
+  auto portMapIt = portNameToPortID_.left.find(portName);
+  if (portMapIt != portNameToPortID_.left.end()) {
     return portMapIt->second;
   }
   return std::nullopt;

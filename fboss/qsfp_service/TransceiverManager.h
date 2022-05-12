@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <boost/bimap.hpp>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -37,6 +38,7 @@ namespace facebook::fboss {
 class TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
   using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
+  using PortNameIdMap = boost::bimap<std::string, PortID>;
 
  public:
   explicit TransceiverManager(
@@ -395,9 +397,10 @@ class TransceiverManager {
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
-  // Use the following map to cache the static mapping so that we don't have
-  // to search from PlatformMapping again and again
-  std::unordered_map<std::string, PortID> portNameToPortID_;
+  // Use the following bidirectional map to cache the static mapping so that we
+  // don't have to search from PlatformMapping again and again
+  PortNameIdMap portNameToPortID_;
+
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;
     std::string name;
