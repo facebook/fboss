@@ -16,7 +16,7 @@ from math import log10
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
 from neteng.fboss.ctrl.ttypes import PortLedExternalState
-from neteng.fboss.phy.ttypes import PrbsComponent, PortPrbsState
+from neteng.fboss.phy.ttypes import PortPrbsState, PrbsComponent
 from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
 from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError

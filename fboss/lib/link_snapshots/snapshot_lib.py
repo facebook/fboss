@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 import MySQLdb
 from libfb.py.employee import get_current_unix_user_fbid
-from neteng.fboss.phy.phy.types import PhyInfo, LinkSnapshot
+from neteng.fboss.phy.phy.types import LinkSnapshot, PhyInfo
 from neteng.fboss.transceiver.types import TransceiverInfo
 from nettools.nowa.building_blocks.all.ngt.link_check.common import ssh_util
 from rfe.client_py3 import get_client as get_rfe_client

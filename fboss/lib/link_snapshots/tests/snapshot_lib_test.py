@@ -2,26 +2,22 @@ import typing as t
 from datetime import datetime, timedelta
 
 import fboss.lib.link_snapshots.snapshot_lib as snapshot_lib
-from fboss.lib.link_snapshots.snapshot_lib import (
-    SNAPSHOT_FORMAT,
-    Backend,
-    ARCHIVE_PATH,
-)
+from fboss.lib.link_snapshots.snapshot_lib import ARCHIVE_PATH, Backend, SNAPSHOT_FORMAT
 from later.unittest.mock import AsyncContextManager, AsyncMock, patch
 from libfb.py.asyncio.await_utils import await_sync
 from libfb.py.asyncio.unittest import TestCase
 from neteng.fboss.phy.phy.types import (
-    LinkSnapshot,
-    PhyInfo,
     DataPlanePhyChip,
     DataPlanePhyChipType,
+    LinkSnapshot,
+    PhyInfo,
     PhySideInfo,
     Side,
 )
 from neteng.fboss.transceiver.types import TransceiverInfo
 from remcmd.thrift.remcmd import types as remcmd_types
 from RockfortExpress import RockfortExpress as rfe
-from thrift.py3 import serialize, Protocol
+from thrift.py3 import Protocol, serialize
 
 # Unfortunately, it doesn't seem like we'd really be able to test out the SQL
 # filtering logic here, as that would need to be processed by an actual MySQL DB

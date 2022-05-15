@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 from collections import defaultdict, namedtuple
-from typing import List, DefaultDict, Dict, NamedTuple, Union
+from typing import DefaultDict, Dict, List, NamedTuple, Union
 
 from configerator.client import ConfigeratorClient
 from fboss.fb_thrift_clients import FbossAgentClient, QsfpServiceClient
