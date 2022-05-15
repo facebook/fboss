@@ -1516,7 +1516,7 @@ bool SffModule::setPortPrbsLocked(
         // state
         if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
           XLOG(INFO) << folly::sformat(
-              "Module {:s} : Prbs {:d} {:s} on {:s} side",
+              "Module {:s} : Prbs {:s} {:s} on {:s} side",
               qsfpImpl_->getName(),
               apache::thrift::util::enumNameSafe(polynomial),
               enable ? "enabled" : "disabled",
