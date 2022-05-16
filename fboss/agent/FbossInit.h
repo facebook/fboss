@@ -15,8 +15,6 @@
 
 namespace facebook::fboss {
 
-std::pair<uint32_t, bool> qsfpServiceWaitInfo(PlatformMode mode);
-
 void fbossInit(int argc, char** argv);
 
 } // namespace facebook::fboss

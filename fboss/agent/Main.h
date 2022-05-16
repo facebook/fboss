@@ -91,12 +91,6 @@ class AgentInitializer {
     return initializer_.get();
   }
 
-  void waitForQsfpService(
-      uint32_t retries,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-      bool failHard = true) const;
-  void waitForQsfpService(const Platform& platform) const;
-
  public:
   virtual ~AgentInitializer() = default;
   void stopServices();
@@ -118,13 +112,6 @@ class AgentInitializer {
   virtual void setCmdLineFlagOverrides() const {}
 
  private:
-  void waitForQsfpServiceImpl(
-      uint32_t retries,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-      bool failHard) const;
-  virtual void preAgentInit(const Platform& platform) {
-    waitForQsfpService(platform);
-  }
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<Initializer> initializer_;
   std::unique_ptr<apache::thrift::ThriftServer> server_;
