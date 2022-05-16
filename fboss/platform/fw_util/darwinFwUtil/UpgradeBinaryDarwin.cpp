@@ -187,7 +187,7 @@ void UpgradeBinaryDarwin::printAllVersion(void) {
             << std::endl;
   std::cout << "SC_SAT_CPLD1: "
             << getSysfsCpldVersion(
-                   darwin_sc_sat_path, "sat1_cpld_sub_ver", "sat1_cpld_sub_ver")
+                   darwin_sc_sat_path, "sat1_cpld_ver", "sat1_cpld_sub_ver")
             << std::endl;
 
   if (failedPath) {
