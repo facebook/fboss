@@ -10,6 +10,7 @@ namespace go neteng.fboss.switch_state
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/if/common.thrift"
+include "fboss/qsfp_service/if/transceiver.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -94,6 +95,13 @@ struct PortFields {
   27: optional list<phy.PinConfig> pinConfigs;
   28: optional phy.ProfileSideConfig lineProfileConfig;
   29: optional list<phy.PinConfig> linePinConfigs;
+}
+
+struct TransceiverFields {
+  1: required i16 id;
+  2: optional double cableLength;
+  3: optional transceiver.MediaInterfaceCode mediaInterface;
+  4: optional transceiver.TransceiverManagementInterface managementInterface;
 }
 
 struct AclTtl {

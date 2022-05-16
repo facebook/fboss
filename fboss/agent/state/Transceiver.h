@@ -9,7 +9,9 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -17,33 +19,38 @@
 
 namespace facebook::fboss {
 
-struct TransceiverFields {
-  explicit TransceiverFields(TransceiverID id) : id(id) {}
+struct TransceiverFields
+    : public BetterThriftyFields<TransceiverFields, state::TransceiverFields> {
+  explicit TransceiverFields(TransceiverID id) {
+    *data.id() = id;
+  }
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static TransceiverFields fromFollyDynamic(const folly::dynamic& tcvrJson);
-
-  const TransceiverID id{0};
-  // Right now, we just need to store factors that we actually need for
-  // getting the port config to program ports
-  std::optional<double> cableLength;
-  std::optional<MediaInterfaceCode> mediaInterface;
-  std::optional<TransceiverManagementInterface> managementInterface;
+  state::TransceiverFields toThrift() const;
+  static TransceiverFields fromThrift(
+      state::TransceiverFields const& tcvrThrift);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static TransceiverFields fromFollyDynamicLegacy(
+      const folly::dynamic& tcvrJson);
 };
 
 /*
  * Transceiver stores state about one of the Present Transceiver entries on the
  * switch. Mainly use it as a reference to program Port.
  */
-class Transceiver : public NodeBaseT<Transceiver, TransceiverFields> {
+class Transceiver : public ThriftyBaseT<
+                        state::TransceiverFields,
+                        Transceiver,
+                        TransceiverFields> {
  public:
   explicit Transceiver(TransceiverID id);
   static std::shared_ptr<Transceiver> fromFollyDynamic(
       const folly::dynamic& json) {
-    const auto& fields = TransceiverFields::fromFollyDynamic(json);
+    const auto& fields = TransceiverFields::fromFollyDynamicLegacy(json);
     return std::make_shared<Transceiver>(fields);
   }
 
@@ -55,36 +62,36 @@ class Transceiver : public NodeBaseT<Transceiver, TransceiverFields> {
       const TransceiverInfo& tcvrInfo);
 
   folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+    return getFields()->toFollyDynamicLegacy();
   }
 
   cfg::PlatformPortConfigOverrideFactor toPlatformPortConfigOverrideFactor()
       const;
 
   TransceiverID getID() const {
-    return getFields()->id;
+    return TransceiverID(*getFields()->data.id());
   }
 
   std::optional<double> getCableLength() const {
-    return getFields()->cableLength;
+    return getFields()->data.cableLength().to_optional();
   }
   void setCableLength(double cableLength) {
-    writableFields()->cableLength = cableLength;
+    writableFields()->data.cableLength() = cableLength;
   }
 
   std::optional<MediaInterfaceCode> getMediaInterface() const {
-    return getFields()->mediaInterface;
+    return getFields()->data.mediaInterface().to_optional();
   }
   void setMediaInterface(MediaInterfaceCode mediaInterface) {
-    writableFields()->mediaInterface = mediaInterface;
+    writableFields()->data.mediaInterface() = mediaInterface;
   }
 
   std::optional<TransceiverManagementInterface> getManagementInterface() const {
-    return getFields()->managementInterface;
+    return getFields()->data.managementInterface().to_optional();
   }
   void setManagementInterface(
       TransceiverManagementInterface managementInterface) {
-    writableFields()->managementInterface = managementInterface;
+    writableFields()->data.managementInterface() = managementInterface;
   }
 
   bool operator==(const Transceiver& tcvr) const;
@@ -94,7 +101,8 @@ class Transceiver : public NodeBaseT<Transceiver, TransceiverFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<state::TransceiverFields, Transceiver, TransceiverFields>::
+      ThriftyBaseT;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss
