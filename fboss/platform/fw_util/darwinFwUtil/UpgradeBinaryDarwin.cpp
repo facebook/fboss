@@ -280,18 +280,18 @@ int UpgradeBinaryDarwin::parseCommandLine(
       upgradeThroughJam(
           toLower(std::string(argv[1])),
           toLower(std::string(argv[2])),
-          toLower(std::string(argv[3])));
+          std::string(argv[3]));
     } else if (toLower(std::string(argv[1])) == std::string("sc_scd")) {
       /* call function to perform the upgrade through xapp */
       upgradeThroughXapp(
           toLower(std::string(argv[1])),
           toLower(std::string(argv[2])),
-          toLower(std::string(argv[3])));
+          std::string(argv[3]));
     } else if (toLower(std::string(argv[1])) == std::string("bios")) {
       /* argument is action and the filepath */
       flashromBiosUpgrade(
           toLower(std::string(argv[2])),
-          toLower(std::string(argv[3])),
+          std::string(argv[3]),
           chip,
           "/etc/bios_spi_layout");
     } else if (toLower(std::string(argv[1])) == std::string("fan_cpld")) {
