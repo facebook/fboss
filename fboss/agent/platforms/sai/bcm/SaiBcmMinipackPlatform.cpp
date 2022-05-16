@@ -13,10 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 
-#include "fboss/lib/phy/facebook/bcm/minipack/MinipackPhyInterfaceHandler.h"
-
-#include <cstdio>
-#include <cstring>
 namespace facebook::fboss {
 
 SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
@@ -28,8 +24,6 @@ SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
               ExternalPhyVersion::MILN5_2),
           localMac) {
   asic_ = std::make_unique<Tomahawk3Asic>();
-  phyInterfaceHandler_ =
-      std::make_unique<MinipackPhyInterfaceHandler>(getPlatformMapping());
 }
 
 } // namespace facebook::fboss
