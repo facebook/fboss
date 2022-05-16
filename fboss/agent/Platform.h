@@ -21,6 +21,9 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 DECLARE_bool(skip_xphy_programming);
+// TODO(joseph5wu) Temporarily keep this flag until we can deprecate it from
+// the config
+DECLARE_int32(gearbox_stat_interval);
 
 namespace facebook::fboss {
 
