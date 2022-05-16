@@ -9,25 +9,20 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/common/ExternalPhyPort.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/lib/fpga/FbDomFpga.h"
-#include "fboss/lib/phy/NullPortStats.h"
 
 namespace facebook::fboss {
 class SaiCloudRipperPlatform;
-class SaiCloudRipperPlatformPort : public SaiTajoPlatformPort,
-                                   public ExternalPhyPort<
-                                       SaiCloudRipperPlatform,
-                                       NullPortStats,
-                                       SaiPlatformPort> {
+class SaiCloudRipperPlatformPort : public SaiTajoPlatformPort {
  public:
   explicit SaiCloudRipperPlatformPort(PortID id, SaiPlatform* platform)
       : SaiTajoPlatformPort(id, platform) {}
   uint32_t getCurrentLedState() const override;
   void portChanged(std::shared_ptr<Port> newPort, std::shared_ptr<Port> oldPort)
-      override;
+      override {}
+  void linkStatusChanged(bool up, bool adminUp) override;
 
  private:
   FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;

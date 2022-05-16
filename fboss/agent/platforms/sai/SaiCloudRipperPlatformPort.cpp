@@ -18,14 +18,10 @@ uint32_t SaiCloudRipperPlatformPort::getCurrentLedState() const {
   return static_cast<uint32_t>(currentLedState_);
 }
 
-void SaiCloudRipperPlatformPort::portChanged(
-    std::shared_ptr<Port> newPort,
-    std::shared_ptr<Port> oldPort) {
-  ExternalPhyPort::portChanged(oldPort, newPort, this);
+void SaiCloudRipperPlatformPort::linkStatusChanged(
+    bool /* up */,
+    bool /* adminUp */) {
+  // TODO(vsp): LED logic is different for CR compared to Wedge400C, this needs
+  // to be re-visited to add the `setLedStatus()` logic
 }
-
-template class ExternalPhyPort<
-    SaiCloudRipperPlatform,
-    NullPortStats,
-    SaiPlatformPort>;
 } // namespace facebook::fboss

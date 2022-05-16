@@ -9,10 +9,9 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
-#include <algorithm>
+
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
-#include "fboss/lib/phy/facebook/credo/cloudripper/CloudRipperPhyInterfaceHandler.h"
 
 namespace facebook::fboss {
 
@@ -23,7 +22,6 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>(),
           localMac) {
-  phyInterfaceHandler_ = std::make_unique<CloudRipperPhyInterfaceHandler>();
   asic_ = std::make_unique<EbroAsic>();
 }
 
