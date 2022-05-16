@@ -37,7 +37,6 @@ class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class QsfpCache;
 enum class PlatformMode : char;
-class PhyInterfaceHandler;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -287,8 +286,6 @@ class Platform {
   }
 
   virtual uint32_t getMMUCellBytes() const;
-
-  virtual PhyInterfaceHandler* getPhyInterfaceHandler() = 0;
 
   virtual uint64_t getIntrCount() {
     return 0;

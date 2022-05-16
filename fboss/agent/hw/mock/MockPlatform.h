@@ -24,7 +24,6 @@ namespace facebook::fboss {
 class MockHwSwitch;
 class HwTestHandle;
 class MockPlatformPort;
-class PhyInterfaceHandler;
 class HwSwitchWarmBootHelper;
 
 /*
@@ -48,7 +47,6 @@ class MockPlatform : public Platform {
   static const folly::MacAddress& getMockLocalMac();
   static const folly::IPAddressV6& getMockLinkLocalIp6();
   PlatformPort* getPlatformPort(PortID id) const override;
-  PhyInterfaceHandler* getPhyInterfaceHandler() override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));

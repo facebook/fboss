@@ -13,7 +13,6 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
-#include "fboss/lib/phy/PhyInterfaceHandler.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
@@ -76,18 +75,8 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return qsfpCache_.get();
   }
 
-  PhyInterfaceHandler* getPhyInterfaceHandler() override {
-    return phyInterfaceHandler_.get();
-  }
-
  protected:
   std::unique_ptr<WedgePortMapping> portMapping_;
-
-  // The platform contains the top level Phy Interface handler object. The
-  // Agent can use this to access the Phy functions. The Phy interface handler
-  // will either have local Phy Manager object for Phy function or it will
-  // make thrift call to port service for the Phy function
-  std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
 
   void initImpl(uint32_t hwFeaturesDesired) override;
 

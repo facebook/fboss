@@ -16,7 +16,6 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
-#include "fboss/lib/phy/PhyInterfaceHandler.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
@@ -121,13 +120,9 @@ class SaiPlatform : public Platform, public StateObserver {
   const std::set<sai_api_t>& getDefaultSwitchAsicSupportedApis() const;
   const std::set<sai_api_t>& getDefaultPhyAsicSupportedApis() const;
   virtual const std::set<sai_api_t>& getSupportedApiList() const;
-  PhyInterfaceHandler* getPhyInterfaceHandler() override {
-    return phyInterfaceHandler_.get();
-  }
 
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
-  std::unique_ptr<PhyInterfaceHandler> phyInterfaceHandler_;
   virtual void updatePorts(const StateDelta& delta);
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
 

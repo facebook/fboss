@@ -2,11 +2,11 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
+#include <optional>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
-#include "fboss/lib/phy/PhyInterfaceHandler.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -102,29 +102,16 @@ void validatePhyInfo(
   }
 }
 
-// This function supports both using qsfp_service thrift api and
-// PhyInterfaceHandler from wedge_agent directly to get the XphyInfo for a
-// specific port.
-// TODO(joseph5wu) Will remove the way of using PhyInterfaceHandler to get
-// xphy info once we fully switch to use qsfp_service to program xphy.
-std::optional<phy::PhyInfo> getXphyInfo(
-    PortID portID,
-    PhyInterfaceHandler* phyIntHandler) {
-  std::optional<phy::PhyInfo> phyInfo;
-  if (FLAGS_skip_xphy_programming) {
-    // thrift can't support return optional
-    try {
-      phy::PhyInfo thriftPhyInfo;
-      auto qsfpServiceClient = utils::createQsfpServiceClient();
-      qsfpServiceClient->sync_getXphyInfo(thriftPhyInfo, portID);
-      phyInfo.emplace(thriftPhyInfo);
-    } catch (const thrift::FbossBaseError& /* err */) {
-      // If there's no phyInfo collected, it will throw fboss error.
-    }
-  } else {
-    phyInfo = phyIntHandler->getXphyInfo(portID);
+std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
+  try {
+    phy::PhyInfo thriftPhyInfo;
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getXphyInfo(thriftPhyInfo, portID);
+    return thriftPhyInfo;
+  } catch (const thrift::FbossBaseError& /* err */) {
+    // If there's no phyInfo collected, it will throw fboss error.
+    return std::nullopt;
   }
-  return phyInfo;
 }
 } // namespace
 
@@ -192,9 +179,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
           if (phyInfoBefore.count(port)) {
             continue;
           }
-          auto phyInfo =
-              getXphyInfo(port, sw()->getPlatform()->getPhyInterfaceHandler());
-          if (phyInfo.has_value()) {
+          if (auto phyInfo = getXphyInfo(port)) {
             phyInfoBefore.emplace(port, *phyInfo);
           } else {
             if (logErrors) {
@@ -227,12 +212,10 @@ TEST_F(LinkTest, xPhyInfoTest) {
         continue;
       }
 
-      auto phyInfo =
-          getXphyInfo(port, sw()->getPlatform()->getPhyInterfaceHandler());
-      if (phyInfo.has_value() &&
-          phyInfo->get_timeCollected() -
-                  phyInfoBefore[port].get_timeCollected() >=
-              kSecondsBetweenSnapshots) {
+      if (auto phyInfo = getXphyInfo(port); phyInfo.has_value() &&
+          (phyInfo->get_timeCollected() -
+               phyInfoBefore[port].get_timeCollected() >=
+           kSecondsBetweenSnapshots)) {
         phyInfoAfter.emplace(port, *phyInfo);
       } else {
         if (logErrors) {

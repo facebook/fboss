@@ -100,10 +100,6 @@ PlatformPort* MockPlatform::getPlatformPort(PortID id) const {
   throw FbossError("Can't find MockPlatform PlatformPort for ", id);
 }
 
-PhyInterfaceHandler* MockPlatform::getPhyInterfaceHandler() {
-  throw FbossError("Mock platforms don't have phy interfaces.");
-}
-
 HwSwitchWarmBootHelper* MockPlatform::getWarmBootHelper() {
   throw FbossError("Mock platforms don't have warmboot helper.");
 }

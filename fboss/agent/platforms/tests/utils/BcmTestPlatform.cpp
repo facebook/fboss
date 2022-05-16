@@ -137,8 +137,4 @@ BcmTestPlatform::getPortProfileConfig(
   return newConfig;
 }
 
-PhyInterfaceHandler* BcmTestPlatform::getPhyInterfaceHandler() {
-  throw FbossError("Test platforms don't have phy interfaces.");
-}
-
 } // namespace facebook::fboss

@@ -39,7 +39,6 @@ class SimPlatform : public Platform {
     return TransceiverIdxThrift();
   }
   PlatformPort* getPlatformPort(PortID id) const override;
-  PhyInterfaceHandler* getPhyInterfaceHandler() override;
 
   HwAsic* getAsic() const override {
     throw std::runtime_error("getAsic not implemented for SimPlatform");

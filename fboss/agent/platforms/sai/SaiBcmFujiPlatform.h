@@ -11,7 +11,6 @@
 
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
-#include "fboss/lib/phy/PhyInterfaceHandler.h"
 
 namespace facebook::fboss {
 
