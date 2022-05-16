@@ -1218,7 +1218,9 @@ void QsfpModule::legacyModuleStateMachineStateUpdate(
 void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   // Use this function to gate whether we should use the old state machine or
   // the new design with the StateUpdate list
-  if (FLAGS_use_new_state_machine) {
+  // If transceiverManager_ is null, we don't need to update the state machine
+  // This should only be the case for some unit tests
+  if (FLAGS_use_new_state_machine && transceiverManager_) {
     transceiverManager_->updateStateBlocking(getID(), event);
   } else {
     // Fall back to use the legacy logic

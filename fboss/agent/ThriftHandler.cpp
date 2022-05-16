@@ -53,7 +53,6 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/lib/LogThriftCall.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/lib/phy/PhyInterfaceHandler.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/IPAddressV4.h>
@@ -103,7 +102,6 @@ DEFINE_bool(
     enable_running_config_mutations,
     false,
     "Allow external mutations of running config");
-DECLARE_bool(skip_xphy_programming);
 
 namespace facebook::fboss {
 
@@ -2366,14 +2364,6 @@ void ThriftHandler::publishLinkSnapshots(
   for (const auto& portName : *portNames) {
     auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(portName);
     sw_->publishPhyInfoSnapshots(portID);
-    // TODO(joseph5wu) Eventually we don't need wedge_agent to publish xphy
-    // snapshots. Once we enable the new-port-programming everywhere, we can
-    // remove this if block
-    if (!FLAGS_skip_xphy_programming) {
-      if (auto phyIntfHandler = sw_->getPlatform()->getPhyInterfaceHandler()) {
-        phyIntfHandler->publishSnapshots(portID);
-      }
-    }
   }
 }
 

@@ -20,7 +20,7 @@
 
 DEFINE_bool(
     init_pim_xphys,
-    false,
+    true,
     "Initialize pim xphys after creating xphy map");
 
 namespace {
