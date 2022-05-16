@@ -139,7 +139,7 @@ TEST_P(AclTableGroupStoreParamTest, loadAclTableGroupMember) {
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclTableGroupMemberId);
-  EXPECT_EQ(got->adapterKey(), aclTableId);
+  EXPECT_EQ(got->adapterKey(), uint64_t(aclTableId));
 }
 
 TEST_P(AclTableGroupStoreParamTest, aclTableGroupLoadCtor) {

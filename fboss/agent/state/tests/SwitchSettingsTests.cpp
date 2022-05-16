@@ -170,7 +170,8 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   EXPECT_EQ(switchSettingsV1->getBlockNeighbors().size(), 1);
 
   EXPECT_EQ(
-      switchSettingsV1->getBlockNeighbors()[0].first, blockNeighbor.vlanID());
+      int(switchSettingsV1->getBlockNeighbors()[0].first),
+      blockNeighbor.vlanID());
   EXPECT_EQ(
       switchSettingsV1->getBlockNeighbors()[0].second.str(),
       blockNeighbor.ipAddress());
@@ -201,7 +202,8 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock().size(), 1);
 
   EXPECT_EQ(
-      switchSettingsV1->getMacAddrsToBlock()[0].first, macAddrToBlock.vlanID());
+      int(switchSettingsV1->getMacAddrsToBlock()[0].first),
+      macAddrToBlock.vlanID());
   EXPECT_EQ(
       switchSettingsV1->getMacAddrsToBlock()[0].second.toString(),
       macAddrToBlock.macAddress());

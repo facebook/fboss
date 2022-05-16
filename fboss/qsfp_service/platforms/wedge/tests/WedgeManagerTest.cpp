@@ -193,8 +193,9 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
       // id is 0 based here
       EXPECT_EQ(
           transceiverManager_->getCurrentState(TransceiverID(trans.first)),
-          trans.first == 0 ? TransceiverStateMachineState::NOT_PRESENT
-                           : TransceiverStateMachineState::DISCOVERED);
+          trans.first == uint16_t(0)
+              ? TransceiverStateMachineState::NOT_PRESENT
+              : TransceiverStateMachineState::DISCOVERED);
     }
   }
 }
@@ -210,7 +211,7 @@ TEST_F(WedgeManagerTest, mgmtInterfaceChangedTest) {
   auto currentModules = transceiverManager_->mgmtInterfaces();
   EXPECT_EQ(currentModules.size(), 16);
   for (auto module : currentModules) {
-    if (module.first == 0) {
+    if (module.first == uint16_t(0)) {
       EXPECT_EQ(module.second, TransceiverManagementInterface::CMIS);
     } else {
       EXPECT_EQ(module.second, TransceiverManagementInterface::SFF);

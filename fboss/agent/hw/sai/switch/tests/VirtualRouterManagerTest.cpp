@@ -24,7 +24,7 @@ TEST_F(VirtualRouterManagerTest, defaultVirtualRouterTest) {
       saiManagerTable->virtualRouterManager().getVirtualRouterHandle(
           RouterID(0));
   EXPECT_TRUE(virtualRouterHandle);
-  EXPECT_EQ(virtualRouterHandle->virtualRouter->adapterKey(), 0);
+  EXPECT_EQ(virtualRouterHandle->virtualRouter->adapterKey(), uint64_t(0));
 
   EXPECT_TRUE(virtualRouterHandle->mplsRouterInterface);
 
