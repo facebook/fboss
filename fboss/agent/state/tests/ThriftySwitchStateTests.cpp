@@ -121,3 +121,18 @@ TEST(ThriftySwitchState, AclMap) {
   state.resetAcls(aclMap);
   verifySwitchStateSerialization(state);
 }
+
+TEST(ThriftySwitchState, TransceiverMap) {
+  auto transceiver1 = std::make_shared<Transceiver>(TransceiverID(1));
+  auto transceiver2 = std::make_shared<Transceiver>(TransceiverID(2));
+
+  auto transceiverMap = std::make_shared<TransceiverMap>();
+  transceiverMap->addTransceiver(transceiver1);
+  transceiverMap->addTransceiver(transceiver2);
+
+  validateThriftyMigration(*transceiverMap);
+
+  auto state = SwitchState();
+  state.resetTransceivers(transceiverMap);
+  verifySwitchStateSerialization(state);
+}
