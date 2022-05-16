@@ -9,7 +9,9 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/types.h"
 
@@ -22,7 +24,11 @@ using TransceiverMapTraits = NodeMapTraits<TransceiverID, Transceiver>;
 /*
  * A container for all the present Transceivers
  */
-class TransceiverMap : public NodeMapT<TransceiverMap, TransceiverMapTraits> {
+class TransceiverMap
+    : public ThriftyNodeMapT<
+          TransceiverMap,
+          TransceiverMapTraits,
+          ThriftyNodeMapTraits<int16_t, state::TransceiverFields>> {
  public:
   TransceiverMap();
   ~TransceiverMap() override;
@@ -42,7 +48,7 @@ class TransceiverMap : public NodeMapT<TransceiverMap, TransceiverMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss

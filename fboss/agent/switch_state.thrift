@@ -213,4 +213,5 @@ struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
   3: map<string, AclEntryFields> aclMap;
+  4: map<i16, TransceiverFields> transceiverMap;
 }

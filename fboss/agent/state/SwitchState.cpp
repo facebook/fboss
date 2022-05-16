@@ -92,6 +92,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.portMap() = ports->toThrift();
   state.vlanMap() = vlans->toThrift();
   state.aclMap() = acls->toThrift();
+  state.transceiverMap() = transceivers->toThrift();
   return state;
 }
 
