@@ -482,8 +482,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     EXPECT_CALL(*mockXcvr, configureModule()).Times(callTimes).InSequence(s);
 
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
-    if (auto settings = info.settings_ref()) {
-      if (auto hostLaneSettings = settings->hostLaneSettings_ref()) {
+    if (auto settings = info.settings()) {
+      if (auto hostLaneSettings = settings->hostLaneSettings()) {
         EXPECT_CALL(*mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
             .Times(callTimes)
             .InSequence(s);
@@ -832,8 +832,8 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         // The rest functions are after customizeTransceiverLocked() and they
         // should only be called once at the second time
         const auto& info = transceiverManager_->getTransceiverInfo(id_);
-        if (auto settings = info.settings_ref()) {
-          if (auto hostLaneSettings = settings->hostLaneSettings_ref()) {
+        if (auto settings = info.settings()) {
+          if (auto hostLaneSettings = settings->hostLaneSettings()) {
             EXPECT_CALL(
                 *mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
                 .Times(1);

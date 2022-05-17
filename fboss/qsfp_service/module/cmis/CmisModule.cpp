@@ -2569,13 +2569,13 @@ void CmisModule::updateCmisStateChanged(
     return;
   }
   // If `moduleStatus` already has true `cmisStateChanged`, no need to update
-  if (auto cmisStateChanged = moduleStatus.cmisStateChanged_ref();
+  if (auto cmisStateChanged = moduleStatus.cmisStateChanged();
       cmisStateChanged && *cmisStateChanged) {
     return;
   }
   // Otherwise, update it using curModuleStatus
   if (curModuleStatus) {
-    if (auto curCmisStateChanged = curModuleStatus->cmisStateChanged_ref()) {
+    if (auto curCmisStateChanged = curModuleStatus->cmisStateChanged()) {
       moduleStatus.cmisStateChanged() = *curCmisStateChanged;
     }
   } else {

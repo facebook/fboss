@@ -230,9 +230,9 @@ class QsfpModule : public Transceiver {
     auto diagsCapability = diagsCapability_.rlock();
     return (side == phy::Side::LINE)
         ? ((*diagsCapability).has_value() &&
-           *(*diagsCapability).value().prbsLine_ref())
+           *(*diagsCapability).value().prbsLine())
         : ((*diagsCapability).has_value() &&
-           *(*diagsCapability).value().prbsSystem_ref());
+           *(*diagsCapability).value().prbsSystem());
   }
 
   std::optional<DiagsCapability> getDiagsCapability() const override {
