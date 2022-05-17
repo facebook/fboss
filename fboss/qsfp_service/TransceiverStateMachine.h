@@ -358,6 +358,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
 //  Start                  + Event                  [Guard]                    / Action          == Next
 // +-------------------------------------------------------------------------------------------------------------+
     NOT_PRESENT            + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    // Only allow PRESENT state to READ_EEPROM
     PRESENT                + READ_EEPROM            [discoverTransceiver]      / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call port program in case optic is actually
     // inserted but just can't read the present state
@@ -393,7 +394,17 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     DISCOVERED             + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     PRESENT                + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     // Only remediate transciever if all ports are down
-    INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED
+    INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
+    // As we allow programming events for not present transceiver, we might have the transceiver finish all programming
+    // events and then insert the new transceiver later. For such case, we need to execute the new DETECT_TRANSCEIVER
+    // event so that we can trigger reprogramming w/ the new transceiver info.
+    // NOTE: the boost state machine library will use the order of the state in this table to assign the integer
+    // value order, which has been used in getStateByOrder(). So we don't want to add the following transitions
+    // at the beginning of this table to avoid changing the original order.
+    IPHY_PORTS_PROGRAMMED  + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    XPHY_PORTS_PROGRAMMED  + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    TRANSCEIVER_PROGRAMMED + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT,
+    INACTIVE               + DETECT_TRANSCEIVER                                / logStateChanged == PRESENT
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

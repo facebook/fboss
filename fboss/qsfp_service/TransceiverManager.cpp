@@ -1600,7 +1600,7 @@ void TransceiverManager::setDiagsCapability(TransceiverID id) {
              << ". Transceiver is not present";
 }
 
-Transceiver* TransceiverManager::overrideTransceiverForTesting(
+Transceiver* FOLLY_NULLABLE TransceiverManager::overrideTransceiverForTesting(
     TransceiverID id,
     std::unique_ptr<Transceiver> overrideTcvr) {
   auto lockedTransceivers = transceivers_.wlock();
@@ -1608,8 +1608,14 @@ Transceiver* TransceiverManager::overrideTransceiverForTesting(
   if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
     lockedTransceivers->erase(it);
   }
-  lockedTransceivers->emplace(id, std::move(overrideTcvr));
-  return lockedTransceivers->at(id).get();
+  // Only set the override transceiver if it's not null so that we can support
+  // removing transceiver in tests
+  if (overrideTcvr) {
+    lockedTransceivers->emplace(id, std::move(overrideTcvr));
+    return lockedTransceivers->at(id).get();
+  } else {
+    return nullptr;
+  }
 }
 
 std::vector<TransceiverID> TransceiverManager::refreshTransceivers(

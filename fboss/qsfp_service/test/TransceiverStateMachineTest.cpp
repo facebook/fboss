@@ -563,7 +563,11 @@ TEST_F(TransceiverStateMachineTest, detectTransceiver) {
   auto allStates = getAllStates();
   // Only NOT_PRESENT can accept DETECT_TRANSCEIVER event
   verifyStateMachine(
-      {TransceiverStateMachineState::NOT_PRESENT},
+      {TransceiverStateMachineState::NOT_PRESENT,
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+       TransceiverStateMachineState::INACTIVE},
       TransceiverStateMachineEvent::DETECT_TRANSCEIVER,
       TransceiverStateMachineState::PRESENT /* expected state */,
       allStates,
@@ -1544,5 +1548,96 @@ TEST_F(TransceiverStateMachineTest, syncPortsOnRemovedTransceiver) {
       } /* verify */,
       TransceiverType::MOCK_CMIS,
       "Triggering syncPorts with port down on a removed transceiver");
+}
+
+TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
+  auto removeCmisTransceiver = [this](bool isRemoval) {
+    if (isRemoval) {
+      XLOG(INFO) << "Verifying Removing Transceiver: " << id_;
+      transceiverManager_->overrideMgmtInterface(
+          static_cast<int>(id_) + 1,
+          uint8_t(TransceiverModuleIdentifier::UNKNOWN));
+      transceiverManager_->overrideTransceiverForTesting(id_, nullptr);
+    } else {
+      XLOG(INFO) << "Verifying Inserting new CMIS Transceiver: " << id_;
+      // Mimic a SFF module -> CMIS module replacement
+      transceiverManager_->overrideMgmtInterface(
+          static_cast<int>(id_) + 1,
+          uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
+      auto xcvrImpl = std::make_unique<MockCmisTransceiverImpl>(id_);
+      EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+          .WillRepeatedly(::testing::Return(true));
+      xcvr_ = static_cast<QsfpModule*>(
+          transceiverManager_->overrideTransceiverForTesting(
+              id_,
+              std::make_unique<MockCmisModule>(
+                  transceiverManager_.get(), std::move(xcvrImpl), 1)));
+    }
+
+    // Check this refreshStateMachines will:
+    // 1) If it's a removal operation, such transceiver will be removed and the
+    // state machine will be set back to NOT_PRESENT. Example log: P501158293
+    // 2) If it's a new transceiver inserted, a new transceiver will be detected
+    transceiverManager_->refreshStateMachines();
+    const auto& xcvrInfo = transceiverManager_->getTransceiverInfo(id_);
+    EXPECT_EQ(*xcvrInfo.present(), !isRemoval);
+
+    // Both cases will kick off a PROGRAM_IPHY event
+    EXPECT_EQ(
+        transceiverManager_->getCurrentState(id_),
+        TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED);
+    // Now only isIphyProgrammed should be true
+    const auto& stateMachine =
+        transceiverManager_->getStateMachineForTesting(id_);
+    EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+    EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+    EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+
+    // Use updateStateBlocking() to skip PhyManager check
+    // Make sure `programExternalPhyPorts` has been called
+    EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_)).Times(1);
+    transceiverManager_->updateStateBlocking(
+        id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
+    EXPECT_EQ(
+        transceiverManager_->getCurrentState(id_),
+        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+    // Now isXphyProgrammed should also be true
+    const auto& stateMachine2 =
+        transceiverManager_->getStateMachineForTesting(id_);
+    EXPECT_TRUE(stateMachine2.get_attribute(isIphyProgrammed));
+    EXPECT_TRUE(stateMachine2.get_attribute(isXphyProgrammed));
+    EXPECT_FALSE(stateMachine2.get_attribute(isTransceiverProgrammed));
+
+    // Because the transceiver is not present, the PROGRAM_TRANSCEIVER should be
+    // no-op
+    if (!isRemoval) {
+      setProgramCmisModuleExpectation(true);
+    }
+    transceiverManager_->updateStateBlocking(
+        id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+    EXPECT_EQ(
+        transceiverManager_->getCurrentState(id_),
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+    // Now all programming attributes should be true
+    const auto& stateMachine3 =
+        transceiverManager_->getStateMachineForTesting(id_);
+    EXPECT_TRUE(stateMachine3.get_attribute(isIphyProgrammed));
+    EXPECT_TRUE(stateMachine3.get_attribute(isXphyProgrammed));
+    EXPECT_TRUE(stateMachine3.get_attribute(isTransceiverProgrammed));
+  };
+
+  // Due to this test might need several updates, which are first removing the
+  // transceiver and then inserting back, instead of using the general
+  // verifyStateMachine(), we decided to break the whole tests into multiple
+  // steps.
+  // Step1: Mimic agent side ports down
+  xcvr_ = overrideTransceiver(TransceiverType::MOCK_SFF);
+  setState(TransceiverStateMachineState::INACTIVE);
+
+  // Step2: Remove the transceiver and check the state machine updates
+  removeCmisTransceiver(true);
+
+  // Step3: Insert the transceiver back and call refreshStateMachine()
+  removeCmisTransceiver(false);
 }
 } // namespace facebook::fboss

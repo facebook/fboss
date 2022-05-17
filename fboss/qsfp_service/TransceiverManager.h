@@ -264,7 +264,7 @@ class TransceiverManager {
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) = 0;
 
-  Transceiver* overrideTransceiverForTesting(
+  Transceiver* FOLLY_NULLABLE overrideTransceiverForTesting(
       TransceiverID id,
       std::unique_ptr<Transceiver> overrideTcvr);
 
