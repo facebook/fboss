@@ -154,7 +154,8 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
           EXPECT_EQ(laneStats.size(), lanes.size());
           int laneStatsIdx = 0;
           for (const auto& laneIt : lanes) {
-            EXPECT_EQ(laneIt.first, *laneStats[laneStatsIdx++].laneId());
+            EXPECT_EQ(
+                laneIt.first, uint32_t(*laneStats[laneStatsIdx++].laneId()));
           }
         } else {
           EXPECT_TRUE(laneStats.empty());

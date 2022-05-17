@@ -226,7 +226,7 @@ TEST(Route, serializeMplsRoute) {
   // back to Route object
   auto rt2 = Route<LabelID>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-  EXPECT_EQ(rt2->getID().label, 100);
+  EXPECT_EQ(int32_t(rt2->getID().label), 100);
 }
 
 // Serialization/deseralization of Routes with counterID

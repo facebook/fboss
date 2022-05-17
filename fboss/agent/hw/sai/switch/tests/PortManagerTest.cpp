@@ -54,7 +54,7 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_EQ(enabled, gotAdminState);
     auto gotLanes = portApi.getAttribute(saiId, hwLaneListAttribute);
     EXPECT_EQ(1, gotLanes.size());
-    EXPECT_EQ(swId, gotLanes[0]);
+    EXPECT_EQ(swId, uint16_t(gotLanes[0]));
     auto gotSpeed = portApi.getAttribute(saiId, speedAttribute);
     EXPECT_EQ(25000, gotSpeed);
     auto gotFecMode = portApi.getAttribute(saiId, fecMode);
