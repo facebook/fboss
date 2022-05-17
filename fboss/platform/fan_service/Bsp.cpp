@@ -11,10 +11,7 @@ namespace facebook::fboss::platform {
 
 int Bsp::run(const std::string& cmd) {
   int rc = 0;
-  folly::Subprocess p({cmd}, folly::Subprocess::Options().pipeStdout());
-  auto result = p.communicate();
-  rc = p.wait().exitStatus();
-  XLOG(INFO) << "Command: " << cmd << " ret:" << rc;
+  rc = runShellCmd(cmd);
   return rc;
 }
 
@@ -226,8 +223,7 @@ void Bsp::getOpticsDataThrift(
     // QsfpCache runs a background thread to do the sync every
     // 30 seconds. The following merely reads the cached data
     // updated in the last sync attempt (thus returns very quickly.)
-    cacheTable = qsfpCache_->getAllTransceivers();
-    thriftSuccess = true;
+    thriftSuccess = getCacheTable(cacheTable, qsfpCache_);
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to read optics data from Qsfp for "
               << opticsGroup->opticName;
@@ -287,7 +283,6 @@ void Bsp::getOpticsDataThrift(
 void Bsp::getOpticsDataSysfs(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
-  uint64_t nowSec;
   float readVal;
   bool readSuccessful;
   // If we read the data from the sysfs, there is no way
@@ -295,7 +290,6 @@ void Bsp::getOpticsDataSysfs(
   // threshold table we can find (if ever.)
   // Also we return the data as instance 0 (in the case
   // of all) or the first instance in the instance list.
-  nowSec = facebook::WallClockUtil::NowInSecFast();
   readSuccessful = false;
   try {
     readVal = getSensorDataSysfs(*opticsGroup->access.path());
@@ -375,29 +369,8 @@ void Bsp::getSensorDataThriftWithSensorList(
     std::shared_ptr<ServiceConfig> pServiceConfig,
     std::shared_ptr<SensorData> pSensorData,
     std::vector<std::string> sensorList) {
-  Bsp::createSensorServiceClient(&evb_, sensordThriftPort_)
-      .thenValue([sensorList](auto&& client) {
-        // use empty list to fetch all transceivers
-        std::vector<int32_t> ids;
-        auto options = Bsp::getRpcOptions();
-        return client->future_getSensorValuesByNames(options, sensorList);
-      })
-      .wait()
-      .thenValue([pSensorData](auto&& response) mutable {
-        auto responseSensorData = response.sensorData();
-        for (auto& it : *responseSensorData) {
-          std::string key = *it.name();
-          float value = *it.value();
-          int64_t timeStamp = *it.timeStamp();
-          pSensorData->updateEntryFloat(key, value, timeStamp);
-          XLOG(INFO) << "Storing sensor " << key << " with value " << value
-                     << " timestamp : " << timeStamp;
-        }
-        XLOG(INFO) << "Got sensor data from sensor_service";
-      })
-      .thenError(folly::tag_t<std::exception>{}, [](const std::exception& e) {
-        XLOG(ERR) << "Exception talking to sensor_service" << e.what();
-      });
+  getSensorValueThroughThrift(
+      sensordThriftPort_, evb_, pSensorData, sensorList);
   return;
 }
 
@@ -505,55 +478,11 @@ bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
 }
 
 bool Bsp::initializeQsfpService() {
-  qsfpCache_ = std::make_shared<QsfpCache>();
-  qsfpCache_->init(&evb_);
-  thread_.reset(new std::thread([=] { evb_.loopForever(); }));
+  bool qsfpInitialized = initQsfpSvc(qsfpCache_, evb_);
+  if (qsfpInitialized) {
+    thread_.reset(new std::thread([=] { evb_.loopForever(); }));
+  }
   return true;
-}
-
-folly::Future<std::unique_ptr<
-    facebook::fboss::platform::sensor_service::SensorServiceThriftAsyncClient>>
-Bsp::createSensorServiceClient(folly::EventBase* eb, int servicePort) {
-  // SR relies on both configerator and smcc being up
-  // use raw thrift instead
-  auto createClient = [eb, servicePort]() {
-    folly::SocketAddress sockAddr("::1", servicePort);
-    // secure client
-    auto certKeyPair =
-        facebook::security::CertPathPicker::getClientCredentialPaths(true);
-    if (certKeyPair.first.empty() or certKeyPair.second.empty()) {
-      LOG(INFO) << "empty cert or key => cert: " << certKeyPair.first
-                << ", key: " << certKeyPair.second
-                << " Creating plain text client.";
-      auto socket =
-          folly::AsyncSocket::newSocket(eb, sockAddr, kSensorConnTimeoutMs);
-      socket->setSendTimeout(kSensorSendTimeoutMs);
-      auto channel =
-          apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
-      return std::make_unique<sensor_service::SensorServiceThriftAsyncClient>(
-          std::move(channel));
-    } else {
-      auto ctx = std::make_shared<folly::SSLContext>();
-      ctx->loadCertificate(certKeyPair.first.c_str());
-      ctx->loadPrivateKey(certKeyPair.second.c_str());
-
-      auto socket =
-          folly::AsyncSSLSocket::UniquePtr(new folly::AsyncSSLSocket(ctx, eb));
-      socket->setSendTimeout(kSensorSendTimeoutMs);
-      socket->connect(nullptr, sockAddr, kSensorConnTimeoutMs);
-      auto channel =
-          apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
-      return std::make_unique<sensor_service::SensorServiceThriftAsyncClient>(
-          std::move(channel));
-    }
-  };
-  return folly::via(eb, createClient);
-}
-
-apache::thrift::RpcOptions Bsp::getRpcOptions() {
-  apache::thrift::RpcOptions opts;
-  opts.setTimeout(std::chrono::milliseconds(kSensorSendTimeoutMs));
-  return opts;
 }
 
 Bsp::~Bsp() {

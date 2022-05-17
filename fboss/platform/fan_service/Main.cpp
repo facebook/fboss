@@ -1,13 +1,17 @@
 // Copyright 2021- Facebook. All rights reserved.
 
 #include "fboss/platform/fan_service/Main.h"
+#include "fboss/platform/fan_service/SetupThrift.h"
 //
 // GFLAGS Description : FLAGS_thrift_port
 //                      FLAGS_control_interval
 //                      FLAGS_config_file
 //
 
-DEFINE_int32(thrift_port, 5972, "Thrift Port");
+using namespace facebook;
+using namespace facebook::services;
+using namespace facebook::fboss::platform;
+
 DEFINE_int32(
     control_interval,
     5,
@@ -17,38 +21,14 @@ DEFINE_string(mock_output, "", "Mock Output File");
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
-// runServer : a helper function to run Fan Service as Thrift Server.
-int runServer(
-    std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
-    std::shared_ptr<facebook::fboss::platform::FanServiceHandler> handler) {
-  facebook::services::ServiceFrameworkLight service("Fan Service");
-  thriftServer->setAllowPlaintextOnLoopback(true);
-  service.addThriftService(thriftServer, handler.get(), FLAGS_thrift_port);
-  service.addModule(
-      facebook::services::BuildModule::kModuleName,
-      new facebook::services::BuildModule(&service));
-  service.addModule(
-      facebook::services::ThriftStatsModule::kModuleName,
-      new facebook::services::ThriftStatsModule(&service));
-  service.addModule(
-      facebook::services::Fb303Module::kModuleName,
-      new facebook::services::Fb303Module(&service));
-  service.addModule(
-      facebook::services::AclCheckerModule::kModuleName,
-      new facebook::services::AclCheckerModule(&service));
-  service.go();
-  return 0;
-}
-
 int main(int argc, char** argv) {
   // Define the return code
   int rc = 0;
 
-  // Do the Facebook Init
-  facebook::initFacebook(&argc, &argv);
-
   // Parse Flags
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+  doFBInit(argc, argv);
 
   // If Mock configuration is enabled, run Fan Service in Mock mode, then quit.
   // No Thrift service will be created at all.
@@ -60,29 +40,12 @@ int main(int argc, char** argv) {
     exit(rc);
   }
 
-  // Create Fan Service Object as unique_ptr
-  auto fanService = std::make_unique<facebook::fboss::platform::FanService>();
-
-  // Setup Thrift Server. Nothing special.
-  // Later, we install our handler in this server
-  auto server = std::make_shared<apache::thrift::ThriftServer>();
-
-  // Create Thrift Handler (interface)
-  // The previously created unique_ptr of fanService will be transferred into
-  // the handler This is the interface between FanService and any Thrift call
-  // handler to be created
-  auto handler = std::make_shared<facebook::fboss::platform::FanServiceHandler>(
-      std::move(fanService));
-
-  // Need to run kickstart method in the FanService object,
-  // inside the handler.
-  handler->getFanService()->kickstart();
-
-  // Install the handler in Thrift server.
-  server->setInterface(handler);
-
-  // Set thrift port.
-  server->setPort(FLAGS_thrift_port);
+  std::pair<
+      std::shared_ptr<apache::thrift::ThriftServer>,
+      std::shared_ptr<FanServiceHandler>>
+      p = setupThrift();
+  std::shared_ptr<apache::thrift::ThriftServer> server = p.first;
+  std::shared_ptr<FanServiceHandler> handler = p.second;
 
   // Set up scheduler.
   folly::FunctionScheduler scheduler;
@@ -97,7 +60,7 @@ int main(int argc, char** argv) {
   scheduler.start();
 
   // Also, run the Thrift server
-  rc = runServer(server, handler);
-
+  std::string serviceName = "Fan Service";
+  startServiceAndRunServer(serviceName, server, handler.get(), true);
   return rc;
 }

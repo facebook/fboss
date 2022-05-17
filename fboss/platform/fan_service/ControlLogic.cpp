@@ -244,7 +244,7 @@ void ControlLogic::updateTargetPwm(Sensor* sensorItem) {
 
 void ControlLogic::getSensorUpdate() {
   std::string sensorItemName;
-  float rawValue = 0.0, adjustedValue, targetPwm;
+  float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
   for (auto configSensorItem = pConfig_->sensors.begin();
        configSensorItem != pConfig_->sensors.end();
@@ -282,7 +282,7 @@ void ControlLogic::getSensorUpdate() {
       uint64_t timeDiffInSec = pBsp_->getCurrentTime() -
           configSensorItem->processedData.lastUpdatedTime;
       if (timeDiffInSec >= configSensorItem->sensorFailThresholdInSec) {
-        configSensorItem->processedData.sensorFailed == true;
+        configSensorItem->processedData.sensorFailed = true;
         numSensorFailed_++;
       }
     } else {

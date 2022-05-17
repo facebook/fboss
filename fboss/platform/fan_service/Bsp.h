@@ -20,13 +20,10 @@
 
 // Auto-generated Thrift inteface headerfile (by Buck)
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
-#include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThrift.h"
+
 // Use QsfpCache library
 #include "fboss/qsfp_service/lib/QsfpCache.h"
-// Facebook Service Router Headerfiles
-// - used when sending Thrift request to sensor_service
-#include "servicerouter/client/cpp2/ClientParams.h"
-#include "servicerouter/client/cpp2/ServiceRouter.h"
+
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
 
@@ -40,14 +37,11 @@
 #include <folly/system/Shell.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
-#include "security/ca/lib/certpathpicker/CertPathPicker.h"
+#include "fboss/platform/fan_service/HelperFunction.h"
+
+int runShellCmd(const std::string& cmd);
 
 namespace facebook::fboss::platform {
-
-constexpr int kSensorSendTimeoutMs = 5000;
-constexpr int kSensorConnTimeoutMs = 2000;
-constexpr int kQsfpSendTimeoutMs = 5000;
-constexpr int kQsfpConnTimeoutMs = 2000;
 
 class Bsp {
  public:
@@ -77,12 +71,6 @@ class Bsp {
   bool getEmergencyState() const;
   virtual float readSysfs(std::string path) const;
   virtual bool initializeQsfpService();
-
-  // Methods for send thrift request without using servicerouter
-  static folly::Future<
-      std::unique_ptr<facebook::fboss::platform::sensor_service::
-                          SensorServiceThriftAsyncClient>>
-  createSensorServiceClient(folly::EventBase* eb, int servicePort);
   static apache::thrift::RpcOptions getRpcOptions();
 
  protected:
@@ -103,7 +91,7 @@ class Bsp {
   void getOpticsDataSysfs(
       Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
-  std::unique_ptr<std::thread> thread_{nullptr};
+  std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
   folly::EventBase evb_;
   // For communicating with sensor_service

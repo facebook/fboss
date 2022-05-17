@@ -24,7 +24,7 @@ class BspTest : public ::testing::Test {
   std::shared_ptr<ServiceConfig> makeServiceConfig(
       fan_config_structs::AccessMethod accessMethod) const {
     auto config = std::make_shared<ServiceConfig>();
-    Sensor sensor;
+    facebook::fboss::platform::Sensor sensor;
     sensor.sensorName = kSensorName;
     sensor.access = accessMethod;
     config->sensors.push_back(sensor);

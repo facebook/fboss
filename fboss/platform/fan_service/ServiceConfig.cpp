@@ -29,7 +29,6 @@ int ServiceConfig::parse() {
   // Read the raw text from the file
   std::string contents;
   fboss::PlatformMode platformMode;
-
   XLOG(INFO) << "Detecting the platform type. FRUID File path : "
              << FLAGS_fruid_filepath;
   fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);

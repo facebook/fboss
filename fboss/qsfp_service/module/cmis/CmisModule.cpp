@@ -2202,7 +2202,6 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
  * variable to capture the VDM stats (typically every 5 minutes)
  */
 void CmisModule::latchAndReadVdmDataLocked() {
-  int offset, length, dataAddress;
   if (!isVdmSupported()) {
     return;
   }
@@ -2265,8 +2264,6 @@ bool CmisModule::getModuleStateChanged() {
 bool CmisModule::setPortPrbsLocked(
     phy::Side side,
     const prbs::InterfacePrbsState& prbs) {
-  int offset, length, dataAddress;
-
   // If PRBS is not supported then return
   if (!isPrbsSupported(side)) {
     XLOG(ERR) << folly::sformat(
@@ -2418,7 +2415,6 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
   }
   prbs::InterfacePrbsState state;
 
-  int offset, length, dataAddress;
   uint8_t laneMask = (side == phy::Side::LINE) ? ((1 << numMediaLanes()) - 1)
                                                : ((1 << numHostLanes()) - 1);
 
@@ -2463,7 +2459,6 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
  * stats are returned.
  */
 phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
-  int offset, length, dataAddress;
   phy::PrbsStats prbsStats;
 
   // If PRBS is not supported then return

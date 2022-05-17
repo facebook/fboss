@@ -12,23 +12,9 @@
 #include <folly/logging/xlog.h>
 
 // Include files for Fan Service class and handler class
+#include <folly/experimental/FunctionScheduler.h>
 #include "fboss/platform/fan_service/FanService.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
 
-// Other Facebook specific service headerfiles
-#include "common/init/Init.h"
-#include "common/services/cpp/AclCheckerModule.h"
-#include "common/services/cpp/BuildModule.h"
-#include "common/services/cpp/Fb303Module.h"
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#include "common/services/cpp/ThriftStatsModule.h"
-
 // Required for using gFlags
 #include <gflags/gflags.h>
-
-// Need this in order to use Thrift server
-namespace apache {
-namespace thrift {
-class ThriftServer;
-}
-} // namespace apache

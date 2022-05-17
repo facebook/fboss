@@ -59,8 +59,6 @@ std::shared_ptr<Bsp> FanService::BspFactory() {
 }
 
 void FanService::kickstart() {
-  int rc = 0;
-
   // Read Config
   pConfig_ = std::make_shared<ServiceConfig>();
   pConfig_->parse();
@@ -82,7 +80,6 @@ void FanService::kickstart() {
 
 int FanService::controlFan(/*folly::EventBase* evb*/) {
   int rc = 0;
-  bool hasSensorDataUpdate = false;
   uint64_t currentTimeSec = pBsp_->getCurrentTime();
   if (!transitionValueSet_) {
     transitionValueSet_ = true;
@@ -114,11 +111,6 @@ int FanService::controlFan(/*folly::EventBase* evb*/) {
       XLOG(INFO) << "Successfully fetched optics data.";
     } catch (std::exception& e) {
       XLOG(ERR) << "Failed to get optics data with error : " << e.what();
-    }
-    // If ANY of the two data read above pass, do the best effort
-    // to use the data for adjusting fan speed
-    if (sensorReadOK || opticsReadOK) {
-      hasSensorDataUpdate = true;
     }
     // If BOTH of the two data read above pass, then we consider
     // that the sensor reading is successful. Otherwise, we will
@@ -152,8 +144,6 @@ int FanService::runMock(std::string mockInputFile, std::string mockOutputFile) {
   }
   Mokujin* pMokujin = static_cast<Mokujin*>(pBsp_.get());
   pMokujin->openIOFiles(mockInputFile, mockOutputFile);
-  int sensorIntervalSec = (int)(pConfig_->getSensorFetchFrequency());
-  int fanIntervalSec = (int)(pConfig_->getControlFrequency());
 
   while (loopControl) {
     // Read and Parse Mock data as needed
