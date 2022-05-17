@@ -9,26 +9,40 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
 using BufferPoolCfgMapTraits = NodeMapTraits<std::string, BufferPoolCfg>;
 
+struct BufferPoolCfgMapThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::BufferPoolFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "id";
+    return _key;
+  }
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
 /*
  * A container for the set of collectors.
  */
-class BufferPoolCfgMap
-    : public NodeMapT<BufferPoolCfgMap, BufferPoolCfgMapTraits> {
+class BufferPoolCfgMap : public ThriftyNodeMapT<
+                             BufferPoolCfgMap,
+                             BufferPoolCfgMapTraits,
+                             BufferPoolCfgMapThriftTraits> {
  public:
   BufferPoolCfgMap() = default;
   ~BufferPoolCfgMap() override = default;
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 

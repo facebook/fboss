@@ -15,6 +15,8 @@
 #include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -93,6 +95,9 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.vlanMap() = vlans->toThrift();
   state.aclMap() = acls->toThrift();
   state.transceiverMap() = transceivers->toThrift();
+  if (bufferPoolCfgs) {
+    state.bufferPoolCfgMap() = bufferPoolCfgs->toThrift();
+  }
   return state;
 }
 
@@ -102,12 +107,23 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.ports = PortMap::fromThrift(state.get_portMap());
   fields.vlans = VlanMap::fromThrift(state.get_vlanMap());
   fields.acls = AclMap::fromThrift(state.get_aclMap());
+  if (!state.get_bufferPoolCfgMap().empty()) {
+    fields.bufferPoolCfgs =
+        BufferPoolCfgMap::fromThrift(state.get_bufferPoolCfgMap());
+  }
   return fields;
 }
 
 bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
   // TODO: add rest of fields as we convert them to thrifty
-  return std::tie(*ports, *vlans, *acls) ==
+  bool bufferPoolCfgsSame = true;
+  if (bufferPoolCfgs && other.bufferPoolCfgs) {
+    bufferPoolCfgsSame = (*bufferPoolCfgs == *other.bufferPoolCfgs);
+  } else if (bufferPoolCfgs || other.bufferPoolCfgs) {
+    bufferPoolCfgsSame = false;
+  }
+  return bufferPoolCfgsSame &&
+      std::tie(*ports, *vlans, *acls) ==
       std::tie(*other.ports, *other.vlans, *other.acls);
 }
 

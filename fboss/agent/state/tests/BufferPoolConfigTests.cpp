@@ -134,6 +134,8 @@ TEST(BufferPoolConfigTest, applyConfig) {
   EXPECT_NE(nullptr, stateV1);
 
   auto bufferPools = stateV1->getBufferPoolCfgs();
+  validateThriftyMigration(*bufferPools);
+
   EXPECT_NE(nullptr, bufferPools);
   EXPECT_EQ(2, (*bufferPools).size());
 

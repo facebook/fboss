@@ -11,6 +11,7 @@
 // #include <folly/IPAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/ArpResponseTable.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -134,5 +135,22 @@ TEST(ThriftySwitchState, TransceiverMap) {
 
   auto state = SwitchState();
   state.resetTransceivers(transceiverMap);
+  verifySwitchStateSerialization(state);
+}
+
+TEST(ThriftySwitchState, BufferPoolCfgMap) {
+  const std::string buffer1 = "pool1";
+  const std::string buffer2 = "pool2";
+  auto pool1 = std::make_shared<BufferPoolCfg>(buffer1);
+  auto pool2 = std::make_shared<BufferPoolCfg>(buffer2);
+  pool1->setHeadroomBytes(100);
+  pool2->setHeadroomBytes(200);
+
+  auto map = std::make_shared<BufferPoolCfgMap>();
+  map->addNode(pool1);
+  map->addNode(pool2);
+
+  auto state = SwitchState();
+  state.resetBufferPoolCfgs(map);
   verifySwitchStateSerialization(state);
 }
