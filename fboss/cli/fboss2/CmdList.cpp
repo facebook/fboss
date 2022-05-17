@@ -16,6 +16,8 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
+#include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
+#include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -180,13 +182,21 @@ const CommandTree& kCommandTree() {
       {
           "clear",
           "interface",
+          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
           "Clear Interface Information",
+          commandHandler<CmdClearInterface>,
           {
               {
                   "counters",
-                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
                   "Clear Interface Counters",
                   commandHandler<CmdClearInterfaceCounters>,
+              },
+              {
+                  "prbs",
+                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT,
+                  "Clear PRBS Information",
+                  commandHandler<CmdClearInterfacePrbs>,
               },
           },
       },

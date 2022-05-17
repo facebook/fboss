@@ -11,16 +11,19 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 
 #include <algorithm>
 #include <string>
+#include <variant>
 
 namespace facebook::fboss {
 
 struct CmdClearInterfaceCountersTraits : public BaseCommandTraits {
+  using ParentCmd = CmdClearInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = std::vector<std::string>;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
   using RetType = std::string;
 };
 
