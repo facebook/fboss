@@ -1032,10 +1032,6 @@ foreach(cmakeFile ${cmakeFiles})
     message(status " Skipping OpenNSA BCM binaries")
   elseif(SAI_ONLY AND ${cmakeFile} MATCHES "LinkTest")
     message(status " Skipping LinkTest binaries")
-  elseif(${cmakeFile} MATCHES "Rackmon")
-    # TODO: Enable builiding rackmon
-    # once rackmon build issues are resolved.
-    message(status " Skipping Rackmon binaries")
   else()
     message(status " INCLUDE ${cmakeFile}")
     INCLUDE(${cmakeFile})
