@@ -1397,6 +1397,14 @@ struct PortPgConfig {
   7: string bufferPoolName;
 }
 
+// Sdk version information that will be parsed by the wrapper script
+// -> asicSdk would be the native SDK for a binary
+// -> saiSdk would be the SDK required for a Sai device, if the Native SDK does not provide support
+struct SdkVersion {
+  1: optional string asicSdk;
+  2: optional string saiSdk;
+}
+
 /**
  * The configuration for a switch.
  *
@@ -1515,4 +1523,6 @@ struct SwitchConfig {
   // support a single group for the foreseeable future. This could be changed to
   // list<AclTableGroup> later if the need arises to support multiple groups.
   45: optional AclTableGroup aclTableGroup;
+  // agent sdk versions
+  46: optional SdkVersion sdkVersion;
 }
