@@ -95,6 +95,10 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  int getOpenrThriftPort() const {
+    return openrThriftPort_;
+  }
+
   int getMkaThriftPort() const {
     return mkaThriftPort_;
   }
@@ -131,6 +135,10 @@ class CmdGlobalOptions {
     bgpThriftPort_ = port;
   }
 
+  void setOpenrThriftPort(int port) {
+    openrThriftPort_ = port;
+  }
+
   std::map<std::string, std::string> getFilters() const;
 
  private:
@@ -146,6 +154,7 @@ class CmdGlobalOptions {
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
+  int openrThriftPort_{2018};
   int coopThriftPort_{6969};
   int mkaThriftPort_{5920};
   int bmcHttpPort_{8443};
