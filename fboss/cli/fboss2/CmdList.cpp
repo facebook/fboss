@@ -19,6 +19,9 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
+#include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
+#include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -215,6 +218,23 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Shut/No-Shut Interface",
        commandHandler<CmdBounceInterface>},
+      {
+          "set",
+          "interface",
+          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+          "Set Interface information",
+          commandHandler<CmdSetInterface>,
+          {{
+              "prbs",
+              utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT,
+              "Set PRBS properties",
+              commandHandler<CmdSetInterfacePrbs>,
+              {{"state",
+                utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE,
+                "Set PRBS state",
+                commandHandler<CmdSetInterfacePrbsState>}},
+          }},
+      },
   };
   return root;
 }

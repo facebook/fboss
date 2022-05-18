@@ -18,6 +18,9 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
+#include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
+#include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -147,6 +150,10 @@ template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
 template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
+template void CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::run();
+template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
+template void
+CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 
 static bool hasRun = false;
 

@@ -72,7 +72,23 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
       subCmd->add_option("msg", args, "Message");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT) {
-      subCmd->add_option("component", args, "PRBS component");
+      subCmd->add_option(
+          "component",
+          args,
+          "name(s) of PRBS component, one or multiple of "
+          "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE) {
+      subCmd->add_option(
+          "state",
+          args,
+          "PRBS state to set - some examples \n"
+          "'off' -> Disables PRBS on both generator and checker\n"
+          "'off generator checker' -> Disables PRBS on both generator and checker\n"
+          "'off generator' -> Disables PRBS on the generator only\n"
+          "'off checker' -> Disables PRBS on the checker only\n"
+          "'prbs31 generator' -> Enables PRBS31 only on the generator\n"
+          "'prbs31q generator checker' -> Enables PRBS31Q on both generator and checker\n");
     }
   }
   return subCmd;

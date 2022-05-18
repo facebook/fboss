@@ -27,6 +27,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
   OBJECT_ARG_TYPE_DEBUG_LEVEL,
   OBJECT_ARG_TYPE_PRBS_COMPONENT,
+  OBJECT_ARG_TYPE_PRBS_STATE,
 };
 
 // Called after CLI11 is initlized but before parsing, for any final
