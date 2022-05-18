@@ -30,6 +30,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
@@ -136,6 +137,10 @@ const CommandTree& kCommandTree() {
                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
                  "Show PRBS capabilities",
                  commandHandler<CmdShowInterfacePrbsCapabilities>},
+                {"state",
+                 utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+                 "Show PRBS state",
+                 commandHandler<CmdShowInterfacePrbsState>},
                 {"stats",
                  utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
                  "Show PRBS stats",

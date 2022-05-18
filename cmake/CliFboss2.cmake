@@ -131,6 +131,16 @@ add_fbthrift_cpp_library(
     phy_cpp2
 )
 
+add_fbthrift_cpp_library(
+  show_interface_prbs_state
+  fboss/cli/fboss2/commands/show/interface/prbs/state/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    prbs_cpp2
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -163,6 +173,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
+  fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
@@ -208,6 +219,7 @@ target_link_libraries(fboss2
   show_interface_status
   show_interface_phymap
   show_interface_prbs_capabilities
+  show_interface_prbs_state
   show_interface_prbs_stats
   show_route_model
   ${RE2}
