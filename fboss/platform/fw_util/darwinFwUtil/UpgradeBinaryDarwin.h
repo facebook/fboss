@@ -29,6 +29,8 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   std::string fan_bus;
   bool failedPath = false;
   const std::string darwin_sc_sat_path = "/sys/bus/pci/devices/0000:07:00.0/";
+  const std::string darwin_fan_cpld_path =
+      "/sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/";
   const std::string darwin_sc_cpld_path =
       "/sys/bus/i2c/drivers/blackhawk-cpld/";
   const std::string blackhawkRegister = "0023";
@@ -39,13 +41,14 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   void setJtagMux(std::string);
   void printVersion(std::string, std::string);
   void printAllVersion();
-  void constructCpuCpldPath(std::string);
+  void constructCpldPath(std::string, std::string, std::string);
   std::string getBusNumber(std::string, std::string);
   std::string getSysfsCpldVersion(std::string, std::string, std::string);
   std::string getFanCpldVersion(void);
   std::string getRegValue(std::string);
   std::string getBiosVersion(void);
   std::string getFullScCpldPath(void);
+  void cleanPath(std::string);
 };
 
 } // namespace facebook::fboss::platform::fw_util

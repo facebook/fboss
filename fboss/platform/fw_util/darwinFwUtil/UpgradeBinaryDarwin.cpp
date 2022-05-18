@@ -127,9 +127,12 @@ std::string UpgradeBinaryDarwin::getFanCpldVersion(void) {
       ".",
       std::to_string(std::stoul(minorVer, nullptr, 0)));
 }
-void UpgradeBinaryDarwin::constructCpuCpldPath(std::string node) {
+void UpgradeBinaryDarwin::constructCpldPath(
+    std::string path,
+    std::string binary,
+    std::string node) {
   const std::string cmd =
-      folly::to<std::string>("cp ", darwin_cpu_cpld_path, node, " /tmp/", node);
+      folly::to<std::string>("cp ", path, node, " /tmp/", binary, "_", node);
   int ret = runCmd(cmd);
   if (ret < 0) {
     throw std::runtime_error(folly::to<std::string>("Error running ", cmd));
@@ -138,7 +141,7 @@ void UpgradeBinaryDarwin::constructCpuCpldPath(std::string node) {
 
 std::string UpgradeBinaryDarwin::getBiosVersion() {
   const std::string cmd =
-      "dmidecode | grep Version | head -n 1 | cut -d ':' -f 2 | cut -d '-' -f 3";
+      "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3";
   std::string biosVersion = execCommand(cmd);
   biosVersion.erase(
       std::remove(biosVersion.begin(), biosVersion.end(), '\n'),
@@ -163,13 +166,41 @@ std::string UpgradeBinaryDarwin::getFullScCpldPath() {
   throw std::runtime_error(
       "couldn't find path" + darwin_sc_cpld_path + " for sc_cpld version");
 }
-
+void UpgradeBinaryDarwin::cleanPath(std::string upgradable_component) {
+  /*
+   * removing the generated path prevent the tool from
+   * getting spurious permission errors when running it
+   * under a lower privillege user such as cybord for cases
+   * when the path already existed.
+   */
+  if (upgradable_component == "cpu_cpld") {
+    const std::string cpu_cpld_temp_path_ver_cmd = folly::to<std::string>(
+        "rm -rf /tmp/", upgradable_component, "_fpga_ver");
+    execCommand(cpu_cpld_temp_path_ver_cmd);
+    const std::string cpu_cpld_temp_path_sub_ver_cmd = folly::to<std::string>(
+        "rm -rf /tmp/", upgradable_component, "_fpga_sub_ver");
+    execCommand(cpu_cpld_temp_path_sub_ver_cmd);
+  } else if (upgradable_component == "fan_cpld") {
+    const std::string fan_cpld_ver_cmd = folly::to<std::string>(
+        "rm -rf /tmp/", upgradable_component, "_cpld_ver");
+    execCommand(fan_cpld_ver_cmd);
+    const std::string fan_cpld_sub_ver_cmd = folly::to<std::string>(
+        "rm -rf /tmp/", upgradable_component, "_cpld_sub_ver");
+    execCommand(fan_cpld_sub_ver_cmd);
+  } else {
+    // should never get there unless there is a logic bug in the code
+    throw std::runtime_error(
+        "fatal error... Please check code logic for trying to access non existent temporary path");
+  }
+}
 void UpgradeBinaryDarwin::printAllVersion(void) {
-  constructCpuCpldPath("fpga_ver");
-  constructCpuCpldPath("fpga_sub_ver");
+  constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_ver");
+  constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_sub_ver");
+  constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_ver");
+  constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_sub_ver");
   std::cout << "BIOS:" << getBiosVersion() << std::endl;
   std::cout << "CPU_CPLD:"
-            << getSysfsCpldVersion("/tmp/", "fpga_ver", "fpga_sub_ver")
+            << getSysfsCpldVersion("/tmp/cpu_cpld_", "fpga_ver", "fpga_sub_ver")
             << std::endl;
   std::cout << "SC_SCD:"
             << getSysfsCpldVersion(
@@ -180,7 +211,9 @@ void UpgradeBinaryDarwin::printAllVersion(void) {
             << getSysfsCpldVersion(
                    darwin_sc_cpld_full_path, "cpld_ver", "cpld_sub_ver")
             << std::endl;
-  std::cout << "FAN_CPLD:" << getFanCpldVersion() << std::endl;
+  std::cout << "FAN_CPLD:"
+            << getSysfsCpldVersion("/tmp/fan_cpld_", "cpld_ver", "cpld_sub_ver")
+            << std::endl;
   std::cout << "SC_SAT_CPLD0: "
             << getSysfsCpldVersion(
                    darwin_sc_sat_path, "sat0_cpld_ver", "sat0_cpld_sub_ver")
@@ -189,7 +222,8 @@ void UpgradeBinaryDarwin::printAllVersion(void) {
             << getSysfsCpldVersion(
                    darwin_sc_sat_path, "sat1_cpld_ver", "sat1_cpld_sub_ver")
             << std::endl;
-
+  cleanPath("cpu_cpld");
+  cleanPath("fan_cpld");
   if (failedPath) {
     throw std::runtime_error("reading some path failed");
   }
@@ -203,11 +237,13 @@ void UpgradeBinaryDarwin::printVersion(
   } else if (binary == "bios") {
     std::cout << "BIOS:" << getBiosVersion() << std::endl;
   } else if (binary == "cpu_cpld") {
-    constructCpuCpldPath("fpga_ver");
-    constructCpuCpldPath("fpga_sub_ver");
+    constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_ver");
+    constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_sub_ver");
     std::cout << "CPU_CPLD:"
-              << getSysfsCpldVersion("/tmp/", "fpga_ver", "fpga_sub_ver")
+              << getSysfsCpldVersion(
+                     "/tmp/cpu_cpld_", "fpga_ver", "fpga_sub_ver")
               << std::endl;
+    cleanPath("cpu_cpld");
   } else if (binary == "sc_scd") {
     std::cout << "SC_SCD:"
               << getSysfsCpldVersion(
@@ -220,7 +256,13 @@ void UpgradeBinaryDarwin::printVersion(
                      darwin_sc_cpld_full_path, "cpld_ver", "cpld_sub_ver")
               << std::endl;
   } else if (binary == "fan_cpld") {
-    std::cout << "FAN_CPLD:" << getFanCpldVersion() << std::endl;
+    constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_ver");
+    constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_sub_ver");
+    std::cout << "FAN_CPLD:"
+              << getSysfsCpldVersion(
+                     "/tmp/fan_cpld_", "cpld_ver", "cpld_sub_ver")
+              << std::endl;
+    cleanPath("fan_cpld");
   } else if (binary == "sc_sat_cpld0") {
     std::cout << "SC_SAT_CPLD0: "
               << getSysfsCpldVersion(

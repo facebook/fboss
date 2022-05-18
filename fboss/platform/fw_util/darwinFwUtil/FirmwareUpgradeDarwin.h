@@ -13,7 +13,7 @@ class FirmwareUpgradeDarwin : public FirmwareUpgradeInterface {
   virtual ~FirmwareUpgradeDarwin() override = default;
 
  protected:
-  const std::string layoutPath = "/etc/bios_spi_layout";
+  const std::string layoutPath = "/tmp/bios_spi_layout";
   const std::string layout =
       "echo \"A00000:FFFFFF normal\n"
       "400000:9EFFFF fallback\n"
