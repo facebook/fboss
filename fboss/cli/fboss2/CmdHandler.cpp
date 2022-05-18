@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
+#include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -133,6 +134,8 @@ template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
 template void
 CmdHandler<CmdClearInterfacePrbs, CmdClearInterfacePrbsTraits>::run();
+template void
+CmdHandler<CmdClearInterfacePrbsStats, CmdClearInterfacePrbsStatsTraits>::run();
 template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
 template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
 template void

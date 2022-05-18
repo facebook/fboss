@@ -140,6 +140,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h
   fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
+  fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdArgsLists.cpp

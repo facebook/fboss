@@ -18,6 +18,7 @@
 #include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
+#include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -197,6 +198,10 @@ const CommandTree& kCommandTree() {
                   utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT,
                   "Clear PRBS Information",
                   commandHandler<CmdClearInterfacePrbs>,
+                  {{"stats",
+                    utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+                    "Clear PRBS stats",
+                    commandHandler<CmdClearInterfacePrbsStats>}},
               },
           },
       },
