@@ -81,8 +81,17 @@ class FpgaDevice {
     return phyMem_->getSize();
   }
 
+  void enableMemoryAccess() const {
+    if (!pciDevice_.get()) {
+      XLOG(ERR) << "PCI Device is not accessible";
+      return;
+    }
+    pciDevice_->setConfigControl();
+  }
+
  private:
   std::unique_ptr<PhyMem> phyMem_;
+  std::unique_ptr<PciDevice> pciDevice_;
 }; // namespace facebook::fboss
 
 } // namespace facebook::fboss

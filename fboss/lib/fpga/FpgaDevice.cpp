@@ -5,11 +5,11 @@
 namespace facebook::fboss {
 
 FpgaDevice::FpgaDevice(PciVendorId vendorId, PciDeviceId deviceId) {
-  PciDevice fpgaPciDevice{vendorId, deviceId};
-  fpgaPciDevice.open();
+  pciDevice_ = std::make_unique<PciDevice>(vendorId, deviceId);
+  pciDevice_->open();
 
-  uint32_t fpgaBar0 = fpgaPciDevice.getMemoryRegionAddress(0);
-  uint32_t fpgaBar0Size = fpgaPciDevice.getMemoryRegionSize(0);
+  uint32_t fpgaBar0 = pciDevice_->getMemoryRegionAddress(0);
+  uint32_t fpgaBar0Size = pciDevice_->getMemoryRegionSize(0);
 
   phyMem_ = std::make_unique<PhyMem>(fpgaBar0, fpgaBar0Size, false);
 
