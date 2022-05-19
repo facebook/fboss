@@ -166,34 +166,30 @@ TransceiverManager::setupTransceiverToStateMachineHelper() {
 TransceiverManager::TransceiverToPortInfo
 TransceiverManager::setupTransceiverToPortInfo() {
   TransceiverToPortInfo tcvrToPortInfo;
-  if (FLAGS_use_new_state_machine) {
-    for (auto chip : platformMapping_->getChips()) {
-      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
-        continue;
-      }
-      auto tcvrID = TransceiverID(*chip.second.physicalID());
-      auto portToPortInfo = std::make_unique<folly::Synchronized<
-          std::unordered_map<PortID, TransceiverPortInfo>>>();
-      tcvrToPortInfo.emplace(tcvrID, std::move(portToPortInfo));
+  for (auto chip : platformMapping_->getChips()) {
+    if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      continue;
     }
+    auto tcvrID = TransceiverID(*chip.second.physicalID());
+    auto portToPortInfo = std::make_unique<
+        folly::Synchronized<std::unordered_map<PortID, TransceiverPortInfo>>>();
+    tcvrToPortInfo.emplace(tcvrID, std::move(portToPortInfo));
   }
   return tcvrToPortInfo;
 }
 
 void TransceiverManager::startThreads() {
-  if (FLAGS_use_new_state_machine) {
-    // Setup all TransceiverStateMachineHelper thread
-    for (auto& stateMachineHelper : stateMachines_) {
-      stateMachineHelper.second->startThread();
-    }
-
-    XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
-    updateEventBase_ = std::make_unique<folly::EventBase>();
-    updateThread_.reset(new std::thread([=] {
-      this->threadLoop(
-          "TransceiverStateMachineUpdateThread", updateEventBase_.get());
-    }));
+  // Setup all TransceiverStateMachineHelper thread
+  for (auto& stateMachineHelper : stateMachines_) {
+    stateMachineHelper.second->startThread();
   }
+
+  XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
+  updateEventBase_ = std::make_unique<folly::EventBase>();
+  updateThread_.reset(new std::thread([=] {
+    this->threadLoop(
+        "TransceiverStateMachineUpdateThread", updateEventBase_.get());
+  }));
 }
 
 void TransceiverManager::stopThreads() {
@@ -637,10 +633,6 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
 }
 
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
-  if (!FLAGS_use_new_state_machine) {
-    return;
-  }
-
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, PortStatus> newPortToPortStatus;
   try {
@@ -882,31 +874,25 @@ void TransceiverManager::refreshStateMachines() {
   // Step3: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
 
-  if (FLAGS_use_new_state_machine) {
-    // Step4: Once the transceivers are detected, trigger programming events
-    const auto& programmedTcvrs = triggerProgrammingEvents();
+  // Step4: Once the transceivers are detected, trigger programming events
+  const auto& programmedTcvrs = triggerProgrammingEvents();
 
-    // Step5: Remediate inactive transceivers
-    // Only need to remediate ports which are not recently finished
-    // programming. Because if they only finished early stage programming like
-    // iphy without programming xphy or tcvr, the ports of such transceiver
-    // will still be not stable to be remediated.
-    std::vector<TransceiverID> stableTcvrs;
-    for (auto tcvrID : presentXcvrIds) {
-      if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
-          programmedTcvrs.end()) {
-        stableTcvrs.push_back(tcvrID);
-      }
+  // Step5: Remediate inactive transceivers
+  // Only need to remediate ports which are not recently finished
+  // programming. Because if they only finished early stage programming like
+  // iphy without programming xphy or tcvr, the ports of such transceiver
+  // will still be not stable to be remediated.
+  std::vector<TransceiverID> stableTcvrs;
+  for (auto tcvrID : presentXcvrIds) {
+    if (std::find(programmedTcvrs.begin(), programmedTcvrs.end(), tcvrID) ==
+        programmedTcvrs.end()) {
+      stableTcvrs.push_back(tcvrID);
     }
-    triggerRemediateEvents(stableTcvrs);
   }
+  triggerRemediateEvents(stableTcvrs);
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {
-  if (!FLAGS_use_new_state_machine) {
-    return;
-  }
-
   auto wedgeAgentClient = utils::createWedgeAgentClient();
   ConfigAppliedInfo newConfigAppliedInfo;
   try {
@@ -1255,14 +1241,7 @@ bool TransceiverManager::verifyEepromChecksums(TransceiverID id) {
 }
 
 bool TransceiverManager::checkWarmBootFlags() {
-  // TODO(joseph5wu) Due to new-port-programming is still rolling out, we only
-  // need cold boot for new state machine, and old state machine should always
-  // use warm boot. Will only check the warm boot flag once we finish rolling
-  // out the new port programming feature.
-
-  // Return true if coldBootOnceFile does not exist and
-  // - If use_new_state_machine check canWarmBoot file exists
-  // - Otherwise, always use warmboot
+  // Return true if coldBootOnceFile does not exist and canWarmBoot file exists
   const auto& forceColdBootFile = forceColdBootFileName();
   bool forceColdBoot = removeFile(forceColdBootFile);
   if (forceColdBoot) {
@@ -1270,22 +1249,13 @@ bool TransceiverManager::checkWarmBootFlags() {
     return false;
   }
 
-  // However, because all the previous qsfp_service didn't set this warm boot
-  // flag at all, we need to have the roll out order:
-  // 1) Always return true no matter whether there's warm boot flag file so that
-  //    this qsfp_service version can start generating such flag during shut
-  //    down;
-  // 2) Only check warm boot flag file for new_port_programming case
-  // 3) Always check warm boot flag file once new_port_programming is enabled
-  //    everywhere.
   const auto& warmBootFile = warmBootFlagFileName();
   // Instead of removing the can_warm_boot file, we keep it unless it's a
   // coldboot, so that qsfp_service crash can still use warm boot.
   bool canWarmBoot = checkFileExists(warmBootFile);
   XLOG(INFO) << "Warm Boot flag: " << warmBootFile << " is "
              << (canWarmBoot ? "set" : "missing");
-  // Step 2)
-  return FLAGS_use_new_state_machine ? canWarmBoot : true;
+  return canWarmBoot;
 }
 
 void TransceiverManager::removeWarmBootFlag() {
