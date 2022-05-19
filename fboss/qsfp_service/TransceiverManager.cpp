@@ -824,11 +824,9 @@ void TransceiverManager::updateTransceiverActiveState(
             if (!tcvrPortInfo.status ||
                 *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
               statusChangedPorts.insert(portID);
-              // Following current QsfpModule::transceiverPortsChanged() logic
-              // to make sure we'll always refresh the transceiver if we detect
-              // a port status changed. So that we can detect whether the
-              // transceiver is removed without waiting for the state machine
-              // routinely refreshing
+              // Refresh the transceiver if we detect a port status changed.
+              // So that we can detect whether the transceiver is removed
+              // without waiting for the state machine routinely refreshing
               needRefreshTranscevers.insert(tcvrID);
             }
             // And also update the cached port status

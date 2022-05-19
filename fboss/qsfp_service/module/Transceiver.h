@@ -92,12 +92,6 @@ class Transceiver {
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;
 
   /*
-   * Register that a logical port that is part of this transceiver has changed.
-   */
-  virtual void transceiverPortsChanged(
-      const std::map<uint32_t, PortStatus>& ports) = 0;
-
-  /*
    * Perform raw register read on a specific transceiver
    */
   virtual std::unique_ptr<IOBuf> readTransceiver(

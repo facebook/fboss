@@ -168,9 +168,6 @@ class WedgeManager : public TransceiverManager {
 
   std::unique_ptr<AgentConfig> agentConfig_;
 
-  folly::Synchronized<std::map<TransceiverID, std::map<uint32_t, PortStatus>>>
-      ports_;
-
   PlatformMode platformMode_;
 
  private:

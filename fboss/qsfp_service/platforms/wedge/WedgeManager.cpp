@@ -102,12 +102,6 @@ void WedgeManager::initTransceiverMap() {
     return;
   }
 
-  // Initialize port status map for transceivers.
-  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    ports_.wlock()->emplace(
-        TransceiverID(idx), std::map<uint32_t, PortStatus>());
-  }
-
   // Check if a cold boot has been forced
   if (!canWarmBoot()) {
     XLOG(INFO) << "[COLD Boot] Will trigger all " << getNumQsfpModules()
@@ -316,75 +310,24 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
-  // With the new state machine, we don't need to rely on this function to
-  // update the ports_(Port status map). But because we're still on the process
-  // of moving the trigger of publishing link snapshots from services to the
-  // nmt. We need to make sure whether there's a link change, qsfp_service
-  // will be still able to publish these snapshots.
-  // TODO(joseph5wu) Eventually we don't need to have wedge_agent to syncPorts
-  // with qsfp_service when we fully switch to use new state machine and also
-  // removing the publishing snapshots logic from qsfp_services
-  if (FLAGS_use_new_state_machine) {
-    std::set<TransceiverID> tcvrIDs;
-    for (const auto& [portID, portStatus] : *ports) {
-      if (auto tcvrIdx = portStatus.transceiverIdx()) {
-        tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId()));
-      }
+  std::set<TransceiverID> tcvrIDs;
+  for (const auto& [portID, portStatus] : *ports) {
+    if (auto tcvrIdx = portStatus.transceiverIdx()) {
+      tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId()));
     }
-    // Update Transceiver active state
-    updateTransceiverActiveState(tcvrIDs, *ports);
-    // Only fetch the transceivers for the input ports
-    for (auto tcvrID : tcvrIDs) {
-      auto lockedTransceivers = transceivers_.rlock();
-      if (auto it = lockedTransceivers->find(tcvrID);
-          it != lockedTransceivers->end()) {
-        try {
-          info[tcvrID] = it->second->getTransceiverInfo();
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Transceiver " << tcvrID
-                    << ": Error calling getTransceiverInfo(): " << ex.what();
-        }
-      }
-    }
-  } else {
-    auto groups = folly::gen::from(*ports) |
-        folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
-                    return item.second.transceiverIdx();
-                  }) |
-        folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
-                    return *item.second.transceiverIdx()
-                                .value_unchecked()
-                                .transceiverId();
-                  }) |
-        folly::gen::as<std::vector>();
-
+  }
+  // Update Transceiver active state
+  updateTransceiverActiveState(tcvrIDs, *ports);
+  // Only fetch the transceivers for the input ports
+  for (auto tcvrID : tcvrIDs) {
     auto lockedTransceivers = transceivers_.rlock();
-    auto lockedPorts = ports_.wlock();
-    for (auto& group : groups) {
-      int32_t transceiverIdx = group.key();
-      auto tcvrID = TransceiverID(transceiverIdx);
-      XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
-      if (!isValidTransceiver(transceiverIdx)) {
-        continue;
-      }
-
-      // Update the PortStatus map in WedgeManager.
-      for (auto portStatus : group.values()) {
-        lockedPorts->at(tcvrID)[portStatus.first] = portStatus.second;
-      }
-
-      if (auto it = lockedTransceivers->find(tcvrID);
-          it != lockedTransceivers->end()) {
-        try {
-          auto transceiver = it->second.get();
-          transceiver->transceiverPortsChanged(lockedPorts->at(tcvrID));
-          info[transceiverIdx] = transceiver->getTransceiverInfo();
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Transceiver " << transceiverIdx
-                    << ": Error calling syncPorts(): " << ex.what();
-        }
-      } else {
-        XLOG(ERR) << "Syncing ports to a transceiver that is not present.";
+    if (auto it = lockedTransceivers->find(tcvrID);
+        it != lockedTransceivers->end()) {
+      try {
+        info[tcvrID] = it->second->getTransceiverInfo();
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Transceiver " << tcvrID
+                  << ": Error calling getTransceiverInfo(): " << ex.what();
       }
     }
   }
@@ -475,12 +418,13 @@ void WedgeManager::updateTransceiverMap() {
   // After we have collected all transceivers, get the write lock on
   // transceivers_ before updating it
   auto lockedTransceivers = transceivers_.wlock();
-  auto lockedPorts = ports_.rlock();
   auto numModules = getNumQsfpModules();
   CHECK_EQ(qsfpImpls.size(), numModules);
   for (int idx = 0; idx < numModules; idx++) {
     if (!futInterfaces[idx].isReady()) {
-      XLOG(ERR) << "failed getting TransceiverManagementInterface at " << idx;
+      XLOG(ERR)
+          << "Failed getting TransceiverManagementInterface for TransceiverID="
+          << idx;
       continue;
     }
     auto it = lockedTransceivers->find(TransceiverID(idx));
@@ -503,96 +447,61 @@ void WedgeManager::updateTransceiverMap() {
         (portGroupMap_.size() == 0 ? numPortsPerTransceiver()
                                    : portGroupMap_[idx].size());
     if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
-      XLOG(INFO) << "making CMIS QSFP for " << idx;
+      XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<CmisModule>(
               this, std::move(qsfpImpls[idx]), portsPerTransceiver));
     } else if (
         futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
-      XLOG(INFO) << "making Sff QSFP for " << idx;
+      XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<SffModule>(
               this, std::move(qsfpImpls[idx]), portsPerTransceiver));
     } else if (
         futInterfaces[idx].value() == TransceiverManagementInterface::SFF8472) {
-      XLOG(INFO) << "making Sff8472 module for " << idx;
+      XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx]), 1));
     } else {
       XLOG(ERR) << "Unknown Transceiver interface: "
-                << static_cast<int>(futInterfaces[idx].value()) << " at idx "
-                << idx;
+                << static_cast<int>(futInterfaces[idx].value())
+                << " for TransceiverID=" << idx;
 
       try {
         if (!qsfpImpls[idx]->detectTransceiver()) {
-          XLOG(DBG3) << "Transceiver is not present at idx " << idx;
+          XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
           continue;
         }
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "failed to detect transceiver at idx " << idx << ": "
-                  << ex.what();
+        XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
+                  << ": " << ex.what();
         continue;
       }
+
       // There are times when a module cannot be read however it's present.
       // Try to reset here since that may be able to bring it back.
-      bool safeToReset = false;
-      TransceiverID id = TransceiverID(idx);
       // Check if we have expected ports info synced over and if all of
       // the ports are down. If any of them is not down then we will not
       // perform the reset.
-      if (FLAGS_use_new_state_machine) {
-        safeToReset = areAllPortsDown(id);
-      } else {
-        // TODO(joseph5wu) Deprecate legacy WedgeManager::ports_
-        if (auto iter = lockedPorts->find(id); iter != lockedPorts->end()) {
-          safeToReset = (iter->second.size() == portsPerTransceiver) &&
-              std::all_of(iter->second.begin(),
-                          iter->second.end(),
-                          [](const auto& port) {
-                            return !(*port.second.up());
-                          });
-        }
-      }
-      if (safeToReset && (std::time(nullptr) > pauseRemediationUntil_)) {
-        XLOG(INFO) << "A present transceiver with unknown interface at " << idx
-                   << " Try reset.";
+      if (std::time(nullptr) <= pauseRemediationUntil_) {
+        XLOG(WARN) << "Remediation is paused, won't hard reset a present "
+                   << "transceiver with unknown interface. TransceiverID="
+                   << idx;
+      } else if (areAllPortsDown(TransceiverID(idx))) {
+        XLOG(INFO) << "Try hard reset a present transceiver with unknown "
+                   << "interface. TransceiverID=" << idx;
         try {
           triggerQsfpHardResetLocked(idx, lockedTransceivers);
         } catch (const std::exception& ex) {
-          XLOG(ERR) << "failed to triggerQsfpHardReset at idx " << idx << ": "
-                    << ex.what();
-          continue;
+          XLOG(ERR) << "Failed to triggerQsfpHardReset for TransceiverID="
+                    << idx << ": " << ex.what();
         }
       } else {
         XLOG(ERR) << "Unknown interface of transceiver with ports up at "
                   << idx;
-      }
-      continue;
-    }
-
-    // TODO(joseph5wu) Deprecate legacy WedgeManager::ports_
-    // New state machine will use refreshStateMachine() to trigger different
-    // events so we don't need to rely on another transceiverPortsChanged()
-    // call here like legacy state machine
-    if (!FLAGS_use_new_state_machine) {
-      // Feed its port status to the newly constructed transceiver.
-      // However skip if ports have not been synced initially.
-      // transceiverPortsChanged will call refreshLocked which takes close to a
-      // second for a transceiver. Calling it for every transceiver at
-      // initialization is time consuming. Leaving that for refreshTransceivers
-      // which runs concurrently for each transceiver.
-      if (auto iter = lockedPorts->find(TransceiverID(idx));
-          iter != lockedPorts->end() && !iter->second.empty()) {
-        try {
-          lockedTransceivers->at(TransceiverID(idx))
-              ->transceiverPortsChanged(iter->second);
-        } catch (const std::exception& ex) {
-          XLOG(ERR) << "Transceiver " << idx
-                    << ": Error calling transceiverPortsChanged: " << ex.what();
-        }
       }
     }
   }

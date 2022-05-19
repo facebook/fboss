@@ -101,9 +101,6 @@ class QsfpModule : public Transceiver {
    */
   TransceiverInfo getTransceiverInfo() override;
 
-  void transceiverPortsChanged(
-      const std::map<uint32_t, PortStatus>& ports) override;
-
   /*
    * Perform a raw register read on the transceiver
    */
