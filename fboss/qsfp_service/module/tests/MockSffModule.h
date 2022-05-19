@@ -34,12 +34,8 @@ class MockSffModule : public SffModule {
  public:
   explicit MockSffModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl,
-      unsigned int portsPerTransceiver)
-      : SffModule(
-            transceiverManager,
-            std::move(qsfpImpl),
-            portsPerTransceiver) {
+      std::unique_ptr<TransceiverImpl> qsfpImpl)
+      : SffModule(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
   }

@@ -34,8 +34,7 @@ class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl,
-      unsigned int portsPerTransceiver);
+      std::unique_ptr<TransceiverImpl> qsfpImpl);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {

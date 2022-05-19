@@ -415,9 +415,7 @@ void WedgeManager::updateTransceiverMap() {
   // After we have collected all transceivers, get the write lock on
   // transceivers_ before updating it
   auto lockedTransceivers = transceivers_.wlock();
-  auto numModules = getNumQsfpModules();
-  CHECK_EQ(qsfpImpls.size(), numModules);
-  for (int idx = 0; idx < numModules; idx++) {
+  for (int idx = 0; idx < qsfpImpls.size(); idx++) {
     if (!futInterfaces[idx].isReady()) {
       XLOG(ERR)
           << "Failed getting TransceiverManagementInterface for TransceiverID="
@@ -440,28 +438,23 @@ void WedgeManager::updateTransceiverMap() {
 
     // Either we don't have a transceiver here before or we had a new one since
     // the management interface changed, we want to create a new module here.
-    int portsPerTransceiver =
-        (portGroupMap_.size() == 0 ? numPortsPerTransceiver()
-                                   : portGroupMap_[idx].size());
     if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
       XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
-          std::make_unique<CmisModule>(
-              this, std::move(qsfpImpls[idx]), portsPerTransceiver));
+          std::make_unique<CmisModule>(this, std::move(qsfpImpls[idx])));
     } else if (
         futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
       XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
-          std::make_unique<SffModule>(
-              this, std::move(qsfpImpls[idx]), portsPerTransceiver));
+          std::make_unique<SffModule>(this, std::move(qsfpImpls[idx])));
     } else if (
         futInterfaces[idx].value() == TransceiverManagementInterface::SFF8472) {
       XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
-          std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx]), 1));
+          std::make_unique<Sff8472Module>(this, std::move(qsfpImpls[idx])));
     } else {
       XLOG(ERR) << "Unknown Transceiver interface: "
                 << static_cast<int>(futInterfaces[idx].value())

@@ -19,7 +19,6 @@ namespace facebook::fboss {
 class TransceiverManagerTestHelper : public ::testing::Test {
  public:
   static constexpr int numModules = 16;
-  static constexpr int numPortsPerModule = 4;
 
   void SetUp() override;
 

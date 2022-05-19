@@ -21,19 +21,14 @@ namespace facebook::fboss {
 class SffTest : public TransceiverManagerTestHelper {
  public:
   template <typename XcvrImplT>
-  SffModule* overrideSffModule(
-      TransceiverID id,
-      int numPortsPerXcvr,
-      bool willRefresh = true) {
+  SffModule* overrideSffModule(TransceiverID id, bool willRefresh = true) {
     auto xcvrImpl = std::make_unique<XcvrImplT>(id);
 
     auto xcvr = static_cast<SffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<SffModule>(
-                transceiverManager_.get(),
-                std::move(xcvrImpl),
-                numPortsPerXcvr)));
+                transceiverManager_.get(), std::move(xcvrImpl))));
 
     if (willRefresh) {
       // Refresh once to make sure the override transceiver finishes refresh
@@ -47,7 +42,7 @@ class SffTest : public TransceiverManagerTestHelper {
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(SffTest, cwdm4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSffModule<SffCwdm4Transceiver>(xcvrID, 4);
+  auto xcvr = overrideSffModule<SffCwdm4Transceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 4);
@@ -145,7 +140,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
 // Tests that a SFF DAC module can properly refresh
 TEST_F(SffTest, dacTransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSffModule<SffDacTransceiver>(xcvrID, 4);
+  auto xcvr = overrideSffModule<SffDacTransceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 4);
@@ -180,7 +175,7 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
 // Tests that a SFF Fr1 module can properly refresh
 TEST_F(SffTest, fr1TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSffModule<SffFr1Transceiver>(xcvrID, 1);
+  auto xcvr = overrideSffModule<SffFr1Transceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 4);
@@ -225,7 +220,7 @@ TEST_F(SffTest, fr1TransceiverInfoTest) {
 // Tests that a miniphoton module can properly refresh
 TEST_F(SffTest, miniphotonTransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSffModule<MiniphotonOBOTransceiver>(xcvrID, 1);
+  auto xcvr = overrideSffModule<MiniphotonOBOTransceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 4);
@@ -256,7 +251,7 @@ TEST_F(SffTest, miniphotonTransceiverInfoTest) {
 
 TEST_F(SffTest, unknownTransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSffModule<UnknownModuleIdentifierTransceiver>(xcvrID, 4);
+  auto xcvr = overrideSffModule<UnknownModuleIdentifierTransceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 4);
@@ -281,26 +276,26 @@ TEST_F(SffTest, unknownTransceiverInfoTest) {
 // Tests that a badly programmed module throws an exception
 TEST_F(SffTest, badTransceiverSimpleRead) {
   auto xcvr = overrideSffModule<BadSffCwdm4Transceiver>(
-      TransceiverID(1), 4, false /* willRefresh */);
+      TransceiverID(1), false /* willRefresh */);
   EXPECT_THROW(xcvr->refresh(), QsfpModuleError);
 }
 
 TEST_F(SffTest, moduleEepromChecksumTest) {
   // Create SFF FR1 module
-  auto xcvr100GFr1 = overrideSffModule<SffFr1Transceiver>(TransceiverID(1), 1);
+  auto xcvr100GFr1 = overrideSffModule<SffFr1Transceiver>(TransceiverID(1));
   // Verify EEPROM checksum for SFF FR1 module
   bool csumValid = xcvr100GFr1->verifyEepromChecksums();
   EXPECT_TRUE(csumValid);
 
   // Create CWDM4 module
-  auto xcvrCwdm4 = overrideSffModule<SffCwdm4Transceiver>(TransceiverID(2), 4);
+  auto xcvrCwdm4 = overrideSffModule<SffCwdm4Transceiver>(TransceiverID(2));
   // Verify EEPROM checksum for CWDM4 module
   csumValid = xcvrCwdm4->verifyEepromChecksums();
   EXPECT_TRUE(csumValid);
 
   // Create CWDM4 Bad module
   auto xcvrCwdm4Bad =
-      overrideSffModule<BadEepromSffCwdm4Transceiver>(TransceiverID(3), 4);
+      overrideSffModule<BadEepromSffCwdm4Transceiver>(TransceiverID(3));
   // Verify EEPROM checksum Invalid for CWDM4 Bad module
   csumValid = xcvrCwdm4Bad->verifyEepromChecksums();
   EXPECT_FALSE(csumValid);
@@ -309,7 +304,7 @@ TEST_F(SffTest, moduleEepromChecksumTest) {
 class SfpTest : public TransceiverManagerTestHelper {
  public:
   template <typename XcvrImplT>
-  Sff8472Module* overrideSfpModule(TransceiverID id, int numPortsPerXcvr) {
+  Sff8472Module* overrideSfpModule(TransceiverID id) {
     auto xcvrImpl = std::make_unique<XcvrImplT>(id);
     // This override function use ids starting from 1
     transceiverManager_->overrideMgmtInterface(
@@ -320,9 +315,7 @@ class SfpTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<Sff8472Module>(
-                transceiverManager_.get(),
-                std::move(xcvrImpl),
-                numPortsPerXcvr)));
+                transceiverManager_.get(), std::move(xcvrImpl))));
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();
 
@@ -333,7 +326,7 @@ class SfpTest : public TransceiverManagerTestHelper {
 // Tests that a SFP module can properly refresh
 TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideSfpModule<Sfp10GTransceiver>(xcvrID, 1);
+  auto xcvr = overrideSfpModule<Sfp10GTransceiver>(xcvrID);
 
   // Verify SffModule logic
   EXPECT_EQ(xcvr->numHostLanes(), 1);

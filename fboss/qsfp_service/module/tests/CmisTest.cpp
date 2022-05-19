@@ -22,12 +22,8 @@ class MockCmisModule : public CmisModule {
   template <typename XcvrImplT>
   explicit MockCmisModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<XcvrImplT> qsfpImpl,
-      unsigned int portsPerTransceiver)
-      : CmisModule(
-            transceiverManager,
-            std::move(qsfpImpl),
-            portsPerTransceiver) {
+      std::unique_ptr<XcvrImplT> qsfpImpl)
+      : CmisModule(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, getModuleStateChanged).WillByDefault([this]() {
       // Only return true for the first read so that we can mimic the clear
       // on read register
@@ -46,7 +42,6 @@ class CmisTest : public TransceiverManagerTestHelper {
   template <typename XcvrImplT>
   MockCmisModule* overrideCmisModule(
       TransceiverID id,
-      int numPortsPerXcvr,
       TransceiverModuleIdentifier identifier =
           TransceiverModuleIdentifier::QSFP_PLUS_CMIS) {
     auto xcvrImpl = std::make_unique<XcvrImplT>(id);
@@ -58,9 +53,7 @@ class CmisTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(),
-                std::move(xcvrImpl),
-                numPortsPerXcvr)));
+                transceiverManager_.get(), std::move(xcvrImpl))));
 
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();
@@ -72,7 +65,7 @@ class CmisTest : public TransceiverManagerTestHelper {
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(0);
-  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID, 4);
+  auto xcvr = overrideCmisModule<Cmis200GTransceiver>(xcvrID);
 
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_TRUE(info.transceiverManagementInterface());
@@ -211,7 +204,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
-  auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID, 1);
+  auto xcvr = overrideCmisModule<Cmis400GLr4Transceiver>(xcvrID);
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_TRUE(info.transceiverManagementInterface());
   EXPECT_EQ(
@@ -282,7 +275,7 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 }
 
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
-  auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1), 4);
+  auto xcvr = overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(1));
   const auto& info = xcvr->getTransceiverInfo();
   EXPECT_TRUE(info.transceiverManagementInterface());
   EXPECT_EQ(
@@ -298,21 +291,21 @@ TEST_F(CmisTest, flatMemTransceiverInfoTest) {
 TEST_F(CmisTest, moduleEepromChecksumTest) {
   // Create CMIS 200G FR4 module
   auto xcvrCmis200GFr4 =
-      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(1), 4);
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(1));
   // Verify EEPROM checksum for CMIS 200G FR4 module
   bool csumValid = xcvrCmis200GFr4->verifyEepromChecksums();
   EXPECT_TRUE(csumValid);
 
   // Create CMIS 400G LR4 module
   auto xcvrCmis400GLr4 =
-      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(2), 1);
+      overrideCmisModule<Cmis400GLr4Transceiver>(TransceiverID(2));
   // Verify EEPROM checksum for CMIS 400G LR4 module
   csumValid = xcvrCmis400GLr4->verifyEepromChecksums();
   EXPECT_TRUE(csumValid);
 
   // Create CMIS 200G FR4 Bad module
   auto xcvrCmis200GFr4Bad =
-      overrideCmisModule<BadCmis200GTransceiver>(TransceiverID(3), 1);
+      overrideCmisModule<BadCmis200GTransceiver>(TransceiverID(3));
   // Verify EEPROM checksum Invalid for CMIS 200G FR4 Bad module
   csumValid = xcvrCmis200GFr4Bad->verifyEepromChecksums();
   EXPECT_FALSE(csumValid);

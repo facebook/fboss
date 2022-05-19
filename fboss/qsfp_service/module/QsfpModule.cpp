@@ -90,13 +90,11 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
 QsfpModule::QsfpModule(
     TransceiverManager* transceiverManager,
-    std::unique_ptr<TransceiverImpl> qsfpImpl,
-    unsigned int portsPerTransceiver)
+    std::unique_ptr<TransceiverImpl> qsfpImpl)
     : Transceiver(transceiverManager),
       qsfpImpl_(std::move(qsfpImpl)),
       snapshots_(
-          TransceiverSnapshotCache(transceiverManager->getPortNames(getID()))),
-      portsPerTransceiver_(portsPerTransceiver) {
+          TransceiverSnapshotCache(transceiverManager->getPortNames(getID()))) {
   markLastDownTime();
 }
 
@@ -271,25 +269,6 @@ bool QsfpModule::shouldRefresh(time_t cooldown) const {
 void QsfpModule::ensureOutOfReset() const {
   qsfpImpl_->ensureOutOfReset();
   XLOG(DBG3) << "Cleared the reset register of QSFP.";
-}
-
-cfg::PortSpeed QsfpModule::getPortSpeed() const {
-  cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
-  for (const auto& port : ports_) {
-    const auto& status = port.second;
-    auto newSpeed = cfg::PortSpeed(*status.speedMbps());
-    if (!(*status.enabled()) || speed == newSpeed) {
-      continue;
-    }
-
-    if (speed == cfg::PortSpeed::DEFAULT) {
-      speed = newSpeed;
-    } else {
-      throw FbossError(
-          "Multiple speeds found for member ports of transceiver ", getID());
-    }
-  }
-  return speed;
 }
 
 void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {

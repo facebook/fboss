@@ -928,7 +928,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule =
-        std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl), 1);
+        std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl));
     try {
       cmisModule->refresh();
     } catch (FbossError& e) {
@@ -938,8 +938,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     }
     return cmisModule->getDOMDataUnion();
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
-    auto sffModule =
-        std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 1);
+    auto sffModule = std::make_unique<SffModule>(nullptr, std::move(qsfpImpl));
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {

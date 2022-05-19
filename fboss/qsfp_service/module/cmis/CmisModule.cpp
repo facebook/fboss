@@ -399,10 +399,8 @@ cfg::TransceiverConfigOverrideFactor getModuleConfigOverrideFactor(
 
 CmisModule::CmisModule(
     TransceiverManager* transceiverManager,
-    std::unique_ptr<TransceiverImpl> qsfpImpl,
-    unsigned int portsPerTransceiver)
-    : QsfpModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
-}
+    std::unique_ptr<TransceiverImpl> qsfpImpl)
+    : QsfpModule(transceiverManager, std::move(qsfpImpl)) {}
 
 CmisModule::~CmisModule() {}
 

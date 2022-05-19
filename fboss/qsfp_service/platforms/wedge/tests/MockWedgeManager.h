@@ -25,10 +25,8 @@ class MockWedgeManager : public WedgeManager {
       : WedgeManager(
             std::make_unique<MockTransceiverPlatformApi>(),
             makeFakePlatformMappnig(numModules, numPortsPerModule),
-            PlatformMode::WEDGE) {
-    numModules_ = numModules;
-    numPortsPerModule_ = numPortsPerModule;
-  }
+            PlatformMode::WEDGE),
+        numModules_(numModules) {}
 
   PlatformMode getPlatformMode() const override {
     return PlatformMode::WEDGE;
@@ -84,10 +82,6 @@ class MockWedgeManager : public WedgeManager {
     return numModules_;
   }
 
-  int numPortsPerTransceiver() override {
-    return numPortsPerModule_;
-  }
-
   void setReadException(
       bool throwReadExceptionForMgmtInterface,
       bool throwReadExceptionForDomQuery) {
@@ -115,7 +109,6 @@ class MockWedgeManager : public WedgeManager {
   }
 
   int numModules_;
-  int numPortsPerModule_;
 };
 
 } // namespace facebook::fboss

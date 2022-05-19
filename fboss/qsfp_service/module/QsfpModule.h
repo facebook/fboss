@@ -63,8 +63,7 @@ class QsfpModule : public Transceiver {
 
   explicit QsfpModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl,
-      unsigned int portsPerTransceiver);
+      std::unique_ptr<TransceiverImpl> qsfpImpl);
   virtual ~QsfpModule() override;
 
   /*
@@ -469,11 +468,6 @@ class QsfpModule : public Transceiver {
   virtual void ensureOutOfReset() const;
 
   /*
-   * Determine set speed of enabled member ports.
-   */
-  cfg::PortSpeed getPortSpeed() const;
-
-  /*
    * Perform logic OR operation to flags in order to cache them
    * for ODS to report.
    */
@@ -554,13 +548,6 @@ class QsfpModule : public Transceiver {
    * for ODS to report.
    */
   void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
-
-  // TODO(joseph5wu) With the new state machine, we don't need to use these
-  // private port related members to check whether ports on such transceiver
-  // are in ACTIVE or INACTIVE state. Instead, we will just leave the state
-  // machine to handle the state.
-  std::map<uint32_t, PortStatus> ports_;
-  unsigned int portsPerTransceiver_{0};
 
   /*
    * Returns the current state of prbs (enabled/polynomial)

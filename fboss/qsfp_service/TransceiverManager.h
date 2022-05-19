@@ -84,7 +84,6 @@ class TransceiverManager {
   virtual std::vector<TransceiverID> refreshTransceivers() = 0;
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
-  virtual int numPortsPerTransceiver() = 0;
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to

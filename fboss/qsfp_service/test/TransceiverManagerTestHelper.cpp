@@ -26,14 +26,12 @@ void TransceiverManagerTestHelper::SetUp() {
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
   // Create a wedge manager
-  transceiverManager_ =
-      std::make_unique<MockWedgeManager>(numModules, numPortsPerModule);
+  transceiverManager_ = std::make_unique<MockWedgeManager>(numModules);
   transceiverManager_->init();
 }
 
 void TransceiverManagerTestHelper::resetTransceiverManager() {
   transceiverManager_.reset();
-  transceiverManager_ =
-      std::make_unique<MockWedgeManager>(numModules, numPortsPerModule);
+  transceiverManager_ = std::make_unique<MockWedgeManager>(numModules);
 }
 } // namespace facebook::fboss

@@ -23,13 +23,10 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
  public:
   void SetUp() override {
     TransceiverManagerTestHelper::SetUp();
-    // save some typing in most tests by creating the test qsfp
-    // expecting 4 ports. Tests that need a different number of ports
-    // can call setupQsfp() themselves.
-    setupQsfp(4);
+    setupQsfp();
   }
 
-  void setupQsfp(unsigned int portsPerTransceiver) {
+  void setupQsfp() {
     auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl>>();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
@@ -37,9 +34,7 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             kTcvrID,
             std::make_unique<MockSffModule>(
-                transceiverManager_.get(),
-                std::move(transceiverImpl),
-                portsPerTransceiver)));
+                transceiverManager_.get(), std::move(transceiverImpl))));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(
@@ -207,7 +202,7 @@ TEST_F(QsfpModuleTest, portsChanged50G) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
-  setupQsfp(1);
+  setupQsfp();
   ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::HUNDREDG, _, _))
       .Times(1);

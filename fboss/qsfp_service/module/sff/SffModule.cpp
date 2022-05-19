@@ -169,10 +169,8 @@ void getQsfpFieldAddress(
 
 SffModule::SffModule(
     TransceiverManager* transceiverManager,
-    std::unique_ptr<TransceiverImpl> qsfpImpl,
-    unsigned int portsPerTransceiver)
-    : QsfpModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
-}
+    std::unique_ptr<TransceiverImpl> qsfpImpl)
+    : QsfpModule(transceiverManager, std::move(qsfpImpl)) {}
 
 SffModule::~SffModule() {}
 
