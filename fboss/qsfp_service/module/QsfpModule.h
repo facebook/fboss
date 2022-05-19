@@ -16,7 +16,6 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/module/ModuleStateMachine.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/Synchronized.h>
@@ -123,62 +122,6 @@ class QsfpModule : public Transceiver {
     // Number of channels per module
     CHANNEL_COUNT = 4,
   };
-
-  /*
-   * This is the helper function to create port state machine for all ports in
-   * this module.
-   */
-  void addModulePortStateMachines();
-  /*
-   * This is the helper function to remove all the port state machine for the
-   * module.
-   */
-  void eraseModulePortStateMachines();
-  /*
-   * This is the helper function to generate the event "Module Port Down" to
-   * the Module State Machine
-   */
-  void genMsmModPortsDownEvent();
-  /*
-   * This is the helper function to generate the event "Module Port Up" to
-   * the Module State Machine
-   */
-  void genMsmModPortsUpEvent();
-  /*
-   * In the Discovered state we spawn a timeout to check for Agent port state
-   * syncup to qsfp_service
-   */
-  void scheduleAgentPortSyncupTimeout();
-  /*
-   * While exiting the Discovered state we need to cancel the agent sync timeout
-   * function scheduled earlier.
-   */
-  void cancelAgentPortSyncupTimeout();
-  /*
-   * This function spawns a periodic function to bring up the module/port by
-   * bring up (first time only) or the remediate.
-   */
-  void scheduleBringupRemediateFunction();
-  /*
-   * This function cancels the function scheduled by Module SM Inactive state
-   * entry function and stop the scheduled thread
-   */
-  void exitBringupRemediateFunction();
-  /*
-   * This function generates the port Up or port Down event to PSM if the Agent
-   * has synced up port status info to qsfp_service
-   */
-  void checkAgentModulePortSyncup();
-  /*
-   * Function to return module id value for reference
-   */
-  int getModuleId();
-  /*
-   * This function will do optics module's port level hardware initialization.
-   * If some optics needs the port/lane level init then the inheriting class
-   * should override/implement this function.
-   */
-  virtual void opticsModulePortHwInit(int portId);
 
   /*
    * return the cached signal flags and clear it after the read like an clear

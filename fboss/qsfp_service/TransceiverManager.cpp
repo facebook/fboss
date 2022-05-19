@@ -151,18 +151,14 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
 
 TransceiverManager::TransceiverToStateMachineHelper
 TransceiverManager::setupTransceiverToStateMachineHelper() {
-  // Set up NewModuleStateMachine map
   TransceiverToStateMachineHelper stateMachineMap;
-  if (FLAGS_use_new_state_machine) {
-    for (auto chip : platformMapping_->getChips()) {
-      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
-        continue;
-      }
-      auto tcvrID = TransceiverID(*chip.second.physicalID());
-      stateMachineMap.emplace(
-          tcvrID,
-          std::make_unique<TransceiverStateMachineHelper>(this, tcvrID));
+  for (auto chip : platformMapping_->getChips()) {
+    if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+      continue;
     }
+    auto tcvrID = TransceiverID(*chip.second.physicalID());
+    stateMachineMap.emplace(
+        tcvrID, std::make_unique<TransceiverStateMachineHelper>(this, tcvrID));
   }
   return stateMachineMap;
 }

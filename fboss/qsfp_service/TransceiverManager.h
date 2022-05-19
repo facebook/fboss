@@ -526,7 +526,7 @@ class TransceiverManager {
   StateUpdateList pendingUpdates_;
 
   /*
-   * A thread for processing ModuleStateMachine updates.
+   * A thread for processing TransceiverStateMachine updates.
    */
   std::unique_ptr<std::thread> updateThread_;
   std::unique_ptr<folly::EventBase> updateEventBase_;

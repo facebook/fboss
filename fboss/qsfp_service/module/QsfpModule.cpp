@@ -115,13 +115,6 @@ QsfpModule::~QsfpModule() {
   stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
 }
 
-/*
- * Function to return module id for reference in state machine logging
- */
-int QsfpModule::getModuleId() {
-  return qsfpImpl_->getNum();
-}
-
 void QsfpModule::getQsfpValue(
     int dataAddress,
     int offset,
@@ -884,113 +877,6 @@ ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
   moduleStatusCache_ = ModuleStatus();
 
   return moduleStatus;
-}
-
-/*
- * opticsModulePortHwInit
- *
- * This is a virtual function which should  will do optics module's port level
- * hardware initialization. If some optics needs the port/lane level init then
- * the inheriting class should override/implement this function.
- * If nothing special is required for optics module's port level HW bring up
- * then we can just raise the Init done event to move the port state machine
- * to Initialized state.
- */
-void QsfpModule::opticsModulePortHwInit(int /* modulePortId */) {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
-}
-
-/*
- * addModulePortStateMachines
- *
- * This is the helper function to create port state machine for all ports in
- * this module. This function will be called when MSM enters the discovered
- * state and number of ports being present in the module  is known
- */
-void QsfpModule::addModulePortStateMachines() {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
-}
-
-/*
- * eraseModulePortStateMachines
- *
- * This is the helper function to remove all the port state machine for the
- * module. This is called when the module is physically removed
- */
-void QsfpModule::eraseModulePortStateMachines() {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
-}
-
-/*
- * genMsmModPortsDownEvent
- *
- * This is the helper function to generate the Module State Machine event -
- * Module Port Down. If the Agent indicates that all ports inside this module
- * are down then this Module Port Down event is generated to Module SM
- */
-void QsfpModule::genMsmModPortsDownEvent() {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
-}
-
-void QsfpModule::genMsmModPortsUpEvent() {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
-}
-
-/*
- * scheduleAgentPortSyncupTimeout
- *
- * Once the Module SM enters Discovered state, we need to wait for agent port
- * sync up to go to next state. If the sync up does not happen for some time
- * then we need to time out. Here we will spawn a timer function to check
- * agent sync up timeout
- */
-void QsfpModule::scheduleAgentPortSyncupTimeout() {
-  // TODO(joseph5wu) Deprecate the legacy state machine logic
-}
-
-/*
- * cancelAgentPortSyncupTimeout
- *
- * In the discovered state the agent sync timeout is scheduled. On exiting
- * this state we need to cancel this timeout function
- */
-void QsfpModule::cancelAgentPortSyncupTimeout() {
-  // TODO(joseph5wu) Deprecate the legacy state machine logic
-}
-
-/*
- * scheduleBringupRemediateFunction
- *
- * Once the Module SM enters Inactive state, we need to spawn a periodic
- * function which will attempt to bring up the module/port by doing either
- * bring up (first time only) or the remediate function.
- */
-void QsfpModule::scheduleBringupRemediateFunction() {
-  // TODO(joseph5wu) Deprecate the legacy state machine logic
-}
-
-/*
- * exitBringupRemediateFunction
- *
- * The Module SM is exiting the Inactive state, we had spawned a periodic
- * function to do bring up/remediate, we need to cancel the function
- * scheduled and stop the scheduled thread.
- */
-void QsfpModule::exitBringupRemediateFunction() {
-  // TODO(joseph5wu) Deprecate the legacy state machine logic
-}
-
-/*
- * checkAgentModulePortSyncup
- *
- * This function checks if the Agent has synced up the port status information
- * If it is done then we need to generate the port Up or port Down event to
- * the port state machine (PSM). This is to take care of the case when PSM
- * has entered Initialized state and the Agent to qsfp_service sync up has
- * already happened.
- */
-void QsfpModule::checkAgentModulePortSyncup() {
-  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {

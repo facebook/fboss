@@ -36,13 +36,6 @@ class TransceiverManager;
 TransceiverStateMachineState getStateByOrder(int currentStateOrder);
 
 /**************************** Transceiver State Machine ***********************/
-// TODO(joseph5wu) The following transceiver state machine is planned to replace
-// the current `moduleStateMachine` and `modulePortStateMachine` in
-// module/ModuleStateMachine.h. Because the change is quite massive and right
-// now they have been heavily used in
-// QsfpModule, it might be safer to start the new change on a new state machine
-// rather than tamper the current one.
-
 // Module state machine attribute to tell whether the iphy port/ xphy port/
 // transceiver programmed is already done
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, isIphyProgrammed)
