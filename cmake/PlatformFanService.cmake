@@ -25,6 +25,7 @@ target_link_libraries(fan_service_lib
   fan_config_structs_types_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+  qsfp_cache
 )
 
 add_executable(fan_service

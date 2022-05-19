@@ -5,6 +5,8 @@
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/Main.h"
 
+namespace facebook::fboss::platform {
+
 void startServiceAndRunServer(
     std::string serviceName,
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
@@ -12,11 +14,13 @@ void startServiceAndRunServer(
     bool loopForever) {}
 
 // runServer : a helper function to run Fan Service as Thrift Server.
-void facebook::fboss::platform::runServer(
+void runServer(
     facebook::services::ServiceFrameworkLight& /*service*/,
     std::shared_ptr<apache::thrift::ThriftServer> /*thriftServer*/,
     facebook::fboss::platform::FanServiceHandler* /*handler*/,
     bool /*loopForever*/) {}
+
+} // namespace facebook::fboss::platform
 
 int runShellCmd(const std::string& cmd) {
   std::vector<std::string> shellifiedCmd = {"/bin/sh", "-c", cmd};
