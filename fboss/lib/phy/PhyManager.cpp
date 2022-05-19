@@ -781,7 +781,7 @@ std::optional<cfg::PortSpeed> PhyManager::getProgrammedSpeed(PortID portID) {
 }
 
 bool PhyManager::shouldInitializePimXphy(PimID pim) const {
-  return FLAGS_init_pim_xphys && xphyMap_.find(pim) != xphyMap_.end();
+  return xphyMap_.find(pim) != xphyMap_.end();
 }
 
 PhyManager::PortStatsRLockedPtr PhyManager::getRLockedStats(

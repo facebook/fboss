@@ -22,9 +22,6 @@ std::unique_ptr<WedgeManager> setupForColdboot() {
   auto fd = createFile(TransceiverManager::forceColdBootFileName());
   close(fd);
 
-  // Set initializing pim xphys to 1 so we always initialize xphy chips
-  gflags::SetCommandLineOptionWithMode(
-      "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
       "force_reload_gearbox_fw", "1", gflags::SET_FLAGS_DEFAULT);
 

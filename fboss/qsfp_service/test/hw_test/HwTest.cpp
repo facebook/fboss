@@ -36,10 +36,6 @@ void HwTest::SetUp() {
   // First use QsfpConfig to init default command line arguments
   initFlagDefaultsFromQsfpConfig();
 
-  // Set initializing pim xphys to 1 so we always initialize xphy chips
-  gflags::SetCommandLineOptionWithMode(
-      "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
-
   // Change the default remediation interval to 0 to avoid waiting
   gflags::SetCommandLineOptionWithMode(
       "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
