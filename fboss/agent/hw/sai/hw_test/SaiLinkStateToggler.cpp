@@ -35,9 +35,34 @@ void SaiLinkStateToggler::setPortPreemphasis(
   auto serDesAttributes = portManager.serdesAttributesFromSwPinConfigs(
       portSaiId, port->getPinConfigs(), portHandle->serdes);
 
-  std::get<std::optional<SaiPortSerdesTraits::Attributes::Preemphasis>>(
-      serDesAttributes) =
+  auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+    if (attr != std::nullopt) {
+      attr = val;
+    }
+  };
+  auto preemphasisVal =
       std::vector<uint32_t>(numLanes, static_cast<uint32_t>(preemphasis));
+  if (saiEnsemble_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::Preemphasis{},
+        preemphasisVal);
+  } else {
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirPre1{},
+        preemphasisVal);
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirPost1{},
+        preemphasisVal);
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirMain{},
+        preemphasisVal);
+  }
 
   if (saiEnsemble_->getPlatform()->isSerdesApiSupported()) {
     portHandle->serdes->setAttributes(serDesAttributes);
