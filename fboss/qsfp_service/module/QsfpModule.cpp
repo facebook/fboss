@@ -101,13 +101,12 @@ QsfpModule::QsfpModule(
               ? std::set<std::string>()
               : transceiverManager_->getPortNames(getID()))),
       portsPerTransceiver_(portsPerTransceiver) {
-  markLastDownTime();
+  // As QsfpModule needs to use state machine while TransceiverManager is
+  // the main class to maintain state machine update, we need to make sure
+  // transceiverManager_ can't be nullptr
+  CHECK(transceiverManager_ != nullptr);
 
-  // Keeping the QsfpModule object raw pointer inside the Module State Machine
-  // as an FSM attribute. This will be used when FSM invokes the state
-  // transition or event handling function and in the callback we need something
-  // from QsfpModule object
-  setLegacyModuleStateMachineModulePointer(this);
+  markLastDownTime();
 }
 
 QsfpModule::~QsfpModule() {
@@ -1003,22 +1002,7 @@ void QsfpModule::genMsmModPortsUpEvent() {
  * agent sync up timeout
  */
 void QsfpModule::scheduleAgentPortSyncupTimeout() {
-  XLOG(DBG2) << "MSM: Scheduling Agent port sync timeout function for module "
-             << qsfpImpl_->getName();
-
-  // Schedule a function to do bring up / remediate after some time
-  msmFunctionScheduler_.addFunctionOnce(
-      [&]() {
-        // Trigger the timeout event to MSM
-        legacyModuleStateMachineStateUpdate(
-            TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT);
-      },
-      // Name of the scheduled function/thread for identifying later
-      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
-      // Delay after which this function needs to be invoked in different thread
-      std::chrono::milliseconds(kStateMachineAgentPortSyncupTimeout * 1000));
-  // Start the function scheduler now
-  msmFunctionScheduler_.start();
+  // TODO(joseph5wu) Deprecate the legacy state machine logic
 }
 
 /*
@@ -1028,15 +1012,7 @@ void QsfpModule::scheduleAgentPortSyncupTimeout() {
  * this state we need to cancel this timeout function
  */
 void QsfpModule::cancelAgentPortSyncupTimeout() {
-  XLOG(DBG2) << "MSM: Cancelling Agent port sync timeout function for module "
-             << qsfpImpl_->getNum();
-
-  // Cancel the current scheduled function
-  msmFunctionScheduler_.cancelFunction(
-      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
-
-  // Stop the scheduler thread
-  // msmFunctionScheduler_.shutdown();
+  // TODO(joseph5wu) Deprecate the legacy state machine logic
 }
 
 /*
@@ -1047,27 +1023,7 @@ void QsfpModule::cancelAgentPortSyncupTimeout() {
  * bring up (first time only) or the remediate function.
  */
 void QsfpModule::scheduleBringupRemediateFunction() {
-  XLOG(DBG2) << "MSM: Scheduling Remediate/bringup function for module "
-             << qsfpImpl_->getName();
-
-  // Schedule a function to do bring up / remediate after some time
-  msmFunctionScheduler_.addFunctionOnce(
-      [&]() {
-        lock_guard<std::mutex> g(qsfpModuleMutex_);
-        if (moduleStateMachine_.get_attribute(moduleBringupDone)) {
-          // Do the remediate function second time onwards
-          stateUpdateLocked(TransceiverStateMachineEvent::REMEDIATE_DONE);
-        } else {
-          // Bring up to be attempted for first time only
-          stateUpdateLocked(TransceiverStateMachineEvent::BRINGUP_DONE);
-        }
-      },
-      // Name of the scheduled function/thread for identifying later
-      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()),
-      // Delay after which this function needs to be invoked in different thread
-      std::chrono::milliseconds(kStateMachineOpticsRemediateInterval * 1000));
-  // Start the function scheduler now
-  msmFunctionScheduler_.start();
+  // TODO(joseph5wu) Deprecate the legacy state machine logic
 }
 
 /*
@@ -1078,12 +1034,7 @@ void QsfpModule::scheduleBringupRemediateFunction() {
  * scheduled and stop the scheduled thread.
  */
 void QsfpModule::exitBringupRemediateFunction() {
-  // Cancel the current scheduled function
-  msmFunctionScheduler_.cancelFunction(
-      folly::to<std::string>("ModuleStateMachine-", qsfpImpl_->getName()));
-
-  // Stop the scheduler thread
-  // msmFunctionScheduler_.shutdown();
+  // TODO(joseph5wu) Deprecate the legacy state machine logic
 }
 
 /*
@@ -1120,12 +1071,6 @@ void QsfpModule::checkAgentModulePortSyncup() {
   }
 }
 
-void QsfpModule::legacyModuleStateMachineStateUpdate(
-    TransceiverStateMachineEvent event) {
-  lock_guard<std::mutex> g(qsfpModuleMutex_);
-  stateUpdateLocked(event);
-}
-
 void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   // Use this function to gate whether we should use the old state machine or
   // the new design with the StateUpdate list
@@ -1133,65 +1078,7 @@ void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
   // This should only be the case for some unit tests
   if (FLAGS_use_new_state_machine && transceiverManager_) {
     transceiverManager_->updateStateBlocking(getID(), event);
-  } else {
-    // Fall back to use the legacy logic
-    switch (event) {
-      case TransceiverStateMachineEvent::DETECT_TRANSCEIVER:
-        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_DETECTED);
-        return;
-      case TransceiverStateMachineEvent::REMOVE_TRANSCEIVER:
-        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_REMOVED);
-        return;
-      case TransceiverStateMachineEvent::RESET_TRANSCEIVER:
-        moduleStateMachine_.process_event(MODULE_EVENT_OPTICS_RESET);
-        return;
-      case TransceiverStateMachineEvent::READ_EEPROM:
-        moduleStateMachine_.process_event(MODULE_EVENT_EEPROM_READ);
-        return;
-      case TransceiverStateMachineEvent::ALL_PORTS_DOWN:
-        moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORTS_DOWN);
-        return;
-      case TransceiverStateMachineEvent::PORT_UP:
-        moduleStateMachine_.process_event(MODULE_EVENT_PSM_MODPORT_UP);
-        return;
-      case TransceiverStateMachineEvent::TRIGGER_UPGRADE:
-        moduleStateMachine_.process_event(MODULE_EVENT_TRIGGER_UPGRADE);
-        return;
-      case TransceiverStateMachineEvent::FORCED_UPGRADE:
-        moduleStateMachine_.process_event(MODULE_EVENT_FORCED_UPGRADE);
-        return;
-      case TransceiverStateMachineEvent::AGENT_SYNC_TIMEOUT:
-        moduleStateMachine_.process_event(MODULE_EVENT_AGENT_SYNC_TIMEOUT);
-        return;
-      case TransceiverStateMachineEvent::BRINGUP_DONE:
-        moduleStateMachine_.process_event(MODULE_EVENT_BRINGUP_DONE);
-        return;
-      case TransceiverStateMachineEvent::REMEDIATE_DONE:
-        moduleStateMachine_.process_event(MODULE_EVENT_REMEDIATE_DONE);
-        return;
-      case TransceiverStateMachineEvent::PROGRAM_IPHY:
-      case TransceiverStateMachineEvent::PROGRAM_XPHY:
-      case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
-      case TransceiverStateMachineEvent::RESET_TO_DISCOVERED:
-      case TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT:
-      case TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER:
-        throw FbossError(
-            "Only new state machine can support TransceiverStateMachineEvent: ",
-            apache::thrift::util::enumNameSafe(event));
-    }
-    throw FbossError(
-        "Unsupported TransceiverStateMachineEvent: ",
-        apache::thrift::util::enumNameSafe(event));
   }
-}
-
-int QsfpModule::getLegacyModuleStateMachineCurrentState() const {
-  return moduleStateMachine_.current_state()[0];
-}
-
-void QsfpModule::setLegacyModuleStateMachineModulePointer(
-    QsfpModule* modulePtr) {
-  moduleStateMachine_.get_attribute(qsfpModuleObjPtr) = modulePtr;
 }
 
 MediaInterfaceCode QsfpModule::getModuleMediaInterface() {

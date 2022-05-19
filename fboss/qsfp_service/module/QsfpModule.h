@@ -128,9 +128,6 @@ class QsfpModule : public Transceiver {
   std::vector<msm::back::state_machine<modulePortStateMachine>>
       portStateMachines_;
 
-  // Module state machine function scheduler
-  folly::FunctionScheduler msmFunctionScheduler_;
-
   /*
    * This is the helper function to create port state machine for all ports in
    * this module.
@@ -258,14 +255,6 @@ class QsfpModule : public Transceiver {
     // return a copy to avoid needing a lock in the caller
     return snapshots_.copy();
   }
-
-  // TODO(joseph5wu) Will eventually deprecate the following legacy state
-  // machine functions
-  void legacyModuleStateMachineStateUpdate(TransceiverStateMachineEvent event);
-
-  int getLegacyModuleStateMachineCurrentState() const;
-
-  void setLegacyModuleStateMachineModulePointer(QsfpModule* modulePtr);
 
   void programTransceiver(cfg::PortSpeed speed, bool needResetDataPath)
       override;
@@ -665,9 +654,6 @@ class QsfpModule : public Transceiver {
   void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
 
   void stateUpdateLocked(TransceiverStateMachineEvent event);
-
-  // Module State Machine for this QsfpModule object
-  msm::back::state_machine<moduleStateMachine> moduleStateMachine_;
 
   // TODO(joseph5wu) With the new state machine, we don't need to use these
   // private port related members to check whether ports on such transceiver
