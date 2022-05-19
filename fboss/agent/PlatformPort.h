@@ -231,4 +231,26 @@ class PlatformPort {
 
 std::ostream& operator<<(std::ostream&, PortLedExternalState);
 
+/*
+ * This is a base class for any platform port of a multi-pim system
+ * For now, we use this class to store PimID and the transceiverIndexInPim
+ */
+class MultiPimPlatformPort {
+ public:
+  MultiPimPlatformPort(PortID id, const cfg::PlatformPortEntry& entry);
+  PimID getPimID() const {
+    return pimID_;
+  }
+  uint8_t getTransceiverIndexInPim() const {
+    return transceiverIndexInPim_;
+  }
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  MultiPimPlatformPort(MultiPimPlatformPort const&) = delete;
+  MultiPimPlatformPort& operator=(MultiPimPlatformPort const&) = delete;
+
+  PimID pimID_;
+  uint8_t transceiverIndexInPim_;
+};
 } // namespace facebook::fboss

@@ -10,11 +10,13 @@
 
 #include "fboss/agent/PlatformPort.h"
 
-#include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+
+#include <folly/logging/xlog.h>
+#include <re2/re2.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -255,6 +257,30 @@ std::vector<phy::PinID> PlatformPort::getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID) const {
   return utility::getTransceiverLanes(
       getPlatformPortEntry(), getPlatform()->getDataPlanePhyChips(), profileID);
+}
+
+namespace {
+constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/1";
+}
+
+MultiPimPlatformPort::MultiPimPlatformPort(
+    PortID id,
+    const cfg::PlatformPortEntry& entry) {
+  // With the new platform config design, we store port name in the platform
+  // config with the format ethX/Y/1, X is the pim number and Y is the
+  // transceiver number in general.
+  // We can also add pim_id as a new field in the cfg::PlatformPortEntry
+  auto portName = *entry.mapping_ref()->name_ref();
+  int pimID = 0;
+  int transceiverID = 0;
+  re2::RE2 portNameRe(kFbossPortNameRegex);
+  if (!re2::RE2::FullMatch(portName, portNameRe, &pimID, &transceiverID)) {
+    throw FbossError("Invalid port name:", portName, " for port id:", id);
+  }
+  CHECK_GT(pimID, 0);
+  pimID_ = PimID(pimID);
+  CHECK_GE(transceiverID, 1);
+  transceiverIndexInPim_ = transceiverID - 1;
 }
 
 } // namespace facebook::fboss
