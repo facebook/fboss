@@ -92,27 +92,19 @@ QsfpModule::QsfpModule(
     TransceiverManager* transceiverManager,
     std::unique_ptr<TransceiverImpl> qsfpImpl,
     unsigned int portsPerTransceiver)
-    : transceiverManager_(transceiverManager),
+    : Transceiver(transceiverManager),
       qsfpImpl_(std::move(qsfpImpl)),
-      snapshots_(TransceiverSnapshotCache(
-          // allowing a null transceiverManager here seems
-          // kinda sketchy, but QsfpModule tests rely on it at the moment
-          transceiverManager_ == nullptr
-              ? std::set<std::string>()
-              : transceiverManager_->getPortNames(getID()))),
+      snapshots_(
+          TransceiverSnapshotCache(transceiverManager->getPortNames(getID()))),
       portsPerTransceiver_(portsPerTransceiver) {
-  // As QsfpModule needs to use state machine while TransceiverManager is
-  // the main class to maintain state machine update, we need to make sure
-  // transceiverManager_ can't be nullptr
-  CHECK(transceiverManager_ != nullptr);
-
   markLastDownTime();
 }
 
 QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
-  stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
+  getTransceiverManager()->updateStateBlocking(
+      getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
 }
 
 void QsfpModule::getQsfpValue(
@@ -464,11 +456,13 @@ void QsfpModule::refreshLocked() {
 
   if (dirty_ && present_) {
     // A new transceiver has been detected
-    stateUpdateLocked(TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+    getTransceiverManager()->updateStateBlocking(
+        getID(), TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
     newTransceiverDetected = true;
   } else if (dirty_ && !present_) {
     // The transceiver has been removed
-    stateUpdateLocked(TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
+    getTransceiverManager()->updateStateBlocking(
+        getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   }
 
   // Each of the reset functions need to check whether the transceiver is
@@ -484,7 +478,8 @@ void QsfpModule::refreshLocked() {
 
   if (newTransceiverDetected) {
     // Data has been read for the new optics
-    stateUpdateLocked(TransceiverStateMachineEvent::READ_EEPROM);
+    getTransceiverManager()->updateStateBlocking(
+        getID(), TransceiverStateMachineEvent::READ_EEPROM);
     // Issue an allPages=false update to pick up the new qsfp data after we
     // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
     // capabilities and we can use this to make sure the current QsfpData has
@@ -676,7 +671,7 @@ bool QsfpModule::shouldRemediateLocked() {
 
   auto now = std::time(nullptr);
   bool remediationEnabled =
-      now > transceiverManager_->getPauseRemediationUntil();
+      now > getTransceiverManager()->getPauseRemediationUntil();
   // Rather than immediately attempting to remediate a module,
   // we would like to introduce a bit delay to de-couple the consequences
   // of a remediation with the root cause that brought down the link.
@@ -877,16 +872,6 @@ ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
   moduleStatusCache_ = ModuleStatus();
 
   return moduleStatus;
-}
-
-void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {
-  // Use this function to gate whether we should use the old state machine or
-  // the new design with the StateUpdate list
-  // If transceiverManager_ is null, we don't need to update the state machine
-  // This should only be the case for some unit tests
-  if (FLAGS_use_new_state_machine && transceiverManager_) {
-    transceiverManager_->updateStateBlocking(getID(), event);
-  }
 }
 
 MediaInterfaceCode QsfpModule::getModuleMediaInterface() {

@@ -1348,7 +1348,7 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     // channel control settings or no.
     // TODO(clin82) Remove aoi_override flag once this solution has been
     // deployed.
-    if (transceiverManager_->getPlatformMode() == PlatformMode::YAMP) {
+    if (getTransceiverManager()->getPlatformMode() == PlatformMode::YAMP) {
       overwriteChannelControlSettings();
     }
 

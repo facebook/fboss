@@ -1715,7 +1715,7 @@ bool CmisModule::remediateFlakyTransceiver() {
   if (moduleResetCounter_ < kResetCounterLimit) {
     // This api accept 1 based module id however the module id in WedgeManager
     // is 0 based.
-    transceiverManager_->getQsfpPlatformApi()->triggerQsfpHardReset(
+    getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
         static_cast<unsigned int>(getID()) + 1);
     moduleResetCounter_++;
     isRemediationTriggered = true;
@@ -1833,13 +1833,7 @@ void CmisModule::configureModule() {
       qsfpImpl_->getName(),
       apache::thrift::util::enumNameSafe(appCode));
 
-  if (!transceiverManager_) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s}, transceiverManager_ is NULL, skipping module configuration",
-        qsfpImpl_->getName());
-    return;
-  }
-  if (!transceiverManager_->getQsfpConfig()) {
+  if (!getTransceiverManager()->getQsfpConfig()) {
     XLOG(ERR) << folly::sformat(
         "Module {:s}, qsfpConfig is NULL, skipping module configuration",
         qsfpImpl_->getName());
@@ -1852,7 +1846,7 @@ void CmisModule::configureModule() {
   );
 
   // Set the Rx equalizer setting based on QSFP config
-  auto qsfpCfg = transceiverManager_->getQsfpConfig()->thrift;
+  const auto& qsfpCfg = getTransceiverManager()->getQsfpConfig()->thrift;
   for (const auto& override : *qsfpCfg.transceiverConfigOverrides()) {
     // Check if there is an override for all kinds of transceivers or
     // an override for the current application code(speed)

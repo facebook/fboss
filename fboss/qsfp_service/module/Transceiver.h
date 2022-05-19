@@ -26,11 +26,22 @@ namespace fboss {
  */
 
 struct TransceiverID;
+class TransceiverManager;
 
 class Transceiver {
  public:
-  Transceiver() {}
+  explicit Transceiver(TransceiverManager* transceiverManager)
+      : transceiverManager_(transceiverManager) {
+    // As Transceiver needs to use state machine while TransceiverManager is
+    // the main class to maintain state machine update, we need to make sure
+    // transceiverManager_ can't be nullptr
+    CHECK(transceiverManager_ != nullptr);
+  }
   virtual ~Transceiver() {}
+
+  TransceiverManager* getTransceiverManager() const {
+    return transceiverManager_;
+  }
 
   /*
    * Transceiver type (SFP, QSFP)
@@ -200,6 +211,8 @@ class Transceiver {
   // no copy or assignment
   Transceiver(Transceiver const&) = delete;
   Transceiver& operator=(Transceiver const&) = delete;
+
+  TransceiverManager* transceiverManager_{nullptr};
 };
 
 } // namespace fboss

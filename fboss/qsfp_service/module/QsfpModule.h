@@ -14,7 +14,6 @@
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-#include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -232,8 +231,6 @@ class QsfpModule : public Transceiver {
   prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) override;
 
  protected:
-  TransceiverManager* transceiverManager_{nullptr};
-
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
   // Denotes if the cache value is valid or stale
@@ -580,8 +577,6 @@ class QsfpModule : public Transceiver {
    * for ODS to report.
    */
   void cacheMediaLaneSignals(const std::vector<MediaLaneSignals>& mediaSignals);
-
-  void stateUpdateLocked(TransceiverStateMachineEvent event);
 
   // TODO(joseph5wu) With the new state machine, we don't need to use these
   // private port related members to check whether ports on such transceiver

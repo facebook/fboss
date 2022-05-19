@@ -390,7 +390,7 @@ bool Sff8472Module::remediateFlakyTransceiver() {
   // is 0 based.
   // Note that triggering a hard reset on a SFP module used with a QSFP-to-SFP
   // adapter actually toggles the txDisable line
-  transceiverManager_->getQsfpPlatformApi()->triggerQsfpHardReset(
+  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
       static_cast<unsigned int>(getID()) + 1);
 
   // Even though remediation might not trigger, we still need to update the
