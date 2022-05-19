@@ -58,6 +58,8 @@ class PciDevice {
     return (pciDevice_ != nullptr);
   }
 
+  void setConfigControl();
+
  private:
   uint32_t vendorId_;
   uint32_t deviceId_;

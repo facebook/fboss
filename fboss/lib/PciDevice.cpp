@@ -19,7 +19,11 @@
 
 namespace {
 constexpr auto kMaxPciRegions = 6;
-}
+
+constexpr auto kPciConfigCommandRegOffset = 4;
+constexpr auto kPciConfigParityEnable = 0x40; // command reg bit 6
+constexpr auto kPciConfigMemAccessEnable = 0x02; // command reg bit 1
+} // namespace
 
 namespace facebook::fboss {
 PciDevice::~PciDevice() {
@@ -118,6 +122,22 @@ uint8_t PciDevice::getRevision() const {
     throw std::runtime_error("PCI device not initialized");
   }
   return pciDevice_->revision;
+}
+
+void PciDevice::setConfigControl() {
+  if (pciDevice_ == nullptr) {
+    throw std::runtime_error(
+        "PCI device not initialized while control config attempted");
+  }
+  uint8_t data = kPciConfigParityEnable | kPciConfigMemAccessEnable;
+  uint64_t bytesWritten;
+  int rc = pci_device_cfg_write(
+      pciDevice_, &data, kPciConfigCommandRegOffset, 1, &bytesWritten);
+  if (rc || bytesWritten < 1) {
+    XLOG(ERR) << "PCI config command register could not be set";
+  } else {
+    XLOG(INFO) << "PCI config command register set to enable memory access";
+  }
 }
 
 } // namespace facebook::fboss
