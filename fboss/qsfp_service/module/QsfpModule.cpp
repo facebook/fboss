@@ -257,55 +257,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   *info_.wlock() = info;
 }
 
-bool QsfpModule::safeToCustomize() const {
-  // This function is no longer needed with the new state machine implementation
-  if (FLAGS_use_new_state_machine) {
-    return false;
-  }
-
-  if (ports_.size() < portsPerTransceiver_) {
-    XLOG(DBG1) << "Not all ports present in transceiver " << getID()
-               << " (expected=" << portsPerTransceiver_
-               << "). Skip customization";
-
-    return false;
-  } else if (ports_.size() > portsPerTransceiver_) {
-    throw FbossError(
-        ports_.size(),
-        " ports found in transceiver ",
-        getID(),
-        " (max=",
-        portsPerTransceiver_,
-        ")");
-  }
-
-  bool anyEnabled{false};
-  for (const auto& port : ports_) {
-    const auto& status = port.second;
-    if (*status.up()) {
-      return false;
-    }
-    anyEnabled = anyEnabled || *status.enabled();
-  }
-
-  // Only return safe if at least one port is enabled
-  return anyEnabled;
-}
-
-bool QsfpModule::customizationWanted(time_t cooldown) const {
-  // This function is no longer needed with the new state machine implementation
-  if (FLAGS_use_new_state_machine) {
-    return false;
-  }
-  if (needsCustomization_) {
-    return true;
-  }
-  if (std::time(nullptr) - lastCustomizeTime_ < cooldown) {
-    return false;
-  }
-  return safeToCustomize();
-}
-
 bool QsfpModule::customizationSupported() const {
   // TODO: there may be a better way of determining this rather than
   // looking at transmitter tech.
@@ -444,16 +395,14 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
 }
 
 void QsfpModule::refreshLocked() {
-  ModuleStatus moduleStatus;
   detectPresenceLocked();
 
-  bool newTransceiverDetected = false;
-  auto customizeWanted = customizationWanted(FLAGS_customize_interval);
   auto willRefresh = !dirty_ && shouldRefresh(FLAGS_qsfp_data_refresh_interval);
-  if (!dirty_ && !customizeWanted && !willRefresh) {
+  if (!dirty_ && !willRefresh) {
     return;
   }
 
+  bool newTransceiverDetected = false;
   if (dirty_ && present_) {
     // A new transceiver has been detected
     getTransceiverManager()->updateStateBlocking(
@@ -465,6 +414,7 @@ void QsfpModule::refreshLocked() {
         getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
   }
 
+  ModuleStatus moduleStatus;
   // Each of the reset functions need to check whether the transceiver is
   // present or not, and then handle its own logic differently. Even though
   // the transceiver might be absent here, we'll still go through all of the
@@ -487,30 +437,8 @@ void QsfpModule::refreshLocked() {
     updateQsfpData(false);
   }
 
-  // The following should be deprecated after switching to use new state machine
-  if (!FLAGS_use_new_state_machine) {
-    if (customizeWanted) {
-      customizeTransceiverLocked(getPortSpeed());
-
-      tryRemediateLocked();
-    }
-
-    TransceiverSettings settings = getTransceiverSettingsInfo();
-    // We found that some module did not enable Rx output squelch by default,
-    // which introduced some difficulty to bring link back up when flapped.
-    // Here we ensure that Rx output squelch is always enabled.
-    if (auto hostLaneSettings = settings.hostLaneSettings()) {
-      ensureRxOutputSquelchEnabled(*hostLaneSettings);
-    }
-  }
-
-  if (customizeWanted || willRefresh) {
-    // update either if data is stale or if we customized this
-    // round. We update in the customization because we may have
-    // written fields, but only need a partial update because all of
-    // these fields are in the LOWER qsfp page. There are a small
-    // number of writable fields on other qsfp pages, but we don't
-    // currently use them.
+  // If it's just regular refresh
+  if (willRefresh) {
     updateQsfpData(false);
     updateCmisStateChanged(moduleStatus);
   }
@@ -715,9 +643,6 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
   }
-
-  lastCustomizeTime_ = std::time(nullptr);
-  needsCustomization_ = false;
 }
 
 std::optional<TransceiverStats> QsfpModule::getTransceiverStats() {

@@ -237,8 +237,6 @@ class QsfpModule : public Transceiver {
   bool dirty_{true};
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
-  // This transceiver needs customization
-  bool needsCustomization_{false};
   /* This counter keeps track of the number of times
    * the optics remediation is performed on a given port
    */
@@ -260,7 +258,6 @@ class QsfpModule : public Transceiver {
    * too frequently. These MUST be accessed holding qsfpModuleMutex_.
    */
   time_t lastRefreshTime_{0};
-  time_t lastCustomizeTime_{0};
   time_t lastRemediateTime_{0};
 
   // last time we know that no port was up on this transceiver.
@@ -451,26 +448,6 @@ class QsfpModule : public Transceiver {
    */
   virtual bool getMediaInterfaceId(
       std::vector<MediaInterfaceId>& mediaInterface) = 0;
-
-  /*
-   * TODO(joseph5wu) To be deprecated
-   * New Port Programming with the new state machine will customize on
-   * PROGRAM_TRANSCEIVER event, which has better control of the port programming
-   * order. While current customizing transceiver logic is embedded in
-   * refresh(), therefore, it needs to check port status to decide whether it's
-   * safe to customize. Will deprecate such function once we fully migrate to
-   * use the new port programming.
-   * Determine if it is safe to customize the ports based on the status of our
-   * member ports.
-   */
-  bool safeToCustomize() const;
-
-  /*
-   * Similar to safeToCustomize, but also factors in whether we think
-   * we need customization (needsCustomization_) and also makes sure
-   * we haven't customized too recently via the cooldown param.
-   */
-  bool customizationWanted(time_t cooldown) const;
 
   /*
    * Returns whether customization is supported at all. Basically

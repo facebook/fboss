@@ -1363,9 +1363,6 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
   }
-
-  lastCustomizeTime_ = std::time(nullptr);
-  needsCustomization_ = false;
 }
 
 /*
