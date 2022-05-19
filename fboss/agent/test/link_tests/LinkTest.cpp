@@ -275,11 +275,6 @@ void LinkTest::waitForStateMachineState(
     TransceiverStateMachineState stateMachineState,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  if (!FLAGS_skip_xphy_programming) {
-    XLOG(INFO) << "Skip waiting for state machine state, "
-               << "FLAGS_skip_xphy_programming is false";
-    return;
-  }
   XLOG(INFO) << "Checking qsfp TransceiverStateMachineState on "
              << folly::join(",", transceiversToCheck);
 

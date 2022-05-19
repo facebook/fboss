@@ -33,16 +33,8 @@ class PortStatsTest : public LinkTest {
 
 std::optional<PortStatsTest::XphyPortStats> PortStatsTest::getXphyPortStats() {
   std::map<std::string, int64_t> currentCounters;
-  // With the new port programming, xphy will be totally moved to qsfp_service,
-  // therefore, we use counters from qsfp_service to collect xphy related
-  // counters
-  if (FLAGS_skip_xphy_programming) {
-    auto qsfpServiceClient = utils::createQsfpServiceClient();
-    qsfpServiceClient->sync_getCounters(currentCounters);
-  } else {
-    tcData().publishStats();
-    tcData().getCounters(currentCounters);
-  }
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  qsfpServiceClient->sync_getCounters(currentCounters);
 
   XphyPortStats portStats;
   for (const auto& port : getCabledPorts()) {
