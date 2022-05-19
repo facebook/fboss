@@ -122,30 +122,6 @@ int QsfpModule::getModuleId() {
   return qsfpImpl_->getNum();
 }
 
-/*
- * getSystemPortToModulePortIdLocked
- *
- * This function will return the local module port id for the given system
- * port id. The local module port id is used to index into PSM instance. It
- * also adds the system port Id to  the port mapping list if that does not
- * exist.
- */
-uint32_t QsfpModule::getSystemPortToModulePortIdLocked(uint32_t sysPortId) {
-  // If the system port id exist in the list then return the module port id
-  // corresponding to it
-  if (systemPortToModulePortIdMap_.find(sysPortId) !=
-      systemPortToModulePortIdMap_.end()) {
-    return systemPortToModulePortIdMap_.find(sysPortId)->second;
-  }
-
-  // If the system port id does not exist in the list then add it to the
-  // end of the list and return that index
-  uint32_t modPortId = systemPortToModulePortIdMap_.size();
-  systemPortToModulePortIdMap_[sysPortId] = modPortId;
-
-  return modPortId;
-}
-
 void QsfpModule::getQsfpValue(
     int dataAddress,
     int offset,
@@ -920,11 +896,8 @@ ModuleStatus QsfpModule::readAndClearCachedModuleStatus() {
  * then we can just raise the Init done event to move the port state machine
  * to Initialized state.
  */
-void QsfpModule::opticsModulePortHwInit(int modulePortId) {
-  // Assume nothing special needs to be done for this optic's port level
-  // HW init
-  portStateMachines_[modulePortId].process_event(
-      MODULE_PORT_EVENT_OPTICS_INITIALIZED);
+void QsfpModule::opticsModulePortHwInit(int /* modulePortId */) {
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 /*
@@ -935,23 +908,7 @@ void QsfpModule::opticsModulePortHwInit(int modulePortId) {
  * state and number of ports being present in the module  is known
  */
 void QsfpModule::addModulePortStateMachines() {
-  // Create Port state machine for all ports in this optics module
-  for (int i = 0; i < portsPerTransceiver_; i++) {
-    portStateMachines_.push_back(
-        msm::back::state_machine<modulePortStateMachine>());
-  }
-  // In Port State Machine keeping the object pointer to the QsfpModule
-  // because in the event handler callback we need to access some data from
-  // this object
-  for (int i = 0; i < portsPerTransceiver_; i++) {
-    portStateMachines_[i].get_attribute(qsfpModuleObjPtr) = this;
-  }
-
-  // After the port state machine is created, start its port level
-  // hardware init so that the PSM can move to next state
-  for (int i = 0; i < portsPerTransceiver_; i++) {
-    opticsModulePortHwInit(i);
-  }
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 /*
@@ -961,11 +918,7 @@ void QsfpModule::addModulePortStateMachines() {
  * module. This is called when the module is physically removed
  */
 void QsfpModule::eraseModulePortStateMachines() {
-  portStateMachines_.clear();
-  auto diagsCapability = diagsCapability_.wlock();
-  if ((*diagsCapability).has_value()) {
-    (*diagsCapability).reset();
-  }
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 /*
@@ -976,21 +929,11 @@ void QsfpModule::eraseModulePortStateMachines() {
  * are down then this Module Port Down event is generated to Module SM
  */
 void QsfpModule::genMsmModPortsDownEvent() {
-  int downports = 0;
-  for (int i = 0; i < portStateMachines_.size(); i++) {
-    if (portStateMachines_[i].current_state()[0] == 2) {
-      downports++;
-    }
-  }
-  // Check port down for N-1 ports only because current PSM port
-  // state is in transition to  Down state
-  if (downports >= portStateMachines_.size() - 1) {
-    stateUpdateLocked(TransceiverStateMachineEvent::ALL_PORTS_DOWN);
-  }
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 void QsfpModule::genMsmModPortsUpEvent() {
-  stateUpdateLocked(TransceiverStateMachineEvent::PORT_UP);
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 /*
@@ -1047,28 +990,7 @@ void QsfpModule::exitBringupRemediateFunction() {
  * already happened.
  */
 void QsfpModule::checkAgentModulePortSyncup() {
-  uint32_t systemPortId, modulePortId;
-  // Look into the synced port information and generate the event if the
-  // info is already present
-  for (auto& port : ports_) {
-    systemPortId = port.first;
-    // Get the local module port id to identify the port state machine
-    modulePortId = getSystemPortToModulePortIdLocked(systemPortId);
-
-    // If the module port status has been synced up from agent then based
-    // on port up/down status, raise the port status machine event
-    if (!port.second.profileID()->empty()) {
-      if (*port.second.up()) {
-        // Raise port up event to PSM
-        portStateMachines_[modulePortId].process_event(
-            MODULE_PORT_EVENT_AGENT_PORT_UP);
-      } else {
-        // Raise port down event to PSM
-        portStateMachines_[modulePortId].process_event(
-            MODULE_PORT_EVENT_AGENT_PORT_DOWN);
-      }
-    }
-  }
+  // TODO(joseph5wu) Deprecate this function after removing ModuleStateMachine
 }
 
 void QsfpModule::stateUpdateLocked(TransceiverStateMachineEvent event) {

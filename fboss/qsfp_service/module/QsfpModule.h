@@ -124,10 +124,6 @@ class QsfpModule : public Transceiver {
     CHANNEL_COUNT = 4,
   };
 
-  // Port State Machine for all the ports inside this QsfpModule
-  std::vector<msm::back::state_machine<modulePortStateMachine>>
-      portStateMachines_;
-
   /*
    * This is the helper function to create port state machine for all ports in
    * this module.
@@ -330,19 +326,8 @@ class QsfpModule : public Transceiver {
   // last time we know that no port was up on this transceiver.
   time_t lastDownTime_{0};
 
-  // This is a map of system level port id to the local port id inside the
-  // module. The local port id is used to identify the Port State Machine
-  // instance within the module
-  std::map<uint32_t, uint32_t> systemPortToModulePortIdMap_;
-
   // Diagnostic capabilities of the module
   folly::Synchronized<std::optional<DiagsCapability>> diagsCapability_;
-
-  /*
-   * This function will return the local module port id for the given system
-   * port id. The local module port id is used to index into PSM instance
-   */
-  uint32_t getSystemPortToModulePortIdLocked(uint32_t sysPortId);
 
   /*
    * Perform transceiver customization
