@@ -48,22 +48,8 @@ class Transceiver : public ThriftyBaseT<
                         TransceiverFields> {
  public:
   explicit Transceiver(TransceiverID id);
-  static std::shared_ptr<Transceiver> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = TransceiverFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<Transceiver>(fields);
-  }
-
-  static std::shared_ptr<Transceiver> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
   static std::shared_ptr<Transceiver> createPresentTransceiver(
       const TransceiverInfo& tcvrInfo);
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamicLegacy();
-  }
 
   cfg::PlatformPortConfigOverrideFactor toPlatformPortConfigOverrideFactor()
       const;
