@@ -18,31 +18,18 @@ void HwTransceiverTest::SetUp() {
 
   auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  // Without new-port-programming enabled, we need to explicitly call
-  // syncPorts to trigger TransceiverManager to program transceivers to the
-  // correct mode
-  if (FLAGS_use_new_state_machine) {
-    wedgeManager->setOverrideAgentPortStatusForTesting(
-        isPortUp_ /* up */, true /* enabled */);
-    wedgeManager->refreshStateMachines();
-    wedgeManager->setOverrideAgentPortStatusForTesting(
-        isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
-  } else {
-    auto portMap = std::make_unique<WedgeManager::PortMap>();
-    auto& swConfig = *agentConfig->thrift.sw();
-    for (auto& port : *swConfig.ports()) {
-      if (*port.state() != cfg::PortState::ENABLED) {
-        continue;
-      }
-      auto portId = *port.logicalID();
-      auto portStatus =
-          utility::getPortStatus(PortID(portId), getHwQsfpEnsemble());
-      portStatus.up() = isPortUp_;
-      portMap->emplace(portId, portStatus);
-    }
-    std::map<int32_t, TransceiverInfo> transceivers;
-    wedgeManager->syncPorts(transceivers, std::move(portMap));
+
+  // Set override agent port status so that we can update the active state
+  // via refreshStateMachines()
+  wedgeManager->setOverrideAgentPortStatusForTesting(
+      isPortUp_ /* up */, true /* enabled */);
+  // Pause remediation if isPortUp_ == false to avoid unnecessary remediation
+  if (!isPortUp_) {
+    wedgeManager->setPauseRemediation(600);
   }
+  wedgeManager->refreshStateMachines();
+  wedgeManager->setOverrideAgentPortStatusForTesting(
+      isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
 
   expectedTcvrs_ =
       utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble());

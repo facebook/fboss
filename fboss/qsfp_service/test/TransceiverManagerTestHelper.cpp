@@ -22,10 +22,6 @@ void TransceiverManagerTestHelper::SetUp() {
       qsfpSvcVolatileDir.c_str(),
       gflags::SET_FLAGS_DEFAULT);
 
-  // Use new state machine
-  gflags::SetCommandLineOptionWithMode(
-      "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
-
   gflags::SetCommandLineOptionWithMode(
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
 

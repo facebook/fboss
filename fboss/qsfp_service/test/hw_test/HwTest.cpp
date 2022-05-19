@@ -29,9 +29,8 @@ namespace facebook::fboss {
 
 using namespace std::chrono_literals;
 
-HwTest::HwTest(bool useNewStateMachine, bool setupOverrideTcvrToPortAndProfile)
-    : useNewStateMachine_(useNewStateMachine),
-      setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
+HwTest::HwTest(bool setupOverrideTcvrToPortAndProfile)
+    : setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
 
 void HwTest::SetUp() {
   // First use QsfpConfig to init default command line arguments
@@ -41,19 +40,12 @@ void HwTest::SetUp() {
   gflags::SetCommandLineOptionWithMode(
       "init_pim_xphys", "1", gflags::SET_FLAGS_DEFAULT);
 
-  // Only enable using new state machine on demand since the whole migration
-  // is still on-going. Switching the whole qsfp_service logic to use unfinished
-  // new state machine logic will break a lot of existing Transceiver tests.
-  // Eventually we'll get rid of this check and use new state machine only.
-  if (useNewStateMachine_) {
-    gflags::SetCommandLineOptionWithMode(
-        "use_new_state_machine", "1", gflags::SET_FLAGS_DEFAULT);
-    // Change the default remediation interval to 0 to avoid waiting
-    gflags::SetCommandLineOptionWithMode(
-        "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
-    gflags::SetCommandLineOptionWithMode(
-        "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
-  }
+  // Change the default remediation interval to 0 to avoid waiting
+  gflags::SetCommandLineOptionWithMode(
+      "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "initial_remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
+
   // This is used to set up the override TransceiveToPortAndProfile so that we
   // don't have to rely on wedge_agent::programInternalPhyPorts() in our
   // qsfp_hw_test
@@ -71,13 +63,7 @@ void HwTest::SetUp() {
   gflags::SetCommandLineOptionWithMode(
       "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
-  // Do an initial refresh so that the customization is done before the test
-  // starts.
-  if (FLAGS_use_new_state_machine) {
-    waitTillCabledTcvrProgrammed();
-  } else {
-    refreshTransceiversWithRetry();
-  }
+  waitTillCabledTcvrProgrammed();
 
   // It also takes ~5 seconds sometimes for the CMIS modules to be
   // functional after a data path deinit, that can happen in the customize call

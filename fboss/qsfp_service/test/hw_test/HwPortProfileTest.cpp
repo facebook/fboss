@@ -85,36 +85,15 @@ class HwPortProfileTest : public HwTest {
     auto setup = [this, &ports, &portMap]() {
       // New port programming will use state machine to program xphy ports and
       // transceivers automatically, no need to call program xphy port again
-      if (FLAGS_use_new_state_machine) {
-        for (auto& [port, profile] : ports.xphyPorts) {
-          // Program the same port with the same profile twice, the second time
-          // should be idempotent.
-          getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(
-              port, profile);
-        }
-      } else {
-        for (auto& [port, profile] : ports.xphyPorts) {
-          getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(
-              port, profile);
-          // Program the same port with the same profile twice, the second time
-          // should be idempotent.
-          getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(
-              port, profile);
-        }
-        std::map<int32_t, TransceiverInfo> transceivers;
-        getHwQsfpEnsemble()->getWedgeManager()->syncPorts(
-            transceivers, std::make_unique<WedgeManager::PortMap>(portMap));
+      for (auto& [port, profile] : ports.xphyPorts) {
+        // Program the same port with the same profile twice, the second time
+        // should be idempotent.
+        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
       }
     };
     auto verify = [&]() {
       auto transceiverIds =
           utility::getTransceiverIds(matchingPorts, getHwQsfpEnsemble());
-
-      // New port programming will use state machine to program xphy ports and
-      // transceivers automatically, no need to refresh transceiver again
-      if (!FLAGS_use_new_state_machine) {
-        refreshTransceiversWithRetry();
-      }
 
       std::map<int32_t, TransceiverInfo> transceivers;
       getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(

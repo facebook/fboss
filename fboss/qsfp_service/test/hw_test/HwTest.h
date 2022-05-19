@@ -23,9 +23,7 @@ class MultiPimPlatformPimContainer;
 
 class HwTest : public ::testing::Test {
  public:
-  explicit HwTest(
-      bool useNewStateMachine = false,
-      bool setupOverrideTcvrToPortAndProfile = true);
+  explicit HwTest(bool setupOverrideTcvrToPortAndProfile = true);
   ~HwTest() override = default;
 
   HwQsfpEnsemble* getHwQsfpEnsemble() {
@@ -67,7 +65,6 @@ class HwTest : public ::testing::Test {
   HwTest& operator=(HwTest const&) = delete;
 
   std::unique_ptr<HwQsfpEnsemble> ensemble_;
-  const bool useNewStateMachine_{false};
   const bool setupOverrideTcvrToPortAndProfile_{false};
 };
 } // namespace facebook::fboss

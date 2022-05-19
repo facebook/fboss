@@ -113,13 +113,6 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
                    << ", side:" << apache::thrift::util::enumNameSafe(Side)
                    << ", polynominal=" << profileAndPoly.second
                    << ", enabled=" << (enable ? "true" : "false");
-        // New port programming will use state machine to program xphy ports
-        // automatically, no need to call program xphy port again
-        if (!FLAGS_use_new_state_machine) {
-          // First program the xphy port
-          wedgeManager->programXphyPort(port, profileAndPoly.first);
-        }
-
         // Then try to program xphy prbs
         phy::PortPrbsState prbs;
         prbs.enabled() = enable;

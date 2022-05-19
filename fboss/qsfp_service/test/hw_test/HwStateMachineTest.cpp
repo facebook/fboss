@@ -22,7 +22,7 @@ namespace facebook::fboss {
 class HwStateMachineTest : public HwTest {
  public:
   HwStateMachineTest(bool setupOverrideTcvrToPortAndProfile = true)
-      : HwTest(true, setupOverrideTcvrToPortAndProfile) {}
+      : HwTest(setupOverrideTcvrToPortAndProfile) {}
 
   void SetUp() override {
     HwTest::SetUp();

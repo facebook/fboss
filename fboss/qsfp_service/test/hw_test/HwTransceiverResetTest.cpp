@@ -43,11 +43,7 @@ class HwTransceiverResetTest : public HwTransceiverTest {
     XLOG(INFO) << "Trigger QSFP Hard reset for tranceivers: ["
                << folly::join(",", hardresetTcvrs) << "]";
 
-    if (FLAGS_use_new_state_machine) {
-      waitTillCabledTcvrProgrammed();
-    } else {
-      refreshTransceiversWithRetry();
-    }
+    waitTillCabledTcvrProgrammed();
   }
 };
 
