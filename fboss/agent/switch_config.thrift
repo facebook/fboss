@@ -561,10 +561,15 @@ struct MacsecFlowAction {
   2: MacsecFlowPacketAction action;
 }
 
+struct RedirectNextHop {
+  // NextHop IP addresses
+  1: string ip;
+}
+
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
-  // NextHop IP addresses
   1: list<string> nexthops;
+  2: list<RedirectNextHop> redirectNextHops;
 }
 
 struct MatchAction {

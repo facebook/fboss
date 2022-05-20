@@ -176,7 +176,9 @@ class AclNexthopHandlerTest : public ::testing::Test {
     auto aclEntry = std::make_shared<AclEntry>(0, name);
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     for (auto nhIp : nexthopIps) {
-      cfgRedirectToNextHop.nexthops()->push_back(nhIp);
+      cfg::RedirectNextHop nhop;
+      nhop.ip_ref() = nhIp;
+      cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
     }
     auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
     redirectToNextHop.first = cfgRedirectToNextHop;

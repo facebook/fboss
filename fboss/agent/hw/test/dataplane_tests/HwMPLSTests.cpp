@@ -329,7 +329,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     newAcl->setVlanID(ingressVlanId);
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     for (auto nhIp : redirectNexthopIps) {
-      cfgRedirectToNextHop.nexthops()->push_back(nhIp);
+      cfg::RedirectNextHop nhop;
+      nhop.ip_ref() = nhIp;
+      cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
     }
     auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
     redirectToNextHop.first = cfgRedirectToNextHop;

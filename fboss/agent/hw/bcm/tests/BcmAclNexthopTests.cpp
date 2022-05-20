@@ -60,7 +60,9 @@ class BcmAclNexthopTest : public BcmTest {
     cfg.acls()[numCfgAcls].vlanID() = 2001;
 
     auto redirect = cfg::RedirectToNextHopAction();
-    redirect.nexthops()->push_back(nexthopIp);
+    cfg::RedirectNextHop nhop;
+    nhop.ip_ref() = nexthopIp;
+    redirect.redirectNextHops()->push_back(nhop);
     auto action = cfg::MatchAction();
     action.redirectToNextHop() = redirect;
     utility::addMatcher(&cfg, kAclName, action);

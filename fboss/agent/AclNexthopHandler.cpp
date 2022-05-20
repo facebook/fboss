@@ -56,8 +56,8 @@ std::shared_ptr<SwitchState> AclNexthopHandler::handleUpdate(
 void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   RouteNextHopSet nexthops;
   const auto& redirect = action.getRedirectToNextHop();
-  for (auto& nhIpStr : *redirect.value().first.nexthops()) {
-    auto nhIp = folly::IPAddress(nhIpStr);
+  for (auto& nhIpStr : *redirect.value().first.redirectNextHops()) {
+    auto nhIp = folly::IPAddress(*nhIpStr.ip_ref());
     if (nhIp.isV4()) {
       const auto route = sw_->longestMatch<folly::IPAddressV4>(
           sw_->getState(), nhIp.asV4(), RouterID(0));

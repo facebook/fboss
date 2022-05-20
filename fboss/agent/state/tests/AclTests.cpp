@@ -488,7 +488,9 @@ TEST(Acl, SerializeRedirectToNextHop) {
       "10.0.0.1",
       "10.0.0.2"};
   for (auto nh : nexthops) {
-    cfgRedirectToNextHop.nexthops()->push_back(nh);
+    cfg::RedirectNextHop nhop;
+    nhop.ip_ref() = nh;
+    cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
   }
   auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
   redirectToNextHop.first = cfgRedirectToNextHop;
@@ -533,8 +535,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
     auto aclAction = entryBack->getAclAction().value();
     auto newRedirectToNextHop = aclAction.getRedirectToNextHop().value();
     int i = 0;
-    for (const auto& nh : *newRedirectToNextHop.first.nexthops()) {
-      EXPECT_EQ(nh, nexthops[i]);
+    for (const auto& nh : *newRedirectToNextHop.first.redirectNextHops()) {
+      EXPECT_EQ(nh.ip_ref(), nexthops[i]);
       ++i;
     }
     EXPECT_EQ(nhset, newRedirectToNextHop.second);
@@ -545,9 +547,11 @@ TEST(Acl, SerializeRedirectToNextHop) {
   nexthops.pop_back();
   nexthops.push_back("1000:db00:e112:9103:1028::1b");
   nexthops.push_back("10.0.0.3");
-  redirectToNextHop.first.nexthops()->clear();
+  redirectToNextHop.first.redirectNextHops()->clear();
   for (auto nh : nexthops) {
-    redirectToNextHop.first.nexthops()->push_back(nh);
+    cfg::RedirectNextHop nhop;
+    nhop.ip_ref() = nh;
+    redirectToNextHop.first.redirectNextHops()->push_back(nhop);
   }
   action.setRedirectToNextHop(redirectToNextHop);
   entry->setAclAction(action);

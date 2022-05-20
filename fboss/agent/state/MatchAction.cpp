@@ -24,6 +24,8 @@ constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
 constexpr auto kToCpuAction = "cpuAction";
 constexpr auto kNexthops = "nexthops";
+constexpr auto kNexthopIp = "ip";
+constexpr auto kRedirectNextHops = "redirectNextHops";
 constexpr auto kResolvedNexthops = "resolvedNexthops";
 constexpr auto kRedirectToNextHop = "redirectToNextHop";
 
@@ -157,6 +159,15 @@ folly::dynamic MatchAction::toFollyDynamic() const {
       matchAction[kRedirectToNextHop][kThriftAction][kNexthops].push_back(
           nexthop);
     }
+    matchAction[kRedirectToNextHop][kThriftAction][kRedirectNextHops] =
+        folly::dynamic::array;
+    for (const auto& nexthop :
+         *redirectToNextHop_.value().first.redirectNextHops()) {
+      folly::dynamic nhop = folly::dynamic::object;
+      nhop[kNexthopIp] = *nexthop.ip();
+      matchAction[kRedirectToNextHop][kThriftAction][kRedirectNextHops]
+          .push_back(nhop);
+    }
     folly::dynamic nhops = folly::dynamic::array;
     for (const auto& nh : redirectToNextHop_.value().second) {
       std::string nhJson;
@@ -214,6 +225,13 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   }
   if (actionJson.find(kRedirectToNextHop) != actionJson.items().end()) {
     auto redirectToNextHop = cfg::RedirectToNextHopAction();
+    redirectToNextHop.redirectNextHops()->clear();
+    for (const auto& nh :
+         actionJson[kRedirectToNextHop][kThriftAction][kRedirectNextHops]) {
+      cfg::RedirectNextHop nhop;
+      nhop.ip_ref() = nh[kNexthopIp].asString();
+      redirectToNextHop.redirectNextHops()->push_back(nhop);
+    }
     redirectToNextHop.nexthops()->clear();
     for (const auto& nh :
          actionJson[kRedirectToNextHop][kThriftAction][kNexthops]) {
