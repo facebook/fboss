@@ -2447,7 +2447,10 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(Side side) {
  * given side of optics (line side or host side). The PRBS checker lock and BER
  * stats are returned.
  */
-phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
+phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
+    phy::Side side,
+    bool checkerEnabled,
+    const phy::PrbsStats& lastStats) {
   phy::PrbsStats prbsStats;
 
   // If PRBS is not supported then return
@@ -2463,6 +2466,18 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(phy::Side side) {
   prbsStats.component() = side == Side::SYSTEM
       ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
       : phy::PrbsComponent::TRANSCEIVER_LINE;
+
+  if (!checkerEnabled || !lastStats.laneStats()->size()) {
+    // If the checker is not enabled or the stats are uninitialized, return the
+    // default PrbsStats object with some of the parameters initialized
+    int lanes = side == Side::SYSTEM ? numHostLanes() : numMediaLanes();
+    for (int lane = 0; lane < lanes; lane++) {
+      phy::PrbsLaneStats laneStat;
+      laneStat.laneId() = lane;
+      prbsStats.laneStats()->push_back(laneStat);
+    }
+    return prbsStats;
+  }
 
   // Step1: Get the lane locked mask for PRBS checker
   uint8_t checkerLockMask;

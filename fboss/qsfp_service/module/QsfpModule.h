@@ -571,7 +571,10 @@ class QsfpModule : public Transceiver {
    * Returns the port prbs stats for a given side
    * Expects the caller to hold the qsfp module level lock
    */
-  virtual phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side /* side */) {
+  virtual phy::PrbsStats getPortPrbsStatsSideLocked(
+      phy::Side /* side */,
+      bool /* checkerEnabled */,
+      const phy::PrbsStats& /* lastStats */) {
     return phy::PrbsStats{};
   }
 

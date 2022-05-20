@@ -407,7 +407,10 @@ class CmisModule : public QsfpModule {
   /*
    * Get the PRBS stats for a module
    */
-  phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
+  phy::PrbsStats getPortPrbsStatsSideLocked(
+      phy::Side side,
+      bool checkerEnabled,
+      const phy::PrbsStats& lastStats) override;
 
   void updateVdmCacheLocked();
 

@@ -460,18 +460,6 @@ void QsfpModule::updatePrbsStats() {
   auto systemPrbs = systemPrbsStats_.wlock();
   auto linePrbs = linePrbsStats_.wlock();
 
-  // Initialize the stats if they didn't exist before
-  if (!(*systemPrbs->laneStats()).size()) {
-    systemPrbs->portId() = getID();
-    systemPrbs->component() = phy::PrbsComponent::TRANSCEIVER_SYSTEM;
-    systemPrbs->laneStats() = std::vector<phy::PrbsLaneStats>(numHostLanes());
-  }
-  if (!(*linePrbs->laneStats()).size()) {
-    linePrbs->portId() = getID();
-    linePrbs->component() = phy::PrbsComponent::TRANSCEIVER_LINE;
-    linePrbs->laneStats() = std::vector<phy::PrbsLaneStats>(numMediaLanes());
-  }
-
   auto updatePrbsStatEntry =
       [this](const phy::PrbsStats& oldStat, phy::PrbsStats& newStat) {
         for (const auto& oldLane : *oldStat.laneStats()) {
@@ -512,20 +500,22 @@ void QsfpModule::updatePrbsStats() {
 
   auto sysPrbsState = getPortPrbsStateLocked(phy::Side::SYSTEM);
   auto linePrbsState = getPortPrbsStateLocked(phy::Side::LINE);
-  // Only update stats when prbs is enabled
-  if (sysPrbsState.checkerEnabled().has_value() &&
-      sysPrbsState.checkerEnabled().value()) {
-    auto stats = getPortPrbsStatsSideLocked(phy::Side::SYSTEM);
-    updatePrbsStatEntry(*systemPrbs, stats);
-    *systemPrbs = stats;
-  }
+  phy::PrbsStats stats;
+  stats = getPortPrbsStatsSideLocked(
+      phy::Side::SYSTEM,
+      sysPrbsState.checkerEnabled().has_value() &&
+          sysPrbsState.checkerEnabled().value(),
+      *systemPrbs);
+  updatePrbsStatEntry(*systemPrbs, stats);
+  *systemPrbs = stats;
 
-  if (linePrbsState.checkerEnabled().has_value() &&
-      linePrbsState.checkerEnabled().value()) {
-    auto stats = getPortPrbsStatsSideLocked(phy::Side::LINE);
-    updatePrbsStatEntry(*linePrbs, stats);
-    *linePrbs = stats;
-  }
+  stats = getPortPrbsStatsSideLocked(
+      phy::Side::LINE,
+      linePrbsState.checkerEnabled().has_value() &&
+          linePrbsState.checkerEnabled().value(),
+      *linePrbs);
+  updatePrbsStatEntry(*linePrbs, stats);
+  *linePrbs = stats;
 }
 
 bool QsfpModule::shouldRemediate() {

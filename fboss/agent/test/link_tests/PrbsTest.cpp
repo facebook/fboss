@@ -297,14 +297,16 @@ class PrbsTest : public LinkTest {
         EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
         EXPECT_TRUE(laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
         EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+        EXPECT_TRUE(laneStat.get_timeSinceLastLocked());
         XLOG(DBG2) << folly::sformat(
-            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}",
+            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
             interfaceName,
             laneStat.get_laneId(),
             laneStat.get_locked(),
             laneStat.get_numLossOfLock(),
             laneStat.get_ber(),
-            laneStat.get_maxBer());
+            laneStat.get_maxBer(),
+            laneStat.get_timeSinceLastLocked());
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
@@ -511,3 +513,5 @@ class TransceiverPrbsTest
 PRBS_TRANSCEIVER_TEST(FR1_100G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31);
 
 PRBS_TRANSCEIVER_TEST(FR4_200G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31Q);
+
+PRBS_TRANSCEIVER_TEST(FR4_400G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31Q);

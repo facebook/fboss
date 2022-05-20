@@ -450,7 +450,10 @@ class SffModule : public QsfpModule {
   /*
    * Get the PRBS stats for a module
    */
-  phy::PrbsStats getPortPrbsStatsSideLocked(phy::Side side) override;
+  phy::PrbsStats getPortPrbsStatsSideLocked(
+      phy::Side side,
+      bool checkerEnabled,
+      const phy::PrbsStats& lastStats) override;
 
   /*
    * Helper struct to hold the total prbs bit count and total bit error count

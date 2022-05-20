@@ -968,7 +968,26 @@ void SffModule::clearTransceiverPrbsStats(phy::Side side) {
   QsfpModule::clearTransceiverPrbsStats(side);
 }
 
-phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(phy::Side side) {
+phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(
+    phy::Side side,
+    bool checkerEnabled,
+    const phy::PrbsStats& lastStats) {
+  if (!checkerEnabled || !lastStats.laneStats()->size()) {
+    // If the checker is not enabled or the stats are uninitialized, return the
+    // default PrbsStats object with some of the parameters initialized
+    phy::PrbsStats stats;
+    stats.portId() = getID();
+    stats.component() = side == Side::SYSTEM
+        ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
+        : phy::PrbsComponent::TRANSCEIVER_LINE;
+    int lanes = side == Side::SYSTEM ? numHostLanes() : numMediaLanes();
+    for (int lane = 0; lane < lanes; lane++) {
+      phy::PrbsLaneStats laneStat;
+      laneStat.laneId() = lane;
+      stats.laneStats()->push_back(laneStat);
+    }
+    return stats;
+  }
   // Initialize the counter snapshots if they are not already
   auto hostLanes = numHostLanes();
   auto mediaLanes = numMediaLanes();
