@@ -33,17 +33,11 @@ class HwPfcTest : public HwLinkStateDependentTest {
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC);
     return cfg;
   }
-  folly::IPAddressV6 kDstIp1() const {
-    return folly::IPAddressV6{"100::1"};
+  folly::IPAddressV6 kDestIp1() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
   }
-  folly::IPAddressV6 kDstIp2() const {
-    return folly::IPAddressV6{"200::1"};
-  }
-  folly::CIDRNetwork kPrefix1() const {
-    return std::make_pair(folly::IPAddress{"100::"}, 64);
-  }
-  folly::CIDRNetwork kPrefix2() const {
-    return std::make_pair(folly::IPAddress{"200::"}, 64);
+  folly::IPAddressV6 kDestIp2() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
   }
   PortDescriptor portDesc1() const {
     return PortDescriptor(masterLogicalPortIds()[0]);
@@ -237,9 +231,13 @@ class HwPfcTest : public HwLinkStateDependentTest {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
         getProgrammedState(), getIntfMac()};
     setupECMPForwarding(
-        ecmpHelper6, PortDescriptor(masterLogicalPortIds()[0]), kPrefix1());
+        ecmpHelper6,
+        PortDescriptor(masterLogicalPortIds()[0]),
+        {kDestIp1(), 128});
     setupECMPForwarding(
-        ecmpHelper6, PortDescriptor(masterLogicalPortIds()[1]), kPrefix2());
+        ecmpHelper6,
+        PortDescriptor(masterLogicalPortIds()[1]),
+        {kDestIp2(), 128});
     disableTTLDecrements(ecmpHelper6);
   }
 
@@ -250,21 +248,26 @@ class HwPfcTest : public HwLinkStateDependentTest {
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     // pri = 7 => dscp 56
     int dscp = priority * 8;
-    for (const auto& dstIp : {kDstIp1(), kDstIp2()}) {
-      auto txPacket = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac,
-          intfMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-          dstIp,
-          8000,
-          8001,
-          dscp << 2, // dscp is last 6 bits in TC
-          255,
-          std::vector<uint8_t>(7000, 0xff));
+    // Tomahawk4 need 5 packets per flow to trigger PFC
+    int numPacketsPerFlow =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    for (int i = 0; i < numPacketsPerFlow; i++) {
+      for (const auto& dstIp : {kDestIp1(), kDestIp2()}) {
+        auto txPacket = utility::makeUDPTxPacket(
+            getHwSwitch(),
+            vlanId,
+            srcMac,
+            intfMac,
+            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            dstIp,
+            8000,
+            8001,
+            dscp << 2, // dscp is last 6 bits in TC
+            255,
+            std::vector<uint8_t>(7000, 0xff));
 
-      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
     }
   }
 

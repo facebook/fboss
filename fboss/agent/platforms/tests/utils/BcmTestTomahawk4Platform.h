@@ -46,6 +46,10 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
     return 254;
   }
 
+  const PortPgConfig& getDefaultPortPgSettings() const override;
+  const BufferPoolCfg& getDefaultPortIngressPoolSettings() const override;
+  int getPortItm(BcmPort* bcmPort) const override;
+
   bool useQueueGportForCos() const override {
     return true;
   }

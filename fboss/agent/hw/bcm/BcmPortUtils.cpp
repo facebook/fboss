@@ -212,9 +212,20 @@ int getPortItm(utility::BcmChip chip, BcmPort* bcmPort) {
             "Port ", port, " pipe ", pipe, " not associated w/ any ITM");
       }
       break;
-
+    case utility::BcmChip::TOMAHAWK4:
+      if (pipe == 0 || pipe == 1 || pipe == 2 || pipe == 3 || pipe == 12 ||
+          pipe == 13 || pipe == 14 || pipe == 15) {
+        itm = 0;
+      } else if (pipe >= 4 && pipe <= 11) {
+        itm = 1;
+      } else {
+        throw FbossError(
+            "Port ", port, " pipe ", pipe, " not associated w/ any ITM");
+      }
+      break;
     default:
-      throw FbossError("Unsupported platform for retrieving ITM for port");
+      throw FbossError(
+          "Unsupported platform ", chip, " for retrieving ITM for port");
   }
   return itm;
 }
