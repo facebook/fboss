@@ -1690,7 +1690,7 @@ bool CmisModule::checkLaneConfigError() {
       /* sleep override */
       usleep(kUsecBetweenLaneInit);
     } else {
-      XLOG(INFO) << folly::sformat(
+      XLOG(ERR) << folly::sformat(
           "Port {:s} Some lane status not available even after retry",
           qsfpImpl_->getName());
     }
