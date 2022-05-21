@@ -65,36 +65,37 @@ void SensorServiceImpl::init() {
         "Invalid source in ", confFileName_, " : ", *sensorTable_.source()));
   }
 
-  for (auto& sensor : *sensorTable_.sensorMapList()) {
-    for (auto& sensorIter : sensor.second) {
-      // Check if file exists, if not, check if the path is regex pattern
-      std::string path = *sensorIter.second.path();
-      if (std::filesystem::exists(std::filesystem::path(path))) {
-        sensorNameMap_[path] = sensorIter.first;
-      } else {
-        std::string realPath = findFileFromRegex(path);
-        if (!realPath.empty()) {
-          sensorNameMap_[realPath] = sensorIter.first;
+  liveDataTable_.withWLock([&](auto& table) {
+    for (auto& sensor : *sensorTable_.sensorMapList()) {
+      for (auto& sensorIter : sensor.second) {
+        // Check if file exists, if not, check if the path is regex pattern
+        std::string path = *sensorIter.second.path();
+        if (std::filesystem::exists(std::filesystem::path(path))) {
+          table[sensorIter.first].path = path;
+          sensorNameMap_[path] = sensorIter.first;
+        } else {
+          std::string realPath = findFileFromRegex(path);
+          if (!realPath.empty()) {
+            table[sensorIter.first].path = realPath;
+            sensorNameMap_[realPath] = sensorIter.first;
+          }
         }
+
+        table[sensorIter.first].fru = sensor.first;
+        if (sensorIter.second.compute().has_value()) {
+          table[sensorIter.first].compute = *sensorIter.second.compute();
+        }
+        table[sensorIter.first].thresholds = *sensorIter.second.thresholdMap();
+
+        XLOG(INFO) << sensorIter.first
+                   << "; path = " << table[sensorIter.first].path
+                   << "; compute = " << table[sensorIter.first].compute
+                   << "; fru = " << table[sensorIter.first].fru;
       }
     }
-  }
+  });
 
-  for (auto& pair : *sensorTable_.sensorMapList()) {
-    XLOG(INFO) << pair.first << ": ";
-    for (auto& sensorPair : pair.second) {
-      XLOG(INFO) << *sensorPair.second.path() << " ";
-      for (auto& threshPair : *sensorPair.second.thresholdMap()) {
-        XLOG(INFO) << static_cast<int>(threshPair.first) << " : "
-                   << threshPair.second;
-      }
-      if (sensorPair.second.compute().has_value()) {
-        XLOG(INFO) << "compute: " << *sensorPair.second.compute();
-      }
-    }
-  }
-
-  XLOG(INFO) << "-----------------------------------------------";
+  XLOG(INFO) << "========================================================";
 }
 
 std::optional<SensorData> SensorServiceImpl::getSensorData(
@@ -183,16 +184,21 @@ void SensorServiceImpl::getSensorDataFromPath() {
   auto dataTable = liveDataTable_.wlock();
 
   auto now = helpers::nowInSecs();
-  for (const auto& [path, name] : sensorNameMap_) {
+  for (const auto& [name, livedata] : *dataTable) {
     std::string sensorInput;
 
-    if (folly::readFile(path.c_str(), sensorInput)) {
+    if (folly::readFile(livedata.path.c_str(), sensorInput)) {
       (*dataTable)[name].value = folly::to<float>(sensorInput);
       (*dataTable)[name].timeStamp = now;
-      XLOG(INFO) << name << "(" << path << ")"
+      if (livedata.compute != "") {
+        (*dataTable)[name].value =
+            computeExpression(livedata.compute, (*dataTable)[name].value);
+      }
+      XLOG(INFO) << name << "(" << livedata.path << ")"
                  << " : " << (*dataTable)[name].value;
     } else {
-      XLOG(INFO) << "Can not read data for " << name << " from " << path;
+      XLOG(INFO) << "Can not read data for " << name << " from "
+                 << livedata.path;
     }
   }
 }

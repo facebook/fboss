@@ -28,17 +28,13 @@ enum class SensorSource {
   UNKNOWN,
 };
 
-enum class SensorType {
-  FAN,
-  VOLTAGE,
-  CURRENT,
-  TEMPERATURE,
-  UNKNOWN,
-};
-
 struct SensorLiveData {
+  std::string fru;
+  std::string path;
   float value;
   int64_t timeStamp;
+  std::string compute;
+  ThresholdMap thresholds;
 };
 
 class SensorServiceImpl {
@@ -69,7 +65,7 @@ class SensorServiceImpl {
   std::unordered_map<std::string, std::string> sensorNameMap_;
 
   // Live sensor data table, sensor name -> sensor live data
-  folly::Synchronized<std::unordered_map<std::string, struct SensorLiveData>>
+  folly::Synchronized<std::unordered_map<SensorName, struct SensorLiveData>>
       liveDataTable_;
 
   void init();
