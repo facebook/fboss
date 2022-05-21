@@ -45,6 +45,12 @@ folly::dynamic LoadBalancerMap::toFollyDynamic() const {
 
 std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
     const folly::dynamic& serializedLoadBalancers) {
+  if (serializedLoadBalancers.isObject()) {
+    return NodeMapT<LoadBalancerMap, LoadBalancerMapTraits>::fromFollyDynamic(
+        serializedLoadBalancers);
+  }
+  // old way to save load balancer map was to save it as an array instead of map
+  // until the new way of saving it as a map is in prod. support both ways.
   auto deserializedLoadBalancers = std::make_shared<LoadBalancerMap>();
 
   for (const auto& serializedLoadBalancer : serializedLoadBalancers) {
