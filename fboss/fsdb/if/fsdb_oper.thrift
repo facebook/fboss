@@ -29,7 +29,7 @@ struct OperMetadata {
 }
 
 struct OperState {
-  1: fbbinary contents;
+  1: optional fbbinary contents;
   2: OperProtocol protocol;
   3: optional OperMetadata metadata;
 }
