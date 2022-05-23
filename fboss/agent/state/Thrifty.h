@@ -178,7 +178,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
     return items;
   }
 
-  folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override final {
     auto obj = this->toThrift();
     folly::dynamic dyn = folly::dynamic::object();
     for (auto& [key, val] : obj) {
@@ -315,7 +315,7 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
     return jsonStr;
   }
 
-  folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamic() const override final {
     auto dyn = folly::parseJson(this->str());
     FieldsT::migrateFromThrifty(dyn);
     return dyn;
