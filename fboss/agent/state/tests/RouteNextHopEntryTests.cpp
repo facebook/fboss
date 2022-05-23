@@ -10,6 +10,7 @@
 
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
@@ -110,13 +111,16 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   route.dest() = kDestPrefix;
   route.nextHops() = nextHopsThrift();
   std::optional<RouteCounterID> counterID("route.counter.0");
+  std::optional<cfg::AclLookupClass> classID(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
 
-  auto nextHopEntry = RouteNextHopEntry::from(
-      route, kDefaultAdminDistance, counterID, std::nullopt);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID, classID);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
   ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
+  ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
   std::sort(nextHops.begin(), nextHops.end());
   ASSERT_TRUE(std::equal(
@@ -135,13 +139,16 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   route.dest() = kDestPrefix;
   route.nextHopAddrs() = nextHopsBinaryAddress;
   std::optional<RouteCounterID> counterID("route.counter.0");
+  std::optional<cfg::AclLookupClass> classID(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
 
-  auto nextHopEntry = RouteNextHopEntry::from(
-      route, kDefaultAdminDistance, counterID, std::nullopt);
+  auto nextHopEntry =
+      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID, classID);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
   ASSERT_EQ(nextHopEntry.getCounterID(), counterID);
+  ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
   std::sort(nextHops.begin(), nextHops.end());
   ASSERT_TRUE(std::equal(
