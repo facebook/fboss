@@ -351,6 +351,9 @@ enum AclLookupClass {
   CLASS_QUEUE_PER_HOST_QUEUE_7 = 17,
   CLASS_QUEUE_PER_HOST_QUEUE_8 = 18,
   CLASS_QUEUE_PER_HOST_QUEUE_9 = 19,
+
+  // set by BGP for deterministic path routes
+  DST_CLASS_L3_DPR = 20,
 }
 
 enum PacketLookupResultType {

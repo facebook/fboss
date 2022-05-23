@@ -82,6 +82,7 @@ struct UnicastRoute {
   // use this instead of next hops for using policy based routing or named next hop group
   6: common.NamedRouteDestination namedRouteDestination;
   7: optional RouteCounterID counterID;
+  8: optional switch_config.AclLookupClass classID;
 }
 
 struct MplsRoute {
@@ -118,6 +119,7 @@ struct RouteDetails {
   // use this for policy based route or with named next hop groups
   8: optional common.NamedRouteDestination namedRouteDestination;
   9: optional RouteCounterID counterID;
+  10: optional switch_config.AclLookupClass classID;
 }
 
 struct MplsRouteDetails {
