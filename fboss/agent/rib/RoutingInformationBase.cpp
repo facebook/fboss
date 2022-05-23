@@ -59,7 +59,8 @@ class RibIpRouteUpdate {
       ++stats.v6RoutesAdded;
     }
     return {
-        {network, mask}, RouteNextHopEntry::from(route, distance, counterID)};
+        {network, mask},
+        RouteNextHopEntry::from(route, distance, counterID, std::nullopt)};
   }
   static RibRouteId ToDelFn(
       const ThriftRouteId& prefix,
@@ -88,7 +89,7 @@ class RibMplsRouteUpdate {
     ++stats.mplsRoutesAdded;
     return {
         LabelID(route.get_topLabel()),
-        RouteNextHopEntry::from(route, distance, std::nullopt)};
+        RouteNextHopEntry::from(route, distance, std::nullopt, std::nullopt)};
   }
 
   static RibRouteId ToDelFn(

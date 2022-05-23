@@ -14,6 +14,7 @@
 
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <numeric>
 #include "folly/IPAddress.h"
 
@@ -22,6 +23,7 @@ constexpr auto kNexthops = "nexthops";
 constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
 constexpr auto kCounterID = "counterID";
+constexpr auto kClassID = "classID";
 static constexpr int kMinSizeForWideEcmp{128};
 
 std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
@@ -74,6 +76,9 @@ UnicastRoute toUnicastRoute(
   if (nhopEntry.getCounterID().has_value()) {
     thriftRoute.counterID() = nhopEntry.getCounterID().value();
   }
+  if (nhopEntry.getClassID().has_value()) {
+    thriftRoute.classID() = nhopEntry.getClassID().value();
+  }
   if (nhopEntry.getAction() == RouteForwardAction::NEXTHOPS) {
     thriftRoute.nextHops() = fromRouteNextHopSet(nhopEntry.getNextHopSet());
   }
@@ -85,10 +90,12 @@ UnicastRoute toUnicastRoute(
 RouteNextHopEntry::RouteNextHopEntry(
     NextHopSet nhopSet,
     AdminDistance distance,
-    std::optional<RouteCounterID> counterID)
+    std::optional<RouteCounterID> counterID,
+    std::optional<AclLookupClass> classID)
     : adminDistance_(distance),
       action_(Action::NEXTHOPS),
       counterID_(counterID),
+      classID_(classID),
       nhopSet_(std::move(nhopSet)) {
   if (nhopSet_.size() == 0) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
@@ -119,6 +126,11 @@ std::string RouteNextHopEntry::str() const {
       folly::to<std::string>(";admin=", static_cast<int32_t>(adminDistance_));
   result += folly::to<std::string>(
       ";counterID=", counterID_.has_value() ? *counterID_ : "none");
+  result += folly::to<std::string>(
+      ";classID=",
+      classID_.has_value()
+          ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID_))
+          : "none");
   return result;
 }
 
@@ -127,7 +139,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
       a.getAction() == b.getAction() and
       a.getNextHopSet() == b.getNextHopSet() and
       a.getAdminDistance() == b.getAdminDistance() and
-      a.getCounterID() == b.getCounterID());
+      a.getCounterID() == b.getCounterID() and
+      a.getClassID() == b.getClassID());
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -183,6 +196,9 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
   if (counterID_.has_value()) {
     entry[kCounterID] = counterID_.value();
   }
+  if (classID_.has_value()) {
+    entry[kClassID] = static_cast<int32_t>(classID_.value());
+  }
   return entry;
 }
 
@@ -200,6 +216,9 @@ RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
   }
   if (entryJson.find(kCounterID) != entryJson.items().end()) {
     entry.counterID_ = RouteCounterID(entryJson[kCounterID].asString());
+  }
+  if (entryJson.find(kClassID) != entryJson.items().end()) {
+    entry.classID_ = AclLookupClass(entryJson[kClassID].asInt());
   }
   return entry;
 }
@@ -466,7 +485,8 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
 RouteNextHopEntry RouteNextHopEntry::from(
     const facebook::fboss::UnicastRoute& route,
     AdminDistance defaultAdminDistance,
-    std::optional<RouteCounterID> counterID) {
+    std::optional<RouteCounterID> counterID,
+    std::optional<AclLookupClass> classID) {
   std::vector<NextHopThrift> nhts;
   if (route.nextHops()->empty() && !route.nextHopAddrs()->empty()) {
     nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs());
@@ -484,7 +504,8 @@ RouteNextHopEntry RouteNextHopEntry::from(
       throw FbossError(
           "Nexthops specified, but action is set to : ", *route.action());
     }
-    return RouteNextHopEntry(std::move(nexthops), adminDistance, counterID);
+    return RouteNextHopEntry(
+        std::move(nexthops), adminDistance, counterID, classID);
   }
 
   if (!route.action() ||
@@ -499,13 +520,14 @@ RouteNextHopEntry RouteNextHopEntry::from(
 RouteNextHopEntry RouteNextHopEntry::from(
     const facebook::fboss::MplsRoute& route,
     AdminDistance defaultAdminDistance,
-    std::optional<RouteCounterID> counterID) {
+    std::optional<RouteCounterID> counterID,
+    std::optional<AclLookupClass> classID) {
   RouteNextHopSet nexthops = util::toRouteNextHopSet(*route.nextHops());
   auto adminDistance = route.adminDistance().value_or(defaultAdminDistance);
   if (nexthops.size()) {
-    return {std::move(nexthops), adminDistance, counterID};
+    return {std::move(nexthops), adminDistance, counterID, classID};
   }
-  return {RouteForwardAction::TO_CPU, adminDistance, counterID};
+  return {RouteForwardAction::TO_CPU, adminDistance, counterID, classID};
 }
 
 RouteNextHopEntry RouteNextHopEntry::createDrop(AdminDistance adminDistance) {

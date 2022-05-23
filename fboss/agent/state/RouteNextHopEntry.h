@@ -26,27 +26,35 @@ class RouteNextHopEntry {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
+  using AclLookupClass = cfg::AclLookupClass;
 
   RouteNextHopEntry(
       Action action,
       AdminDistance distance,
-      std::optional<RouteCounterID> counterID = std::nullopt)
-      : adminDistance_(distance), action_(action), counterID_(counterID) {
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      std::optional<AclLookupClass> classID = std::nullopt)
+      : adminDistance_(distance),
+        action_(action),
+        counterID_(counterID),
+        classID_(classID) {
     CHECK_NE(action_, Action::NEXTHOPS);
   }
 
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
-      std::optional<RouteCounterID> counterID = std::nullopt);
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      std::optional<AclLookupClass> classID = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
       AdminDistance distance,
-      std::optional<RouteCounterID> counterID = std::nullopt)
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      std::optional<AclLookupClass> classID = std::nullopt)
       : adminDistance_(distance),
         action_(Action::NEXTHOPS),
-        counterID_(counterID) {
+        counterID_(counterID),
+        classID_(classID) {
     nhopSet_.emplace(std::move(nhop));
   }
 
@@ -64,6 +72,10 @@ class RouteNextHopEntry {
 
   const std::optional<RouteCounterID> getCounterID() const {
     return counterID_;
+  }
+
+  const std::optional<AclLookupClass> getClassID() const {
+    return classID_;
   }
 
   NextHopSet normalizedNextHops() const;
@@ -99,6 +111,7 @@ class RouteNextHopEntry {
     nhopSet_.clear();
     action_ = Action::DROP;
     counterID_ = std::nullopt;
+    classID_ = std::nullopt;
   }
 
   bool isValid(bool forMplsRoute = false) const;
@@ -106,11 +119,13 @@ class RouteNextHopEntry {
   static RouteNextHopEntry from(
       const facebook::fboss::UnicastRoute& route,
       AdminDistance defaultAdminDistance,
-      std::optional<RouteCounterID> counterID);
+      std::optional<RouteCounterID> counterID,
+      std::optional<AclLookupClass> classID);
   static RouteNextHopEntry from(
       const facebook::fboss::MplsRoute& route,
       AdminDistance defaultAdminDistance,
-      std::optional<RouteCounterID> counterID);
+      std::optional<RouteCounterID> counterID,
+      std::optional<AclLookupClass> classID);
   static facebook::fboss::RouteNextHopEntry createDrop(
       AdminDistance adminDistance = AdminDistance::STATIC_ROUTE);
   static facebook::fboss::RouteNextHopEntry createToCpu(
@@ -133,6 +148,7 @@ class RouteNextHopEntry {
   AdminDistance adminDistance_;
   Action action_{Action::DROP};
   std::optional<RouteCounterID> counterID_;
+  std::optional<AclLookupClass> classID_;
   NextHopSet nhopSet_;
 };
 

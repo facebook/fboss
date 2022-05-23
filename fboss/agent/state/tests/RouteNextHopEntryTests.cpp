@@ -111,8 +111,8 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   route.nextHops() = nextHopsThrift();
   std::optional<RouteCounterID> counterID("route.counter.0");
 
-  auto nextHopEntry =
-      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID);
+  auto nextHopEntry = RouteNextHopEntry::from(
+      route, kDefaultAdminDistance, counterID, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
@@ -136,8 +136,8 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   route.nextHopAddrs() = nextHopsBinaryAddress;
   std::optional<RouteCounterID> counterID("route.counter.0");
 
-  auto nextHopEntry =
-      RouteNextHopEntry::from(route, kDefaultAdminDistance, counterID);
+  auto nextHopEntry = RouteNextHopEntry::from(
+      route, kDefaultAdminDistance, counterID, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::NEXTHOPS);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
@@ -156,8 +156,8 @@ TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   route.nextHops() = nextHopsThrift();
   route.adminDistance() = AdminDistance::IBGP;
 
-  auto nextHopEntry =
-      RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);
+  auto nextHopEntry = RouteNextHopEntry::from(
+      route, kDefaultAdminDistance, std::nullopt, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAdminDistance(), AdminDistance::IBGP);
 }
@@ -171,8 +171,8 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   route.dest() = kDestPrefix;
   route.nextHops() = noNextHops;
 
-  auto nextHopEntry =
-      RouteNextHopEntry::from(route, kDefaultAdminDistance, std::nullopt);
+  auto nextHopEntry = RouteNextHopEntry::from(
+      route, kDefaultAdminDistance, std::nullopt, std::nullopt);
 
   ASSERT_EQ(nextHopEntry.getAction(), RouteForwardAction::DROP);
   ASSERT_EQ(nextHopEntry.getAdminDistance(), kDefaultAdminDistance);
