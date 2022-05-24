@@ -235,7 +235,20 @@ void HwPortBandwidthTest::verifyRate(
     EXPECT_TRUE(verifyRateHelper(testType, maxRate, getQueueOutCntFunc));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  auto setupPostWB = [=]() {};
+
+  auto verifyPostWB = [=]() {
+    sendUdpPkts(dscpVal);
+    EXPECT_TRUE(verifyRateHelper(testType, maxRate, getQueueOutCntFunc));
+
+    // Put port in non-loopback mode to drain the traffic.
+    // New SDK expects buffer to be empty during teardown.
+    auto newCfg = utility::oneL3IntfConfig(
+        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::NONE);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
 template <typename GetQueueOutCntT>
