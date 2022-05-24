@@ -82,9 +82,9 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
   mapToValueList.reserve(entries.size());
   for (const auto& entry : entries) {
     sai_qos_map_t mapping{};
-    mapping.key.mpls_exp = entry.attr();
+    mapping.key.tc = entry.trafficClass();
     mapping.key.color = SAI_PACKET_COLOR_GREEN;
-    mapping.value.tc = entry.trafficClass();
+    mapping.value.mpls_exp = entry.attr();
     mapToValueList.push_back(mapping);
   }
   // set the tc -> exp mapping in SAI
