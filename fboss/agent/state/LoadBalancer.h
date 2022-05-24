@@ -10,7 +10,9 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include "folly/MacAddress.h"
@@ -21,7 +23,7 @@
 
 namespace facebook::fboss {
 
-struct LoadBalancerFields {
+struct LoadBalancerFields : public ThriftyFields {
   using IPv4Field = cfg::IPv4Field;
   using IPv4Fields = boost::container::flat_set<IPv4Field>;
 
@@ -33,6 +35,11 @@ struct LoadBalancerFields {
 
   using MPLSField = cfg::MPLSField;
   using MPLSFields = boost::container::flat_set<MPLSField>;
+
+  state::LoadBalancerFields toThrift() const;
+  static LoadBalancerFields fromThrift(state::LoadBalancerFields const& fields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
 
   LoadBalancerFields(
       LoadBalancerID id,
@@ -78,7 +85,10 @@ struct LoadBalancerFields {
  * load-balancing are fixed and so it does not follow to support abitrary
  * handles on LoadBalancer SwitchState nodes.
  */
-class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
+class LoadBalancer : public ThriftyBaseT<
+                         state::LoadBalancerFields,
+                         LoadBalancer,
+                         LoadBalancerFields> {
  public:
   using IPv4Field = LoadBalancerFields::IPv4Field;
   using IPv4Fields = LoadBalancerFields::IPv4Fields;
@@ -117,16 +127,16 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   TransportFieldsRange getTransportFields() const;
   MPLSFieldsRange getMPLSFields() const;
 
-  static std::shared_ptr<LoadBalancer> fromFollyDynamic(
+  static std::shared_ptr<LoadBalancer> fromFollyDynamicLegacy(
       const folly::dynamic& json);
-  folly::dynamic toFollyDynamic() const override;
+  folly::dynamic toFollyDynamicLegacy() const;
 
   bool operator==(const LoadBalancer& rhs) const;
   bool operator!=(const LoadBalancer& rhs) const;
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

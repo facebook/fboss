@@ -55,7 +55,7 @@ LoadBalancer::LoadBalancer(
     LoadBalancer::IPv6Fields v6Fields,
     LoadBalancer::TransportFields transportFields,
     LoadBalancer::MPLSFields mplsFields)
-    : NodeBaseT(
+    : ThriftyBaseT(
           id,
           algorithm,
           seed,
@@ -97,7 +97,7 @@ LoadBalancer::MPLSFieldsRange LoadBalancer::getMPLSFields() const {
       getFields()->mplsFields_.begin(), getFields()->mplsFields_.end());
 }
 
-std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
+std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
   auto id = static_cast<LoadBalancerID>(json[kLoadBalancerID].asInt());
   switch (id) {
@@ -189,7 +189,7 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamic(
       mplsFields);
 }
 
-folly::dynamic LoadBalancer::toFollyDynamic() const {
+folly::dynamic LoadBalancer::toFollyDynamicLegacy() const {
   folly::dynamic serialized = folly::dynamic::object();
 
   using IDType = std::underlying_type<LoadBalancerID>::type;
@@ -250,6 +250,74 @@ bool LoadBalancer::operator==(const LoadBalancer& rhs) const {
 
 bool LoadBalancer::operator!=(const LoadBalancer& rhs) const {
   return !(*this == rhs);
+}
+
+state::LoadBalancerFields LoadBalancerFields::toThrift() const {
+  state::LoadBalancerFields thriftLoadBalancerFields{};
+  thriftLoadBalancerFields.id() = id_;
+  thriftLoadBalancerFields.algorithm() = algorithm_;
+  thriftLoadBalancerFields.seed() = seed_;
+  thriftLoadBalancerFields.transportFields() = std::set<cfg::TransportField>();
+  for (auto field : transportFields_) {
+    thriftLoadBalancerFields.transportFields()->insert(field);
+  }
+  thriftLoadBalancerFields.v4Fields() = std::set<cfg::IPv4Field>();
+  for (auto field : v4Fields_) {
+    thriftLoadBalancerFields.v4Fields()->insert(field);
+  }
+  thriftLoadBalancerFields.v6Fields() = std::set<cfg::IPv6Field>();
+  for (auto field : v6Fields_) {
+    thriftLoadBalancerFields.v6Fields()->insert(field);
+  }
+  thriftLoadBalancerFields.mplsFields() = std::set<cfg::MPLSField>();
+  for (auto field : mplsFields_) {
+    thriftLoadBalancerFields.mplsFields()->insert(field);
+  }
+
+  return thriftLoadBalancerFields;
+}
+
+LoadBalancerFields LoadBalancerFields::fromThrift(
+    state::LoadBalancerFields const& thriftLoadBalancerFields) {
+  LoadBalancerFields::IPv4Fields v4;
+  LoadBalancerFields::IPv6Fields v6;
+  LoadBalancerFields::TransportFields tr;
+  LoadBalancerFields::MPLSFields mpls;
+
+  for (auto& field : *thriftLoadBalancerFields.v4Fields()) {
+    v4.insert(field);
+  }
+  for (auto& field : *thriftLoadBalancerFields.v6Fields()) {
+    v6.insert(field);
+  }
+  for (auto& field : *thriftLoadBalancerFields.transportFields()) {
+    tr.insert(field);
+  }
+  for (auto& field : *thriftLoadBalancerFields.mplsFields()) {
+    mpls.insert(field);
+  }
+
+  auto fields = LoadBalancerFields(
+      *thriftLoadBalancerFields.id(),
+      *thriftLoadBalancerFields.algorithm(),
+      static_cast<uint32_t>(*thriftLoadBalancerFields.seed()),
+      v4,
+      v6,
+      tr,
+      mpls);
+  return fields;
+}
+
+folly::dynamic LoadBalancerFields::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic obj = dyn;
+  auto seed = static_cast<int32_t>(obj["seed"].asInt());
+  obj["seed"] = seed;
+  return obj;
+}
+
+void LoadBalancerFields::migrateFromThrifty(folly::dynamic& dyn) {
+  auto seed = dyn["seed"].asInt();
+  dyn["seed"] = static_cast<uint32_t>(seed);
 }
 
 // template class NodeBaseT<AggregatePort, AggregatePortFields>;

@@ -168,6 +168,7 @@ TEST(LoadBalancer, defaultConfiguration) {
   auto ecmpLoadBalancer =
       finalState->getLoadBalancers()->getLoadBalancerIf(LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, ecmpLoadBalancer);
+  validateThriftyMigration(*ecmpLoadBalancer);
   checkLoadBalancer(
       ecmpLoadBalancer,
       LoadBalancerID::ECMP,
@@ -181,6 +182,7 @@ TEST(LoadBalancer, defaultConfiguration) {
   auto lagLoadBalancer = finalState->getLoadBalancers()->getLoadBalancerIf(
       LoadBalancerID::AGGREGATE_PORT);
   ASSERT_NE(nullptr, lagLoadBalancer);
+  validateThriftyMigration(*lagLoadBalancer);
   checkLoadBalancer(
       lagLoadBalancer,
       LoadBalancerID::AGGREGATE_PORT,
@@ -219,6 +221,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
   auto serializedLoadBalancer = loadBalancer.toFollyDynamic();
   auto deserializedLoadBalancerPtr =
       LoadBalancer::fromFollyDynamic(serializedLoadBalancer);
+
+  validateThriftyMigration(loadBalancer);
 
   checkLoadBalancer(
       deserializedLoadBalancerPtr,

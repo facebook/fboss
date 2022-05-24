@@ -209,6 +209,16 @@ struct VlanFields {
   13: map<string, MacEntryFields> macTable;
 }
 
+struct LoadBalancerFields {
+  1: switch_config.LoadBalancerID id;
+  2: switch_config.HashingAlgorithm algorithm;
+  3: i64 seed;
+  4: set<switch_config.IPv4Field> v4Fields;
+  5: set<switch_config.IPv6Field> v6Fields;
+  6: set<switch_config.TransportField> transportFields;
+  7: set<switch_config.MPLSField> mplsFields;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
