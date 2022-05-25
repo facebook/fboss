@@ -164,6 +164,10 @@ void SaiSwitchManager::resetQosMaps() {
         SaiSwitchTraits::Attributes::QosExpToTcMap{SAI_NULL_OBJECT_ID});
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::QosTcToExpMap{SAI_NULL_OBJECT_ID});
+    if (globalExpToTcQosMap_) {
+      globalExpToTcQosMap_.reset();
+      globalTcToExpQosMap_.reset();
+    }
   }
 }
 
