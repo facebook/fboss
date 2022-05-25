@@ -114,6 +114,14 @@ uint64_t getAclInOutPackets(
     cfg::AclStage aclStage = cfg::AclStage::INGRESS,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
+uint64_t getAclInOutBytes(
+    const HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    const std::string& statName,
+    cfg::AclStage aclStage = cfg::AclStage::INGRESS,
+    const std::optional<std::string>& aclTableName = std::nullopt);
+
 std::string getCounterName(std::string counterName);
 
 } // namespace facebook::fboss::utility

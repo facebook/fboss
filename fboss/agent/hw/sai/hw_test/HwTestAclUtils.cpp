@@ -551,11 +551,10 @@ void checkAclStatSize(
   throw FbossError("Not implemented");
 }
 
-uint64_t getAclInOutPackets(
+uint64_t getAclCounterId(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
-    const std::string& /*statName*/,
     cfg::AclStage aclStage,
     const std::optional<std::string>& aclTableName) {
   auto swAcl =
@@ -567,13 +566,41 @@ uint64_t getAclInOutPackets(
   auto aclEntryHandle =
       aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+  auto aclCounterId = SaiApiTable::getInstance()
+                          ->aclApi()
+                          .getAttribute(
+                              AclEntrySaiId(aclEntryId),
+                              SaiAclEntryTraits::Attributes::ActionCounter())
+                          .getData();
+  return aclCounterId;
+}
 
-  auto aclCounterIdGot = SaiApiTable::getInstance()
-                             ->aclApi()
-                             .getAttribute(
-                                 AclEntrySaiId(aclEntryId),
-                                 SaiAclEntryTraits::Attributes::ActionCounter())
-                             .getData();
+uint64_t getAclInOutBytes(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    const std::string& /*statName*/,
+    cfg::AclStage aclStage,
+    const std::optional<std::string>& aclTableName) {
+  auto aclCounterIdGot =
+      getAclCounterId(hw, state, aclName, aclStage, aclTableName);
+
+  auto counterBytes = SaiApiTable::getInstance()->aclApi().getAttribute(
+      AclCounterSaiId(aclCounterIdGot),
+      SaiAclCounterTraits::Attributes::CounterBytes());
+
+  return counterBytes;
+}
+
+uint64_t getAclInOutPackets(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    const std::string& /*statName*/,
+    cfg::AclStage aclStage,
+    const std::optional<std::string>& aclTableName) {
+  auto aclCounterIdGot =
+      getAclCounterId(hw, state, aclName, aclStage, aclTableName);
 
   auto counterPackets = SaiApiTable::getInstance()->aclApi().getAttribute(
       AclCounterSaiId(aclCounterIdGot),
