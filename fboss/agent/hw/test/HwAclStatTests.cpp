@@ -193,8 +193,8 @@ TEST_F(HwAclStatTest, AclStatCreateMultiple) {
     auto newCfg = initialConfig();
     addDscpAcl(&newCfg, "acl0");
     addDscpAcl(&newCfg, "acl1");
-    utility::addAclStat(&newCfg, "acl0", "stat0");
-    utility::addAclStat(&newCfg, "acl1", "stat1");
+    utility::addAclStat(&newCfg, "acl0", utility::getCounterName("stat0"));
+    utility::addAclStat(&newCfg, "acl1", utility::getCounterName("stat1"));
     applyNewConfig(newCfg);
   };
 
@@ -202,9 +202,15 @@ TEST_F(HwAclStatTest, AclStatCreateMultiple) {
     utility::checkAclEntryAndStatCount(
         getHwSwitch(), /*ACLs*/ 2, /*stats*/ 2, /*counters*/ 2);
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl0"},
+        utility::getCounterName("stat0"));
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl1"}, "stat1");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl1"},
+        utility::getCounterName("stat1"));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -448,8 +454,8 @@ TEST_F(HwAclStatTest, AclStatShuffle) {
     auto newCfg = initialConfig();
     addDscpAcl(&newCfg, "acl0");
     addDscpAcl(&newCfg, "acl1");
-    utility::addAclStat(&newCfg, "acl0", "stat0");
-    utility::addAclStat(&newCfg, "acl1", "stat1");
+    utility::addAclStat(&newCfg, "acl0", utility::getCounterName("stat0"));
+    utility::addAclStat(&newCfg, "acl1", utility::getCounterName("stat1"));
     applyNewConfig(newCfg);
   };
 
@@ -457,17 +463,23 @@ TEST_F(HwAclStatTest, AclStatShuffle) {
     utility::checkAclEntryAndStatCount(
         getHwSwitch(), /* ACLs */ 2, /* Stats */ 2, /*counters*/ 2);
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl0"},
+        utility::getCounterName("stat0"));
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl1"}, "stat1");
+        getHwSwitch(),
+        getProgrammedState(),
+        {"acl1"},
+        utility::getCounterName("stat1"));
   };
 
   auto setupPostWB = [=]() {
     auto newCfg = initialConfig();
     addDscpAcl(&newCfg, "acl1");
     addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(&newCfg, "acl1", "stat1");
-    utility::addAclStat(&newCfg, "acl0", "stat0");
+    utility::addAclStat(&newCfg, "acl1", utility::getCounterName("stat1"));
+    utility::addAclStat(&newCfg, "acl0", utility::getCounterName("stat0"));
     applyNewConfig(newCfg);
   };
 
