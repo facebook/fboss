@@ -807,12 +807,20 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
   // The application sel code is at the higher four bits of the field.
   currentApplicationSel = currentApplicationSel >> 4;
 
+  // Application select value 0 means application is not selected by module yet
+  if (currentApplicationSel == 0) {
+    XLOG(ERR) << folly::sformat(
+        "Transceiver {:s}:  Module has not selected application yet",
+        qsfpImpl_->getName());
+    return SMFMediaInterfaceCode::UNKNOWN;
+  }
+
   uint8_t currentApplication;
   int offset;
   int length;
   int dataAddress;
 
-  // The ApSel value from 0 to 8 are present in the lower page and values from
+  // The ApSel value from 1 to 8 are present in the lower page and values from
   // 9 to 15 are in page 1
   if (currentApplicationSel <= 8) {
     getQsfpFieldAddress(
@@ -1547,17 +1555,37 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   int length;
   int dataAddress;
 
-  getQsfpFieldAddress(
-      CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-  // We use the module Media Interface ID, which is located at the second byte
-  // of the field, as Application ID here.
-  offset += (currentApplicationSel - 1) * length + 1;
-  getQsfpValue(dataAddress, offset, 1, &currentApplication);
-
-  XLOG(INFO) << folly::sformat(
-      "Transceiver {:s} currentApplication: {:#x}",
-      qsfpImpl_->getName(),
-      currentApplication);
+  // For ApSel value 1 to 8 get the current application from Page 0
+  // For ApSel value 9 to 15 get the current application from page 1
+  // ApSel value 0 means application not selected yet
+  if (currentApplicationSel >= 1 && currentApplicationSel <= 8) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
+    // We use the module Media Interface ID, which is located at the second byte
+    // of the field, as Application ID here.
+    offset += (currentApplicationSel - 1) * length + 1;
+    getQsfpValue(dataAddress, offset, 1, &currentApplication);
+    XLOG(INFO) << folly::sformat(
+        "Transceiver {:s} currentApplication: {:#x}",
+        qsfpImpl_->getName(),
+        currentApplication);
+  } else if (currentApplicationSel >= 9 && currentApplicationSel <= 15) {
+    getQsfpFieldAddress(
+        CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
+    // We use the module Media Interface ID, which is located at the second byte
+    // of the field, as Application ID here.
+    offset += (currentApplicationSel - 9) * length + 1;
+    getQsfpValue(dataAddress, offset, 1, &currentApplication);
+    XLOG(INFO) << folly::sformat(
+        "Transceiver {:s} currentApplication: {:#x}",
+        qsfpImpl_->getName(),
+        currentApplication);
+  } else {
+    currentApplication = 0; // dummy value
+    XLOG(INFO) << folly::sformat(
+        "Transceiver {:s} currentApplication: not selected yet",
+        qsfpImpl_->getName());
+  }
 
   // Loop through all the applications that we support for the given speed and
   // check if any of those are present in the moduleCapabilities. We configure

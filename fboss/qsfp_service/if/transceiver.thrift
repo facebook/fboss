@@ -206,6 +206,7 @@ enum CmisModuleState {
 
 // TODO(joseph5wu) Will deprecate this enum and start using MediaInterfaceCode
 enum SMFMediaInterfaceCode {
+  UNKNOWN = 0x0,
   CWDM4_100G = 0x10,
   FR4_200G = 0x18,
   FR4_400G = 0x1D,
