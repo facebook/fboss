@@ -29,7 +29,9 @@ extern "C" {
 namespace {
 static const std::vector<facebook::fboss::cfg::CounterType> kPacketCounters = {
     facebook::fboss::cfg::CounterType::PACKETS};
-}
+static const std::vector<facebook::fboss::cfg::CounterType> kByteCounters = {
+    facebook::fboss::cfg::CounterType::BYTES};
+} // namespace
 
 namespace facebook::fboss::utility {
 int getAclTableNumAclEntries(
@@ -206,13 +208,19 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
   ASSERT_EQ(expectedNumCounters, numCounters);
 }
 
-uint64_t getAclInOutPackets(
+uint64_t getAclCounterStats(
     const HwSwitch* hw,
-    std::shared_ptr<SwitchState> /*state*/,
-    const std::string& /*aclName*/,
     const std::string& statName,
-    cfg::AclStage /* aclStage */,
-    const std::optional<std::string>& /*aclTableName*/) {
+    cfg::CounterType counterType) {
+  std::vector<facebook::fboss::cfg::CounterType> kGenericCounter;
+  bcm_field_stat_t bcmFieldType;
+  if (counterType == cfg::CounterType::BYTES) {
+    bcmFieldType = bcmFieldStatBytes;
+    kGenericCounter = kByteCounters;
+  } else {
+    bcmFieldType = bcmFieldStatPackets;
+    kGenericCounter = kPacketCounters;
+  }
   auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto statHandle = bcmSwitch->getAclTable()->getAclStat(statName)->getHandle();
 
@@ -221,15 +229,35 @@ uint64_t getAclInOutPackets(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     const auto& stats =
         BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
-            bcmSwitch->getUnit(), statHandle, kPacketCounters);
-    value = stats.at(cfg::CounterType::PACKETS);
+            bcmSwitch->getUnit(), statHandle, kGenericCounter);
+    value = stats.at(counterType);
   } else {
-    bcm_field_stat_t type = bcmFieldStatPackets;
+    bcm_field_stat_t type = bcmFieldType;
     auto rv =
         bcm_field_stat_sync_get(bcmSwitch->getUnit(), statHandle, type, &value);
     bcmCheckError(rv, "Failed to update stat=", statHandle);
   }
   return value;
+}
+
+uint64_t getAclInOutBytes(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> /*state*/,
+    const std::string& /*aclName*/,
+    const std::string& statName,
+    cfg::AclStage /* aclStage */,
+    const std::optional<std::string>& /*aclTableName*/) {
+  return getAclCounterStats(hw, statName, cfg::CounterType::BYTES);
+}
+
+uint64_t getAclInOutPackets(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> /*state*/,
+    const std::string& /*aclName*/,
+    const std::string& statName,
+    cfg::AclStage /* aclStage */,
+    const std::optional<std::string>& /*aclTableName*/) {
+  return getAclCounterStats(hw, statName, cfg::CounterType::PACKETS);
 }
 
 std::string getCounterName(std::string counterName) {
