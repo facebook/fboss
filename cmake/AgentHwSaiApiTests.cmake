@@ -33,6 +33,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/SamplePacketApiTest.cpp
     fboss/agent/hw/sai/api/tests/SchedulerApiTest.cpp
     fboss/agent/hw/sai/api/tests/SwitchApiTest.cpp
+    fboss/agent/hw/sai/api/tests/SystemPortApiTest.cpp
     fboss/agent/hw/sai/api/tests/TamApiTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp
     fboss/agent/hw/sai/api/tests/VlanApiTest.cpp
