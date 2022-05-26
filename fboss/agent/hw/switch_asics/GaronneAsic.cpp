@@ -50,6 +50,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
+    case HwAsic::Feature::VOQ_MODE:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -92,6 +93,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::FABRIC_MODE:
       return false;
   }
   return false;

@@ -100,6 +100,8 @@ class HwAsic {
     SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
     PMD_RX_LOCK_STATUS,
     SAI_FEC_COUNTERS,
+    VOQ_MODE,
+    FABRIC_MODE,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
