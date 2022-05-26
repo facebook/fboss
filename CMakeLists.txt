@@ -838,6 +838,7 @@ if (NOT SAI_ONLY)
       fboss/lib/ExponentialBackoff.cpp
       fboss/lib/ExponentialBackoff.h
       fboss/lib/LogThriftCall.cpp
+      fboss/lib/oss/LogThriftCall.cpp
       fboss/lib/AlertLogger.cpp
   )
 
