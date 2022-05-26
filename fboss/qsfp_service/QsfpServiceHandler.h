@@ -74,7 +74,9 @@ class QsfpServiceHandler
     return manager_.get();
   }
 
-  void pauseRemediation(int32_t timeout) override;
+  void pauseRemediation(
+      int32_t timeout,
+      std::unique_ptr<std::vector<std::string>> portList) override;
 
   int32_t getRemediationUntilTime() override;
 

@@ -151,6 +151,9 @@ void printThresholds(
 
 std::string getLocalTime(std::time_t t);
 
+void setPauseRemediation(
+    folly::EventBase& evb,
+    std::vector<std::string> portList);
 void doGetRemediationUntilTime(folly::EventBase& evb);
 
 void printChannelMonitor(

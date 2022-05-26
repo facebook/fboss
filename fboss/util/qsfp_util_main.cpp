@@ -84,32 +84,8 @@ int main(int argc, char* argv[]) {
     return EX_USAGE;
   }
 
-  if (FLAGS_pause_remediation) {
-    try {
-      auto client = getQsfpClient(evb);
-      client->sync_pauseRemediation(FLAGS_pause_remediation);
-      return EX_OK;
-    } catch (const std::exception& ex) {
-      fprintf(
-          stderr, "error pausing remediation of qsfp_service: %s\n", ex.what());
-      return EX_SOFTWARE;
-    }
-  }
-
-  if (FLAGS_get_remediation_until_time) {
-    try {
-      doGetRemediationUntilTime(evb);
-      return EX_OK;
-    } catch (const std::exception& ex) {
-      fprintf(
-          stderr,
-          "error getting remediationUntil time from qsfp_service: %s\n",
-          ex.what());
-      return EX_SOFTWARE;
-    }
-  }
-
   std::vector<unsigned int> ports;
+  std::vector<std::string> portNames;
   bool good = true;
   std::unique_ptr<WedgeManager> wedgeManager = nullptr;
   if (argc == 1) {
@@ -128,6 +104,7 @@ int main(int argc, char* argv[]) {
             wedgeManager = createWedgeManager();
           }
           portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
+          portNames.push_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
         }
@@ -145,6 +122,31 @@ int main(int argc, char* argv[]) {
   if (!good) {
     return EX_USAGE;
   }
+
+  if (FLAGS_pause_remediation) {
+    try {
+      setPauseRemediation(evb, portNames);
+    } catch (const std::exception& ex) {
+      fprintf(
+          stderr, "error pausing remediation of qsfp_service: %s\n", ex.what());
+      return EX_SOFTWARE;
+    }
+    return EX_OK;
+  }
+
+  if (FLAGS_get_remediation_until_time) {
+    try {
+      doGetRemediationUntilTime(evb);
+      return EX_OK;
+    } catch (const std::exception& ex) {
+      fprintf(
+          stderr,
+          "error getting remediationUntil time from qsfp_service: %s\n",
+          ex.what());
+      return EX_SOFTWARE;
+    }
+  }
+
   auto busAndError = getTransceiverAPI();
   if (busAndError.second) {
     return busAndError.second;

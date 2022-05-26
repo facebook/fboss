@@ -991,6 +991,16 @@ std::string getLocalTime(std::time_t t) {
   return asctime_r(&localtime_result, buf.data());
 }
 
+void setPauseRemediation(
+    folly::EventBase& evb,
+    std::vector<std::string> portList) {
+  auto client = getQsfpClient(evb);
+  client->sync_pauseRemediation(FLAGS_pause_remediation, portList);
+  for (auto port : portList) {
+    printf("PauseRemediation set for port %s\n", port.c_str());
+  }
+}
+
 void doGetRemediationUntilTime(folly::EventBase& evb) {
   auto client = getQsfpClient(evb);
   auto remediationUntilEpoch = client->sync_getRemediationUntilTime();

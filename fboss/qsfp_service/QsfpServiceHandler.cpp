@@ -97,7 +97,9 @@ void QsfpServiceHandler::syncPorts(
   manager_->syncPorts(info, std::move(ports));
 }
 
-void QsfpServiceHandler::pauseRemediation(int32_t timeout) {
+void QsfpServiceHandler::pauseRemediation(
+    int32_t timeout,
+    std::unique_ptr<std::vector<std::string>> portList) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->setPauseRemediation(timeout);
 }
