@@ -40,21 +40,39 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, bumpOnHit, frontPanel]() {
-      auto statBefore = utility::getAclInOutPackets(
+      auto pktCountBefore = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
+      auto bytesCountBefore = utility::getAclInOutBytes(
+          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
       // TTL is configured for value >= 128
       auto ttl = bumpOnHit ? 200 : 10;
-      sendPacket(frontPanel, ttl);
+      size_t sizeOfPacketSent = sendPacket(frontPanel, ttl);
 
-      auto statAfter = utility::getAclInOutPackets(
+      auto pktCountAfter = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+
+      auto bytesCountAfter = utility::getAclInOutBytes(
+          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+
+      XLOG(INFO) << "\n"
+                 << "aclPacketCounter: " << std::to_string(pktCountBefore)
+                 << " -> " << std::to_string(pktCountAfter) << "\n"
+                 << "aclBytesCounter: " << std::to_string(bytesCountBefore)
+                 << " -> " << std::to_string(bytesCountAfter);
 
       if (bumpOnHit) {
         // Bump by 2, once on the way out and once when it loops back in
-        EXPECT_EQ(statBefore + 2, statAfter);
+        // Bytes count is twice the size of the packet, since the bytes counter
+        // is increased on the way out and in.
+        EXPECT_EQ(pktCountBefore + 2, pktCountAfter);
+
+        // TODO: Still need to debug. For some test cases, we are getting more
+        // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
+        EXPECT_LE(bytesCountBefore + (2 * sizeOfPacketSent), bytesCountAfter);
       } else {
-        EXPECT_EQ(statBefore, statAfter);
+        EXPECT_EQ(pktCountBefore, pktCountAfter);
+        EXPECT_EQ(bytesCountBefore, bytesCountAfter);
       }
     };
 
@@ -62,7 +80,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   }
 
  private:
-  void sendPacket(bool frontPanel, uint8_t ttl) {
+  size_t sendPacket(bool frontPanel, uint8_t ttl) {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -78,6 +96,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         0,
         ttl);
 
+    size_t txPacketSize = txPacket->buf()->length();
     // port is in LB mode, so it will egress and immediately loop back.
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
@@ -88,6 +107,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     } else {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     }
+
+    return txPacketSize;
   }
 
   folly::IPAddressV6 kSrcIP() {
@@ -106,7 +127,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     acl->ttl() = cfg::Ttl();
     *acl->ttl()->value() = 128;
     *acl->ttl()->mask() = 128;
-    utility::addAclStat(config, kAclName, kCounterName);
+    std::vector<cfg::CounterType> setCounterTypes{
+        cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+    utility::addAclStat(config, kAclName, kCounterName, setCounterTypes);
   }
 
   static inline constexpr auto kEcmpWidth = 1;
