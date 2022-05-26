@@ -231,6 +231,8 @@ class QsfpModule : public Transceiver {
 
   void setModulePauseRemediation(int32_t timeout) override;
 
+  time_t getModulePauseRemediationUntil() override;
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

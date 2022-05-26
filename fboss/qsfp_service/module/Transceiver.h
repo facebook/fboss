@@ -202,6 +202,7 @@ class Transceiver {
 
   time_t modulePauseRemediationUntil_{0};
   virtual void setModulePauseRemediation(int32_t timeout) = 0;
+  virtual time_t getModulePauseRemediationUntil() = 0;
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;

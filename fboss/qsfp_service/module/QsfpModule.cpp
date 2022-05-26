@@ -568,7 +568,8 @@ bool QsfpModule::shouldRemediateLocked() {
 
   auto now = std::time(nullptr);
   bool remediationEnabled =
-      now > getTransceiverManager()->getPauseRemediationUntil();
+      (now > getTransceiverManager()->getPauseRemediationUntil()) &&
+      (now > getModulePauseRemediationUntil());
   // Rather than immediately attempting to remediate a module,
   // we would like to introduce a bit delay to de-couple the consequences
   // of a remediation with the root cause that brought down the link.
@@ -887,6 +888,10 @@ double QsfpModule::getBerFloatValue(uint8_t lsb, uint8_t msb) {
 
 void QsfpModule::setModulePauseRemediation(int32_t timeout) {
   modulePauseRemediationUntil_ = std::time(nullptr) + timeout;
+}
+
+time_t QsfpModule::getModulePauseRemediationUntil() {
+  return modulePauseRemediationUntil_;
 }
 
 } // namespace fboss
