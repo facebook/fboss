@@ -90,9 +90,9 @@ class TransceiverManager {
    * pauseRemediationUntil_, which is a time point until when
    * the remediation of module will be paused.
    */
-  void setPauseRemediation(int32_t timeout) {
-    pauseRemediationUntil_ = std::time(nullptr) + timeout;
-  }
+  void setPauseRemediation(
+      int32_t timeout,
+      std::unique_ptr<std::vector<std::string>> portList);
   time_t getPauseRemediationUntil() {
     return pauseRemediationUntil_;
   }

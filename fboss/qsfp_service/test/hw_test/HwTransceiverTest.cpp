@@ -25,7 +25,7 @@ void HwTransceiverTest::SetUp() {
       isPortUp_ /* up */, true /* enabled */);
   // Pause remediation if isPortUp_ == false to avoid unnecessary remediation
   if (!isPortUp_) {
-    wedgeManager->setPauseRemediation(600);
+    wedgeManager->setPauseRemediation(600, nullptr);
   }
   wedgeManager->refreshStateMachines();
   wedgeManager->setOverrideAgentPortStatusForTesting(

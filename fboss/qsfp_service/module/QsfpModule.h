@@ -229,6 +229,8 @@ class QsfpModule : public Transceiver {
 
   prbs::InterfacePrbsState getPortPrbsState(phy::Side /* side */) override;
 
+  void setModulePauseRemediation(int32_t timeout) override;
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

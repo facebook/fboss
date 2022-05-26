@@ -1606,4 +1606,26 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
   XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
   return transceiverIds;
 }
+
+void TransceiverManager::setPauseRemediation(
+    int32_t timeout,
+    std::unique_ptr<std::vector<std::string>> portList) {
+  if (!portList.get() || portList->empty()) {
+    pauseRemediationUntil_ = std::time(nullptr) + timeout;
+  } else {
+    auto lockedTransceivers = transceivers_.rlock();
+    for (auto port : *portList) {
+      if (portNameToModule_.find(port) == portNameToModule_.end()) {
+        throw FbossError("Can't find transceiver module for port ", port);
+      }
+
+      auto it =
+          lockedTransceivers->find(TransceiverID(portNameToModule_.at(port)));
+      if (it != lockedTransceivers->end()) {
+        return it->second->setModulePauseRemediation(timeout);
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss

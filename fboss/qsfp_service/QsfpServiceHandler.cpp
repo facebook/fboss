@@ -101,7 +101,7 @@ void QsfpServiceHandler::pauseRemediation(
     int32_t timeout,
     std::unique_ptr<std::vector<std::string>> portList) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->setPauseRemediation(timeout);
+  manager_->setPauseRemediation(timeout, std::move(portList));
 }
 
 int32_t QsfpServiceHandler::getRemediationUntilTime() {

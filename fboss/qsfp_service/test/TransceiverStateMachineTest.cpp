@@ -206,7 +206,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   void setState(TransceiverStateMachineState state) {
     xcvr_->detectPresence();
     // Pause remediation
-    transceiverManager_->setPauseRemediation(60);
+    transceiverManager_->setPauseRemediation(60, nullptr);
 
     auto discoverTransceiver = [this]() {
       // One refresh can finish discoverring xcvr after detectPresence
@@ -1017,7 +1017,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1082,7 +1082,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1109,7 +1109,7 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1145,7 +1145,7 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1171,7 +1171,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
       stateSet,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1224,7 +1224,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1259,7 +1259,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
       allStates,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);
@@ -1284,7 +1284,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
       stateSet,
       [this]() {
         // Before trigger remediation, remove remediation pause
-        transceiverManager_->setPauseRemediation(0);
+        transceiverManager_->setPauseRemediation(0, nullptr);
         // Give 1s buffer when comparing lastDownTime_ in shouldRemediate()
         /* sleep override */
         sleep(1);

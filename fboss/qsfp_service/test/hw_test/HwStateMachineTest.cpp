@@ -60,7 +60,7 @@ class HwStateMachineTest : public HwTest {
   }
   void setPauseRemediation(bool paused) {
     getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
-        paused ? 600 : 0);
+        paused ? 600 : 0, nullptr);
   }
 
   bool meetAllExpectedState(

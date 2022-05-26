@@ -884,5 +884,10 @@ double QsfpModule::getBerFloatValue(uint8_t lsb, uint8_t msb) {
   double berVal = mantissa * exp10(exponent);
   return berVal;
 }
+
+void QsfpModule::setModulePauseRemediation(int32_t timeout) {
+  modulePauseRemediationUntil_ = std::time(nullptr) + timeout;
+}
+
 } // namespace fboss
 } // namespace facebook

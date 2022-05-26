@@ -200,6 +200,9 @@ class Transceiver {
 
   virtual void setDiagsCapability() {}
 
+  time_t modulePauseRemediationUntil_{0};
+  virtual void setModulePauseRemediation(int32_t timeout) = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
   virtual bool shouldRemediateLocked() = 0;
