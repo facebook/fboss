@@ -334,7 +334,7 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_TYPE,
         sai_uint32_t,
-        SaiIntDefault<sai_uint32_t>>;
+        SaiSwitchTypeDefault>;
     using RegisterReadFn = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_REGISTER_READ,

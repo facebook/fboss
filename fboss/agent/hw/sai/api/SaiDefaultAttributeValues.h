@@ -64,6 +64,12 @@ struct SaiPortInterfaceTypeDefault {
   }
 };
 
+struct SaiSwitchTypeDefault {
+  sai_uint32_t operator()() const {
+    return SAI_SWITCH_TYPE_NPU;
+  }
+};
+
 struct SaiMacAddressDefault {
   folly::MacAddress operator()() const {
     return folly::MacAddress{};

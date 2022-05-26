@@ -580,7 +580,7 @@ TEST_F(SwitchApiTest, testSysPortCfgList) {
 }
 
 TEST_F(SwitchApiTest, testSwitchType) {
-  SaiSwitchTraits::Attributes::SwitchType swType{1};
+  SaiSwitchTraits::Attributes::SwitchType swType{SAI_SWITCH_TYPE_VOQ};
   switchApi->setAttribute(switchId, swType);
 
   auto gotType = switchApi->getAttribute(
