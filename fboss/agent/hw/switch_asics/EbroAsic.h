@@ -85,6 +85,9 @@ class EbroAsic : public TajoAsic {
   uint32_t getMaxEcmpSize() const override {
     return 512;
   }
+  uint32_t getNumCores() const override {
+    return 12;
+  }
 };
 
 } // namespace facebook::fboss

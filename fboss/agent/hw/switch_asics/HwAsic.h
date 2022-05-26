@@ -194,6 +194,8 @@ class HwAsic {
     return 0;
   }
 
+  virtual uint32_t getNumCores() const = 0;
+
   virtual uint32_t getSflowShimHeaderSize() const = 0;
 
   virtual std::optional<uint32_t> getPortSerdesPreemphasis() const = 0;

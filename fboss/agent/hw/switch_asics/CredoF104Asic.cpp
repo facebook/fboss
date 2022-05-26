@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/CredoF104Asic.h"
-
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
@@ -71,6 +70,10 @@ uint32_t CredoF104Asic::getMaxVariableWidthEcmpSize() const {
 }
 uint32_t CredoF104Asic::getMaxEcmpSize() const {
   return 4096;
+}
+
+uint32_t CredoF104Asic::getNumCores() const {
+  throw FbossError("Num cores API not supported");
 }
 
 }; // namespace facebook::fboss

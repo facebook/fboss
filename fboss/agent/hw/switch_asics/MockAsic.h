@@ -101,6 +101,9 @@ class MockAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
   }
+  uint32_t getNumCores() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

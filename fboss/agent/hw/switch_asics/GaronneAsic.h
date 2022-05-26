@@ -40,6 +40,9 @@ class GaronneAsic : public TajoAsic {
     // TODO - verify this
     return 4;
   }
+  uint32_t getNumCores() const override {
+    return 12;
+  }
   uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool /*cpu*/)
       const override {
     // Concept of reserved bytes does not apply to GB
