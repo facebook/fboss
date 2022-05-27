@@ -31,7 +31,7 @@ void getSensorValueThroughThrift(
 }
 
 bool initQsfpSvc(
-    std::shared_ptr<QsfpCache> qsfpCache_,
+    std::shared_ptr<QsfpCache>& qsfpCache_,
     folly::EventBase& evb_) {
   return false;
 }

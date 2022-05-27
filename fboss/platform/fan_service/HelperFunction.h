@@ -19,7 +19,7 @@ void getSensorValueThroughThrift(
     std::vector<std::string>& sensorList);
 
 bool initQsfpSvc(
-    std::shared_ptr<facebook::fboss::QsfpCache> qsfpCache_,
+    std::shared_ptr<facebook::fboss::QsfpCache>& qsfpCache_,
     folly::EventBase& evb_);
 
 int doFBInit(int argc, char** argv);
