@@ -14,14 +14,20 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
+#ifndef IS_OSS
+// Only include Meta specific init interface if it's Meta build, not OSS
 #include "common/init/Init.h"
+#endif // IS_OSS
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
 
 int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
+#ifndef IS_OSS
+  // Meta specific init routines are not executed in OSS environment
   facebook::initFacebook(&argc, &argv);
+#endif // IS_OSS
   // Run the tests
   return RUN_ALL_TESTS();
 }
