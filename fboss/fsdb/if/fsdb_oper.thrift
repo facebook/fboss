@@ -12,9 +12,23 @@ typedef binary (cpp2.type = "::folly::fbstring") fbbinary
  * Generic types for interacting w/ OperState
  */
 
+union OperPathElem {
+  1: bool any;
+  2: string regex;
+  3: string raw;
+}
+
+// TODO: replace w/ RawOperPath
 struct OperPath {
   1: list<string> raw;
-// TODO: path extensions here like regex support
+}
+
+struct RawOperPath {
+  1: list<string> path;
+}
+
+struct ExtendedOperPath {
+  1: list<OperPathElem> path;
 }
 
 enum OperProtocol {
@@ -35,7 +49,7 @@ struct OperState {
 }
 
 struct TaggedOperState {
-  1: OperPath path;
+  1: RawOperPath path;
   2: OperState state;
 }
 
@@ -49,6 +63,11 @@ struct OperDelta {
   1: list<OperDeltaUnit> changes;
   2: OperProtocol protocol;
   3: optional OperMetadata metadata;
+}
+
+struct TaggedOperDelta {
+  1: RawOperPath path;
+  2: OperDelta delta;
 }
 
 struct OperPubRequest {
@@ -67,6 +86,21 @@ struct OperSubRequest {
 }
 
 struct OperSubInitResponse {}
+
+// types to support extended subscription api
+struct OperSubRequestExtended {
+  1: list<ExtendedOperPath> paths;
+  2: OperProtocol protocol = OperProtocol.BINARY;
+  3: fsdb_common.SubscriberId subscriberId;
+}
+
+struct OperSubPathUnit {
+  1: list<TaggedOperState> changes;
+}
+
+struct OperSubDeltaUnit {
+  1: list<TaggedOperDelta> changes;
+}
 
 enum PubSubType {
   PATH = 0,
