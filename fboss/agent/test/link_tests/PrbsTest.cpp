@@ -33,14 +33,16 @@ class PrbsTest : public LinkTest {
       return false;
     } else {
       auto qsfpServiceClient = utils::createQsfpServiceClient();
-      checkWithRetry([this,
-                      &interfaceName,
-                      component,
-                      qsfpServiceClient = std::move(qsfpServiceClient)] {
-        return checkPrbsSupportedOnInterface<
-            facebook::fboss::QsfpServiceAsyncClient>(
-            qsfpServiceClient.get(), interfaceName, component);
-      });
+      // Retry for a minute to give the qsfp_service enough chance to
+      // successfully refresh a transceiver
+      WITH_RETRIES_N_TIMED(
+          {
+            EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
+                                   facebook::fboss::QsfpServiceAsyncClient>(
+                qsfpServiceClient.get(), interfaceName, component));
+          },
+          12,
+          std::chrono::milliseconds(5000));
     }
     return true;
   }
@@ -48,7 +50,7 @@ class PrbsTest : public LinkTest {
  protected:
   void SetUp() override {
     LinkTest::SetUp();
-    checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
+    waitForLldpOnCabledPorts();
 
     // Get the list of ports and their components to enable the test on
     portsAndComponentsToTest_ = getPortsToTest();
@@ -87,20 +89,33 @@ class PrbsTest : public LinkTest {
     XLOG(INFO) << "Enabling PRBS Generator on all ports";
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled().reset();
-    checkWithRetry(
-        [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
+    // Retry for a minute to give the qsfp_service enough chance to
+    // successfully refresh a transceiver
+    WITH_RETRIES_N_TIMED(
+        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState)); },
+        12,
+        std::chrono::milliseconds(5000));
 
     XLOG(INFO) << "Enabling PRBS Checker on all ports";
     enabledState.checkerEnabled() = true;
     enabledState.generatorEnabled().reset();
-    checkWithRetry(
-        [this, &enabledState] { return setPrbsOnAllInterfaces(enabledState); });
+    // Retry for a minute to give the qsfp_service enough chance to
+    // successfully refresh a transceiver
+    WITH_RETRIES_N_TIMED(
+        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState)); },
+        12,
+        std::chrono::milliseconds(5000));
 
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
-    checkWithRetry([this, &enabledState] {
-      return checkPrbsStateOnAllInterfaces(enabledState);
-    });
+    // Retry for a minute to give the qsfp_service enough chance to
+    // successfully refresh a transceiver
+    WITH_RETRIES_N_TIMED(
+        {
+          EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(enabledState));
+        },
+        12,
+        std::chrono::milliseconds(5000));
 
     // 4. Let PRBS run for 30 seconds so that we can check the BER later
     /* sleep override */ std::this_thread::sleep_for(30s);
@@ -124,20 +139,28 @@ class PrbsTest : public LinkTest {
 
     // 8. Disable PRBS on all Ports
     XLOG(INFO) << "Disabling PRBS";
-    checkWithRetry([this, &disabledState] {
-      return setPrbsOnAllInterfaces(disabledState);
-    });
+    // Retry for a minute to give the qsfp_service enough chance to
+    // successfully refresh a transceiver
+    WITH_RETRIES_N_TIMED(
+        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(disabledState)); },
+        12,
+        std::chrono::milliseconds(5000));
 
     // 9. Check Prbs State on all ports, they all should be disabled
     XLOG(INFO) << "Checking PRBS state after disabling PRBS";
-    checkWithRetry([this, &disabledState] {
-      return checkPrbsStateOnAllInterfaces(disabledState);
-    });
+    // Retry for a minute to give the qsfp_service enough chance to
+    // successfully refresh a transceiver
+    WITH_RETRIES_N_TIMED(
+        {
+          EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(disabledState));
+        },
+        12,
+        std::chrono::milliseconds(5000));
 
     // 10. Link and traffic should come back up now
     XLOG(INFO) << "Waiting for links and traffic to come back up";
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    checkWithRetry([this] { return lldpNeighborsOnAllCabledPorts(); });
+    waitForLldpOnCabledPorts();
   }
 
   virtual std::vector<std::pair<std::string, phy::PrbsComponent>>
@@ -177,14 +200,19 @@ class PrbsTest : public LinkTest {
         return false;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkWithRetry([this,
-                        &interfaceName,
-                        component,
-                        &state,
-                        qsfpServiceClient = std::move(qsfpServiceClient)] {
-          return setPrbsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
-              qsfpServiceClient.get(), interfaceName, component, state);
-        });
+        // Retry for a minute to give the qsfp_service enough chance to
+        // successfully refresh a transceiver
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(
+                  setPrbsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
+                      qsfpServiceClient.get(),
+                      interfaceName,
+                      component,
+                      state));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       }
     }
     return true;
@@ -204,15 +232,16 @@ class PrbsTest : public LinkTest {
         return false;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkWithRetry([this,
-                        &interfaceName,
-                        component,
-                        &state,
-                        qsfpServiceClient = std::move(qsfpServiceClient)] {
-          return checkPrbsStateOnInterface<
-              facebook::fboss::QsfpServiceAsyncClient>(
-              qsfpServiceClient.get(), interfaceName, component, state);
-        });
+        // Retry for a minute to give the qsfp_service enough chance to
+        // successfully refresh a transceiver
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnInterface<
+                                     facebook::fboss::QsfpServiceAsyncClient>(
+                  qsfpServiceClient.get(), interfaceName, component, state));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       }
     }
     return true;
@@ -270,14 +299,16 @@ class PrbsTest : public LinkTest {
         return;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkWithRetry([this,
-                        &interfaceName,
-                        component,
-                        qsfpServiceClient = std::move(qsfpServiceClient)] {
-          return checkPrbsStatsOnInterface<
-              facebook::fboss::QsfpServiceAsyncClient>(
-              qsfpServiceClient.get(), interfaceName, component);
-        });
+        // Retry for a minute to give the qsfp_service enough chance to
+        // successfully refresh a transceiver
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsOnInterface<
+                                     facebook::fboss::QsfpServiceAsyncClient>(
+                  qsfpServiceClient.get(), interfaceName, component));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       }
     }
   }
@@ -332,20 +363,20 @@ class PrbsTest : public LinkTest {
         return;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkWithRetry([this,
-                        timestampBeforeClear,
-                        &interfaceName,
-                        component,
-                        qsfpServiceClient = std::move(qsfpServiceClient),
-                        prbsEnabled] {
-          return checkPrbsStatsAfterClearOnInterface<
-              facebook::fboss::QsfpServiceAsyncClient>(
-              qsfpServiceClient.get(),
-              timestampBeforeClear,
-              interfaceName,
-              component,
-              prbsEnabled);
-        });
+        // Retry for a minute to give the qsfp_service enough chance to
+        // successfully refresh a transceiver
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
+                                     facebook::fboss::QsfpServiceAsyncClient>(
+                  qsfpServiceClient.get(),
+                  timestampBeforeClear,
+                  interfaceName,
+                  component,
+                  prbsEnabled));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       }
     }
   }
@@ -388,14 +419,16 @@ class PrbsTest : public LinkTest {
         return;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkWithRetry([this,
-                        &interfaceName,
-                        component,
-                        qsfpServiceClient = std::move(qsfpServiceClient)] {
-          return clearPrbsStatsOnInterface<
-              facebook::fboss::QsfpServiceAsyncClient>(
-              qsfpServiceClient.get(), interfaceName, component);
-        });
+        // Retry for a minute to give the qsfp_service enough chance to
+        // successfully refresh a transceiver
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(clearPrbsStatsOnInterface<
+                                     facebook::fboss::QsfpServiceAsyncClient>(
+                  qsfpServiceClient.get(), interfaceName, component));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       }
     }
   }
