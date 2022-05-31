@@ -473,7 +473,7 @@ RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
   uint8_t rateRx = getSettingsValue(SffField::RATE_SELECT_RX);
   uint8_t rateTx = getSettingsValue(SffField::RATE_SELECT_TX);
   if (rateRx != rateTx) {
-    XLOG(ERR) << folly::sformat(
+    QSFP_LOG(ERR, this) << folly::sformat(
         "Unable to retrieve rate select setting: rx({:#x}) and tx({:#x}) are not equal",
         rateRx,
         rateTx);
@@ -758,9 +758,8 @@ bool SffModule::getMediaInterfaceId(
   // Currently setting the same media interface for all media lanes
   auto extSpecCompliance = getExtendedSpecificationComplianceCode();
   if (!extSpecCompliance) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s}, getExtendedSpecificationComplianceCode returned nullopt",
-        qsfpImpl_->getName());
+    QSFP_LOG(ERR, this)
+        << "getExtendedSpecificationComplianceCode returned nullopt";
     return false;
   }
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
@@ -771,10 +770,9 @@ bool SffModule::getMediaInterfaceId(
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
     } else {
-      XLOG(ERR) << folly::sformat(
-          "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
-          qsfpImpl_->getName(),
-          apache::thrift::util::enumNameSafe(*extSpecCompliance));
+      QSFP_LOG(ERR, this) << "Unable to find MediaInterfaceCode for "
+                          << apache::thrift::util::enumNameSafe(
+                                 *extSpecCompliance);
       mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
     mediaInterface[lane].media() = media;
@@ -816,8 +814,7 @@ void SffModule::setQsfpFlatMem() {
     throw QsfpModuleError("Failed setting QSFP Flat Mem: QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
-  XLOG(DBG3) << "Detected QSFP " << qsfpImpl_->getName()
-             << ", flatMem=" << flatMem_;
+  QSFP_LOG(DBG3, this) << "Detected flatMem=" << flatMem_;
 }
 
 const uint8_t*
@@ -892,9 +889,8 @@ void SffModule::updateQsfpData(bool allPages) {
     return;
   }
   try {
-    XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
-               << " qsfp data cache refresh for transceiver "
-               << folly::to<std::string>(qsfpImpl_->getName());
+    QSFP_LOG(DBG2, this) << "Performing " << ((allPages) ? "full" : "partial")
+                         << " qsfp data cache refresh";
     readSffField(SffField::PAGE_LOWER, lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
@@ -917,9 +913,7 @@ void SffModule::updateQsfpData(bool allPages) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.
     dirty_ = true;
-    XLOG(ERR) << "Error update data for transceiver:"
-              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
-              << ex.what();
+    QSFP_LOG(ERR, this) << "Error update data: " << ex.what();
     throw;
   }
 }
@@ -1052,13 +1046,11 @@ void SffModule::setCdrIfSupported(
    * Note that this function expects to be called with qsfpModuleMutex_
    * held.
    */
-  XLOG(INFO) << "Checking if we need to change CDR on "
-             << folly::to<std::string>(qsfpImpl_->getName());
+  QSFP_LOG(INFO, this) << "Checking if we need to change CDR";
 
   if (currentStateTx == FeatureState::UNSUPPORTED &&
       currentStateRx == FeatureState::UNSUPPORTED) {
-    XLOG(INFO) << "CDR is not supported on "
-               << folly::to<std::string>(qsfpImpl_->getName());
+    QSFP_LOG(INFO, this) << "CDR is not supported";
     return;
   }
 
@@ -1076,8 +1068,7 @@ void SffModule::setCdrIfSupported(
   bool changeRx = toChange(currentStateRx);
   bool changeTx = toChange(currentStateTx);
   if (!changeRx && !changeTx) {
-    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-               << " Not changing CDR setting, already correctly set";
+    QSFP_LOG(INFO, this) << "Not changing CDR setting, already correctly set";
     return;
   }
 
@@ -1090,11 +1081,8 @@ void SffModule::setCdrIfSupported(
     newState = FeatureState::ENABLED;
   }
   writeSffField(SffField::CDR_CONTROL, &value);
-  XLOG(INFO) << folly::to<std::string>(
-      "Port: ",
-      qsfpImpl_->getName(),
-      " Setting CDR to state: ",
-      apache::thrift::util::enumNameSafe(newState));
+  QSFP_LOG(INFO, this) << "Setting CDR to state: "
+                       << apache::thrift::util::enumNameSafe(newState);
 }
 
 void SffModule::setRateSelectIfSupported(
@@ -1151,9 +1139,8 @@ void SffModule::setRateSelectIfSupported(
 
   writeSffField(SffField::RATE_SELECT_RX, &value);
   writeSffField(SffField::RATE_SELECT_RX, &value);
-  XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-             << " set rate select to "
-             << apache::thrift::util::enumNameSafe(newSetting);
+  QSFP_LOG(INFO, this) << "Set rate select to "
+                       << apache::thrift::util::enumNameSafe(newSetting);
 }
 
 void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
@@ -1189,16 +1176,16 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
     }
   }
 
-  auto portStr = folly::to<std::string>(qsfpImpl_->getName());
-  XLOG(DBG1) << "Port " << portStr << ": Power control "
-             << apache::thrift::util::enumNameSafe(currentState) << " Ext ID "
-             << std::hex << (int)*extId << " Ethernet compliance " << std::hex
-             << (int)*ether << " Desired power control "
-             << apache::thrift::util::enumNameSafe(desiredSetting);
+  QSFP_LOG(DBG1, this) << "Power control "
+                       << apache::thrift::util::enumNameSafe(currentState)
+                       << " Ext ID " << std::hex << (int)*extId
+                       << " Ethernet compliance " << std::hex << (int)*ether
+                       << " Desired power control "
+                       << apache::thrift::util::enumNameSafe(desiredSetting);
 
   if (currentState == desiredSetting) {
-    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-               << " Power override already correctly set, doing nothing";
+    QSFP_LOG(INFO, this)
+        << "Power override already correctly set, doing nothing";
     return;
   }
 
@@ -1212,11 +1199,9 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   // enable target power class
   writeSffField(SffField::POWER_CONTROL, &power);
 
-  XLOG(INFO) << folly::sformat(
-      "Port {:s}: QSFP set to power setting {:s} ({:d})",
-      portStr,
-      apache::thrift::util::enumNameSafe(desiredSetting),
-      power);
+  QSFP_LOG(INFO, this) << "QSFP set to power setting "
+                       << apache::thrift::util::enumNameSafe(desiredSetting)
+                       << " (" << power << ")";
 }
 
 /*
@@ -1226,8 +1211,7 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
  * Only return true if there's an actual remediation happened
  */
 bool SffModule::remediateFlakyTransceiver() {
-  XLOG(INFO) << "Performing potentially disruptive remediations on "
-             << qsfpImpl_->getName();
+  QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
   ensureTxEnabled();
   resetLowPowerMode();
@@ -1378,7 +1362,7 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
           speed, *settings.rateSelect(), *settings.rateSelectSetting());
     }
   } else {
-    XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
+    QSFP_LOG(DBG1, this) << "Customization not supported";
   }
 }
 
@@ -1402,8 +1386,7 @@ bool SffModule::verifyEepromChecksums() {
     }
     rc &= verifyEepromChecksum(csumInfoIt.first);
   }
-  XLOG_IF(WARN, !rc) << folly::sformat(
-      "Module {} EEPROM Checksum Failed", qsfpImpl_->getName());
+  QSFP_LOG_IF(WARN, !rc, this) << "EEPROM Checksum Failed";
   return rc;
 }
 
@@ -1423,18 +1406,15 @@ bool SffModule::verifyEepromChecksum(SffPages pageId) {
 
   // Return false if the registers are not cached yet (this is not expected)
   if (!cacheIsValid()) {
-    XLOG(WARN) << folly::sformat(
-        "Module {} can't do eeprom checksum as the register cache is not populated",
-        qsfpImpl_->getName());
+    QSFP_LOG(WARN, this)
+        << "Can't do eeprom checksum as the register cache is not populated";
     return false;
   }
   // Return false if we don't know range of registers to validate the checksum
   // on this page
   if (checksumInfoSff.find(pageId) == checksumInfoSff.end()) {
-    XLOG(WARN) << folly::sformat(
-        "Module {} can't do eeprom checksum for page {:d}",
-        qsfpImpl_->getName(),
-        static_cast<int>(pageId));
+    QSFP_LOG(WARN, this) << "Can't do eeprom checksum for page "
+                         << static_cast<int>(pageId);
     return false;
   }
 
@@ -1456,17 +1436,15 @@ bool SffModule::verifyEepromChecksum(SffPages pageId) {
     expectedChecksum = data[0];
 
     if (checkSum != expectedChecksum) {
-      XLOG(ERR) << folly::sformat(
-          "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(ERR, this) << folly::sformat(
+          "Page {:d}: expected checksum {:#x}, actual {:#x}",
           static_cast<int>(pageId),
           expectedChecksum,
           checkSum);
       return false;
     } else {
-      XLOG(DBG5) << folly::sformat(
-          "Module {}: Page {:d}: checksum verified successfully {:#x}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(DBG5, this) << folly::sformat(
+          "Page {:d}: checksum verified successfully {:#x}",
           static_cast<int>(pageId),
           checkSum);
     }
@@ -1529,9 +1507,8 @@ bool SffModule::setPortPrbsLocked(
         // Check if there is an override function available for setting prbs
         // state
         if (auto prbsEnable = setPortPrbsOverrideLocked(side, prbs)) {
-          XLOG(INFO) << folly::sformat(
-              "Module {:s} : Prbs {:s} {:s} on {:s} side",
-              qsfpImpl_->getName(),
+          QSFP_LOG(INFO, this) << folly::sformat(
+              "Prbs {:s} {:s} on {:s} side",
               apache::thrift::util::enumNameSafe(polynomial),
               enable ? "enabled" : "disabled",
               apache::thrift::util::enumNameSafe(side));
@@ -1540,9 +1517,8 @@ bool SffModule::setPortPrbsLocked(
       }
     }
   }
-  XLOG(WARNING) << folly::sformat(
-      "Module {:s} does not support PRBS on {:s} side",
-      qsfpImpl_->getName(),
+  QSFP_LOG(WARNING, this) << folly::sformat(
+      "Does not support PRBS on {:s} side",
       apache::thrift::util::enumNameSafe(side));
   return false;
 }

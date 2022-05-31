@@ -764,17 +764,15 @@ bool CmisModule::getHostLaneSettings(
     laneSettings[lane].rxSquelch() = rxSquelchDisable & laneMask;
 
     uint8_t pre = (dataPre[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    XLOG(DBG3) << folly::sformat("Port {} Pre = {}", qsfpImpl_->getName(), pre);
+    QSFP_LOG(DBG3, this) << "Pre = " << pre;
     laneSettings[lane].rxOutputPreCursor() = pre;
 
     uint8_t post = (dataPost[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    XLOG(DBG3) << folly::sformat(
-        "Port {} Post = {}", qsfpImpl_->getName(), post);
+    QSFP_LOG(DBG3, this) << "Post = " << post;
     laneSettings[lane].rxOutputPostCursor() = post;
 
     uint8_t mainVal = (dataMain[lane / 2] >> ((lane % 2) * 4)) & 0x0f;
-    XLOG(DBG3) << folly::sformat(
-        "Port {} Main = {}", qsfpImpl_->getName(), mainVal);
+    QSFP_LOG(DBG3, this) << "Main = " << mainVal;
     laneSettings[lane].rxOutputAmplitude() = mainVal;
   }
   return true;
@@ -809,9 +807,7 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
 
   // Application select value 0 means application is not selected by module yet
   if (currentApplicationSel == 0) {
-    XLOG(ERR) << folly::sformat(
-        "Transceiver {:s}:  Module has not selected application yet",
-        qsfpImpl_->getName());
+    QSFP_LOG(ERR, this) << "Module has not selected application yet";
     return SMFMediaInterfaceCode::UNKNOWN;
   }
 
@@ -860,10 +856,9 @@ bool CmisModule::getMediaInterfaceId(
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
     } else {
-      XLOG(ERR) << folly::sformat(
-          "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
-          qsfpImpl_->getName(),
-          apache::thrift::util::enumNameSafe(smfMediaInterface));
+      QSFP_LOG(ERR, this) << "Unable to find MediaInterfaceCode for "
+                          << apache::thrift::util::enumNameSafe(
+                                 smfMediaInterface);
       mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
     mediaInterface[lane].media() = media;
@@ -888,11 +883,8 @@ void CmisModule::getApplicationCapabilities() {
       break;
     }
 
-    XLOG(DBG3) << folly::sformat(
-        "Port {:s} Adding module capability: {:#x} at position {:d}",
-        qsfpImpl_->getName(),
-        data[1],
-        i + 1);
+    QSFP_LOG(DBG3, this) << folly::sformat(
+        "Adding module capability: {:#x} at position {:d}", data[1], i + 1);
     ApplicationAdvertisingField applicationAdvertisingField;
     applicationAdvertisingField.ApSelCode = (i + 1);
     applicationAdvertisingField.moduleMediaInterface = data[1];
@@ -1345,8 +1337,7 @@ void CmisModule::setQsfpFlatMem() {
   getQsfpFieldAddress(CmisField::FLAT_MEM, dataAddress, offset, length);
   getQsfpValue(dataAddress, offset, length, &flatMem);
   flatMem_ = flatMem & (1 << 7);
-  XLOG(DBG3) << "Detected QSFP " << qsfpImpl_->getName()
-             << ", flatMem=" << flatMem_;
+  QSFP_LOG(DBG3, this) << "Detected QSFP, flatMem=" << flatMem_;
 }
 
 const uint8_t*
@@ -1477,9 +1468,8 @@ void CmisModule::updateQsfpData(bool allPages) {
     return;
   }
   try {
-    XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
-               << " qsfp data cache refresh for transceiver "
-               << folly::to<std::string>(qsfpImpl_->getName());
+    QSFP_LOG(DBG2, this) << "Performing " << ((allPages) ? "full" : "partial")
+                         << " qsfp data cache refresh";
     readCmisField(CmisField::PAGE_LOWER, lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
@@ -1517,9 +1507,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.
     dirty_ = true;
-    XLOG(ERR) << "Error update data for transceiver:"
-              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
-              << ex.what();
+    QSFP_LOG(ERR, this) << "Error update data: " << ex.what();
     throw;
   }
 }
@@ -1528,8 +1516,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   auto applicationIter = speedApplicationMapping.find(speed);
 
   if (applicationIter == speedApplicationMapping.end()) {
-    XLOG(INFO) << folly::sformat(
-        "Transceiver {:s} Unsupported Speed.", qsfpImpl_->getName());
+    QSFP_LOG(INFO, this) << "Unsupported Speed.";
     throw FbossError(folly::to<std::string>(
         "Transceiver: ",
         qsfpImpl_->getName(),
@@ -1545,10 +1532,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
   // The application sel code is at the higher four bits of the field.
   currentApplicationSel = currentApplicationSel >> 4;
 
-  XLOG(INFO) << folly::sformat(
-      "Transceiver {:s} currentApplicationSel: {:#x}",
-      qsfpImpl_->getName(),
-      currentApplicationSel);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "currentApplicationSel: {:#x}", currentApplicationSel);
 
   uint8_t currentApplication;
   int offset;
@@ -1565,10 +1550,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
     // of the field, as Application ID here.
     offset += (currentApplicationSel - 1) * length + 1;
     getQsfpValue(dataAddress, offset, 1, &currentApplication);
-    XLOG(INFO) << folly::sformat(
-        "Transceiver {:s} currentApplication: {:#x}",
-        qsfpImpl_->getName(),
-        currentApplication);
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "currentApplication: {:#x}", currentApplication);
   } else if (currentApplicationSel >= 9 && currentApplicationSel <= 15) {
     getQsfpFieldAddress(
         CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
@@ -1576,15 +1559,11 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
     // of the field, as Application ID here.
     offset += (currentApplicationSel - 9) * length + 1;
     getQsfpValue(dataAddress, offset, 1, &currentApplication);
-    XLOG(INFO) << folly::sformat(
-        "Transceiver {:s} currentApplication: {:#x}",
-        qsfpImpl_->getName(),
-        currentApplication);
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "currentApplication: {:#x}", currentApplication);
   } else {
     currentApplication = 0; // dummy value
-    XLOG(INFO) << folly::sformat(
-        "Transceiver {:s} currentApplication: not selected yet",
-        qsfpImpl_->getName());
+    QSFP_LOG(INFO, this) << "currentApplication: not selected yet";
   }
 
   // Loop through all the applications that we support for the given speed and
@@ -1594,9 +1573,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
     if (static_cast<uint8_t>(application) == currentApplication) {
-      XLOG(INFO) << folly::sformat(
-          "Transceiver {:s} speed matches. Doing nothing.",
-          qsfpImpl_->getName());
+      QSFP_LOG(INFO, this) << "Speed matches. Doing nothing.";
       return;
     }
 
@@ -1614,10 +1591,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
       // CMIS4.0-8.7.3
       uint8_t newApSelCode = capabilityIter->second.ApSelCode << 4;
 
-      XLOG(INFO) << folly::sformat(
-          "Transceiver {:s} newApSelCode: {:#x}",
-          qsfpImpl_->getName(),
-          newApSelCode);
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "newApSelCode: {:#x}", newApSelCode);
 
       // We can't use numHostLanes() to get the hostLaneCount here since that
       // function relies on the configured application select but at this point
@@ -1634,10 +1609,8 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
 
       writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
 
-      XLOG(INFO) << folly::sformat(
-          "Transceiver: {:s} set application to {:#x}",
-          qsfpImpl_->getName(),
-          capabilityIter->first);
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "set application to {:#x}", capabilityIter->first);
     };
 
     // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
@@ -1647,17 +1620,14 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
-      XLOG(ERR) << folly::sformat(
-          "Transceiver: {:s} application {:#x} could not be set",
-          qsfpImpl_->getName(),
-          capabilityIter->first);
+      QSFP_LOG(ERR, this) << folly::sformat(
+          "application {:#x} could not be set", capabilityIter->first);
     }
     // Done with application configuration
     return;
   }
   // We didn't find an application that both we support and the module supports
-  XLOG(INFO) << folly::sformat(
-      "Port {:s} Unsupported Application", qsfpImpl_->getName());
+  QSFP_LOG(INFO, this) << "Unsupported Application";
   throw FbossError(folly::to<std::string>(
       "Port: ",
       qsfpImpl_->getName(),
@@ -1700,9 +1670,8 @@ bool CmisModule::checkLaneConfigError() {
       if (cfgErr != 1) {
         success = false;
       }
-      XLOG(INFO) << folly::sformat(
-          "Port {:s} Lane {:d} config stats: {:s}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Lane {:d} config stats: {:s}",
           channel,
           channelConfigErrorMsg[cfgErr]);
     }
@@ -1712,15 +1681,11 @@ bool CmisModule::checkLaneConfigError() {
     if (allStatusAvailable) {
       break;
     } else if (retryCount) {
-      XLOG(INFO) << folly::sformat(
-          "Port {:s} Some lane status not available so trying again",
-          qsfpImpl_->getName());
+      QSFP_LOG(INFO, this) << "Some lane status not available so trying again";
       /* sleep override */
       usleep(kUsecBetweenLaneInit);
     } else {
-      XLOG(ERR) << folly::sformat(
-          "Port {:s} Some lane status not available even after retry",
-          qsfpImpl_->getName());
+      QSFP_LOG(ERR, this) << "Some lane status not available even after retry";
     }
   };
 
@@ -1734,8 +1699,7 @@ bool CmisModule::checkLaneConfigError() {
  * Only return true if there's an actual remediation happened
  */
 bool CmisModule::remediateFlakyTransceiver() {
-  XLOG(INFO) << "Performing potentially disruptive remediations on "
-             << qsfpImpl_->getName();
+  QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
   bool isRemediationTriggered = false;
   if (moduleResetCounter_ < kResetCounterLimit) {
@@ -1746,7 +1710,7 @@ bool CmisModule::remediateFlakyTransceiver() {
     moduleResetCounter_++;
     isRemediationTriggered = true;
   } else {
-    XLOG(DBG2) << "Reached reset limit for module " << qsfpImpl_->getName();
+    QSFP_LOG(DBG2, this) << "Reached reset limit";
   }
 
   // Even though remediation might not trigger, we still need to update the
@@ -1767,11 +1731,9 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   int length;
   int dataAddress;
 
-  auto portStr = folly::to<std::string>(qsfpImpl_->getName());
-
   if (currentState == PowerControlState::HIGH_POWER_OVERRIDE) {
-    XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-               << " Power override already correctly set, doing nothing";
+    QSFP_LOG(INFO, this)
+        << "Power override already correctly set, doing nothing";
     return;
   }
 
@@ -1796,10 +1758,8 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
 
-  XLOG(INFO) << folly::sformat(
-      "Port {:s}: QSFP module control field set to {:#x}",
-      portStr,
-      currentModuleControl);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "QSFP module control field set to {:#x}", currentModuleControl);
 }
 
 void CmisModule::ensureRxOutputSquelchEnabled(
@@ -1818,8 +1778,7 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 
     writeCmisField(
         CmisField::RX_SQUELCH_DISABLE, &enableAllLaneRxOutputSquelch);
-    XLOG(INFO) << "Transceiver " << folly::to<std::string>(qsfpImpl_->getName())
-               << ": Enabled Rx output squelch on all lanes.";
+    QSFP_LOG(INFO, this) << "Enabled Rx output squelch on all lanes.";
   }
 }
 
@@ -1837,7 +1796,7 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
       setApplicationCode(speed);
     }
   } else {
-    XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
+    QSFP_LOG(DBG1, this) << "Customization not supported";
   }
 }
 
@@ -1851,15 +1810,11 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 void CmisModule::configureModule() {
   auto appCode = getSmfMediaInterface();
 
-  XLOG(INFO) << folly::sformat(
-      "Module {:s}, configureModule for application {:s}",
-      qsfpImpl_->getName(),
-      apache::thrift::util::enumNameSafe(appCode));
+  QSFP_LOG(INFO, this) << "configureModule for application "
+                       << apache::thrift::util::enumNameSafe(appCode);
 
   if (!getTransceiverManager()->getQsfpConfig()) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s}, qsfpConfig is NULL, skipping module configuration",
-        qsfpImpl_->getName());
+    QSFP_LOG(ERR, this) << "qsfpConfig is NULL, skipping module configuration";
     return;
   }
 
@@ -1885,9 +1840,8 @@ void CmisModule::configureModule() {
     }
   }
 
-  XLOG(INFO) << folly::sformat(
-      "Module {:s}, Rx Equalizer configuration not specified in the QSFP config",
-      qsfpImpl_->getName());
+  QSFP_LOG(INFO, this)
+      << "Rx Equalizer configuration not specified in the QSFP config";
 }
 
 MediaInterfaceCode CmisModule::getModuleMediaInterface() {
@@ -1927,8 +1881,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
   bool changePre = false, changePost = false, changeMain = false;
   uint8_t numLanes = numHostLanes();
 
-  XLOG(INFO) << folly::sformat(
-      "setModuleRxEqualizerLocked called for {:s}", qsfpImpl_->getName());
+  QSFP_LOG(INFO, this) << "setModuleRxEqualizerLocked called";
 
   for (int i = 0; i < 4; i++) {
     desiredPre[i] = ((*rxEqualizer.preCursor() & 0xf) << 4) |
@@ -1972,9 +1925,8 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     // Apply the change for pre/post/main if needed
     if (changePre) {
       writeCmisField(CmisField::RX_CONTROL_PRE_CURSOR, desiredPre);
-      XLOG(INFO) << folly::sformat(
-          "Module {:s} customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "customized for Pre-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           desiredPre[0],
           desiredPre[1],
           desiredPre[2],
@@ -1982,9 +1934,8 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     }
     if (changePost) {
       writeCmisField(CmisField::RX_CONTROL_POST_CURSOR, desiredPost);
-      XLOG(INFO) << folly::sformat(
-          "Module {:s} customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "customized for Post-cursor 0x{:x},0x{:x},0x{:x},0x{:x}",
           desiredPost[0],
           desiredPost[1],
           desiredPost[2],
@@ -1992,9 +1943,8 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
     }
     if (changeMain) {
       writeCmisField(CmisField::RX_CONTROL_MAIN, desiredMain);
-      XLOG(INFO) << folly::sformat(
-          "Module {:s} customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
-          qsfpImpl_->getName(),
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "customized for Rx-out-main 0x{:x},0x{:x},0x{:x},0x{:x}",
           desiredMain[0],
           desiredMain[1],
           desiredMain[2],
@@ -2016,8 +1966,7 @@ void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
-      XLOG(ERR) << folly::sformat(
-          "Module {:s} customization config rejected", qsfpImpl_->getName());
+      QSFP_LOG(ERR, this) << "customization config rejected";
     }
   }
 }
@@ -2037,8 +1986,7 @@ void CmisModule::setDiagsCapability() {
   }
   auto diagsCapability = diagsCapability_.wlock();
   if (!diagsCapability->has_value()) {
-    XLOG(INFO) << "Setting diag capability for Transceiver="
-               << qsfpImpl_->getName();
+    QSFP_LOG(INFO, this) << "Setting diag capability";
     DiagsCapability diags;
 
     auto readFromCacheOrHw = [&](CmisField field, uint8_t* data) {
@@ -2142,8 +2090,7 @@ bool CmisModule::verifyEepromChecksums() {
     }
     rc &= verifyEepromChecksum(csumInfoIt.first);
   }
-  XLOG_IF(WARN, !rc) << folly::sformat(
-      "Module {} EEPROM Checksum Failed", qsfpImpl_->getName());
+  QSFP_LOG_IF(WARN, !rc, this) << "EEPROM Checksum Failed";
   return rc;
 }
 
@@ -2163,18 +2110,15 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
 
   // Return false if the registers are not cached yet (this is not expected)
   if (!cacheIsValid()) {
-    XLOG(WARN) << folly::sformat(
-        "Module {} can't do eeprom checksum as the register cache is not populated",
-        qsfpImpl_->getName());
+    QSFP_LOG(WARN, this)
+        << "can't do eeprom checksum as the register cache is not populated";
     return false;
   }
   // Return false if we don't know range of registers to validate the checksum
   // on this page
   if (checksumInfoCmis.find(pageId) == checksumInfoCmis.end()) {
-    XLOG(WARN) << folly::sformat(
-        "Module {} can't do eeprom checksum for page {:d}",
-        qsfpImpl_->getName(),
-        static_cast<int>(pageId));
+    QSFP_LOG(WARN, this) << "can't do eeprom checksum for page "
+                         << static_cast<int>(pageId);
     return false;
   }
 
@@ -2194,17 +2138,15 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
   expectedChecksum = data[0];
 
   if (checkSum != expectedChecksum) {
-    XLOG(ERR) << folly::sformat(
-        "Module {}: Page {:d}: expected checksum {:#x}, actual {:#x}",
-        qsfpImpl_->getName(),
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "Page {:d}: expected checksum {:#x}, actual {:#x}",
         static_cast<int>(pageId),
         expectedChecksum,
         checkSum);
     return false;
   } else {
-    XLOG(DBG5) << folly::sformat(
-        "Module {}: Page {:d}: checksum verified successfully {:#x}",
-        qsfpImpl_->getName(),
+    QSFP_LOG(DBG5, this) << folly::sformat(
+        "Page {:d}: checksum verified successfully {:#x}",
         static_cast<int>(pageId),
         checkSum);
   }
@@ -2222,8 +2164,7 @@ void CmisModule::latchAndReadVdmDataLocked() {
   if (!isVdmSupported()) {
     return;
   }
-  XLOG(DBG3) << folly::sformat(
-      "latchAndReadVdmDataLocked for module {}", qsfpImpl_->getName());
+  QSFP_LOG(DBG3, this) << "latchAndReadVdmDataLocked";
 
   // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
   uint8_t latchRequest;
@@ -2260,8 +2201,7 @@ void CmisModule::triggerVdmStatsCapture() {
   if (!isVdmSupported()) {
     return;
   }
-  XLOG(DBG3) << folly::sformat(
-      "triggerVdmStatsCapture for module {}", qsfpImpl_->getName());
+  QSFP_LOG(DBG3, this) << "triggerVdmStatsCapture";
 
   captureVdmStats_ = true;
 }
@@ -2283,9 +2223,8 @@ bool CmisModule::setPortPrbsLocked(
     const prbs::InterfacePrbsState& prbs) {
   // If PRBS is not supported then return
   if (!isPrbsSupported(side)) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s} PRBS not supported on {:s} side",
-        qsfpImpl_->getName(),
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "PRBS not supported on {:s} side",
         (side == phy::Side::LINE ? "Line" : "System"));
     return false;
   }
@@ -2294,9 +2233,8 @@ bool CmisModule::setPortPrbsLocked(
   auto prbsPatternItr = prbsPatternMap.left.find(
       static_cast<prbs::PrbsPolynomial>(*prbs.polynomial()));
   if (prbsPatternItr == prbsPatternMap.left.end()) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s} PRBS Polynominal {} not supported",
-        qsfpImpl_->getName(),
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "PRBS Polynominal {} not supported",
         apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
     return false;
   }
@@ -2307,7 +2245,7 @@ bool CmisModule::setPortPrbsLocked(
   bool startChk{false}, stopChk{false};
   if (!prbs.generatorEnabled().has_value() &&
       !prbs.checkerEnabled().has_value()) {
-    XLOG(ERR) << "Invalid generator/checker input";
+    QSFP_LOG(ERR, this) << "Invalid generator/checker input";
     return false;
   }
 
@@ -2357,9 +2295,8 @@ bool CmisModule::setPortPrbsLocked(
     }
     writeCmisField(cmisRegister, &startGenLaneMask);
 
-    XLOG(INFO) << folly::sformat(
-        "PRBS Generator on module {:s} side {:s} Lanemask {:#x} {:s}",
-        qsfpImpl_->getName(),
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "PRBS Generator on side {:s} Lanemask {:#x} {:s}",
         ((side == phy::Side::LINE) ? "Line" : "Host"),
         startGenLaneMask,
         (startGen ? "Started" : "Stopped"));
@@ -2403,9 +2340,8 @@ bool CmisModule::setPortPrbsLocked(
     }
     writeCmisField(cmisRegister, &startChkLaneMask);
 
-    XLOG(INFO) << folly::sformat(
-        "PRBS Checker on module {:s} side {:s} Lanemask {:#x} {:s}",
-        qsfpImpl_->getName(),
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "PRBS Checker on side {:s} Lanemask {:#x} {:s}",
         ((side == phy::Side::LINE) ? "Line" : "Host"),
         startChkLaneMask,
         (startChk ? "Started" : "Stopped"));
@@ -2483,9 +2419,8 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
 
   // If PRBS is not supported then return
   if (!isPrbsSupported(side)) {
-    XLOG(ERR) << folly::sformat(
-        "Module {:s} PRBS not supported on {:s} side",
-        qsfpImpl_->getName(),
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "PRBS not supported on {:s} side",
         (side == phy::Side::LINE ? "Line" : "System"));
     return phy::PrbsStats{};
   }
@@ -2572,15 +2507,12 @@ void CmisModule::resetDataPathWithFunc(
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
 
-  XLOG(INFO) << folly::sformat(
-      "Module {:s}, DATA_PATH_DEINIT set and reset done for all lanes",
-      qsfpImpl_->getName());
+  QSFP_LOG(INFO, this) << "DATA_PATH_DEINIT set and reset done for all lanes";
 }
 
 void CmisModule::updateVdmCacheLocked() {
   if (!isVdmSupported()) {
-    XLOG(DBG5) << "Transceiver=" << qsfpImpl_->getName()
-               << " doesn't support VDM, skip updating VDM cache";
+    QSFP_LOG(DBG5, this) << "Doesn't support VDM, skip updating VDM cache";
     return;
   }
   readCmisField(CmisField::PAGE_UPPER20H, page20_);

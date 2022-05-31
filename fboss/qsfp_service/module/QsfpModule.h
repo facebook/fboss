@@ -22,6 +22,12 @@
 #include <folly/futures/Future.h>
 #include <optional>
 
+#define QSFP_LOG(level, tcvr) \
+  XLOG(level) << "Transceiver " << tcvr->getNameString() << ": "
+
+#define QSFP_LOG_IF(level, cond, tcvr) \
+  XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
+
 namespace facebook {
 namespace fboss {
 

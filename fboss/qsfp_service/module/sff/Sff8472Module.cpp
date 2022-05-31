@@ -164,9 +164,8 @@ void Sff8472Module::updateQsfpData(bool allPages) {
     return;
   }
   try {
-    XLOG(DBG2) << "Performing " << ((allPages) ? "full" : "partial")
-               << " sfp data cache refresh for transceiver "
-               << folly::to<std::string>(qsfpImpl_->getName());
+    QSFP_LOG(DBG2, this) << "Performing " << ((allPages) ? "full" : "partial")
+                         << " sfp data cache refresh for transceiver";
     readSff8472Field(Sff8472Field::PAGE_LOWER_A2, a2LowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
@@ -182,9 +181,7 @@ void Sff8472Module::updateQsfpData(bool allPages) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.
     dirty_ = true;
-    XLOG(ERR) << "Error update data for transceiver:"
-              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
-              << ex.what();
+    QSFP_LOG(ERR, this) << "Error update data: " << ex.what();
     throw;
   }
 }
@@ -218,10 +215,9 @@ bool Sff8472Module::getMediaInterfaceId(
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
     } else {
-      XLOG(ERR) << folly::sformat(
-          "Module {:s}, Unable to find MediaInterfaceCode for {:s}",
-          qsfpImpl_->getName(),
-          apache::thrift::util::enumNameSafe(ethernet10GCompliance));
+      QSFP_LOG(ERR, this) << "Unable to find MediaInterfaceCode for "
+                          << apache::thrift::util::enumNameSafe(
+                                 ethernet10GCompliance);
       mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
     }
     mediaInterface[lane].media() = media;
@@ -381,8 +377,7 @@ Vendor Sff8472Module::getVendorInfo() {
 }
 
 bool Sff8472Module::remediateFlakyTransceiver() {
-  XLOG(INFO) << "Performing potentially disruptive remediations on "
-             << qsfpImpl_->getName();
+  QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
   // This api accept 1 based module id however the module id in WedgeManager
   // is 0 based.

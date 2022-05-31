@@ -141,10 +141,9 @@ bool QsfpModule::detectPresence() {
 bool QsfpModule::detectPresenceLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
   if (currentQsfpStatus != present_) {
-    XLOG(DBG1) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
-               << " QSFP status changed from "
-               << (present_ ? "PRESENT" : "NOT PRESENT") << " to "
-               << (currentQsfpStatus ? "PRESENT" : "NOT PRESENT");
+    QSFP_LOG(DBG1, this) << "QSFP status changed from "
+                         << (present_ ? "PRESENT" : "NOT PRESENT") << " to "
+                         << (currentQsfpStatus ? "PRESENT" : "NOT PRESENT");
     dirty_ = true;
     present_ = currentQsfpStatus;
     moduleResetCounter_ = 0;
@@ -272,7 +271,7 @@ bool QsfpModule::shouldRefresh(time_t cooldown) const {
 
 void QsfpModule::ensureOutOfReset() const {
   qsfpImpl_->ensureOutOfReset();
-  XLOG(DBG3) << "Cleared the reset register of QSFP.";
+  QSFP_LOG(DBG3, this) << "Cleared the reset register of QSFP.";
 }
 
 void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
@@ -361,8 +360,7 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
     try {
       refresh();
     } catch (const std::exception& ex) {
-      XLOG(DBG2) << "Transceiver " << static_cast<int>(this->getID())
-                 << ": Error calling refresh(): " << ex.what();
+      QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
     }
     return folly::makeFuture();
   }
@@ -371,8 +369,7 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
     try {
       this->refresh();
     } catch (const std::exception& ex) {
-      XLOG(DBG2) << "Transceiver " << static_cast<int>(this->getID())
-                 << ": Error calling refresh(): " << ex.what();
+      QSFP_LOG(DBG2, this) << "Error calling refresh(): " << ex.what();
     }
   });
 }
@@ -449,8 +446,8 @@ void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
       laneStat.numLossOfLock() = 0;
       laneStat.timeSinceLastClear() = std::time(nullptr);
 
-      XLOG(INFO) << "Transceiver=" << qsfpImpl_->getName() << " Lane "
-                 << *laneStat.laneId() << " ber and maxBer cleared";
+      QSFP_LOG(INFO, this) << " Lane " << *laneStat.laneId()
+                           << " ber and maxBer cleared";
     }
   };
   if (side == phy::Side::SYSTEM) {
@@ -483,11 +480,10 @@ void QsfpModule::updatePrbsStats() {
             } else {
               newLane.maxBer() = *oldLane.maxBer();
             }
-            XLOG(DBG5) << "Transceiver=" << qsfpImpl_->getName() << " Lane "
-                       << *newLane.laneId()
-                       << " Lock=" << (*newLane.locked() ? "Y" : "N")
-                       << " ber=" << *newLane.ber()
-                       << " maxBer=" << *newLane.maxBer();
+            QSFP_LOG(DBG5, this)
+                << " Lane " << *newLane.laneId()
+                << " Lock=" << (*newLane.locked() ? "Y" : "N")
+                << " ber=" << *newLane.ber() << " maxBer=" << *newLane.maxBer();
 
             // Update timeSinceLastLocked
             // If previously there was no lock and now there is, update
@@ -565,8 +561,9 @@ bool QsfpModule::shouldRemediateLocked() {
         sysPrbsState.checkerEnabled().value()));
 
   if (linePrbsEnabled || sysPrbsEnabled) {
-    XLOG(INFO) << "Skipping remediation because PRBS is enabled. System: "
-               << sysPrbsEnabled << ", Line: " << linePrbsEnabled;
+    QSFP_LOG(INFO, this)
+        << "Skipping remediation because PRBS is enabled. System: "
+        << sysPrbsEnabled << ", Line: " << linePrbsEnabled;
     return false;
   }
 
@@ -615,7 +612,7 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
           speed, *settings.rateSelect(), *settings.rateSelectSetting());
     }
   } else {
-    XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
+    QSFP_LOG(DBG1, this) << "Customization not supported";
   }
 }
 
@@ -673,9 +670,7 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
     // Mark the valid data in the buffer
     iobuf->append(length);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error reading data for transceiver:"
-              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
-              << ex.what();
+    QSFP_LOG(ERR, this) << "Error reading data: " << ex.what();
     throw;
   }
   return iobuf;
@@ -724,9 +719,7 @@ bool QsfpModule::writeTransceiverLocked(
     qsfpImpl_->writeTransceiver(
         {TransceiverI2CApi::ADDR_QSFP, offset, sizeof(data)}, &data);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error writing data to transceiver:"
-              << folly::to<std::string>(qsfpImpl_->getName()) << ": "
-              << ex.what();
+    QSFP_LOG(ERR, this) << "Error writing data: " << ex.what();
     throw;
   }
   return true;
