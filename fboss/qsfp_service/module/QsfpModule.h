@@ -80,6 +80,8 @@ class QsfpModule : public Transceiver {
 
   TransceiverID getID() const override;
 
+  std::string getNameString() const;
+
   bool detectPresenceLocked();
 
   virtual void refresh() override;

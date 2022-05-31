@@ -43,6 +43,7 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
     gflags::SetCommandLineOptionWithMode(
         "customize_interval", "0", gflags::SET_FLAGS_DEFAULT);
 
+    EXPECT_EQ(transImpl_->getName().toString(), qsfp_->getNameString());
     // We're explicitly setting the value of the dirty bit, so fudge this
     EXPECT_CALL(*qsfp_, cacheIsValid()).WillRepeatedly(Return(true));
     EXPECT_CALL(*transImpl_, detectTransceiver()).WillRepeatedly(Return(true));

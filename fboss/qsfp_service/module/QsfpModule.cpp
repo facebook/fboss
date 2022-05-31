@@ -60,6 +60,10 @@ TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
 }
 
+std::string QsfpModule::getNameString() const {
+  return qsfpImpl_->getName().toString();
+}
+
 // Converts power from milliwatts to decibel-milliwatts
 double QsfpModule::mwToDb(double value) {
   if (value <= 0.01) {
