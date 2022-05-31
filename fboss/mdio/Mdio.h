@@ -218,15 +218,6 @@ class MdioController {
     return FullyLockedMdio(std::move(threadLock), lockFile_);
   }
 
-  // TODO (ccpowers): remove this as soon as we've stopped using the accton xphy
-  // code Same as fully_lock, but using 'new' so that we can delegate ownership
-  // of locks to C code that needs them (i.e the Accton xphy commands)
-  FullyLockedMdio* fully_lock_new() {
-    CHECK(lockFile_);
-    auto threadLock = io_.lock();
-    return new FullyLockedMdio(std::move(threadLock), lockFile_);
-  }
-
  private:
   int id_;
   IO rawIO_;
