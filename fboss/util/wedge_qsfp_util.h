@@ -7,6 +7,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
 #include <memory>
@@ -69,6 +70,11 @@ namespace facebook::fboss {
 struct FlagCommand {
   const std::string command;
   const std::vector<std::string> flags;
+};
+
+struct DirectI2cInfo {
+  TransceiverI2CApi* bus;
+  TransceiverManager* transceiverManager;
 };
 
 std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd);
@@ -138,9 +144,7 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
     const std::vector<int32_t>& ports,
     folly::EventBase& evb);
 
-DOMDataUnion fetchDataFromLocalI2CBus(
-    TransceiverI2CApi* bus,
-    unsigned int port);
+DOMDataUnion fetchDataFromLocalI2CBus(DirectI2cInfo i2cInfo, unsigned int port);
 
 folly::StringPiece sfpString(const uint8_t* buf, size_t offset, size_t len);
 
@@ -203,22 +207,22 @@ void cmisMediaInputLoopback(
     LoopbackMode mode);
 
 bool cliModulefirmwareUpgrade(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     unsigned int port,
     std::string firmwareFilename);
 bool cliModulefirmwareUpgrade(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::string portRangeStr,
     std::string firmwareFilename);
 
 void get_module_fw_info(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     unsigned int moduleA,
     unsigned int moduleB);
 
 void doCdbCommand(TransceiverI2CApi* bus, unsigned int module);
 
-bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port);
+bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port);
 
 bool getEepromCsumStatus(const DOMDataUnion& domDataUnion);
 

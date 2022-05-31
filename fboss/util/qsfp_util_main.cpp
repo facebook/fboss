@@ -87,9 +87,8 @@ int main(int argc, char* argv[]) {
   std::vector<unsigned int> ports;
   std::vector<std::string> portNames;
   bool good = true;
-  std::unique_ptr<WedgeManager> wedgeManager = nullptr;
+  std::unique_ptr<WedgeManager> wedgeManager = createWedgeManager();
   if (argc == 1) {
-    wedgeManager = createWedgeManager();
     folly::gen::range(0, wedgeManager->getNumQsfpModules()) |
         folly::gen::appendTo(ports);
   } else {
@@ -100,9 +99,6 @@ int main(int argc, char* argv[]) {
         if (argv[n][0] == 'x' && argv[n][1] == 'e') {
           portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
         } else if (isalpha(portStr[0])) {
-          if (!wedgeManager) {
-            wedgeManager = createWedgeManager();
-          }
           portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
           portNames.push_back(portStr);
         } else {
@@ -152,6 +148,7 @@ int main(int argc, char* argv[]) {
     return busAndError.second;
   }
   auto bus = std::move(busAndError.first);
+  auto i2cInfo = DirectI2cInfo{bus.get(), wedgeManager.get()};
 
   bool printInfo =
       !(FLAGS_clear_low_power || FLAGS_tx_disable || FLAGS_tx_enable ||
@@ -291,7 +288,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (FLAGS_vdm_info && printVdmInfo(bus.get(), portNum)) {
+    if (FLAGS_vdm_info && printVdmInfo(i2cInfo, portNum)) {
       printf("QSFP %d: printed module vdm info\n", portNum);
       return EX_OK;
     }
@@ -300,7 +297,7 @@ int main(int argc, char* argv[]) {
       try {
         // Get the port details from the direct i2c read and then print out the
         // i2c info from module
-        printPortDetail(fetchDataFromLocalI2CBus(bus.get(), portNum), portNum);
+        printPortDetail(fetchDataFromLocalI2CBus(i2cInfo, portNum), portNum);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
         fprintf(stderr, "Port %d: not present: %s\n", portNum, ex.what());
@@ -319,7 +316,7 @@ int main(int argc, char* argv[]) {
             "QSFP %d: Fail to upgrade firmware. Specify firmware using --firmware_filename\n",
             portNum);
       } else {
-        cliModulefirmwareUpgrade(bus.get(), portNum, FLAGS_firmware_filename);
+        cliModulefirmwareUpgrade(i2cInfo, portNum, FLAGS_firmware_filename);
       }
     }
 
@@ -367,9 +364,9 @@ int main(int argc, char* argv[]) {
           stderr,
           "Pl specify 1 module or 2 modules for the range: <ModuleA> <moduleB>\n");
     } else if (ports.size() == 1) {
-      get_module_fw_info(bus.get(), ports[0], ports[0]);
+      get_module_fw_info(i2cInfo, ports[0], ports[0]);
     } else {
-      get_module_fw_info(bus.get(), ports[0], ports[1]);
+      get_module_fw_info(i2cInfo, ports[0], ports[1]);
     }
   }
 
@@ -397,7 +394,7 @@ int main(int argc, char* argv[]) {
     }
 
     cliModulefirmwareUpgrade(
-        bus.get(), FLAGS_port_range, FLAGS_firmware_filename);
+        i2cInfo, FLAGS_port_range, FLAGS_firmware_filename);
   }
 
   return retcode;

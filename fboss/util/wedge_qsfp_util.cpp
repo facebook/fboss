@@ -921,14 +921,14 @@ std::map<int32_t, TransceiverInfo> fetchInfoFromQsfpService(
 }
 
 DOMDataUnion fetchDataFromLocalI2CBus(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     unsigned int port) {
   // port is 1 based and WedgeQsfp is 0 based.
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, bus);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-    auto cmisModule =
-        std::make_unique<CmisModule>(nullptr, std::move(qsfpImpl));
+    auto cmisModule = std::make_unique<CmisModule>(
+        i2cInfo.transceiverManager, std::move(qsfpImpl));
     try {
       cmisModule->refresh();
     } catch (FbossError& e) {
@@ -938,7 +938,8 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     }
     return cmisModule->getDOMDataUnion();
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
-    auto sffModule = std::make_unique<SffModule>(nullptr, std::move(qsfpImpl));
+    auto sffModule = std::make_unique<SffModule>(
+        i2cInfo.transceiverManager, std::move(qsfpImpl));
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {
@@ -2314,7 +2315,7 @@ std::vector<int> getPidForProcess(std::string proccessName) {
  * CDB based firnware upgrade
  */
 bool cliModulefirmwareUpgrade(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     unsigned int port,
     std::string firmwareFilename) {
   // If the qsfp_service is running then this firmware upgrade command is most
@@ -2328,12 +2329,12 @@ bool cliModulefirmwareUpgrade(
     return false;
   }
 
-  auto domData = fetchDataFromLocalI2CBus(bus, port);
+  auto domData = fetchDataFromLocalI2CBus(i2cInfo, port);
   CmisData cmisData = domData.get_cmis();
   auto dataUpper = cmisData.page0()->data();
 
   // Confirm module type is CMIS
-  auto moduleType = getModuleType(bus, port);
+  auto moduleType = getModuleType(i2cInfo.bus, port);
   if (moduleType != TransceiverManagementInterface::CMIS) {
     // If device can't be determined as cmis then check page 0 register 128 also
     // to identify its type as in some case corrupted image wipes out all lower
@@ -2388,8 +2389,8 @@ bool cliModulefirmwareUpgrade(
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
 
-  auto fwUpgradeObj =
-      std::make_unique<CmisFirmwareUpgrader>(bus, port, std::move(fbossFwObj));
+  auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
+      i2cInfo.bus, port, std::move(fbossFwObj));
 
   // Do the standalone upgrade in the same process as wedge_qsfp_util
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
@@ -2420,7 +2421,7 @@ bool cliModulefirmwareUpgrade(
  * threads to finish.
  */
 bool cliModulefirmwareUpgrade(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::string portRangeStr,
     std::string firmwareFilename) {
   std::vector<std::thread> threadList;
@@ -2436,8 +2437,8 @@ bool cliModulefirmwareUpgrade(
   std::vector<unsigned int> modlist = portRangeStrToPortList(portRangeStr);
 
   // Get the list of all the modules where upgrade can be done
-  std::vector<unsigned int> finalModlist =
-      getUpgradeModList(bus, modlist, FLAGS_module_type, FLAGS_fw_version);
+  std::vector<unsigned int> finalModlist = getUpgradeModList(
+      i2cInfo.bus, modlist, FLAGS_module_type, FLAGS_fw_version);
 
   // Get the modules per controller (platform specific)
   int modsPerController = getModulesPerController();
@@ -2466,7 +2467,7 @@ bool cliModulefirmwareUpgrade(
   } else {
     // Image header length is not provided by user. Try to get it from known
     // module info frm first module in the list
-    auto domData = fetchDataFromLocalI2CBus(bus, bucket[0][0]);
+    auto domData = fetchDataFromLocalI2CBus(i2cInfo, bucket[0][0]);
     CmisData cmisData = domData.get_cmis();
     auto dataUpper = cmisData.page0()->data();
 
@@ -2492,7 +2493,11 @@ bool cliModulefirmwareUpgrade(
   // Create threads one for each bucket row and do the upgrade there
   for (auto& bucketrow : bucket) {
     std::thread tHandler(
-        fwUpgradeThreadHandler, bus, bucketrow, firmwareFilename, imageHdrLen);
+        fwUpgradeThreadHandler,
+        i2cInfo.bus,
+        bucketrow,
+        firmwareFilename,
+        imageHdrLen);
     threadList.push_back(std::move(tHandler));
   }
 
@@ -2759,7 +2764,7 @@ std::vector<unsigned int> portRangeStrToPortList(std::string portQualifier) {
  * 84         FINISAR CORP.        FTCC1112E1PLL-FB     7.8
  */
 void get_module_fw_info(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     unsigned int moduleA,
     unsigned int moduleB) {
   if (moduleA > moduleB) {
@@ -2775,16 +2780,16 @@ void get_module_fw_info(
     std::array<uint8_t, 16> partNo;
     std::array<uint8_t, 2> fwVer;
 
-    if (!bus->isPresent(module)) {
+    if (!i2cInfo.bus->isPresent(module)) {
       continue;
     }
 
-    auto moduleType = getModuleType(bus, module);
+    auto moduleType = getModuleType(i2cInfo.bus, module);
     if (moduleType != TransceiverManagementInterface::CMIS) {
       continue;
     }
 
-    DOMDataUnion tempDomData = fetchDataFromLocalI2CBus(bus, module);
+    DOMDataUnion tempDomData = fetchDataFromLocalI2CBus(i2cInfo, module);
     CmisData cmisData = tempDomData.get_cmis();
     auto dataLower = cmisData.lower()->data();
     auto dataUpper = cmisData.page0()->data();
@@ -2876,7 +2881,7 @@ void doCdbCommand(TransceiverI2CApi* bus, unsigned int module) {
  * (2 bytes per config entry) and the VDM values are present in page 24 (2
  * bytes value).
  */
-bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
+bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
   DOMDataUnion domDataUnion;
 
   printf("Displaying VDM info for module %d:\n", port);
@@ -2897,7 +2902,7 @@ bool printVdmInfo(TransceiverI2CApi* bus, unsigned int port) {
   } else {
     // Read the optics data directly from this process
     try {
-      domDataUnion = fetchDataFromLocalI2CBus(bus, port);
+      domDataUnion = fetchDataFromLocalI2CBus(i2cInfo, port);
     } catch (const std::exception& ex) {
       fprintf(stderr, "error reading QSFP data %u: %s\n", port, ex.what());
       return false;
