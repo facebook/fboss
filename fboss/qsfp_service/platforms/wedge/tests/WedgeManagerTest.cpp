@@ -317,4 +317,90 @@ TEST_F(WedgeManagerTest, sfpMgmtInterfaceDetectionTest) {
     EXPECT_EQ(module.second, TransceiverManagementInterface::SFF8472);
   }
 }
+
+TEST_F(WedgeManagerTest, hardResetUnknownMgmtInterfaceTransceiverDuringInit) {
+  transceiverManager_->setReadException(
+      true /* throwReadExceptionForMgmtInterface */,
+      false /* throwReadExceptionForDomQuery */);
+  auto xcvrImpl = static_cast<MockTransceiverPlatformApi*>(
+      transceiverManager_->getQsfpPlatformApi());
+  // Because we didn't cache the software port yet, areAllPortsDown() will
+  // return false to avoid hard resetting a transceiver when we don't know
+  // whether the ports are up or not.
+  EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset(1)).Times(0);
+  transceiverManager_->refreshStateMachines();
+}
+
+TEST_F(
+    WedgeManagerTest,
+    hardResetUnknownMgmtInterfaceTransceiverAfterProgrammed) {
+  auto xcvrID = TransceiverID(0);
+  // Set override iphy info so that we can pass PROGRAM_IPHY event
+  TransceiverManager::OverrideTcvrToPortAndProfile oneTcvrTo4X25G = {
+      {xcvrID,
+       {
+           {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+           {PortID(4), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+       }}};
+  auto verify = [this, &xcvrID, &oneTcvrTo4X25G](bool isPortUp) {
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        oneTcvrTo4X25G);
+    // First state machine refresh to trigger PROGRAM_IPHY
+    transceiverManager_->refreshStateMachines();
+    // Second state machine refresh to trigger PROGRAM_TRANSCEIVER
+    transceiverManager_->refreshStateMachines();
+    // Override port status
+    transceiverManager_->setOverrideAgentPortStatusForTesting(
+        isPortUp /* up */, true /* enabled */, false /* clearOnly */);
+    // Thrid state machine refresh to trigger PORT_UP or ALL_PORTS_DOWN
+    transceiverManager_->refreshStateMachines();
+    auto expectedState = isPortUp ? TransceiverStateMachineState::ACTIVE
+                                  : TransceiverStateMachineState::INACTIVE;
+    auto curState = transceiverManager_->getCurrentState(xcvrID);
+    EXPECT_EQ(curState, expectedState)
+        << "Transceiver=0 state doesn't match state expected="
+        << apache::thrift::util::enumNameSafe(expectedState)
+        << ", actual=" << apache::thrift::util::enumNameSafe(curState);
+
+    // Now set module read exception to mimic the case that we can't read the
+    // management interface type for the module
+    transceiverManager_->setReadException(
+        true /* throwReadExceptionForMgmtInterface */,
+        false /* throwReadExceptionForDomQuery */);
+    auto xcvrImpl = static_cast<MockTransceiverPlatformApi*>(
+        transceiverManager_->getQsfpPlatformApi());
+    // Because areAllPortsDown() will return false due to the previous port
+    // programming and status updating, we should expect there won't be any hard
+    // resetting on this transceiver.
+    EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset(1)).Times(!isPortUp);
+    transceiverManager_->refreshStateMachines();
+    curState = transceiverManager_->getCurrentState(xcvrID);
+    // If some port is up, the state machine will stay ACTIVE; otherwise, the
+    // WedgeManager::updateTransceiverMap() will remove the old QsfpModule,
+    // and the refreshStateMachines() will trigger PROGRAM_IPHY again
+    expectedState = isPortUp
+        ? TransceiverStateMachineState::ACTIVE
+        : TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
+    EXPECT_EQ(curState, expectedState)
+        << "Transceiver=0 state doesn't match state expected="
+        << apache::thrift::util::enumNameSafe(expectedState)
+        << ", actual=" << apache::thrift::util::enumNameSafe(curState);
+    transceiverManager_->setReadException(
+        false /* throwReadExceptionForMgmtInterface */,
+        false /* throwReadExceptionForDomQuery */);
+  };
+
+  // First verify there WILL NOT be a hard reset if such transceiver is
+  // programmed and some ports are up
+  verify(true /* isPortUp */);
+  // Delete the existing wedge manager and create a new one
+  resetTransceiverManager();
+  transceiverManager_->init();
+  XLOG(INFO) << "[DEBUG] Now verifying when all ports are down";
+  // Then verify there WILL be a hard reset if such transceiver is programmed
+  // and all ports are down
+  verify(false /* isPortUp */);
+}
 } // namespace facebook::fboss
