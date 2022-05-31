@@ -127,6 +127,11 @@ NodeMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
+NodeMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {
+  return NodeMapDelta<TransceiverMap>(
+      old_->getTransceivers().get(), new_->getTransceivers().get());
+}
+
 ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
   return ForwardingInformationBaseMapDelta(
       old_->getFibs().get(), new_->getFibs().get());
@@ -194,6 +199,7 @@ template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<LoadBalancerMap>;
 template class NodeMapDelta<MirrorMap>;
+template class NodeMapDelta<TransceiverMap>;
 template class NodeMapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseContainerDelta>;

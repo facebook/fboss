@@ -32,6 +32,7 @@
 
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
 namespace facebook::fboss {
@@ -77,6 +78,7 @@ class StateDelta {
   NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
   NodeMapDelta<MirrorMap> getMirrorsDelta() const;
+  NodeMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
   NodeMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
