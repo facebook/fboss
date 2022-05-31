@@ -23,18 +23,19 @@ constexpr auto kMediaInterface = "mediaInterface";
 constexpr auto kManagementInterface = "managementInterface";
 } // namespace
 
-state::TransceiverFields TransceiverFields::toThrift() const {
+state::TransceiverSpecFields TransceiverSpecFields::toThrift() const {
   return data;
 }
 
-TransceiverFields TransceiverFields::fromThrift(
-    state::TransceiverFields const& tcvrThrift) {
-  TransceiverFields tcvrFields(TransceiverID(*tcvrThrift.id()));
+TransceiverSpecFields TransceiverSpecFields::fromThrift(
+    state::TransceiverSpecFields const& tcvrThrift) {
+  TransceiverSpecFields tcvrFields(TransceiverID(*tcvrThrift.id()));
   tcvrFields.data = tcvrThrift;
   return tcvrFields;
 }
 
-folly::dynamic TransceiverFields::migrateToThrifty(const folly::dynamic& dyn) {
+folly::dynamic TransceiverSpecFields::migrateToThrifty(
+    const folly::dynamic& dyn) {
   folly::dynamic newDyn = dyn;
 
   ThriftyUtils::changeEnumToInt<MediaInterfaceCode>(newDyn, kMediaInterface);
@@ -44,7 +45,7 @@ folly::dynamic TransceiverFields::migrateToThrifty(const folly::dynamic& dyn) {
   return newDyn;
 }
 
-void TransceiverFields::migrateFromThrifty(folly::dynamic& dyn) {
+void TransceiverSpecFields::migrateFromThrifty(folly::dynamic& dyn) {
   ThriftyUtils::changeEnumToString<facebook::fboss::MediaInterfaceCode>(
       dyn, kMediaInterface);
   ThriftyUtils::changeEnumToString<
@@ -52,7 +53,7 @@ void TransceiverFields::migrateFromThrifty(folly::dynamic& dyn) {
       dyn, kManagementInterface);
 }
 
-folly::dynamic TransceiverFields::toFollyDynamicLegacy() const {
+folly::dynamic TransceiverSpecFields::toFollyDynamicLegacy() const {
   folly::dynamic tcvr = folly::dynamic::object;
   tcvr[kTransceiverID] = static_cast<uint32_t>(*data.id());
   if (auto cableLength = data.cableLength()) {
@@ -61,7 +62,8 @@ folly::dynamic TransceiverFields::toFollyDynamicLegacy() const {
   if (auto mediaInterface = data.mediaInterface()) {
     auto mediaInterfaceStr = apache::thrift::util::enumName(*mediaInterface);
     if (mediaInterfaceStr == nullptr) {
-      throw FbossError("Invalid MediaInterface for Transceiver:", *data.id());
+      throw FbossError(
+          "Invalid MediaInterface for TransceiverSpec:", *data.id());
     }
     tcvr[kMediaInterface] = mediaInterfaceStr;
   }
@@ -70,16 +72,16 @@ folly::dynamic TransceiverFields::toFollyDynamicLegacy() const {
         apache::thrift::util::enumName(*managementInterface);
     if (managementInterfaceStr == nullptr) {
       throw FbossError(
-          "Invalid ManagementInterface for Transceiver:", *data.id());
+          "Invalid ManagementInterface for TransceiverSpec:", *data.id());
     }
     tcvr[kManagementInterface] = managementInterfaceStr;
   }
   return tcvr;
 }
 
-TransceiverFields TransceiverFields::fromFollyDynamicLegacy(
+TransceiverSpecFields TransceiverSpecFields::fromFollyDynamicLegacy(
     const folly::dynamic& tcvrJson) {
-  TransceiverFields tcvr(TransceiverID(tcvrJson[kTransceiverID].asInt()));
+  TransceiverSpecFields tcvr(TransceiverID(tcvrJson[kTransceiverID].asInt()));
   if (const auto& value = tcvrJson.find(kCableLength);
       value != tcvrJson.items().end()) {
     tcvr.data.cableLength() = value->second.asDouble();
@@ -101,14 +103,14 @@ TransceiverFields TransceiverFields::fromFollyDynamicLegacy(
   return tcvr;
 }
 
-Transceiver::Transceiver(TransceiverID id) : ThriftyBaseT(id) {}
+TransceiverSpec::TransceiverSpec(TransceiverID id) : ThriftyBaseT(id) {}
 
-std::shared_ptr<Transceiver> Transceiver::createPresentTransceiver(
+std::shared_ptr<TransceiverSpec> TransceiverSpec::createPresentTransceiver(
     const TransceiverInfo& tcvrInfo) {
-  std::shared_ptr<Transceiver> newTransceiver;
+  std::shared_ptr<TransceiverSpec> newTransceiver;
   if (*tcvrInfo.present()) {
     newTransceiver =
-        std::make_shared<Transceiver>(TransceiverID(*tcvrInfo.port()));
+        std::make_shared<TransceiverSpec>(TransceiverID(*tcvrInfo.port()));
     if (tcvrInfo.cable() && tcvrInfo.cable()->length()) {
       newTransceiver->setCableLength(*tcvrInfo.cable()->length());
     }
@@ -124,14 +126,14 @@ std::shared_ptr<Transceiver> Transceiver::createPresentTransceiver(
   return newTransceiver;
 }
 
-bool Transceiver::operator==(const Transceiver& tcvr) const {
+bool TransceiverSpec::operator==(const TransceiverSpec& tcvr) const {
   return getID() == tcvr.getID() && getCableLength() == tcvr.getCableLength() &&
       getMediaInterface() == tcvr.getMediaInterface() &&
       getManagementInterface() == tcvr.getManagementInterface();
 }
 
 cfg::PlatformPortConfigOverrideFactor
-Transceiver::toPlatformPortConfigOverrideFactor() const {
+TransceiverSpec::toPlatformPortConfigOverrideFactor() const {
   cfg::PlatformPortConfigOverrideFactor factor;
   if (auto cableLength = getCableLength()) {
     factor.cableLengths() = {*cableLength};
@@ -146,7 +148,7 @@ Transceiver::toPlatformPortConfigOverrideFactor() const {
 }
 
 template class ThriftyBaseT<
-    state::TransceiverFields,
-    Transceiver,
-    TransceiverFields>;
+    state::TransceiverSpecFields,
+    TransceiverSpec,
+    TransceiverSpecFields>;
 } // namespace facebook::fboss

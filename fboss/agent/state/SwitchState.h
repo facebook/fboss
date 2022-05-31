@@ -424,7 +424,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
   void resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg);
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
-  void addTransceiver(const std::shared_ptr<Transceiver>& transceiver);
+  void addTransceiver(const std::shared_ptr<TransceiverSpec>& transceiver);
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
 
   void publish() override {

@@ -19,7 +19,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-using TransceiverMapTraits = NodeMapTraits<TransceiverID, Transceiver>;
+using TransceiverMapTraits = NodeMapTraits<TransceiverID, TransceiverSpec>;
 
 /*
  * A container for all the present Transceivers
@@ -28,20 +28,21 @@ class TransceiverMap
     : public ThriftyNodeMapT<
           TransceiverMap,
           TransceiverMapTraits,
-          ThriftyNodeMapTraits<int16_t, state::TransceiverFields>> {
+          ThriftyNodeMapTraits<int16_t, state::TransceiverSpecFields>> {
  public:
   TransceiverMap();
   ~TransceiverMap() override;
 
-  const std::shared_ptr<Transceiver>& getTransceiver(TransceiverID id) const {
+  const std::shared_ptr<TransceiverSpec>& getTransceiver(
+      TransceiverID id) const {
     return getNode(id);
   }
-  std::shared_ptr<Transceiver> getTransceiverIf(TransceiverID id) const {
+  std::shared_ptr<TransceiverSpec> getTransceiverIf(TransceiverID id) const {
     return getNodeIf(id);
   }
 
-  void addTransceiver(const std::shared_ptr<Transceiver>& tcvr);
-  void updateTransceiver(const std::shared_ptr<Transceiver>& tcvr);
+  void addTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
+  void updateTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
   void removeTransceiver(TransceiverID id);
 
   TransceiverMap* modify(std::shared_ptr<SwitchState>* state);

@@ -1307,7 +1307,7 @@ void ThriftHandler::programInternalPhyPorts(
   }
 
   TransceiverID tcvrID = TransceiverID(id);
-  auto newTransceiver = Transceiver::createPresentTransceiver(*transceiver);
+  auto newTransceiver = TransceiverSpec::createPresentTransceiver(*transceiver);
 
   const auto tcvr =
       sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);

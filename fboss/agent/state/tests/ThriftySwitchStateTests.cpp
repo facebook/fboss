@@ -124,8 +124,8 @@ TEST(ThriftySwitchState, AclMap) {
 }
 
 TEST(ThriftySwitchState, TransceiverMap) {
-  auto transceiver1 = std::make_shared<Transceiver>(TransceiverID(1));
-  auto transceiver2 = std::make_shared<Transceiver>(TransceiverID(2));
+  auto transceiver1 = std::make_shared<TransceiverSpec>(TransceiverID(1));
+  auto transceiver2 = std::make_shared<TransceiverSpec>(TransceiverID(2));
 
   auto transceiverMap = std::make_shared<TransceiverMap>();
   transceiverMap->addTransceiver(transceiver1);

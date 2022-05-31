@@ -18,29 +18,29 @@
 
 using namespace facebook::fboss;
 
-TEST(Transceiver, SerializeTransceiver) {
-  auto tcvr = std::make_unique<Transceiver>(TransceiverID(1));
+TEST(TransceiverSpec, SerializeTransceiver) {
+  auto tcvr = std::make_unique<TransceiverSpec>(TransceiverID(1));
   tcvr->setCableLength(3.5);
   tcvr->setMediaInterface(MediaInterfaceCode::FR1_100G);
   tcvr->setManagementInterface(TransceiverManagementInterface::SFF);
 
   auto serialized = tcvr->toFollyDynamic();
-  auto tcvrBack = Transceiver::fromFollyDynamic(serialized);
+  auto tcvrBack = TransceiverSpec::fromFollyDynamic(serialized);
 
   EXPECT_TRUE(*tcvr == *tcvrBack);
   validateThriftyMigration(*tcvr);
 }
 
-TEST(Transceiver, SerializeSwitchState) {
+TEST(TransceiverSpec, SerializeSwitchState) {
   auto platform = createMockPlatform();
   auto state = std::make_shared<SwitchState>();
 
-  auto tcvr1 = std::make_shared<Transceiver>(TransceiverID(1));
+  auto tcvr1 = std::make_shared<TransceiverSpec>(TransceiverID(1));
   tcvr1->setCableLength(3.5);
   tcvr1->setMediaInterface(MediaInterfaceCode::FR1_100G);
   tcvr1->setManagementInterface(TransceiverManagementInterface::SFF);
 
-  auto tcvr2 = std::make_shared<Transceiver>(TransceiverID(2));
+  auto tcvr2 = std::make_shared<TransceiverSpec>(TransceiverID(2));
   tcvr2->setCableLength(1.5);
   tcvr2->setMediaInterface(MediaInterfaceCode::CWDM4_100G);
   tcvr2->setManagementInterface(TransceiverManagementInterface::CMIS);
@@ -67,8 +67,8 @@ TEST(TransceiverMap, addTransceiver) {
   EXPECT_EQ(0, transceiverMap->getGeneration());
   EXPECT_FALSE(transceiverMap->isPublished());
 
-  auto transceiver1 = std::make_shared<Transceiver>(TransceiverID(1));
-  auto transceiver2 = std::make_shared<Transceiver>(TransceiverID(2));
+  auto transceiver1 = std::make_shared<TransceiverSpec>(TransceiverID(1));
+  auto transceiver2 = std::make_shared<TransceiverSpec>(TransceiverID(2));
 
   transceiverMap->addTransceiver(transceiver1);
   transceiverMap->addTransceiver(transceiver2);
@@ -78,12 +78,13 @@ TEST(TransceiverMap, addTransceiver) {
   EXPECT_EQ(TransceiverID(1), gotTransceiver1->getID());
   EXPECT_EQ(TransceiverID(2), gotTransceiver2->getID());
 
-  auto anotherTransceiver2 = std::make_shared<Transceiver>(TransceiverID(2));
+  auto anotherTransceiver2 =
+      std::make_shared<TransceiverSpec>(TransceiverID(2));
   // Attempting to register a duplicate transceiver ID should fail
   EXPECT_THROW(transceiverMap->addTransceiver(anotherTransceiver2), FbossError);
 
   // Registering non-sequential IDs should work
-  auto transceiver10 = std::make_shared<Transceiver>(TransceiverID(10));
+  auto transceiver10 = std::make_shared<TransceiverSpec>(TransceiverID(10));
   transceiverMap->addTransceiver(transceiver10);
   auto gotTransceiver10 = transceiverMap->getTransceiver(TransceiverID(10));
   EXPECT_EQ(TransceiverID(10), gotTransceiver10->getID());
@@ -105,7 +106,7 @@ TEST(TransceiverMap, addTransceiver) {
 
   // Attempting to add new transceivers after the TransceiverMap has been
   // published should crash.
-  auto transceiver3 = std::make_shared<Transceiver>(TransceiverID(3));
+  auto transceiver3 = std::make_shared<TransceiverSpec>(TransceiverID(3));
   ASSERT_DEATH(
       transceiverMap->addTransceiver(transceiver3),
       "Check failed: !isPublished()");

@@ -404,7 +404,7 @@ void SwitchState::resetForwardingInformationBases(
 }
 
 void SwitchState::addTransceiver(
-    const std::shared_ptr<Transceiver>& transceiver) {
+    const std::shared_ptr<TransceiverSpec>& transceiver) {
   auto* fields = writableFields();
   // For ease-of-use, automatically clone the TransceiverMap if we are still
   // pointing to a published map.
@@ -450,7 +450,7 @@ std::shared_ptr<SwitchState> SwitchState::modifyTransceivers(
   bool changed = false;
   for (const auto& tcvrInfo : currentTcvrs) {
     auto origTcvr = origTcvrs->getTransceiverIf(tcvrInfo.first);
-    auto newTcvr = Transceiver::createPresentTransceiver(tcvrInfo.second);
+    auto newTcvr = TransceiverSpec::createPresentTransceiver(tcvrInfo.second);
     if (!newTcvr) {
       // If the transceiver used to be present but now was removed
       changed |= (origTcvr != nullptr);

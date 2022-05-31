@@ -19,36 +19,37 @@
 
 namespace facebook::fboss {
 
-struct TransceiverFields
-    : public BetterThriftyFields<TransceiverFields, state::TransceiverFields> {
-  explicit TransceiverFields(TransceiverID id) {
+struct TransceiverSpecFields : public BetterThriftyFields<
+                                   TransceiverSpecFields,
+                                   state::TransceiverSpecFields> {
+  explicit TransceiverSpecFields(TransceiverID id) {
     *data.id() = id;
   }
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  state::TransceiverFields toThrift() const;
-  static TransceiverFields fromThrift(
-      state::TransceiverFields const& tcvrThrift);
+  state::TransceiverSpecFields toThrift() const;
+  static TransceiverSpecFields fromThrift(
+      state::TransceiverSpecFields const& tcvrThrift);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
   folly::dynamic toFollyDynamicLegacy() const;
-  static TransceiverFields fromFollyDynamicLegacy(
+  static TransceiverSpecFields fromFollyDynamicLegacy(
       const folly::dynamic& tcvrJson);
 };
 
 /*
- * Transceiver stores state about one of the Present Transceiver entries on the
- * switch. Mainly use it as a reference to program Port.
+ * TransceiverSpec stores state about one of the Present TransceiverSpec entries
+ * on the switch. Mainly use it as a reference to program Port.
  */
-class Transceiver : public ThriftyBaseT<
-                        state::TransceiverFields,
-                        Transceiver,
-                        TransceiverFields> {
+class TransceiverSpec : public ThriftyBaseT<
+                            state::TransceiverSpecFields,
+                            TransceiverSpec,
+                            TransceiverSpecFields> {
  public:
-  explicit Transceiver(TransceiverID id);
-  static std::shared_ptr<Transceiver> createPresentTransceiver(
+  explicit TransceiverSpec(TransceiverID id);
+  static std::shared_ptr<TransceiverSpec> createPresentTransceiver(
       const TransceiverInfo& tcvrInfo);
 
   cfg::PlatformPortConfigOverrideFactor toPlatformPortConfigOverrideFactor()
@@ -80,15 +81,17 @@ class Transceiver : public ThriftyBaseT<
     writableFields()->data.managementInterface() = managementInterface;
   }
 
-  bool operator==(const Transceiver& tcvr) const;
-  bool operator!=(const Transceiver& tcvr) const {
+  bool operator==(const TransceiverSpec& tcvr) const;
+  bool operator!=(const TransceiverSpec& tcvr) const {
     return !(*this == tcvr);
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<state::TransceiverFields, Transceiver, TransceiverFields>::
-      ThriftyBaseT;
+  using ThriftyBaseT<
+      state::TransceiverSpecFields,
+      TransceiverSpec,
+      TransceiverSpecFields>::ThriftyBaseT;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss

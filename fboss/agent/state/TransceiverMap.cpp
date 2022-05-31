@@ -19,12 +19,13 @@ TransceiverMap::TransceiverMap() {}
 
 TransceiverMap::~TransceiverMap() {}
 
-void TransceiverMap::addTransceiver(const std::shared_ptr<Transceiver>& tcvr) {
+void TransceiverMap::addTransceiver(
+    const std::shared_ptr<TransceiverSpec>& tcvr) {
   addNode(tcvr);
 }
 
 void TransceiverMap::updateTransceiver(
-    const std::shared_ptr<Transceiver>& tcvr) {
+    const std::shared_ptr<TransceiverSpec>& tcvr) {
   updateNode(tcvr);
 }
 

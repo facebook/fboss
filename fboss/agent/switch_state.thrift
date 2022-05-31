@@ -97,7 +97,7 @@ struct PortFields {
   29: optional list<phy.PinConfig> linePinConfigs;
 }
 
-struct TransceiverFields {
+struct TransceiverSpecFields {
   1: required i16 id;
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
@@ -223,6 +223,6 @@ struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
   3: map<string, AclEntryFields> aclMap;
-  4: map<i16, TransceiverFields> transceiverMap;
+  4: map<i16, TransceiverSpecFields> transceiverMap;
   5: map<string, BufferPoolFields> bufferPoolCfgMap;
 }

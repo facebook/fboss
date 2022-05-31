@@ -210,7 +210,7 @@ class ThriftConfigApplier {
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
-      const std::shared_ptr<Transceiver>& transceiver);
+      const std::shared_ptr<TransceiverSpec>& transceiver);
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
       const std::vector<cfg::PortQueue>& cfgPortQueues,
@@ -794,7 +794,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     auto origPort = origPorts->getPortIf(id);
     std::shared_ptr<Port> newPort;
     // Find present Transceiver if it exists in TransceiverMap
-    std::shared_ptr<Transceiver> transceiver;
+    std::shared_ptr<TransceiverSpec> transceiver;
     if (auto tcvrID = platform_->getPlatformPort(id)->getTransceiverID()) {
       transceiver = transceiverMap->getTransceiverIf(*tcvrID);
     }
@@ -1206,7 +1206,7 @@ void ThriftConfigApplier::validateUpdatePgBufferPoolName(
 shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<Port>& orig,
     const cfg::Port* portConf,
-    const shared_ptr<Transceiver>& transceiver) {
+    const shared_ptr<TransceiverSpec>& transceiver) {
   CHECK_EQ(orig->getID(), PortID(*portConf->logicalID()));
 
   auto vlans = portVlans_[orig->getID()];
