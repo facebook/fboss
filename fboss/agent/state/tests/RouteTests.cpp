@@ -254,6 +254,32 @@ TEST(Route, serializeRouteCounterID) {
   EXPECT_EQ(rt2->getForwardInfo().getCounterID(), counterID);
 }
 
+// Serialization/deseralization of Routes with counterID
+TEST(Route, serializeRouteClassID) {
+  ClientID clientId = ClientID(1);
+  auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
+  std::optional<cfg::AclLookupClass> classID(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
+  Route<IPAddressV4> rt(
+      makePrefixV4("1.2.3.4/32"),
+      clientId,
+      RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
+  rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
+
+  // to folly dynamic
+  folly::dynamic obj = rt.toFollyDynamic();
+  // to string
+  folly::json::serialization_opts serOpts;
+  serOpts.allow_non_string_keys = true;
+  std::string json = folly::json::serialize(obj, serOpts);
+  // back to folly dynamic
+  folly::dynamic obj2 = folly::parseJson(json, serOpts);
+  // back to Route object
+  auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
+  EXPECT_EQ(rt2->getEntryForClient(clientId)->getClassID(), classID);
+  EXPECT_EQ(rt2->getForwardInfo().getClassID(), classID);
+}
+
 // Test utility functions for converting RouteNextHopSet to thrift and back
 TEST(RouteTypes, toFromRouteNextHops) {
   RouteNextHopSet nhs;
