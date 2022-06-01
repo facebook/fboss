@@ -17,7 +17,7 @@ using namespace facebook::fboss::platform;
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
-DEFINE_int32(port, 7910, "Port for the thrift service");
+DEFINE_int32(port, 5973, "Port for the thrift service");
 
 int main(int argc, char** argv) {
   // Init FB and export build values
