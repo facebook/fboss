@@ -2516,3 +2516,54 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
   verifyCounter(RouteForwardAction::DROP);
   verifyCounter(RouteForwardAction::TO_CPU);
 }
+
+TEST_F(RouteTest, ClassIDTest) {
+  auto u1 = this->sw_->getRouteUpdater();
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+
+  RouteNextHopSet nexthops1 =
+      makeResolvedNextHops({{InterfaceID(1), "1.1.1.1"}});
+
+  // Add route with class id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, std ::nullopt, kClassID1));
+  u1.program();
+
+  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getClassID(), kClassID1);
+  EXPECT_EQ(rt10->getForwardInfo().getClassID(), kClassID1);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getClassID(), kClassID1);
+
+  // Modify class id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt, kClassID2));
+  u1.program();
+
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getClassID(), kClassID2);
+  EXPECT_EQ(rt10->getForwardInfo().getClassID(), kClassID2);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getClassID(), kClassID2);
+
+  // Modify route to remove class id
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.10"),
+      32,
+      kClientA,
+      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt, std::nullopt));
+  u1.program();
+
+  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  EXPECT_EQ(rt10->getClassID(), std::nullopt);
+  EXPECT_EQ(rt10->getForwardInfo().getClassID(), std::nullopt);
+  EXPECT_EQ(rt10->getEntryForClient(kClientA)->getClassID(), std::nullopt);
+}
