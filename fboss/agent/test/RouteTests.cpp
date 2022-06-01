@@ -74,6 +74,11 @@ const ClientID kClientB = ClientID(2001);
 const std::optional<RouteCounterID> kCounterID1("route.counter.0");
 const std::optional<RouteCounterID> kCounterID2("route.counter.1");
 
+const std::optional<cfg::AclLookupClass> kClassID1(
+    cfg::AclLookupClass::DST_CLASS_L3_DPR);
+const std::optional<cfg::AclLookupClass> kClassID2(
+    cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
 const RouterID kRid0 = RouterID(0);
@@ -254,15 +259,18 @@ TEST_F(RouteTest, routeApi) {
     EXPECT_EQ(std::nullopt, route.getEntryForClient(kClientA)->getCounterID());
     EXPECT_EQ(std::nullopt, route.getEntryForClient(kClientB)->getCounterID());
     RouteNextHopEntry nhopEntry3(
-        makeNextHops({"1.1.1.1"}), EBGP_DISTANCE, kCounterID1);
+        makeNextHops({"1.1.1.1"}), EBGP_DISTANCE, kCounterID1, kClassID1);
     RouteNextHopEntry nhopEntry4(
-        makeNextHops({"2.2.2.2"}), EBGP_DISTANCE, kCounterID2);
+        makeNextHops({"2.2.2.2"}), EBGP_DISTANCE, kCounterID2, kClassID2);
     route.update(kClientA, nhopEntry3);
     route.update(kClientB, nhopEntry4);
     route.setResolved(nhopEntry3);
     EXPECT_EQ(kCounterID1, route.getForwardInfo().getCounterID());
     EXPECT_EQ(kCounterID1, route.getEntryForClient(kClientA)->getCounterID());
     EXPECT_EQ(kCounterID2, route.getEntryForClient(kClientB)->getCounterID());
+    EXPECT_EQ(kClassID1, route.getForwardInfo().getClassID());
+    EXPECT_EQ(kClassID1, route.getEntryForClient(kClientA)->getClassID());
+    EXPECT_EQ(kClassID2, route.getEntryForClient(kClientB)->getClassID());
   };
   testRouteApi(RouteV6(pfx6, kClientA, nhopEntry));
 }
