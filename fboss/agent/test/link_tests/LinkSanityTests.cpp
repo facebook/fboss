@@ -22,7 +22,7 @@ TEST_F(LinkTest, asicLinkFlap) {
       setPortStatus(port, false);
     }
     EXPECT_NO_THROW(waitForAllCabledPorts(false));
-    EXPECT_NO_THROW(waitForAllTransceiverStates(false));
+    EXPECT_NO_THROW(waitForAllTransceiverStates(false, 60, 5s));
 
     // Set the port status on all cabled ports to true. The link should come
     // back up
@@ -30,7 +30,7 @@ TEST_F(LinkTest, asicLinkFlap) {
       setPortStatus(port, true);
     }
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+    EXPECT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
