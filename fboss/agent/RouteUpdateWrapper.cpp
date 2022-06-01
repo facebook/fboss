@@ -41,6 +41,9 @@ void RouteUpdateWrapper::addRoute(
   if (nhop.getCounterID().has_value()) {
     tempRoute.counterID() = *nhop.getCounterID();
   }
+  if (nhop.getClassID().has_value()) {
+    tempRoute.classID() = *nhop.getClassID();
+  }
   addRoute(vrf, clientId, std::move(tempRoute));
 }
 

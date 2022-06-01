@@ -50,8 +50,12 @@ class RibIpRouteUpdate {
     auto network = facebook::network::toIPAddress(*route.dest()->ip());
     auto mask = static_cast<uint8_t>(*route.dest()->prefixLength());
     std::optional<RouteCounterID> counterID;
+    std::optional<cfg::AclLookupClass> classID;
     if (route.counterID().has_value()) {
       counterID = route.counterID().value();
+    }
+    if (route.classID().has_value()) {
+      classID = route.classID().value();
     }
     if (network.isV4()) {
       ++stats.v4RoutesAdded;
@@ -60,7 +64,7 @@ class RibIpRouteUpdate {
     }
     return {
         {network, mask},
-        RouteNextHopEntry::from(route, distance, counterID, std::nullopt)};
+        RouteNextHopEntry::from(route, distance, counterID, classID)};
   }
   static RibRouteId ToDelFn(
       const ThriftRouteId& prefix,
