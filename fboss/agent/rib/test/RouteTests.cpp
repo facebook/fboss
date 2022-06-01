@@ -133,6 +133,8 @@ TEST(Route, serializeRouteTable) {
 
   std::optional<RouteCounterID> counterID1("route.counter.0");
   std::optional<RouteCounterID> counterID2("route.counter.1");
+  std::optional<cfg::AclLookupClass> classID(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
 
   RibRouteUpdater u2(&v4Routes, &v6Routes, &mplsRoutes);
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
@@ -140,7 +142,7 @@ TEST(Route, serializeRouteTable) {
       {
           {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
           {{r2.network, r2.mask},
-           RouteNextHopEntry(nhop2, kDistance, counterID1)},
+           RouteNextHopEntry(nhop2, kDistance, counterID1, classID)},
           {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
           {{r4.network, r4.mask},
            RouteNextHopEntry(nhop2, kDistance, counterID2)},
