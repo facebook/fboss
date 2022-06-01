@@ -8,6 +8,5 @@ void fsTestTearDown(
     std::shared_ptr<apache::thrift::ThriftServer> thriftServer,
     facebook::fboss::platform::FanServiceHandler* handler) {
   thriftServer.reset();
-  delete handler;
 }
 } // namespace facebook::fboss::platform

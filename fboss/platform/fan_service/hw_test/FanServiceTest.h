@@ -11,11 +11,18 @@
 
 #include <gtest/gtest.h>
 
+#ifndef IS_OSS
+#include "common/services/cpp/ServiceFrameworkLight.h"
+#else
+// In the case of OSS, the actual empty class definition is needed,
+// as we use unique_ptr, which uses "sizeof" of the target class.
+namespace facebook::services {
+class ServiceFrameworkLight {};
+} // namespace facebook::services
+#endif // IS_OSS
+
 #include "fboss/platform/fan_service/hw_test/FanServiceTestHelper.h"
 
-namespace facebook::services {
-class ServiceFrameworkLight;
-}
 namespace apache::thrift {
 class ThriftServer;
 }
@@ -32,6 +39,7 @@ class FanServiceTest : public ::testing::Test {
   void TearDown() override;
 
  protected:
+  FanService* getFanService();
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
   std::shared_ptr<FanServiceHandler> thriftHandler_;
   std::unique_ptr<services::ServiceFrameworkLight> service_;
