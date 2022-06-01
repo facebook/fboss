@@ -404,7 +404,8 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
     AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE,
-    std::optional<RouteCounterID> counterID = std::nullopt) {
+    std::optional<RouteCounterID> counterID = std::nullopt,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
   std::vector<std::string> vec;
   folly::split("/", prefixStr, vec);
   EXPECT_EQ(2, vec.size());
@@ -415,6 +416,9 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   nr->adminDistance() = distance;
   if (counterID.has_value()) {
     nr->counterID() = *counterID;
+  }
+  if (classID.has_value()) {
+    nr->classID() = *classID;
   }
   return nr;
 }
@@ -1275,6 +1279,124 @@ TEST_F(ThriftTest, routeUpdatesWithConcurrentReads) {
       11, std::make_unique<std::vector<UnicastRoute>>(thriftRswRoutes));
   done = true;
   routeReads.join();
+}
+
+TEST_F(ThriftTest, UnicastRoutesWithClassID) {
+  RouterID rid = RouterID(0);
+
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  ThriftHandler handler(sw_);
+
+  auto randomClient = 500;
+  auto randomClientAdmin = sw_->clientIdToAdminDistance(randomClient);
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
+
+  auto cli1_nhop4 = "10.0.0.11";
+  auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+
+  // These routes will include nexthops from client 10 only
+  auto prefixA4 = "7.1.0.0/16";
+  auto prefixA6 = "aaaa:1::0/64";
+
+  std::optional<cfg::AclLookupClass> classID1(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
+  std::optional<cfg::AclLookupClass> classID2(
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+
+  // Add BGP routes with class ID
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(
+          prefixA4, cli1_nhop4, bgpClientAdmin, std::nullopt, classID1));
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(
+          prefixA6, cli1_nhop6, bgpClientAdmin, std::nullopt, classID2));
+
+  // Add random client routes with no class ID
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA4, cli1_nhop4, randomClientAdmin));
+  handler.addUnicastRoute(
+      randomClient, makeUnicastRoute(prefixA6, cli1_nhop6, randomClientAdmin));
+
+  // BGP route should get selected and class ID set
+  auto state = sw_->getState();
+  auto rtA4 = findRoute<folly::IPAddressV4>(
+      rid, IPAddress::createNetwork(prefixA4), state);
+  EXPECT_NE(nullptr, rtA4);
+  EXPECT_EQ(rtA4->getClassID(), classID1);
+  EXPECT_EQ(rtA4->getForwardInfo().getClassID(), classID1);
+  EXPECT_EQ(rtA4->getEntryForClient(ClientID::BGPD)->getClassID(), classID1);
+  EXPECT_EQ(
+      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
+          ->getClassID(),
+      std::nullopt);
+  auto rtA6 = findRoute<folly::IPAddressV6>(
+      rid, IPAddress::createNetwork(prefixA6), state);
+  EXPECT_NE(nullptr, rtA6);
+  EXPECT_EQ(rtA6->getClassID(), classID2);
+  EXPECT_EQ(rtA6->getForwardInfo().getClassID(), classID2);
+  EXPECT_EQ(rtA6->getEntryForClient(ClientID::BGPD)->getClassID(), classID2);
+  EXPECT_EQ(
+      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
+          ->getClassID(),
+      std::nullopt);
+
+  // delete BGP routes
+  std::vector<IpPrefix> delRoutes = {
+      ipPrefix(IPAddress::createNetwork(prefixA4)),
+      ipPrefix(IPAddress::createNetwork(prefixA6)),
+  };
+  XLOG(DBG2) << "Deleting routes";
+  handler.deleteUnicastRoutes(
+      bgpClient, std::make_unique<std::vector<IpPrefix>>(delRoutes));
+
+  // class IDs should not be active
+  state = sw_->getState();
+  rtA4 = findRoute<folly::IPAddressV4>(
+      rid, IPAddress::createNetwork(prefixA4), state);
+  EXPECT_NE(nullptr, rtA4);
+  EXPECT_EQ(rtA4->getClassID(), std::nullopt);
+  EXPECT_EQ(rtA4->getForwardInfo().getClassID(), std::nullopt);
+  rtA6 = findRoute<folly::IPAddressV6>(
+      rid, IPAddress::createNetwork(prefixA6), state);
+  EXPECT_NE(nullptr, rtA6);
+  EXPECT_EQ(rtA6->getClassID(), std::nullopt);
+  EXPECT_EQ(rtA6->getForwardInfo().getClassID(), std::nullopt);
+
+  // Add back BGP routes with class ID
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(
+          prefixA4, cli1_nhop4, bgpClientAdmin, std::nullopt, classID1));
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(
+          prefixA6, cli1_nhop6, bgpClientAdmin, std::nullopt, classID2));
+  state = sw_->getState();
+  rtA4 = findRoute<folly::IPAddressV4>(
+      rid, IPAddress::createNetwork(prefixA4), state);
+
+  // class id should get set again
+  EXPECT_NE(nullptr, rtA4);
+  EXPECT_EQ(rtA4->getClassID(), classID1);
+  EXPECT_EQ(rtA4->getForwardInfo().getClassID(), classID1);
+  EXPECT_EQ(rtA4->getEntryForClient(ClientID::BGPD)->getClassID(), classID1);
+  EXPECT_EQ(
+      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
+          ->getClassID(),
+      std::nullopt);
+  rtA6 = findRoute<folly::IPAddressV6>(
+      rid, IPAddress::createNetwork(prefixA6), state);
+  EXPECT_NE(nullptr, rtA6);
+  EXPECT_EQ(rtA6->getClassID(), classID2);
+  EXPECT_EQ(rtA6->getForwardInfo().getClassID(), classID2);
+  EXPECT_EQ(rtA6->getEntryForClient(ClientID::BGPD)->getClassID(), classID2);
+  EXPECT_EQ(
+      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
+          ->getClassID(),
+      std::nullopt);
 }
 
 TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
