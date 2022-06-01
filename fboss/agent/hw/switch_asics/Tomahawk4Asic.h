@@ -13,6 +13,9 @@ class Tomahawk4Asic : public BroadcomAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK4;
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   AsicMode getAsicMode() const override {
     static const AsicMode asicMode = std::getenv("BCM_SIM_PATH")
         ? AsicMode::ASIC_MODE_SIM

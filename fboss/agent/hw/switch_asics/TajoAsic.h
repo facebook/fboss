@@ -11,6 +11,9 @@ class TajoAsic : public HwAsic {
   std::string getVendor() const override {
     return "tajo";
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   uint64_t getMMUSizeBytes() const override {
     return 108 * 1024 * 1024;
   }

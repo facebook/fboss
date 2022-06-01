@@ -29,6 +29,9 @@ class MockAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_MOCK;
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   std::string getVendor() const override {
     return "mock";
   }

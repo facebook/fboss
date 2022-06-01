@@ -12,6 +12,9 @@ class EbroAsic : public TajoAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_EBRO;
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }

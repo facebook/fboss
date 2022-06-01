@@ -13,6 +13,9 @@ class Tomahawk3Asic : public BroadcomAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK3;
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }

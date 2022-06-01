@@ -40,6 +40,9 @@ class FakeAsic : public HwAsic {
   std::string getVendor() const override {
     return "fake";
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }

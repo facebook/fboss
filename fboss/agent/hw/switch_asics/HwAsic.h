@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #pragma once
+#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
@@ -126,6 +127,7 @@ class HwAsic {
   virtual AsicMode getAsicMode() const {
     return AsicMode::ASIC_MODE_HW;
   }
+  virtual phy::DataPlanePhyChipType getDataPlanePhyChipType() const = 0;
   virtual std::string getVendor() const = 0;
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;

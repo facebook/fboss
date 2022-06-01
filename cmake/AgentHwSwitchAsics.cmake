@@ -18,5 +18,6 @@ add_library(switch_asics
 
 target_link_libraries(switch_asics
   fboss_cpp2
+  phy_cpp2
   switch_config_cpp2
 )

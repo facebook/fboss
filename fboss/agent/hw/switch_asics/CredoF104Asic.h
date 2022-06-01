@@ -16,6 +16,10 @@ class CredoF104Asic : public HwAsic {
     return "credo";
   }
 
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::XPHY;
+  }
+
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }

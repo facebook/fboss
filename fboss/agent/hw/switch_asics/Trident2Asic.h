@@ -13,6 +13,9 @@ class Trident2Asic : public BroadcomAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TRIDENT2;
   }
+  phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
+    return phy::DataPlanePhyChipType::IPHY;
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FORTYG;
   }
