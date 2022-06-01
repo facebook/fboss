@@ -1654,6 +1654,66 @@ TEST_F(ThriftTest, getRouteTableVerifyCounterID) {
   EXPECT_EQ(*route.counterID(), *counterID1);
 }
 
+TEST_F(ThriftTest, getRouteTableVerifyClassID) {
+  ThriftHandler handler(sw_);
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpClientAdmin = sw_->clientIdToAdminDistance(bgpClient);
+
+  auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+  auto prefixA6 = "aaaa:1::0/64";
+  auto addrA6 = folly::IPAddress("aaaa:1::0");
+  std::optional<cfg::AclLookupClass> classID1(
+      cfg::AclLookupClass::DST_CLASS_L3_DPR);
+
+  // Add BGP routes with class ID
+  handler.addUnicastRoute(
+      bgpClient,
+      makeUnicastRoute(
+          prefixA6, cli1_nhop6, bgpClientAdmin, std::nullopt, classID1));
+
+  std::vector<UnicastRoute> routeTable;
+  bool found = false;
+  handler.getRouteTable(routeTable);
+  for (const auto& rt : routeTable) {
+    if (rt.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*rt.classID(), *classID1);
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+
+  routeTable.resize(0);
+  found = false;
+  handler.getRouteTableByClient(routeTable, bgpClient);
+  for (const auto& rt : routeTable) {
+    if (rt.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*rt.classID(), *classID1);
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+
+  std::vector<RouteDetails> routeDetails;
+  found = false;
+  handler.getRouteTableDetails(routeDetails);
+  for (const auto& route : routeDetails) {
+    if (route.dest()->ip() == toBinaryAddress(addrA6)) {
+      EXPECT_EQ(*route.classID(), *classID1);
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+
+  UnicastRoute route;
+  auto addr = std::make_unique<facebook::network::thrift::Address>(
+      facebook::network::toAddress(IPAddress("aaaa:1::")));
+  handler.getIpRoute(route, std::move(addr), RouterID(0));
+  EXPECT_EQ(*route.classID(), *classID1);
+}
+
 TEST_F(ThriftTest, getLoopbackMode) {
   ThriftHandler handler(sw_);
   std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
