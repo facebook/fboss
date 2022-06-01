@@ -1410,6 +1410,9 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     if (fwdInfo.getCounterID().has_value()) {
       tempRoute.counterID() = *fwdInfo.getCounterID();
     }
+    if (fwdInfo.getClassID().has_value()) {
+      tempRoute.classID() = *fwdInfo.getClassID();
+    }
     routes.emplace_back(std::move(tempRoute));
   });
 }
@@ -1431,6 +1434,9 @@ void ThriftHandler::getRouteTableByClient(
     tempRoute.nextHops() = util::fromRouteNextHopSet(entry->getNextHopSet());
     if (entry->getCounterID().has_value()) {
       tempRoute.counterID() = *entry->getCounterID();
+    }
+    if (entry->getClassID().has_value()) {
+      tempRoute.classID() = *entry->getClassID();
     }
     for (const auto& nh : *tempRoute.nextHops()) {
       tempRoute.nextHopAddrs()->emplace_back(*nh.address());
@@ -1471,6 +1477,10 @@ void ThriftHandler::getIpRoute(
     if (counterID.has_value()) {
       route.counterID() = *counterID;
     }
+    auto classID = fwdInfo.getClassID();
+    if (classID.has_value()) {
+      route.classID() = *classID;
+    }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (!match || !match->isResolved()) {
@@ -1485,6 +1495,10 @@ void ThriftHandler::getIpRoute(
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
       route.counterID() = *counterID;
+    }
+    auto classID = fwdInfo.getClassID();
+    if (classID.has_value()) {
+      route.classID() = *classID;
     }
   }
 }
