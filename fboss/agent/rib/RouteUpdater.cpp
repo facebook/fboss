@@ -568,6 +568,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto bestEntry = bestPair.second;
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();
+  const auto classID = bestEntry->getClassID();
   if (action == RouteForwardAction::DROP) {
     hasDrop = true;
   } else if (action == RouteForwardAction::TO_CPU) {
@@ -645,7 +646,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
-  auto updateRoute = [this, clientId, &updatedRoute](
+  auto updateRoute = [this, clientId, &updatedRoute, classID, &route](
                          typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
     updatedRoute = writableRoute<AddressT>(ritr);
@@ -658,36 +659,43 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     } else {
       updatedRoute->setUnresolvable();
     }
+    updatedRoute->updateClassID(classID);
     updatedRoute->publish();
     XLOG(DBG3) << (updatedRoute->isResolved() ? "Resolved" : "Cannot resolve")
                << " route " << updatedRoute->str();
   };
   if (fwd && !fwd->empty()) {
     if (route->getForwardInfo().getNextHopSet() != *fwd ||
-        route->getForwardInfo().getCounterID() != counterID) {
+        route->getForwardInfo().getCounterID() != counterID ||
+        route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
-          RouteNextHopEntry(*fwd, bestEntry->getAdminDistance(), counterID));
+          RouteNextHopEntry(
+              *fwd, bestEntry->getAdminDistance(), counterID, classID));
     }
   } else if (hasToCpu) {
     if (!route->isToCPU() ||
-        route->getForwardInfo().getCounterID() != counterID) {
+        route->getForwardInfo().getCounterID() != counterID ||
+        route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
           RouteNextHopEntry(
               RouteForwardAction::TO_CPU,
               AdminDistance::MAX_ADMIN_DISTANCE,
-              counterID));
+              counterID,
+              classID));
     }
   } else if (hasDrop) {
     if (!route->isDrop() ||
-        route->getForwardInfo().getCounterID() != counterID) {
+        route->getForwardInfo().getCounterID() != counterID ||
+        route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
           RouteNextHopEntry(
               RouteForwardAction::DROP,
               AdminDistance::MAX_ADMIN_DISTANCE,
-              counterID));
+              counterID,
+              classID));
     }
   } else {
     updateRoute(ritr, std::nullopt);

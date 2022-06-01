@@ -93,6 +93,10 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   if (fwd.getCounterID().has_value()) {
     rd.counterID() = *fwd.getCounterID();
   }
+  // add class id
+  if (fwd.getClassID().has_value()) {
+    rd.classID() = *fwd.getClassID();
+  }
   return rd;
 }
 
