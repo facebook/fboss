@@ -141,6 +141,7 @@ enum PortProfileID {
   // use different serdes values for these profiles
   PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1 = 33,
   PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1 = 34,
+  PROFILE_400G_8_PAM4_RS544X2N_COPPER = 35,
 }
 
 /**
