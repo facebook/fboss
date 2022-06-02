@@ -175,6 +175,8 @@ void ModbusDevice::reloadRegisters() {
               << registerStore.name() << " caught: " << e.what() << std::endl;
       continue;
     }
+    // Release thread to allow for higher priority tasks to execute.
+    std::this_thread::yield();
   }
 }
 
