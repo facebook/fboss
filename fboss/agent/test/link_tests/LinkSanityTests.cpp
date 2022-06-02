@@ -1,6 +1,5 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <folly/Subprocess.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
@@ -9,6 +8,7 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
+#include "fboss/util/QsfpUtilTx.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -129,35 +129,33 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
 }
 
 TEST_F(LinkTest, opticsTxDisableEnable) {
+  auto setTxDisable = [](const auto& ports, auto disable) {
+    XLOG(INFO) << "opticsTxDisableEnable: About to "
+               << (disable ? "disable" : "enable") << " ports";
+    FLAGS_direct_i2c = false;
+    FLAGS_tx_disable = disable;
+    FLAGS_tx_enable = !disable;
+    auto evb = folly::EventBase();
+    QsfpUtilTx(nullptr, ports, evb).setTxDisable();
+  };
   auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
   if (!opticalPorts.empty()) {
-    opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
-    const std::string txDisableCmd = opticalPortNames + "--tx-disable";
-
-    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
-               << txDisableCmd;
-    // TODO(ccpowers): Doesn't seem like there's a way for us to make this
-    // command a literal, since it depends on the cabling. We may want to just
-    // make a qsfp-service API for this rather than using a shell cmd
-    // @lint-ignore CLANGTIDY
-    folly::Subprocess(txDisableCmd).waitChecked();
+    std::vector<unsigned int> ports;
+    for (const auto& port : opticalPorts) {
+      ports.push_back(static_cast<unsigned int>(port));
+    }
+    setTxDisable(ports, true);
     XLOG(INFO) << fmt::format(
-        "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go down...",
-        txDisableCmd);
+        "opticsTxDisableEnable: tx disable finished. Awaiting links to go down...");
     EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, false));
     XLOG(INFO) << "opticsTxDisableEnable: link Tx disabled";
 
-    const std::string txEnableCmd = opticalPortNames + "--tx-enable";
-    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
-               << txEnableCmd;
-    // @lint-ignore CLANGTIDY
-    folly::Subprocess(txEnableCmd).waitChecked();
+    setTxDisable(ports, false);
     XLOG(INFO) << fmt::format(
-        "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go up...",
-        txEnableCmd);
+        "opticsTxDisableEnable: tx enable finished. Awaiting links to go up...");
     EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
     XLOG(INFO) << "opticsTxDisableEnable: links are up";
   }

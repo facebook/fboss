@@ -18,6 +18,7 @@ target_link_libraries(link_tests
   load_balancer_utils
   hw_olympic_qos_utils
   hw_agent_packet_utils
+  qsfp_util_lib
   packet
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
