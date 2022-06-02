@@ -353,7 +353,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
       std::optional<std::function<void(HwPortStats&, HwPortStats&, int)>>
           verifyPacketCountFn = std::nullopt,
       std::optional<std::function<void(cfg::SwitchConfig&)>> setupFn =
-          std::nullopt) {
+          std::nullopt,
+      int maxQueueFillLevel = 0) {
     constexpr auto kQueueId{0};
     /*
      * Good to keep the payload size such that the whole packet with
@@ -370,6 +371,18 @@ class HwAqmTest : public HwLinkStateDependentTest {
     bool roundUp = getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO
         ? false
         : true;
+
+    if (!markedOrDroppedPacketCount && maxQueueFillLevel) {
+      /*
+       * The markedOrDroppedPacketCount is not set, instead, it needs to be
+       * computed based on the maxQueueFillLevel specified as param!
+       */
+      markedOrDroppedPacketCount =
+          (maxQueueFillLevel -
+           utility::getRoundedBufferThreshold(
+               getHwSwitch(), thresholdBytes, roundUp)) /
+          utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen);
+    }
 
     /*
      * Send enough packets such that the queue gets filled up to the
@@ -534,6 +547,45 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  void runEcnTrafficNoDropTest() {
+    constexpr auto kThresholdBytes{utility::kQueueConfigAqmsEcnThresholdMinMax};
+    std::optional<cfg::MMUScalingFactor> scalingFactor{std::nullopt};
+    if (getHwSwitch()
+            ->getPlatform()
+            ->getAsic()
+            ->scalingFactorBasedDynamicThresholdSupported()) {
+      scalingFactor = cfg::MMUScalingFactor::ONE_16TH;
+    }
+
+    auto setupScalingFactor = [&](cfg::SwitchConfig& config) {
+      if (scalingFactor.has_value()) {
+        auto& queues = config.portQueueConfigs()["queue_config"];
+        for (auto& queue : queues) {
+          queue.scalingFactor() = scalingFactor.value();
+        }
+      }
+    };
+
+    auto queueFillMaxBytes =
+        utility::getQueueLimitBytes(getHwSwitch(), scalingFactor);
+    if (scalingFactor.has_value()) {
+      /*
+       * For platforms with dynamic alpha based buffer limits, account for
+       * possible usage outside of the test and need to relax the limits being
+       * checked for no drops. Hence checking for queue build up to 99.9% of
+       * the possible depth.
+       */
+      queueFillMaxBytes = queueFillMaxBytes * 0.999;
+    }
+    validateEcnWredThresholds(
+        true /* isEcn */,
+        kThresholdBytes,
+        0,
+        std::nullopt /* verifyPacketCountFn */,
+        setupScalingFactor,
+        queueFillMaxBytes);
+  }
 };
 
 TEST_F(HwAqmTest, verifyEcn) {
@@ -554,6 +606,10 @@ TEST_F(HwAqmTest, verifyWredThreshold) {
 
 TEST_F(HwAqmTest, verifyPerQueueWredDropStats) {
   runPerQueueWredDropStatsTest();
+}
+
+TEST_F(HwAqmTest, verifyEcnTrafficNoDrop) {
+  runEcnTrafficNoDropTest();
 }
 
 } // namespace facebook::fboss
