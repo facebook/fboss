@@ -11,7 +11,12 @@ namespace rackmon {
 void ModbusDeviceInfo::incErrors(uint32_t& counter) {
   counter++;
   if ((++numConsecutiveFailures) >= kMaxConsecutiveFailures) {
-    mode = ModbusDeviceMode::DORMANT;
+    // If we are in exclusive mode let it continue to
+    // fail. We will mark it as dormant when we exit
+    // exclusive mode.
+    if (!exclusiveMode_) {
+      mode = ModbusDeviceMode::DORMANT;
+    }
   }
 }
 
@@ -66,7 +71,8 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   // to maintain stats on types of errors and re-throw (on
   // the last retry) in case the user wants to handle them
   // in a special way.
-  for (int retries = 0; retries < numCommandRetries_; retries++) {
+  int numRetries = info_.exclusiveMode_ ? 1 : numCommandRetries_;
+  for (int retries = 0; retries < numRetries; retries++) {
     try {
       interface_.command(req, resp, info_.baudrate, timeout);
       info_.numConsecutiveFailures = 0;
@@ -74,7 +80,7 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
       break;
     } catch (std::exception& ex) {
       handleCommandFailure(ex);
-      if (retries == (numCommandRetries_ - 1)) {
+      if (retries == (numRetries - 1)) {
         throw;
       }
       req.len = reqLen;

@@ -161,6 +161,20 @@ TEST_F(ModbusDeviceTest, CommandFlaky) {
   EXPECT_EQ(status.timeouts, 1);
 }
 
+TEST_F(ModbusDeviceTest, TimeoutInExclusiveMode) {
+  EXPECT_CALL(get_modbus(), command(_, _, _, _))
+      .Times(1)
+      .WillOnce(Throw(TimeoutException()));
+  ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 3);
+  dev.setExclusiveMode(true);
+  Msg req, resp;
+  req.raw = {0x32, 2};
+  req.len = 2;
+  EXPECT_THROW(dev.command(req, resp), TimeoutException);
+  ModbusDeviceInfo status = dev.getInfo();
+  EXPECT_EQ(status.timeouts, 1);
+}
+
 TEST_F(ModbusDeviceTest, MakeDormant) {
   EXPECT_CALL(get_modbus(), command(_, _, _, _))
       .Times(10)

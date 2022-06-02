@@ -47,6 +47,7 @@ struct ModbusDeviceInfo {
   uint32_t deviceErrors = 0;
   time_t lastActive = 0;
   uint32_t numConsecutiveFailures = 0;
+  bool exclusiveMode_ = false;
 
   void incErrors(uint32_t& counter);
   void incTimeouts() {
@@ -122,6 +123,10 @@ class ModbusDevice {
 
   time_t lastActive() const {
     return info_.lastActive;
+  }
+
+  void setExclusiveMode(bool enable) {
+    info_.exclusiveMode_ = enable;
   }
 
   // Return structured information of the device.
