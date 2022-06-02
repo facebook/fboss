@@ -932,13 +932,20 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
 
     auto portHandle = portIdAndHandle.second.get();
     if (portHandle == nullptr) {
-      XLOG(DBG3) << folly::sformat(
-          "PortHandle not found for port {}", static_cast<int>(swPort));
+      XLOG(DBG3) << "PortHandle not found for port "
+                 << static_cast<int>(swPort);
+      continue;
+    }
+
+    auto fb303PortStat = managerTable_->portManager().getLastPortStat(swPort);
+    if (fb303PortStat == nullptr) {
+      XLOG(DBG3) << "fb303PortStat not found for port "
+                 << static_cast<int>(swPort);
       continue;
     }
 
     phy::PhyInfo phyParams;
-    phyParams.name() = folly::to<std::string>("port", swPort);
+    phyParams.name() = fb303PortStat->portName();
     phyParams.switchID() = getSwitchId();
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
@@ -946,25 +953,39 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     phyParams.phyChip() = phyChip;
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
     // Update PMD Info
-    {
-      auto eyeStatus = managerTable_->portManager().getPortEyeValues(
-          portHandle->port->adapterKey());
-      if (eyeStatus.count != 0) {
-        for (int i = 0; i < eyeStatus.count; i++) {
-          phy::LaneInfo laneInfo;
-          std::vector<phy::EyeInfo> eyeInfo;
-          phy::EyeInfo oneLaneEyeInfo;
+    auto eyeStatus = managerTable_->portManager().getPortEyeValues(
+        portHandle->port->adapterKey());
+    if (eyeStatus.count != 0) {
+      for (int i = 0; i < eyeStatus.count; i++) {
+        phy::LaneInfo laneInfo;
+        std::vector<phy::EyeInfo> eyeInfo;
+        phy::EyeInfo oneLaneEyeInfo;
 
-          int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
-          int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
-          oneLaneEyeInfo.height() = height;
-          oneLaneEyeInfo.width() = width;
-          eyeInfo.push_back(oneLaneEyeInfo);
-          laneInfo.eyes() = eyeInfo;
-          phyParams.line()->pmd()->lanes()[i] = laneInfo;
-        }
+        int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
+        int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
+        oneLaneEyeInfo.height() = height;
+        oneLaneEyeInfo.width() = width;
+        eyeInfo.push_back(oneLaneEyeInfo);
+        laneInfo.eyes() = eyeInfo;
+        phyParams.line()->pmd()->lanes()[i] = laneInfo;
       }
     }
+
+    // Update PCS Info
+    phy::PcsInfo pcs;
+    // FEC parameters
+    auto fecMode = getPortFECMode(swPort);
+    if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
+        fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
+      phy::RsFecInfo rsFec;
+      rsFec.correctedCodewords() =
+          *(fb303PortStat->portStats().fecCorrectableErrors());
+      rsFec.uncorrectedCodewords() =
+          *(fb303PortStat->portStats().fecUncorrectableErrors());
+      pcs.rsFec() = rsFec;
+    }
+    phyParams.line()->pcs() = pcs;
+
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     phyParams.timeCollected() = now.count();
