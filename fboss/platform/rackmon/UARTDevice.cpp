@@ -74,7 +74,7 @@ void UARTDevice::setAttribute(bool readEnable, int baudrate) {
   }
 }
 
-void UARTDevice::waitWrite() {
+void AspeedRS485Device::waitWrite() {
   int loops;
   for (loops = 0; loops < 100; loops++) {
     int lsr;
@@ -89,7 +89,7 @@ void UARTDevice::waitWrite() {
   }
 }
 
-void UARTDevice::write(const uint8_t* buf, size_t len) {
+void AspeedRS485Device::write(const uint8_t* buf, size_t len) {
   // Write with read disabled. Hence we need to do this
   // as fast as possible. So, muck around with the priorities
   // to make sure we get there.
