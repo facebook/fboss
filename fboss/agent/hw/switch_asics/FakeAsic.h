@@ -115,6 +115,9 @@ class FakeAsic : public HwAsic {
   uint32_t getNumCores() const override {
     return 0;
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return true;
+  }
 };
 
 } // namespace facebook::fboss

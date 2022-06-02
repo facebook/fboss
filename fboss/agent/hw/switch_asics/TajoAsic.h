@@ -27,6 +27,9 @@ class TajoAsic : public HwAsic {
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return false;
+  }
 };
 
 } // namespace facebook::fboss

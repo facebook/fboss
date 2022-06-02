@@ -207,6 +207,8 @@ class HwAsic {
   virtual uint32_t getMaxVariableWidthEcmpSize() const = 0;
 
   virtual uint32_t getMaxEcmpSize() const = 0;
+
+  virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 };
 
 } // namespace facebook::fboss

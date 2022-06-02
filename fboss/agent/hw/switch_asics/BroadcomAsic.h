@@ -26,5 +26,8 @@ class BroadcomAsic : public HwAsic {
   uint32_t getNumCores() const override {
     throw FbossError("Num cores API not supported");
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return true;
+  }
 };
 } // namespace facebook::fboss

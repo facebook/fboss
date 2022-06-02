@@ -76,4 +76,7 @@ uint32_t CredoF104Asic::getNumCores() const {
   throw FbossError("Num cores API not supported");
 }
 
+bool CredoF104Asic::scalingFactorBasedDynamicThresholdSupported() const {
+  throw FbossError("CredoF104Asic doesn't support MMU feature");
+}
 }; // namespace facebook::fboss
