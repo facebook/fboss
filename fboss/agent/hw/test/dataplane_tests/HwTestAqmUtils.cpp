@@ -181,4 +181,12 @@ HwPortStats sendPacketsWithQueueBuildup(
   return statsWithTxDisabled;
 }
 
+double getAlphaFromScalingFactor(
+    HwSwitch* hwSwitch,
+    cfg::MMUScalingFactor scalingFactor) {
+  int powof =
+      hwSwitch->getPlatform()->getAsic()->getBufferDynThreshFromScalingFactor(
+          scalingFactor);
+  return pow(2, powof);
+}
 }; // namespace facebook::fboss::utility
