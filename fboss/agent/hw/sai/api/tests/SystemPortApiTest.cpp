@@ -28,4 +28,31 @@ class SystemPortApiTest : public ::testing::Test {
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<SystemPortApi> systemPortApi;
+  SystemPortSaiId
+  createPort(uint32_t portId, uint32_t speed = 100000, bool enabled = true) {
+    sai_system_port_config_t config{
+        portId, // port_id
+        0, // switch_id
+        10, // attached_core_index
+        0, // attached_core_port_index
+        speed, // speed - 100G in mbps
+    };
+    SaiSystemPortTraits::Attributes::ConfigInfo confInfo{config};
+    SaiSystemPortTraits::Attributes::AdminState admin{enabled};
+    SaiSystemPortTraits::CreateAttributes sysPort{
+        confInfo, admin, std::nullopt};
+    return systemPortApi->create<SaiSystemPortTraits>(sysPort, 0);
+  }
 };
+
+TEST_F(SystemPortApiTest, onePort) {
+  auto id = createPort(1, 100000, true);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::AdminState{}),
+      true);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::QosNumberOfVoqs{}),
+      8);
+}
