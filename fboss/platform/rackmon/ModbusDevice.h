@@ -112,7 +112,7 @@ class ModbusDevice {
       std::vector<FileRecord>& records,
       ModbusTime timeout = ModbusTime::zero());
 
-  void monitor();
+  void reloadRegisters();
 
   bool isActive() const {
     return info_.mode == ModbusDeviceMode::ACTIVE;
@@ -127,7 +127,7 @@ class ModbusDevice {
   // Return structured information of the device.
   ModbusDeviceInfo getInfo();
 
-  // Returns raw monitor register data monitored for this device.
+  // Returns raw register data monitored for this device.
   ModbusDeviceRawData getRawData();
 
   // Returns value formatted register data monitored for this device.

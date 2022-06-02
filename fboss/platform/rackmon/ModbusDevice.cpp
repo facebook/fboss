@@ -122,7 +122,7 @@ void ModbusDevice::readFileRecord(
   command(req, resp, timeout);
 }
 
-void ModbusDevice::monitor() {
+void ModbusDevice::reloadRegisters() {
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
   uint32_t timestamp = std::time(nullptr);

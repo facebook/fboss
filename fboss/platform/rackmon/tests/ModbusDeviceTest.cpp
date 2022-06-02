@@ -326,9 +326,9 @@ TEST_F(ModbusDeviceTest, MonitorInvalidRegOnce) {
 
   ModbusDevice dev(get_modbus(), 0x32, get_regmap(), 1);
   // This should see the illegal address error
-  dev.monitor();
+  dev.reloadRegisters();
   // This should be a no-op.
-  dev.monitor();
+  dev.reloadRegisters();
 }
 
 TEST_F(ModbusDeviceTest, MonitorDataValue) {
@@ -354,7 +354,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
 
   ModbusDevice dev(get_modbus(), 0x32, get_regmap());
 
-  dev.monitor();
+  dev.reloadRegisters();
   ModbusDeviceValueData data = dev.getValueData();
   EXPECT_EQ(data.deviceAddress, 0x32);
   EXPECT_EQ(data.baudrate, 19200);
@@ -372,7 +372,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::STRING);
   EXPECT_EQ(data.registerList[0].history[0].value.strValue, "abcd");
 
-  dev.monitor();
+  dev.reloadRegisters();
   ModbusDeviceValueData data2 = dev.getValueData();
   EXPECT_EQ(data2.deviceAddress, 0x32);
   EXPECT_EQ(data2.baudrate, 19200);
@@ -396,7 +396,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
       data2.registerList[0].history[1].timestamp,
       data2.registerList[0].history[0].timestamp);
 
-  dev.monitor();
+  dev.reloadRegisters();
   ModbusDeviceValueData data3 = dev.getValueData();
   EXPECT_EQ(data3.registerList[0].history.size(), 2);
   // TODO We probably need a circular iterator on the history.
@@ -447,7 +447,7 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
 
   ModbusDevice dev(get_modbus(), 0x32, get_regmap());
 
-  dev.monitor();
+  dev.reloadRegisters();
   nlohmann::json data = dev.getRawData();
   EXPECT_EQ(data["addr"], 0x32);
   EXPECT_EQ(data["crc_fails"], 0);
@@ -465,7 +465,7 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data["ranges"][0]["readings"][1]["time"], 0);
   EXPECT_EQ(data["ranges"][0]["readings"][1]["data"], "00000000");
 
-  dev.monitor();
+  dev.reloadRegisters();
   nlohmann::json data2 = dev.getRawData();
   EXPECT_EQ(data2["addr"], 0x32);
   EXPECT_EQ(data2["crc_fails"], 0);
@@ -483,7 +483,7 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_NEAR(data2["ranges"][0]["readings"][1]["time"], std::time(0), 10);
   EXPECT_EQ(data2["ranges"][0]["readings"][1]["data"], "62636465");
 
-  dev.monitor();
+  dev.reloadRegisters();
   nlohmann::json data3 = dev.getRawData();
   EXPECT_TRUE(
       data3["ranges"][0]["readings"].is_array() &&

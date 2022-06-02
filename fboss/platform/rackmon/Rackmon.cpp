@@ -139,7 +139,7 @@ void Rackmon::monitor(void) {
     if (!dev_it.second->isActive()) {
       continue;
     }
-    dev_it.second->monitor();
+    dev_it.second->reloadRegisters();
   }
   lastMonitorTime_ = std::time(nullptr);
 }
