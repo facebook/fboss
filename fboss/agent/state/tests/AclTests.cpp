@@ -487,9 +487,11 @@ TEST(Acl, SerializeRedirectToNextHop) {
       "fe80:db00:e112:9103:2028::1b",
       "10.0.0.1",
       "10.0.0.2"};
+  int intfID = 0;
   for (auto nh : nexthops) {
     cfg::RedirectNextHop nhop;
     nhop.ip_ref() = nh;
+    nhop.intfID_ref() = ++intfID;
     cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
   }
   auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
@@ -507,12 +509,12 @@ TEST(Acl, SerializeRedirectToNextHop) {
 
   auto setNhAddrs = [](MatchAction::NextHopSet& nhset,
                        std::vector<folly::IPAddress>& nhAddrs) {
-    int intfID = 0;
+    int outIntfID = 0;
     int weight = 100;
     for (auto nhAddr : nhAddrs) {
       if (nhAddr.isV6() and nhAddr.isLinkLocal()) {
-        nhset.insert(ResolvedNextHop(nhAddr, InterfaceID(intfID), weight));
-        ++intfID;
+        nhset.insert(ResolvedNextHop(nhAddr, InterfaceID(outIntfID), weight));
+        ++outIntfID;
       } else {
         nhset.insert(UnresolvedNextHop(nhAddr, weight));
       }
@@ -535,8 +537,10 @@ TEST(Acl, SerializeRedirectToNextHop) {
     auto aclAction = entryBack->getAclAction().value();
     auto newRedirectToNextHop = aclAction.getRedirectToNextHop().value();
     int i = 0;
+    int outIntfID = 0;
     for (const auto& nh : *newRedirectToNextHop.first.redirectNextHops()) {
       EXPECT_EQ(nh.ip_ref(), nexthops[i]);
+      EXPECT_EQ(nh.intfID_ref().value(), ++outIntfID);
       ++i;
     }
     EXPECT_EQ(nhset, newRedirectToNextHop.second);
@@ -548,9 +552,11 @@ TEST(Acl, SerializeRedirectToNextHop) {
   nexthops.push_back("1000:db00:e112:9103:1028::1b");
   nexthops.push_back("10.0.0.3");
   redirectToNextHop.first.redirectNextHops()->clear();
+  intfID = 0;
   for (auto nh : nexthops) {
     cfg::RedirectNextHop nhop;
     nhop.ip_ref() = nh;
+    nhop.intfID_ref() = ++intfID;
     redirectToNextHop.first.redirectNextHops()->push_back(nhop);
   }
   action.setRedirectToNextHop(redirectToNextHop);
