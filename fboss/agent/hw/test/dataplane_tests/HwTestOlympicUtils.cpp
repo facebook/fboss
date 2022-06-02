@@ -129,7 +129,9 @@ void addOlympicQueueConfig(
   queue0.streamType() = streamType;
   *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight() = kOlympicSilverWeight;
-  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
   if (!asic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = 3328;
   }
@@ -141,7 +143,9 @@ void addOlympicQueueConfig(
   queue1.streamType() = streamType;
   *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight() = kOlympicGoldWeight;
-  queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  }
   if (!asic->mmuQgroupsEnabled()) {
     queue1.reservedBytes() = 9984;
   }
@@ -153,7 +157,9 @@ void addOlympicQueueConfig(
   queue2.streamType() = streamType;
   *queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue2.weight() = kOlympicEcn1Weight;
-  queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
   queue2.aqms() = {};
   queue2.aqms()->push_back(kGetOlympicEcnConfig());
   if (addWredConfig) {
@@ -177,7 +183,9 @@ void addOlympicQueueConfig(
   if (!asic->mmuQgroupsEnabled()) {
     queue6.reservedBytes() = 9984;
   }
-  queue6.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue6.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  }
   portQueues.push_back(queue6);
 
   cfg::PortQueue queue7;
@@ -198,7 +206,8 @@ void addOlympicQueueConfig(
 // have more drops and lower watermark.
 void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType) {
+    cfg::StreamType streamType,
+    const HwAsic* asic) {
   std::vector<cfg::PortQueue> portQueues;
 
   // 256 packets in the test, where each packet has a payload of 7000 bytes
@@ -210,7 +219,9 @@ void addQueueWredDropConfig(
   queue0.streamType() = streamType;
   queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight() = kOlympicEcn1Weight;
-  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
   queue0.aqms() = {};
   queue0.aqms()->push_back(kGetWredConfig(0, maxThresh, 0));
   portQueues.push_back(queue0);
@@ -221,7 +232,9 @@ void addQueueWredDropConfig(
   queue2.streamType() = streamType;
   queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue2.weight() = kOlympicEcn1Weight;
-  queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
   queue2.aqms() = {};
   queue2.aqms()->push_back(kGetWredConfig(0, maxThresh, 5));
   portQueues.push_back(queue2);

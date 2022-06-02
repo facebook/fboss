@@ -30,6 +30,10 @@ class TajoAsic : public HwAsic {
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
   }
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor /* scalingFactor */) const override {
+    throw FbossError("Dynamic buffer threshold unsupported!");
+  }
 };
 
 } // namespace facebook::fboss

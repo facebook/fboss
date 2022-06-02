@@ -17,7 +17,10 @@ namespace facebook::fboss::utility {
 
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 // XXX this is 2Q config minus ECN. If needed, add 2Q + ECN config
-void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
+void add2QueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    bool scalingFactorSupported) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
@@ -26,7 +29,9 @@ void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
   queue0.streamType() = streamType;
   *queue0.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight() = k2QueueLowPriWeight;
-  queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  if (scalingFactorSupported) {
+    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
   queue0.reservedBytes() = 3328;
   portQueues.push_back(queue0);
 
@@ -36,7 +41,9 @@ void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
   queue1.streamType() = streamType;
   *queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight() = k2QueueHighPriWeight;
-  queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  if (scalingFactorSupported) {
+    queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  }
   queue1.reservedBytes() = 9984;
   portQueues.push_back(queue1);
 

@@ -209,6 +209,9 @@ class HwAsic {
   virtual uint32_t getMaxEcmpSize() const = 0;
 
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
+
+  virtual int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const = 0;
 };
 
 } // namespace facebook::fboss

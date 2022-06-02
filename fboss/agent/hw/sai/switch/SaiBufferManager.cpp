@@ -30,35 +30,6 @@
 namespace facebook::fboss {
 
 namespace {
-int scalingFactorToBufferDynThresh(cfg::MMUScalingFactor scalingFactor) {
-  switch (scalingFactor) {
-    case cfg::MMUScalingFactor::ONE:
-      return 0;
-    case cfg::MMUScalingFactor::EIGHT:
-      return 3;
-    case cfg::MMUScalingFactor::ONE_128TH:
-      return -7;
-    case cfg::MMUScalingFactor::ONE_64TH:
-      return -6;
-    case cfg::MMUScalingFactor::ONE_32TH:
-      return -5;
-    case cfg::MMUScalingFactor::ONE_16TH:
-      return -4;
-    case cfg::MMUScalingFactor::ONE_8TH:
-      return -3;
-    case cfg::MMUScalingFactor::ONE_QUARTER:
-      return -2;
-    case cfg::MMUScalingFactor::ONE_HALF:
-      return -1;
-    case cfg::MMUScalingFactor::TWO:
-      return 1;
-    case cfg::MMUScalingFactor::FOUR:
-      return 2;
-  }
-  CHECK(0) << "Should never get here";
-  return -1;
-}
-
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
   if (saiSwitch->getBootType() != BootType::COLD_BOOT) {
@@ -178,11 +149,11 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   }
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
-      dynThresh;
-  if (queue.getScalingFactor()) {
-    dynThresh =
-        scalingFactorToBufferDynThresh(queue.getScalingFactor().value());
+  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
+  if (platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
+      queue.getScalingFactor()) {
+    dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
+        queue.getScalingFactor().value());
   }
   return SaiBufferProfileTraits::CreateAttributes{
       pool, reservedBytes, mode, dynThresh};

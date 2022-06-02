@@ -75,7 +75,8 @@ void addOlympicQueueConfig(
     bool addWredConfig = false);
 void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType);
+    cfg::StreamType streamType,
+    const HwAsic* asic);
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 

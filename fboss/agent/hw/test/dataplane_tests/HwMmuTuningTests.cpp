@@ -31,7 +31,12 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
       addQosMap(&cfg);
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
-      addQueueConfig(&cfg, streamType);
+      addQueueConfig(
+          &cfg,
+          streamType,
+          getPlatform()
+              ->getAsic()
+              ->scalingFactorBasedDynamicThresholdSupported());
     }
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
@@ -176,8 +181,10 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     cfg->cpuTrafficPolicy() = cpuConfig;
   }
 
-  void addQueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType)
-      const {
+  void addQueueConfig(
+      cfg::SwitchConfig* config,
+      cfg::StreamType streamType,
+      bool scalingFactorSupported) const {
     std::vector<cfg::PortQueue> portQueues;
 
     // Queue 0 and 1 tune reserved bytes
@@ -207,7 +214,9 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     queue2.streamType() = streamType;
     queue2.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue2.weight() = 1;
-    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    if (scalingFactorSupported) {
+      queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    }
     portQueues.push_back(queue2);
 
     cfg::PortQueue queue3;
@@ -216,7 +225,9 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     queue3.streamType() = streamType;
     queue3.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue3.weight() = 1;
-    queue3.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+    if (scalingFactorSupported) {
+      queue3.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+    }
     portQueues.push_back(queue3);
 
     config->portQueueConfigs()["queue_config"] = portQueues;

@@ -54,5 +54,7 @@ class CredoF104Asic : public HwAsic {
   uint32_t getMaxEcmpSize() const override;
   uint32_t getNumCores() const override;
   bool scalingFactorBasedDynamicThresholdSupported() const override;
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const override;
 };
 } // namespace facebook::fboss

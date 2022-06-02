@@ -79,4 +79,8 @@ uint32_t CredoF104Asic::getNumCores() const {
 bool CredoF104Asic::scalingFactorBasedDynamicThresholdSupported() const {
   throw FbossError("CredoF104Asic doesn't support MMU feature");
 }
+int CredoF104Asic::getBufferDynThreshFromScalingFactor(
+    cfg::MMUScalingFactor /* scalingFactor */) const {
+  throw FbossError("CredoF104Asic doesn't support MMU feature");
+}
 }; // namespace facebook::fboss
