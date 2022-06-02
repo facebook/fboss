@@ -36,6 +36,11 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
+DEFINE_string(
+    switch_type,
+    "",
+    "Switch type - permitted values are npu, phy, voq and fabric");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -330,6 +335,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   if (getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
     useEcnThresholds = true;
   }
+  std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType;
+  std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
+  std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
+  if (FLAGS_switch_type == "voq") {
+    switchType = SAI_SWITCH_TYPE_VOQ;
+    switchId = 0;
+    cores = getAsic()->getNumCores();
+  }
 
   return {
     initSwitch,
@@ -361,10 +374,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Hardware access bus
         std::nullopt, // Platform context
         std::nullopt, // Switch profile id
-        std::nullopt, // Switch id
-        std::nullopt, // Max system cores
+        switchId, // Switch id
+        cores,
         std::nullopt, // System port config list
-        std::nullopt, // Switch type
+        switchType,
         std::nullopt, // Read function
         std::nullopt, // Write function
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
