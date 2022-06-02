@@ -30,11 +30,11 @@ inline bool getPortState(const std::vector<std::string>& args) {
   return enable;
 }
 
-inline std::unordered_map<std::string, int32_t> getQueriedPortIds(
+inline std::map<std::string, int32_t> getQueriedPortIds(
     const std::map<int32_t, facebook::fboss::PortInfoThrift>& entries,
     const std::vector<std::string>& queriedPorts) {
-  // deduplicate repetitive names
-  std::unordered_map<std::string, int32_t> portPairs;
+  // deduplicate repetitive names while ensuring order
+  std::map<std::string, int32_t> portPairs;
   std::unordered_map<std::string, int32_t> entryNames;
 
   for (const auto& entry : entries) {
@@ -92,7 +92,7 @@ class CmdSetPortState
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
     client->sync_getAllPortInfo(entries);
 
-    std::unordered_map<std::string, int32_t> queriedPortIds =
+    std::map<std::string, int32_t> queriedPortIds =
         getQueriedPortIds(entries, queriedPorts);
 
     std::stringstream ss;

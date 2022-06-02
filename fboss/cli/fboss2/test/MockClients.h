@@ -29,6 +29,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
 
   using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
+  MOCK_METHOD(void, setPortState, (int32_t, bool));
   MOCK_METHOD(
       void,
       getAggregatePortTable,
