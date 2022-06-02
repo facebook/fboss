@@ -59,11 +59,7 @@ void ModbusDevice::handleCommandFailure(std::exception& baseException) {
   }
 }
 
-void ModbusDevice::command(
-    Msg& req,
-    Msg& resp,
-    ModbusTime timeout,
-    ModbusTime settleTime) {
+void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   size_t reqLen = req.len;
   size_t respLen = resp.len;
   // Try executing the command, if errors, catch the error
@@ -72,7 +68,7 @@ void ModbusDevice::command(
   // in a special way.
   for (int retries = 0; retries < numCommandRetries_; retries++) {
     try {
-      interface_.command(req, resp, info_.baudrate, timeout, settleTime);
+      interface_.command(req, resp, info_.baudrate, timeout);
       info_.numConsecutiveFailures = 0;
       info_.lastActive = std::time(nullptr);
       break;

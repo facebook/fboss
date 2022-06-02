@@ -64,8 +64,7 @@ class Modbus {
       Msg& req,
       Msg& resp,
       uint32_t baudrate = 0,
-      ModbusTime timeout = ModbusTime::zero(),
-      ModbusTime settleTime = ModbusTime::zero());
+      ModbusTime timeout = ModbusTime::zero());
 
   virtual bool isPresent() {
     return deviceValid_.load();

@@ -90,11 +90,8 @@ class ModbusDevice {
       int numCommandRetries = 5);
   virtual ~ModbusDevice() {}
 
-  virtual void command(
-      Msg& req,
-      Msg& resp,
-      ModbusTime timeout = ModbusTime::zero(),
-      ModbusTime settleTime = ModbusTime::zero());
+  virtual void
+  command(Msg& req, Msg& resp, ModbusTime timeout = ModbusTime::zero());
 
   void readHoldingRegisters(
       uint16_t registerOffset,

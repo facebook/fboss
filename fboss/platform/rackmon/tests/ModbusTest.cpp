@@ -177,7 +177,7 @@ TEST_F(ModbusTest, Command) {
   Msg req = 0x0001020304050607_M;
   Msg resp;
   resp.len = 9;
-  bus.command(req, resp, 115200, ModbusTime::zero(), ModbusTime::zero());
+  bus.command(req, resp, 115200, ModbusTime::zero());
   Msg exp_resp = 0x00010203040506_M;
   EXPECT_EQ(resp, exp_resp);
 }
@@ -202,9 +202,7 @@ TEST_F(ModbusTest, CommandBadResp) {
   Msg req = 0x0001020304050607_M;
   Msg resp;
   resp.len = 9;
-  EXPECT_THROW(
-      bus.command(req, resp, 115200, ModbusTime::zero(), ModbusTime::zero()),
-      CRCError);
+  EXPECT_THROW(bus.command(req, resp, 115200, ModbusTime::zero()), CRCError);
 }
 
 TEST_F(ModbusTest, TestFlakyIntfRecover) {
