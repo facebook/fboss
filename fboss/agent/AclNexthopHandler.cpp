@@ -56,8 +56,21 @@ std::shared_ptr<SwitchState> AclNexthopHandler::handleUpdate(
 void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   RouteNextHopSet nexthops;
   const auto& redirect = action.getRedirectToNextHop();
-  for (auto& nhIpStr : *redirect.value().first.redirectNextHops()) {
-    auto nhIp = folly::IPAddress(*nhIpStr.ip_ref());
+  auto addFilteredNexthops = [&nexthops](auto& fibNextHops, auto& intfID) {
+    if (intfID.has_value()) {
+      for (const auto& nhop : fibNextHops) {
+        if (nhop.intfID().has_value() &&
+            InterfaceID(intfID.value()) == nhop.intfID().value()) {
+          nexthops.insert(nhop);
+        }
+      }
+    } else {
+      nexthops.merge(std::move(fibNextHops));
+    }
+  };
+  for (auto& nhIpStruct : *redirect.value().first.redirectNextHops()) {
+    auto nhIp = folly::IPAddress(*nhIpStruct.ip_ref());
+    auto intfID = nhIpStruct.intfID_ref();
     if (nhIp.isV4()) {
       const auto route = sw_->longestMatch<folly::IPAddressV4>(
           sw_->getState(), nhIp.asV4(), RouterID(0));
@@ -66,7 +79,7 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
       }
       RouteNextHopSet routeNextHops =
           route->getForwardInfo().normalizedNextHops();
-      nexthops.merge(std::move(routeNextHops));
+      addFilteredNexthops(routeNextHops, intfID);
     } else {
       const auto route = sw_->longestMatch<folly::IPAddressV6>(
           sw_->getState(), nhIp.asV6(), RouterID(0));
@@ -75,7 +88,7 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
       }
       RouteNextHopSet routeNextHops =
           route->getForwardInfo().normalizedNextHops();
-      nexthops.merge(std::move(routeNextHops));
+      addFilteredNexthops(routeNextHops, intfID);
     }
   }
   action.setRedirectToNextHop(std::make_pair(redirect.value().first, nexthops));

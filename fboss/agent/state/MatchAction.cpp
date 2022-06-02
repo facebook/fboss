@@ -25,6 +25,7 @@ constexpr auto kCounterTypes = "types";
 constexpr auto kToCpuAction = "cpuAction";
 constexpr auto kNexthops = "nexthops";
 constexpr auto kNexthopIp = "ip";
+constexpr auto kNexthopIntfID = "intfID";
 constexpr auto kRedirectNextHops = "redirectNextHops";
 constexpr auto kResolvedNexthops = "resolvedNexthops";
 constexpr auto kRedirectToNextHop = "redirectToNextHop";
@@ -165,6 +166,9 @@ folly::dynamic MatchAction::toFollyDynamic() const {
          *redirectToNextHop_.value().first.redirectNextHops()) {
       folly::dynamic nhop = folly::dynamic::object;
       nhop[kNexthopIp] = *nexthop.ip();
+      if (nexthop.intfID().has_value()) {
+        nhop[kNexthopIntfID] = nexthop.intfID().value();
+      }
       matchAction[kRedirectToNextHop][kThriftAction][kRedirectNextHops]
           .push_back(nhop);
     }
@@ -230,6 +234,9 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
          actionJson[kRedirectToNextHop][kThriftAction][kRedirectNextHops]) {
       cfg::RedirectNextHop nhop;
       nhop.ip_ref() = nh[kNexthopIp].asString();
+      if (nh.find(kNexthopIntfID) != nh.items().end()) {
+        nhop.intfID_ref() = nh[kNexthopIntfID].asInt();
+      }
       redirectToNextHop.redirectNextHops()->push_back(nhop);
     }
     redirectToNextHop.nexthops()->clear();
