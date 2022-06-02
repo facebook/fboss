@@ -58,6 +58,7 @@ void FakeSai::clear() {
   fs->tamEventManager.clear();
   fs->tamEventActionManager.clear();
   fs->tamReportManager.clear();
+  fs->systemPortManager.clear();
 }
 
 sai_object_id_t FakeSai::getCpuPort() {
@@ -211,6 +212,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
     case SAI_API_SWITCH:
       facebook::fboss::populate_switch_api(
           (sai_switch_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_SYSTEM_PORT:
+      facebook::fboss::populate_system_port_api(
+          (sai_system_port_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_VIRTUAL_ROUTER:

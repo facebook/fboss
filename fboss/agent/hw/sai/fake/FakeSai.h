@@ -32,6 +32,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiSamplePacket.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiScheduler.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiSystemPort.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
@@ -91,6 +92,7 @@ struct FakeSai {
   FakeMacsecSAManager macsecSAManager;
   FakeMacsecSCManager macsecSCManager;
   FakeMacsecFlowManager macsecFlowManager;
+  FakeSystemPortManager systemPortManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
   sai_object_id_t getCpuPort();
