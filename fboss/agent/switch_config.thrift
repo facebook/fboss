@@ -568,10 +568,12 @@ struct MacsecFlowAction {
 struct RedirectNextHop {
   // NextHop IP addresses
   1: string ip;
+  2: optional i32 intfID;
 }
 
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
+  // deprecated
   1: list<string> nexthops;
   2: list<RedirectNextHop> redirectNextHops;
 }
