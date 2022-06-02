@@ -71,12 +71,13 @@ void Modbus::closeDevice() {
 }
 
 void Modbus::healthCheck() {
-  std::unique_lock lck(deviceMutex_);
   if (!isPresent()) {
+    std::unique_lock lck(deviceMutex_);
     if (openDevice()) {
       logInfo << devicePath_ << " recovered successfully" << std::endl;
     }
   } else if (!device_->exists()) {
+    std::unique_lock lck(deviceMutex_);
     logError << devicePath_ << " no longer exists starting recovery"
              << std::endl;
     closeDevice();
