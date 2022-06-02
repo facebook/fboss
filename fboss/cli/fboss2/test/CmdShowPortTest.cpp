@@ -125,7 +125,7 @@ cli::ShowPortModel createPortModel() {
   entry1.id() = 1;
   entry1.name() = "eth1/5/1";
   entry1.adminState() = "Enabled";
-  entry1.operState() = "Down";
+  entry1.linkState() = "Down";
   entry1.speed() = "100G";
   entry1.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry1.tcvrID() = 0;
@@ -133,7 +133,7 @@ cli::ShowPortModel createPortModel() {
   entry2.id() = 2;
   entry2.name() = "eth1/5/2";
   entry2.adminState() = "Disabled";
-  entry2.operState() = "Down";
+  entry2.linkState() = "Down";
   entry2.speed() = "25G";
   entry2.profileId() = "PROFILE_25G_1_NRZ_CL74_COPPER";
   entry2.tcvrID() = 1;
@@ -141,7 +141,7 @@ cli::ShowPortModel createPortModel() {
   entry3.id() = 3;
   entry3.name() = "eth1/5/3";
   entry3.adminState() = "Enabled";
-  entry3.operState() = "Up";
+  entry3.linkState() = "Up";
   entry3.speed() = "100G";
   entry3.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry3.tcvrID() = 2;
@@ -149,7 +149,7 @@ cli::ShowPortModel createPortModel() {
   entry4.id() = 8;
   entry4.name() = "fab402/9/1";
   entry4.adminState() = "Enabled";
-  entry4.operState() = "Up";
+  entry4.linkState() = "Up";
   entry4.speed() = "100G";
   entry4.profileId() = "PROFILE_100G_4_NRZ_NOFEC_COPPER";
   entry4.tcvrID() = 9;
@@ -157,7 +157,7 @@ cli::ShowPortModel createPortModel() {
   entry5.id() = 7;
   entry5.name() = "eth1/10/2";
   entry5.adminState() = "Enabled";
-  entry5.operState() = "Up";
+  entry5.linkState() = "Up";
   entry5.speed() = "100G";
   entry5.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry5.tcvrID() = 9;
@@ -165,7 +165,7 @@ cli::ShowPortModel createPortModel() {
   entry6.id() = 9;
   entry6.name() = "eth1/4/1";
   entry6.adminState() = "Enabled";
-  entry6.operState() = "Up";
+  entry6.linkState() = "Up";
   entry6.speed() = "100G";
   entry6.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry6.tcvrID() = 10;

@@ -8,7 +8,7 @@ struct PortEntry {
   1: i32 id;
   2: string name;
   3: string adminState;
-  4: string operState;
+  4: string linkState;
   5: string speed;
   6: string profileId;
   7: i32 tcvrID;

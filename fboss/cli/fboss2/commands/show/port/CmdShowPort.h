@@ -65,7 +65,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           folly::to<std::string>(portInfo.get_id()),
           portInfo.get_name(),
           portInfo.get_adminState(),
-          getStyledOperState(portInfo.get_operState()),
+          getStyledLinkState(portInfo.get_linkState()),
           folly::to<std::string>(portInfo.get_tcvrID()),
           portInfo.get_speed(),
           portInfo.get_profileId(),
@@ -88,14 +88,14 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(adminState)));
   }
 
-  Table::StyledCell getStyledOperState(std::string operState) {
-    if (operState == "Down") {
+  Table::StyledCell getStyledLinkState(std::string linkState) {
+    if (linkState == "Down") {
       return Table::StyledCell("Down", Table::Style::ERROR);
     } else {
       return Table::StyledCell("Up", Table::Style::GOOD);
     }
 
-    throw std::runtime_error("Unsupported LinkState: " + operState);
+    throw std::runtime_error("Unsupported LinkState: " + linkState);
   }
 
   std::string getOperStateStr(PortOperState operState) {
@@ -210,7 +210,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.id() = portInfo.get_portId();
         portDetails.name() = portInfo.get_name();
         portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
-        portDetails.operState() = operState;
+        portDetails.linkState() = operState;
         portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
         if (auto tcvrId = portInfo.transceiverIdx()) {
