@@ -56,3 +56,43 @@ TEST_F(SystemPortApiTest, onePort) {
           id, SaiSystemPortTraits::Attributes::QosNumberOfVoqs{}),
       8);
 }
+
+TEST_F(SystemPortApiTest, setAttr) {
+  auto id = createPort(1, 100000, true);
+  SaiSystemPortTraits::Attributes::AdminState as_attr{false};
+  systemPortApi->setAttribute(id, as_attr);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::AdminState{}),
+      false);
+}
+
+TEST_F(SystemPortApiTest, getAttr) {
+  auto id = createPort(42, 100000, true);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::AdminState{}),
+      true);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::QosNumberOfVoqs{}),
+      8);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(id, SaiSystemPortTraits::Attributes::Type{}),
+      SAI_SYSTEM_PORT_TYPE_LOCAL);
+  EXPECT_EQ(
+      systemPortApi->getAttribute(id, SaiSystemPortTraits::Attributes::Port{}),
+      42);
+  auto confInfo = systemPortApi->getAttribute(
+      id, SaiSystemPortTraits::Attributes::ConfigInfo{});
+  EXPECT_EQ(confInfo.port_id, 42);
+}
+
+TEST_F(SystemPortApiTest, removePort) {
+  auto id = createPort(1, 100000, true);
+  systemPortApi->remove(id);
+  EXPECT_THROW(
+      systemPortApi->getAttribute(
+          id, SaiSystemPortTraits::Attributes::AdminState{}),
+      std::exception);
+}

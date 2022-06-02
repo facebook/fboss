@@ -102,6 +102,9 @@ sai_status_t get_system_port_attribute_fn(
         }
         attr_list[i].value.objlist = objlist;
       } break;
+      case SAI_SYSTEM_PORT_ATTR_PORT:
+        attr_list[i].value.oid = systemPort.config.port_id;
+        break;
       case SAI_SYSTEM_PORT_ATTR_CONFIG_INFO:
         attr_list[i].value.sysportconfig = systemPort.config;
         break;
