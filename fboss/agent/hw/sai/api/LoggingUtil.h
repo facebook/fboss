@@ -338,4 +338,27 @@ struct formatter<facebook::fboss::SaiPortDescriptor> {
   }
 };
 
+// Formatting for sai_system_port_config_t
+template <>
+struct formatter<sai_system_port_config_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_system_port_config_t& sysPortConf, FormatContext& ctx) {
+    return format_to(
+        ctx.out(),
+        "(port_id: port_id: {}, switch_id: {}, "
+        " attached_core_index: {}, attached_core_port_index: {}, "
+        " speed: {}, num_voqs: {})",
+        sysPortConf.port_id,
+        sysPortConf.attached_switch_id,
+        sysPortConf.attached_core_index,
+        sysPortConf.attached_core_port_index,
+        sysPortConf.speed,
+        sysPortConf.num_voq);
+  }
+};
 } // namespace fmt
