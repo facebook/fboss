@@ -660,13 +660,25 @@ std::map<int32_t, ReadResponse> doReadRegViaService(
   return response;
 }
 
+void setPageDirect(TransceiverI2CApi* bus, unsigned int port, uint8_t page) {
+  // Write the pageID in byte 127 of the lower page
+  const int offset = 127;
+  bus->moduleWrite(
+      port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, &page);
+  printf("QSFP %d: successfully set pageID %d.\n", port, page);
+}
+
 void doReadRegDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     int offset,
-    int length) {
+    int length,
+    int page) {
   std::array<uint8_t, 128> buf;
   try {
+    if (page != -1) {
+      setPageDirect(bus, port, page);
+    }
     bus->moduleRead(
         port,
         {static_cast<uint8_t>(FLAGS_i2c_address), offset, length},
@@ -703,7 +715,7 @@ int doReadReg(
   if (FLAGS_direct_i2c) {
     for (unsigned int portNum : ports) {
       printf("Port Id : %d\n", portNum);
-      doReadRegDirect(bus, portNum, offset, length);
+      doReadRegDirect(bus, portNum, offset, length, page);
     }
   } else {
     // Release the bus access for QSFP service
@@ -718,11 +730,14 @@ void doWriteRegDirect(
     TransceiverI2CApi* bus,
     unsigned int port,
     int offset,
+    int page,
     uint8_t value) {
-  uint8_t buf[1] = {value};
   try {
+    if (page != -1) {
+      setPageDirect(bus, port, page);
+    }
     bus->moduleWrite(
-        port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, buf);
+        port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, &value);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return;
@@ -786,9 +801,10 @@ int doWriteReg(
         folly::join(",", ports).c_str());
     return EX_SOFTWARE;
   }
+
   if (FLAGS_direct_i2c) {
     for (unsigned int portNum : ports) {
-      doWriteRegDirect(bus, portNum, offset, data);
+      doWriteRegDirect(bus, portNum, offset, page, data);
     }
   } else {
     // Release the bus access for QSFP service
