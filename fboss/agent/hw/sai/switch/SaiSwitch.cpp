@@ -74,6 +74,10 @@ extern "C" {
 #include <sai.h>
 }
 
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
 /*
  * Setting the default sai sdk logging level to CRITICAL for several reasons:
  * 1) These are synchronous writes to the syslog so that agent
@@ -933,34 +937,37 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
       continue;
     }
 
-    auto eyeStatus = managerTable_->portManager().getPortEyeValues(
-        portHandle->port->adapterKey());
-
-    if (eyeStatus.count == 0) {
-      // Non xphy systems don't return eye status so no need to populate PhyInfo
-      // for those systems
-      XLOG(DBG5) << folly::sformat(
-          "Did not get port Eye values for {} so skipping this port",
-          static_cast<int>(swPort));
-      continue;
-    }
-
     phy::PhyInfo phyParams;
-    for (int i = 0; i < eyeStatus.count; i++) {
-      phy::LaneInfo laneInfo;
-      std::vector<phy::EyeInfo> eyeInfo;
-      phy::EyeInfo oneLaneEyeInfo;
-
-      int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
-      int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
-      oneLaneEyeInfo.height() = height;
-      oneLaneEyeInfo.width() = width;
-      eyeInfo.push_back(oneLaneEyeInfo);
-      laneInfo.eyes() = eyeInfo;
-      phyParams.line()->pmd()->lanes()[i] = laneInfo;
-    }
     phyParams.name() = folly::to<std::string>("port", swPort);
     phyParams.switchID() = getSwitchId();
+    // Global phy parameters
+    phy::DataPlanePhyChip phyChip;
+    phyChip.type() = getPlatform()->getAsic()->getDataPlanePhyChipType();
+    phyParams.phyChip() = phyChip;
+    phyParams.linkState() = managerTable_->portManager().isUp(swPort);
+    // Update PMD Info
+    {
+      auto eyeStatus = managerTable_->portManager().getPortEyeValues(
+          portHandle->port->adapterKey());
+      if (eyeStatus.count != 0) {
+        for (int i = 0; i < eyeStatus.count; i++) {
+          phy::LaneInfo laneInfo;
+          std::vector<phy::EyeInfo> eyeInfo;
+          phy::EyeInfo oneLaneEyeInfo;
+
+          int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
+          int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
+          oneLaneEyeInfo.height() = height;
+          oneLaneEyeInfo.width() = width;
+          eyeInfo.push_back(oneLaneEyeInfo);
+          laneInfo.eyes() = eyeInfo;
+          phyParams.line()->pmd()->lanes()[i] = laneInfo;
+        }
+      }
+    }
+    // PhyInfo update timestamp
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    phyParams.timeCollected() = now.count();
     returnPhyParams[swPort] = phyParams;
   }
   return returnPhyParams;
