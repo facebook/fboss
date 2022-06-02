@@ -189,4 +189,22 @@ double getAlphaFromScalingFactor(
           scalingFactor);
   return pow(2, powof);
 }
+
+uint32_t getQueueLimitBytes(
+    HwSwitch* hwSwitch,
+    std::optional<cfg::MMUScalingFactor> queueScalingFactor) {
+  uint32_t queueLimitBytes{};
+  if (queueScalingFactor.has_value()) {
+    // Dynamic queue limit for this platform!
+    auto alpha =
+        getAlphaFromScalingFactor(hwSwitch, queueScalingFactor.value());
+    queueLimitBytes = static_cast<uint32_t>(
+        getEgressSharedPoolLimitBytes(hwSwitch) * alpha / (1 + alpha));
+  } else {
+    queueLimitBytes =
+        hwSwitch->getPlatform()->getAsic()->getStaticQueueLimitBytes();
+  }
+  return queueLimitBytes;
+}
+
 }; // namespace facebook::fboss::utility

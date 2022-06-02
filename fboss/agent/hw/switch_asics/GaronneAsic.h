@@ -92,6 +92,9 @@ class GaronneAsic : public TajoAsic {
   uint32_t getMaxEcmpSize() const override {
     return 512;
   }
+  uint32_t getStaticQueueLimitBytes() const override {
+    return 21000 * getPacketBufferUnitSize();
+  }
 };
 
 } // namespace facebook::fboss

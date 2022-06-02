@@ -92,6 +92,10 @@ class Tomahawk4Asic : public BroadcomAsic {
   uint32_t getMaxEcmpSize() const override {
     return 4096;
   }
+  uint32_t getStaticQueueLimitBytes() const override {
+    // Per ITM buffers limits the queue size
+    return getMMUSizeBytes() / 2;
+  }
 };
 
 } // namespace facebook::fboss

@@ -91,6 +91,9 @@ class EbroAsic : public TajoAsic {
   uint32_t getNumCores() const override {
     return 12;
   }
+  uint32_t getStaticQueueLimitBytes() const override {
+    return 16000 * getPacketBufferUnitSize();
+  }
 };
 
 } // namespace facebook::fboss

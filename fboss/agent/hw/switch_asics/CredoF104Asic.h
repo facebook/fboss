@@ -56,5 +56,6 @@ class CredoF104Asic : public HwAsic {
   bool scalingFactorBasedDynamicThresholdSupported() const override;
   int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor scalingFactor) const override;
+  uint32_t getStaticQueueLimitBytes() const override;
 };
 } // namespace facebook::fboss

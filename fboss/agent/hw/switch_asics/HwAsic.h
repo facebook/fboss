@@ -212,6 +212,8 @@ class HwAsic {
 
   virtual int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor scalingFactor) const = 0;
+
+  virtual uint32_t getStaticQueueLimitBytes() const = 0;
 };
 
 } // namespace facebook::fboss

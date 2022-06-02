@@ -59,6 +59,15 @@ HwPortStats sendPacketsWithQueueBuildup(
     int numPackets);
 
 /*
+ * Get static or dynamic queue limit for platform. In case of dynamic queue
+ * limit, take into account queueScalingFactor configuration and return the
+ * max possible queue limit, assuming no other active queue in the system.
+ */
+uint32_t getQueueLimitBytes(
+    HwSwitch* hwSwitch,
+    std::optional<cfg::MMUScalingFactor> queueScalingFactor);
+
+/*
  * Get shared pool size in bytes for egress, applicable for Broadcom platforms
  */
 uint32_t getEgressSharedPoolLimitBytes(HwSwitch* hwSwitch);

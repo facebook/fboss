@@ -83,4 +83,7 @@ int CredoF104Asic::getBufferDynThreshFromScalingFactor(
     cfg::MMUScalingFactor /* scalingFactor */) const {
   throw FbossError("CredoF104Asic doesn't support MMU feature");
 }
+uint32_t CredoF104Asic::getStaticQueueLimitBytes() const {
+  throw FbossError("CredoF104Asic doesn't support MMU feature");
+}
 }; // namespace facebook::fboss
