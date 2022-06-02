@@ -54,10 +54,16 @@ class CmdSetPortStateTestFixture : public CmdHandlerTestBase {
   }
 };
 
+TEST_F(CmdSetPortStateTestFixture, nonexistentPort) {
+  std::vector<std::string> queriedPortNames = {"eth1/5/10"};
+  EXPECT_THROW(
+      getQueriedPortIds(portEntries, queriedPortNames), std::runtime_error);
+}
+
 TEST_F(CmdSetPortStateTestFixture, disableOnePort) {
   setupMockedAgentServer();
   std::vector<std::string> queriedPortNames = {"eth1/5/1"};
-  // queriedPortIds = {1};
+  // corresponding portIds: {1};
   std::vector<std::string> state = {"disable"};
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
@@ -78,7 +84,7 @@ TEST_F(CmdSetPortStateTestFixture, disableOnePort) {
 TEST_F(CmdSetPortStateTestFixture, enableOnePort) {
   setupMockedAgentServer();
   std::vector<std::string> queriedPortNames = {"eth1/5/2"};
-  // queriedPortIds = {2};
+  // corresponding portIds: {2};
   std::vector<std::string> state = {"enable"};
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
@@ -99,7 +105,7 @@ TEST_F(CmdSetPortStateTestFixture, enableOnePort) {
 TEST_F(CmdSetPortStateTestFixture, disableTwoPorts) {
   setupMockedAgentServer();
   std::vector<std::string> queriedPortNames = {"eth1/5/1", "eth1/5/3"};
-  // queriedPortIds = {1, 3};
+  // corresponding portIds: {1, 3};
   std::vector<std::string> state = {"disable"};
 
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
@@ -118,6 +124,63 @@ TEST_F(CmdSetPortStateTestFixture, disableTwoPorts) {
   EXPECT_EQ(portEntries[1].adminState(), PortAdminState::DISABLED);
   EXPECT_EQ(portEntries[3].adminState(), PortAdminState::DISABLED);
   EXPECT_EQ(model, "Disabling port eth1/5/1\nDisabling port eth1/5/3\n");
+}
+
+TEST_F(CmdSetPortStateTestFixture, disableDuplicatePorts) {
+  setupMockedAgentServer();
+  std::vector<std::string> queriedPortNames = {"eth1/5/1", "eth1/5/1"};
+  // corresponding portIds: {1};
+  std::vector<std::string> state = {"disable"};
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
+
+  EXPECT_CALL(getMockAgent(), setPortState(_, _))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[1].adminState() = PortAdminState::DISABLED;
+      }));
+
+  auto cmd = CmdSetPortState();
+  auto model = cmd.queryClient(localhost(), queriedPortNames, state);
+  EXPECT_EQ(portEntries[1].adminState(), PortAdminState::DISABLED);
+  EXPECT_EQ(model, "Disabling port eth1/5/1\n");
+}
+
+TEST_F(CmdSetPortStateTestFixture, disableEnablePort) {
+  // Toggle from enable -> disable -> enable again on one port.
+  // Check the result of a sequence of behaviors.
+  setupMockedAgentServer();
+  std::vector<std::string> queriedPortNames = {"eth1/5/2"};
+  // corresponding portIds: {2};
+  std::vector<std::string> state;
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .Times(3)
+      .WillRepeatedly(Invoke([&](auto& entries) { entries = portEntries; }));
+
+  EXPECT_CALL(getMockAgent(), setPortState(_, _))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[2].adminState() = PortAdminState::ENABLED;
+      }))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[2].adminState() = PortAdminState::DISABLED;
+      }))
+      .WillOnce(Invoke([&](int32_t, bool) {
+        portEntries[2].adminState() = PortAdminState::ENABLED;
+      }));
+
+  auto cmd = CmdSetPortState();
+  state = {"enable"};
+  cmd.queryClient(localhost(), queriedPortNames, state);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::ENABLED);
+
+  state = {"disable"};
+  cmd.queryClient(localhost(), queriedPortNames, state);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::DISABLED);
+
+  state = {"enable"};
+  cmd.queryClient(localhost(), queriedPortNames, state);
+  EXPECT_EQ(portEntries[2].adminState(), PortAdminState::ENABLED);
 }
 
 } // namespace facebook::fboss
