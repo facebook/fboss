@@ -567,16 +567,17 @@ TEST_F(SwitchApiTest, testMaxSysCores) {
 
 TEST_F(SwitchApiTest, testSysPortCfgList) {
   SaiSwitchTraits::Attributes::SysPortConfigList cfgList =
-      std::vector<sai_object_id_t>{1, 2, 3, 4};
+      std::vector<sai_system_port_config_t>{{
+          1, // port_id
+          0, // switch_id
+          10, // attached_core_index
+          0, // attached_core_port_index
+          100000, // speed - 100G in mbps
+      }};
   switchApi->setAttribute(switchId, cfgList);
   auto gotList = switchApi->getAttribute(
       switchId, SaiSwitchTraits::Attributes::SysPortConfigList{});
-
-  EXPECT_EQ(gotList.size(), 4);
-  EXPECT_EQ(gotList[0], 1);
-  EXPECT_EQ(gotList[1], 2);
-  EXPECT_EQ(gotList[2], 3);
-  EXPECT_EQ(gotList[3], 4);
+  EXPECT_EQ(gotList.size(), 1);
 }
 
 TEST_F(SwitchApiTest, testSwitchType) {

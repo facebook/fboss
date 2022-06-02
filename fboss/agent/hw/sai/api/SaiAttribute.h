@@ -175,6 +175,7 @@ DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
+DEFINE_extract(std::vector<sai_system_port_config_t>, sysportconfiglist);
 
 // TODO:
 DEFINE_extract(sai_vlan_list_t, vlanlist);

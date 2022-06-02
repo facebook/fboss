@@ -328,8 +328,8 @@ struct SaiSwitchTraits {
     using SysPortConfigList = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST,
-        std::vector<sai_object_id_t>,
-        SaiObjectIdListDefault>;
+        std::vector<sai_system_port_config_t>,
+        SaiListDefault<sai_system_port_config_list_t>>;
     using SwitchType = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_TYPE,

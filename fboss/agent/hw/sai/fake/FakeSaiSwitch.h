@@ -94,7 +94,8 @@ class FakeSwitch {
   void setMaxSystemCores(sai_uint32_t maxSystemCores) {
     maxSystemCores_ = maxSystemCores;
   }
-  void setSysPortConfigList(std::vector<sai_object_id_t> sysPortConfigList) {
+  void setSysPortConfigList(
+      std::vector<sai_system_port_config_t> sysPortConfigList) {
     sysPortConfigList_ = std::move(sysPortConfigList);
   }
   void setSwitchType(sai_uint32_t switchType) {
@@ -169,10 +170,10 @@ class FakeSwitch {
   int32_t maxSystemCores() {
     return maxSystemCores_;
   }
-  const std::vector<sai_object_id_t>& sysPortConfigList() const {
+  const std::vector<sai_system_port_config_t>& sysPortConfigList() const {
     return sysPortConfigList_;
   }
-  sai_object_id_t* sysPortConfigListData() {
+  sai_system_port_config_t* sysPortConfigListData() {
     return sysPortConfigList_.data();
   }
   int32_t switchType() {
@@ -294,7 +295,7 @@ class FakeSwitch {
   sai_uint32_t profileId_;
   sai_uint32_t switchId_;
   sai_uint32_t maxSystemCores_;
-  std::vector<sai_object_id_t> sysPortConfigList_;
+  std::vector<sai_system_port_config_t> sysPortConfigList_;
   sai_uint32_t switchType_;
   sai_pointer_t readFn_;
   sai_pointer_t writeFn_;

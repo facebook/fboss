@@ -239,9 +239,10 @@ sai_status_t set_switch_attribute_fn(
       sw.setMaxSystemCores(attr->value.u32);
       break;
     case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
-      sw.setSysPortConfigList(std::vector<sai_object_id_t>(
-          attr->value.objlist.list,
-          attr->value.objlist.list + attr->value.objlist.count));
+      sw.setSysPortConfigList(std::vector<sai_system_port_config_t>(
+          attr->value.sysportconfiglist.list,
+          attr->value.sysportconfiglist.list +
+              attr->value.sysportconfiglist.count));
       break;
     case SAI_SWITCH_ATTR_TYPE:
       sw.setSwitchType(attr->value.u32);
@@ -472,8 +473,8 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.u32 = sw.maxSystemCores();
         break;
       case SAI_SWITCH_ATTR_SYSTEM_PORT_CONFIG_LIST:
-        attr[i].value.objlist.count = sw.sysPortConfigList().size();
-        attr[i].value.objlist.list = sw.sysPortConfigListData();
+        attr[i].value.sysportconfiglist.count = sw.sysPortConfigList().size();
+        attr[i].value.sysportconfiglist.list = sw.sysPortConfigListData();
         break;
       case SAI_SWITCH_ATTR_TYPE:
         attr[i].value.u32 = sw.switchType();

@@ -123,6 +123,11 @@ struct WrappedSaiType<std::array<uint8_t, size>> {
   using value = uint8_t[size];
 };
 
+template <>
+struct WrappedSaiType<std::vector<sai_system_port_config_t>> {
+  using value = sai_system_port_config_list_t;
+};
+
 template <typename T>
 class AclEntryField {
  public:
