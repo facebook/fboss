@@ -338,10 +338,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType;
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
+  std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
   if (FLAGS_switch_type == "voq") {
     switchType = SAI_SWITCH_TYPE_VOQ;
-    switchId = 0;
     cores = getAsic()->getNumCores();
+    // TODO make switch id come from config
+    // Provide a non empty sys port config_list
+    switchId = 0;
+    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{};
   }
 
   return {
@@ -376,7 +380,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Switch profile id
         switchId, // Switch id
         cores,
-        std::nullopt, // System port config list
+        sysPortConfigs, // System port config list
         switchType,
         std::nullopt, // Read function
         std::nullopt, // Write function
