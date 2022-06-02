@@ -23,11 +23,16 @@ namespace facebook::fboss {
 struct FakeSystemPort {
   FakeSystemPort(
       const sai_system_port_config_t& config,
+      sai_object_id_t switchId,
       bool adminState,
       sai_object_id_t qosToTcMapId)
-      : config(config), adminState(adminState), qosToTcMapId(qosToTcMapId) {}
+      : config(config),
+        switchId(switchId),
+        adminState(adminState),
+        qosToTcMapId(qosToTcMapId) {}
   sai_object_id_t id;
   sai_system_port_config_t config;
+  sai_object_id_t switchId;
   bool adminState{false};
   sai_object_id_t qosToTcMapId;
 };
