@@ -22,6 +22,8 @@
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
+#include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
+#include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -235,6 +237,15 @@ const CommandTree& kCommandTree() {
                 commandHandler<CmdSetInterfacePrbsState>}},
           }},
       },
+      {"set",
+       "port",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
+       "Set Port information",
+       commandHandler<CmdSetPort>,
+       {{"state",
+         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE,
+         "Set Port state",
+         commandHandler<CmdSetPortState>}}},
   };
   return root;
 }

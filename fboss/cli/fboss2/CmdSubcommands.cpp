@@ -89,6 +89,14 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           "'off checker' -> Disables PRBS on the checker only\n"
           "'prbs31 generator' -> Enables PRBS31 only on the generator\n"
           "'prbs31q generator checker' -> Enables PRBS31Q on both generator and checker\n");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE) {
+      subCmd->add_option(
+          "state",
+          args,
+          "Port state to set - some examples \n"
+          "'enable' -> Enables port\n"
+          "'disable' -> Disables port\n");
     }
   }
   return subCmd;

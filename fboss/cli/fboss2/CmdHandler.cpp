@@ -21,6 +21,8 @@
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
+#include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
+#include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
@@ -150,6 +152,8 @@ template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
 template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
+template void CmdHandler<CmdSetPort, CmdSetPortTraits>::run();
+template void CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::run();
 template void CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::run();
 template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
 template void
