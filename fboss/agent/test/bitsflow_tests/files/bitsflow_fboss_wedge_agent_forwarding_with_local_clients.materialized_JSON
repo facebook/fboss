@@ -89,6 +89,21 @@
         }
       ],
       "metadata": ""
+    },
+    {
+      "action": "BcmCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
     }
   ],
   "point_of_contact": {

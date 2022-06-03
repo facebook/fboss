@@ -5,8 +5,8 @@
       "entries": [
         {
           "identity": {
-            "id_type": "MACHINE",
-            "id_data": "localhost"
+            "id_type": "ANY",
+            "id_data": ""
           },
           "expiration_time": 0,
           "state": 0,
@@ -20,8 +20,8 @@
       "entries": [
         {
           "identity": {
-            "id_type": "MACHINE",
-            "id_data": "localhost"
+            "id_type": "ANY",
+            "id_data": ""
           },
           "expiration_time": 0,
           "state": 0,
@@ -35,8 +35,8 @@
       "entries": [
         {
           "identity": {
-            "id_type": "MACHINE",
-            "id_data": "localhost"
+            "id_type": "ANY",
+            "id_data": ""
           },
           "expiration_time": 0,
           "state": 0,
@@ -91,12 +91,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.aliveSince",
+      "action": "BcmCtrl",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "MACHINE",
+            "id_data": "localhost"
           },
           "expiration_time": 0,
           "state": 0,
@@ -106,12 +106,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.getCounters",
+      "action": "FbossCtrl.addMplsRoutes",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -121,12 +121,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.getExportedValues",
+      "action": "FbossCtrl.addOrUpdateNextHopGroups",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -136,12 +136,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.getRegexCounters",
+      "action": "FbossCtrl.addOrUpdatePolicies",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -151,12 +151,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.getSelectedCounters",
+      "action": "FbossCtrl.addUnicastRouteInVrf",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -166,12 +166,12 @@
       "metadata": ""
     },
     {
-      "action": "BaseService.getStatusDetails",
+      "action": "FbossCtrl.addUnicastRoute",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "SERVICE_IDENTITY",
+            "id_data": "looperino_oncall_default_service_identity"
           },
           "expiration_time": 0,
           "state": 0,
@@ -181,12 +181,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getAggregatePortTable",
+      "action": "FbossCtrl.addUnicastRoutesInVrf",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -196,12 +196,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getAllInterfaces",
+      "action": "FbossCtrl.addUnicastRoutes",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -211,12 +211,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getAllLacpPartnerPairs",
+      "action": "FbossCtrl.clearAllPortStats",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -226,12 +226,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getAllPortInfo",
+      "action": "FbossCtrl.clearForwardingClassForDscp",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -241,12 +241,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getAllRouteCounterBytes",
+      "action": "FbossCtrl.clearNextHopGroups",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -256,252 +256,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.getArpTable",
+      "action": "FbossCtrl.clearPortPrbsStats",
       "entries": [
         {
           "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getBootType",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getInterfaceDetail",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getInterfaceList",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getLldpNeighbors",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getMacAddrsToBlock",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getNdpTable",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getPortInfo",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getPortStatus",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getProductInfo",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getRouteTableByClient",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getRouteTableDetails",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getRouteTable",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getRunningConfig",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getSwitchRunState",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.getVlanAddresses",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
-          },
-          "expiration_time": 0,
-          "state": 0,
-          "auto_renew": false
-        }
-      ],
-      "metadata": ""
-    },
-    {
-      "action": "FbossCtrl.listHwObjects",
-      "entries": [
-        {
-          "identity": {
-            "id_type": "ANY",
-            "id_data": ""
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -535,12 +295,267 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.setNeighborsToBlock",
+      "action": "FbossCtrl.deleteMplsRoutes",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.deleteUnicastRouteInVrf",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.deleteUnicastRoute",
       "entries": [
         {
           "identity": {
             "id_type": "SERVICE_IDENTITY",
-            "id_data": "eris"
+            "id_data": "looperino_oncall_default_service_identity"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.deleteUnicastRoutesInVrf",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.deleteUnicastRoutes",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.diagCmd",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "SERVICE_IDENTITY",
+            "id_data": "netrca__server"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.flushCountersNow",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.flushNeighborEntry",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.patchCurrentStateJSON",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.programInternalPhyPorts",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.registerForNeighborChanged",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.reloadConfig",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.removeNextHopGroups",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.removePolicies",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.sendPktHex",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.sendPkt",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setDscpToForwardingClass",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setExternalLedState",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -556,6 +571,66 @@
           "identity": {
             "id_type": "SERVICE_IDENTITY",
             "id_data": "eris"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setNeighborsToBlock",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "SERVICE_IDENTITY",
+            "id_data": "eris"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setNextHopGroups",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setPortLoopbackMode",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.setPortPrbs",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -589,12 +664,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.addUnicastRoute",
+      "action": "FbossCtrl.startLoggingMplsRouteUpdates",
       "entries": [
         {
           "identity": {
-            "id_type": "SERVICE_IDENTITY",
-            "id_data": "looperino_oncall_default_service_identity"
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -604,12 +679,12 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.deleteUnicastRoute",
+      "action": "FbossCtrl.startLoggingRouteUpdates",
       "entries": [
         {
           "identity": {
-            "id_type": "SERVICE_IDENTITY",
-            "id_data": "looperino_oncall_default_service_identity"
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
@@ -619,12 +694,192 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.diagCmd",
+      "action": "FbossCtrl.startPktCapture",
       "entries": [
         {
           "identity": {
-            "id_type": "SERVICE_IDENTITY",
-            "id_data": "netrca__server"
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopAllPktCaptures",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopLoggingAnyMplsRouteUpdates",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopLoggingAnyRouteUpdates",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopLoggingMplsRouteUpdates",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopLoggingRouteUpdates",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.stopPktCapture",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.syncFibInVrf",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.syncFib",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.syncMplsFib",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.txPktL2",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.txPktL3",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.txPkt",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_dev"
           },
           "expiration_time": 0,
           "state": 0,
