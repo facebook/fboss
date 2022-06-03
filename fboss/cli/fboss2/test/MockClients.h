@@ -12,6 +12,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 using namespace ::testing;
 namespace facebook::fboss {
@@ -48,5 +49,14 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
           std::unique_ptr<apache::thrift::HandlerCallback<
               std::unique_ptr<std::map<std::string, int64_t>>>>,
           std::unique_ptr<std::string> regex));
+};
+
+class MockFbossQsfpService : public QsfpServiceSvIf {
+ public:
+  using transceiverEntries =
+      std::map<int32_t, facebook::fboss::TransceiverInfo>&;
+  MOCK_METHOD2(
+      getTransceiverInfo,
+      void(transceiverEntries, std::unique_ptr<std::vector<int32_t>>));
 };
 } // namespace facebook::fboss

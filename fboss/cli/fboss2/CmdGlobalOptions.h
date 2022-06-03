@@ -131,6 +131,10 @@ class CmdGlobalOptions {
     agentThriftPort_ = port;
   }
 
+  void setQsfpThriftPort(int port) {
+    qsfpThriftPort_ = port;
+  }
+
   void setBgpThriftPort(int port) {
     bgpThriftPort_ = port;
   }

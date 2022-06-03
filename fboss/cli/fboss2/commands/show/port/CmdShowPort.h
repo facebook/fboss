@@ -13,11 +13,14 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include <re2/re2.h>
+#include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/Table.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <unistd.h>
+#include <algorithm>
 
 namespace facebook::fboss {
 
@@ -39,14 +42,26 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
-    std::map<int32_t, facebook::fboss::PortInfoThrift> entries;
+    std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+    std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries;
+    std::vector<int32_t> requiredTransceiverEntries;
 
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+    client->sync_getAllPortInfo(portEntries);
 
-    client->sync_getAllPortInfo(entries);
+    try {
+      auto qsfpService =
+          utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(
+              hostInfo);
 
-    return createModel(entries, queriedPorts);
+      qsfpService->sync_getTransceiverInfo(
+          transceiverEntries, requiredTransceiverEntries);
+    } catch (apache::thrift::transport::TTransportException& e) {
+      std::cerr << "Cannot connect to qsfp_service\n";
+    }
+
+    return createModel(portEntries, transceiverEntries, queriedPorts);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -56,6 +71,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
          "Name",
          "AdminState",
          "LinkState",
+         "Transceiver",
          "TcvrID",
          "Speed",
          "ProfileID"});
@@ -66,6 +82,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           portInfo.get_name(),
           portInfo.get_adminState(),
           getStyledLinkState(portInfo.get_linkState()),
+          portInfo.get_tcvrPresent(),
           folly::to<std::string>(portInfo.get_tcvrID()),
           portInfo.get_speed(),
           portInfo.get_profileId(),
@@ -183,8 +200,21 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return stoi(subportNumStrA) < stoi(subportNumStrB);
   }
 
+  std::string getTransceiverStr(
+      std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
+      int32_t transceiverId) {
+    if (transceiverEntries.count(transceiverId) == 0) {
+      return "";
+    }
+    auto isPresent = transceiverEntries[transceiverId].get_present();
+    if (isPresent)
+      return "Present";
+    return "Absent";
+  }
+
   RetType createModel(
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+      std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
       const ObjectArgType& queriedPorts) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
@@ -214,9 +244,11 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
         if (auto tcvrId = portInfo.transceiverIdx()) {
-          portDetails.tcvrID() = tcvrId->get_transceiverId();
+          const auto transceiverId = tcvrId->get_transceiverId();
+          portDetails.tcvrID() = transceiverId;
+          portDetails.tcvrPresent() =
+              getTransceiverStr(transceiverEntries, transceiverId);
         }
-
         model.portEntries()->push_back(portDetails);
       }
     }
