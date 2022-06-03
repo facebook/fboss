@@ -921,12 +921,15 @@ if (NOT SAI_ONLY)
   )
   target_link_libraries(cp2112_util fboss_agent)
 
-  add_library(qsfp_util_lib STATIC
+  add_executable(wedge_qsfp_util
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
       fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
       fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
+      fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
+      fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
       fboss/util/wedge_qsfp_util.cpp
+      fboss/util/qsfp_util_main.cpp
       fboss/util/QsfpUtilTx.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
       fboss/lib/firmware_storage/FbossFirmware.cpp
@@ -938,24 +941,11 @@ if (NOT SAI_ONLY)
       fboss/lib/i2c/FirmwareUpgrader.cpp
       fboss/lib/i2c/FirmwareUpgrader.h
   )
-  target_link_libraries(qsfp_util_lib
-    switch_config_cpp2
-    qsfp_module
-    transceiver_manager
-  )
-
-  add_executable(wedge_qsfp_util
-      fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
-      fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
-      fboss/util/qsfp_util_main.cpp
-
-  )
   target_link_libraries(wedge_qsfp_util
       fboss_agent
       qsfp_config
       qsfp_lib
       qsfp_module
-      qsfp_util_lib
       ${YAML-CPP}
       phy_management_base
       transceiver_manager
@@ -1041,7 +1031,9 @@ file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
   if(SAI_ONLY AND ${cmakeFile} MATCHES "Bcm")
     message(status " Skipping OpenNSA BCM binaries")
-  elseif(SAI_ONLY AND ${cmakeFile} MATCHES "LinkTest")
+  # Skip building LinkTest, enable this for non SAI_ONLY build
+  # once the compilation issues with LinkTest are fixed
+  elseif(${cmakeFile} MATCHES "LinkTest")
     message(status " Skipping LinkTest binaries")
   else()
     message(status " INCLUDE ${cmakeFile}")
