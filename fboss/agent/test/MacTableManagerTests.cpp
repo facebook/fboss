@@ -21,29 +21,6 @@
 
 namespace facebook::fboss {
 
-class WaitForMacEntryAddedOrDeleted : public WaitForSwitchState {
- public:
-  WaitForMacEntryAddedOrDeleted(
-      SwSwitch* sw,
-      folly::MacAddress mac,
-      VlanID vlan,
-      bool added)
-      : WaitForSwitchState(
-            sw,
-            [mac, vlan, added](const StateDelta& delta) {
-              const auto& newVlan =
-                  delta.getVlansDelta().getNew()->getNodeIf(vlan);
-
-              auto newEntry = newVlan->getMacTable()->getNodeIf(mac);
-              if (added) {
-                return (newEntry != nullptr);
-              }
-              return (newEntry == nullptr);
-            },
-            "WaitForMacEntryAddedOrDeleted") {}
-  ~WaitForMacEntryAddedOrDeleted() {}
-};
-
 class MacTableManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
@@ -78,14 +55,14 @@ class MacTableManagerTest : public ::testing::Test {
     return MacAddress("01:02:03:04:05:06");
   }
 
-  void triggerMacLearnedCb(bool wait = true) {
+  void triggerMacLearnedCb() {
     triggerMacCbHelper(
-        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD, wait);
+        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
   }
 
-  void triggerMacAgedCb(bool wait = true) {
+  void triggerMacAgedCb() {
     triggerMacCbHelper(
-        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE, wait);
+        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
   }
 
   void verifyMacIsAdded() {
@@ -110,10 +87,6 @@ class MacTableManagerTest : public ::testing::Test {
     });
   }
 
-  SwSwitch* getSw() {
-    return sw_;
-  }
-
  private:
   void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
@@ -124,9 +97,7 @@ class MacTableManagerTest : public ::testing::Test {
     runInUpdateEventBaseAndWait([]() {});
   }
 
-  void triggerMacCbHelper(
-      L2EntryUpdateType l2EntryUpdateType,
-      bool wait = true) {
+  void triggerMacCbHelper(L2EntryUpdateType l2EntryUpdateType) {
     auto l2Entry = L2Entry(
         kMacAddress(),
         kVlan(),
@@ -135,10 +106,8 @@ class MacTableManagerTest : public ::testing::Test {
 
     sw_->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
 
-    if (wait) {
-      waitForBackgroundThread(sw_);
-      waitForStateUpdates(sw_);
-    }
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
   }
 
   std::unique_ptr<HwTestHandle> handle_;
@@ -156,28 +125,6 @@ TEST_F(MacTableManagerTest, SameMacLearnedCbTwice) {
   triggerMacLearnedCb();
 
   verifyMacIsAdded();
-}
-
-TEST_F(MacTableManagerTest, MacAgedLearnedCb) {
-  WaitForMacEntryAddedOrDeleted macAdded1(
-      getSw(), kMacAddress(), kVlan(), true);
-  triggerMacLearnedCb(true);
-  EXPECT_TRUE(macAdded1.wait());
-
-  // Mac age and learn callback should cause
-  // entry remove and add in switch state,
-  // these state updates should not be coalesced.
-  // It is because SW mac learning always need
-  // to re-program learnt L2 entry so as to move
-  // it out of pending state.
-  WaitForMacEntryAddedOrDeleted macDeleted(
-      getSw(), kMacAddress(), kVlan(), false);
-  WaitForMacEntryAddedOrDeleted macAdded2(
-      getSw(), kMacAddress(), kVlan(), true);
-  triggerMacAgedCb(false);
-  triggerMacLearnedCb(true);
-  EXPECT_TRUE(macDeleted.wait());
-  EXPECT_TRUE(macAdded2.wait());
 }
 
 TEST_F(MacTableManagerTest, MacAgedCb) {

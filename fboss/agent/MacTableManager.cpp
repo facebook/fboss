@@ -26,7 +26,7 @@ void MacTableManager::handleL2LearningUpdate(
         return MacTableUtils::updateMacTable(state, l2Entry, l2EntryUpdateType);
       };
 
-  sw_->updateStateNoCoalescing(
+  sw_->updateState(
       folly::to<std::string>("Programming : ", l2Entry.str()),
       std::move(updateMacTableFn));
 }
