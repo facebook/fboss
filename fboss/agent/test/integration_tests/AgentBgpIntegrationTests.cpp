@@ -96,17 +96,13 @@ class BgpIntegrationTest : public AgentIntegrationTest {
       auto syncFibCounter =
           fb303::fbData->getCounterIfExists(syncFibCounterName);
       EXPECT_EVENTUALLY_TRUE(syncFibCounter.has_value());
-      EXPECT_NE(syncFibCounter.value(), 0);
+      if (syncFibCounter.has_value()) {
+        EXPECT_NE(syncFibCounter.value(), 0);
+      }
     });
 
     // Check that bgp produced route exists
-    const auto& fibContainer =
-        sw()->getState()->getFibs()->getFibContainer(RouterID(0));
-    auto fib = fibContainer->template getFib<folly::IPAddressV6>();
-    auto testRoute =
-        fib->getRouteIf({folly::IPAddressV6(kTestPrefix), kTestPrefixLength});
-    EXPECT_NE(testRoute, nullptr);
-    EXPECT_TRUE(testRoute->getEntryForClient(ClientID::BGPD));
+    checkRoute(folly::IPAddressV6(kTestPrefix), kTestPrefixLength, true);
   }
 
   void updateState(folly::StringPiece name, StateUpdateFn func) {
