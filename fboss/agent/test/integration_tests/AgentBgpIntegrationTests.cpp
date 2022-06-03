@@ -9,7 +9,9 @@
  */
 
 #include <fb303/ServiceData.h>
+#include <folly/Subprocess.h>
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -37,6 +39,27 @@ using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
 namespace facebook::fboss {
 class BgpIntegrationTest : public AgentIntegrationTest {
  protected:
+  uint64_t bgpAliveSince() {
+    uint64_t aliveSince{0};
+    auto clientParams = servicerouter::ClientParams();
+    clientParams.setSingleHost("::1", kBgpThriftPort);
+    checkWithRetry(
+        [&aliveSince, &clientParams]() {
+          try {
+            auto client = servicerouter::cpp2::getClientFactory()
+                              .getSRClientUnique<TBgpServiceAsyncClient>(
+                                  "", clientParams);
+            aliveSince = client->sync_aliveSince();
+            return true;
+          } catch (const std::exception& e) {
+            return false;
+          }
+        },
+        60, /* retries */
+        1s,
+        "Cannot connect to BGPD service");
+    return aliveSince;
+  }
   void checkBgpState(
       TBgpPeerState state,
       std::set<std::string> sessionsToCheck,
@@ -111,6 +134,42 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     sw()->getIPv6Handler()->sendNeighborAdvertisement(
         vlan, srcMac, srcIpV6, dstMac, dstIpV6, portDesc);
   }
+
+  void addRoute(folly::IPAddress dest, int length, folly::IPAddress nhop) {
+    ThriftHandler handler(sw());
+    auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+    auto nr = std::make_unique<UnicastRoute>();
+    *nr->dest()->ip() = network::toBinaryAddress(dest);
+    *nr->dest()->prefixLength() = length;
+    nr->nextHopAddrs()->push_back(network::toBinaryAddress(nhop));
+    handler.addUnicastRoute(bgpClient, std::move(nr));
+  }
+
+  void restartBgpService() {
+    auto prevAliveSince = bgpAliveSince();
+    auto constexpr kBgpServiceKill = "sudo pkill bgpd";
+    folly::Subprocess(kBgpServiceKill).waitChecked();
+    auto aliveSince = bgpAliveSince();
+    EXPECT_NE(aliveSince, 0);
+    EXPECT_NE(aliveSince, prevAliveSince);
+  }
+
+  void checkRoute(folly::IPAddressV6 prefix, uint8_t length, bool exists) {
+    WITH_RETRIES({
+      const auto& fibContainer =
+          sw()->getState()->getFibs()->getFibContainer(RouterID(0));
+      auto fib = fibContainer->template getFib<folly::IPAddressV6>();
+      auto testRoute = fib->getRouteIf({prefix, length});
+      if (exists) {
+        EXPECT_EVENTUALLY_NE(testRoute, nullptr);
+        if (testRoute) {
+          EXPECT_TRUE(testRoute->getEntryForClient(ClientID::BGPD));
+        }
+      } else {
+        EXPECT_EVENTUALLY_EQ(testRoute, nullptr);
+      }
+    });
+  }
 };
 
 TEST_F(BgpIntegrationTest, bgpSesionsEst) {
@@ -148,4 +207,22 @@ TEST_F(BgpIntegrationTest, bgpNotifyPortDown) {
   };
   verifyAcrossWarmBoots(verify);
 }
+
+TEST_F(BgpIntegrationTest, bgpRestart) {
+  auto verify = [&]() {
+    checkBgpState(TBgpPeerState::ESTABLISHED, {"1::", "2::"});
+    checkAgentState();
+    // add a route with clientID bgp
+    addRoute(folly::IPAddress("101::"), 120, folly::IPAddress("2::"));
+    checkRoute(folly::IPAddressV6("101::"), 120, true);
+    restartBgpService();
+    // SyncFib after restart should erase the route
+    checkRoute(folly::IPAddressV6("101::"), 120, false);
+    // bgp config route should be present
+    checkBgpState(TBgpPeerState::ESTABLISHED, {"1::", "2::"});
+    checkRoute(folly::IPAddressV6(kTestPrefix), kTestPrefixLength, true);
+  };
+  verifyAcrossWarmBoots(verify);
+}
+
 } // namespace facebook::fboss
