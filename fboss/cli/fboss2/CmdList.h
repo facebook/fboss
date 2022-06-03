@@ -86,7 +86,6 @@ using ReverseHelpTree = std::map<std::string, RevHelpForObj>;
 
 const CommandTree& kCommandTree();
 const CommandTree& kAdditionalCommandTree();
-ReverseHelpTree kRevHelpTree(const CommandTree& cmdTree);
 
 const std::vector<Command>& kSpecialCommands();
 
@@ -95,11 +94,6 @@ void commandHandler() {
   T().run();
 }
 
-template <typename T>
-void helpHandler() {
-  auto cmdTree = kCommandTree();
-  auto revHelpTree = kRevHelpTree(cmdTree);
-  T(revHelpTree).run();
-}
+void helpHandler();
 
 } // namespace facebook::fboss
