@@ -18,6 +18,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/state/Port.h"
 
 namespace {
@@ -184,10 +185,45 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
     verifyCopp();
     verifyLoadBalancing();
     verifyDscpToQueueMapping();
+    verifySafeDiagCommands();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
+void ProdInvariantTest::verifySafeDiagCommands() {
+  std::set<std::string> diagCmds;
+  switch (sw()->getPlatform()->getAsic()->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case HwAsic::AsicType::ASIC_TYPE_EBRO:
+    case HwAsic::AsicType::ASIC_TYPE_GARONNE:
+    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
+      break;
+
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      diagCmds = validated_shell_commands_constants::TD2_TESTED_CMDS();
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      diagCmds = validated_shell_commands_constants::TH_TESTED_CMDS();
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+      diagCmds = validated_shell_commands_constants::TH3_TESTED_CMDS();
+      break;
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      diagCmds = validated_shell_commands_constants::TH4_TESTED_CMDS();
+      break;
+  }
+  if (diagCmds.size()) {
+    for (auto i = 0; i < 10; ++i) {
+      for (auto cmd : diagCmds) {
+        std::string out;
+        platform()->getHwSwitch()->printDiagCmd(cmd + "\n");
+      }
+    }
+    std::string out;
+    platform()->getHwSwitch()->printDiagCmd("quit\n");
+  }
+}
 void ProdInvariantTest::verifyDscpToQueueMapping() {
   if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
