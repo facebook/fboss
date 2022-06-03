@@ -29,7 +29,7 @@ target_link_libraries(hw_test_main
 
 add_library(hw_agent_packet_utils
   fboss/agent/hw/test/HwAgentTestPacketSnooper.cpp
-)  
+)
 
 target_link_libraries(hw_agent_packet_utils
   Folly::folly
@@ -56,7 +56,7 @@ add_library(packet_observer
 target_link_libraries(packet_observer
   fboss_error
   Folly::folly
-)  
+)
 
 add_library(hw_copp_utils
   fboss/agent/hw/test/HwTestCoppUtils.cpp
@@ -171,7 +171,7 @@ target_link_libraries(traffic_policy_utils
 
 add_fbthrift_cpp_library(
   validated_shell_commands_cpp2
-  fboss/agent/hw/test/validated_shell_commands.thrift
+  fboss/agent/validated_shell_commands.thrift
   OPTIONS
     json
     visitation

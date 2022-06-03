@@ -23,7 +23,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-#include "fboss/agent/hw/test/gen-cpp2/validated_shell_commands_constants.h"
+#include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 
 #include "folly/IPAddressV4.h"
 
