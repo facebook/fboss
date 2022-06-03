@@ -18,6 +18,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"

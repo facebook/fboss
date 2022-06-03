@@ -143,7 +143,6 @@ void CmdSubcommands::init(CLI::App& app) {
 
   initCommandTree(app, kCommandTree());
   initCommandTree(app, kAdditionalCommandTree());
-
   for (const auto& cmd : kSpecialCommands()) {
     addCommand(app, cmd, 0);
   }

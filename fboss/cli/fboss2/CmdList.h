@@ -77,14 +77,29 @@ struct RootCommand : public Command {
 
 using CommandTree = std::vector<RootCommand>;
 
+//(verb, verb_help) -> vector of subcommands
+using RevHelpForObj =
+    std::map<std::pair<CmdVerb, CmdHelpMsg>, std::vector<Command>>;
+
+// obj -> revHelpForObj.
+using ReverseHelpTree = std::map<std::string, RevHelpForObj>;
+
 const CommandTree& kCommandTree();
 const CommandTree& kAdditionalCommandTree();
+ReverseHelpTree kRevHelpTree(const CommandTree& cmdTree);
 
 const std::vector<Command>& kSpecialCommands();
 
 template <typename T>
 void commandHandler() {
   T().run();
+}
+
+template <typename T>
+void helpHandler() {
+  auto cmdTree = kCommandTree();
+  auto revHelpTree = kRevHelpTree(cmdTree);
+  T(revHelpTree).run();
 }
 
 } // namespace facebook::fboss

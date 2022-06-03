@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
@@ -247,6 +248,36 @@ const CommandTree& kCommandTree() {
          "Set Port state",
          commandHandler<CmdSetPortState>}}},
   };
+  return root;
+}
+
+ReverseHelpTree kRevHelpTree(const CommandTree& cmdTree) {
+  using RevHelpForObj =
+      std::map<std::pair<CmdVerb, CmdHelpMsg>, std::vector<Command>>;
+
+  ReverseHelpTree root;
+  for (const auto& cmd : cmdTree) {
+    auto& objectName = cmd.name;
+    auto& verb = cmd.verb;
+    auto& verbHelp = cmd.help;
+    auto subcommands = cmd.subcommands;
+
+    if (root.find(objectName) != root.end()) {
+      auto revHelp = root[objectName];
+      revHelp[make_pair(verb, verbHelp)] = std::vector<Command>();
+      for (Command c : subcommands) {
+        revHelp[make_pair(verb, verbHelp)].push_back(c);
+      }
+
+    } else {
+      RevHelpForObj revHelp;
+      revHelp[make_pair(verb, verbHelp)] = std::vector<Command>();
+      for (Command c : subcommands) {
+        revHelp[make_pair(verb, verbHelp)].push_back(c);
+      }
+      root[objectName] = revHelp;
+    }
+  }
   return root;
 }
 
