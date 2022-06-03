@@ -519,7 +519,7 @@ class BcmSwitch : public BcmSwitchIf {
   /**
    * Runs a diag cmd on the corresponding unit
    */
-  void printDiagCmd(const std::string& cmd) const;
+  void printDiagCmd(const std::string& cmd) const override;
 
   /*
    * Clear statistics for a list of ports.

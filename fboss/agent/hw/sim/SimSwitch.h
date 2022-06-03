@@ -40,6 +40,11 @@ class SimSwitch : public HwSwitch {
       PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
+  /**
+   * Runs a diag cmd on the corresponding unit
+   */
+  void printDiagCmd(const std::string& cmd) const override;
+
   folly::dynamic toFollyDynamic() const override;
 
   void injectPacket(std::unique_ptr<RxPacket> pkt);

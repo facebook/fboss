@@ -130,6 +130,11 @@ class SaiSwitch : public HwSwitch {
       const void* buffer,
       uint32_t event_type);
 
+  /**
+   * Runs a diag cmd on the corresponding unit
+   */
+  void printDiagCmd(const std::string& cmd) const override;
+
   void tamEventCallback(
       sai_object_id_t tam_event_id,
       sai_size_t buffer_size,

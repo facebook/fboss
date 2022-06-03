@@ -91,6 +91,10 @@ bool MockHwSwitch::sendPacketSwitchedSync(
   return true;
 }
 
+void MockHwSwitch::printDiagCmd(const std::string& /*cmd*/) const {
+  // TODO: Needs to be implemented.
+}
+
 bool MockHwSwitch::sendPacketOutOfPortSync(
     std::unique_ptr<TxPacket> pkt,
     facebook::fboss::PortID portID,

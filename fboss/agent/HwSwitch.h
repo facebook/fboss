@@ -175,6 +175,11 @@ class HwSwitch {
   virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
 
   /*
+   *  Use to run diagnostic shell commands on various switches.
+   */
+  virtual void printDiagCmd(const std::string& cmd) const = 0;
+
+  /*
    * Allocate a new TxPacket.
    */
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const = 0;

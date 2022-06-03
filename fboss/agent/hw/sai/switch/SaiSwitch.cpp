@@ -272,6 +272,10 @@ HwInitResult SaiSwitch::init(
   return ret;
 }
 
+void SaiSwitch::printDiagCmd(const std::string& /*cmd*/) const {
+  // TODO: Needs to be implemented.
+}
+
 void SaiSwitch::unregisterCallbacks() noexcept {
   // after unregistering there could still be a single packet in our
   // pipeline. To fully shut down rx, we need to stop the thread and

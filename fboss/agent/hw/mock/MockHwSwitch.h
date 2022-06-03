@@ -41,6 +41,8 @@ class MockHwSwitch : public HwSwitch {
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
 
+  void printDiagCmd(const std::string& cmd) const override;
+
   // gmock currently doesn't support move-only types, so we have to
   // use some janky work-arounds.
   MOCK_METHOD1(sendPacketSwitchedAsync_, bool(TxPacket*));

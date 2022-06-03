@@ -50,6 +50,10 @@ std::shared_ptr<SwitchState> SimSwitch::stateChanged(const StateDelta& delta) {
   return delta.newState();
 }
 
+void SimSwitch::printDiagCmd(const std::string& /*cmd*/) const {
+  // TODO: Needs to be implemented.
+}
+
 std::unique_ptr<TxPacket> SimSwitch::allocatePacket(uint32_t size) const {
   return make_unique<MockTxPacket>(size);
 }
