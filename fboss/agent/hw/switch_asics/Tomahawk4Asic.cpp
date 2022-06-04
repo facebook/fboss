@@ -70,6 +70,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::PFC:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -92,7 +93,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::PENDING_L2_ENTRY:
-    case HwAsic::Feature::PFC:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057

@@ -192,13 +192,21 @@ void BcmSwitchEnsemble::init(
   if (FLAGS_mmu_lossless_mode &&
       platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     XLOG(INFO) << "Modify the bcm cfg as mmu_lossless mode is enabled";
-    cfg["mmu_lossless"] = "0x2";
-    cfg["buf.mqueue.guarantee.0"] = "0C";
-    cfg["mmu_config_override"] = "0";
-    cfg["buf.prigroup7.guarantee"] = "0C";
-    if (FLAGS_qgroup_guarantee_enable) {
-      cfg["buf.qgroup.guarantee_mc"] = "0";
-      cfg["buf.qgroup.guarantee"] = "0";
+    if (bcmTestPlatform->usesYamlConfig()) {
+      std::string toReplace("LOSSY");
+      std::size_t pos = yamlCfg.find(toReplace);
+      if (pos != std::string::npos) {
+        yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
+      }
+    } else {
+      cfg["mmu_lossless"] = "0x2";
+      cfg["buf.mqueue.guarantee.0"] = "0C";
+      cfg["mmu_config_override"] = "0";
+      cfg["buf.prigroup7.guarantee"] = "0C";
+      if (FLAGS_qgroup_guarantee_enable) {
+        cfg["buf.qgroup.guarantee_mc"] = "0";
+        cfg["buf.qgroup.guarantee"] = "0";
+      }
     }
   }
   if (FLAGS_load_qcm_fw &&

@@ -32,6 +32,10 @@ constexpr int kDefaultHeadroomLimitBytes = 0;
 constexpr int kdefaultResumeOffsetBytes = 0;
 constexpr int kDefaultSharedBytesTh3 = 111490 * 254;
 constexpr int kDefaultHeadroomBytesTh3 = 18528 * 254;
+// TODO(daiweix): just keep TH4 BcmPortIngressBufferManagerTest happy for now,
+// need to update these default settings on TH4 later CS00012246702
+constexpr int kDefaultSharedBytesTh4 = 111490 * 254;
+constexpr int kDefaultHeadroomBytesTh4 = 18528 * 254;
 // arbit
 const std::string kDefaultBufferPoolName = "default";
 constexpr int kDefaultPgId = 0;
@@ -413,7 +417,7 @@ void BcmPortIngressBufferManager::programIngressBuffers(
   reprogramIngressPools(port);
 }
 
-const PortPgConfig& getTH3DefaultPgSettings() {
+const PortPgConfig& getDefaultPriorityGroupSettings() {
   static const PortPgConfig portPgConfig{PortPgFields{
       .id = kDefaultPortPgId,
       .scalingFactor = utility::bcmAlphaToCfgAlpha(kDefaultPgAlpha),
@@ -435,12 +439,23 @@ const BufferPoolCfg& getTH3DefaultIngressPoolSettings() {
   return bufferPoolCfg;
 }
 
+const BufferPoolCfg& getTH4DefaultIngressPoolSettings() {
+  static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
+      .id = kDefaultBufferPoolName,
+      .sharedBytes = kDefaultSharedBytesTh4,
+      .headroomBytes = kDefaultHeadroomBytesTh4,
+  }};
+  return bufferPoolCfg;
+}
+
 // static
 const PortPgConfig& BcmPortIngressBufferManager::getDefaultChipPgSettings(
     utility::BcmChip chip) {
   switch (chip) {
     case utility::BcmChip::TOMAHAWK3:
-      return getTH3DefaultPgSettings();
+    case utility::BcmChip::TOMAHAWK4:
+      // TODO(daiweix): update default settings for TH4
+      return getDefaultPriorityGroupSettings();
     default:
       // currently ony supported for TH3
       throw FbossError("Unsupported platform for PG settings: ", chip);
@@ -454,6 +469,8 @@ BcmPortIngressBufferManager::getDefaultChipIngressPoolSettings(
   switch (chip) {
     case utility::BcmChip::TOMAHAWK3:
       return getTH3DefaultIngressPoolSettings();
+    case utility::BcmChip::TOMAHAWK4:
+      return getTH4DefaultIngressPoolSettings();
     default:
       // currently ony supported for TH3
       throw FbossError(
