@@ -48,6 +48,16 @@ struct SaiNeighborTraits {
         SAI_NEIGHBOR_ENTRY_ATTR_META_DATA,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    using EncapIndex = SaiAttribute<
+        EnumType,
+        SAI_NEIGHBOR_ENTRY_ATTR_ENCAP_INDEX,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using IsLocal = SaiAttribute<
+        EnumType,
+        SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL,
+        bool,
+        SaiBoolDefaultTrue>;
   };
   class NeighborEntry {
    public:
