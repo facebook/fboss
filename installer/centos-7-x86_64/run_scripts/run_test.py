@@ -19,6 +19,7 @@ from argparse import ArgumentParser
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
 OPT_ARG_CONFIG_FILE = "--config"
+OPT_ARG_SDK_LOGGING = "--sdk_logging"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -43,6 +44,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_test_binary_name(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_sdk_logging_flags(self):
         pass
 
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
@@ -104,9 +109,16 @@ class TestRunner(abc.ABC):
         )
         return self._parse_list_test_output(output)
 
-    def _run_test(self, conf_file, test_to_run, setup_warmboot, warmrun):
+    def _run_test(
+        self, conf_file, test_to_run, setup_warmboot, warmrun, sdk_logging_dir
+    ):
         flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         test_prefix = self.WARMBOOT_PREFIX if warmrun else self.COLDBOOT_PREFIX
+
+        if sdk_logging_dir:
+            flags = flags + self._get_sdk_logging_flags(
+                sdk_logging_dir, test_prefix, test_to_run
+            )
 
         try:
             print(
@@ -141,6 +153,15 @@ class TestRunner(abc.ABC):
         return run_test_result
 
     def _run_tests(self, tests_to_run, args):
+        if args.sdk_logging:
+            if os.path.isdir(args.sdk_logging) or os.path.isfile(args.sdk_logging):
+                raise ValueError(
+                    f"File or directory {args.sdk_logging} already exists."
+                    "Remove or specify another directory and retry. Exitting"
+                )
+
+            os.makedirs(args.sdk_logging)
+
         # Determine if tests need to be run with warmboot mode too
         warmboot = False
         if args.coldboot_only is False:
@@ -157,7 +178,9 @@ class TestRunner(abc.ABC):
         for test_to_run in tests_to_run:
             # Run the test for coldboot verification
             print("########## Running test: " + test_to_run, flush=True)
-            test_output = self._run_test(conf_file, test_to_run, warmboot, False)
+            test_output = self._run_test(
+                conf_file, test_to_run, warmboot, False, args.sdk_logging
+            )
             test_outputs.append(test_output)
 
             # Run the test again for warmboot verification if the test supports it
@@ -166,7 +189,9 @@ class TestRunner(abc.ABC):
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
                 )
-                test_output = self._run_test(conf_file, test_to_run, False, True)
+                test_output = self._run_test(
+                    conf_file, test_to_run, False, True, args.sdk_logging
+                )
                 test_outputs.append(test_output)
 
         return test_outputs
@@ -200,6 +225,10 @@ class BcmTestRunner(TestRunner):
     def _get_test_binary_name(self):
         return "bcm_test"
 
+    def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
+        # TODO
+        return []
+
 
 class SaiTestRunner(TestRunner):
     def _get_config_path(self):
@@ -208,6 +237,15 @@ class SaiTestRunner(TestRunner):
 
     def _get_test_binary_name(self):
         return "sai_test"
+
+    def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
+        return [
+            "--enable-replayer",
+            "--enable_get_attr_log",
+            "--enable_packet_log",
+            "--sai-log",
+            os.path.join(sdk_logging_dir, "replayer-log-" + test_prefix + test_to_run),
+        ]
 
 
 if __name__ == "__main__":
@@ -240,6 +278,15 @@ if __name__ == "__main__":
             "run with the specified config file e.g. "
             + OPT_ARG_CONFIG_FILE
             + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
+        ),
+    )
+
+    ap.add_argument(
+        OPT_ARG_SDK_LOGGING,
+        type=str,
+        help=(
+            "Enable SDK logging (e.g. SAI replayer for sai tests"
+            "and store the logs in the supplied directory)"
         ),
     )
 
