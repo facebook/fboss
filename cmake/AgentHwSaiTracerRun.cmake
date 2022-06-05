@@ -35,6 +35,12 @@ BUILD_SAI_REPLAYER("fake" fake_sai)
 find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
+if (SAI_BRCM_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS, "SAI_EXPERIMENTAL_INCLUDE_DIR: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+endif()
+
 if(SAI_IMPL)
   BUILD_SAI_REPLAYER("sai_impl" ${SAI_IMPL})
   install(
