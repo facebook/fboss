@@ -171,7 +171,8 @@ class AclTableStoreTest : public SaiStoreTest {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   std::array<char, 32> kCounterLabel() const {
-    return {"aclCounter1"};
+    std::array<char, 32> retVal = {"aclCounter1"};
+    return retVal;
   }
 #endif
 
