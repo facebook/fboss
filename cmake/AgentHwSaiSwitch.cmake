@@ -51,6 +51,12 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/switch/npu/tajo/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiPortManager.cpp
   )
+elseif (SAI_BRCM_IMPL)
+  list(APPEND SAI_SWITCH_SRC
+    fboss/agent/hw/sai/switch/npu/bcm/SaiSwitch.cpp
+    fboss/agent/hw/sai/switch/npu/bcm/SaiTamManager.cpp
+    fboss/agent/hw/sai/switch/npu/bcm/SaiPortManager.cpp
+  )
 else()
   list(APPEND SAI_SWITCH_SRC
     fboss/agent/hw/sai/switch/oss/SaiSwitch.cpp

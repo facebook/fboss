@@ -89,6 +89,16 @@ if (SAI_TAJO_IMPL)
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+elseif (SAI_BRCM_IMPL)
+  list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/bcm/TamApi.cpp
+    fboss/agent/hw/sai/api/bcm/SwitchApi.cpp
+  )
+
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  include_directories(${SAI_IMPL_DIR})
+  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 else()
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp

@@ -60,6 +60,12 @@ if ($ENV{SAI_TAJO_IMPL})
   set (SAI_TAJO_IMPL ON)
 endif()
 
+option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
+if ($ENV{SAI_BRCM_IMPL})
+  message(STATUS "ENV SAI_BRCM_IMPL is set")
+  set (SAI_BRCM_IMPL ON)
+endif()
+
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})
