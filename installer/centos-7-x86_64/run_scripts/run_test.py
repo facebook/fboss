@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-
+import abc
 import os
 import re
 import subprocess
 import sys
 from argparse import ArgumentParser
 
+# Helper to run HwTests
+#
+# Sample invocation:
+#  ./run_test.py sai --config $confFile # run ALL Hw SAI tests: coldboot + #  warmboot
+#  ./run_test.py sai --config $confFile --coldboot_only # run cold boot only
+#  ./run_test.py sai --config $confFile --filter=*Route*V6* # run tests #  matching filter
+
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
-OPT_ARG_BCM_CONF_FILE = "--conf-file"
+OPT_ARG_CONFIG_FILE = "--config"
 SUB_CMD_BCM = "bcm"
-WARMBOOT_CHECK_FILE = "/dev/shm/fboss/bcm_test/warm_boot/can_warm_boot_0"
+SUB_CMD_SAI = "sai"
+WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
 
 
-class TestRunner:
+class TestRunner(abc.ABC):
     ENV_VAR = dict(os.environ)
-    BCM_CONF_PATH = "/etc/coop/bcm.conf"
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
@@ -29,6 +36,24 @@ class TestRunner:
         (?P<test_case>[\w\.]+)\s+\((?P<duration>\d+)\s+ms\)$""",
         re.VERBOSE,
     )
+
+    @abc.abstractmethod
+    def _get_config_path(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_test_binary_name(self):
+        pass
+
+    def _get_test_run_cmd(self, conf_file, test_to_run, flags):
+        run_cmd = [
+            self._get_test_binary_name(),
+            "--config",
+            conf_file,
+            "--gtest_filter=" + test_to_run,
+        ]
+
+        return run_cmd + flags if flags else run_cmd
 
     def _add_test_prefix_to_gtest_result(self, run_test_output, test_prefix):
         run_test_result = run_test_output
@@ -72,29 +97,28 @@ class TestRunner:
             test_summary.append(line)
         return test_summary
 
-    def _get_bcm_tests_to_run(self, args):
+    def _get_tests_to_run(self, args):
         filter = ("--gtest_filter=" + args.filter) if (args.filter is not None) else ""
         output = subprocess.check_output(
-            ["bcm_test", "--gtest_list_tests", filter], env=self.ENV_VAR
+            [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
         return self._parse_list_test_output(output)
 
-    def _run_bcm_test(self, conf_file, test_to_run, setup_warmboot, warmrun):
-        flags = self.WARMBOOT_SETUP_OPTION if setup_warmboot else ""
+    def _run_test(self, conf_file, test_to_run, setup_warmboot, warmrun):
+        flags = [self.WARMBOOT_SETUP_OPTION] if setup_warmboot else []
         test_prefix = self.WARMBOOT_PREFIX if warmrun else self.COLDBOOT_PREFIX
+
         try:
+            print(
+                f"Running command {self._get_test_run_cmd(conf_file, test_to_run, flags)}"
+            )
+
             run_test_output = subprocess.check_output(
-                [
-                    "bcm_test",
-                    "--bcm_config",
-                    conf_file,
-                    "--flexports",
-                    "--gtest_filter=" + test_to_run,
-                    flags,
-                ],
+                self._get_test_run_cmd(conf_file, test_to_run, flags),
                 timeout=self.TESTRUN_TIMEOUT,
                 env=self.ENV_VAR,
             )
+
             # Add test prefix to test name in the result
             run_test_result = self._add_test_prefix_to_gtest_result(
                 run_test_output, test_prefix
@@ -116,14 +140,14 @@ class TestRunner:
             ).encode("utf-8")
         return run_test_result
 
-    def _run_bcm_tests(self, tests_to_run, args):
+    def _run_tests(self, tests_to_run, args):
         # Determine if tests need to be run with warmboot mode too
         warmboot = False
         if args.coldboot_only is False:
             warmboot = True
 
         conf_file = (
-            args.conf_file if (args.conf_file is not None) else self.BCM_CONF_PATH
+            args.config if (args.config is not None) else self._get_config_path()
         )
         if not os.path.exists(conf_file):
             print("########## Conf file not found: " + conf_file)
@@ -133,16 +157,16 @@ class TestRunner:
         for test_to_run in tests_to_run:
             # Run the test for coldboot verification
             print("########## Running test: " + test_to_run, flush=True)
-            test_output = self._run_bcm_test(conf_file, test_to_run, warmboot, False)
+            test_output = self._run_test(conf_file, test_to_run, warmboot, False)
             test_outputs.append(test_output)
 
-            # Run the test again for warmboot verificationif the test supports it
+            # Run the test again for warmboot verification if the test supports it
             if warmboot and os.path.isfile(WARMBOOT_CHECK_FILE):
                 print(
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
                 )
-                test_output = self._run_bcm_test(conf_file, test_to_run, False, True)
+                test_output = self._run_test(conf_file, test_to_run, False, True)
                 test_outputs.append(test_output)
 
         return test_outputs
@@ -163,10 +187,27 @@ class TestRunner:
         for test_result in test_summary_count:
             print("  ", test_result, ":", test_summary_count[test_result])
 
-    def run_bcm_test(self, args):
-        tests_to_run = self._get_bcm_tests_to_run(args)
-        output = self._run_bcm_tests(tests_to_run, args)
+    def run_test(self, args):
+        tests_to_run = self._get_tests_to_run(args)
+        output = self._run_tests(tests_to_run, args)
         self._print_output_summary(output)
+
+
+class BcmTestRunner(TestRunner):
+    def _get_config_path(self):
+        return "/etc/coop/bcm.conf"
+
+    def _get_test_binary_name(self):
+        return "bcm_test"
+
+
+class SaiTestRunner(TestRunner):
+    def _get_config_path(self):
+        # TOOO Not available in OSS
+        return ""
+
+    def _get_test_binary_name(self):
+        return "sai_test"
 
 
 if __name__ == "__main__":
@@ -193,11 +234,11 @@ if __name__ == "__main__":
         ),
     )
     ap.add_argument(
-        OPT_ARG_BCM_CONF_FILE,
+        OPT_ARG_CONFIG_FILE,
         type=str,
         help=(
             "run with the specified config file e.g. "
-            + OPT_ARG_BCM_CONF_FILE
+            + OPT_ARG_CONFIG_FILE
             + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
         ),
     )
@@ -207,7 +248,11 @@ if __name__ == "__main__":
 
     # Add subparser for BCM tests
     bcm_test_parser = subparsers.add_parser(SUB_CMD_BCM, help="run bcm tests")
-    bcm_test_parser.set_defaults(func=TestRunner().run_bcm_test)
+    bcm_test_parser.set_defaults(func=BcmTestRunner().run_test)
+
+    # Add subparser for SAI tests
+    sai_test_parser = subparsers.add_parser(SUB_CMD_SAI, help="run sai tests")
+    sai_test_parser.set_defaults(func=SaiTestRunner().run_test)
 
     # Parse the args
     args = ap.parse_known_args()
