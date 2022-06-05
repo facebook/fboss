@@ -66,6 +66,19 @@ if ($ENV{SAI_BRCM_IMPL})
   set (SAI_BRCM_IMPL ON)
 endif()
 
+if (SAI_BRCM_IMPL)
+  set(SAI_VER_MAJOR "1")
+  set(SAI_VER_MINOR "10")
+  set(SAI_VER_RELEASE "2")
+else()
+  set(SAI_VER_MAJOR "1")
+  set(SAI_VER_MINOR "7")
+  set(SAI_VER_RELEASE "1")
+endif()
+
+message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
+set(SAI_VER_SUFFIX "${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
+
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})
@@ -1026,11 +1039,6 @@ if (NOT SAI_ONLY)
   install(TARGETS wedge_agent)
 
 endif()
-
-set(SAI_VER_MAJOR "1")
-set(SAI_VER_MINOR "7")
-set(SAI_VER_RELEASE "1")
-set(SAI_VER_SUFFIX "${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
 # Build all cmake files under cmake/*cmake
 file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
