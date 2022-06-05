@@ -5,7 +5,11 @@
 #if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP)
 
 extern "C" {
+#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saitamextensions.h>
+#else
+#include <saitamextensions.h>
+#endif
 }
 #endif
 

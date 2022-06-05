@@ -67,6 +67,9 @@ if ($ENV{SAI_BRCM_IMPL})
 endif()
 
 if (SAI_BRCM_IMPL)
+  # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
+  # Refactor/fix the code and then remove this flag.
+  add_definitions (-DIS_OSS_BRCM_SAI=true)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSAI_VERSION_7_2_0_0_ODP")
   set(SAI_VER_MAJOR "1")
   set(SAI_VER_MINOR "10")

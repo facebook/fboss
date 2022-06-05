@@ -10,6 +10,8 @@
 
 #pragma once
 
+#ifndef IS_OSS_BRCM_SAI
+
 #if !defined(SAI_VERSION)
 #define SAI_VERSION(major, minor, micro) \
   (100000 * (major) + 1000 * (minor) + (micro))
@@ -23,4 +25,6 @@
 
 #define SAI_API_VERSION \
   SAI_VERSION(SAI_VER_MAJOR, SAI_VER_MINOR, SAI_VER_RELEASE)
+#endif
+
 #endif

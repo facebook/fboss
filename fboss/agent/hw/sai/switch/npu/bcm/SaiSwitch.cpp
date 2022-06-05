@@ -11,7 +11,11 @@ extern "C" {
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
 #else
+#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
+#else
+#include <saiswitchextensions.h>
+#endif
 #endif
 }
 
