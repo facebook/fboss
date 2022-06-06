@@ -63,6 +63,9 @@ class BuildHelper:
         self._sai_impl_manifest_path = os.path.join(
             self._working_tree_dir, "build/fbcode_builder/manifests/sai_impl"
         )
+        self._libsai_manifest_path = os.path.join(
+            self._working_tree_dir, "build/fbcode_builder/manifests/libsai"
+        )
         self._libsai_impl_path = args.libsai_impl_path
         self._experiments_path = args.experiments_path
         self._output_path = args.output_path
@@ -125,6 +128,26 @@ class BuildHelper:
             .split()[0]
         )
 
+    def _edit_sai_manifest(self):
+        manifest_str = (
+            "[manifest]\n"
+            "name = libsai\n"
+            "\n"
+            "[download]\n"
+            "url = https://github.com/opencomputeproject/SAI/archive/v1.10.2.tar.gz\n"
+            "sha256 = ec6ff2e44a136f72fc7f8081cec74ede9e22a1ca6097c69f0238b72bafea316c\n"
+            "\n"
+            "[build]\n"
+            "builder = nop\n"
+            "subdir = SAI-1.10.2\n"
+            "\n"
+            "[install.files]\n"
+            "inc = include\n"
+        )
+
+        with open(self._libsai_manifest_path, "w+") as f:
+            f.writelines(manifest_str)
+
     def _edit_sai_impl_manifest(self):
         csum = self._get_csum()
 
@@ -169,6 +192,7 @@ class BuildHelper:
         self._cleanup()
         self._copy_input_files()
         self._create_archive()
+        self._edit_sai_manifest()
         self._edit_sai_impl_manifest()
         self._edit_fboss_manifest()
         self._start_http_server()
