@@ -251,6 +251,26 @@ struct ControlPlaneFields {
   3: optional string defaultQosPolicy;
 }
 
+struct BlockedNeighbor {
+  1: i16 blockNeighborVlanID;
+  2: Address.BinaryAddress blockNeighborIP;
+}
+
+struct BlockedMacAddress {
+  1: i16 macAddrToBlockVlanID;
+  2: string macAddrToBlockAddr;
+}
+
+struct SwitchSettingsFields {
+  1: switch_config.L2LearningMode l2LearningMode;
+  2: bool qcmEnable;
+  3: bool ptpTcEnable;
+  4: i32 l2AgeTimerSeconds;
+  5: i32 maxRouteCounterIDs;
+  6: list<BlockedNeighbor> blockNeighbors;
+  7: list<BlockedMacAddress> macAddrsToBlock;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -259,4 +279,5 @@ struct SwitchState {
   5: map<string, BufferPoolFields> bufferPoolCfgMap;
   6: map<string, MirrorFields> mirrorMap;
   7: ControlPlaneFields controlPlane;
+  8: SwitchSettingsFields switchSettings;
 }

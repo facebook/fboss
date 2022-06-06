@@ -10,18 +10,46 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
 
 class SwitchState;
 
-struct SwitchSettingsFields {
+struct SwitchSettingsFields : public ThriftyFields {
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static SwitchSettingsFields fromFollyDynamic(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static SwitchSettingsFields fromFollyDynamicLegacy(
+      const folly::dynamic& json);
+
+  state::SwitchSettingsFields toThrift() const;
+  static SwitchSettingsFields fromThrift(
+      state::SwitchSettingsFields const& fields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
+  bool operator==(const SwitchSettingsFields& other) const {
+    return std::tie(
+               l2LearningMode,
+               qcmEnable,
+               ptpTcEnable,
+               l2AgeTimerSeconds,
+               maxRouteCounterIDs,
+               blockNeighbors,
+               macAddrsToBlock) ==
+        std::tie(
+               other.l2LearningMode,
+               other.qcmEnable,
+               other.ptpTcEnable,
+               other.l2AgeTimerSeconds,
+               other.maxRouteCounterIDs,
+               other.blockNeighbors,
+               other.macAddrsToBlock);
+  }
 
   cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
   bool qcmEnable = false;
@@ -36,16 +64,19 @@ struct SwitchSettingsFields {
  * SwitchSettings stores state about path settings of traffic to userver CPU
  * on the switch.
  */
-class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
+class SwitchSettings : public ThriftyBaseT<
+                           state::SwitchSettingsFields,
+                           SwitchSettings,
+                           SwitchSettingsFields> {
  public:
-  static std::shared_ptr<SwitchSettings> fromFollyDynamic(
+  static std::shared_ptr<SwitchSettings> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
-    const auto& fields = SwitchSettingsFields::fromFollyDynamic(json);
+    const auto& fields = SwitchSettingsFields::fromFollyDynamicLegacy(json);
     return std::make_shared<SwitchSettings>(fields);
   }
 
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+  folly::dynamic toFollyDynamicLegacy() const {
+    return getFields()->toFollyDynamicLegacy();
   }
 
   cfg::L2LearningMode getL2LearningMode() const {
@@ -116,7 +147,7 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

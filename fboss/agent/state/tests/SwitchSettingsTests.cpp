@@ -235,3 +235,43 @@ TEST(SwitchSettingsTest, ToFromJSON) {
 
   EXPECT_EQ(dyn1, dyn2);
 }
+
+TEST(SwitchSettingsTest, ThrifyMigration) {
+  folly::IPAddress ip("1.1.1.1");
+  auto addr = facebook::network::toBinaryAddress(ip);
+  std::string jsonStr;
+  apache::thrift::SimpleJSONSerializer::serialize(addr, &jsonStr);
+  folly::dynamic addrDynamic = folly::parseJson(jsonStr);
+
+  jsonStr = folly::toJson(addrDynamic);
+  auto inBuf = folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
+  auto newAddr = apache::thrift::SimpleJSONSerializer::deserialize<
+      facebook::network::thrift::BinaryAddress>(folly::io::Cursor{&inBuf});
+
+  auto newIp = facebook::network::toIPAddress(newAddr);
+  EXPECT_EQ(ip, newIp);
+  EXPECT_EQ(addr, newAddr);
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::Neighbor blockNeighbor0;
+  blockNeighbor0.vlanID() = 1;
+  blockNeighbor0.ipAddress() = "1.1.1.1";
+  cfg::Neighbor blockNeighbor1;
+  blockNeighbor1.vlanID() = 2;
+  blockNeighbor1.ipAddress() = "1::1";
+  config.switchSettings()->blockNeighbors() = {blockNeighbor0, blockNeighbor1};
+
+  cfg::MacAndVlan macAddrToBlock;
+  macAddrToBlock.vlanID() = 1;
+  macAddrToBlock.macAddress() = "00:11:22:33:44:55";
+  config.switchSettings()->macAddrsToBlock() = {macAddrToBlock};
+
+  *config.switchSettings()->qcmEnable() = true;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  validateThriftyMigration(*stateV1->getSwitchSettings());
+}
