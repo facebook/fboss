@@ -97,7 +97,7 @@ class SetupFboss:
     def _copy_configs(self):
         if not os.path.exists(SetupFboss.FRUID_FULL_PATH):
             if not os.path.exists(SetupFboss.FRUID_DIR_PATH):
-                os.mkdir(SetupFboss.FRUID_DIR_PATH)
+                os.makedirs(SetupFboss.FRUID_DIR_PATH)
 
             shutil.copy(self.src_fruid_full_path, SetupFboss.FRUID_FULL_PATH)
 
