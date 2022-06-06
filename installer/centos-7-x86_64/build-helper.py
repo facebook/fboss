@@ -57,6 +57,9 @@ class BuildHelper:
         self._working_tree_dir = git.Repo(
             ".", search_parent_directories=True
         ).working_tree_dir
+        self._fboss_manifest_path = os.path.join(
+            self._working_tree_dir, "build/fbcode_builder/manifests/fboss"
+        )
         self._sai_impl_manifest_path = os.path.join(
             self._working_tree_dir, "build/fbcode_builder/manifests/sai_impl"
         )
