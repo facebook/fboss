@@ -14,7 +14,9 @@
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "folly/IPAddress.h"
 
 using namespace facebook::fboss;
 using folly::IPAddressV4;
@@ -153,4 +155,26 @@ TEST(ThriftySwitchState, BufferPoolCfgMap) {
   auto state = SwitchState();
   state.resetBufferPoolCfgs(map);
   verifySwitchStateSerialization(state);
+}
+
+TEST(ThriftySwitchState, IpAddressConversion) {
+  for (auto ipStr : {"212.12.45.89", "2401:ab:de::30"}) {
+    auto ip_0 = folly::IPAddress(ipStr);
+    auto addr_0 = facebook::network::toBinaryAddress(ip_0);
+
+    auto ip_0_dynamic = ThriftyUtils::toFollyDynamic(ip_0);
+    auto addr_0_dynamic = ThriftyUtils::toFollyDynamic(addr_0);
+
+    auto addr_1 = ThriftyUtils::toThriftBinaryAddress(ip_0_dynamic);
+    auto ip_1 = ThriftyUtils::toFollyIPAddress(addr_0_dynamic);
+
+    auto ip_1_dynamic = ThriftyUtils::toFollyDynamic(ip_0);
+    auto addr_1_dynamic = ThriftyUtils::toFollyDynamic(addr_0);
+
+    EXPECT_EQ(ip_0, ip_1);
+    EXPECT_EQ(addr_0, addr_1);
+
+    EXPECT_EQ(ip_0_dynamic, ip_1_dynamic);
+    EXPECT_EQ(addr_0_dynamic, addr_1_dynamic);
+  }
 }

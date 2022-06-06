@@ -1,5 +1,6 @@
 #pragma once
 
+#include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
@@ -7,9 +8,12 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <type_traits>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
+
+#include "common/network/if/gen-cpp2/Address_types.h"
 
 namespace facebook::fboss {
 
@@ -96,6 +100,35 @@ class ThriftyUtils {
 
   static bool nodeNeedsMigration(const folly::dynamic& dyn) {
     return !dyn.getDefault(kThriftySchemaUpToDate, false).asBool();
+  }
+
+  // given folly dynamic of ip, return binary address
+  static network::thrift::BinaryAddress toThriftBinaryAddress(
+      const folly::dynamic& ip) {
+    return network::toBinaryAddress(folly::IPAddress(ip.asString()));
+  }
+
+  // given folly dynamic of binary address, return folly ip address
+  static folly::IPAddress toFollyIPAddress(const folly::dynamic& addr) {
+    auto jsonStr = folly::toJson(addr);
+    auto inBuf =
+        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
+    auto thriftBinaryAddr = apache::thrift::SimpleJSONSerializer::deserialize<
+        network::thrift::BinaryAddress>(folly::io::Cursor{&inBuf});
+    return network::toIPAddress(thriftBinaryAddr);
+  }
+
+  // return folly dynamic of binary address, given binary address
+  static folly::dynamic toFollyDynamic(
+      const network::thrift::BinaryAddress& addr) {
+    std::string jsonStr;
+    apache::thrift::SimpleJSONSerializer::serialize(addr, &jsonStr);
+    return folly::parseJson(jsonStr);
+  }
+
+  // return folly dynamic of ip address, given ip address
+  static folly::dynamic toFollyDynamic(const folly::IPAddress& addr) {
+    return addr.str();
   }
 
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
