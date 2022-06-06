@@ -131,6 +131,27 @@ class ThriftyUtils {
     return addr.str();
   }
 
+  // ip address represented dyn is converted to type AddrT
+  template <typename AddrT>
+  static AddrT convertAddress(const folly::dynamic& dyn) {
+    static_assert(
+        std::is_same_v<AddrT, folly::IPAddress> ||
+            std::is_same_v<AddrT, network::thrift::BinaryAddress>,
+        "invalid address type");
+    if constexpr (std::is_same_v<AddrT, folly::IPAddress>) {
+      return toFollyIPAddress(dyn);
+    } else {
+      return toThriftBinaryAddress(dyn);
+    }
+  }
+
+  // change dynamic representation to that of AddrT
+  template <typename AddrT>
+  static void translateTo(folly::dynamic& dyn) {
+    AddrT addr = convertAddress<AddrT>(dyn);
+    dyn = ThriftyUtils::toFollyDynamic(addr);
+  }
+
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
 };
 

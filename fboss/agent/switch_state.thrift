@@ -11,6 +11,7 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "common/network/if/Address.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -220,10 +221,35 @@ struct LoadBalancerFields {
   7: set<switch_config.MPLSField> mplsFields;
 }
 
+struct MirrorTunnel {
+  1: Address.BinaryAddress srcIp;
+  2: Address.BinaryAddress dstIp;
+  3: string srcMac;
+  4: string dstMac;
+  5: optional i16 udpSrcPort;
+  6: optional i16 udpDstPort;
+  7: i16 ttl = 255;
+}
+
+struct MirrorFields {
+  1: string name;
+  3: i16 dscp;
+  4: bool truncate;
+  5: bool configHasEgressPort;
+  6: optional i32 egressPort;
+  7: optional Address.BinaryAddress destinationIp;
+  8: optional Address.BinaryAddress srcIp;
+  9: optional i16 udpSrcPort;
+  10: optional i16 udpDstPort;
+  11: optional MirrorTunnel tunnel;
+  12: bool isResolved;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
   3: map<string, AclEntryFields> aclMap;
   4: map<i16, TransceiverSpecFields> transceiverMap;
   5: map<string, BufferPoolFields> bufferPoolCfgMap;
+  6: map<string, MirrorFields> mirrorMap;
 }

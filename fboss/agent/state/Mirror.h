@@ -8,6 +8,7 @@
 #include <folly/IPAddress.h>
 #include <optional>
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -95,7 +96,7 @@ struct MirrorTunnel {
   static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);
 };
 
-struct MirrorFields {
+struct MirrorFields : public ThriftyFields {
   MirrorFields(
       const std::string& name,
       const std::optional<PortID>& egressPort,
@@ -116,6 +117,15 @@ struct MirrorFields {
     }
   }
 
+  bool operator==(const MirrorFields& other) const {
+    return (
+        name == other.name && egressPort == other.egressPort &&
+        destinationIp == other.destinationIp && srcIp == other.srcIp &&
+        udpPorts == other.udpPorts && dscp == other.dscp &&
+        truncate == other.truncate && resolvedTunnel == other.resolvedTunnel &&
+        configHasEgressPort == other.configHasEgressPort);
+  }
+
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
 
@@ -129,11 +139,15 @@ struct MirrorFields {
   std::optional<MirrorTunnel> resolvedTunnel;
   bool configHasEgressPort{false};
 
-  folly::dynamic toFollyDynamic() const;
-  static MirrorFields fromFollyDynamic(const folly::dynamic& dyn);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static MirrorFields fromFollyDynamicLegacy(const folly::dynamic& dyn);
+  state::MirrorFields toThrift() const;
+  static MirrorFields fromThrift(state::MirrorFields const& fields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
-class Mirror : public NodeBaseT<Mirror, MirrorFields> {
+class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
  public:
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
   Mirror(
@@ -158,8 +172,9 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
   bool configHasEgressPort() const;
   bool isResolved() const;
 
-  static std::shared_ptr<Mirror> fromFollyDynamic(const folly::dynamic& json);
-  folly::dynamic toFollyDynamic() const override;
+  static std::shared_ptr<Mirror> fromFollyDynamicLegacy(
+      const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
 
   bool operator==(const Mirror& rhs) const;
   bool operator!=(const Mirror& rhs) const;
@@ -169,7 +184,7 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
  private:
   // Inherit the constructors required for clone()
 
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

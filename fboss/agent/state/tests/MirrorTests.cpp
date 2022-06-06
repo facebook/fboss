@@ -7,6 +7,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MirrorConfigs.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "folly/MacAddress.h"
 
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
@@ -633,6 +634,63 @@ TEST_F(MirrorTest, SflowMirrorWithSrcIP) {
   EXPECT_TRUE(mirror0->getTunnelUdpPorts().has_value());
   EXPECT_EQ(mirror0->getTunnelUdpPorts().value().udpSrcPort, 8998);
   EXPECT_EQ(mirror0->getTunnelUdpPorts().value().udpDstPort, 9889);
+}
+
+TEST_F(MirrorTest, MirrorThrifty) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  auto& mirrors = state_->getMirrors();
+  auto mirrorsThrift = mirrors->toThrift();
+  auto newMirrors = MirrorMap::fromThrift(mirrorsThrift);
+  EXPECT_EQ(*mirrors, *newMirrors);
+  EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
+}
+
+TEST_F(MirrorTest, MirrorMapThrifty) {
+  config_.mirrors()->push_back(
+      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  auto mirrors = state_->getMirrors()->modify(&state_);
+  auto mirror2 = mirrors->getNode("mirror2")->clone();
+
+  MirrorTunnel tunnel(
+      mirror2->getFields()->srcIp.value(),
+      mirror2->getFields()->destinationIp.value(),
+      folly::MacAddress("1:2:3:4:5:6"),
+      folly::MacAddress("6:5:4:3:2:1"),
+      mirror2->getFields()->udpPorts.value());
+
+  mirror2->setMirrorTunnel(tunnel);
+  mirror2->setEgressPort(PortID(1));
+  mirrors->updateNode(mirror2);
+
+  validateThriftyMigration(*mirrors);
+  for (auto name : {"mirror0", "mirror1", "mirror2"}) {
+    auto mirror = mirrors->getNode(name);
+    validateThriftyMigration(*mirror);
+    auto dyn = mirror->toFollyDynamicLegacy();
+  }
 }
 
 } // namespace facebook::fboss

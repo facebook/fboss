@@ -98,6 +98,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   if (bufferPoolCfgs) {
     state.bufferPoolCfgMap() = bufferPoolCfgs->toThrift();
   }
+  state.mirrorMap() = mirrors->toThrift();
   return state;
 }
 
@@ -111,6 +112,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     fields.bufferPoolCfgs =
         BufferPoolCfgMap::fromThrift(state.get_bufferPoolCfgMap());
   }
+  fields.mirrors = MirrorMap::fromThrift(state.get_mirrorMap());
   return fields;
 }
 

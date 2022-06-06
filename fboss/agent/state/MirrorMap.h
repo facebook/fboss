@@ -2,18 +2,34 @@
 
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
 
 namespace facebook::fboss {
 
-class Mirror;
-
 using MirrorMapTraits = NodeMapTraits<std::string, Mirror>;
 
-class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
+struct MirrorMapThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::MirrorFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "name";
+    return _key;
+  }
+
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
+
+class MirrorMap : public ThriftyNodeMapT<
+                      MirrorMap,
+                      MirrorMapTraits,
+                      MirrorMapThriftTraits> {
  public:
   MirrorMap();
   ~MirrorMap();
@@ -25,7 +41,7 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 
