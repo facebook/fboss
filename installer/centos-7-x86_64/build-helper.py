@@ -103,8 +103,10 @@ class BuildHelper:
                 "tar",
                 "czvf",
                 os.path.join(self._output_path, BuildHelper.LIBSAI_IMPL_COMPRESSED_TAR),
-                os.path.join(self._output_path, "lib"),
-                os.path.join(self._output_path, "include"),
+                "-C",
+                self._output_path,
+                "lib",
+                "include",
             ]
         )
 
