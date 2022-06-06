@@ -419,8 +419,12 @@ bool Bsp::writeSysfs(std::string path, int value) {
   bool success = true;
   try {
     std::ofstream out(path);
-    out << valueStr;
-    out.close();
+    if (out.is_open()) {
+      out << valueStr;
+      out.close();
+    } else {
+      success = false;
+    }
   } catch (std::exception& e) {
     success = false;
   }
