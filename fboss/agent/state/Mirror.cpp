@@ -21,6 +21,7 @@ constexpr auto kDscp = "dscp";
 constexpr auto kUdpSrcPort = "udpSrcPort";
 constexpr auto kUdpDstPort = "udpDstPort";
 constexpr auto kTruncate = "truncate";
+constexpr auto kTtl = "ttl";
 } // namespace
 
 folly::dynamic MirrorTunnel::toFollyDynamic() const {
@@ -33,6 +34,7 @@ folly::dynamic MirrorTunnel::toFollyDynamic() const {
     tunnel[kUdpSrcPort] = udpPorts.value().udpSrcPort;
     tunnel[kUdpDstPort] = udpPorts.value().udpDstPort;
   }
+  tunnel[kTtl] = ttl;
   return tunnel;
 }
 
@@ -48,7 +50,7 @@ MirrorTunnel MirrorTunnel::fromFollyDynamic(const folly::dynamic& json) {
         TunnelUdpPorts(json[kUdpSrcPort].asInt(), json[kUdpDstPort].asInt());
     tunnel.greProtocol = 0;
   }
-
+  tunnel.ttl = json.getDefault(kTtl, MirrorTunnel::kTTL).asInt();
   return tunnel;
 }
 
