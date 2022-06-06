@@ -138,33 +138,12 @@ void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
 }
 
 folly::dynamic Mirror::toFollyDynamic() const {
-  folly::dynamic mirror = folly::dynamic::object;
-  auto fields = getFields()->toFollyDynamic();
-  mirror[kName] = fields[kName];
+  auto mirror = getFields()->toFollyDynamic();
   mirror[kIsResolved] = isResolved();
-  mirror[kConfigHasEgressPort] = configHasEgressPort();
-  mirror[kEgressPort] = fields[kEgressPort];
-  mirror[kDestinationIp] = fields[kDestinationIp];
-  if (fields.find(kSrcIp) != fields.items().end()) {
-    mirror[kSrcIp] = fields[kSrcIp];
-  }
-  mirror[kTunnel] = fields[kTunnel];
-  mirror[kDscp] = fields[kDscp];
-  mirror[kTruncate] = fields[kTruncate];
-  // store kUdpSrcPort, kUdpDstPort in the mirror fields as well
-  // as tunnel is not stored if unresolved
-  // we can eventually remove storing it in tunnel struct
-  // but need to keep both from warmboot perspective
-  if (fields.find(kUdpSrcPort) != fields.items().end()) {
-    mirror[kUdpSrcPort] = fields[kUdpSrcPort];
-  }
-  if (fields.find(kUdpDstPort) != fields.items().end()) {
-    mirror[kUdpDstPort] = fields[kUdpDstPort];
-  }
   return mirror;
 }
 
-std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
+MirrorFields MirrorFields::fromFollyDynamic(const folly::dynamic& json) {
   auto name = json[kName].asString();
   auto configHasEgressPort = json[kConfigHasEgressPort].asBool();
   uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_;
@@ -204,23 +183,18 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
     udpPorts =
         TunnelUdpPorts(json[kUdpSrcPort].asInt(), json[kUdpDstPort].asInt());
   }
-
-  std::shared_ptr<Mirror> mirror = nullptr;
-  if (configHasEgressPort) {
-    mirror = std::make_shared<Mirror>(
-        name, egressPort, destinationIp, srcIp, udpPorts, dscp, truncate);
-  } else {
-    mirror = std::make_shared<Mirror>(
-        name, std::nullopt, destinationIp, srcIp, udpPorts, dscp, truncate);
-    if (egressPort) {
-      mirror->setEgressPort(egressPort.value());
-    }
-  }
+  auto fields = MirrorFields(
+      name, egressPort, destinationIp, srcIp, udpPorts, dscp, truncate);
+  fields.configHasEgressPort = configHasEgressPort;
   if (tunnel) {
-    mirror->setMirrorTunnel(tunnel.value());
+    fields.resolvedTunnel = tunnel.value();
   }
+  return fields;
+}
 
-  return mirror;
+std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
+  auto fields = MirrorFields::fromFollyDynamic(json);
+  return std::make_shared<Mirror>(fields);
 }
 
 bool Mirror::operator==(const Mirror& rhs) const {

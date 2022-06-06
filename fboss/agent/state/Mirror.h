@@ -130,6 +130,7 @@ struct MirrorFields {
   bool configHasEgressPort{false};
 
   folly::dynamic toFollyDynamic() const;
+  static MirrorFields fromFollyDynamic(const folly::dynamic& dyn);
 };
 
 class Mirror : public NodeBaseT<Mirror, MirrorFields> {
