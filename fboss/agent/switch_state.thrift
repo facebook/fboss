@@ -245,6 +245,12 @@ struct MirrorFields {
   12: bool isResolved;
 }
 
+struct ControlPlaneFields {
+  1: list<PortQueueFields> queues;
+  2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
+  3: optional string defaultQosPolicy;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -252,4 +258,5 @@ struct SwitchState {
   4: map<i16, TransceiverSpecFields> transceiverMap;
   5: map<string, BufferPoolFields> bufferPoolCfgMap;
   6: map<string, MirrorFields> mirrorMap;
+  7: ControlPlaneFields controlPlane;
 }

@@ -10,8 +10,11 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -21,7 +24,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct ControlPlaneFields {
+struct ControlPlaneFields : public ThriftyFields {
   using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
   ControlPlaneFields() {}
@@ -29,8 +32,18 @@ struct ControlPlaneFields {
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static ControlPlaneFields fromFollyDynamic(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static ControlPlaneFields fromFollyDynamicLegacy(const folly::dynamic& json);
+
+  state::ControlPlaneFields toThrift() const;
+  static ControlPlaneFields fromThrift(state::ControlPlaneFields const& fields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
+  bool operator==(const ControlPlaneFields& other) const {
+    return queues == other.queues && rxReasonToQueue == other.rxReasonToQueue &&
+        qosPolicy == other.qosPolicy;
+  }
 
   QueueConfig queues;
   RxReasonToQueue rxReasonToQueue;
@@ -41,20 +54,23 @@ struct ControlPlaneFields {
  * ControlPlane stores state about path settings of traffic to userver CPU
  * on the switch.
  */
-class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
+class ControlPlane : public ThriftyBaseT<
+                         state::ControlPlaneFields,
+                         ControlPlane,
+                         ControlPlaneFields> {
  public:
   using RxReasonToQueue = ControlPlaneFields::RxReasonToQueue;
 
   ControlPlane() {}
 
-  static std::shared_ptr<ControlPlane> fromFollyDynamic(
+  static std::shared_ptr<ControlPlane> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
-    const auto& fields = ControlPlaneFields::fromFollyDynamic(json);
+    const auto& fields = ControlPlaneFields::fromFollyDynamicLegacy(json);
     return std::make_shared<ControlPlane>(fields);
   }
 
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+  folly::dynamic toFollyDynamicLegacy() const {
+    return getFields()->toFollyDynamicLegacy();
   }
 
   const QueueConfig& getQueues() const {
@@ -91,7 +107,7 @@ class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

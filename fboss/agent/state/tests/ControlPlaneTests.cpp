@@ -184,6 +184,7 @@ TEST(ControlPlane, serialize) {
   // back to ControlPlane object
   auto controlPlaneBack = ControlPlane::fromFollyDynamic(serialized);
   EXPECT_TRUE(*controlPlane == *controlPlaneBack);
+  validateThriftyMigration(*controlPlane);
 }
 
 TEST(ControlPlane, modify) {
@@ -201,6 +202,7 @@ TEST(ControlPlane, modify) {
   auto modifiedCP = controlPlane->modify(&state);
   EXPECT_NE(controlPlane.get(), modifiedCP);
   EXPECT_TRUE(*controlPlane == *modifiedCP);
+  validateThriftyMigration(*controlPlane);
 }
 
 TEST(ControlPlane, applyDefaultConfig) {
@@ -229,6 +231,7 @@ TEST(ControlPlane, applyDefaultConfig) {
       EXPECT_TRUE(*cpuQueue == *queue);
     }
   }
+  validateThriftyMigration(*stateV1->getControlPlane());
 }
 
 TEST(ControlPlane, applySameConfig) {
@@ -241,6 +244,7 @@ TEST(ControlPlane, applySameConfig) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
+  validateThriftyMigration(*stateV1->getControlPlane());
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(nullptr, stateV2);
@@ -256,6 +260,7 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
+  validateThriftyMigration(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
@@ -263,6 +268,7 @@ TEST(ControlPlane, resetLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
+  validateThriftyMigration(*stateV2->getControlPlane());
 
   auto newQueues = stateV2->getControlPlane()->getQueues();
   // it should always generate all queues
@@ -294,6 +300,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *config.cpuQueues() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
+  validateThriftyMigration(*stateV1->getControlPlane());
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
@@ -305,6 +312,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   *newConfig.cpuQueues() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
+  validateThriftyMigration(*stateV2->getControlPlane());
 
   auto newQueues = stateV2->getControlPlane()->getQueues();
   // it should always generate all queues
@@ -347,6 +355,7 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
       {cfg::PacketRxReason::ARP, 9}};
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
+  validateThriftyMigration(*stateV1->getControlPlane());
 
   const auto reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
   EXPECT_EQ(reasonToQueue1.size(), 1);

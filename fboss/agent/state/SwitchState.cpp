@@ -99,6 +99,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
     state.bufferPoolCfgMap() = bufferPoolCfgs->toThrift();
   }
   state.mirrorMap() = mirrors->toThrift();
+  state.controlPlane() = controlPlane->toThrift();
   return state;
 }
 
@@ -113,6 +114,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
         BufferPoolCfgMap::fromThrift(state.get_bufferPoolCfgMap());
   }
   fields.mirrors = MirrorMap::fromThrift(state.get_mirrorMap());
+  fields.controlPlane = ControlPlane::fromThrift(*state.controlPlane());
   return fields;
 }
 
