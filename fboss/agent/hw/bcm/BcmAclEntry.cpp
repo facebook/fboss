@@ -412,6 +412,13 @@ void BcmAclEntry::createNewAclEntry() {
 
   rv = bcm_field_entry_install(hw_->getUnit(), handle_);
   bcmCheckError(rv, "failed to install field group");
+
+  int enabled = 1;
+  if (acl_->isEnabled().has_value()) {
+    enabled = acl_->isEnabled().value() ? 1 : 0;
+  }
+  rv = bcm_field_entry_enable_set(hw_->getUnit(), handle_, enabled);
+  bcmCheckError(rv, "Failed to set enable/disable for acl. enable:", enabled);
 }
 
 BcmAclEntry::BcmAclEntry(
@@ -494,11 +501,16 @@ bool BcmAclEntry::isStateSame(
   bool isSrcL4PortFieldUsed = false;
 
   // check enable status
+  int enableExpected = 1;
+  if (acl->isEnabled().has_value()) {
+    enableExpected = acl->isEnabled().value() ? 1 : 0;
+  }
   int enableFlag = 0;
   auto rv = bcm_field_entry_enable_get(hw->getUnit(), handle, &enableFlag);
   bcmCheckError(rv, aclMsg, " failed to get acl enable status");
-  if (!enableFlag) {
-    XLOG(ERR) << aclMsg << " is disabled.";
+  if (enableFlag != enableExpected) {
+    XLOG(ERR) << aclMsg << " has incorrect enable setting. expected "
+              << enableExpected << " actual " << enableFlag;
     isSame = false;
   }
 

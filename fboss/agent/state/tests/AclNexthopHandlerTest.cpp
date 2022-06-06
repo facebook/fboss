@@ -239,6 +239,7 @@ class AclNexthopHandlerTest : public ::testing::Test {
                  << ", resolved nexthops: " << resolvedNexthopSet;
       // Since the route is deleted, expect no resolved nexthops
       EXPECT_EQ(resolvedNexthopSet, expectedNexthops);
+      EXPECT_EQ(*aclEntry->isEnabled(), expectedNexthops.size() ? true : false);
     };
     verifyStateUpdate(verifyResolvedNexthops);
   }
@@ -279,6 +280,7 @@ TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
     auto resolvedNexthopSet =
         action.value().getRedirectToNextHop().value().second;
     EXPECT_EQ(resolvedNexthopSet.size(), 0);
+    EXPECT_EQ(*aclEntry->isEnabled(), false);
   });
 }
 

@@ -115,11 +115,18 @@ AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
   if (origAclEntry->getAclAction().has_value() &&
       origAclEntry->getAclAction().value().getRedirectToNextHop().has_value()) {
     auto newAclEntry = origAclEntry->modify(&newState);
+    newAclEntry->setEnabled(true);
     MatchAction action = newAclEntry->getAclAction().value();
     resolveActionNexthops(action);
     newAclEntry->setAclAction(action);
-    return (newAclEntry->getAclAction().value().getRedirectToNextHop() !=
-            origAclEntry->getAclAction().value().getRedirectToNextHop())
+    // Disable acl if there are no nexthops available
+    if (action.getRedirectToNextHop().has_value() &&
+        !action.getRedirectToNextHop().value().second.size()) {
+      newAclEntry->setEnabled(false);
+    }
+    return ((newAclEntry->getAclAction().value().getRedirectToNextHop() !=
+             origAclEntry->getAclAction().value().getRedirectToNextHop()) ||
+            (newAclEntry->isEnabled() != origAclEntry->isEnabled()))
         ? newAclEntry
         : nullptr;
   }

@@ -86,6 +86,7 @@ class BcmAclNexthopTest : public BcmTest {
     action.setRedirectToNextHop(
         std::make_pair(redirect.value().first, nexthops));
     newAclEntry->setAclAction(action);
+    newAclEntry->setEnabled(nexthops.size() ? true : false);
     applyNewState(newState);
   }
 
