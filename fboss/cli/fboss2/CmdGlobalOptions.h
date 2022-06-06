@@ -122,6 +122,10 @@ class CmdGlobalOptions {
     return bmcHttpPort_;
   }
 
+  int getVipInjectorPort() const {
+    return vipInjectorThriftPort_;
+  }
+
   std::string getColor() const {
     return color_;
   }
@@ -141,6 +145,10 @@ class CmdGlobalOptions {
 
   void setOpenrThriftPort(int port) {
     openrThriftPort_ = port;
+  }
+
+  void setVipThriftPort(int port) {
+    vipInjectorThriftPort_ = port;
   }
 
   std::map<std::string, std::string> getFilters() const;
@@ -165,6 +173,7 @@ class CmdGlobalOptions {
   int rackmonThriftPort_{5973};
   int sensorServiceThriftPort_{5970};
   int dataCorralServiceThriftPort_{5971};
+  int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};
   std::vector<std::string> filters_{};
 };
