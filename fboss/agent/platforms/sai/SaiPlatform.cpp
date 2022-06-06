@@ -345,15 +345,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // TODO make switch id come from config
     // Provide a non empty sys port config_list
     switchId = 0;
-    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
-        std::vector<sai_system_port_config_t>{{
-            1, // port_id
-            0, // switch_id
-            10, // attached_core_index
-            0, // attached_core_port_index
-            100000, // speed - 100G in mbps
-            8,
-        }}};
+    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{};
   }
 
   return {
