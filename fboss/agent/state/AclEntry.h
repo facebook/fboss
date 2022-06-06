@@ -147,6 +147,7 @@ struct AclEntryFields : public ThriftyFields {
   std::optional<cfg::EtherType> etherType{std::nullopt};
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   std::optional<MatchAction> aclAction{std::nullopt};
+  std::optional<bool> enabled{std::nullopt};
 };
 
 /*
@@ -164,6 +165,14 @@ class AclEntry
 
   const std::string& getID() const {
     return getFields()->name;
+  }
+
+  std::optional<bool> isEnabled() const {
+    return getFields()->enabled;
+  }
+
+  void setEnabled(std::optional<bool> enabled) {
+    writableFields()->enabled = enabled;
   }
 
   const std::optional<MatchAction> getAclAction() const {

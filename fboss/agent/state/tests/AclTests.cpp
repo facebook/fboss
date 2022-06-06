@@ -526,6 +526,7 @@ TEST(Acl, SerializeRedirectToNextHop) {
   redirectToNextHop.second = nhset;
   action.setRedirectToNextHop(redirectToNextHop);
   entry->setAclAction(action);
+  entry->setEnabled(true);
 
   auto verifyEntries = [](AclEntry& entry,
                           std::vector<std::string>& nexthops,
@@ -544,6 +545,7 @@ TEST(Acl, SerializeRedirectToNextHop) {
       ++i;
     }
     EXPECT_EQ(nhset, newRedirectToNextHop.second);
+    EXPECT_EQ(entry.isEnabled(), entryBack->isEnabled());
   };
   verifyEntries(*entry, nexthops, nhset);
 

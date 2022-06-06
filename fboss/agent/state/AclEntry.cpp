@@ -50,6 +50,7 @@ constexpr auto kLookupClassRoute = "lookupClassRoute";
 constexpr auto kPacketLookupResult = "packetLookupResult";
 constexpr auto kVlanID = "vlanID";
 constexpr auto kAclAction = "aclAction";
+constexpr auto kEnabled = "enabled";
 } // namespace
 
 namespace facebook::fboss {
@@ -128,7 +129,7 @@ state::AclEntryFields AclEntryFields::toThrift() const {
   if (aclAction.has_value()) {
     entry.aclAction() = aclAction->toThrift();
   }
-
+  entry.enabled().from_optional(enabled);
   return entry;
 }
 
@@ -186,7 +187,7 @@ AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
   if (auto aclAction = entry.aclAction()) {
     aclEntryFields.aclAction = MatchAction::fromThrift(*aclAction);
   }
-
+  aclEntryFields.enabled = entry.enabled().to_optional();
   return aclEntryFields;
 }
 
@@ -322,6 +323,9 @@ folly::dynamic AclEntryFields::toFollyDynamicLegacy() const {
   if (aclAction) {
     aclEntry[kAclAction] = aclAction.value().toFollyDynamic();
   }
+  if (enabled.has_value()) {
+    aclEntry[kEnabled] = enabled.value();
+  }
   aclEntry[kPriority] = priority;
   aclEntry[kName] = name;
   return aclEntry;
@@ -418,6 +422,9 @@ AclEntryFields AclEntryFields::fromFollyDynamicLegacy(
   }
   if (aclEntryJson.find(kVlanID) != aclEntryJson.items().end()) {
     aclEntry.vlanID = aclEntryJson[kVlanID].asInt();
+  }
+  if (aclEntryJson.find(kEnabled) != aclEntryJson.items().end()) {
+    aclEntry.enabled = aclEntryJson[kEnabled].asBool();
   }
   TEnumTraits<cfg::AclActionType>::findValue(
       aclEntryJson[kActionType].asString().c_str(), &aclEntry.actionType);
