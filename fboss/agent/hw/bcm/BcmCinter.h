@@ -372,6 +372,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 param1) override;
   int bcm_field_entry_prio_set(int unit, bcm_field_entry_t entry, int prio)
       override;
+  int bcm_field_entry_enable_set(int unit, bcm_field_entry_t entry, int enable)
+      override;
   int bcm_field_stat_create(
       int unit,
       bcm_field_group_t group,

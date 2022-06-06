@@ -113,6 +113,9 @@ class BcmSdkInterface {
   virtual int
   bcm_field_entry_prio_set(int unit, bcm_field_entry_t entry, int prio) = 0;
 
+  virtual int
+  bcm_field_entry_enable_set(int unit, bcm_field_entry_t entry, int enable) = 0;
+
   virtual int bcm_rx_cosq_mapping_size_get(int unit, int* size) = 0;
 
   virtual int bcm_field_action_add(

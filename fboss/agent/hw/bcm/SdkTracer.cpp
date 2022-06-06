@@ -445,6 +445,11 @@ int __real_bcm_field_entry_prio_set(
     bcm_field_entry_t entry,
     int prio);
 
+int __real_bcm_field_entry_enable_set(
+    int unit,
+    bcm_field_entry_t entry,
+    int enable);
+
 int __real_bcm_field_qualify_DstIp6(
     int unit,
     bcm_field_entry_t entry,
@@ -2484,6 +2489,13 @@ int __wrap_bcm_field_entry_prio_set(
     bcm_field_entry_t entry,
     int prio) {
   CALL_WRAPPERS_RV(bcm_field_entry_prio_set(unit, entry, prio));
+}
+
+int __wrap_bcm_field_entry_enable_set(
+    int unit,
+    bcm_field_entry_t entry,
+    int enable) {
+  CALL_WRAPPERS_RV(bcm_field_entry_enable_set(unit, entry, enable));
 }
 
 int __wrap_bcm_field_qualify_DstIp6(

@@ -1338,6 +1338,17 @@ int BcmCinter::bcm_field_entry_prio_set(
   return 0;
 }
 
+int BcmCinter::bcm_field_entry_enable_set(
+    int unit,
+    bcm_field_entry_t entry,
+    int enable) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_entry_enable_set(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), enable),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_stat_create(
     int unit,
     bcm_field_group_t group,
