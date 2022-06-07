@@ -10,20 +10,28 @@
 
 #include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "folly/Singleton.h"
 
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 #include "fboss/qsfp_service/QsfpFsdbSyncer.h"
 
+namespace {
+
+struct SingletonTag {};
+
+} // anonymous namespace
+
 namespace facebook {
 namespace fboss {
 
-QsfpFsdbSyncer::QsfpFsdbSyncer(TransceiverManager* transceiverMgr)
-    : transceiverMgr_(transceiverMgr),
-      fsdbPubSubMgr_(
+static folly::Singleton<QsfpFsdbSyncer, SingletonTag> qsfpFsdbSyncer;
+
+QsfpFsdbSyncer::QsfpFsdbSyncer()
+    : fsdbPubSubMgr_(
           std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service")) {
   if (FLAGS_publish_state_to_fsdb) {
-    fsdbPubSubMgr_->createStatePathPublisher(
+    fsdbPubSubMgr_->createStateDeltaPublisher(
         getStatePath(), [this](auto oldState, auto newState) {
           handleStatePublisherStateChanged(oldState, newState);
         });
@@ -39,11 +47,62 @@ QsfpFsdbSyncer::QsfpFsdbSyncer(TransceiverManager* transceiverMgr)
 // Prevent inlining to make unique_ptr to incomplete type happy
 QsfpFsdbSyncer::~QsfpFsdbSyncer() = default;
 
+std::shared_ptr<QsfpFsdbSyncer> QsfpFsdbSyncer::getInstance() {
+  if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
+    return qsfpFsdbSyncer.try_get();
+  } else {
+    return nullptr;
+  }
+}
+
+template <typename Node>
+fsdb::OperDeltaUnit QsfpFsdbSyncer::createDelta(
+    const std::vector<std::string>& path,
+    const Node* oldState,
+    const Node* newState) {
+  fsdb::OperDeltaUnit deltaUnit;
+  deltaUnit.path().ensure().raw() = path;
+  if (oldState) {
+    deltaUnit.oldState() =
+        apache::thrift::BinarySerializer::serialize<std::string>(*oldState);
+  }
+  if (newState) {
+    deltaUnit.newState() =
+        apache::thrift::BinarySerializer::serialize<std::string>(*newState);
+  }
+  return deltaUnit;
+}
+
+fsdb::OperDeltaUnit QsfpFsdbSyncer::createConfigDelta(
+    const cfg::QsfpServiceConfig* oldState,
+    const cfg::QsfpServiceConfig* newState) {
+  return createDelta(QsfpFsdbSyncer::getConfigPath(), oldState, newState);
+}
+
+QsfpFsdbSyncer& QsfpFsdbSyncer::operator<<(
+    const std::vector<fsdb::OperDeltaUnit>& deltaUnits) {
+  fsdb::OperDelta delta;
+  delta.changes() = deltaUnits;
+  delta.protocol() = fsdb::OperProtocol::BINARY;
+  fsdbPubSubMgr_->publishState(std::move(delta));
+  return *this;
+}
+
+QsfpFsdbSyncer& QsfpFsdbSyncer::operator<<(
+    const fsdb::OperDeltaUnit& deltaUnit) {
+  fsdb::OperDelta delta;
+  delta.changes().ensure().emplace_back(deltaUnit);
+  delta.protocol() = fsdb::OperProtocol::BINARY;
+  fsdbPubSubMgr_->publishState(std::move(delta));
+  return *this;
+}
+
 void QsfpFsdbSyncer::handleStatePublisherStateChanged(
     fsdb::FsdbStreamClient::State /* oldState */,
     fsdb::FsdbStreamClient::State newState) {
   statePublisherConnected_ =
       newState == fsdb::FsdbStreamClient::State::CONNECTED;
+  // TODO: ask transceiver manager to republish everything
 }
 
 void QsfpFsdbSyncer::handleStatsPublisherStateChanged(

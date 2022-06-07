@@ -11,6 +11,9 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -22,17 +25,46 @@ class TransceiverManager;
 
 class QsfpFsdbSyncer {
  public:
-  explicit QsfpFsdbSyncer(TransceiverManager* transceiverMgr);
+  explicit QsfpFsdbSyncer();
   ~QsfpFsdbSyncer();
+
+  static std::shared_ptr<QsfpFsdbSyncer> getInstance();
+
+  static const std::vector<std::string>& getStatePath();
+  static const std::vector<std::string>& getStatsPath();
+  static const std::vector<std::string>& getConfigPath();
+
+  void setTransceiverManager(TransceiverManager* transceiverMgr) {
+    transceiverMgr_ = transceiverMgr;
+  }
 
   fsdb::FsdbPubSubManager* pubSubMgr() {
     return fsdbPubSubMgr_.get();
   }
 
- private:
-  const std::vector<std::string>& getStatePath() const;
-  const std::vector<std::string>& getStatsPath() const;
+  bool statePublisherConnected() {
+    return statePublisherConnected_;
+  }
 
+  bool statsPublisherConnected() {
+    return statsPublisherConnected_;
+  }
+
+  template <typename Node>
+  static fsdb::OperDeltaUnit createDelta(
+      const std::vector<std::string>& path,
+      const Node* oldState,
+      const Node* newState);
+
+  static fsdb::OperDeltaUnit createConfigDelta(
+      const cfg::QsfpServiceConfig* oldState,
+      const cfg::QsfpServiceConfig* newState);
+
+  QsfpFsdbSyncer& operator<<(
+      const std::vector<fsdb::OperDeltaUnit>& deltaUnits);
+  QsfpFsdbSyncer& operator<<(const fsdb::OperDeltaUnit& deltaUnit);
+
+ private:
   void handleStatePublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
@@ -45,5 +77,6 @@ class QsfpFsdbSyncer {
   std::atomic<bool> statePublisherConnected_{false};
   std::atomic<bool> statsPublisherConnected_{false};
 };
+
 } // namespace fboss
 } // namespace facebook
