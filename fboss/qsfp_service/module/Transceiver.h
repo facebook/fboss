@@ -56,9 +56,14 @@ class Transceiver {
   virtual TransceiverManagementInterface managementInterface() const = 0;
 
   /*
-   * Returns if the SFP is present or not
+   * For a transceiver, Returns [IsPresent, PresenceStatusChanged]
    */
-  virtual bool detectPresence() = 0;
+  struct TransceiverPresenceDetectionStatus {
+    bool present;
+    bool statusChanged;
+  };
+
+  virtual TransceiverPresenceDetectionStatus detectPresence() = 0;
 
   // Return cached present state without asking from hardware
   bool isPresent() const {
@@ -203,6 +208,9 @@ class Transceiver {
   time_t modulePauseRemediationUntil_{0};
   virtual void setModulePauseRemediation(int32_t timeout) = 0;
   virtual time_t getModulePauseRemediationUntil() = 0;
+  bool getDirty_() const {
+    return dirty_;
+  }
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
@@ -210,6 +218,8 @@ class Transceiver {
 
   // QSFP Presence status
   bool present_{false};
+  // Denotes if the cache value is valid or stale
+  bool dirty_{true};
 
  private:
   // no copy or assignment

@@ -159,9 +159,6 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           id_,
           std::make_unique<MockSffModule>(
               transceiverManager_.get(), std::move(xcvrImpl)));
-
-      EXPECT_CALL(*static_cast<MockSffModule*>(xcvr), cacheIsValid())
-          .WillRepeatedly(::testing::Return(true));
       return xcvr;
     };
 
@@ -200,11 +197,14 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         emptyOverrideTcvrToPortAndProfile_);
 
-    return static_cast<QsfpModule*>(xcvr);
+    auto qsfpModuleXcvr = static_cast<QsfpModule*>(xcvr);
+    // Assign a default transceiver info so that we can set expectations based
+    // on it even when transceiverInfo hasn't been updated for the first time
+    *(qsfpModuleXcvr->info_.wlock()) = TransceiverInfo();
+    return qsfpModuleXcvr;
   }
 
   void setState(TransceiverStateMachineState state) {
-    xcvr_->detectPresence();
     // Pause remediation
     transceiverManager_->setPauseRemediation(60, nullptr);
 
@@ -1027,8 +1027,17 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
             static_cast<MockTransceiverPlatformApi*>(
                 transceiverManager_->getQsfpPlatformApi());
         ::testing::Sequence s;
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
         for (int i = 0; i < 5; ++i) {
           EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).InSequence(s);
+          // Expect updateQsfpData and updateCachedTransceiverInfoLocked to be
+          // called from refreshStateMachines() we do in verify() below
+          EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1).InSequence(s);
+          EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
+          EXPECT_CALL(
+              *mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
+              .Times(1)
+              .InSequence(s);
           setProgramCmisModuleExpectation(true, s);
         }
 
@@ -1037,18 +1046,32 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
         EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
             .Times(0)
             .InSequence(s);
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
+            .Times(1)
+            .InSequence(s);
         setProgramCmisModuleExpectation(false, s);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
+        // Just finished remediation, so the dirty flag should be set
+        EXPECT_TRUE(xcvr_->getDirty_());
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-        // Now trigger program transceiver, it should move on to the next state
+        // Trigger a program transceiver which should fail because the cache is
+        // still dirty
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PROGRAM_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(xcvr_->getDirty_());
         EXPECT_EQ(
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
@@ -1066,8 +1089,15 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
           // Then trigger remediate and program transceiver events
           transceiverManager_->updateStateBlocking(
               id_, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER);
-          transceiverManager_->updateStateBlocking(
-              id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+          if (remediateTimes <= 4) {
+            // Remediation is only done the first 4 times
+            EXPECT_TRUE(xcvr_->getDirty_());
+          }
+          // Refresh the state machine again which will first do a successful
+          // refresh and clear the dirty_ flag and then trigger
+          // PROGRAM_TRANSCEIVER
+          transceiverManager_->refreshStateMachines();
+          EXPECT_FALSE(xcvr_->getDirty_());
         }
 
         auto curState = transceiverManager_->getCurrentState(id_);
@@ -1122,14 +1152,23 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
+        // Just finished remediation, so the dirty flag should be set
+        EXPECT_TRUE(xcvr_->getDirty_());
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-        // Now trigger program transceiver, it should move on to the next state
+        // Trigger a program transceiver which should fail because the cache is
+        // still dirty
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PROGRAM_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(xcvr_->getDirty_());
         EXPECT_EQ(
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
@@ -1183,10 +1222,21 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
             .Times(2)
             .WillOnce(ThrowFbossError());
 
-        setProgramCmisModuleExpectation(true);
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        ::testing::Sequence s;
+        // Expect updateQsfpData and updateCachedTransceiverInfoLocked to be
+        // called from refreshStateMachines() we do in verify() below
+        EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1).InSequence(s);
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
+            .Times(1)
+            .InSequence(s);
+        setProgramCmisModuleExpectation(true, s);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
+        // The earlier remediation failed, so the dirty flag shouldn't be set
+        EXPECT_FALSE(xcvr_->getDirty_());
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
@@ -1195,6 +1245,8 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER);
+        // Since the remediation failed, the dirty flag should be set now
+        EXPECT_TRUE(xcvr_->getDirty_());
         EXPECT_EQ(
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
@@ -1203,8 +1255,11 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         EXPECT_FALSE(afterRemediationStateMachine.get_attribute(
             isTransceiverProgrammed));
 
-        transceiverManager_->updateStateBlocking(
-            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PROGRAM_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(xcvr_->getDirty_());
         const auto& afterProgrammingStateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
@@ -1236,14 +1291,23 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
+        // Just finished remediation, so the dirty flag should be set
+        EXPECT_TRUE(xcvr_->getDirty_());
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
         const auto& stateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-        // Now trigger program transceiver, it should move on to the next state
+        // Trigger a program transceiver which should fail because the cache is
+        // still dirty
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PROGRAM_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(xcvr_->getDirty_());
         EXPECT_EQ(
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
@@ -1298,6 +1362,8 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
+        // The earlier remediation failed, so the dirty flag should not be set
+        EXPECT_FALSE(xcvr_->getDirty_());
         // state machine goes back to XPHY_PORTS_PROGRAMMED so that we can
         // reprogram the xcvr again
         const auto& stateMachine =
@@ -1308,6 +1374,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
         // Then try again, it should succeed
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER);
+        EXPECT_TRUE(xcvr_->getDirty_());
         EXPECT_EQ(
             transceiverManager_->getCurrentState(id_),
             TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
@@ -1316,8 +1383,11 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
         EXPECT_FALSE(afterRemediationStateMachine.get_attribute(
             isTransceiverProgrammed));
 
-        transceiverManager_->updateStateBlocking(
-            id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+        // Refresh the state machine again which will first do a successful
+        // refresh and clear the dirty_ flag and then trigger
+        // PROGRAM_TRANSCEIVER
+        transceiverManager_->refreshStateMachines();
+        EXPECT_FALSE(xcvr_->getDirty_());
         const auto& afterProgrammingStateMachine =
             transceiverManager_->getStateMachineForTesting(id_);
         EXPECT_TRUE(afterProgrammingStateMachine.get_attribute(
@@ -1603,10 +1673,24 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
     // Because the transceiver is not present, the PROGRAM_TRANSCEIVER should be
     // no-op
     if (!isRemoval) {
+      // When transceiver is present, do a successful refresh to make the cache
+      // valid
+      MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+      ::testing::Sequence s;
+      EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
+      EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
+          .Times(1)
+          .InSequence(s);
       setProgramCmisModuleExpectation(true);
     }
-    transceiverManager_->updateStateBlocking(
-        id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+    // Refresh the state machine again which will first do a successful
+    // refresh and clear the dirty_ flag and then trigger
+    // PROGRAM_TRANSCEIVER
+    transceiverManager_->refreshStateMachines();
+    if (!isRemoval) {
+      // Only check when xcvr is there
+      EXPECT_FALSE(xcvr_->getDirty_());
+    }
     EXPECT_EQ(
         transceiverManager_->getCurrentState(id_),
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);

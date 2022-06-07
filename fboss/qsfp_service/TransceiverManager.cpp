@@ -1158,7 +1158,7 @@ void TransceiverManager::triggerRemediateEvents(
     auto tcvrIt = lockedTransceivers->find(tcvrID);
     if (tcvrIt == lockedTransceivers->end()) {
       XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
-                 << ". Transeciver is not present";
+                 << ". Transceiver is not present";
       continue;
     }
     if (!tcvrIt->second->shouldRemediate()) {

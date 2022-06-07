@@ -75,7 +75,7 @@ class QsfpModule : public Transceiver {
   /*
    * Determines if the QSFP is present or not.
    */
-  bool detectPresence() override;
+  TransceiverPresenceDetectionStatus detectPresence() override;
 
   /*
    * Return a valid type.
@@ -88,7 +88,7 @@ class QsfpModule : public Transceiver {
 
   std::string getNameString() const;
 
-  bool detectPresenceLocked();
+  TransceiverPresenceDetectionStatus detectPresenceLocked();
 
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
@@ -244,8 +244,6 @@ class QsfpModule : public Transceiver {
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
-  // Denotes if the cache value is valid or stale
-  bool dirty_{true};
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
   /* This counter keeps track of the number of times

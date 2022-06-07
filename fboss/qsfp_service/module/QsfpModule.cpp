@@ -133,25 +133,29 @@ TransceiverInfo QsfpModule::getTransceiverInfo() {
   return **cachedInfo;
 }
 
-bool QsfpModule::detectPresence() {
+Transceiver::TransceiverPresenceDetectionStatus QsfpModule::detectPresence() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   return detectPresenceLocked();
 }
 
-bool QsfpModule::detectPresenceLocked() {
+Transceiver::TransceiverPresenceDetectionStatus
+QsfpModule::detectPresenceLocked() {
   auto currentQsfpStatus = qsfpImpl_->detectTransceiver();
+  bool statusChanged{false};
   if (currentQsfpStatus != present_) {
     QSFP_LOG(DBG1, this) << "QSFP status changed from "
                          << (present_ ? "PRESENT" : "NOT PRESENT") << " to "
                          << (currentQsfpStatus ? "PRESENT" : "NOT PRESENT");
     dirty_ = true;
     present_ = currentQsfpStatus;
+    statusChanged = true;
     moduleResetCounter_ = 0;
 
     // If a transceiver went from present to missing, clear the cached data.
     if (!present_) {
       info_.wlock()->reset();
     }
+
     // In the case of an OBO module or an inaccessable present module,
     // we need to fill in the essential info before parsing the DOM data
     // which may not be available.
@@ -161,7 +165,7 @@ bool QsfpModule::detectPresenceLocked() {
     info.port() = qsfpImpl_->getNum();
     *info_.wlock() = info;
   }
-  return currentQsfpStatus;
+  return {currentQsfpStatus, statusChanged};
 }
 
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
@@ -375,20 +379,22 @@ folly::Future<folly::Unit> QsfpModule::futureRefresh() {
 }
 
 void QsfpModule::refreshLocked() {
-  detectPresenceLocked();
+  auto detectionStatus = detectPresenceLocked();
 
   auto willRefresh = !dirty_ && shouldRefresh(FLAGS_qsfp_data_refresh_interval);
+  QSFP_LOG_IF(DBG3, dirty_, this)
+      << "dirty_ = " << dirty_ << ", willRefresh = " << willRefresh
+      << ", present = " << detectionStatus.present
+      << ", statusChanged = " << detectionStatus.statusChanged;
   if (!dirty_ && !willRefresh) {
     return;
   }
 
-  bool newTransceiverDetected = false;
-  if (dirty_ && present_) {
+  if (detectionStatus.statusChanged && detectionStatus.present) {
     // A new transceiver has been detected
     getTransceiverManager()->updateStateBlocking(
         getID(), TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
-    newTransceiverDetected = true;
-  } else if (dirty_ && !present_) {
+  } else if (detectionStatus.statusChanged && !detectionStatus.present) {
     // The transceiver has been removed
     getTransceiverManager()->updateStateBlocking(
         getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
@@ -404,17 +410,19 @@ void QsfpModule::refreshLocked() {
     ensureOutOfReset();
     updateQsfpData(true);
     updateCmisStateChanged(moduleStatus);
-  }
-
-  if (newTransceiverDetected) {
-    // Data has been read for the new optics
-    getTransceiverManager()->updateStateBlocking(
-        getID(), TransceiverStateMachineEvent::READ_EEPROM);
-    // Issue an allPages=false update to pick up the new qsfp data after we
-    // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
-    // capabilities and we can use this to make sure the current QsfpData has
-    // updated pages without waiting for the next refresh
-    updateQsfpData(false);
+    if (present_) {
+      // Data has been read for the new optics
+      getTransceiverManager()->updateStateBlocking(
+          getID(), TransceiverStateMachineEvent::READ_EEPROM);
+      // Issue an allPages=false update to pick up the new qsfp data after we
+      // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
+      // capabilities and we can use this to make sure the current QsfpData has
+      // updated pages without waiting for the next refresh
+      // TODO: updateQsfpData here could be unnecessary if the read_eeprom event
+      // above is a no-op. Need to figure out a way to avoid this call in that
+      // case
+      updateQsfpData(false);
+    }
   }
 
   // If it's just regular refresh
@@ -430,7 +438,7 @@ void QsfpModule::refreshLocked() {
   // refresh() to get the qsfpModuleMutex_ first.
   // TODO: Need to rethink whether all the following prbs stats functions should
   // get the lock of qsfpModuleMutex_ first.
-  if (present_) {
+  if (detectionStatus.present) {
     updatePrbsStats();
   }
 }
@@ -784,6 +792,12 @@ void QsfpModule::programTransceiver(
   auto programTcvrFunc = [this, speed, needResetDataPath]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
+      if (!cacheIsValid()) {
+        throw FbossError(
+            "Transceiver: ",
+            getNameString(),
+            " - Cache is not valid, so cannot program the transceiver");
+      }
       // Make sure customize xcvr first so that we can set the application code
       // correctly and then call configureModule() later to program serdes like
       // Rx equalizer setting based on QSFP config
@@ -859,6 +873,10 @@ bool QsfpModule::tryRemediateLocked() {
   // remediation actually happens
   if (shouldRemediateLocked() && remediateFlakyTransceiver()) {
     ++numRemediation_;
+    // Remediation touches the hardware, hard resetting the optics in Cmis case,
+    // so set dirty so that we always do a refresh in the next cycle and update
+    // the cache with the recent data
+    dirty_ = true;
     return true;
   }
   return false;
