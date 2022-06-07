@@ -23,10 +23,19 @@ extern "C" {
 namespace facebook::fboss {
 
 struct FakeNeighbor {
-  explicit FakeNeighbor(const folly::MacAddress& dstMac, sai_uint32_t metadata)
-      : dstMac(dstMac), metadata(metadata) {}
+  FakeNeighbor(
+      const folly::MacAddress& dstMac,
+      sai_uint32_t metadata,
+      sai_uint32_t encapIndex,
+      bool isLocal)
+      : dstMac(dstMac),
+        metadata(metadata),
+        encapIndex(encapIndex),
+        isLocal(isLocal) {}
   folly::MacAddress dstMac;
   sai_uint32_t metadata{0};
+  sai_uint32_t encapIndex{0};
+  bool isLocal{true};
 };
 
 using FakeNeighborEntry =

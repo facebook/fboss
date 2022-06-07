@@ -25,7 +25,8 @@ sai_status_t create_neighbor_entry_fn(
   auto fs = FakeSai::getInstance();
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
   std::optional<folly::MacAddress> dstMac;
-  sai_uint32_t metadata{0};
+  sai_uint32_t metadata{0}, encapIndex{0};
+  bool isLocal{true};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
@@ -33,6 +34,12 @@ sai_status_t create_neighbor_entry_fn(
         break;
       case SAI_NEIGHBOR_ENTRY_ATTR_META_DATA:
         metadata = attr_list[i].value.u32;
+        break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_ENCAP_INDEX:
+        encapIndex = attr_list[i].value.u32;
+        break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
+        isLocal = attr_list[i].value.booldata;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -44,7 +51,9 @@ sai_status_t create_neighbor_entry_fn(
   fs->neighborManager.create(
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip),
       dstMac.value(),
-      metadata);
+      metadata,
+      encapIndex,
+      isLocal);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -72,6 +81,12 @@ sai_status_t set_neighbor_entry_attribute_fn(
     case SAI_NEIGHBOR_ENTRY_ATTR_META_DATA:
       fn.metadata = attr->value.s32;
       break;
+    case SAI_NEIGHBOR_ENTRY_ATTR_ENCAP_INDEX:
+      fn.encapIndex = attr->value.u32;
+      break;
+    case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
+      fn.isLocal = attr->value.booldata;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -94,6 +109,12 @@ sai_status_t get_neighbor_entry_attribute_fn(
         break;
       case SAI_NEIGHBOR_ENTRY_ATTR_META_DATA:
         attr_list[i].value.u32 = fn.metadata;
+        break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_ENCAP_INDEX:
+        attr_list[i].value.u32 = fn.encapIndex;
+        break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
+        attr_list[i].value.booldata = fn.isLocal;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
