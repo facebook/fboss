@@ -15,6 +15,13 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config $confFile --coldboot_only # run cold boot only
 #  ./run_test.py sai --config $confFile --filter=*Route*V6* # run tests #  matching filter
 
+#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig # single test
+#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ # SAI replayer logging
+#  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig # --coldboot_only # single test, cold boot
+#  ./run_test.py sai --config $confFile --filter=HwAclQualifierTest* # some control plane tests
+#  ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest* # some dataplane tests
+#  ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs # ALL tests with SAI replayer logging
+
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
