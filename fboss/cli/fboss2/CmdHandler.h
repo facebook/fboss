@@ -12,6 +12,7 @@
 #include <CLI/CLI.hpp>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
@@ -91,14 +92,30 @@ class CmdHandler {
 
   void run();
 
- private:
+ protected:
   CmdTypeT& impl() {
     return static_cast<CmdTypeT&>(*this);
   }
   const CmdTypeT& impl() const {
     return static_cast<const CmdTypeT&>(*this);
   }
+  std::vector<std::string> getHosts() {
+    if (!CmdGlobalOptions::getInstance()->getHosts().empty()) {
+      return CmdGlobalOptions::getInstance()->getHosts();
+    }
+    if (!CmdGlobalOptions::getInstance()->getSmc().empty()) {
+      return utils::getHostsInSmcTier(
+          CmdGlobalOptions::getInstance()->getSmc());
+    }
+    if (!CmdGlobalOptions::getInstance()->getFile().empty()) {
+      return utils::getHostsFromFile(
+          CmdGlobalOptions::getInstance()->getFile());
+    }
+    // if host is not specified, default to localhost
+    return {"localhost"};
+  }
 
+ private:
   RetType queryClientHelper(const HostInfo& hostInfo) {
     using ArgTypes = resolve_arg_types<CmdTypeT>;
     auto tupleArgs = CmdArgsLists::getInstance()

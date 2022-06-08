@@ -10,7 +10,6 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -184,16 +183,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     exit(1);
   }
 
-  std::vector<std::string> hosts;
-  if (!CmdGlobalOptions::getInstance()->getHosts().empty()) {
-    hosts = CmdGlobalOptions::getInstance()->getHosts();
-  } else if (!CmdGlobalOptions::getInstance()->getSmc().empty()) {
-    hosts = utils::getHostsInSmcTier(CmdGlobalOptions::getInstance()->getSmc());
-  } else if (!CmdGlobalOptions::getInstance()->getFile().empty()) {
-    hosts = utils::getHostsFromFile(CmdGlobalOptions::getInstance()->getFile());
-  } else { // if host is not specified, default to localhost
-    hosts = {"localhost"};
-  }
+  auto hosts = getHosts();
 
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
