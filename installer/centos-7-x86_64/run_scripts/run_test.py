@@ -60,6 +60,8 @@ class TestRunner(abc.ABC):
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
         run_cmd = [
             self._get_test_binary_name(),
+            "--mgmt-if",
+            "eno3",
             "--config",
             conf_file,
             "--gtest_filter=" + test_to_run,
@@ -243,7 +245,7 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return "sai_test"
+        return "sai_test-sai_impl-1.10.2"
 
     def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
         return [
