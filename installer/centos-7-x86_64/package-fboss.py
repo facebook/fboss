@@ -52,13 +52,7 @@ class PackageFboss:
         "fboss": (BIN, []),
         "gflags": (LIB, ["libgflags.so.2.2"]),
         "glog": (LIB64, ["libglog.so.0"]),
-        "zstd": (LIB64, ["libzstd.so.1"]),
-        "libusb": (LIB, ["libusb-1.0.so.0"]),
-        "libnl": (LIB, ["libnl-3.so.200"]),
-        "libcurl": (LIB, ["libcurl.so.4"]),
         "libsodium": (LIB, ["libsodium.so.23"]),
-        "libmnl": (LIB, ["libmnl.so.0"]),
-        "nghttp2": (LIB, ["libnghttp2.so.14"]),
     }
 
     def __init__(self):
