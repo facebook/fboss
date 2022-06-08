@@ -8,16 +8,13 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
-#include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 
 namespace facebook::fboss {
 
-void SaiBcmYampPlatformPort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {
-  // TODO(skhare)
-}
+void SaiBcmYampPlatformPort::linkStatusChanged(
+    bool /* up */,
+    bool /* adminUp */) {}
 
-void SaiBcmYampPlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO(skhare)
-}
+void SaiBcmYampPlatformPort::externalState(PortLedExternalState /* state */) {}
 
 } // namespace facebook::fboss

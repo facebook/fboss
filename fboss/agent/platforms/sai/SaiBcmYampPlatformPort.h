@@ -13,12 +13,16 @@
 
 namespace facebook::fboss {
 
-class SaiBcmYampPlatformPort : public SaiBcmPlatformPort {
+class SaiBcmYampPlatformPort : public SaiBcmPlatformPort, MultiPimPlatformPort {
  public:
   explicit SaiBcmYampPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiBcmPlatformPort(id, platform) {}
+      : SaiBcmPlatformPort(id, platform),
+        MultiPimPlatformPort(id, getPlatformPortEntry()) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+
+ private:
+  uint32_t internalLedState_{0};
 };
 
 } // namespace facebook::fboss
