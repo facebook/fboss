@@ -17,6 +17,8 @@ OPT_ARG_SCRATCH_PATH = "--scratch-path"
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rpm", help="Builds RPM", action="store_true")
+
+    parser.add_argument("--ko-path", type=str, help="Path to build kernel modules")
     parser.add_argument(
         OPT_ARG_SCRATCH_PATH,
         type=str,
@@ -58,6 +60,7 @@ class PackageFboss:
     def __init__(self):
 
         self.scratch_path = args.scratch_path
+        self.ko_path = args.ko_path
         self.tmp_dir_name = tempfile.mkdtemp(
             prefix=PackageFboss.FBOSS_BINS, dir=args.scratch_path
         )
@@ -128,14 +131,17 @@ class PackageFboss:
         )
 
     def _copy_kos(self, tmp_dir_name):
-        # If kernel modules are built (e.g. by build-bcm-ko.sh), copy those
-        opennsa_base_dir = self._get_install_dir_for("OpenNSA")
-        opennsa_ko_dir = os.path.join(
-            opennsa_base_dir, "src/gpl-modules/build/linux-x86-smp_generic_64-2_6"
-        )
-        if os.path.exists(opennsa_ko_dir):
-            linux_user_bde_path = os.path.join(opennsa_ko_dir, "linux-user-bde.ko")
-            linux_kernel_bde_path = os.path.join(opennsa_ko_dir, "linux-kernel-bde.ko")
+        if self.ko_path:
+            ko_path = self.ko_path
+        else:
+            # If kernel modules are built (e.g. by build-bcm-ko.sh), copy those
+            opennsa_base_dir = self._get_install_dir_for("OpenNSA")
+            ko_path = os.path.join(
+                opennsa_base_dir, "src/gpl-modules/build/linux-x86-smp_generic_64-2_6"
+            )
+        if os.path.exists(ko_path):
+            linux_user_bde_path = os.path.join(ko_path, "linux-user-bde.ko")
+            linux_kernel_bde_path = os.path.join(ko_path, "linux-kernel-bde.ko")
             ko_pkg_path = os.path.join(tmp_dir_name, PackageFboss.MODULES)
             print(f"Copying {linux_user_bde_path} to {ko_pkg_path}")
             shutil.copy(linux_user_bde_path, ko_pkg_path)
