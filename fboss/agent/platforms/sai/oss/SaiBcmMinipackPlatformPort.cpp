@@ -8,18 +8,14 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
-#include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 
 namespace facebook::fboss {
 
 void SaiBcmMinipackPlatformPort::linkStatusChanged(
-    bool /*up*/,
-    bool /*adminUp*/) {
-  // TODO(skhare)
-}
+    bool /* up */,
+    bool /* adminUp */) {}
 
-void SaiBcmMinipackPlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO(skhare)
-}
+void SaiBcmMinipackPlatformPort::externalState(
+    PortLedExternalState /* state */) {}
 
 } // namespace facebook::fboss
