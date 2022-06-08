@@ -102,6 +102,12 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
     ${CMAKE_THREAD_LIBS_INIT}
   )
 
+  if (SAI_BRCM_IMPL)
+    target_link_libraries(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+      ${YAML}
+    )
+  endif()
+
   set_target_properties(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \

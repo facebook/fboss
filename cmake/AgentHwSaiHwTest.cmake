@@ -171,6 +171,12 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${LIBGMOCK_LIBRARIES}
   )
 
+  if (SAI_BRCM_IMPL)
+    target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+      ${YAML}
+    )
+  endif()
+
   set_target_properties(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
