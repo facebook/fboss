@@ -95,6 +95,10 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  int getFsdbThriftPort() const {
+    return fsdbThriftPort_;
+  }
+
   int getOpenrThriftPort() const {
     return openrThriftPort_;
   }
@@ -131,6 +135,10 @@ class CmdGlobalOptions {
   }
 
   // Setters for testing purposes
+  void setSslPolicy(SSLPolicy& sslPolicy) {
+    sslPolicy_ = sslPolicy;
+  }
+
   void setAgentThriftPort(int port) {
     agentThriftPort_ = port;
   }
@@ -151,6 +159,10 @@ class CmdGlobalOptions {
     vipInjectorThriftPort_ = port;
   }
 
+  void setFsdbThriftPort(int port) {
+    fsdbThriftPort_ = port;
+  }
+
   std::map<std::string, std::string> getFilters() const;
 
  private:
@@ -163,6 +175,7 @@ class CmdGlobalOptions {
   SSLPolicy sslPolicy_{"plaintext"};
   OutputFormat fmt_;
   std::string logUsage_{"scuba"};
+  int fsdbThriftPort_{5908};
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
