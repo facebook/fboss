@@ -657,8 +657,6 @@ if (NOT SAI_ONLY)
       fboss/agent/IPHeaderV4.cpp
       fboss/agent/IPv4Handler.cpp
       fboss/agent/IPv6Handler.cpp
-      fboss/agent/lldp/LinkNeighbor.cpp
-      fboss/agent/lldp/LinkNeighborDB.cpp
       fboss/agent/LacpController.cpp
       fboss/agent/LacpMachines.cpp
       fboss/agent/LacpTypes.cpp

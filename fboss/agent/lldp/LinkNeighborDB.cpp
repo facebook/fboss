@@ -2,7 +2,6 @@
 #include "fboss/agent/lldp/LinkNeighborDB.h"
 
 using std::lock_guard;
-using std::mutex;
 using std::vector;
 using std::chrono::steady_clock;
 
@@ -15,65 +14,38 @@ LinkNeighborDB::NeighborKey::NeighborKey(const LinkNeighbor& neighbor)
       portId_(neighbor.getPortId()) {}
 
 bool LinkNeighborDB::NeighborKey::operator<(const NeighborKey& other) const {
-  if (chassisIdType_ < other.chassisIdType_) {
-    return true;
-  } else if (chassisIdType_ > other.chassisIdType_) {
-    return false;
-  }
-
-  if (portIdType_ < other.portIdType_) {
-    return true;
-  } else if (portIdType_ > other.portIdType_) {
-    return false;
-  }
-
-  if (chassisId_ < other.chassisId_) {
-    return true;
-  } else if (chassisId_ > other.chassisId_) {
-    return false;
-  }
-
-  if (portId_ < other.portId_) {
-    return true;
-  } else if (portId_ > other.portId_) {
-    return false;
-  }
-
-  return false;
+  return std::tie(chassisIdType_, portIdType_, chassisId_, portId_) <
+      std::tie(
+             other.chassisIdType_,
+             other.portIdType_,
+             other.chassisId_,
+             other.portId_);
 }
 
 bool LinkNeighborDB::NeighborKey::operator==(const NeighborKey& other) const {
-  return (
-      chassisIdType_ == other.chassisIdType_ &&
-      portIdType_ == other.portIdType_ && chassisId_ == other.chassisId_ &&
-      portId_ == other.portId_);
+  return std::tie(chassisIdType_, portIdType_, chassisId_, portId_) ==
+      std::tie(
+             other.chassisIdType_,
+             other.portIdType_,
+             other.chassisId_,
+             other.portId_);
 }
 
 LinkNeighborDB::LinkNeighborDB() {}
 
 void LinkNeighborDB::update(const LinkNeighbor& neighbor) {
-  lock_guard<mutex> guard(mutex_);
-
+  auto neighborsLocked = byLocalPort_.wlock();
   // Go ahead and prune expired neighbors each time we get updated.
-  pruneLocked(steady_clock::now());
-
-  auto it = byLocalPort_.find(neighbor.getLocalPort());
-  if (it == byLocalPort_.end()) {
-    // This is the first time we have seen data for this port.
-    auto ret = byLocalPort_.emplace(neighbor.getLocalPort(), NeighborMap());
-    it = ret.first;
-  }
-
-  NeighborKey key(neighbor);
-  // It would be nicer to use insert_or_assign() once we move to C++17
-  it->second[key] = neighbor;
+  pruneLocked(*neighborsLocked, steady_clock::now());
+  auto neighborMap =
+      neighborsLocked->try_emplace(neighbor.getLocalPort(), NeighborMap());
+  neighborMap.first->second[NeighborKey(neighbor)] = neighbor;
 }
 
 vector<LinkNeighbor> LinkNeighborDB::getNeighbors() {
   vector<LinkNeighbor> results;
-  lock_guard<mutex> guard(mutex_);
-
-  for (const auto& portEntry : byLocalPort_) {
+  auto neighborsLocked = byLocalPort_.rlock();
+  for (const auto& portEntry : *neighborsLocked) {
     for (const auto& entry : portEntry.second) {
       results.push_back(entry.second);
     }
@@ -84,10 +56,8 @@ vector<LinkNeighbor> LinkNeighborDB::getNeighbors() {
 
 vector<LinkNeighbor> LinkNeighborDB::getNeighbors(PortID port) {
   vector<LinkNeighbor> results;
-  lock_guard<mutex> guard(mutex_);
-
-  auto it = byLocalPort_.find(port);
-  if (it != byLocalPort_.end()) {
+  auto neighborsLocked = byLocalPort_.rlock();
+  if (auto it = neighborsLocked->find(port); it != neighborsLocked->end()) {
     for (const auto& entry : it->second) {
       results.push_back(entry.second);
     }
@@ -97,22 +67,24 @@ vector<LinkNeighbor> LinkNeighborDB::getNeighbors(PortID port) {
 }
 
 int LinkNeighborDB::pruneExpiredNeighbors() {
-  lock_guard<mutex> guard(mutex_);
-  return pruneLocked(steady_clock::now());
+  return pruneExpiredNeighbors(steady_clock::now());
 }
 
 int LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
-  lock_guard<mutex> guard(mutex_);
-  return pruneLocked(now);
+  return byLocalPort_.withWLock(
+      [this, now](auto& neighborMap) { return pruneLocked(neighborMap, now); });
 }
 
 void LinkNeighborDB::portDown(PortID port) {
-  lock_guard<mutex> guard(mutex_);
-  // Port went down, prune lldp entries for that port
-  byLocalPort_.erase(port);
+  byLocalPort_.withWLock([port](auto& neighborMap) {
+    // Port went down, prune lldp entries for that port
+    neighborMap.erase(port);
+  });
 }
 
-int LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
+int LinkNeighborDB::pruneLocked(
+    NeighborsByPort& neighborsByPort,
+    std::chrono::steady_clock::time_point now) {
   // We just do a linear scan for now.
   //
   // We could maintain a priority queue of entries by expiration time,
@@ -121,7 +93,7 @@ int LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   // implementing right now.
 
   int count = 0;
-  for (auto& portEntry : byLocalPort_) {
+  for (auto& portEntry : neighborsByPort) {
     // Advance the iterator manually to avoid make sure we don't
     // have invalid iterators to erased elements.
     auto& map = portEntry.second;
@@ -139,5 +111,4 @@ int LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
 
   return count;
 }
-
 } // namespace facebook::fboss

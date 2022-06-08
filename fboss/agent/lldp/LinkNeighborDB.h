@@ -3,6 +3,7 @@
 
 #include "fboss/agent/lldp/LinkNeighbor.h"
 #include "fboss/agent/types.h"
+#include "folly/Synchronized.h"
 
 #include <chrono>
 #include <map>
@@ -63,17 +64,19 @@ class LinkNeighborDB {
     std::string chassisId_;
     std::string portId_;
   };
-  typedef std::map<NeighborKey, LinkNeighbor> NeighborMap;
+  using NeighborMap = std::map<NeighborKey, LinkNeighbor>;
+  using NeighborsByPort = std::map<PortID, NeighborMap>;
+
+  // Returns number of entries left after pruning
+  int pruneLocked(
+      NeighborsByPort& neighborsByPort,
+      std::chrono::steady_clock::time_point now);
 
   // Forbidden copy constructor and assignment operator
   LinkNeighborDB(LinkNeighborDB const&) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
 
-  // Returns number of entries left after pruning
-  int pruneLocked(std::chrono::steady_clock::time_point now);
-
-  std::mutex mutex_;
-  std::map<PortID, NeighborMap> byLocalPort_;
+  folly::Synchronized<NeighborsByPort> byLocalPort_;
 };
 
 } // namespace facebook::fboss
