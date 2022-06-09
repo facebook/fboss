@@ -1643,6 +1643,11 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
     transceiverManager_->refreshStateMachines();
     const auto& xcvrInfo = transceiverManager_->getTransceiverInfo(id_);
     EXPECT_EQ(*xcvrInfo.present(), !isRemoval);
+    // verify that getTransceiverInfo properly returns a timestamp when
+    // the transceiver isn't present
+    if (isRemoval) {
+      EXPECT_GT(*xcvrInfo.timeCollected(), 0);
+    }
 
     // Both cases will kick off a PROGRAM_IPHY event
     EXPECT_EQ(
