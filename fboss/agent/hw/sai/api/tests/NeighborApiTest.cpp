@@ -31,8 +31,10 @@ class NeighborApiTest : public ::testing::Test {
     neighborApi = std::make_unique<NeighborApi>();
   }
   SaiNeighborTraits::CreateAttributes createAttrs(
-      std::optional<sai_uint32_t> metadata = std::nullopt) const {
-    return {dstMac, metadata, std::nullopt, std::nullopt};
+      std::optional<sai_uint32_t> metadata = std::nullopt,
+      std::optional<sai_uint32_t> encapIndex = std::nullopt) const {
+    bool isLocal = encapIndex == std::nullopt;
+    return {dstMac, metadata, encapIndex, isLocal};
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<NeighborApi> neighborApi;
@@ -46,6 +48,21 @@ TEST_F(NeighborApiTest, createV4Neighbor) {
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_TRUE(fs->neighborManager.get(fn).isLocal);
+}
+
+TEST_F(NeighborApiTest, createV4NeighborRemote) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(std::nullopt, 42));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_FALSE(fs->neighborManager.get(fn).isLocal);
+  EXPECT_EQ(fs->neighborManager.get(fn).encapIndex, 42);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      42);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
 }
 
 TEST_F(NeighborApiTest, createV4NeighborWithMetadata) {
@@ -54,6 +71,22 @@ TEST_F(NeighborApiTest, createV4NeighborWithMetadata) {
   neighborApi->create<SaiNeighborTraits>(n, createAttrs(42));
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
   EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
+  EXPECT_TRUE(fs->neighborManager.get(fn).isLocal);
+}
+
+TEST_F(NeighborApiTest, createV4NeighborWithMetadataRemote) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(42, 24));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
+  EXPECT_FALSE(fs->neighborManager.get(fn).isLocal);
+  EXPECT_EQ(fs->neighborManager.get(fn).encapIndex, 24);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      24);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
 }
 
 TEST_F(NeighborApiTest, createV6Neighbor) {
@@ -61,6 +94,21 @@ TEST_F(NeighborApiTest, createV6Neighbor) {
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_TRUE(fs->neighborManager.get(fn).isLocal);
+}
+
+TEST_F(NeighborApiTest, createV6NeighborRemote) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(std::nullopt, 42));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_FALSE(fs->neighborManager.get(fn).isLocal);
+  EXPECT_EQ(fs->neighborManager.get(fn).encapIndex, 42);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      42);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
 }
 
 TEST_F(NeighborApiTest, createV6NeighborWithMetdata) {
@@ -70,8 +118,24 @@ TEST_F(NeighborApiTest, createV6NeighborWithMetdata) {
   neighborApi->create<SaiNeighborTraits>(n, createAttrs(42));
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
   EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
+  EXPECT_TRUE(fs->neighborManager.get(fn).isLocal);
 }
 
+TEST_F(NeighborApiTest, createV6NeighborWithMetdataRemote) {
+  SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(42, 24));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
+  EXPECT_FALSE(fs->neighborManager.get(fn).isLocal);
+  EXPECT_EQ(fs->neighborManager.get(fn).encapIndex, 24);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      24);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
+}
 TEST_F(NeighborApiTest, removeV4Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
@@ -120,6 +184,30 @@ TEST_F(NeighborApiTest, setV4Metadata) {
       42);
 }
 
+TEST_F(NeighborApiTest, setV4EncapIndex) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      0);
+  SaiNeighborTraits::Attributes::EncapIndex encap(42);
+  neighborApi->setAttribute(n, encap);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      42);
+}
+
+TEST_F(NeighborApiTest, setV4IsLocal) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_TRUE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
+  SaiNeighborTraits::Attributes::IsLocal local(false);
+  neighborApi->setAttribute(n, local);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
+}
+
 TEST_F(NeighborApiTest, setV6DstMac) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
@@ -142,6 +230,29 @@ TEST_F(NeighborApiTest, setV6DstMetadata) {
   EXPECT_EQ(
       neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::Metadata()),
       42);
+}
+TEST_F(NeighborApiTest, setV6EncapIndex) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      0);
+  SaiNeighborTraits::Attributes::EncapIndex encap(62);
+  neighborApi->setAttribute(n, encap);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::EncapIndex()),
+      62);
+}
+
+TEST_F(NeighborApiTest, setV6IsLocal) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_TRUE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
+  SaiNeighborTraits::Attributes::IsLocal local(false);
+  neighborApi->setAttribute(n, local);
+  EXPECT_FALSE(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
 }
 
 TEST_F(NeighborApiTest, v4NeighborSerDeser) {
