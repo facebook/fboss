@@ -23,6 +23,8 @@ constexpr auto kNeighborPort = "portId";
 constexpr auto kInterface = "interfaceId";
 constexpr auto kNeighborEntryState = "state";
 constexpr auto kClassID = "classID";
+constexpr auto kEncapIndex = "encapIndex";
+constexpr auto kIsLocal = "isLocal";
 } // namespace
 
 namespace facebook::fboss {
@@ -39,6 +41,10 @@ folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamicLegacy() const {
     entry[kClassID] = static_cast<int>(classID.value());
   }
 
+  if (encapIndex.has_value()) {
+    entry[kEncapIndex] = static_cast<int>(encapIndex.value());
+  }
+  entry[kIsLocal] = isLocal;
   return entry;
 }
 
@@ -50,6 +56,17 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(
   auto port = PortDescriptor::fromFollyDynamic(entryJson[kNeighborPort]);
   InterfaceID intf(entryJson[kInterface].asInt());
   auto state = NeighborState(entryJson[kNeighborEntryState].asInt());
+  std::optional<int64_t> encapIndex;
+  bool isLocal{true};
+  if (entryJson.find(kEncapIndex) != entryJson.items().end()) {
+    encapIndex = entryJson[kEncapIndex].asInt();
+  }
+  if (entryJson.find(kEncapIndex) != entryJson.items().end()) {
+    encapIndex = entryJson[kEncapIndex].asInt();
+  }
+  if (entryJson.find(kIsLocal) != entryJson.items().end()) {
+    isLocal = entryJson[kIsLocal].asBool();
+  }
 
   // Recent bug fixes in vendor SDK implementation means that assigning classID
   // to a link local neighbor is not supported. However, prior to D30800608,
@@ -62,9 +79,11 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(
   if (entryJson.find(kClassID) != entryJson.items().end() &&
       !ip.isLinkLocal()) {
     auto classID = cfg::AclLookupClass(entryJson[kClassID].asInt());
-    return NeighborEntryFields(ip, mac, port, intf, state, classID);
+    return NeighborEntryFields(
+        ip, mac, port, intf, state, classID, encapIndex, isLocal);
   } else {
-    return NeighborEntryFields(ip, mac, port, intf, state);
+    return NeighborEntryFields(
+        ip, mac, port, intf, state, std::nullopt, encapIndex, isLocal);
   }
 }
 
@@ -94,9 +113,14 @@ std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {
   auto neighborStateStr =
       isReachable() ? "Reachable" : (isPending() ? "Pending" : "Unverified");
 
+  auto encapStr = getEncapIndex().has_value()
+      ? folly::to<std::string>(getEncapIndex().value())
+      : "None";
   os << "NeighborEntry:: MAC: " << getMac().toString()
      << " IP: " << getIP().str() << " classID: " << classIDStr << " "
-     << getPort().str() << " NeighborState: " << neighborStateStr;
+     << " Encap index: " << encapStr
+     << " isLocal: " << (getIsLocal() ? "Y" : "N")
+     << " Port: " << getPort().str() << " NeighborState: " << neighborStateStr;
 
   return os.str();
 }

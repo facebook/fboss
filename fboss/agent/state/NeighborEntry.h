@@ -80,6 +80,7 @@ struct NeighborEntryFields : public ThriftyFields {
     if (encapIndex.has_value()) {
       entryTh.encapIndex() = encapIndex.value();
     }
+    entryTh.isLocal() = isLocal;
     return entryTh;
   }
 
@@ -157,7 +158,9 @@ class NeighborEntry : public ThriftyBaseT<
   bool operator==(const NeighborEntry& other) const {
     return getIP() == other.getIP() && getMac() == other.getMac() &&
         getPort() == other.getPort() && getIntfID() == other.getIntfID() &&
-        getState() == other.getState() && getClassID() == other.getClassID();
+        getState() == other.getState() && getClassID() == other.getClassID() &&
+        getEncapIndex() == other.getEncapIndex() &&
+        getIsLocal() == other.getIsLocal();
   }
   bool operator!=(const NeighborEntry& other) const {
     return !operator==(other);
@@ -223,6 +226,19 @@ class NeighborEntry : public ThriftyBaseT<
     this->writableFields()->classID = classID;
   }
 
+  std::optional<int64_t> getEncapIndex() const {
+    return this->getFields()->encapIndex;
+  }
+  void setEncapIndex(std::optional<int64_t> encapIndex) {
+    this->writableFields()->encapIndex = encapIndex;
+  }
+
+  bool getIsLocal() const {
+    return this->getFields()->isLocal;
+  }
+  void setIsLocal(bool isLocal) {
+    this->writableFields()->isLocal = isLocal;
+  }
   std::string str() const;
 
  private:
