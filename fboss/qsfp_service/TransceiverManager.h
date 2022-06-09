@@ -144,7 +144,7 @@ class TransceiverManager {
    * TransceiverManager family won't call this function directly. Instead they
    * should use init() directly
    */
-  virtual bool initExternalPhyMap() = 0;
+  virtual bool initExternalPhyMap(bool forceWarmboot = false) = 0;
 
   PhyManager* getPhyManager() {
     return phyManager_.get();
