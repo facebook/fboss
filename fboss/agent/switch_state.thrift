@@ -175,6 +175,8 @@ struct NeighborEntryFields {
   4: i32 interfaceId;
   5: NeighborState state;
   6: optional switch_config.AclLookupClass classID;
+  7: optional i64 encapIndex;
+  8: bool isLocal = true;
 }
 
 enum MacEntryType {
