@@ -199,7 +199,7 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
       fdbEntry->adapterHostKey().switchId(), getRouterInterfaceSaiId(), ip);
 
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
-      fdbEntry->adapterHostKey().mac(), metadata_};
+      fdbEntry->adapterHostKey().mac(), metadata_, std::nullopt, std::nullopt};
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();

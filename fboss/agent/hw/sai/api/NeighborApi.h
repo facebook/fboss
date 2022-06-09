@@ -100,14 +100,19 @@ struct SaiNeighborTraits {
    private:
     sai_neighbor_entry_t neighbor_entry{};
   };
-  using CreateAttributes =
-      std::tuple<Attributes::DstMac, std::optional<Attributes::Metadata>>;
+  using CreateAttributes = std::tuple<
+      Attributes::DstMac,
+      std::optional<Attributes::Metadata>,
+      std::optional<Attributes::EncapIndex>,
+      std::optional<Attributes::IsLocal>>;
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
 };
 
 SAI_ATTRIBUTE_NAME(Neighbor, DstMac)
 SAI_ATTRIBUTE_NAME(Neighbor, Metadata)
+SAI_ATTRIBUTE_NAME(Neighbor, EncapIndex)
+SAI_ATTRIBUTE_NAME(Neighbor, IsLocal)
 
 template <>
 struct IsSaiEntryStruct<SaiNeighborTraits::NeighborEntry>

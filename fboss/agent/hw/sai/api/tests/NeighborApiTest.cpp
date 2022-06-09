@@ -32,7 +32,7 @@ class NeighborApiTest : public ::testing::Test {
   }
   SaiNeighborTraits::CreateAttributes createAttrs(
       std::optional<sai_uint32_t> metadata = std::nullopt) const {
-    return {dstMac, metadata};
+    return {dstMac, metadata, std::nullopt, std::nullopt};
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<NeighborApi> neighborApi;
