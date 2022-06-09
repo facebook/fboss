@@ -97112,9 +97112,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97126,9 +97126,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97140,9 +97140,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97154,9 +97154,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97168,9 +97168,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97182,9 +97182,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97196,9 +97196,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97210,9 +97210,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 132,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97226,9 +97226,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97240,9 +97240,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97254,9 +97254,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97268,9 +97268,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97282,9 +97282,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97296,9 +97296,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97310,9 +97310,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97324,9 +97324,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -12,
+              "pre": -16,
               "pre2": 0,
-              "main": 140,
+              "main": 152,
               "post": 0,
               "post2": 0,
               "post3": 0
@@ -97596,8 +97596,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 2,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 47,
-          "interfaceType": 47
+          "interfaceMode": 10,
+          "interfaceType": 10
         },
         "xphySystem": {
           "numLanes": 8,
