@@ -41,7 +41,11 @@ TEST(ArpEntry, serialize) {
       IPAddressV4("192.168.0.1"),
       MacAddress("01:01:01:01:01:01"),
       PortDescriptor(PortID(1)),
-      InterfaceID(10));
+      InterfaceID(10),
+      NeighborState::REACHABLE,
+      std::nullopt,
+      42,
+      false);
   validateThriftyMigration(*entry);
   serializeTest(*entry);
 }
@@ -51,7 +55,11 @@ TEST(NdpEntry, serialize) {
       IPAddressV6("2401:db00:21:70cb:face:0:96:0"),
       MacAddress("01:01:01:01:01:01"),
       PortDescriptor(PortID(10)),
-      InterfaceID(10));
+      InterfaceID(10),
+      NeighborState::REACHABLE,
+      std::nullopt,
+      42,
+      false);
   validateThriftyMigration(*entry);
   serializeTest(*entry);
 }

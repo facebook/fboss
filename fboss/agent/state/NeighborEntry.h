@@ -33,24 +33,33 @@ struct NeighborEntryFields : public ThriftyFields {
       PortDescriptor port,
       InterfaceID interfaceID,
       NeighborState state = NeighborState::REACHABLE,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt)
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true)
       : ip(ip),
         mac(mac),
         port(port),
         interfaceID(interfaceID),
         state(state),
-        classID(classID) {}
+        classID(classID),
+        encapIndex(encapIndex),
+        isLocal(isLocal) {}
 
   NeighborEntryFields(
       AddressType ip,
       InterfaceID interfaceID,
-      NeighborState pending)
+      NeighborState pending,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true)
       : NeighborEntryFields(
             ip,
             MacAddress::BROADCAST,
             PortDescriptor(PortID(0)),
             interfaceID,
-            pending) {
+            pending,
+            std::nullopt,
+            encapIndex,
+            isLocal) {
     // This constructor should only be used for PENDING entries
     CHECK(pending == NeighborState::PENDING);
   }
@@ -68,6 +77,9 @@ struct NeighborEntryFields : public ThriftyFields {
     if (classID.has_value()) {
       entryTh.classID() = classID.value();
     }
+    if (encapIndex.has_value()) {
+      entryTh.encapIndex() = encapIndex.value();
+    }
     return entryTh;
   }
 
@@ -78,12 +90,18 @@ struct NeighborEntryFields : public ThriftyFields {
     auto port = PortDescriptor::fromThrift(entryTh.get_portId());
     InterfaceID intf(entryTh.get_interfaceId());
     auto state = NeighborState(static_cast<int>(entryTh.get_state()));
+    std::optional<int64_t> encapIndex;
+    if (entryTh.encapIndex().has_value()) {
+      encapIndex = *entryTh.encapIndex();
+    }
+    bool isLocal = *entryTh.isLocal();
 
     if (entryTh.classID().has_value() && !ip.isLinkLocal()) {
       return NeighborEntryFields(
-          ip, mac, port, intf, state, *entryTh.classID());
+          ip, mac, port, intf, state, *entryTh.classID(), encapIndex, isLocal);
     } else {
-      return NeighborEntryFields(ip, mac, port, intf, state);
+      return NeighborEntryFields(
+          ip, mac, port, intf, state, std::nullopt, encapIndex, isLocal);
     }
   }
 
@@ -104,6 +122,8 @@ struct NeighborEntryFields : public ThriftyFields {
   InterfaceID interfaceID;
   NeighborState state;
   std::optional<cfg::AclLookupClass> classID{std::nullopt};
+  std::optional<int64_t> encapIndex{std::nullopt};
+  bool isLocal{true};
 };
 
 template <typename IPADDR, typename SUBCLASS>
