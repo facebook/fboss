@@ -12,3 +12,10 @@ target_link_libraries(lldp
   fboss_types
   Folly::folly
 )
+
+add_fbthrift_cpp_library(
+  lldp_structs_cpp2
+  fboss/agent/lldp/lldp.thrift
+  OPTIONS
+    json
+)
