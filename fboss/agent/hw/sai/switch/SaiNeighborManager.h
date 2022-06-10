@@ -53,7 +53,9 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
       std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
       std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
           intfIDAndIpAndMac,
-      std::optional<sai_uint32_t> metadata)
+      std::optional<sai_uint32_t> metadata,
+      std::optional<sai_uint32_t> encapIndex,
+      bool isLocal)
       : Base(std::make_tuple(
             std::get<InterfaceID>(intfIDAndIpAndMac),
             std::get<folly::MacAddress>(intfIDAndIpAndMac))),
@@ -61,7 +63,9 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
         saiPortAndIntf_(saiPortAndIntf),
         intfIDAndIpAndMac_(intfIDAndIpAndMac),
         handle_(std::make_unique<SaiNeighborHandle>()),
-        metadata_(metadata) {}
+        metadata_(metadata),
+        encapIndex_(encapIndex),
+        isLocal_(isLocal) {}
 
   void createObject(PublisherObjects objects);
   void removeObject(size_t index, PublisherObjects objects);
@@ -90,6 +94,8 @@ class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
       intfIDAndIpAndMac_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   std::optional<sai_uint32_t> metadata_;
+  std::optional<sai_uint32_t> encapIndex_;
+  bool isLocal_{true};
 };
 
 class SaiNeighborManager {

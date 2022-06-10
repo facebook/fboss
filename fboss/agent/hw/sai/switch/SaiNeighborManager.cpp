@@ -104,6 +104,10 @@ void SaiNeighborManager::addNeighbor(
     metadata = static_cast<sai_uint32_t>(swEntry->getClassID().value());
   }
 
+  std::optional<sai_uint32_t> encapIndex;
+  if (swEntry->getEncapIndex()) {
+    encapIndex = static_cast<sai_uint32_t>(swEntry->getEncapIndex().value());
+  }
   auto saiRouterIntf =
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
           swEntry->getIntfID());
@@ -114,7 +118,9 @@ void SaiNeighborManager::addNeighbor(
           saiPortDesc, saiRouterIntf->routerInterface->adapterKey()),
       std::make_tuple(
           swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
-      metadata);
+      metadata,
+      encapIndex,
+      swEntry->getIsLocal());
 
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);
@@ -198,8 +204,17 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       fdbEntry->adapterHostKey().switchId(), getRouterInterfaceSaiId(), ip);
 
+  std::optional<bool> isLocal;
+  if (encapIndex_) {
+    // Encap index programmed via the sw layer corresponds to a non
+    // local neighbor entry. That's when we want to set isLocal attribute.
+    // Ideally we would like to set isLocal to true (default sai spec value)
+    // always. But some sai adaptors are not happy with that on non VOQ
+    // systems
+    isLocal = isLocal_;
+  }
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
-      fdbEntry->adapterHostKey().mac(), metadata_, std::nullopt, std::nullopt};
+      fdbEntry->adapterHostKey().mac(), metadata_, encapIndex_, isLocal};
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();
@@ -227,6 +242,8 @@ void ManagedNeighbor::notifySubscribers() const {
 std::string ManagedNeighbor::toString() const {
   auto metadataStr =
       metadata_.has_value() ? std::to_string(metadata_.value()) : "none";
+  auto encapStr =
+      encapIndex_.has_value() ? std::to_string(encapIndex_.value()) : "none";
   auto neighborStr = handle_->neighbor
       ? handle_->neighbor->adapterKey().toString()
       : "NeighborEntry: none";
@@ -244,6 +261,10 @@ std::string ManagedNeighbor::toString() const {
       saiPortDesc.str(),
       " metadata: ",
       metadataStr,
+      " encapIndex: ",
+      encapStr,
+      " isLocal: ",
+      (isLocal_ ? "Y" : "N"),
       " ",
       neighborStr,
       " ",

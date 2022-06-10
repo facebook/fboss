@@ -61,9 +61,6 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(
   if (entryJson.find(kEncapIndex) != entryJson.items().end()) {
     encapIndex = entryJson[kEncapIndex].asInt();
   }
-  if (entryJson.find(kEncapIndex) != entryJson.items().end()) {
-    encapIndex = entryJson[kEncapIndex].asInt();
-  }
   if (entryJson.find(kIsLocal) != entryJson.items().end()) {
     isLocal = entryJson[kIsLocal].asBool();
   }
