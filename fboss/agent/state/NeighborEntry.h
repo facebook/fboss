@@ -156,11 +156,24 @@ class NeighborEntry : public ThriftyBaseT<
   }
 
   bool operator==(const NeighborEntry& other) const {
-    return getIP() == other.getIP() && getMac() == other.getMac() &&
-        getPort() == other.getPort() && getIntfID() == other.getIntfID() &&
-        getState() == other.getState() && getClassID() == other.getClassID() &&
-        getEncapIndex() == other.getEncapIndex() &&
-        getIsLocal() == other.getIsLocal();
+    return std::tie(
+               this->getFields()->ip,
+               this->getFields()->mac,
+               this->getFields()->port,
+               this->getFields()->interfaceID,
+               this->getFields()->state,
+               this->getFields()->classID,
+               this->getFields()->encapIndex,
+               this->getFields()->isLocal) ==
+        std::tie(
+               other.getFields()->ip,
+               other.getFields()->mac,
+               other.getFields()->port,
+               other.getFields()->interfaceID,
+               other.getFields()->state,
+               other.getFields()->classID,
+               other.getFields()->encapIndex,
+               other.getFields()->isLocal);
   }
   bool operator!=(const NeighborEntry& other) const {
     return !operator==(other);
