@@ -7,4 +7,4 @@ sudo yum install rpm-build rpmdevtools -y
 sudo yum --enablerepo=extras install epel-release -y
 sudo yum install python-pip -y
 sudo pip install gitpython
-sudo yum install devtoolset-8-libasan-devel devtoolset-8-libubsan-devel
+sudo yum install openssl-devel -y

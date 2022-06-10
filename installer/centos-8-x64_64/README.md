@@ -1,5 +1,6 @@
 This directory contains steps and scripts for how to setup environment for
-building FBOSS, build FBOSS binaries and install on a switch using Debian 10
+building FBOSS, build FBOSS binaries and install on a switch using CentOS
+Stream release 8.
 
 <a name="building">
 
@@ -16,8 +17,8 @@ dependencies.
 
 ## 1.1 Setup build VM with Internet connectivity
 
-- Download ISO: Debian 10 x86_64 from:
-  https://cdimage.debian.org/cdimage/archive/latest-oldstable/amd64/iso-cd/debian-10.12.0-amd64-netinst.iso
+- Download ISO: CentOS Stream Release 8 CentOS-Stream-8-x86_64-latest-dvd1.iso from one of the mirrors:
+  http://isoredirect.centos.org/centos/8-stream/isos/x86_64/
 - Create a Virtual Machine(VM) using this CentOS ISO Image.
 - The VM can be created using any virtualization software e.g. VMware Fusion or
   Virtual Box, Parallels etc.
@@ -42,7 +43,7 @@ Install tools needed for bulding FBOSS software.
 
 ```
 cd fboss.git
-./installer/debian-10-x86_64/install-tools.sh
+./installer/centos-x86_64/install-tools.sh
 ```
 
 ## 1.4 Build FBOSS binaries and dependencies
@@ -64,5 +65,6 @@ export BENCHMARK_INSTALL=1
 Build
 ```
 cd fboss.git
+./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss # onetime
 ./build/fbcode_builder/getdeps.py build --allow-system-packages fboss
 ```
