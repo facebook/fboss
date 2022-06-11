@@ -15,12 +15,12 @@ TEST(LinkNeighborDB, test) {
   // Define a neighbor
   LinkNeighbor n1;
   MacAddress n1mac("00:11:22:33:44:55");
-  n1.setProtocol(LinkProtocol::LLDP);
+  n1.setProtocol(lldp::LinkProtocol::LLDP);
   n1.setLocalPort(PortID(1));
   n1.setLocalVlan(VlanID(1));
   n1.setMac(n1mac);
-  n1.setChassisId("neighbor1", LldpChassisIdType::LOCALLY_ASSIGNED);
-  n1.setPortId("1/1", LldpPortIdType::LOCALLY_ASSIGNED);
+  n1.setChassisId("neighbor1", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  n1.setPortId("1/1", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
   n1.setSystemName("neighbor1 name");
   n1.setTTL(seconds(5));
 
@@ -32,11 +32,12 @@ TEST(LinkNeighborDB, test) {
   EXPECT_EQ(VlanID(1), neighbors[0].getLocalVlan());
   EXPECT_EQ(n1mac, neighbors[0].getMac());
   EXPECT_EQ(
-      (int)LldpChassisIdType::LOCALLY_ASSIGNED,
+      (int)lldp::LldpChassisIdType::LOCALLY_ASSIGNED,
       (int)neighbors[0].getChassisIdType());
   EXPECT_EQ("neighbor1", neighbors[0].getChassisId());
   EXPECT_EQ(
-      (int)LldpPortIdType::LOCALLY_ASSIGNED, (int)neighbors[0].getPortIdType());
+      (int)lldp::LldpPortIdType::LOCALLY_ASSIGNED,
+      (int)neighbors[0].getPortIdType());
   EXPECT_EQ("1/1", neighbors[0].getPortId());
   EXPECT_EQ("neighbor1 name", neighbors[0].getSystemName());
   EXPECT_EQ(seconds(5), neighbors[0].getTTL());
@@ -60,24 +61,24 @@ TEST(LinkNeighborDB, test) {
   // Test adding additional neighbors
   LinkNeighbor n2;
   MacAddress n2mac("00:11:22:33:44:02");
-  n2.setProtocol(LinkProtocol::LLDP);
+  n2.setProtocol(lldp::LinkProtocol::LLDP);
   n2.setLocalPort(PortID(1));
   n2.setLocalVlan(VlanID(1));
   n2.setMac(n2mac);
-  n2.setChassisId("neighbor2", LldpChassisIdType::LOCALLY_ASSIGNED);
-  n2.setPortId("12/3", LldpPortIdType::LOCALLY_ASSIGNED);
+  n2.setChassisId("neighbor2", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  n2.setPortId("12/3", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
   n2.setSystemName("neighbor2 name");
   n2.setTTL(seconds(15));
   db.update(n2);
 
   LinkNeighbor n3;
   MacAddress n3mac("00:11:22:33:44:02");
-  n3.setProtocol(LinkProtocol::LLDP);
+  n3.setProtocol(lldp::LinkProtocol::LLDP);
   n3.setLocalPort(PortID(3));
   n3.setLocalVlan(VlanID(1));
   n3.setMac(n3mac);
-  n3.setChassisId("neighbor3", LldpChassisIdType::LOCALLY_ASSIGNED);
-  n3.setPortId("9/2", LldpPortIdType::LOCALLY_ASSIGNED);
+  n3.setChassisId("neighbor3", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  n3.setPortId("9/2", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
   n3.setSystemName("neighbor3 name");
   n3.setTTL(seconds(20));
   db.update(n3);

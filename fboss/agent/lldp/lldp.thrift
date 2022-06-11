@@ -7,9 +7,9 @@ namespace rust facebook.fboss.lldp
 namespace go facebook.fboss.lldp
 
 enum LinkProtocol {
-  UNKNOWN = 1,
-  LLDP = 2,
-  CDP = 3,
+  UNKNOWN = 0,
+  LLDP = 1,
+  CDP = 2,
 }
 
 enum LldpChassisIdType {

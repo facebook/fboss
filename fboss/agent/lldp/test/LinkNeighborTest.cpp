@@ -67,11 +67,11 @@ TEST(LinkNeighbor, parseLldp) {
   bool ret = info.parseLldpPdu(srcPort, srcVlan, srcMac, ethertype, &cursor);
   ASSERT_TRUE(ret);
 
-  EXPECT_EQ(LinkProtocol::LLDP, info.getProtocol());
-  EXPECT_EQ(LldpChassisIdType::MAC_ADDRESS, info.getChassisIdType());
+  EXPECT_EQ(lldp::LinkProtocol::LLDP, info.getProtocol());
+  EXPECT_EQ(lldp::LldpChassisIdType::MAC_ADDRESS, info.getChassisIdType());
   EXPECT_EQ("\x2c\x54\x2d\xf5\x89\x3e", info.getChassisId());
 
-  EXPECT_EQ(LldpPortIdType::INTERFACE_NAME, info.getPortIdType());
+  EXPECT_EQ(lldp::LldpPortIdType::INTERFACE_NAME, info.getPortIdType());
   EXPECT_EQ("Ethernet1/23", info.getPortId());
 
   EXPECT_EQ(seconds(120), info.getTTL());
@@ -162,13 +162,13 @@ TEST(LinkNeighbor, parseCdp) {
   bool ret = info.parseCdpPdu(srcPort, srcVlan, srcMac, ethertype, &cursor);
   ASSERT_TRUE(ret);
 
-  EXPECT_EQ(LinkProtocol::CDP, info.getProtocol());
-  EXPECT_EQ(LldpChassisIdType::RESERVED, info.getChassisIdType());
+  EXPECT_EQ(lldp::LinkProtocol::CDP, info.getProtocol());
+  EXPECT_EQ(lldp::LldpChassisIdType::RESERVED, info.getChassisIdType());
   EXPECT_EQ(
       "rsw1br.07.prn2.facebook.com.facebook.com(FOC1618R10T)",
       info.getChassisId());
 
-  EXPECT_EQ(LldpPortIdType::RESERVED, info.getPortIdType());
+  EXPECT_EQ(lldp::LldpPortIdType::RESERVED, info.getPortIdType());
   EXPECT_EQ("Ethernet1/23", info.getPortId());
 
   EXPECT_EQ(seconds(180), info.getTTL());

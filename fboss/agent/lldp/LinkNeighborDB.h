@@ -59,8 +59,8 @@ class LinkNeighborDB {
     bool operator==(const NeighborKey& other) const;
 
    private:
-    LldpChassisIdType chassisIdType_;
-    LldpPortIdType portIdType_;
+    lldp::LldpChassisIdType chassisIdType_;
+    lldp::LldpPortIdType portIdType_;
     std::string chassisId_;
     std::string portId_;
   };

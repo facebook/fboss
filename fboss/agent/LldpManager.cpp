@@ -185,7 +185,7 @@ void writeTlv(
 
 void writeTlv(
     LldpTlvType type,
-    LldpChassisIdType subType,
+    lldp::LldpChassisIdType subType,
     const ByteRange& buf,
     RWPrivateCursor* cursor) {
   writeTlv(type, static_cast<uint8_t>(subType), buf, cursor);
@@ -193,7 +193,7 @@ void writeTlv(
 
 void writeTlv(
     LldpTlvType type,
-    LldpPortIdType subType,
+    lldp::LldpPortIdType subType,
     const ByteRange& buf,
     RWPrivateCursor* cursor) {
   writeTlv(type, static_cast<uint8_t>(subType), buf, cursor);
@@ -267,7 +267,7 @@ void LldpManager::fillLldpTlv(
   // now write chassis ID TLV
   writeTlv(
       LldpTlvType::CHASSIS,
-      LldpChassisIdType::MAC_ADDRESS,
+      lldp::LldpChassisIdType::MAC_ADDRESS,
       ByteRange(macaddr.bytes(), 6),
       &cursor);
 
@@ -277,7 +277,7 @@ void LldpManager::fillLldpTlv(
    */
   writeTlv(
       LldpTlvType::PORT,
-      LldpPortIdType::INTERFACE_NAME,
+      lldp::LldpPortIdType::INTERFACE_NAME,
       StringPiece(portname),
       &cursor);
 

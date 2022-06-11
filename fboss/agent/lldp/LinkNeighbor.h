@@ -2,6 +2,7 @@
 #pragma once
 
 #include "fboss/agent/lldp/Lldp.h"
+#include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -16,12 +17,6 @@ class Cursor;
 
 namespace facebook::fboss {
 
-enum class LinkProtocol {
-  UNKNOWN,
-  LLDP,
-  CDP,
-};
-
 /*
  * LinkNeighbor stores information about an LLDP or CDP neighbor.
  */
@@ -32,7 +27,7 @@ struct LinkNeighbor {
   /*
    * Return the protocol over which this neighbor was seen.
    */
-  LinkProtocol getProtocol() const {
+  lldp::LinkProtocol getProtocol() const {
     return protocol_;
   }
 
@@ -57,7 +52,7 @@ struct LinkNeighbor {
     return srcMac_;
   }
 
-  LldpChassisIdType getChassisIdType() const {
+  lldp::LldpChassisIdType getChassisIdType() const {
     return chassisIdType_;
   }
 
@@ -74,7 +69,7 @@ struct LinkNeighbor {
     return chassisId_;
   }
 
-  LldpPortIdType getPortIdType() const {
+  lldp::LldpPortIdType getPortIdType() const {
     return portIdType_;
   }
 
@@ -212,7 +207,7 @@ struct LinkNeighbor {
    * Functions for updating LinkNeighbor fields.
    * These are mostly useful for testing purposes.
    */
-  void setProtocol(LinkProtocol protocol) {
+  void setProtocol(lldp::LinkProtocol protocol) {
     protocol_ = protocol;
   }
   void setLocalPort(PortID port) {
@@ -224,11 +219,11 @@ struct LinkNeighbor {
   void setMac(folly::MacAddress mac) {
     srcMac_ = mac;
   }
-  void setChassisId(folly::StringPiece id, LldpChassisIdType type) {
+  void setChassisId(folly::StringPiece id, lldp::LldpChassisIdType type) {
     chassisIdType_ = type;
     chassisId_ = id.str();
   }
-  void setPortId(folly::StringPiece id, LldpPortIdType type) {
+  void setPortId(folly::StringPiece id, lldp::LldpPortIdType type) {
     portIdType_ = type;
     portId_ = id.str();
   }
@@ -295,13 +290,13 @@ struct LinkNeighbor {
       folly::io::Cursor* cursor);
 
   // Data members
-  LinkProtocol protocol_{LinkProtocol::UNKNOWN};
+  lldp::LinkProtocol protocol_{lldp::LinkProtocol::UNKNOWN};
   PortID localPort_{0};
   VlanID localVlan_{0};
   folly::MacAddress srcMac_;
 
-  LldpChassisIdType chassisIdType_{LldpChassisIdType::RESERVED};
-  LldpPortIdType portIdType_{LldpPortIdType::RESERVED};
+  lldp::LldpChassisIdType chassisIdType_{lldp::LldpChassisIdType::RESERVED};
+  lldp::LldpPortIdType portIdType_{lldp::LldpPortIdType::RESERVED};
   uint16_t capabilities_{0};
   uint16_t enabledCapabilities_{0};
 

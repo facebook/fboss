@@ -60,18 +60,18 @@ void LinkNeighbor::setTTL(std::chrono::seconds seconds) {
 }
 
 std::string LinkNeighbor::humanReadableChassisId() const {
-  if (chassisIdType_ == LldpChassisIdType::MAC_ADDRESS) {
+  if (chassisIdType_ == lldp::LldpChassisIdType::MAC_ADDRESS) {
     return humanReadableMac(chassisId_);
-  } else if (chassisIdType_ == LldpChassisIdType::NET_ADDRESS) {
+  } else if (chassisIdType_ == lldp::LldpChassisIdType::NET_ADDRESS) {
     return humanReadableNetAddr(chassisId_);
   }
   return folly::humanify(chassisId_);
 }
 
 std::string LinkNeighbor::humanReadablePortId() const {
-  if (portIdType_ == LldpPortIdType::MAC_ADDRESS) {
+  if (portIdType_ == lldp::LldpPortIdType::MAC_ADDRESS) {
     return humanReadableMac(portId_);
-  } else if (portIdType_ == LldpPortIdType::NET_ADDRESS) {
+  } else if (portIdType_ == lldp::LldpPortIdType::NET_ADDRESS) {
     return humanReadableNetAddr(portId_);
   }
   return folly::humanify(portId_);
@@ -119,7 +119,7 @@ bool LinkNeighbor::parseLldpPdu(
     return false;
   }
 
-  protocol_ = LinkProtocol::LLDP;
+  protocol_ = lldp::LinkProtocol::LLDP;
   localPort_ = srcPort;
   localVlan_ = vlan;
   srcMac_ = srcMac;
@@ -211,7 +211,8 @@ void LinkNeighbor::parseLldpChassis(Cursor* cursor, uint16_t length) {
     throw std::out_of_range("LLDP chassis length must be at least 1");
   }
 
-  chassisIdType_ = static_cast<LldpChassisIdType>(cursor->read<uint8_t>());
+  chassisIdType_ =
+      static_cast<lldp::LldpChassisIdType>(cursor->read<uint8_t>());
   chassisId_ = cursor->readFixedString(length - 1);
 }
 
@@ -220,7 +221,7 @@ void LinkNeighbor::parseLldpPortId(Cursor* cursor, uint16_t length) {
     throw std::out_of_range("LLDP port length must be at least 1");
   }
 
-  portIdType_ = static_cast<LldpPortIdType>(cursor->read<uint8_t>());
+  portIdType_ = static_cast<lldp::LldpPortIdType>(cursor->read<uint8_t>());
   portId_ = cursor->readFixedString(length - 1);
 }
 
@@ -254,7 +255,7 @@ bool LinkNeighbor::parseCdpPdu(
     return false;
   }
 
-  protocol_ = LinkProtocol::CDP;
+  protocol_ = lldp::LinkProtocol::CDP;
   localPort_ = srcPort;
   localVlan_ = vlan;
   srcMac_ = srcMac_;
