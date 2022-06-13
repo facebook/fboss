@@ -220,20 +220,11 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     std::unordered_set<std::string> queriedSet(
         queriedPorts.begin(), queriedPorts.end());
 
-    auto filters = CmdGlobalOptions::getInstance()->getFilters();
-    auto stateFilter = (filters.find("LinkState") != filters.end())
-        ? std::make_optional(filters["LinkState"])
-        : std::nullopt;
-
     for (const auto& entry : portEntries) {
       auto portInfo = entry.second;
       auto portName = portInfo.get_name();
 
       auto operState = getOperStateStr(portInfo.get_operState());
-      // TODO: should be case insensitive
-      if (stateFilter && operState != stateFilter.value()) {
-        continue;
-      }
 
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
         cli::PortEntry portDetails;

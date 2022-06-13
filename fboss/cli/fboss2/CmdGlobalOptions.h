@@ -22,6 +22,10 @@ class CmdGlobalOptions {
   ~CmdGlobalOptions() = default;
   CmdGlobalOptions(const CmdGlobalOptions& other) = delete;
   CmdGlobalOptions& operator=(const CmdGlobalOptions& other) = delete;
+  // TODO(surabhi236:) create tuple of string, op and string.
+  using FilterTerm = std::tuple<std::string, std::string, std::string>;
+  using IntersectionList = std::vector<FilterTerm>;
+  using UnionList = std::vector<IntersectionList>;
 
   // Static function for getting the CmdGlobalOptions folly::Singleton
   static std::shared_ptr<CmdGlobalOptions> getInstance();
@@ -41,16 +45,7 @@ class CmdGlobalOptions {
     }
 
     auto filters = getFilters();
-    for (const auto& filter : filters) {
-      if (std::find(validFilters.begin(), validFilters.end(), filter.first) ==
-          validFilters.end()) {
-        std::cerr << fmt::format(
-            "Invalid filter \"{}\" passed in. Valid filter(s) for this command are [{}]\n",
-            filter.first,
-            folly::join(", ", validFilters));
-        return false;
-      }
-    }
+    // TODO(surabhi236):  write the validation logic here.
 
     return true;
   }
@@ -163,7 +158,7 @@ class CmdGlobalOptions {
     fsdbThriftPort_ = port;
   }
 
-  std::map<std::string, std::string> getFilters() const;
+  UnionList getFilters() const;
 
  private:
   void initAdditional(CLI::App& app);
@@ -188,7 +183,7 @@ class CmdGlobalOptions {
   int dataCorralServiceThriftPort_{5971};
   int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};
-  std::vector<std::string> filters_{};
+  std::string filter_;
 };
 
 } // namespace facebook::fboss

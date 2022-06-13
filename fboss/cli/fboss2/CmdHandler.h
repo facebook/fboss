@@ -23,7 +23,6 @@
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
-#include <type_traits>
 #include <variant>
 
 namespace facebook::fboss {

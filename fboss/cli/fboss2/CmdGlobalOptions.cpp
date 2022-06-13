@@ -46,23 +46,50 @@ void CmdGlobalOptions::init(CLI::App& app) {
       "--color", color_, "color (no, yes => yes for tty and no for pipe)");
   app.add_option(
       "--filter",
-      filters_,
-      "filter list. Each filter must be in the form <key>=<value>. See specific commands for list of available filters");
+      filter_,
+      "filter expression. expression must be of the form TERM1&&TERM2||TERM3||TERM4... where each TERMi is of the form <key op value> See specific commands for list of available filters. Please note the specific whitespace requirements for the command");
 
   initAdditional(app);
 }
 
-std::map<std::string, std::string> CmdGlobalOptions::getFilters() const {
-  std::map<std::string, std::string> parsedFilters;
-  for (const auto& filter : filters_) {
-    std::vector<std::string> vec;
-    folly::split("=", filter, vec);
-    if (vec.size() != 2) {
-      throw std::runtime_error(fmt::format(
-          "Filters need to be in the form <key>=value>. {} does not match",
-          filter));
+// assuming each filter term to be "key op value" (with spaces).
+CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters() const {
+  if (filter_.size() == 0) {
+    return {};
+  }
+  /*logic for parsing the filters from command line:
+    The command line filter string is expected to be of the form
+    TERM1&&TERM2||TERM3||TERM4... where each TERMi is of the form <key op
+    value>.
+    We don't support parenthesization for now. The implicit precedence
+    follows the C-style precedence rules where && has higher priority than ||.
+    Due to this, we first split the input string on '||' to get a UnionList
+    which form the upper-level filters (unioned).
+    Next, each element of the union list is an intersection of terms. So, for
+    the next level, we split based on &&.
+    Next we parse the individual key op value in a FilterTerm.
+    Hence, overall, a filter input of the form A < B||C > D&&E = F||G <= H would
+    be parsed as: (A < B) || (C > D && E = F) || (G <= H).
+  */
+  UnionList parsedFilters;
+  std::vector<std::string> unionVec;
+  folly::split("||", filter_, unionVec);
+  for (std::string unionStr : unionVec) {
+    std::vector<std::string> interVec;
+    IntersectionList intersectList;
+    folly::split("&&", unionStr, interVec);
+    for (std::string termStr : interVec) {
+      std::vector<std::string> filterTermVector;
+      folly::split(" ", termStr, filterTermVector);
+      if (filterTermVector.size() != 3) {
+        std::cout << "Each filter term must be of the form key op value. ";
+        exit(1);
+      }
+      FilterTerm filterTerm = make_tuple(
+          filterTermVector[0], filterTermVector[1], filterTermVector[2]);
+      intersectList.push_back(filterTerm);
     }
-    parsedFilters[vec[0]] = vec[1];
+    parsedFilters.push_back(intersectList);
   }
   return parsedFilters;
 }
