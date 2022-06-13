@@ -1,12 +1,18 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 
+#pragma once
+
+#include <string>
+
 namespace facebook::fboss::platform::data_corral_service {
 
 class FruModule {
  public:
   explicit FruModule(int id) {
-    id = id_;
+    id_ = id;
   }
+
+  virtual void init() {}
 
   virtual void refresh() {}
 
@@ -16,6 +22,10 @@ class FruModule {
 
   int getFruId() {
     return id_;
+  }
+
+  virtual std::string getName() {
+    return "FruModule-" + std::to_string(id_);
   }
 
   virtual ~FruModule() {}

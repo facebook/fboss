@@ -1,5 +1,7 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 
+#pragma once
+
 #include <fboss/platform/data_corral_service/FruModule.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
@@ -8,25 +10,60 @@
 
 namespace facebook::fboss::platform::data_corral_service {
 
-class ChassisManager : private folly::AsyncTimeout {
+class ChassisMonitor : private folly::AsyncTimeout {
+ public:
+  ChassisMonitor(
+      int refreshInterval,
+      folly::EventBase* evb,
+      std::function<void()> func)
+      : AsyncTimeout(evb),
+        evb_(evb),
+        refreshInterval_(refreshInterval),
+        func_(func) {
+    evb_->runInEventBaseThread([this]() { scheduleFirstRefresh(); });
+  }
+
+  ~ChassisMonitor() override {
+    evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
+        [this]() { cancelTimeout(); });
+  }
+
+ private:
+  void timeoutExpired() noexcept override;
+  void scheduleFirstRefresh();
+  folly::EventBase* evb_;
+  const std::chrono::milliseconds refreshInterval_;
+  std::function<void()> func_;
+  std::atomic<std::chrono::time_point<std::chrono::steady_clock>> lastTime_{
+      std::chrono::steady_clock::time_point::min()};
+};
+
+class ChassisManager {
   // Refresh chassis modules regularly to detect events and program chassis
   // Child class implement platform dependent logics
  public:
   explicit ChassisManager(int refreshInterval) {
-    refreshInterval_ = std::chrono::milliseconds(refreshInterval);
+    refreshInterval_ = refreshInterval;
+  }
+
+  void init() {
     initFruModules();
     startThread();
-    evb_.runInEventBaseThread([this]() { scheduleFirstRefresh(); });
+    auto func = [this]() { refreshFruModules(); };
+    monitor_ = std::make_unique<ChassisMonitor>(refreshInterval_, &evb_, func);
   }
+
+  void initThread();
 
   virtual void initFruModules() {
     // populate fruModules_;
   }
 
   virtual void refreshFruModules() {
-    for (auto fruModule : fruModules_) {
-      fruModule.refresh();
+    for (auto& fruModule : fruModules_) {
+      fruModule->refresh();
     }
+    programChassis();
   }
 
   virtual void programChassis() {
@@ -44,28 +81,23 @@ class ChassisManager : private folly::AsyncTimeout {
   }
 
   void threadLoop() {
-    folly::StringPiece name = "ChassisManagerThread";
-    folly::setThreadName(name);
-    google::SetLogThreadName(name.str());
+    initThread();
     evb_.loopForever();
   }
 
-  virtual ~ChassisManager() override {
-    evb_.runImmediatelyOrRunInEventBaseThreadAndWait(
-        [this]() { cancelTimeout(); });
-    stopThread();
+  virtual ~ChassisManager() {
+    if (monitor_) {
+      monitor_.reset();
+      stopThread();
+    }
   }
 
  protected:
-  void timeoutExpired() noexcept override;
-  void scheduleFirstRefresh();
-
-  std::vector<FruModule> fruModules_;
+  int refreshInterval_;
+  std::vector<std::unique_ptr<FruModule>> fruModules_;
   std::unique_ptr<std::thread> thread_;
   folly::EventBase evb_;
-  std::chrono::milliseconds refreshInterval_;
-  std::atomic<std::chrono::time_point<std::chrono::steady_clock>> lastTime_{
-      std::chrono::steady_clock::time_point::min()};
+  std::unique_ptr<ChassisMonitor> monitor_;
 };
 
 } // namespace facebook::fboss::platform::data_corral_service

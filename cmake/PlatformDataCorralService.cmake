@@ -8,6 +8,12 @@ add_library(data_corral_service_lib
   fboss/platform/data_corral_service/DataCorralServiceThriftHandler.cpp
   fboss/platform/data_corral_service/SetupDataCorralServiceThrift.cpp
   fboss/platform/data_corral_service/oss/SetupDataCorralServiceThrift.cpp
+  fboss/platform/data_corral_service/ChassisManager.cpp
+  fboss/platform/data_corral_service/oss/ChassisManager.cpp
+  fboss/platform/data_corral_service/darwin/DarwinChassisManager.cpp
+  fboss/platform/data_corral_service/darwin/DarwinFanModule.cpp
+  fboss/platform/data_corral_service/darwin/DarwinPemModule.cpp
+  fboss/platform/data_corral_service/darwin/DarwinRackmonModule.cpp
 )
 
 target_link_libraries(data_corral_service_lib

@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "fboss/platform/data_corral_service/ChassisManager.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 #include "folly/Synchronized.h"
 
@@ -41,7 +42,7 @@ class DataCorralServiceImpl {
 
   // Cached Fruid
   std::vector<std::pair<std::string, std::string>> fruid_{};
-
+  std::unique_ptr<ChassisManager> chassisManager_;
   void init();
 };
 

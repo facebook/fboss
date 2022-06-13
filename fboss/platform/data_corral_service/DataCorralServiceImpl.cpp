@@ -13,19 +13,36 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
+#include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
 #include "fboss/platform/weutil/Weutil.h"
 
 namespace {
 // ToDo
+int kRefreshIntervalInMs = 10000;
 
 } // namespace
+
+using namespace facebook::fboss;
 
 namespace facebook::fboss::platform::data_corral_service {
 
 void DataCorralServiceImpl::init() {
   // ToDo
   XLOG(INFO) << "Init DataCorralServiceImpl";
+  auto productInfo =
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
+  auto mode = productInfo->getMode();
+  if (mode == PlatformMode::DARWIN) {
+    chassisManager_ =
+        std::make_unique<DarwinChassisManager>(kRefreshIntervalInMs);
+  } else {
+    XLOG(WARN) << "Unable to instantiate ChassisManager for platform "
+               << toString(mode);
+  }
+  chassisManager_->init();
 }
 
 std::vector<FruIdData> DataCorralServiceImpl::getFruid(bool uncached) {
