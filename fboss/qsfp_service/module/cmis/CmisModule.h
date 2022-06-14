@@ -225,7 +225,8 @@ class CmisModule : public QsfpModule {
    */
   virtual TransceiverSettings getTransceiverSettingsInfo() override;
   /*
-   * Gather supported applications for this module
+   * Gather supported applications for this module, and store them in
+   * moduleCapabilities_
    */
   void getApplicationCapabilities();
   /*

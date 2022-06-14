@@ -682,8 +682,6 @@ TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
                                    : RateSelectState::APPLICATION_RATE_SELECT;
   settings.rateSelectSetting() = RateSelectSetting::UNSUPPORTED;
 
-  getApplicationCapabilities();
-
   settings.mediaLaneSettings() =
       std::vector<MediaLaneSettings>(numMediaLanes());
   settings.hostLaneSettings() = std::vector<HostLaneSettings>(numHostLanes());
@@ -1492,6 +1490,13 @@ void CmisModule::updateQsfpData(bool allPages) {
     }
 
     if (!allPages) {
+      // Update the application capabilities once we have read from eeprom.
+      // Note that this function may also need to read information from page01
+      // which is only read when allPages_ is true. However, we always read
+      // allPages the first time so we'll have cached information of page01
+      // (when applicable) by now. That information is also static so it's okay
+      // that we are not reading it again.
+      getApplicationCapabilities();
       // The information on the following pages are static. Thus no need to
       // fetch them every time. We just need to do it when we first retriving
       // the data from this module.
@@ -1503,6 +1508,9 @@ void CmisModule::updateQsfpData(bool allPages) {
       readCmisField(CmisField::PAGE_UPPER02H, page02_);
       readCmisField(CmisField::PAGE_UPPER13H, page13_);
     }
+
+    // Update the application capabilities once we have read from eeprom
+    getApplicationCapabilities();
   } catch (const std::exception& ex) {
     // No matter what kind of exception throws, we need to set the dirty_ flag
     // to true.
