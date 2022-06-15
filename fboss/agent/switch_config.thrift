@@ -1355,6 +1355,12 @@ struct MacAndVlan {
   2: string macAddress;
 }
 
+enum SwitchType {
+  NPU = 0,
+  PHY = 1,
+  VOQ = 2,
+  FABRIC = 3,
+}
 /*
  * Switch specific settings: global to the switch
  */
@@ -1377,6 +1383,10 @@ struct SwitchSettings {
 
   // MAC addrs to block the egress traffic to
   7: list<MacAndVlan> macAddrsToBlock = [];
+  // Switch type
+  8: SwitchType switchType = SwitchType.NPU;
+  // Switch id (only applicable for VOQ based systems)
+  9: optional i64 switchId;
 }
 
 // Global buffer pool shared by {port, pgs}
