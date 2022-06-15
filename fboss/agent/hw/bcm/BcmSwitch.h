@@ -222,7 +222,11 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Initialize the BcmSwitch.
    */
-  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) override;
+  HwInitResult initImpl(
+      Callback* callback,
+      bool failHwCallsOnWarmboot,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) override;
 
   /*
    * Minimal initialization of the BcmSwitch. This is used for BcmReplayTest.

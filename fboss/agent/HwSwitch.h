@@ -142,7 +142,13 @@ class HwSwitch {
    * reload, the SwitchState should reflect the base configuration after the
    * hardware has been reinitialized.
    */
-  virtual HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) = 0;
+  HwInitResult init(
+      Callback* callback,
+      bool failHwCallsOnWarmboot,
+      cfg::SwitchType switchType = cfg::SwitchType::NPU,
+      std::optional<int64_t> switchId = std::nullopt) {
+    return initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
+  }
 
   /*
    * Tells the hw switch to unregister the callback and to stop calling
@@ -342,6 +348,11 @@ class HwSwitch {
       folly::MacAddress mac) const = 0;
 
  private:
+  virtual HwInitResult initImpl(
+      Callback* callback,
+      bool failHwCallsOnWarmboot,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) = 0;
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
 
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;

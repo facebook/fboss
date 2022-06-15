@@ -65,8 +65,11 @@ class SaiSwitch : public HwSwitch {
 
   ~SaiSwitch() override;
 
-  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) noexcept
-      override;
+  HwInitResult initImpl(
+      Callback* callback,
+      bool failHwCallsOnWarmboot,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) noexcept override;
 
   void unregisterCallbacks() noexcept override;
   /*

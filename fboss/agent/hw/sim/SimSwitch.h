@@ -22,7 +22,11 @@ class SimSwitch : public HwSwitch {
  public:
   SimSwitch(SimPlatform* platform, uint32_t numPorts);
 
-  HwInitResult init(Callback* callback, bool failHwCallsOnWarmboot) override;
+  HwInitResult initImpl(
+      Callback* callback,
+      bool failHwCallsOnWarmboot,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) override;
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
   std::shared_ptr<SwitchState> stateChangedTransaction(
       const StateDelta& delta) override {

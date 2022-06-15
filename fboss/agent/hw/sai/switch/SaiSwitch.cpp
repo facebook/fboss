@@ -216,9 +216,11 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
 
 SaiSwitch::~SaiSwitch() {}
 
-HwInitResult SaiSwitch::init(
+HwInitResult SaiSwitch::initImpl(
     Callback* callback,
-    bool failHwCallsOnWarmboot) noexcept {
+    bool failHwCallsOnWarmboot,
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) noexcept {
   asicType_ = platform_->getAsic()->getAsicType();
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
