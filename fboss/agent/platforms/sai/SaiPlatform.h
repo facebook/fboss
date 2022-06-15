@@ -127,6 +127,12 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
 
  private:
+  /*
+   * Platform dependent internal {cpu, loopback} system ports. These must be
+   * provided as part of switch init
+   */
+  virtual std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
+      const;
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
   void updateQsfpCache(const StateDelta& delta);

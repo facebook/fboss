@@ -345,7 +345,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // TODO make switch id come from config
     // Provide a non empty sys port config_list
     switchId = 0;
-    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{};
+    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
+        getInternalSystemPortConfig()};
   }
 
   return {
@@ -389,6 +390,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // ECMP member count
 #endif
   };
+}
+
+std::vector<sai_system_port_config_t> SaiPlatform::getInternalSystemPortConfig()
+    const {
+  throw FbossError(
+      "System port config must be provided by derived class platform");
 }
 
 uint32_t SaiPlatform::getDefaultMacAgingTime() const {

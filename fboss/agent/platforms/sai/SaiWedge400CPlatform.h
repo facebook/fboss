@@ -25,6 +25,10 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
 
+ private:
+  std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
+      const override;
+
  protected:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
