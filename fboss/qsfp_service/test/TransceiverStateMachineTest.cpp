@@ -1602,6 +1602,8 @@ TEST_F(TransceiverStateMachineTest, syncPortsOnRemovedTransceiver) {
         // Trigger active state change function just like wedge_agent calls
         // qsfp_service syncPorts(). Bring down the ports
         updateTransceiverActiveState(false /* up */, true /* enabled */);
+        // The refresh() will let TransceiverStateMachine trigger next event
+        xcvr_->refresh();
       } /* stateUpdate */,
       [this]() {
         // The TransceiverStateMachine should trigger a remove event during

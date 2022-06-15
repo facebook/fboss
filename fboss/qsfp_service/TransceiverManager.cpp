@@ -781,7 +781,6 @@ void TransceiverManager::updateTransceiverActiveState(
     const std::map<int32_t, PortStatus>& portStatus) noexcept {
   int numPortStatusChanged{0};
   BlockingStateUpdateResultList results;
-  std::unordered_set<TransceiverID> needRefreshTranscevers;
   for (auto tcvrID : tcvrs) {
     auto tcvrToPortInfoIt = tcvrToPortInfo_.find(tcvrID);
     if (tcvrToPortInfoIt == tcvrToPortInfo_.end()) {
@@ -813,10 +812,11 @@ void TransceiverManager::updateTransceiverActiveState(
             if (!tcvrPortInfo.status ||
                 *tcvrPortInfo.status->up() != *portStatusIt->second.up()) {
               statusChangedPorts.insert(portID);
-              // Refresh the transceiver if we detect a port status changed.
-              // So that we can detect whether the transceiver is removed
-              // without waiting for the state machine routinely refreshing
-              needRefreshTranscevers.insert(tcvrID);
+              // No need to do the transceiverRefresh() in this code path
+              // because that will again enqueue state machine update on i2c
+              // event base. That will result in deadlock with
+              // stateMachineRefresh() generated update which also runs in same
+              // i2c event base
             }
             // And also update the cached port status
             tcvrPortInfo.status = portStatusIt->second;
@@ -853,12 +853,6 @@ void TransceiverManager::updateTransceiverActiveState(
   XLOG_IF(DBG2, numPortStatusChanged > 0)
       << "updateTransceiverActiveState has " << numPortStatusChanged
       << " transceivers need to update port status.";
-
-  if (!needRefreshTranscevers.empty()) {
-    XLOG(INFO) << needRefreshTranscevers.size()
-               << " transceivers have port status changed and need to refresh";
-    refreshTransceivers(needRefreshTranscevers);
-  }
 }
 
 void TransceiverManager::refreshStateMachines() {
