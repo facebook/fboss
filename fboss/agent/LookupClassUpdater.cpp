@@ -170,6 +170,8 @@ void LookupClassUpdater::updateNeighborClassID(
   if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
     if (noLookupClasses && !setDropClassID) {
       // For noLookupClasses (non-MH-NIC) only process if CLASS_DROP
+      XLOG(DBG2) << "No lookup class and not set drop classID for vlanID "
+                 << vlanID << " macAddress " << mac.toString();
       return;
     }
 
@@ -185,6 +187,9 @@ void LookupClassUpdater::updateNeighborClassID(
     }
   } else {
     auto& [_classID, refCnt] = iter->second;
+    XLOG(DBG2) << "ClassID and ref count from map" << static_cast<int>(_classID)
+               << " " << refCnt << " for vlanID " << vlanID << " macAddress "
+               << mac.toString();
     if (noLookupClasses && _classID != cfg::AclLookupClass::CLASS_DROP) {
       // For noLookupClasses (non-MH-NIC) only process if CLASS_DROP
       return;
@@ -862,6 +867,7 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
   for (const auto& [vlanID, macAddress] :
        newState->getSwitchSettings()->getMacAddrsToBlock()) {
     newMacAddrsToBlock.insert(std::make_pair(vlanID, macAddress));
+    XLOG(DBG2) << "New blocked mac address " << macAddress.toString();
   }
 
   std::vector<std::pair<VlanID, folly::MacAddress>> toBeUpdatedMacAddrsToBlock;
@@ -876,12 +882,20 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
   macAddrsToBlock_ = newMacAddrsToBlock;
   for (const auto& [vlanID, macAddress] : toBeUpdatedMacAddrsToBlock) {
     auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    XLOG(INFO) << "Starting to Processing mac address "
+               << macAddress.toString();
     if (!vlan) {
+      XLOG(DBG2) << "No vlan found for vlanID " << vlanID << " macAddress "
+                 << macAddress.toString()
+                 << ". Skip processing the blocked mac entry.";
       continue;
     }
 
     auto macEntry = vlan->getMacTable()->getNodeIf(macAddress);
     if (!macEntry) {
+      XLOG(DBG2) << "No mac entry found for in mac table for vlanID " << vlanID
+                 << " macAddress " << macAddress.toString()
+                 << ". Skip processing the blocked mac entry.";
       continue;
     }
 
