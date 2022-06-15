@@ -194,14 +194,16 @@ folly::dynamic SwitchSettingsFields::migrateToThrifty(
   newDynamic["blockNeighbors"] = blockedNeighborsDynamic;
 
   folly::dynamic macAddrsToBlockDynamic = folly::dynamic::array;
-  for (auto macDynLegacy : dynLegacy["macAddrsToBlock"]) {
-    folly::dynamic macDyn = folly::dynamic::object;
+  if (dynLegacy.find("macAddrsToBlock") != dynLegacy.items().end()) {
+    for (auto macDynLegacy : dynLegacy["macAddrsToBlock"]) {
+      folly::dynamic macDyn = folly::dynamic::object;
 
-    macDyn["macAddrToBlockVlanID"] =
-        static_cast<int16_t>(macDynLegacy["macAddrToBlockVlanID"].asInt());
-    macDyn["macAddrToBlockAddr"] =
-        macDynLegacy["macAddrToBlockAddr"].asString();
-    macAddrsToBlockDynamic.push_back(macDyn);
+      macDyn["macAddrToBlockVlanID"] =
+          static_cast<int16_t>(macDynLegacy["macAddrToBlockVlanID"].asInt());
+      macDyn["macAddrToBlockAddr"] =
+          macDynLegacy["macAddrToBlockAddr"].asString();
+      macAddrsToBlockDynamic.push_back(macDyn);
+    }
   }
 
   newDynamic["macAddrsToBlock"] = macAddrsToBlockDynamic;
