@@ -70,7 +70,7 @@ TEST_F(QsfpModuleTest, setRateSelect) {
   ON_CALL(*qsfp_, setRateSelectIfSupported(_, _, _))
       .WillByDefault(
           Invoke(qsfp_, &MockSffModule::actualSetRateSelectIfSupported));
-  EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
+  EXPECT_CALL(*qsfp_, setPowerOverrideIfSupportedLocked(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(AtLeast(1));
 
   // every customize call does 1 write for enabling tx, plus any other
@@ -132,7 +132,7 @@ TEST_F(QsfpModuleTest, setCdr) {
   ON_CALL(*qsfp_, setCdrIfSupported(_, _, _))
       .WillByDefault(Invoke(qsfp_, &MockSffModule::actualSetCdrIfSupported));
 
-  EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
+  EXPECT_CALL(*qsfp_, setPowerOverrideIfSupportedLocked(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setRateSelectIfSupported(_, _, _)).Times(AtLeast(1));
 
   // every customize call does 1 write for enabling tx, plus any other

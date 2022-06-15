@@ -112,7 +112,8 @@ class SffModule : public QsfpModule {
    * Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    */
-  void setPowerOverrideIfSupported(PowerControlState currentState) override;
+  void setPowerOverrideIfSupportedLocked(
+      PowerControlState currentState) override;
   /*
    * Enable or disable CDR
    * Which action to take is determined by the port speed

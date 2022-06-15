@@ -309,7 +309,8 @@ class QsfpModule : public Transceiver {
    * Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    */
-  virtual void setPowerOverrideIfSupported(PowerControlState currentState) = 0;
+  virtual void setPowerOverrideIfSupportedLocked(
+      PowerControlState currentState) = 0;
   /*
    * Enable or disable CDR
    * Which action to take is determined by the port speed

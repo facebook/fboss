@@ -61,7 +61,7 @@ class Sff8472Module : public QsfpModule {
 
   void setQsfpFlatMem() override {}
 
-  void setPowerOverrideIfSupported(PowerControlState) override {}
+  void setPowerOverrideIfSupportedLocked(PowerControlState) override {}
 
   TransmitterTechnology getQsfpTransmitterTechnology() const override {
     return TransmitterTechnology::OPTICAL;

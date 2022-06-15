@@ -1520,7 +1520,7 @@ void CmisModule::updateQsfpData(bool allPages) {
   }
 }
 
-void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
+void CmisModule::setApplicationCodeLocked(cfg::PortSpeed speed) {
   auto applicationIter = speedApplicationMapping.find(speed);
 
   if (applicationIter == speedApplicationMapping.end()) {
@@ -1727,7 +1727,8 @@ bool CmisModule::remediateFlakyTransceiver() {
   return isRemediationTriggered;
 }
 
-void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
+void CmisModule::setPowerOverrideIfSupportedLocked(
+    PowerControlState currentState) {
   /* Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on all transceivers except SR4-40G.
    *
@@ -1798,10 +1799,10 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl());
+    setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setApplicationCode(speed);
+      setApplicationCodeLocked(speed);
     }
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";

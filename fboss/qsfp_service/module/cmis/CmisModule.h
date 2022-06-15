@@ -146,12 +146,12 @@ class CmisModule : public QsfpModule {
    * Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    */
-  virtual void setPowerOverrideIfSupported(
+  virtual void setPowerOverrideIfSupportedLocked(
       PowerControlState currentState) override;
   /*
    * Set appropriate application code for PortSpeed, if supported
    */
-  void setApplicationCode(cfg::PortSpeed speed);
+  void setApplicationCodeLocked(cfg::PortSpeed speed);
   /*
    * returns individual sensor values after scaling
    */

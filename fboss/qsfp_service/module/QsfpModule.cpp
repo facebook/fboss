@@ -612,7 +612,7 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl());
+    setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setCdrIfSupported(speed, *settings.cdrTx(), *settings.cdrRx());

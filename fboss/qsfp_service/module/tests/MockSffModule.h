@@ -39,7 +39,7 @@ class MockSffModule : public SffModule {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
   }
-  MOCK_METHOD1(setPowerOverrideIfSupported, void(PowerControlState));
+  MOCK_METHOD1(setPowerOverrideIfSupportedLocked, void(PowerControlState));
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_CONST_METHOD2(getSettingsValue, uint8_t(SffField, uint8_t));
   MOCK_METHOD0(getTransceiverInfo, TransceiverInfo());

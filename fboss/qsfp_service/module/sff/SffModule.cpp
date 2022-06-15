@@ -1143,7 +1143,8 @@ void SffModule::setRateSelectIfSupported(
                        << apache::thrift::util::enumNameSafe(newSetting);
 }
 
-void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
+void SffModule::setPowerOverrideIfSupportedLocked(
+    PowerControlState currentState) {
   /* Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on all transceivers except SR4-40G.
    *
@@ -1354,7 +1355,7 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     }
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(*settings.powerControl());
+    setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setCdrIfSupported(speed, *settings.cdrTx(), *settings.cdrRx());
