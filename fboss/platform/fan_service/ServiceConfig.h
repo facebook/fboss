@@ -211,7 +211,7 @@ class Sensor {
   SensorReadCache processedData;
   Sensor() {
     sensorFailThresholdInSec = 300;
-    scale = 1.0;
+    scale = 1000.0;
     calculationType =
         fan_config_structs::SensorPwmCalcType::kSensorPwmCalcDisable;
   }
