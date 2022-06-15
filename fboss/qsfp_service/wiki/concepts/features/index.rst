@@ -1,11 +1,11 @@
 .. fbmeta::
    hide_page_title=true
 
-Open source
-###########
+Features
+########
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
 
-   *
+   */*/index
