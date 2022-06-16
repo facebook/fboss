@@ -282,5 +282,26 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     // kGetRoutePrefix in HwQueuePerHostRouteTests.
     return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"}, 24};
   }
+
+ private:
+  void setupRSWMhnicEcmpV4(const std::vector<PortDescriptor>& ecmpPorts) {
+    ASSERT_GT(ecmpPorts.size(), 0);
+
+    boost::container::flat_set<PortDescriptor> ports;
+    std::for_each(ecmpPorts.begin(), ecmpPorts.end(), [&ports](auto ecmpPort) {
+      ports.insert(ecmpPort);
+    });
+
+    sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+      utility::EcmpSetupTargetedPorts4 ecmp4(state);
+      return ecmp4.resolveNextHops(state, ports);
+    });
+
+    utility::EcmpSetupTargetedPorts4 ecmp4(sw()->getState());
+    ecmp4.programRoutes(
+        std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
+        ports,
+        {kGetRoutePrefix()});
+  }
 };
 } // namespace facebook::fboss
