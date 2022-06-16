@@ -8,9 +8,9 @@ namespace facebook::fboss {
 
 class ProdInvariantTest : public ProdAgentTests {
  protected:
-  void SetUp() override;
-  void setupConfigFlag() override;
-  cfg::SwitchConfig initialConfig();
+  virtual void SetUp() override;
+  virtual void setupConfigFlag() override;
+  virtual cfg::SwitchConfig initialConfig();
   void verifyCopp();
   void verifySafeDiagCommands();
   void verifyLoadBalancing();

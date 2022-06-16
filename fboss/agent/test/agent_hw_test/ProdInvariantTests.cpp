@@ -316,7 +316,7 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     setupRSWMhnicEcmpV4(ecmpPorts_);
     XLOG(INFO) << "ProdInvariantTest setup done";
   }
-  cfg::SwitchConfig initialConfig() const {
+  cfg::SwitchConfig initialConfig() override {
     // TODO: Currently ProdInvariantTests only has support for BCM switches.
     // That's why we're passing false in the call below.
     auto config = utility::createProdRswMhnicConfig(
