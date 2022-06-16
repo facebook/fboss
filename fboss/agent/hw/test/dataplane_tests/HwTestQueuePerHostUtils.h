@@ -9,9 +9,12 @@
  */
 
 #pragma once
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
+#include "folly/IPAddressV4.h"
 #include "folly/MacAddress.h"
 
 /*
@@ -80,6 +83,12 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4SrcPort = std::nullopt,
     std::optional<uint16_t> l4DstPort = std::nullopt,
     std::optional<uint8_t> dscp = std::nullopt);
+
+void updateRoutesClassID(
+    const std::map<
+        RoutePrefix<folly::IPAddressV4>,
+        std::optional<cfg::AclLookupClass>>& routePrefix2ClassID,
+    RouteUpdateWrapper* updater);
 
 void addQueuePerHostAclTables(cfg::SwitchConfig* config);
 

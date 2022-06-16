@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 
 #include "fboss/agent/state/Port.h"
 
@@ -204,29 +205,15 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
     // kGetRoutePrefix in HwQueuePerHostRouteTests.
     return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"}, 24};
   }
-
-  void updateRoutesClassID(
-      const std::map<
-          RoutePrefix<folly::IPAddressV4>,
-          std::optional<cfg::AclLookupClass>>& routePrefix2ClassID) {
-    auto updater = getRouteUpdater();
-
-    for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
-      updater->programClassID(
-          RouterID(0),
-          {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
-          classID,
-          false /* sync*/);
-    }
-  }
 };
 
 TEST_F(HwProdInvariantsRswMhnicTest, verifyInvariants) {
   auto setup = [this]() {
     addRoutes({kGetRoutePrefix()});
-    updateRoutesClassID(
+    utility::updateRoutesClassID(
         {{kGetRoutePrefix(),
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2}});
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2}},
+        getRouteUpdater().get());
   };
   auto verify = [this]() { this->verifyInvariants(getInvariantOptions()); };
   verifyAcrossWarmBoots(setup, verify);

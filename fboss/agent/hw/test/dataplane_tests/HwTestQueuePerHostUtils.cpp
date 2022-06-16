@@ -382,6 +382,19 @@ void verifyQueuePerHostMapping(
     EXPECT_EQ(statAfter - statBefore, 1);
   }
 }
+void updateRoutesClassID(
+    const std::map<
+        RoutePrefix<folly::IPAddressV4>,
+        std::optional<cfg::AclLookupClass>>& routePrefix2ClassID,
+    RouteUpdateWrapper* updater) {
+  for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
+    updater->programClassID(
+        RouterID(0),
+        {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
+        classID,
+        false /* sync*/);
+  }
+}
 
 void verifyQueuePerHostMapping(
     const HwSwitch* hwSwitch,
