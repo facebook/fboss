@@ -6,20 +6,21 @@
 #include <thread>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-
-#include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
-#include "fboss/agent/state/Port.h"
 
 namespace {
 using facebook::fboss::PortDescriptor;
@@ -230,6 +231,41 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     std::string out;
     platform()->getHwSwitch()->printDiagCmd("quit\n");
   }
+}
+void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
+  auto vlanId = utility::firstVlanID(sw()->getState());
+  auto intfMac = utility::getInterfaceMac(sw()->getState(), vlanId);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
+
+  // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,
+  // but expect queue-per-host to be honored, as the DSCP Marking ACL is listed
+  // AFTER queue-per-host ACL by design.
+  std::optional<uint16_t> l4SrcPort = std::nullopt;
+  std::optional<uint8_t> dscp = std::nullopt;
+  if (dscpMarkingTest) {
+    l4SrcPort = utility::kUdpPorts().front();
+    dscp = 0;
+  }
+  auto getHwPortStatsFn =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+
+  utility::verifyQueuePerHostMapping(
+      platform()->getHwSwitch(),
+      sw()->getState(),
+      getEcmpPortIds(),
+      vlanId,
+      srcMac,
+      intfMac,
+      folly::IPAddressV4("1.0.0.1"),
+      folly::IPAddressV4("10.10.1.2"),
+      true /* useFrontPanel */,
+      false /* blockNeighbor */,
+      getHwPortStatsFn,
+      l4SrcPort,
+      std::nullopt, /* l4DstPort */
+      dscp);
 }
 void ProdInvariantTest::verifyDscpToQueueMapping() {
   if (!sw()->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {

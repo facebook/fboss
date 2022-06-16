@@ -14,6 +14,7 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifySafeDiagCommands();
   void verifyLoadBalancing();
   void verifyDscpToQueueMapping();
+  void verifyQueuePerHostMapping(bool dscpMarkingTest);
 
  private:
   std::vector<PortID> getEcmpPortIds();
