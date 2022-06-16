@@ -265,4 +265,16 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   XLOG(INFO) << "Verify DSCP to Queue mapping done";
 }
 
+class ProdInvariantRswMhnicTest : public ProdInvariantTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const {
+    // TODO: Currently ProdInvariantTests only has support for BCM switches.
+    // That's why we're passing false in the call below.
+    auto config = utility::createProdRswMhnicConfig(
+        platform()->getHwSwitch(),
+        getAllPlatformPorts(platform()->getPlatformPorts()),
+        false /* isSai() */);
+    return config;
+  }
+};
 } // namespace facebook::fboss
