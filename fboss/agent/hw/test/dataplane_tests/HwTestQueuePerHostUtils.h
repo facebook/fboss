@@ -11,6 +11,7 @@
 #pragma once
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
@@ -83,6 +84,23 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4SrcPort = std::nullopt,
     std::optional<uint16_t> l4DstPort = std::nullopt,
     std::optional<uint8_t> dscp = std::nullopt);
+
+void verifyQueuePerHostMapping(
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    const std::vector<PortID>& portIds,
+    VlanID vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getHwPortStatsFn,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp);
 
 void updateRoutesClassID(
     const std::map<
