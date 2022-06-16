@@ -62,15 +62,22 @@ void ProdInvariantTest::SetUp() {
   XLOG(INFO) << "ProdInvariantTest setup done";
 }
 
-cfg::SwitchConfig ProdInvariantTest::initialConfig() {
-  cfg::SwitchConfig cfg;
+std::vector<PortID> getAllPlatformPorts(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
   std::vector<PortID> ports;
-
-  auto subsidiaryPortMap =
-      utility::getSubsidiaryPortIDs(platform()->getPlatformPorts());
+  ports.reserve(0);
+  auto subsidiaryPortMap = utility::getSubsidiaryPortIDs(platformPorts);
   for (auto& port : subsidiaryPortMap) {
     ports.emplace_back(port.first);
   }
+  return ports;
+}
+cfg::SwitchConfig ProdInvariantTest::initialConfig() {
+  cfg::SwitchConfig cfg;
+  std::vector<PortID> ports;
+  ports.reserve(0);
+
+  ports = getAllPlatformPorts(platform()->getPlatformPorts());
   cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
   return cfg;
 }
