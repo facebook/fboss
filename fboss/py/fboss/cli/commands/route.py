@@ -58,6 +58,7 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
         print("    No Forwarding Info")
     print("  Admin Distance: %s" % entry.adminDistance)
     print("  Counter Id: %s" % entry.counterID)
+    print("  Class Id: %s" % entry.classID)
     print()
 
 
