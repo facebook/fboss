@@ -38,8 +38,8 @@ class OperPathToPublisherRoot {
   void checkPath(PathItr begin, PathItr end) const {
     if (begin == end) {
       FsdbException e;
-      e.message_ref() = "Empty path";
-      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      e.message() = "Empty path";
+      e.errorCode() = FsdbErrorCode::INVALID_PATH;
       throw e;
     }
   }
