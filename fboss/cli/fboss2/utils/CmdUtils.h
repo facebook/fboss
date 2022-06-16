@@ -29,6 +29,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_PRBS_COMPONENT,
   OBJECT_ARG_TYPE_PRBS_STATE,
   OBJECT_ARG_TYPE_PORT_STATE,
+  OBJECT_ARG_TYPE_FSDB_PATH,
 };
 
 // Called after CLI11 is initlized but before parsing, for any final
@@ -39,6 +40,9 @@ const folly::IPAddress getIPFromHost(const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
+std::vector<std::string> getFsdbPath(
+    const std::vector<std::string>& path,
+    std::string defaultPath);
 long getEpochFromDuration(const int64_t& duration);
 timeval splitFractionalSecondsFromTimer(const long& timer);
 const std::string parseTimeToTimeStamp(const long& timeToParse);

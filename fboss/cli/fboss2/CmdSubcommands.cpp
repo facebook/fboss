@@ -99,6 +99,14 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           "Port state to set - some examples \n"
           "'enable' -> Enables port\n"
           "'disable' -> Disables port\n");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH) {
+      subCmd->add_option(
+          "fsdb_path",
+          args,
+          "Fsdb path to set - some examples \n"
+          "'agent' -> fsdb stats\n"
+          "'agent/config' -> fsdb state\n");
     }
   }
   return subCmd;
