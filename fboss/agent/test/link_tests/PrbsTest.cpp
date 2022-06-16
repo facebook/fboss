@@ -106,6 +106,10 @@ class PrbsTest : public LinkTest {
         12,
         std::chrono::milliseconds(5000));
 
+    // Certain CMIS optics work more reliably when there is a 10s time between
+    // enabling the generator and the checker
+    /* sleep override */ std::this_thread::sleep_for(10s);
+
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to

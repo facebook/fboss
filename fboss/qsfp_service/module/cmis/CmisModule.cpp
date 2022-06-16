@@ -2241,14 +2241,6 @@ bool CmisModule::setPortPrbsLocked(
   // Return error for invalid PRBS polynominal
   auto prbsPatternItr = prbsPatternMap.left.find(
       static_cast<prbs::PrbsPolynomial>(*prbs.polynomial()));
-  if (prbsPatternItr == prbsPatternMap.left.end()) {
-    QSFP_LOG(ERR, this) << folly::sformat(
-        "PRBS Polynominal {} not supported",
-        apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
-    return false;
-  }
-
-  auto prbsPolynominal = prbsPatternItr->second;
 
   bool startGen{false}, stopGen{false};
   bool startChk{false}, stopChk{false};
@@ -2281,6 +2273,14 @@ bool CmisModule::setPortPrbsLocked(
         CmisField::HOST_PATTERN_SELECT_LANE_8_7};
     auto cmisRegisters = (side == phy::Side::LINE) ? mediaFields : hostFields;
 
+    // Check that a valid polynomial is provided
+    if (prbsPatternItr == prbsPatternMap.left.end()) {
+      QSFP_LOG(ERR, this) << folly::sformat(
+          "PRBS Polynominal {} not supported",
+          apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
+      return false;
+    }
+    auto prbsPolynominal = prbsPatternItr->second;
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
     for (auto field : cmisRegisters) {
@@ -2327,6 +2327,14 @@ bool CmisModule::setPortPrbsLocked(
     };
     auto cmisFields = (side == phy::Side::LINE) ? mediaFields : hostFields;
 
+    // Check that a valid polynomial is provided
+    if (prbsPatternItr == prbsPatternMap.left.end()) {
+      QSFP_LOG(ERR, this) << folly::sformat(
+          "PRBS Polynominal {} not supported",
+          apache::thrift::util::enumNameSafe(prbs.polynomial().value()));
+      return false;
+    }
+    auto prbsPolynominal = prbsPatternItr->second;
     // There are 4 bytes, each contains pattern for 2 lanes
     uint8_t patternVal = (prbsPolynominal & 0xF) << 4 | (prbsPolynominal & 0xF);
     for (auto field : cmisFields) {
