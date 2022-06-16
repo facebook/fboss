@@ -5,7 +5,9 @@
 #include <chrono>
 #include <thread>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -353,4 +355,32 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
         {kGetRoutePrefix()});
   }
 };
+
+TEST_F(ProdInvariantRswMhnicTest, verifyInvariants) {
+  // TODO: Currently this test does not work. Packets are not recognized in the
+  // queues. Notes: Packets are either dropped during transfer or not sent to
+  // the correct PortID. Debugging shows that PortID(5) (manually changed)
+  // occasionally hold packets in queue 0. But we are still not getting two
+  // packets as expected. Printouts shows other queues of the expected port also
+  // does not have any pkts. Show c log shows that there are 2 pkts going
+  // through ce1.
+  auto setup = [&]() {
+    auto updaterPointer =
+        std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater());
+    utility::updateRoutesClassID(
+        {{kGetRoutePrefix(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2}},
+        updaterPointer.get());
+  };
+  auto verify = [&]() {
+    verifyCopp();
+    verifyLoadBalancing();
+    verifyDscpToQueueMapping();
+    verifyQueuePerHostMapping(true /*dscpMarkingTest*/);
+    verifyQueuePerHostMapping(false /*dscpMarkingTest*/);
+    verifySafeDiagCommands();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
