@@ -276,5 +276,11 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
         false /* isSai() */);
     return config;
   }
+  RoutePrefix<folly::IPAddressV4> kGetRoutePrefix() {
+    // Currently hardcoded to IPv4. Enabling IPv6 testing for all classes is on
+    // the to-do list, after which we can choose v4 or v6 with the same model as
+    // kGetRoutePrefix in HwQueuePerHostRouteTests.
+    return RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"}, 24};
+  }
 };
 } // namespace facebook::fboss
