@@ -303,6 +303,19 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 
 class ProdInvariantRswMhnicTest : public ProdInvariantTest {
  protected:
+  void SetUp() override {
+    // Todo: Refractor could be done here to avoid code duplication.
+    AgentTest::SetUp();
+    auto ecmpUplinlinkPorts =
+        utility::getAllUplinkDownlinkPorts(
+            platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
+            .first;
+    for (auto& uplinkPort : ecmpUplinlinkPorts) {
+      ecmpPorts_.push_back(PortDescriptor(uplinkPort));
+    }
+    setupRSWMhnicEcmpV4(ecmpPorts_);
+    XLOG(INFO) << "ProdInvariantTest setup done";
+  }
   cfg::SwitchConfig initialConfig() const {
     // TODO: Currently ProdInvariantTests only has support for BCM switches.
     // That's why we're passing false in the call below.

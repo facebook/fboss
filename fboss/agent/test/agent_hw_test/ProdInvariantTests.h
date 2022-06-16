@@ -1,3 +1,4 @@
+#include <vector>
 #include "fboss/agent/Main.h"
 #include "fboss/agent/test/agent_hw_test/ProdAgentTests.h"
 
@@ -15,13 +16,13 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyLoadBalancing();
   void verifyDscpToQueueMapping();
   void verifyQueuePerHostMapping(bool dscpMarkingTest);
+  std::vector<PortDescriptor> ecmpPorts_{};
 
  private:
   std::vector<PortID> getEcmpPortIds();
   void sendTraffic();
   PortID getDownlinkPort();
   void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
-  std::vector<PortDescriptor> ecmpPorts_{};
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
 };
