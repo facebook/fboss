@@ -219,8 +219,8 @@ SaiSwitch::~SaiSwitch() {}
 HwInitResult SaiSwitch::initImpl(
     Callback* callback,
     bool failHwCallsOnWarmboot,
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) noexcept {
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) noexcept {
   asicType_ = platform_->getAsic()->getAsicType();
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
@@ -234,7 +234,7 @@ HwInitResult SaiSwitch::initImpl(
   HwInitResult ret;
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    ret = initLocked(lock, behavior, callback);
+    ret = initLocked(lock, behavior, callback, switchType, switchId);
   }
 
   {
@@ -1221,7 +1221,9 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     HwWriteBehavior behavior,
-    Callback* callback) noexcept {
+    Callback* callback,
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) noexcept {
   HwInitResult ret;
   ret.rib = std::make_unique<RoutingInformationBase>();
   ret.bootType = bootType_;
@@ -1229,7 +1231,8 @@ HwInitResult SaiSwitch::initLocked(
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
-  managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
+  managerTable_ = std::make_unique<SaiManagerTable>(
+      platform_, bootType_, switchType, switchId);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
   callback_ = callback;
   __gSaiIdToSwitch.insert_or_assign(switchId_, this);

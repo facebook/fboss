@@ -56,7 +56,11 @@ class SaiStore;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(SaiPlatform* platform, BootType bootType);
+  SaiManagerTable(
+      SaiPlatform* platform,
+      BootType bootType,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId);
   void createSaiTableManagers(
       SaiStore* saiStore,
       SaiPlatform* platform,

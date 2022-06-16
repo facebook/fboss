@@ -239,7 +239,9 @@ class SaiSwitch : public HwSwitch {
   HwInitResult initLocked(
       const std::lock_guard<std::mutex>& lk,
       HwWriteBehavior behavior,
-      Callback* callback) noexcept;
+      Callback* callback,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) noexcept;
 
   void initStoreAndManagersLocked(
       const std::lock_guard<std::mutex>& lk,
