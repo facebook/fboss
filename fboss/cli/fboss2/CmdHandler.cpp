@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
+#include <fboss/cli/fboss2/CmdGlobalOptions.h>
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -177,11 +178,13 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
   utils::logUsage(folly::demangle(typeid(this)).toStdString());
 
-  std::vector<std::string_view> validFilters =
-      std::vector(CmdTypeTraits::FILTERS.begin(), CmdTypeTraits::FILTERS.end());
-  if (!CmdGlobalOptions::getInstance()->isValid(validFilters)) {
-    exit(1);
+  auto extraOptionsEC =
+      CmdGlobalOptions::getInstance()->validateNonFilterOptions();
+  if (extraOptionsEC != CmdGlobalOptions::CliOptionResult::EOK) {
+    exit(EINVAL);
   }
+
+  // TODO(surabhi236): perform filter validation here.
 
   auto hosts = getHosts();
 

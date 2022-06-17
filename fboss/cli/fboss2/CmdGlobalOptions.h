@@ -45,7 +45,86 @@ class CmdGlobalOptions {
 
   void init(CLI::App& app);
 
-  bool isValid(std::vector<std::string_view> validFilters) const {
+  class BaseTypeVerifier {
+   public:
+    virtual ~BaseTypeVerifier() {}
+    virtual CliOptionResult verify(std::string& value, std::ostream& out) = 0;
+  };
+
+  template <typename ExpectedType>
+  class TypeVerifier : public BaseTypeVerifier {
+    std::vector<std::string> acceptedFilterValues;
+    std::string key;
+
+   public:
+    TypeVerifier(
+        const std::string& filterKey,
+        const std::vector<std::string>& acceptedValues)
+        : key(filterKey) {
+      for (const auto& value : acceptedValues) {
+        acceptedFilterValues.push_back(value);
+      }
+    }
+
+    explicit TypeVerifier(const std::string& filterKey) : key(filterKey) {}
+
+    CliOptionResult verify(std::string& value, std::ostream& out = std::cerr)
+        override {
+      auto converted = folly::tryTo<ExpectedType>(value);
+      if (converted.hasError()) {
+        out << "invalid filter value data type passsed for key " << key
+            << std::endl;
+        return CliOptionResult::TYPE_ERROR;
+      }
+      if (!acceptedFilterValues.empty()) {
+        if (std::find(
+                acceptedFilterValues.begin(),
+                acceptedFilterValues.end(),
+                value) == acceptedFilterValues.end()) {
+          out << "invalid filter value for key " << key << std::endl
+              << "accepted values are: { ";
+          for (auto& acceptedVal : acceptedFilterValues) {
+            out << acceptedVal << " ";
+          }
+          out << "}";
+          return CliOptionResult::VALUE_ERROR;
+        }
+      }
+      return CliOptionResult::EOK;
+    }
+  };
+
+  CliOptionResult isValid(
+      const std::unordered_map<
+          std::string_view,
+          std::shared_ptr<BaseTypeVerifier>>& validFilters,
+      UnionList& filters,
+      std::ostream& out = std::cerr) const {
+    for (const auto& intersectList : filters) {
+      for (const auto& filtTerm : intersectList) {
+        auto key = std::get<0>(filtTerm);
+        auto val = std::get<2>(filtTerm);
+        // invalid filter key
+        auto it = validFilters.find(key);
+        if (it == validFilters.end()) {
+          out << "Invalid filter key passsed " << key << std::endl;
+          out << "Filterable fields: { ";
+          for (const auto& field : validFilters) {
+            out << field.first << " ";
+          }
+          out << "}" << std::endl;
+          return CliOptionResult::KEY_ERROR;
+        }
+        auto typeVerifyEC = (it->second)->verify(val, out);
+        if (typeVerifyEC != CliOptionResult::EOK) {
+          return typeVerifyEC;
+        }
+      }
+    }
+    return CliOptionResult::EOK;
+  }
+
+  CliOptionResult validateNonFilterOptions() {
     bool hostsSet = !getHosts().empty();
     bool smcSet = !getSmc().empty();
     bool fileSet = !getFile().empty();
@@ -54,13 +133,9 @@ class CmdGlobalOptions {
         (smcSet && (hostsSet || fileSet)) ||
         (fileSet && (hostsSet || smcSet))) {
       std::cerr << "only one of host(s), smc or file can be set\n";
-      return false;
+      return CliOptionResult::EXTRA_OPTIONS;
     }
-
-    auto filters = getFilters();
-    // TODO(surabhi236):  write the validation logic here.
-
-    return true;
+    return CliOptionResult::EOK;
   }
 
   std::vector<std::string> getHosts() const {
