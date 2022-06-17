@@ -239,11 +239,14 @@ void WedgeManager::readTransceiverRegister(
                      const std::vector<folly::Try<
                          std::pair<int32_t, std::unique_ptr<IOBuf>>>>& tries) {
         for (const auto& tryResponse : tries) {
-          ReadResponse resp;
-          auto tcvrId = tryResponse.value().first;
-          resp.data() = *(tryResponse.value().second);
-          resp.valid() = resp.data()->length() > 0;
-          responses[tcvrId] = resp;
+          if (tryResponse.hasValue()) {
+            ReadResponse resp;
+            auto tcvrId = tryResponse.value().first;
+            resp.data() = *(tryResponse.value().second);
+            resp.valid() = resp.data()->length() > 0;
+            responses[tcvrId] = resp;
+          } // We have already set valid to false above for all responses so
+            // don't need to handle the exception here
         }
       })
       .wait();
@@ -279,10 +282,13 @@ void WedgeManager::writeTransceiverRegister(
           [&responses](
               const std::vector<folly::Try<std::pair<int32_t, bool>>>& tries) {
             for (const auto& tryResponse : tries) {
-              WriteResponse resp;
-              auto tcvrId = tryResponse.value().first;
-              resp.success() = tryResponse.value().second;
-              responses[tcvrId] = resp;
+              if (tryResponse.hasValue()) {
+                WriteResponse resp;
+                auto tcvrId = tryResponse.value().first;
+                resp.success() = tryResponse.value().second;
+                responses[tcvrId] = resp;
+              } // We have already set success to false above for all responses
+                // so don't need to handle the exception here
             }
           })
       .wait();
