@@ -53,7 +53,8 @@ void CmdGlobalOptions::init(CLI::App& app) {
 }
 
 // assuming each filter term to be "key op value" (with spaces).
-CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters() const {
+CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
+    CliOptionResult& filterParsingEC) const {
   if (filter_.size() == 0) {
     return {};
   }
@@ -82,12 +83,24 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters() const {
       std::vector<std::string> filterTermVector;
       folly::split(" ", termStr, filterTermVector);
       if (filterTermVector.size() != 3) {
-        std::cout << "Each filter term must be of the form key op value. ";
-        exit(1);
+        std::cerr << "Each filter term must be of the form <key op value>. "
+                  << std::endl;
+        filterParsingEC = CliOptionResult::TERM_ERROR;
+        return parsedFilters;
       }
-      FilterTerm filterTerm = make_tuple(
-          filterTermVector[0], filterTermVector[1], filterTermVector[2]);
-      intersectList.push_back(filterTerm);
+
+      try {
+        FilterTerm filterTerm = make_tuple(
+            filterTermVector[0],
+            getFilterOp(filterTermVector[1]),
+            filterTermVector[2]);
+        intersectList.push_back(filterTerm);
+      } catch (const std::invalid_argument& e) {
+        std::cerr << "invalid operator passed for key " << filterTermVector[0]
+                  << std::endl;
+        filterParsingEC = CliOptionResult::OP_ERROR;
+        return parsedFilters;
+      }
     }
     parsedFilters.push_back(intersectList);
   }

@@ -184,7 +184,18 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     exit(EINVAL);
   }
 
-  auto parsedFilters = CmdGlobalOptions::getInstance()->getFilters();
+  /* If there are errors during filter parsing, we do not exit in the getFilters
+  method of CmdGlobalOptions.cpp. Instead, we get the parsing error code and
+  exit here. This is to avoid having living references during the
+  destrowInstances time!
+  */
+  auto filterParsingEC = CmdGlobalOptions::CliOptionResult::EOK;
+  auto parsedFilters =
+      CmdGlobalOptions::getInstance()->getFilters(filterParsingEC);
+  if (filterParsingEC != CmdGlobalOptions::CliOptionResult::EOK) {
+    exit(EINVAL);
+  }
+
   if (!parsedFilters.empty()) {
     const auto& validFilters = impl().getValidFilters();
     const auto& errorCode =

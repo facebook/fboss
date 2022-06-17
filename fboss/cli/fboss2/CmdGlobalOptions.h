@@ -23,8 +23,8 @@ class CmdGlobalOptions {
   CmdGlobalOptions(const CmdGlobalOptions& other) = delete;
   CmdGlobalOptions& operator=(const CmdGlobalOptions& other) = delete;
   enum FilterOp { LT, GT, LTE, GTE, EQ, NEQ };
-  // TODO(surabhi236:) create tuple of string, op and string.
-  using FilterTerm = std::tuple<std::string, std::string, std::string>;
+
+  using FilterTerm = std::tuple<std::string, FilterOp, std::string>;
   using IntersectionList = std::vector<FilterTerm>;
   using UnionList = std::vector<IntersectionList>;
 
@@ -38,7 +38,8 @@ class CmdGlobalOptions {
     VALUE_ERROR = 2,
     TYPE_ERROR = 3,
     OP_ERROR = 4,
-    EXTRA_OPTIONS = 5
+    EXTRA_OPTIONS = 5,
+    TERM_ERROR = 6
   };
 
   // Static function for getting the CmdGlobalOptions folly::Singleton
@@ -149,6 +150,8 @@ class CmdGlobalOptions {
         if (typeVerifyEC != CliOptionResult::EOK) {
           return typeVerifyEC;
         }
+        // Note that the operator validation is done while parsing
+        // hence, we don't perform operator validation here.
       }
     }
     return CliOptionResult::EOK;
@@ -276,7 +279,7 @@ class CmdGlobalOptions {
     fsdbThriftPort_ = port;
   }
 
-  UnionList getFilters() const;
+  UnionList getFilters(CliOptionResult& filterParsingEC) const;
 
  private:
   void initAdditional(CLI::App& app);
