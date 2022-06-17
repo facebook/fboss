@@ -22,6 +22,7 @@ class CmdGlobalOptions {
   ~CmdGlobalOptions() = default;
   CmdGlobalOptions(const CmdGlobalOptions& other) = delete;
   CmdGlobalOptions& operator=(const CmdGlobalOptions& other) = delete;
+  enum FilterOp { LT, GT, LTE, GTE, EQ, NEQ };
   // TODO(surabhi236:) create tuple of string, op and string.
   using FilterTerm = std::tuple<std::string, std::string, std::string>;
   using IntersectionList = std::vector<FilterTerm>;
@@ -50,6 +51,35 @@ class CmdGlobalOptions {
     virtual ~BaseTypeVerifier() {}
     virtual CliOptionResult verify(std::string& value, std::ostream& out) = 0;
   };
+
+  /* This is being done becase of the following reasons:
+    1) switch statement (used in getFilterOp) in c++ doesn't work with strings.
+    Hence, we need to find the hash of the string.
+    2) The built-in hash function does not return a constexpr which is needed
+    here. Hence, we defined a new hash function as below!
+  */
+  static constexpr unsigned int hash(const char* s, int off = 0) {
+    return !s[off] ? 5381 : (hash(s, off + 1) * 33) ^ s[off];
+  }
+
+  FilterOp getFilterOp(std::string parsedOp) const {
+    switch (hash(parsedOp.c_str())) {
+      case hash("=="):
+        return FilterOp::EQ;
+      case hash("<"):
+        return FilterOp::LT;
+      case hash("<="):
+        return FilterOp::LTE;
+      case hash(">"):
+        return FilterOp::GT;
+      case hash(">="):
+        return FilterOp::GTE;
+      case hash("!="):
+        return FilterOp::NEQ;
+      default:
+        throw std::invalid_argument("Invalid filter argument passed");
+    }
+  }
 
   template <typename ExpectedType>
   class TypeVerifier : public BaseTypeVerifier {
