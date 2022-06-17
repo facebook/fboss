@@ -316,7 +316,9 @@ std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
 }
 
 SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
-    bool mandatoryOnly) {
+    bool mandatoryOnly,
+    cfg::SwitchType swType,
+    std::optional<int64_t> swId) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
@@ -339,12 +341,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
-  if (FLAGS_switch_type == "voq") {
+  if (swType == cfg::SwitchType::VOQ) {
     switchType = SAI_SWITCH_TYPE_VOQ;
     cores = getAsic()->getNumCores();
-    // TODO make switch id come from config
-    // Provide a non empty sys port config_list
-    switchId = 0;
+    switchId = swId.value_or(0);
     sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
         getInternalSystemPortConfig()};
   }
