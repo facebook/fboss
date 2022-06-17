@@ -27,6 +27,19 @@ class CmdGlobalOptions {
   using IntersectionList = std::vector<FilterTerm>;
   using UnionList = std::vector<IntersectionList>;
 
+  /* These CLi option error codes have been defined to
+  avoid using the catchall error code (1).
+  These will also aid in proper unit testing.
+  */
+  enum CliOptionResult {
+    EOK = 0,
+    KEY_ERROR = 1,
+    VALUE_ERROR = 2,
+    TYPE_ERROR = 3,
+    OP_ERROR = 4,
+    EXTRA_OPTIONS = 5
+  };
+
   // Static function for getting the CmdGlobalOptions folly::Singleton
   static std::shared_ptr<CmdGlobalOptions> getInstance();
 
