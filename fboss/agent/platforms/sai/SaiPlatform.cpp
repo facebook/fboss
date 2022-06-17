@@ -36,11 +36,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
-DEFINE_string(
-    switch_type,
-    "",
-    "Switch type - permitted values are npu, phy, voq and fabric");
-
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
