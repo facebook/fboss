@@ -91,6 +91,13 @@ class CmdHandler {
 
   void run();
 
+  const std::unordered_map<
+      std::string_view,
+      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
+  getValidFilters() {
+    return {};
+  }
+
  protected:
   CmdTypeT& impl() {
     return static_cast<CmdTypeT&>(*this);

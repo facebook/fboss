@@ -184,7 +184,15 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     exit(EINVAL);
   }
 
-  // TODO(surabhi236): perform filter validation here.
+  auto parsedFilters = CmdGlobalOptions::getInstance()->getFilters();
+  if (!parsedFilters.empty()) {
+    const auto& validFilters = impl().getValidFilters();
+    const auto& errorCode =
+        CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
+    if (!(errorCode == CmdGlobalOptions::CliOptionResult::EOK)) {
+      exit(EINVAL);
+    }
+  }
 
   auto hosts = getHosts();
 
@@ -198,6 +206,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
                              host /*, inArgs*/)
                              .share());
   }
+
+  // TODO(surabhi236): perform the actual filtering here (Intern milestone 4).
 
   if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
     printJson(impl(), futureList, std::cout, std::cerr);

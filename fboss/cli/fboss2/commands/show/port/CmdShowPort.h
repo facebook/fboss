@@ -64,6 +64,20 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return createModel(portEntries, transceiverEntries, queriedPorts);
   }
 
+  const std::unordered_map<
+      std::string_view,
+      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
+  getValidFilters() {
+    return {
+        {"linkState",
+         std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
+             "linkState", std::vector<std::string>{"Up", "Down"})},
+        {"adminState",
+         std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
+             "adminState", std::vector<std::string>{"Enabled", "Disabled"})},
+        {"id", std::make_shared<CmdGlobalOptions::TypeVerifier<int>>("id")}};
+  }
+
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader(
