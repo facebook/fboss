@@ -12,8 +12,13 @@ namespace facebook::fboss::fsdb {
 
 class OperPathToPublisherRoot {
  public:
+  // TODO: should we move this logic in to the higher PathValidator
+  // layer?
+
   using Path = std::vector<std::string>;
-  using PathItr = Path::const_iterator;
+  using PathIter = Path::const_iterator;
+  using ExtPath = std::vector<OperPathElem>;
+  using ExtPathIter = ExtPath::const_iterator;
 
   /* We use the conventions of taking the first element of
    * path and considering it as publisher root. This matches
@@ -23,23 +28,83 @@ class OperPathToPublisherRoot {
    * for e.g. {"unit0","agent"} may map to publish root
    * of unit0_agent
    */
-  std::string publisherRoot(PathItr beg, PathItr end) const {
-    checkPath(beg, end);
-    return *beg;
+  std::string publisherRoot(PathIter begin, PathIter end) const {
+    checkPath(begin, end);
+    return *begin;
   }
+
   std::string publisherRoot(const Path& path) const {
     return publisherRoot(path.begin(), path.end());
   }
+
   std::string publisherRoot(const OperPath& path) const {
     return publisherRoot(*path.raw());
   }
 
+  std::string publisherRoot(ExtPathIter begin, ExtPathIter end) const {
+    checkExtendedPath(begin, end);
+    return *begin->raw_ref();
+  }
+
+  std::string publisherRoot(const ExtPath& path) const {
+    return publisherRoot(path.begin(), path.end());
+  }
+
+  std::string publisherRoot(const ExtendedOperPath& path) const {
+    return publisherRoot(*path.path());
+  }
+
+  std::string publisherRoot(const std::vector<ExtendedOperPath>& paths) const {
+    if (paths.size() == 0) {
+      FsdbException e;
+      e.message_ref() = "Empty path";
+      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      throw e;
+    }
+
+    std::optional<std::string> root;
+    for (const auto& path : paths) {
+      auto currRoot = publisherRoot(path);
+      if (root) {
+        if (*root != currRoot) {
+          FsdbException e;
+          e.message_ref() =
+              "Extended subscription spans multiple publisher roots";
+          e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+          throw e;
+        }
+      } else {
+        root = currRoot;
+      }
+    }
+
+    return *root;
+  }
+
  private:
-  void checkPath(PathItr begin, PathItr end) const {
+  void checkPath(PathIter begin, PathIter end) const {
+    if (begin == end) {
+      FsdbException e;
+      e.message_ref() = "Empty path";
+      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      throw e;
+    }
+  }
+
+  void checkExtendedPath(ExtPathIter begin, ExtPathIter end) const {
     if (begin == end) {
       FsdbException e;
       e.message() = "Empty path";
       e.errorCode() = FsdbErrorCode::INVALID_PATH;
+      throw e;
+    }
+
+    auto& elem = *begin;
+    if (elem.getType() != OperPathElem::Type::raw) {
+      FsdbException e;
+      e.message_ref() =
+          "Cannot support wildcard types as first element of extended path";
+      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
       throw e;
     }
   }
