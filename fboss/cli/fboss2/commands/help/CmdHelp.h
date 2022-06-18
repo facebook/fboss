@@ -57,20 +57,25 @@ class CmdHelp {
     // should only have one argument!
     auto helpArgsTuple = CmdArgsLists::getInstance()->at(0);
     auto helpArg = helpArgsTuple[0];
-    auto helpTreeMapForObj = tree_[helpArg];
+    printHelpInfo(helpArg);
+  }
 
-    for (const auto& [verbHelpPair, subCmds] : helpTreeMapForObj) {
-      std::cout << verbHelpPair.first << '\t' << verbHelpPair.second
-                << std::endl;
-      printSubCommandTree(subCmds, 1);
+  void printSubCommandTree(
+      std::vector<Command> subCmds,
+      size_t level,
+      std::ostream& out) {
+    for (const auto& cmd : subCmds) {
+      out << std::string(level, '\t') << cmd.name << '\t' << cmd.help
+          << std::endl;
+      printSubCommandTree(cmd.subcommands, level + 1, out);
     }
   }
 
-  void printSubCommandTree(std::vector<Command> subCmds, size_t level) {
-    for (Command cmd : subCmds) {
-      std::cout << std::string(level, '\t') << cmd.name << '\t' << cmd.help
-                << std::endl;
-      printSubCommandTree(cmd.subcommands, level + 1);
+  void printHelpInfo(auto helpArg, std::ostream& out = std::cout) {
+    const auto& helpTreeMapForObj = tree_[helpArg];
+    for (const auto& [verbHelpPair, subCmds] : helpTreeMapForObj) {
+      out << verbHelpPair.first << '\t' << verbHelpPair.second << std::endl;
+      printSubCommandTree(subCmds, 1, out);
     }
   }
 };
