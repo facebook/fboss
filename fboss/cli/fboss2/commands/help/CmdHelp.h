@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdList.h"
 
 namespace facebook::fboss {
