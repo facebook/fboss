@@ -403,7 +403,7 @@ void ControlLogic::getOpticsUpdate() {
       int pwmSoFar = 0;
       int dataSize = 0;
       if (opticData != nullptr) {
-        opticData->data.size();
+        dataSize = opticData->data.size();
       }
       if (dataSize == 0) {
         // This data set is empty, already processed. Ignore.
