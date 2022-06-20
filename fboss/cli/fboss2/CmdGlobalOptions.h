@@ -279,6 +279,10 @@ class CmdGlobalOptions {
     fsdbThriftPort_ = port;
   }
 
+  void setFilterInput(std::string& filter) {
+    filter_ = filter;
+  }
+
   UnionList getFilters(CliOptionResult& filterParsingEC) const;
 
  private:

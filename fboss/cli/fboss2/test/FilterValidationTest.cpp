@@ -3,6 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <fboss/cli/fboss2/CmdGlobalOptions.h>
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "nettools/common/TestUtils.h"
@@ -102,4 +103,63 @@ TEST_F(FilterValidatorFixture, testOk) {
 
   EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
 }
+
+// Checks for operator validity and term validity are done during parsing
+TEST_F(FilterValidatorFixture, invalidOperatorTest) {
+  std::string filterInput = "linkState == Up&&id = 2||adminState != Enabled";
+  auto cmd = CmdGlobalOptions();
+  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  cmd.setFilterInput(filterInput);
+  cmd.getFilters(errorCode);
+  // op error here because of id = 2. (should be ==)
+  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::OP_ERROR);
+}
+
+TEST_F(FilterValidatorFixture, filterTermTest) {
+  std::string filterInput = "linkState && adminState == disabled";
+  auto cmd = CmdGlobalOptions();
+  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  cmd.setFilterInput(filterInput);
+  cmd.getFilters(errorCode);
+  // term error here because of the term "linkState". (Terms need to be of the
+  // form <key op value>.
+  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::TERM_ERROR);
+}
+
+TEST_F(FilterValidatorFixture, validInputParsing) {
+  std::string filterInput =
+      "linkState == Down&&adminState != Disabled||id <= 12";
+  auto cmd = CmdGlobalOptions();
+  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  cmd.setFilterInput(filterInput);
+  const auto& parsedFilters = cmd.getFilters(errorCode);
+  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::EOK);
+
+  // Check that it is correctly parsed as a unionlist of size 2.
+  EXPECT_EQ(parsedFilters.size(), 2);
+
+  // Check that first intersection list has 2 terms and second has 1 term.
+  const auto& intersectList1 = parsedFilters[0];
+  const auto& intersectList2 = parsedFilters[1];
+  EXPECT_EQ(intersectList1.size(), 2);
+  EXPECT_EQ(intersectList2.size(), 1);
+
+  // Checks for the filter terms
+  const auto& filterTerm1 = intersectList1[0];
+  const auto& filterTerm2 = intersectList1[1];
+  const auto& filterTerm3 = intersectList2[0];
+
+  EXPECT_EQ(std::get<0>(filterTerm1), "linkState");
+  EXPECT_EQ(std::get<1>(filterTerm1), CmdGlobalOptions::FilterOp::EQ);
+  EXPECT_EQ(std::get<2>(filterTerm1), "Down");
+
+  EXPECT_EQ(std::get<0>(filterTerm2), "adminState");
+  EXPECT_EQ(std::get<1>(filterTerm2), CmdGlobalOptions::FilterOp::NEQ);
+  EXPECT_EQ(std::get<2>(filterTerm2), "Disabled");
+
+  EXPECT_EQ(std::get<0>(filterTerm3), "id");
+  EXPECT_EQ(std::get<1>(filterTerm3), CmdGlobalOptions::FilterOp::LTE);
+  EXPECT_EQ(std::get<2>(filterTerm3), "12");
+}
+
 } // namespace facebook::fboss
