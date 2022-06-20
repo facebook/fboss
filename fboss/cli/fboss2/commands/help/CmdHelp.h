@@ -55,8 +55,11 @@ class CmdHelp {
   }
 
   void run() {
-    // should only have one argument!
     auto helpArgsTuple = CmdArgsLists::getInstance()->at(0);
+    if (helpArgsTuple.size() != 1) {
+      std::cerr << "Help takes exactly one argument" << std::endl;
+      exit(EINVAL);
+    }
     auto helpArg = helpArgsTuple[0];
     printHelpInfo(helpArg);
   }
