@@ -282,4 +282,15 @@ struct SwitchState {
   6: map<string, MirrorFields> mirrorMap;
   7: ControlPlaneFields controlPlane;
   8: SwitchSettingsFields switchSettings;
+  9: i16 defaultVlan;
+  10: i64 arpTimeout;
+  11: i64 ndpTimeout;
+  12: i32 arpAgerInterval;
+  13: i32 maxNeighborProbes;
+  14: i64 staleEntryInterval;
+  15: Address.BinaryAddress dhcpV4RelaySrc;
+  16: Address.BinaryAddress dhcpV6RelaySrc;
+  17: Address.BinaryAddress dhcpV4ReplySrc;
+  18: Address.BinaryAddress dhcpV6ReplySrc;
+  19: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
 }

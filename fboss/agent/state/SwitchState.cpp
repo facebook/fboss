@@ -32,6 +32,8 @@
 #include "fboss/agent/state/VlanMap.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "folly/IPAddress.h"
+#include "folly/IPAddressV4.h"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -100,6 +102,26 @@ state::SwitchState SwitchStateFields::toThrift() const {
   }
   state.mirrorMap() = mirrors->toThrift();
   state.controlPlane() = controlPlane->toThrift();
+  state.defaultVlan() = defaultVlan;
+  state.arpTimeout() = arpTimeout.count();
+  state.ndpTimeout() = ndpTimeout.count();
+  state.arpAgerInterval() = arpAgerInterval.count();
+  state.maxNeighborProbes() = maxNeighborProbes;
+  state.staleEntryInterval() = staleEntryInterval.count();
+
+  state.dhcpV4RelaySrc() = facebook::network::toBinaryAddress(
+      folly::IPAddress(dhcpV4RelaySrc.str()));
+  state.dhcpV6RelaySrc() = facebook::network::toBinaryAddress(
+      folly::IPAddress(dhcpV6RelaySrc.str()));
+
+  state.dhcpV4ReplySrc() = facebook::network::toBinaryAddress(
+      folly::IPAddress(dhcpV4ReplySrc.str()));
+  state.dhcpV6ReplySrc() = facebook::network::toBinaryAddress(
+      folly::IPAddress(dhcpV6ReplySrc.str()));
+
+  if (pfcWatchdogRecoveryAction) {
+    state.pfcWatchdogRecoveryAction() = *pfcWatchdogRecoveryAction;
+  }
   return state;
 }
 
@@ -115,6 +137,27 @@ SwitchStateFields SwitchStateFields::fromThrift(
   }
   fields.mirrors = MirrorMap::fromThrift(state.get_mirrorMap());
   fields.controlPlane = ControlPlane::fromThrift(*state.controlPlane());
+  fields.defaultVlan = *state.defaultVlan();
+  fields.arpTimeout =
+      std::chrono::seconds(static_cast<uint64_t>(*state.arpTimeout()));
+  fields.ndpTimeout =
+      std::chrono::seconds(static_cast<uint64_t>(*state.ndpTimeout()));
+  fields.arpAgerInterval =
+      std::chrono::seconds(static_cast<uint64_t>(*state.arpAgerInterval()));
+  fields.maxNeighborProbes = static_cast<uint32_t>(*state.maxNeighborProbes());
+  fields.staleEntryInterval =
+      std::chrono::seconds(static_cast<uint64_t>(*state.staleEntryInterval()));
+  fields.dhcpV4RelaySrc =
+      facebook::network::toIPAddress(*state.dhcpV4RelaySrc()).asV4();
+  fields.dhcpV6RelaySrc =
+      facebook::network::toIPAddress(*state.dhcpV6RelaySrc()).asV6();
+  fields.dhcpV4ReplySrc =
+      facebook::network::toIPAddress(*state.dhcpV4ReplySrc()).asV4();
+  fields.dhcpV6ReplySrc =
+      facebook::network::toIPAddress(*state.dhcpV6ReplySrc()).asV6();
+  if (auto pfcWatchdogRecoveryAction = state.pfcWatchdogRecoveryAction()) {
+    fields.pfcWatchdogRecoveryAction = *pfcWatchdogRecoveryAction;
+  }
   return fields;
 }
 
