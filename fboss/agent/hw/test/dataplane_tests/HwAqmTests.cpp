@@ -42,19 +42,21 @@ void verifyWredDroppedPacketCount(
 }
 
 /*
- * Ensure that the number of marked packets is as expected. Allow for
- * an error to account for more / less marking while its worked out.
+ * Due to the way packet marking happens, we might not have an accurate count,
+ * but the number of packets marked will be >= to the expected marked packet
+ * count.
  */
 void verifyEcnMarkedPacketCount(
     facebook::fboss::HwPortStats& after,
     facebook::fboss::HwPortStats& before,
     int expectedMarkedPkts) {
-  constexpr auto kAcceptableError = 2;
   auto deltaEcnMarkedPackets =
       *after.outEcnCounter_() - *before.outEcnCounter_();
-  XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets;
-  EXPECT_GT(deltaEcnMarkedPackets, expectedMarkedPkts - kAcceptableError);
-  EXPECT_LT(deltaEcnMarkedPackets, expectedMarkedPkts + kAcceptableError);
+  auto deltaOutPackets = getPortOutPkts(after) - getPortOutPkts(before);
+  XLOG(DBG0) << "Delta ECN marked pkts: " << deltaEcnMarkedPackets
+             << ", delta out packets: " << deltaOutPackets;
+  EXPECT_TRUE(deltaEcnMarkedPackets >= expectedMarkedPkts);
+  EXPECT_GT(deltaOutPackets, deltaEcnMarkedPackets);
 }
 } // namespace
 
@@ -171,6 +173,20 @@ class HwAqmTest : public HwLinkStateDependentTest {
   folly::MacAddress getIntfMac() const {
     auto vlanId = utility::firstVlanID(initialConfig());
     return utility::getInterfaceMac(getProgrammedState(), vlanId);
+  }
+
+  void queueShaperAndBurstSetup(
+      std::vector<int> queueIds,
+      cfg::SwitchConfig& config,
+      uint32_t minKbps,
+      uint32_t maxKbps,
+      uint32_t minBurstKb,
+      uint32_t maxBurstKb) {
+    for (auto queueId : queueIds) {
+      utility::addQueueShaperConfig(&config, queueId, minKbps, maxKbps);
+      utility::addQueueBurstSizeConfig(
+          &config, queueId, minBurstKb, maxBurstKb);
+    }
   }
 
   void queueEcnWredThresholdSetup(
@@ -352,8 +368,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
       int markedOrDroppedPacketCount,
       std::optional<std::function<void(HwPortStats&, HwPortStats&, int)>>
           verifyPacketCountFn = std::nullopt,
-      std::optional<std::function<void(cfg::SwitchConfig&)>> setupFn =
-          std::nullopt,
+      std::optional<std::function<
+          void(cfg::SwitchConfig&, std::vector<int>, const int txPacketLen)>>
+          setupFn = std::nullopt,
       int maxQueueFillLevel = 0) {
     constexpr auto kQueueId{0};
     /*
@@ -410,7 +427,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       queueEcnWredThresholdSetup(!isEcn, {kQueueId}, config);
       // Include any config setup needed per test case
       if (setupFn.has_value()) {
-        (*setupFn)(config);
+        (*setupFn)(config, {kQueueId}, kTxPacketLen);
       }
       applyNewConfig(config);
 
@@ -485,11 +502,36 @@ class HwAqmTest : public HwLinkStateDependentTest {
   void runEcnThresholdTest() {
     constexpr auto kMarkedPackets{50};
     constexpr auto kThresholdBytes{utility::kQueueConfigAqmsEcnThresholdMinMax};
+    /*
+     * Broadcom platforms does ECN marking at the egress and not in
+     * MMU. ECN mark/no-mark decision is refreshed periodically, like
+     * for TH3/TH4 once in 0.5usec, TH in 1usec etc. This means, once
+     * ECN threshold is exceeded, packets will continue to be marked
+     * until the next refresh, which will result in more ECN marking
+     * during this test. Hence, apply a shaper on the queue to ensure
+     * packets are sent out one per 2 usec (500K pps), which is enough
+     * spacing of packets egressing to have ECN accounting done
+     * with minimal error. However, in prod devices, we should expect
+     * to see this +/- error with ECN marking.
+     */
+    auto shaperSetup = [&](cfg::SwitchConfig& config,
+                           std::vector<int> queueIds,
+                           const int txPacketLen) {
+      auto maxQueueShaperKbps = ceil(500000 * txPacketLen / 1000);
+      queueShaperAndBurstSetup(
+          queueIds,
+          config,
+          0,
+          maxQueueShaperKbps,
+          utility::kQueueConfigBurstSizeMinKb,
+          utility::kQueueConfigBurstSizeMaxKb);
+    };
     validateEcnWredThresholds(
         true /* isEcn */,
         kThresholdBytes,
         kMarkedPackets,
-        verifyEcnMarkedPacketCount);
+        verifyEcnMarkedPacketCount,
+        shaperSetup);
   }
 
   void runPerQueueWredDropStatsTest() {
@@ -558,7 +600,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
       scalingFactor = cfg::MMUScalingFactor::ONE_16TH;
     }
 
-    auto setupScalingFactor = [&](cfg::SwitchConfig& config) {
+    auto setupScalingFactor = [&](cfg::SwitchConfig& config,
+                                  std::vector<int> /* queueIds */,
+                                  const int /* txPktLen */) {
       if (scalingFactor.has_value()) {
         auto& queues = config.portQueueConfigs()["queue_config"];
         for (auto& queue : queues) {
@@ -610,6 +654,10 @@ TEST_F(HwAqmTest, verifyPerQueueWredDropStats) {
 
 TEST_F(HwAqmTest, verifyEcnTrafficNoDrop) {
   runEcnTrafficNoDropTest();
+}
+
+TEST_F(HwAqmTest, verifyEcnThreshold) {
+  runEcnThresholdTest();
 }
 
 } // namespace facebook::fboss
