@@ -38,7 +38,8 @@ struct LinkNeighborFields {
   1: LinkProtocol protocol = LinkProtocol.UNKNOWN;
   2: i16 localPort;
   3: i16 localVlan;
-  4: string srcMac;
+  // network byte order
+  4: i64 srcMac (cpp2.type = "std::uint64_t");
 
   5: LldpChassisIdType chassisIdType = LldpChassisIdType.RESERVED;
   6: LldpPortIdType portIdType = LldpPortIdType.RESERVED;

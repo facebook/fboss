@@ -54,27 +54,22 @@ enum class LinkNeighbor::CdpTlvType : uint16_t {
 
 LinkNeighbor::LinkNeighbor() {}
 
-void LinkNeighbor::setTTL(std::chrono::seconds seconds) {
-  receivedTTL_ = seconds;
-  expirationTime_ = std::chrono::steady_clock::now() + seconds;
-}
-
 std::string LinkNeighbor::humanReadableChassisId() const {
-  if (chassisIdType_ == lldp::LldpChassisIdType::MAC_ADDRESS) {
-    return humanReadableMac(chassisId_);
-  } else if (chassisIdType_ == lldp::LldpChassisIdType::NET_ADDRESS) {
-    return humanReadableNetAddr(chassisId_);
+  if (fields_.chassisIdType() == lldp::LldpChassisIdType::MAC_ADDRESS) {
+    return humanReadableMac(*fields_.chassisId());
+  } else if (fields_.chassisIdType() == lldp::LldpChassisIdType::NET_ADDRESS) {
+    return humanReadableNetAddr(*fields_.chassisId());
   }
-  return folly::humanify(chassisId_);
+  return folly::humanify(*fields_.chassisId());
 }
 
 std::string LinkNeighbor::humanReadablePortId() const {
-  if (portIdType_ == lldp::LldpPortIdType::MAC_ADDRESS) {
-    return humanReadableMac(portId_);
-  } else if (portIdType_ == lldp::LldpPortIdType::NET_ADDRESS) {
-    return humanReadableNetAddr(portId_);
+  if (fields_.portIdType() == lldp::LldpPortIdType::MAC_ADDRESS) {
+    return humanReadableMac(*fields_.portId());
+  } else if (fields_.portIdType() == lldp::LldpPortIdType::NET_ADDRESS) {
+    return humanReadableNetAddr(*fields_.portId());
   }
-  return folly::humanify(portId_);
+  return folly::humanify(*fields_.portId());
 }
 
 std::string LinkNeighbor::humanReadableMac(const std::string& data) {
@@ -119,10 +114,10 @@ bool LinkNeighbor::parseLldpPdu(
     return false;
   }
 
-  protocol_ = lldp::LinkProtocol::LLDP;
-  localPort_ = srcPort;
-  localVlan_ = vlan;
-  srcMac_ = srcMac;
+  fields_.protocol() = lldp::LinkProtocol::LLDP;
+  fields_.localPort() = srcPort;
+  fields_.localVlan() = vlan;
+  fields_.srcMac() = srcMac.u64NBO();
 
   bool chassisIdPresent{false};
   bool portIdPresent{false};
@@ -186,13 +181,13 @@ LinkNeighbor::LldpTlvType LinkNeighbor::parseLldpTlv(Cursor* cursor) {
       parseLldpTtl(cursor, length);
       break;
     case LldpTlvType::PORT_DESC:
-      portDescription_ = cursor->readFixedString(length);
+      fields_.portDescription() = cursor->readFixedString(length);
       break;
     case LldpTlvType::SYSTEM_NAME:
-      systemName_ = cursor->readFixedString(length);
+      fields_.systemName() = cursor->readFixedString(length);
       break;
     case LldpTlvType::SYSTEM_DESC:
-      systemDescription_ = cursor->readFixedString(length);
+      fields_.systemDescription() = cursor->readFixedString(length);
       break;
     case LldpTlvType::SYSTEM_CAPS:
       parseLldpSystemCaps(cursor, length);
@@ -211,9 +206,9 @@ void LinkNeighbor::parseLldpChassis(Cursor* cursor, uint16_t length) {
     throw std::out_of_range("LLDP chassis length must be at least 1");
   }
 
-  chassisIdType_ =
+  fields_.chassisIdType() =
       static_cast<lldp::LldpChassisIdType>(cursor->read<uint8_t>());
-  chassisId_ = cursor->readFixedString(length - 1);
+  fields_.chassisId() = cursor->readFixedString(length - 1);
 }
 
 void LinkNeighbor::parseLldpPortId(Cursor* cursor, uint16_t length) {
@@ -221,8 +216,9 @@ void LinkNeighbor::parseLldpPortId(Cursor* cursor, uint16_t length) {
     throw std::out_of_range("LLDP port length must be at least 1");
   }
 
-  portIdType_ = static_cast<lldp::LldpPortIdType>(cursor->read<uint8_t>());
-  portId_ = cursor->readFixedString(length - 1);
+  fields_.portIdType() =
+      static_cast<lldp::LldpPortIdType>(cursor->read<uint8_t>());
+  fields_.portId() = cursor->readFixedString(length - 1);
 }
 
 void LinkNeighbor::parseLldpTtl(Cursor* cursor, uint16_t length) {
@@ -239,8 +235,8 @@ void LinkNeighbor::parseLldpSystemCaps(Cursor* cursor, uint16_t length) {
     throw std::out_of_range("LLDP capabilities length must be 4");
   }
 
-  capabilities_ = cursor->readBE<uint16_t>();
-  enabledCapabilities_ = cursor->readBE<uint16_t>();
+  fields_.capabilities() = cursor->readBE<uint16_t>();
+  fields_.enabledCapabilities() = cursor->readBE<uint16_t>();
 }
 
 bool LinkNeighbor::parseCdpPdu(
@@ -255,10 +251,10 @@ bool LinkNeighbor::parseCdpPdu(
     return false;
   }
 
-  protocol_ = lldp::LinkProtocol::CDP;
-  localPort_ = srcPort;
-  localVlan_ = vlan;
-  srcMac_ = srcMac_;
+  fields_.protocol() = lldp::LinkProtocol::CDP;
+  fields_.localPort() = srcPort;
+  fields_.localVlan() = vlan;
+  fields_.srcMac() = srcMac.u64NBO();
 
   try {
     auto dsap = cursor->read<uint8_t>();
@@ -323,15 +319,15 @@ bool LinkNeighbor::parseCdpPayload(
 
     switch (type) {
       case CdpTlvType::DEVICE_ID:
-        chassisId_ = cursor->readFixedString(length);
+        fields_.chassisId() = cursor->readFixedString(length);
         chassisIdPresent = true;
         break;
       case CdpTlvType::PORT_ID:
-        portId_ = cursor->readFixedString(length);
+        fields_.portId() = cursor->readFixedString(length);
         portIdPresent = true;
         break;
       case CdpTlvType::SYSTEM_NAME:
-        systemName_ = cursor->readFixedString(length);
+        fields_.systemName() = cursor->readFixedString(length);
         break;
       default:
         cursor->skip(length);

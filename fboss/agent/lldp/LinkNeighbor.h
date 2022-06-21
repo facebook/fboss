@@ -4,6 +4,7 @@
 #include "fboss/agent/lldp/Lldp.h"
 #include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
+#include "folly/MacAddress.h"
 
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
@@ -28,32 +29,32 @@ struct LinkNeighbor {
    * Return the protocol over which this neighbor was seen.
    */
   lldp::LinkProtocol getProtocol() const {
-    return protocol_;
+    return *fields_.protocol();
   }
 
   /*
    * Get the local port on which this neighbor was seen.
    */
   PortID getLocalPort() const {
-    return localPort_;
+    return static_cast<PortID>(*fields_.localPort());
   }
 
   /*
    * Get the VLAN on which this neighbor was seen.
    */
   VlanID getLocalVlan() const {
-    return localVlan_;
+    return static_cast<VlanID>(*fields_.localVlan());
   }
 
   /*
    * Get this neighbor's source MAC address.
    */
   folly::MacAddress getMac() const {
-    return srcMac_;
+    return folly::MacAddress::fromNBO(*fields_.srcMac());
   }
 
   lldp::LldpChassisIdType getChassisIdType() const {
-    return chassisIdType_;
+    return *fields_.chassisIdType();
   }
 
   /*
@@ -66,11 +67,11 @@ struct LinkNeighbor {
    * format.
    */
   const std::string& getChassisId() const {
-    return chassisId_;
+    return *fields_.chassisId();
   }
 
   lldp::LldpPortIdType getPortIdType() const {
-    return portIdType_;
+    return *fields_.portIdType();
   }
 
   /*
@@ -83,21 +84,21 @@ struct LinkNeighbor {
    * format.
    */
   const std::string& getPortId() const {
-    return portId_;
+    return *fields_.portId();
   }
 
   /*
    * Get the capabilities bitmap.
    */
   uint16_t getCapabilities() const {
-    return capabilities_;
+    return *fields_.capabilities();
   }
 
   /*
    * Get the enabled capabilities bitmap.
    */
   uint16_t getEnabledCapabilities() const {
-    return enabledCapabilities_;
+    return *fields_.enabledCapabilities();
   }
 
   /*
@@ -106,7 +107,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getSystemName() const {
-    return systemName_;
+    return *fields_.systemName();
   }
 
   /*
@@ -115,7 +116,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getPortDescription() const {
-    return portDescription_;
+    return *fields_.portDescription();
   }
 
   /*
@@ -124,7 +125,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getSystemDescription() const {
-    return systemDescription_;
+    return *fields_.systemDescription();
   }
 
   /*
@@ -135,17 +136,18 @@ struct LinkNeighbor {
    * neighbor information expires.
    */
   std::chrono::seconds getTTL() const {
-    return receivedTTL_;
+    return std::chrono::seconds(*fields_.receivedTTL());
   }
 
   /*
    * Get the time at which this neighbor information expires.
    */
   std::chrono::steady_clock::time_point getExpirationTime() const {
-    return expirationTime_;
+    return std::chrono::steady_clock::time_point(
+        std::chrono::seconds(*fields_.expirationTime()));
   }
   bool isExpired(std::chrono::steady_clock::time_point now) const {
-    return now > expirationTime_;
+    return now > getExpirationTime();
   }
 
   /*
@@ -208,39 +210,41 @@ struct LinkNeighbor {
    * These are mostly useful for testing purposes.
    */
   void setProtocol(lldp::LinkProtocol protocol) {
-    protocol_ = protocol;
+    fields_.protocol() = protocol;
   }
   void setLocalPort(PortID port) {
-    localPort_ = port;
+    fields_.localPort() = port;
   }
   void setLocalVlan(VlanID vlan) {
-    localVlan_ = vlan;
+    fields_.localVlan() = vlan;
   }
   void setMac(folly::MacAddress mac) {
-    srcMac_ = mac;
+    fields_.srcMac() = mac.u64NBO();
   }
+
   void setChassisId(folly::StringPiece id, lldp::LldpChassisIdType type) {
-    chassisIdType_ = type;
-    chassisId_ = id.str();
+    fields_.chassisIdType() = type;
+    fields_.chassisId() = id.str();
   }
+
   void setPortId(folly::StringPiece id, lldp::LldpPortIdType type) {
-    portIdType_ = type;
-    portId_ = id.str();
+    fields_.portIdType() = type;
+    fields_.portId() = id.str();
   }
   void setCapabilities(uint16_t caps) {
-    capabilities_ = caps;
+    fields_.capabilities() = caps;
   }
   void setEnabledCapabilities(uint16_t caps) {
-    enabledCapabilities_ = caps;
+    fields_.enabledCapabilities() = caps;
   }
   void setSystemName(folly::StringPiece name) {
-    systemName_ = name.str();
+    fields_.systemName() = name.str();
   }
   void setPortDescription(folly::StringPiece desc) {
-    portDescription_ = desc.str();
+    fields_.portDescription() = desc.str();
   }
   void setSystemDescription(folly::StringPiece desc) {
-    systemDescription_ = desc.str();
+    fields_.systemDescription() = desc.str();
   }
 
   /*
@@ -248,7 +252,9 @@ struct LinkNeighbor {
    *
    * This also updates the expiration time to be the current time plus the TTL.
    */
-  void setTTL(std::chrono::seconds seconds);
+  void setTTL(std::chrono::seconds seconds) {
+    setTTL(seconds, std::chrono::steady_clock::now() + seconds);
+  }
 
   /*
    * Set the TTL and also explicitly set the expiration time.
@@ -256,8 +262,8 @@ struct LinkNeighbor {
   void setTTL(
       std::chrono::seconds seconds,
       std::chrono::steady_clock::time_point expiration) {
-    receivedTTL_ = seconds;
-    expirationTime_ = expiration;
+    fields_.receivedTTL() = seconds.count();
+    setExpirationTime(expiration);
   }
 
   /*
@@ -289,25 +295,13 @@ struct LinkNeighbor {
       folly::MacAddress srcMac,
       folly::io::Cursor* cursor);
 
-  // Data members
-  lldp::LinkProtocol protocol_{lldp::LinkProtocol::UNKNOWN};
-  PortID localPort_{0};
-  VlanID localVlan_{0};
-  folly::MacAddress srcMac_;
+  void setExpirationTime(std::chrono::steady_clock::time_point expiration) {
+    fields_.expirationTime() = std::chrono::duration_cast<std::chrono::seconds>(
+                                   expiration.time_since_epoch())
+                                   .count();
+  }
 
-  lldp::LldpChassisIdType chassisIdType_{lldp::LldpChassisIdType::RESERVED};
-  lldp::LldpPortIdType portIdType_{lldp::LldpPortIdType::RESERVED};
-  uint16_t capabilities_{0};
-  uint16_t enabledCapabilities_{0};
-
-  std::string chassisId_;
-  std::string portId_;
-  std::string systemName_;
-  std::string portDescription_;
-  std::string systemDescription_;
-
-  std::chrono::seconds receivedTTL_;
-  std::chrono::steady_clock::time_point expirationTime_;
+  lldp::LinkNeighborFields fields_;
 };
 
 } // namespace facebook::fboss
