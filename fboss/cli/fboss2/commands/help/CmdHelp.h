@@ -75,7 +75,7 @@ class CmdHelp {
     }
   }
 
-  void printHelpInfo(auto helpArg, std::ostream& out = std::cout) {
+  void printHelpInfo(std::string helpArg, std::ostream& out = std::cout) {
     const auto& helpTreeMapForObj = tree_[helpArg];
     for (const auto& [verbHelpPair, subCmds] : helpTreeMapForObj) {
       out << verbHelpPair.first << '\t' << verbHelpPair.second << std::endl;
