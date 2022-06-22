@@ -42,6 +42,33 @@ class BaseObjectArgType {
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
 };
 
+class CommunityList : public BaseObjectArgType {
+ public:
+  /* implicit */ CommunityList(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST;
+};
+
+class IPList : public BaseObjectArgType {
+ public:
+  /* implicit */ IPList(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
+};
+
+class IPV6List : public BaseObjectArgType {
+ public:
+  /* implicit */ IPV6List(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
+};
+
 class PortList : public BaseObjectArgType {
  public:
   /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {}
@@ -49,6 +76,34 @@ class PortList : public BaseObjectArgType {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+};
+
+class Message : public BaseObjectArgType {
+ public:
+  /* implicit */ Message(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+};
+
+class PeerIdList : public BaseObjectArgType {
+ public:
+  /* implicit */ PeerIdList(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST;
+};
+
+class DebugLevel : public BaseObjectArgType {
+ public:
+  /* implicit */ DebugLevel(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL;
 };
 
 class PrbsComponent : public BaseObjectArgType {
@@ -59,6 +114,30 @@ class PrbsComponent : public BaseObjectArgType {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
+};
+
+class PrbsState : public BaseObjectArgType {
+ public:
+  /* implicit */ PrbsState(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
+};
+
+class PortState : public BaseObjectArgType {
+ public:
+  /* implicit */ PortState(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE;
+};
+
+class FsdbPath : public BaseObjectArgType {
+ public:
+  /* implicit */ FsdbPath(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
 };
 
 // Called after CLI11 is initlized but before parsing, for any final
