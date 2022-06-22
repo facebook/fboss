@@ -3,6 +3,7 @@
 
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
