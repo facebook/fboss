@@ -1,7 +1,9 @@
 // Copyright 2021- Facebook. All rights reserved.
 
 #include "fboss/platform/fan_service/Main.h"
+#include "common/base/BuildInfo.h"
 #include "fboss/platform/fan_service/SetupThrift.h"
+
 //
 // GFLAGS Description : FLAGS_thrift_port
 //                      FLAGS_control_interval
@@ -26,6 +28,7 @@ int main(int argc, char** argv) {
   int rc = 0;
 
   // Parse Flags
+  gflags::SetVersionString(BuildInfo::toDebugString());
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   doFBInit(argc, argv);
