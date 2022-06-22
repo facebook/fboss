@@ -32,6 +32,35 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_FSDB_PATH,
 };
 
+class BaseObjectArgType {
+ public:
+  BaseObjectArgType() {}
+  /* implicit */ BaseObjectArgType(std::vector<std::string> v) : data_(v) {}
+  void validate() {}
+
+  std::vector<std::string> data_;
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+};
+
+class PortList : public BaseObjectArgType {
+ public:
+  /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+};
+
+class PrbsComponent : public BaseObjectArgType {
+ public:
+  /* implicit */ PrbsComponent(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+  void validate() {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
+};
+
 // Called after CLI11 is initlized but before parsing, for any final
 // initialization steps
 void postAppInit(int argc, char* argv[], CLI::App& app);
