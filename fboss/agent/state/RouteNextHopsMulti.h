@@ -39,7 +39,7 @@ namespace facebook::fboss {
  *
  */
 
-using ClientToNHopMap = boost::container::flat_map<ClientID, RouteNextHopEntry>;
+using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
 
 /**
  * Map form clientId -> RouteNextHopEntry
