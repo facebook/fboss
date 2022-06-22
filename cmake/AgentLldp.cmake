@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+
+add_fbthrift_cpp_library(
+  lldp_structs_cpp2
+  fboss/agent/lldp/lldp.thrift
+  OPTIONS
+    json
+)
+
 add_library(lldp
   fboss/agent/lldp/LinkNeighbor.cpp
   fboss/agent/lldp/LinkNeighborDB.cpp
@@ -10,12 +18,6 @@ add_library(lldp
 
 target_link_libraries(lldp
   fboss_types
-  Folly::folly
-)
-
-add_fbthrift_cpp_library(
   lldp_structs_cpp2
-  fboss/agent/lldp/lldp.thrift
-  OPTIONS
-    json
+  Folly::folly
 )

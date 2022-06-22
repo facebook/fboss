@@ -650,8 +650,6 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/mock/MockTxPacket.cpp
       fboss/agent/hw/mock/MockTestHandle.cpp
       fboss/agent/hw/sim/SimSwitch.cpp
-      fboss/agent/lldp/LinkNeighbor.cpp
-      fboss/agent/lldp/LinkNeighborDB.cpp
       fboss/agent/ndp/IPv6RouteAdvertiser.cpp
       fboss/agent/HwSwitch.cpp
       fboss/agent/IPHeaderV4.cpp
@@ -878,6 +876,7 @@ if (NOT SAI_ONLY)
       i2c_controller_stats_cpp2
       mpls_cpp2
       qsfp_cpp2
+      lldp
       async_logger
       common_utils
       common_file_utils
