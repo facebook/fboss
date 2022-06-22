@@ -273,6 +273,12 @@ struct SwitchSettingsFields {
   7: list<BlockedMacAddress> macAddrsToBlock;
 }
 
+struct RoutePrefix {
+  1: bool v6;
+  2: Address.BinaryAddress prefix;
+  3: byte mask;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;

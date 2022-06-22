@@ -409,6 +409,13 @@ TEST(Route, nexthopFromThriftAndDynamic) {
       util::fromThrift(nexthop));
 }
 
+TEST(RoutePrefix, Thrift) {
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
+  RouteV6::Prefix prefix20{IPAddressV6("1::10"), 64};
+  validateThriftyMigration<RouteV4::Prefix, true>(prefix10);
+  validateThriftyMigration<RouteV6::Prefix, true>(prefix20);
+}
+
 TEST(RouteNextHopEntry, toUnicastRouteDrop) {
   folly::CIDRNetwork nw{folly::IPAddress{"1::1"}, 64};
   auto unicastRoute = util::toUnicastRoute(

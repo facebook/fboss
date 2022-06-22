@@ -122,6 +122,46 @@ folly::dynamic Label::toFollyDynamic() const {
   return pfx;
 }
 
+template <typename AddrT>
+state::RoutePrefix RoutePrefix<AddrT>::toThrift() const {
+  state::RoutePrefix thriftPrefix{};
+  thriftPrefix.v6() = std::is_same_v<AddrT, folly::IPAddressV6>;
+  thriftPrefix.prefix() =
+      network::toBinaryAddress(folly::IPAddress(network.str()));
+  thriftPrefix.mask() = mask;
+  return thriftPrefix;
+}
+
+template <typename AddrT>
+RoutePrefix<AddrT> RoutePrefix<AddrT>::fromThrift(
+    const state::RoutePrefix& thriftPrefix) {
+  RoutePrefix<AddrT> prefix;
+  prefix.mask = *thriftPrefix.mask();
+  folly::IPAddress network = network::toIPAddress(*thriftPrefix.prefix());
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    prefix.network = network.asV6();
+  } else {
+    prefix.network = network.asV4();
+  }
+  return prefix;
+}
+
+template <typename AddrT>
+folly::dynamic RoutePrefix<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = dyn;
+  auto addr = ThriftyUtils::toThriftBinaryAddress(dyn[kAddress]);
+  newDyn["prefix"] = ThriftyUtils::toFollyDynamic(addr);
+  newDyn["v6"] = std::is_same_v<AddrT, folly::IPAddressV6>;
+  return newDyn;
+}
+template <typename AddrT>
+void RoutePrefix<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
+  auto ip = ThriftyUtils::toFollyIPAddress(dyn["prefix"]);
+  dyn[kAddress] = ThriftyUtils::toFollyDynamic(ip);
+  dyn.erase("prefix");
+  dyn.erase("v6");
+}
+
 Label Label::fromFollyDynamic(const folly::dynamic& prefixJson) {
   Label lbl;
   lbl.label = static_cast<int32_t>(prefixJson[kLabel].asInt());

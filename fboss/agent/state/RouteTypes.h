@@ -13,7 +13,9 @@
 #include <folly/FBString.h>
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -25,9 +27,12 @@ RouteForwardAction str2ForwardAction(const std::string& action);
  * Route prefix
  */
 template <typename AddrT>
-struct RoutePrefix {
-  AddrT network;
-  uint8_t mask;
+struct RoutePrefix
+    : public AnotherThriftyFields<state::RoutePrefix, RoutePrefix<AddrT>> {
+  AddrT network{};
+  uint8_t mask{};
+  RoutePrefix() {}
+  RoutePrefix(AddrT addr, uint8_t u8) : network(addr), mask(u8) {}
   std::string str() const {
     return folly::to<std::string>(network, "/", static_cast<uint32_t>(mask));
   }
@@ -35,6 +40,12 @@ struct RoutePrefix {
   folly::CIDRNetwork toCidrNetwork() const {
     return folly::CIDRNetwork{network.mask(mask), mask};
   }
+
+  state::RoutePrefix toThrift() const;
+  static RoutePrefix fromThrift(const state::RoutePrefix& prefix);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
   /*
    * Serialize to folly::dynamic
    */

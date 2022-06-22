@@ -489,7 +489,7 @@ RouteNextHopEntry RouteNextHopEntry::from(
     std::optional<AclLookupClass> classID) {
   std::vector<NextHopThrift> nhts;
   if (route.nextHops()->empty() && !route.nextHopAddrs()->empty()) {
-    nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs());
+    nhts = ::thriftNextHopsFromAddresses(*route.nextHopAddrs());
   } else {
     nhts = *route.nextHops();
   }
