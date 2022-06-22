@@ -38,12 +38,12 @@ struct RoutePrefix {
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamicLegacy() const;
 
   /*
    * Deserialize from folly::dynamic
    */
-  static RoutePrefix fromFollyDynamic(const folly::dynamic& prefixJson);
+  static RoutePrefix fromFollyDynamicLegacy(const folly::dynamic& prefixJson);
 
   static RoutePrefix fromString(std::string str);
 
@@ -76,10 +76,18 @@ struct Label {
    */
   folly::dynamic toFollyDynamic() const;
 
+  folly::dynamic toFollyDynamicLegacy() const {
+    return toFollyDynamic();
+  }
+
   /*
    * Deserialize from folly::dynamic
    */
   static Label fromFollyDynamic(const folly::dynamic& prefixJson);
+
+  static Label fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
+    return fromFollyDynamic(prefixJson);
+  }
 
   static Label fromString(std::string str) {
     Label lbl;

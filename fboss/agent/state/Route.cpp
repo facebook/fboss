@@ -37,7 +37,7 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 template <typename AddrT>
 folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
-  routeFields[kPrefix] = prefix.toFollyDynamic();
+  routeFields[kPrefix] = prefix.toFollyDynamicLegacy();
   routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
   routeFields[kFwdInfo] = fwd.toFollyDynamic();
   routeFields[kFlags] = flags;
@@ -51,7 +51,7 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
 template <typename AddrT>
 RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
-  RouteFields<AddrT> rt(Prefix::fromFollyDynamic(routeJson[kPrefix]));
+  RouteFields<AddrT> rt(Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]));
   rt.nexthopsmulti =
       RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
   rt.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);

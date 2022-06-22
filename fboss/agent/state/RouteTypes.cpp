@@ -69,7 +69,7 @@ bool RoutePrefix<AddrT>::operator>(const RoutePrefix& p2) const {
 }
 
 template <typename AddrT>
-folly::dynamic RoutePrefix<AddrT>::toFollyDynamic() const {
+folly::dynamic RoutePrefix<AddrT>::toFollyDynamicLegacy() const {
   folly::dynamic pfx = folly::dynamic::object;
   pfx[kAddress] = network.str();
   pfx[kMask] = mask;
@@ -77,7 +77,7 @@ folly::dynamic RoutePrefix<AddrT>::toFollyDynamic() const {
 }
 
 template <typename AddrT>
-RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamic(
+RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& pfxJson) {
   RoutePrefix pfx;
   pfx.network = AddrT(pfxJson[kAddress].stringPiece());
