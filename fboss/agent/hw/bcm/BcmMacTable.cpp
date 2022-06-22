@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
@@ -76,7 +77,38 @@ void BcmMacTable::programMacEntry(const MacEntry* macEntry, VlanID vlan) {
     CHECK(false) << "Invalid port type, only phys and aggr ports are supported";
   }
 
-  auto rv = bcm_l2_addr_add(hw_->getUnit(), &l2Addr);
+  // Check the l2 entry that's already programmed in the SDK. If that carries
+  // the same group (ClassID) and all the flags we try to program, skip invoking
+  // l2 addr add. On devices do not support l2 pending entry, there's no need to
+  // validate l2 entries through the bcm_l2_addr_add call.
+  // If this check is not in place, invoking l2_addr_add() on every l2 learn
+  // event would trigger a cycle of l2 entry being learned/remove, since SDK
+  // would handle the l2_addr_add() by a remove followed by an add (which in
+  // turn creates another cycle of learn/age events).
+  bcm_l2_addr_t programmedL2Addr;
+  auto rv = bcm_l2_addr_get(hw_->getUnit(), macBytes, vlan, &programmedL2Addr);
+  // Only check flags for l2 static and trunk.
+  uint32_t mask = BCM_L2_STATIC | BCM_L2_TRUNK_MEMBER;
+  if (BCM_SUCCESS(rv) &&
+      !hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY) &&
+      (mask & programmedL2Addr.flags) == (mask & l2Addr.flags) &&
+      l2Addr.group == programmedL2Addr.group &&
+      l2Addr.port == programmedL2Addr.port) {
+    auto macAddrStr = folly::sformat(
+        "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
+        l2Addr.mac[0],
+        l2Addr.mac[1],
+        l2Addr.mac[2],
+        l2Addr.mac[3],
+        l2Addr.mac[4],
+        l2Addr.mac[5]);
+    XLOG(DBG2) << "Skip programming mac entry " << macAddrStr
+               << " since SDK carries the same l2 entry";
+    return;
+  }
+
+  rv = bcm_l2_addr_add(hw_->getUnit(), &l2Addr);
   bcmCheckError(
       rv,
       "Unable to add mac entry: ",
@@ -88,6 +120,14 @@ void BcmMacTable::programMacEntry(const MacEntry* macEntry, VlanID vlan) {
 }
 
 void BcmMacTable::unprogramMacEntry(const MacEntry* macEntry, VlanID vlan) {
+  // If Pending L2 entry feature is not supported, meaning there's no real hw
+  // learning in the ASIC (l2 learning is implemented in the SDK layer, and
+  // there's no need to validate the pending state of l2 entries). Therefore, no
+  // need to remove mac entry from the SDK.
+  if (!hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
+    return;
+  }
   bcm_mac_t macBytes;
   macToBcm(macEntry->getMac(), &macBytes);
 
