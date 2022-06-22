@@ -176,6 +176,46 @@ class BetterThriftyFields : public ThriftyFields {
   ThriftT data;
 };
 
+/* class for objects which are not really fields for any node but are members of
+ * those fields. this class encapsulate typical methods used in thrifty
+ * migration. */
+template <typename ThriftT, typename FieldsT>
+struct AnotherThriftyFields : public ThriftyFields {
+  virtual ~AnotherThriftyFields() = default;
+
+  static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
+    if (ThriftyUtils::nodeNeedsMigration(dyn)) {
+      return fromJson(folly::toJson(FieldsT::migrateToThrifty(dyn)));
+    } else {
+      // Schema is up to date meaning there is no migration required
+      return fromJson(folly::toJson(dyn));
+    }
+  }
+
+  folly::dynamic toFollyDynamic() const {
+    auto dyn = folly::parseJson(this->str());
+    FieldsT::migrateFromThrifty(dyn);
+    return dyn;
+  }
+
+  static FieldsT fromJson(const folly::fbstring& jsonStr) {
+    auto inBuf =
+        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
+    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<ThriftT>(
+        folly::io::Cursor{&inBuf});
+    return FieldsT::fromThrift(obj);
+  }
+
+  std::string str() const {
+    auto* derived = dynamic_cast<const FieldsT*>(this);
+    CHECK(derived);
+    auto obj = derived->toThrift();
+    std::string jsonStr;
+    apache::thrift::SimpleJSONSerializer::serialize(obj, &jsonStr);
+    return jsonStr;
+  }
+};
+
 // Base class to convert NodeMaps to thrift
 template <typename NodeMap, typename TraitsT, typename ThriftyTraitsT>
 class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {

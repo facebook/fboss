@@ -435,7 +435,7 @@ void preparedMockPortConfig(
     std::optional<std::string> name = std::nullopt,
     cfg::PortState state = cfg::PortState::ENABLED);
 
-template <typename ThriftyNode>
+template <typename ThriftyNode, bool areFields = false>
 void validateThriftyMigration(const ThriftyNode& node) {
   folly::dynamic dyn = node.toFollyDynamic();
   EXPECT_NO_THROW(folly::toJson(dyn));
@@ -453,9 +453,16 @@ void validateThriftyMigration(const ThriftyNode& node) {
   EXPECT_NO_THROW(folly::toJson(dyn));
   auto backwardMigrationNode = ThriftyNode::fromFollyDynamicLegacy(dyn);
 
-  EXPECT_EQ(node, *newNode);
-  EXPECT_EQ(*newNode, *legacyNode);
-  EXPECT_EQ(*legacyNode, *forwardMigrationNode);
-  EXPECT_EQ(*forwardMigrationNode, *backwardMigrationNode);
+  if constexpr (!areFields) {
+    EXPECT_EQ(node, *newNode);
+    EXPECT_EQ(*newNode, *legacyNode);
+    EXPECT_EQ(*legacyNode, *forwardMigrationNode);
+    EXPECT_EQ(*forwardMigrationNode, *backwardMigrationNode);
+  } else {
+    EXPECT_EQ(node, newNode);
+    EXPECT_EQ(newNode, legacyNode);
+    EXPECT_EQ(legacyNode, forwardMigrationNode);
+    EXPECT_EQ(forwardMigrationNode, backwardMigrationNode);
+  }
 }
 } // namespace facebook::fboss
