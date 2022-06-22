@@ -1,7 +1,6 @@
 // Copyright 2021- Facebook. All rights reserved.
 
 #include "fboss/platform/fan_service/Main.h"
-#include "common/base/BuildInfo.h"
 #include "fboss/platform/fan_service/SetupThrift.h"
 
 //
@@ -27,8 +26,8 @@ int main(int argc, char** argv) {
   // Define the return code
   int rc = 0;
 
+  setVersionInfo();
   // Parse Flags
-  gflags::SetVersionString(BuildInfo::toDebugString());
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   doFBInit(argc, argv);

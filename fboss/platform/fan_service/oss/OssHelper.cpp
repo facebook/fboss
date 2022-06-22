@@ -35,3 +35,5 @@ bool initQsfpSvc(
     folly::EventBase& evb_) {
   return false;
 }
+
+void setVersionInfo() {}

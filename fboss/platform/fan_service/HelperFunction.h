@@ -23,3 +23,5 @@ bool initQsfpSvc(
     folly::EventBase& evb_);
 
 int doFBInit(int argc, char** argv);
+
+void setVersionInfo();
