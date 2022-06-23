@@ -262,8 +262,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
   }
 
   std::string kCounterName() const {
-    return utility::getCounterName(
-        folly::to<std::string>("dscp", kQueueId(), "_counter"));
+    return folly::to<std::string>("dscp", kQueueId(), "_counter");
   }
 
   int kQueueIdQosMap() const {

@@ -110,7 +110,7 @@ std::string getQueuePerHostTtlAclName() {
 }
 
 std::string getQueuePerHostTtlCounterName() {
-  return utility::getCounterName("ttlCounter");
+  return "ttlCounter";
 }
 
 std::string getL2DropAclName() {
