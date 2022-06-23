@@ -135,7 +135,8 @@ class SaiAclTableManager {
       std::vector<std::pair<cfg::CounterType, std::string>>>
   addAclCounter(
       const SaiAclTableHandle* aclTableHandle,
-      const cfg::TrafficCounter& trafficCount);
+      const cfg::TrafficCounter& trafficCount,
+      const SaiAclEntryTraits::AdapterHostKey& aclEntryAdapterHostKey);
   void removeAclCounter(const cfg::TrafficCounter& trafficCount);
 
   sai_uint32_t swPriorityToSaiPriority(int priority) const;

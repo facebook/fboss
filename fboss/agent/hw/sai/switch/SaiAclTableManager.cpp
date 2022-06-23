@@ -379,12 +379,28 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
   return saiActionTypeList;
 }
 
+bool isSameAclCounterAttributes(
+    const SaiAclCounterTraits::CreateAttributes& fromStore,
+    const SaiAclCounterTraits::CreateAttributes& fromSw) {
+  return GET_ATTR(AclCounter, TableId, fromStore) ==
+      GET_ATTR(AclCounter, TableId, fromSw) &&
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      GET_OPT_ATTR(AclCounter, Label, fromStore) ==
+      GET_OPT_ATTR(AclCounter, Label, fromSw) &&
+#endif
+      GET_OPT_ATTR(AclCounter, EnablePacketCount, fromStore) ==
+      GET_OPT_ATTR(AclCounter, EnablePacketCount, fromSw) &&
+      GET_OPT_ATTR(AclCounter, EnableByteCount, fromStore) ==
+      GET_OPT_ATTR(AclCounter, EnableByteCount, fromSw);
+}
+
 std::pair<
     std::shared_ptr<SaiAclCounter>,
     std::vector<std::pair<cfg::CounterType, std::string>>>
 SaiAclTableManager::addAclCounter(
     const SaiAclTableHandle* aclTableHandle,
-    const cfg::TrafficCounter& trafficCount) {
+    const cfg::TrafficCounter& trafficCount,
+    const SaiAclEntryTraits::AdapterHostKey& aclEntryAdapterHostKey) {
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
 
   SaiAclCounterTraits::Attributes::TableId aclTableId{
@@ -456,7 +472,34 @@ SaiAclTableManager::addAclCounter(
         std::nullopt, // counterBytes
   };
 
+  // The following logic is added temporarily for 5.1 -> 7.2 warmboot
+  // transition. Sai spec 1.10.2 introduces label attributes for acl
+  // counters, which requires agent detaching the old acl counter without
+  // label attributes from the acl entry and then reattach the new acl
+  // counter. In order to attach the new counter, agent needs to set counter
+  // attribute to SAI_NULL_OBJECT_ID, and then attach the newly created
+  // counter. Following is the logic to check if the attach/detach logic is
+  // needed.
+  // TODO(zecheng): remove the following logic when 7.2 upgrade completes.
   auto& aclCounterStore = saiStore_->get<SaiAclCounterTraits>();
+  auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
+  // If acl entry exists and already has different acl counter attached to
+  // it, detach the old acl counter and then attach the new one.
+  if (auto existingAclEntry = aclEntryStore.get(aclEntryAdapterHostKey)) {
+    auto oldActionCounter = AclCounterSaiId{
+        GET_OPT_ATTR(AclEntry, ActionCounter, existingAclEntry->attributes())
+            .getData()};
+    if (auto existingAclCounter = aclCounterStore.find(oldActionCounter)) {
+      if (!isSameAclCounterAttributes(
+              existingAclCounter->attributes(), attributes)) {
+        // Detach the old one
+        SaiAclEntryTraits::Attributes::ActionCounter actionCounterAttribute{
+            SAI_NULL_OBJECT_ID};
+        SaiApiTable::getInstance()->aclApi().setAttribute(
+            existingAclEntry->adapterKey(), actionCounterAttribute);
+      }
+    }
+  }
   auto saiAclCounter = aclCounterStore.setObject(adapterHostKey, attributes);
 
   return std::make_pair(saiAclCounter, aclCounterTypeAndName);
@@ -487,6 +530,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclTableHandle->aclTable->adapterKey()};
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
@@ -754,7 +798,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (action) {
     if (action.value().getTrafficCounter()) {
       std::tie(saiAclCounter, aclCounterTypeAndName) = addAclCounter(
-          aclTableHandle, action.value().getTrafficCounter().value());
+          aclTableHandle,
+          action.value().getTrafficCounter().value(),
+          adapterHostKey);
       aclActionCounter = SaiAclEntryTraits::Attributes::ActionCounter{
           AclEntryActionSaiObjectIdT(
               AclCounterSaiId{saiAclCounter->adapterKey()})};
@@ -904,8 +950,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                   << ((actionIsValid) ? "true" : "false");
     return AclEntrySaiId{0};
   }
-
-  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
 
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
