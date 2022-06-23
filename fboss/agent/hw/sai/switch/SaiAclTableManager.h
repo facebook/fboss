@@ -197,6 +197,8 @@ class SaiAclTableManager {
     return (getAclEntryHandle(table, priority) != nullptr);
   }
 
+  void removeUnclaimedAclCounter();
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;

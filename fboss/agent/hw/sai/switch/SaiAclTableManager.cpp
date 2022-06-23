@@ -1475,4 +1475,13 @@ void SaiAclTableManager::recreateAclTable(
   // entry attributes. some of the attributes may be unsupported in sdk or could
   // stretch the key width beyind what's supported.
 }
+
+void SaiAclTableManager::removeUnclaimedAclCounter() {
+  saiStore_->get<SaiAclCounterTraits>().removeUnclaimedWarmbootHandlesIf(
+      [](const auto& aclCounter) {
+        aclCounter->release();
+        return true;
+      });
+}
+
 } // namespace facebook::fboss

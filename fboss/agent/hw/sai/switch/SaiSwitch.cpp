@@ -242,6 +242,13 @@ HwInitResult SaiSwitch::initImpl(
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     managerTable_->fdbManager().removeUnclaimedDynanicEntries();
     managerTable_->hashManager().removeUnclaimedDefaultHash();
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
+    // Therefore, counters created before sai spec 1.10.2 will be treated as
+    // unclaimed since they have no label (and SDK gives default values to the
+    // label field).
+    managerTable_->aclTableManager().removeUnclaimedAclCounter();
+#endif
     if (bootType_ == BootType::WARM_BOOT) {
       saiStore_->printWarmbootHandles();
       if (FLAGS_check_wb_handles == true) {
