@@ -8,9 +8,7 @@
 namespace facebook::fboss {
 
 struct CmdSetPortTraits : public BaseCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = std::vector<std::string>;
+  using ObjectArgType = utils::PortList;
   using RetType = std::string;
 };
 
@@ -18,7 +16,7 @@ class CmdSetPort : public CmdHandler<CmdSetPort, CmdSetPortTraits> {
  public:
   RetType queryClient(
       const HostInfo& /* hostInfo */,
-      const std::vector<std::string>& /* queriedPortIds */) {
+      const ObjectArgType& /* queriedPortIds */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
     return RetType();
