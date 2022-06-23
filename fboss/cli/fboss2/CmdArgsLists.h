@@ -37,7 +37,13 @@ class CmdArgsLists {
   Types getTypedArgs() {
     const auto& unfiltered =
         utils::arrayToTuple<std::tuple_size_v<UnfilteredTypes>>(data_);
-    return utils::filterTupleMonostates<UnfilteredTypes>(unfiltered);
+    const auto& untyped =
+        utils::filterTupleMonostates<UnfilteredTypes>(unfiltered);
+    // We're getting implicit conversion from std::vector<std::string> to the
+    // corresponding type eg: std::tuple<std::vector<std::string>,
+    // std::vector<std::string>> -> std::tuple<utils::PortList,
+    // utils::PortState>
+    return untyped;
   }
 
  private:

@@ -10,7 +10,9 @@
 #pragma once
 
 #include <CLI/CLI.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <folly/IPAddress.h>
+#include <folly/String.h>
 #include <string>
 #include <variant>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
@@ -36,7 +38,38 @@ class BaseObjectArgType {
  public:
   BaseObjectArgType() {}
   /* implicit */ BaseObjectArgType(std::vector<std::string> v) : data_(v) {}
-  void validate() {}
+  using iterator = typename std::vector<std::string>::iterator;
+  using const_iterator = typename std::vector<std::string>::const_iterator;
+  using size_type = typename std::vector<std::string>::size_type;
+
+  const std::vector<std::string> data() const {
+    return data_;
+  }
+
+  std::string& operator[](int index) {
+    return data_[index];
+  }
+
+  iterator begin() {
+    return data_.begin();
+  }
+  iterator end() {
+    return data_.end();
+  }
+  const_iterator begin() const {
+    return data_.begin();
+  }
+  const_iterator end() const {
+    return data_.end();
+  }
+
+  size_type size() const {
+    return data_.size();
+  }
+
+  bool empty() const {
+    return data_.empty();
+  }
 
   std::vector<std::string> data_;
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
@@ -46,7 +79,6 @@ class CommunityList : public BaseObjectArgType {
  public:
   /* implicit */ CommunityList(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST;
@@ -55,7 +87,6 @@ class CommunityList : public BaseObjectArgType {
 class IPList : public BaseObjectArgType {
  public:
   /* implicit */ IPList(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
 };
@@ -63,7 +94,6 @@ class IPList : public BaseObjectArgType {
 class IPV6List : public BaseObjectArgType {
  public:
   /* implicit */ IPV6List(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
@@ -72,7 +102,6 @@ class IPV6List : public BaseObjectArgType {
 class PortList : public BaseObjectArgType {
  public:
   /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
@@ -81,7 +110,6 @@ class PortList : public BaseObjectArgType {
 class Message : public BaseObjectArgType {
  public:
   /* implicit */ Message(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 };
@@ -90,7 +118,6 @@ class PeerIdList : public BaseObjectArgType {
  public:
   /* implicit */ PeerIdList(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST;
@@ -100,7 +127,6 @@ class DebugLevel : public BaseObjectArgType {
  public:
   /* implicit */ DebugLevel(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL;
@@ -110,7 +136,6 @@ class PrbsComponent : public BaseObjectArgType {
  public:
   /* implicit */ PrbsComponent(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
@@ -119,23 +144,46 @@ class PrbsComponent : public BaseObjectArgType {
 class PrbsState : public BaseObjectArgType {
  public:
   /* implicit */ PrbsState(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
 };
 
 class PortState : public BaseObjectArgType {
  public:
-  /* implicit */ PortState(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
+  /* implicit */ PortState(std::vector<std::string> v) : BaseObjectArgType(v) {
+    if (v.empty()) {
+      throw std::runtime_error(
+          "Incomplete command, expecting 'state <enable|disable>'");
+    }
+    if (v.size() != 1) {
+      throw std::runtime_error(folly::to<std::string>(
+          "Unexpected state '",
+          folly::join<std::string, std::vector<std::string>>(" ", v),
+          "', expecting 'enable|disable'"));
+    }
 
+    portState = getPortState(v[0]);
+  }
+  bool portState;
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE;
+
+ private:
+  bool getPortState(std::string& v) {
+    auto state = boost::to_upper_copy(v);
+    if (state == "ENABLE") {
+      return true;
+    }
+    if (state == "DISABLE") {
+      return false;
+    }
+    throw std::runtime_error(folly::to<std::string>(
+        "Unexpected state '", v, "', expecting 'enable|disable'"));
+  }
 };
 
 class FsdbPath : public BaseObjectArgType {
  public:
   /* implicit */ FsdbPath(std::vector<std::string> v) : BaseObjectArgType(v) {}
-  void validate() {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
 };
