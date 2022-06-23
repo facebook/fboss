@@ -260,9 +260,4 @@ uint64_t getAclInOutPackets(
   return getAclCounterStats(hw, statName, cfg::CounterType::PACKETS);
 }
 
-std::string getCounterName(std::string counterName) {
-  // See SAI test definition on why this function is needed for now.
-  return counterName;
-}
-
 } // namespace facebook::fboss::utility
