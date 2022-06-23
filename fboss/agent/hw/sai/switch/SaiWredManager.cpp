@@ -72,16 +72,4 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   return attrs;
 }
 
-// CSP CS00012207175
-// Currently the sai implementation returns the incorrect default drop
-// probability. We workaround by explicitly removing all wred profile and
-// recreate them.
-void SaiWredManager::removeUnclaimedWredProfile() {
-  saiStore_->get<SaiWredTraits>().removeUnclaimedWarmbootHandlesIf(
-      [](const auto& wred) {
-        wred->release();
-        return true;
-      });
-}
-
 } // namespace facebook::fboss
