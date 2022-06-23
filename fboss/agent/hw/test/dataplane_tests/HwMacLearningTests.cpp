@@ -430,6 +430,26 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  // After the initial sw learning, expect no more l2 udpate as aging is
+  // disabled.
+  void testSwLearningNoCycleHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
+      induceMacLearning(portDescr);
+    };
+
+    // Verify no more l2 callbacks after the inital one
+    auto verify = [this, portDescr]() {
+      // Wait for 3 updates up to 15 seconds.
+      EXPECT_LE(l2LearningObserver_.waitForLearningUpdates(3, 15).size(), 1);
+    };
+
+    // MACs learned should be preserved across warm boot
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void testSwAgingHelper(PortDescriptor portDescr) {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
@@ -683,6 +703,10 @@ TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
 
 TEST_F(HwMacSwLearningModeTest, VerifySwLearningForPort) {
   testSwLearningHelper(physPortDescr());
+}
+
+TEST_F(HwMacSwLearningModeTest, VerifySwLearningForPortNoCycle) {
+  testSwLearningNoCycleHelper(physPortDescr());
 }
 
 TEST_F(HwMacSwLearningModeTest, VerifySwLearningForTrunk) {
