@@ -10,6 +10,9 @@
 #pragma once
 
 #include <CLI/CLI.hpp>
+#include <thrift/lib/cpp2/visitation/for_each.h>
+#include <thrift/lib/cpp2/visitation/metadata.h>
+#include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
@@ -89,12 +92,22 @@ class CmdHandler {
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
 
+  using ThriftField = apache::thrift::metadata::ThriftField;
+  using ThriftType = apache::thrift::metadata::ThriftType;
+  using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
+
+  using ValidFilterMapType = std::unordered_map<
+      std::string_view,
+      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
+
   void run();
 
-  const std::unordered_map<
-      std::string_view,
-      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
-  getValidFilters() {
+  bool isFilterable();
+
+  template <typename CmdThriftStructType>
+  const ValidFilterMapType getValidFiltersGeneric();
+
+  const ValidFilterMapType getValidFilters() {
     return {};
   }
 

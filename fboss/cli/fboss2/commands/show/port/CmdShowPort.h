@@ -16,6 +16,7 @@
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -31,7 +32,6 @@ struct CmdShowPortTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowPortModel;
-  static constexpr std::array<std::string_view, 1> FILTERS = {"LinkState"};
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
@@ -64,10 +64,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return createModel(portEntries, transceiverEntries, queriedPorts);
   }
 
-  const std::unordered_map<
-      std::string_view,
-      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
-  getValidFilters() {
+  const ValidFilterMapType getValidFilters() {
+    // TODO(surabhi236): replace with thrift generated map.
+
     return {
         {"linkState",
          std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
