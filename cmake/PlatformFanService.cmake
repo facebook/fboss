@@ -21,6 +21,7 @@ add_library(fan_service_lib
 target_link_libraries(fan_service_lib
   log_thrift_call
   product_info
+  common_file_utils
   platform_utils
   fan_config_structs_types_cpp2
   Folly::folly

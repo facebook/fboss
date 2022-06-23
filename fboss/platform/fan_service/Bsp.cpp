@@ -3,6 +3,7 @@
 // Implementation of Bsp class. Refer to .h for functional description
 #include "Bsp.h"
 #include <string>
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 // Additional FB helper funtion
 #include "common/time/Time.h"
@@ -398,13 +399,7 @@ float Bsp::getSensorDataSysfs(std::string path) {
 float Bsp::readSysfs(std::string path) const {
   float retVal;
   std::ifstream juicejuice(path);
-  std::string buf;
-  try {
-    std::getline(juicejuice, buf);
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to read sysfs path " << path;
-    throw e;
-  }
+  std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);
   } catch (std::exception& e) {
@@ -416,19 +411,7 @@ float Bsp::readSysfs(std::string path) const {
 
 bool Bsp::writeSysfs(std::string path, int value) {
   std::string valueStr = std::to_string(value);
-  bool success = true;
-  try {
-    std::ofstream out(path);
-    if (out.is_open()) {
-      out << valueStr;
-      out.close();
-    } else {
-      success = false;
-    }
-  } catch (std::exception& e) {
-    success = false;
-  }
-  return success;
+  return facebook::fboss::writeSysfs(path, valueStr);
 }
 
 bool Bsp::setFanPwmSysfs(std::string path, int pwm) {

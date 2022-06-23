@@ -33,6 +33,16 @@ void createDir(folly::StringPiece path);
  */
 bool checkFileExists(const std::string& filename);
 
+/*
+ * Read from file system
+ */
+std::string readSysfs(const std::string& path);
+
+/*
+ * Write to file system
+ */
+bool writeSysfs(const std::string& path, const std::string& val);
+
 boost::filesystem::recursive_directory_iterator recursive_directory_iterator(
     const std::string& path);
 } // namespace facebook::fboss
